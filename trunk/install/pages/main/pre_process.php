@@ -67,6 +67,7 @@ switch ($_REQUEST['action']) {
 		// check for decline
 		if ($_POST['license'] == 'disagree') {
 			header('location: http://www.google.com');
+			exit;
 		}
 		// start the checks for minimum requirements
 		//PHP Version Check
@@ -140,11 +141,11 @@ switch ($_REQUEST['action']) {
 		$srvr_http       = db_prepare_input($_POST['srvr_http']);
 		$use_ssl         = $_POST['use_ssl'] ? 'true' : 'false';
 		$srvr_https      = db_prepare_input($_POST['srvr_https']);
-		$db_host         = db_prepare_input($_POST['db_host']);
+		$db_host         = getenv('DB_HOST')     ?: db_prepare_input($_POST['db_host']);
 		$db_prefix       = db_prepare_input($_POST['db_prefix']);
-		$db_name         = db_prepare_input($_POST['db_name']);
-		$db_username     = db_prepare_input($_POST['db_username']);
-		$db_password     = db_prepare_input($_POST['db_password']);
+		$db_name         = getenv('DB_NAME')     ?: db_prepare_input($_POST['db_name']);
+		$db_username     = getenv('DB_USER')     ?: db_prepare_input($_POST['db_username']);
+		$db_password     = getenv('DB_PASSWORD') ?: db_prepare_input($_POST['db_password']);
 		$fy_month        = db_prepare_input($_POST['fy_month']);
 		$fy_year         = db_prepare_input($_POST['fy_year']);
 

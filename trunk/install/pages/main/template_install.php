@@ -92,18 +92,15 @@
 	<td><?php echo html_input_field('srvr_https', $_POST['srvr_https'] ? $_POST['srvr_https'] : $srvr_https); ?></td>
    </tr>
 
+<?php if (!getenv('DB_HOST')): ?>
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_DB_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_DB_HOST; ?></td>
-	<td><?php echo html_input_field('db_host', $_POST['db_host'] ? $_POST['db_host'] : 'localhost'); ?></td>
+	<td><?php echo html_input_field('db_host', $_POST['db_host'] ?: 'localhost'); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_DB_NAME; ?></td>
 	<td><?php echo html_input_field('db_name', $_POST['db_name']); ?></td>
-   </tr>
-   <tr>
-	<td><?php echo TEXT_DB_PREFIX; ?></td>
-	<td><?php echo html_input_field('db_prefix', $_POST['db_prefix']); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_DB_USER; ?></td>
@@ -113,6 +110,11 @@
 	<td><?php echo TEXT_DB_PASSWORD; ?></td>
 	<td><?php echo html_password_field('db_password'); ?></td>
    </tr>
+   <tr>
+	<td><?php echo TEXT_DB_PREFIX; ?></td>
+	<td><?php echo html_input_field('db_prefix', $_POST['db_prefix']); ?></td>
+   </tr>
+<?php endif; ?>
 
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_FISCAL_INFO; ?></th></tr>
    <tr>
