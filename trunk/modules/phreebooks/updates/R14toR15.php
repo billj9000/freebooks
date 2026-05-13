@@ -35,10 +35,8 @@
 // Release 1.4 to 1.5
 
 // add field inactive to table users
-$fields = mysql_list_fields(DB_DATABASE, TABLE_USERS);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('inactive', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD inactive ENUM('0','1') NOT NULL DEFAULT '0' AFTER admin_name");
 }

@@ -34,10 +34,8 @@
 // Release 1.5 to 1.6
 
 // change the name of the field dept_rep_id to admin_id, add rep_id field
-$fields = mysql_list_fields(DB_DATABASE, TABLE_JOURNAL_MAIN);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_JOURNAL_MAIN);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('admin_id', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " CHANGE dept_rep_id admin_id INT( 11 ) NOT NULL DEFAULT '0'");
   $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " ADD rep_id INT( 11 ) NOT NULL DEFAULT '0' AFTER admin_id");
@@ -72,10 +70,8 @@ if (!defined('AR_SHOW_CONTACT_STATUS')) {
   $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " CHANGE shipper_code shipper_code VARCHAR( 20 ) NOT NULL DEFAULT ':'");
 }
 
-$fields = mysql_list_fields(DB_DATABASE, TABLE_TAX_RATES);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_TAX_RATES);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('type', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_TAX_RATES . " ADD type VARCHAR(1) NOT NULL DEFAULT 'c' AFTER tax_rate_id");
   $db->Execute("ALTER TABLE " . TABLE_TAX_AUTH  . " ADD type VARCHAR(1) NOT NULL DEFAULT 'c' AFTER tax_auth_id");

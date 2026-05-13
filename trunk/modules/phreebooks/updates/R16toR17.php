@@ -27,10 +27,8 @@
 
 // Release 1.6 to 1.7
 // may have been left out if svn update from 1.3.1 to 1.4 fro final release
-$fields = mysql_list_fields(DB_DATABASE, TABLE_INVENTORY_HISTORY);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_INVENTORY_HISTORY);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('store_id', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_INVENTORY_HISTORY   . " ADD store_id INT(11) NOT NULL DEFAULT '0' AFTER ref_id");
   $db->Execute("ALTER TABLE " . TABLE_INVENTORY_HISTORY   . " ADD INDEX (store_id)");
@@ -39,18 +37,14 @@ if (!in_array('store_id', $field_array)) {
 }
 
 // to fix bug in R1.6 new installs where this field was left out
-$fields = mysql_list_fields(DB_DATABASE, TABLE_TAX_AUTH);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_TAX_AUTH);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('type', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_TAX_AUTH  . " ADD type VARCHAR(1) NOT NULL DEFAULT 'c' AFTER tax_auth_id");
 }
 
-$fields = mysql_list_fields(DB_DATABASE, TABLE_INVENTORY_HISTORY);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_INVENTORY_HISTORY);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('journal_id', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_INVENTORY_HISTORY  . " ADD journal_id INT(2) NOT NULL DEFAULT '6' AFTER store_id");
   $db->Execute("ALTER TABLE " . TABLE_INVENTORY_HISTORY  . " ADD INDEX (journal_id)");

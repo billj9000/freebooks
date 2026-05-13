@@ -3,7 +3,6 @@
 // |                   PhreeBooks Open Source ERP                    |
 // +-----------------------------------------------------------------+
 // | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,10 +25,8 @@
 	$db->Execute("alter table " . TABLE_JOURNAL_MAIN . " change purch_order_id purch_order_id VARCHAR(24) NULL DEFAULT NULL");
 
 	// add three missing fields to the current status table
-	$fields = mysql_list_fields(DB_DATABASE, TABLE_CURRENT_STATUS);
-	$columns = mysql_num_fields($fields);
-	$field_array = array();
-	for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+	$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_CURRENT_STATUS);
+	$field_array = array_column($result->result, 'Field');
 	if (!in_array('next_cm_num', $field_array)) {
 	  $db->Execute("alter table " . TABLE_CURRENT_STATUS . " add next_cm_num VARCHAR(16) NOT NULL");
 	  $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_cm_num = 'CM1000'");
@@ -53,27 +50,21 @@
   // Release 1.1 to 1.2
   if ($db_release == '1.1') { // go to Release 1.2
     // add date field to track actual package arrival
-	$fields = mysql_list_fields(DB_DATABASE, TABLE_SHIPPING_LOG);
-	$columns = mysql_num_fields($fields);
-	$field_array = array();
-	for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+	$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_SHIPPING_LOG);
+	$field_array = array_column($result->result, 'Field');
 	if (!in_array('actual_date', $field_array)) {
 	  $db->Execute("alter table " . TABLE_SHIPPING_LOG . " ADD actual_date DATE NOT NULL DEFAULT '0000-00-00' after deliver_date");
 	}
 
-	$fields = mysql_list_fields(DB_DATABASE, TABLE_JOURNAL_MAIN);
-	$columns = mysql_num_fields($fields);
-	$field_array = array();
-	for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+	$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_JOURNAL_MAIN);
+	$field_array = array_column($result->result, 'Field');
 	if (in_array('recur_remain', $field_array)) {
 		$db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " DROP recur_times");
 		$db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " CHANGE recur_remain recur_id INT( 11 ) NULL DEFAULT NULL");
 	}
 
-	$fields = mysql_list_fields(DB_DATABASE, TABLE_INVENTORY_HISTORY);
-	$columns = mysql_num_fields($fields);
-	$field_array = array();
-	for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+	$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_INVENTORY_HISTORY);
+	$field_array = array_column($result->result, 'Field');
 	if (in_array('usage_id', $field_array)) {
 		$db->Execute("ALTER TABLE " . TABLE_INVENTORY_HISTORY . " DROP usage_id");
 		$db->Execute("CREATE TABLE " . TABLE_INVENTORY_COGS_USAGE  ." (
@@ -86,7 +77,7 @@
 		  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT = 'Relates inventory usage with inventory purchase history'");
 	}
 
-	if (!mysql_num_rows(mysql_query("SHOW TABLES LIKE '" . TABLE_INVENTORY_MS_LIST . "'"))) {
+	if ($db->Execute("SHOW TABLES LIKE '" . TABLE_INVENTORY_MS_LIST . "'")->RecordCount() == 0) {
 		$db->Execute("CREATE TABLE " . TABLE_INVENTORY_MS_LIST . " (
 		  id int(11) NOT NULL auto_increment,
 		  sku varchar(15) NOT NULL DEFAULT '',
@@ -98,7 +89,7 @@
 		  ) ENGINE=InnoDB CHARSET=latin1 COMMENT = 'Holds inventory master stock attribute information';");
 	}
 
-	if (mysql_num_rows(mysql_query("SHOW TABLES LIKE '" . TABLE_ADDRESS_FORMAT . "'"))) {
+	if ($db->Execute("SHOW TABLES LIKE '" . TABLE_ADDRESS_FORMAT . "'")->RecordCount() > 0) {
 		$db->Execute("DROP TABLE " . TABLE_ADDRESS_FORMAT);
 	}
 
@@ -108,10 +99,8 @@
 				   ('Account Email Address Field Required', 'ADDRESS_BOOK_EMAIL_REQUIRED', '0', 'Whether or not to require the email address field to be entered in accounts setup (vendors, customers, employees)', '7', '9', NULL , '2006-10-04 00:00:00', NULL , 'cfg_keyed_select_option(array(0 =&gt;''false'', 1=&gt; ''true''),');");
 	}
 
-	$fields = mysql_list_fields(DB_DATABASE, TABLE_ZONES);
-	$columns = mysql_num_fields($fields);
-	$field_array = array();
-	for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+	$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_ZONES);
+	$field_array = array_column($result->result, 'Field');
 	if (in_array('countries_iso_code_2', $field_array)) {
 		$db->Execute("ALTER TABLE " . TABLE_ZONES . " DROP countries_iso_code_2, DROP zone_country_id");
 		$db->Execute("ALTER TABLE " . TABLE_ZONES . " DROP INDEX countries_iso_code_2");
@@ -174,7 +163,7 @@
   // Release 1.3 to 1.3.1
   if ($db_release == '1.3') { // go to Release 1.3.1
 
-	if (!mysql_num_rows(mysql_query("SHOW TABLES LIKE '" . TABLE_ACCOUNTS_NOTES . "'"))) {
+	if ($db->Execute("SHOW TABLES LIKE '" . TABLE_ACCOUNTS_NOTES . "'")->RecordCount() == 0) {
 	  $db->Execute("CREATE TABLE " . TABLE_ACCOUNTS_NOTES . " (
 	    id int(11) NOT NULL auto_increment,
 	    notes text,
@@ -202,20 +191,16 @@ if (!defined('ENABLE_MULTI_CURRENCY')) {
            ( 'Enable Multi-Branch Displays', 'ENABLE_MULTI_BRANCH', '0', 'Enable multiple branch functionality.<br />If No is selected, only one company location will be assumed.', '1', '18', NULL , '2008-01-21 00:00:00', NULL , 'cfg_keyed_select_option(array(0 =>\'No\', 1=>\'Yes\'),' );");
 }
 
-$fields = mysql_list_fields(DB_DATABASE, TABLE_JOURNAL_MAIN);
-$columns = mysql_num_fields($fields);
-$field_array[] = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_JOURNAL_MAIN);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('currencies_code', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " ADD currencies_code CHAR(3) NOT NULL DEFAULT '" . DEFAULT_CURRENCY . "' AFTER total_amount ,
     ADD currencies_value DOUBLE NOT NULL DEFAULT '1.0' AFTER currencies_code ;");
 }
 
 // add a new field to the current status table
-$fields = mysql_list_fields(DB_DATABASE, TABLE_CURRENT_STATUS);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_CURRENT_STATUS);
+$field_array = array_column($result->result, 'Field');
 if (!in_array('next_vcm_num', $field_array)) {
   $db->Execute("ALTER TABLE " . TABLE_CURRENT_STATUS . " ADD next_vcm_num VARCHAR(16) NOT NULL AFTER next_cm_num");
   $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_vcm_num = 'VCM1000'");
@@ -270,10 +255,8 @@ if (!defined('ENABLE_SHIPPING_FUNCTIONS')) {
 
 }
 
-$fields = mysql_list_fields(DB_DATABASE, TABLE_ACCOUNTS);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_ACCOUNTS);
+$field_array = array_column($result->result, 'Field');
 if (in_array('telephone1', $field_array)) {
   $sql = "select c.id, c.telephone1, c.telephone2, c.fax, c.email, c.website, a.address_id
 		from " . TABLE_ACCOUNTS . " c left join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id
@@ -327,10 +310,8 @@ if (in_array('telephone1', $field_array)) {
 }
 
 // convert the reports to new format and modify db
-$fields = mysql_list_fields(DB_DATABASE, TABLE_REPORTS);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_REPORTS);
+$field_array = array_column($result->result, 'Field');
 if (in_array('papersize', $field_array)) {
 	$result = $db->Execute("select * from " . TABLE_REPORTS);
 	while (!$result->EOF) {
@@ -396,15 +377,13 @@ if (!defined('DEBUG')) {
     VALUES ( 'Enable Debug Trace File Generation', 'DEBUG', '0', 'Enable trace generation for debug purposes.<br />If Yes is selected, an additional menu will be added to the Tools menu to download the trace information to help debug posting problems.', '20', '99', NULL , '2008-01-21 00:00:00', NULL , 'cfg_keyed_select_option(array(0 =>\'No\', 1=>\'Yes\'),' );");
 }
 
-if (mysql_num_rows(mysql_query("SHOW TABLES LIKE '" . TABLE_ACCOUNTS . "'"))) {
+if ($db->Execute("SHOW TABLES LIKE '" . TABLE_ACCOUNTS . "'")->RecordCount() > 0) {
   $db->Execute("RENAME TABLE " . TABLE_ACCOUNTS . " TO " . TABLE_CONTACTS . ";");
 }
 
 // fields added for branch support
-$fields = mysql_list_fields(DB_DATABASE, TABLE_INVENTORY_HISTORY);
-$columns = mysql_num_fields($fields);
-$field_array = array();
-for ($i = 0; $i < $columns; $i++) $field_array[] = mysql_field_name($fields, $i);
+$result = $db->Execute("SHOW COLUMNS FROM " . TABLE_INVENTORY_HISTORY);
+$field_array = array_column($result->result, 'Field');
 //if (!in_array('branch_id', $field_array)) {
 if (false) {
   $db->Execute("ALTER TABLE " . TABLE_INVENTORY_HISTORY   . " ADD store_id INT(11) NOT NULL DEFAULT '0' AFTER ref_id");
