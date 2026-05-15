@@ -84,7 +84,7 @@ foreach ($payment_modules as $key => $pmts) {
   }
 }
 //check if setting are right for usage of phreepos 
-if(count($payment_modules) < 1 ){
+if(empty($payment_modules) ){
 	$messageStack->add(ERROR_NO_PAYMENT_METHODES, 'error');
 	gen_redirect(html_href_link(FILENAME_DEFAULT, '', 'SSL'));
 }

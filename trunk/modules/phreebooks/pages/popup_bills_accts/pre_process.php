@@ -24,8 +24,7 @@ require(DIR_FS_WORKING . 'functions/phreebooks.php');
 define('JOURNAL_ID',   $_GET['jID']);
 define('ACCOUNT_TYPE', $_GET['type']);
 switch (JOURNAL_ID) {
-	default:
-	case 18: 
+	case 18:
 		$terms_type = 'AR';
 		$default_purchase_invoice_id = 'DP' . date('Ymd', time());
 		break;

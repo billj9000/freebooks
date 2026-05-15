@@ -115,7 +115,7 @@ class queryFactory {
             $obj->result     = $stmt->columnCount() > 0 ? $stmt->fetchAll() : [];
             $obj->_load_cursor();
         } catch (PDOException $e) {
-            $page = isset($_POST['page']) ? $_POST['page'] : (isset($_GET['page']) ? $_GET['page'] : '');
+            $page = $_POST['page'] ?? $_GET['page'] ?? '';
             if ($page === 'ajax') {
                 if (method_exists($messageStack, 'debug')) {
                     $messageStack->debug("\n\nThe failing sql was: " . $zf_sql);
@@ -133,11 +133,11 @@ class queryFactory {
                     $messageStack->add('The last transaction had a SQL database error.', 'error');
                     gen_redirect(html_href_link(FILENAME_DEFAULT, 'cat=phreedom&page=main&amp;action=crash', 'SSL'));
                 } else {
-                    echo str_replace("\n", '<br />', isset($messageStack->debug_info) ? $messageStack->debug_info : '');
+                    echo str_replace("\n", '<br />', $messageStack->debug_info ?? '');
                     die;
                 }
             } else {
-                echo str_replace("\n", '<br />', isset($messageStack->debug_info) ? $messageStack->debug_info : $e->getMessage());
+                echo str_replace("\n", '<br />', $messageStack->debug_info ?? $e->getMessage());
                 die;
             }
         }
@@ -164,7 +164,8 @@ class queryFactory {
             $obj->_row_count = $stmt->rowCount();
             $obj->result     = $stmt->columnCount() > 0 ? $stmt->fetchAll() : [];
             $obj->_load_cursor();
-            $this->set_error(0, '', false);
+            $this->error_number = '';
+            $this->error_text   = '';
         } catch (PDOException $e) {
             $this->set_error($e->getCode(), $e->getMessage(), false);
             $obj->EOF = true;

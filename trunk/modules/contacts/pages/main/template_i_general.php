@@ -77,7 +77,7 @@ $acct_def = (!$cInfo->dept_rep_id) ? array() : array(array('id'=>$cInfo->dept_re
       <th><?php echo TEXT_ACTION; ?></th>
      </tr>
 <?php 
-if (sizeof($cInfo->attachments) > 0) {
+if (!empty($cInfo->attachments)) {
   foreach ($cInfo->attachments as $key => $value) {
     echo '<tr>';
     echo ' <td>' . html_checkbox_field('rm_attach_'.$key, '1', false) . '</td>' . chr(10);

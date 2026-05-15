@@ -35,8 +35,8 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   var module              = '<?php echo $module; ?>';
   var pbBrowser           = (document.all) ? 'IE' : 'FF';
   var text_search         = '<?php echo TEXT_SEARCH; ?>';
-  var date_format         = '<?php echo DATE_FORMAT; ?>';
-  var date_delimiter      = '<?php echo DATE_DELIMITER; ?>';
+  var date_format         = '<?php echo defined('DATE_FORMAT')    ? DATE_FORMAT    : 'Y-m-d'; ?>';
+  var date_delimiter      = '<?php echo defined('DATE_DELIMITER') ? DATE_DELIMITER : '-';    ?>';
   var inactive_text_color = '#cccccc';
   var form_submitted      = false;
   // Variables for script generated combo boxes
@@ -71,7 +71,7 @@ if (file_exists($js_include_path)) { require_once($js_include_path); }
 // load the custom javascript if present
 $js_include_path = DIR_FS_WORKING . 'custom/pages/' . $page . '/extra_js.php';
 if (file_exists($js_include_path)) { require_once($js_include_path); }
-if (SESSION_AUTO_REFRESH == '1') echo '  <script type="text/javascript">addLoadEvent(refreshSessionClock);</script>' . chr(10);
+if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <script type="text/javascript">addLoadEvent(refreshSessionClock);</script>' . chr(10);
 ?>
   <script type="text/javascript">addLoadEvent(init);</script>
  </head>

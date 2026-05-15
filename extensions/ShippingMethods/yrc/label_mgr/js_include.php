@@ -132,7 +132,7 @@ function monitorPrinting() {
 	    alert("Exception occured: " + e.getLocalizedMessage());
 	  } else {
 <?php
-if (sizeof($pdf_list) > 0) {
+if (!empty($pdf_list)) {
   echo "	    paperPrint();\n";
 } else {
 	echo "      window.opener.location.reload();\n";

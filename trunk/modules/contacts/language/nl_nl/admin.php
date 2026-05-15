@@ -51,6 +51,7 @@ define('SETUP_DEPT_TYPES_LOG','Department Types - ');
 define('SETUP_TITLE_PROJECTS_COSTS','Project Kosten');
 define('TEXT_SHORT_NAME','Korte Naam');
 define('TEXT_COST_TYPE','Kosten Type');
+define('SETUP_INFO_DESC_SHORT','Korte Omschrijving (16 karakters max)');
 define('SETUP_INFO_DESC_LONG','Lange Omschrijving (64 karakters max)');
 define('SETUP_PROJECT_COSTS_INSERT_INTRO','Voer het nieuwe project kosten in met de bijbehorende eigenschappen.');
 define('SETUP_PROJECT_COSTS_DELETE_INTRO','Weet u zeker dat u dit wil verwijderen.');

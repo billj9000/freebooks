@@ -77,7 +77,7 @@ class todays_s_quotes extends ctl_panel {
 	}
 
   	function Update() {
-  		if(count($this->params) == 0){
+  		if(empty($this->params)){
 			$this->params['num_rows'] = db_prepare_input($_POST['todays_s_quotes_field_0']);
   		}
 		parent::Update();

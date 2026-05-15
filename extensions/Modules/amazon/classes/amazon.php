@@ -108,7 +108,7 @@ class amazon {
 			// build the item, check stock if auto_journal
 			$inv = $db->Execute("SELECT * FROM ".TABLE_INVENTORY." WHERE sku='{$data['sku']}'");
 			$messageStack->debug("\n Executing sql = "."SELECT * FROM ".TABLE_INVENTORY." WHERE sku='{$data['sku']}' resulting in:".print_r($inv->fields, true));
-			if (!$inv->fields || sizeof($inv->fields) == 0) {
+			if (!$inv->fields || empty($inv->fields)) {
 				$messageStack->add(sprintf("SKU: %s not found in the database, this import was skipped!", $data['sku']));
 				$skip = true;
 			} else {

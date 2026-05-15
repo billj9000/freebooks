@@ -60,8 +60,8 @@ switch ($_REQUEST['action']) {
 				$xml .= xmlEntry('title',  $results['title']);
 				$xml .= xmlEntry('width',  $results['width']);
 				$xml .= xmlEntry('height', $results['height']);
-				$xml .= xmlEntry('rowCnt', sizeof($results['data']));
-				if (sizeof($results['data']) > 0) {
+				$xml .= xmlEntry('rowCnt', count(is_array($results['data']) ? $results['data'] : []));
+				if (!empty($results['data'])) {
 				  foreach ($results['data'] as $value) {
 				    $xml .= '<chartData>';
 				  	$xml .= xmlEntry('string', $value['label']);

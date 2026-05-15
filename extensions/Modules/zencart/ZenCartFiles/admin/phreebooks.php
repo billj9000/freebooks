@@ -44,7 +44,7 @@
     switch ($action) {
       case 'save':
         if (!$is_ssl_protected && in_array($class, array('paypaldp', 'linkpoint_api', 'authorizenet_aim', 'authorizenet_echeck'))) break;
-        while (list($key, $value) = each($_POST['configuration'])) {
+        foreach ($_POST['configuration'] as $key => $value) {
           if (is_array( $value ) ) {
             $value = implode( ", ", $value);
             $value = preg_replace ("/, --none--/", "", $value);
@@ -163,7 +163,7 @@
   }
 
   $installed_modules = array();
-  for ($i=0, $n=sizeof($directory_array); $i<$n; $i++) {
+  for ($i=0, $n=count(is_array($directory_array) ? $directory_array : []); $i<$n; $i++) {
     $file = $directory_array[$i];
     if (file_exists(DIR_FS_CATALOG_LANGUAGES . $_SESSION['language'] . '/modules/' . $module_type . '/' . $file)) {
       include(DIR_FS_CATALOG_LANGUAGES . $_SESSION['language'] . '/modules/' . $module_type . '/' . $file);
@@ -188,7 +188,7 @@
                                'status' => $module->check());
           $module_keys = $module->keys();
           $keys_extra = array();
-          for ($j=0, $k=sizeof($module_keys); $j<$k; $j++) {
+          for ($j=0, $k=count(is_array($module_keys) ? $module_keys : []); $j<$k; $j++) {
             $key_value = $db->Execute("select configuration_title, configuration_value, configuration_key,
                                           configuration_description, use_function, set_function
                                           from " . TABLE_CONFIGURATION . "
@@ -279,8 +279,7 @@
     case 'edit':
       if (!$is_ssl_protected && in_array($_GET['module'], array('paypaldp', 'linkpoint_api', 'authorizenet_aim', 'authorizenet_echeck'))) break;
       $keys = '';
-      reset($mInfo->keys);
-      while (list($key, $value) = each($mInfo->keys)) {
+      foreach ($mInfo->keys as $key => $value) {
         $keys .= '<b>' . $value['title'] . '</b><br>' . $value['description'] . '<br>';
         if ($value['set_function']) {
           eval('$keys .= ' . $value['set_function'] . "'" . $value['value'] . "', '" . $key . "');");
@@ -303,8 +302,7 @@
 
       if ($mInfo->status == '1') {
         $keys = '';
-        reset($mInfo->keys);
-        while (list(, $value) = each($mInfo->keys)) {
+        foreach ($mInfo->keys as $value) {
           $keys .= '<b>' . $value['title'] . '</b><br>';
           if ($value['use_function']) {
             $use_function = $value['use_function'];

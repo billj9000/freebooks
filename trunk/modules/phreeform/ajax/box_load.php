@@ -61,7 +61,7 @@ $output           = box_build($properties, $rowID);
 
 $xml .= xmlEntry("rowID",  $rowID);
 $xml .= xmlEntry("html", $output);
-//$xml .= xmlEntry("debug", 'sizeof kFields= ' . sizeof($kFields) . ' and rowID = ' . $rowID);
+//$xml .= xmlEntry("debug", 'sizeof kFields= ' . count(is_array($kFields) ? $kFields : []) . ' and rowID = ' . $rowID);
 $xml .= xmlEntry("message", 'Success type = ' . $type . ' and html length = ' . strlen($output));
 
 echo createXmlHeader() . $xml . createXmlFooter();

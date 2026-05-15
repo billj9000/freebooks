@@ -27,7 +27,7 @@ if ($security_level > 1) $toolbar->icon_list['save']['params'] = 'onclick="submi
 else                     $toolbar->icon_list['save']['show']   = false;
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
-if (count($extra_toolbar_buttons) > 0) {
+if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 if ($security_level > 3 && db_table_exists(DB_PREFIX.'reports')) {

@@ -32,7 +32,7 @@ class import_order {
   	function processCSV($filename, $function='Sales') {
   		global $db, $messageStack;
   		$rows = $this->csv_to_array($_FILES[$filename]['tmp_name'], $delimiter=',');
-  		$messageStack->debug("\nfinished parsing, extracted number of rows = ".sizeof($rows));
+  		$messageStack->debug("\nfinished parsing, extracted number of rows = ".count(is_array($rows) ? $rows : []));
   	  	switch ($function) {
   			default:
   			case 'Sales':
@@ -123,7 +123,7 @@ class import_order {
   			$soap_order->buildJournalEntry();
 		}
 		if (DEBUG) $messageStack->write_debug();
-		$messageStack->add("Total lines processed: ".sizeof($rows), "success");
+		$messageStack->add("Total lines processed: ".count(is_array($rows) ? $rows : []), "success");
   	}
 
   	function csv_to_array($filename='', $delimiter=',') {

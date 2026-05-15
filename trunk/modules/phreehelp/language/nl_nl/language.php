@@ -9,6 +9,7 @@
 // Path: /modules/phreehelp/language/nl_nl/language.php
 
 define('HEADING_TITLE','PhreeBooks Login');
+define('TITLE_TOP_FRAME', 'Phreedom Help - Aangedreven door PhreeHelp');
 define('HEADING_CONTENTS','Inhoud');
 define('HEADING_INDEX','Index');
 define('TEXT_DOCUMENT','Document');

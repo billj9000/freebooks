@@ -58,7 +58,7 @@ switch ($action) {
 	foreach ($shipto as $pkg) {
 	  $sInfo = new shipment();	// load defaults
 	  // overwrite the defaults with data from the file
-	  while (list($key, $value) = each($pkg)) $sInfo->$key = db_prepare_input($value);
+	  foreach ($pkg as $key => $value) $sInfo->$key = db_prepare_input($value);
 	  $sInfo->ship_date = date('Y-m-d', strtotime($sInfo->ship_date));
 	  // load package information
 	  $sInfo->package = array();

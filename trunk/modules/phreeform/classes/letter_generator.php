@@ -107,7 +107,7 @@ class PDF extends TCPDF {
     function _beginpage($orientation, $format) {
 	  parent::_beginpage($orientation, $format);
 	  if ($this->NewPageGroup) { // start a new group
-		$n = sizeof($this->PageGroups)+1;
+		$n = count(is_array($this->PageGroups) ? $this->PageGroups : [])+1;
 		$alias = "{nb$n}";
 		$this->PageGroups[$alias] = 1;
 		$this->CurrPageGroup = $alias;

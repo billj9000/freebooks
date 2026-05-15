@@ -10,7 +10,7 @@
 
 define('MODULE_PAYMENT_MONEYORDER_TEXT_TITLE','Directe Betalingen Check/Money Order');
 define('MODULE_PAYMENT_MONEYORDER_TEXT_DESCRIPTION','Betalingen via cheque, money order, EFT en andere directe vormen van betaling welke geen  betaling gateway vereisen');
-define('MODULE_PAYMENT_MONEYORDER_TEXT_INTRODUCTION', 'Richt uw check of money order aan:<br />' . MODULE_PAYMENT_MONEYORDER_PAYTO . '<br />Stuur uw betaling aan:<br />' . nl2br(COMPANY_NAME));
+define('MODULE_PAYMENT_MONEYORDER_TEXT_INTRODUCTION', 'Richt uw check of money order aan:<br />' . (defined('MODULE_PAYMENT_MONEYORDER_PAYTO') ? MODULE_PAYMENT_MONEYORDER_PAYTO : '') . '<br />Stuur uw betaling aan:<br />' . (defined('COMPANY_NAME') ? nl2br(COMPANY_NAME) : ''));
 define('MODULE_PAYMENT_MONEYORDER_TEXT_REF_NUM','Referentie Nummer');
 define('MODULE_PAYMENT_MONEYORDER_PAYTO_DESC','Doe betaling aan:');
 

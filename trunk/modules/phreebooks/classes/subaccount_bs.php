@@ -28,7 +28,7 @@ class subaccount_bs {
   function load_report_data($report) {
 	global $db, $Seq;
 	$period = $report->period;
-	$this->max_num_levels = sizeof($report['FieldListings']) - 1; // maximum number of indents
+	$this->max_num_levels = count(is_array($report['FieldListings']) ? $report['FieldListings'] : []) - 1; // maximum number of indents
 	$sql = "select account_id, beginning_balance + debit_amount - credit_amount as balance 
 		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where period = " . $period . " order by account_id";
 	$result = $db->Execute($sql);
@@ -89,7 +89,7 @@ class subaccount_bs {
 	  $messageStack->add('Runaway counter expired, check your subaccounts for a recursive reference.','error');
 	  return false;
 	}
-	if (sizeof($parent) > 0) $this->fill_bal_sheet($balance);
+	if (!empty($parent)) $this->fill_bal_sheet($balance);
 	// if we are here, the tree is built and all that is left are the top levels
     foreach ($this->coa_info as $acct_id => $account) {
 	  $this->coa_info[$acct_id]['balance'] = $balance[$acct_id];

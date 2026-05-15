@@ -117,7 +117,7 @@
       <th><?php echo TEXT_ACTION; ?></th>
      </tr>
 <?php 
-if (sizeof($attachments) > 0) { 
+if (!empty($attachments)) { 
   foreach ($attachments as $key => $value) {
     echo '<tr>';
     echo ' <td>' . html_checkbox_field('rm_attach_'.$key, '1', false) . '</td>' . chr(10);

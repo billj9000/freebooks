@@ -24,12 +24,12 @@ function build_js_methods($methods) {
   $service_levels  = 'var freightLevels   = new Array();' . chr(10);
   $carriers        = 'var freightCarriers = new Array();' . chr(10);
   $carrier_details = 'var freightDetails  = new Array();' . chr(10);
-  for ($i = 0; $i < sizeof($choices); $i++) $service_levels .= "freightLevels[".$i."]='".$choices[$i]."'; " . chr(10);
+  for ($i = 0; $i < count(is_array($choices) ? $choices : []); $i++) $service_levels .= "freightLevels[".$i."]='".$choices[$i]."'; " . chr(10);
   $i = 0;
-  if (sizeof($methods) > 0) foreach ($methods as $method) {
+  if (!empty($methods)) foreach ($methods as $method) {
     $carriers          .= "freightCarriers[".$i."]='" . $method['id'] . "';" . chr(10);
     $carrier_details   .= 'freightDetails['.$i.'] = new Array();' . chr(10);
-    for ($j = 0; $j < sizeof($choices); $j++) {
+    for ($j = 0; $j < count(is_array($choices) ? $choices : []); $j++) {
 	  $carrier_details .= "freightDetails[".$i."][".$j."]='" . (defined($method['id'] . '_' . $choices[$j]) ? constant($method['id'] . '_' . $choices[$j]) : "") . "'; " . chr(10);
     }
     $i++;

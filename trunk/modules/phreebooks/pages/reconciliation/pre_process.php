@@ -136,8 +136,8 @@ while (!$result->EOF) {
 	'reference'  => ($result->fields['journal_id'] == 19)? $result->fields['post_date'] : $result->fields['purchase_invoice_id'],
 	'name'       => $result->fields['bill_primary_name'],
 	'description'=> $result->fields['description'],
-	'dep_amount' => ($new_total < 0) ? ''          : $new_total,
-	'pmt_amount' => ($new_total < 0) ? -$new_total : '',
+	'dep_amount' => ($new_total < 0) ? 0           : $new_total,
+	'pmt_amount' => ($new_total < 0) ? -$new_total : 0,
 	'payment'    => ($new_total < 0) ? 1           : 0,
 	'cleared'    => $result->fields['reconciled'],
   );
@@ -170,8 +170,8 @@ if ($result->RecordCount() <> 0) { // there are current cleared items in the pre
 		  'reference'  => ($result->fields['journal_id'] == 19)? $result->fields['post_date'] : $result->fields['purchase_invoice_id'],
 		  'name'       => $result->fields['bill_primary_name'],
 		  'description'=> $result->fields['description'],
-		  'dep_amount' => ($new_total < 0) ? ''          : $new_total,
-		  'pmt_amount' => ($new_total < 0) ? -$new_total : '',
+		  'dep_amount' => ($new_total < 0) ? 0           : $new_total,
+		  'pmt_amount' => ($new_total < 0) ? -$new_total : 0,
 		  'payment'    => ($new_total < 0) ? 1           : 0,
 		  'cleared'    => $period,
 		);

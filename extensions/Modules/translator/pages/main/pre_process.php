@@ -310,7 +310,7 @@ switch ($_REQUEST['action']) {
       $search_fields = array('module', 'language', 'version');
 	  $criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
     }
-	$search = (sizeof($criteria) == 0) ? '' : ' where ' . implode(' and ', $criteria);
+	$search = (empty($criteria)) ? '' : ' where ' . implode(' and ', $criteria);
     if ($ver=='L') {
 	  $query_raw  = "select SQL_CALC_FOUND_ROWS module, max(version) as version, language from " . TABLE_TRANSLATOR . $search . " group by module order by $disp_order";	
 	} else {

@@ -221,7 +221,7 @@ class fields {
 	// build the tab list
 	$tab_list = gen_build_pull_down(xtra_field_get_tabs('assets'));
 	array_shift($tab_list);
-	if ($action == 'new' && sizeof($tab_list) < 1) {
+	if ($action == 'new' && empty($tab_list)) {
 	  $messageStack->add(EXTRA_FIELDS_ERROR_NO_TABS, 'error');
 	  echo $messageStack->output();
 	}

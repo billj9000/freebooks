@@ -204,10 +204,10 @@ class impbanking extends journal {
 		$good = false;
 		$step = 1;
 		$difference_perc = 100;
-		while (!$good && $step <= 9 && sizeof($found_invoices) > 0){
+		while (!$good && $step <= 9 && !empty($found_invoices)){
 			$amount_used = 0;
 			if (!$good) $this->journal_rows = null;
-			for($i=0; $i < sizeof($found_invoices); $i++){
+			for($i=0; $i < count(is_array($found_invoices) ? $found_invoices : []); $i++){
 				$found_invoices[$i]['amount']   = $found_invoices[$i]['total_amount'] - $found_invoices[$i]['amount_paid'];
 				$found_invoices[$i]['payed_if_full'] = true;
 				switch ($step){
@@ -308,7 +308,7 @@ class impbanking extends journal {
 			$step++;
 		}
 		if ($good == false){
-			if(sizeof($found_invoices) != 0 ){
+			if(count(is_array($found_invoices) ? $found_invoices : []) != 0 ){
 				$messageStack->debug("\n Found invoices but total amounts didn't align. ");
 				$this->journal_rows = null;
 				$amount_used = 0;
@@ -327,7 +327,7 @@ class impbanking extends journal {
 			$this->waiting = 1;
 			
 		}else{ 
-			for($i=0; $i < sizeof($found_invoices); $i++){
+			for($i=0; $i < count(is_array($found_invoices) ? $found_invoices : []); $i++){
 				$this->open_inv[$this->bill_acct_id][$found_invoices[$i]['purchase_invoice_id']]['amount_paid'] += $found_invoices[$i]['amount'];
 				if($found_invoices[$i]['payed_if_full']){ 
 					$messageStack->debug("\n unsetting invoice ".arr2string($this->open_inv[$this->bill_acct_id][$found_invoices[$i]['purchase_invoice_id']]));

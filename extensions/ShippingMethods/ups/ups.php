@@ -412,7 +412,7 @@ class ups {
 		$sBody .= NL . '<Width>'  . $pkgnum['Width']  . '</Width>';
 		$sBody .= NL . '<Height>' . $pkgnum['Height'] . '</Height>';
 		$sBody .= NL . '</Dimensions>';
-		$sBody .= NL . '<NumberOfPieces>' . sizeof($this->package) . '</NumberOfPieces>';
+		$sBody .= NL . '<NumberOfPieces>' . count(is_array($this->package) ? $this->package : []) . '</NumberOfPieces>';
 		$sBody .= NL . '<PackagingType><Code>' . $pkgnum['PackageTypeCode'] . '</Code></PackagingType>';
 //		$sBody .= NL . '<DangerousGoodsIndicator>' . $pkgnum['tbd'] . '</DangerousGoodsIndicator>';
 		$sBody .= NL . '<FreightClass>' . $pkg->ltl_class . '</FreightClass>';

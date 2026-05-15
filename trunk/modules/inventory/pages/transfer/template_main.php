@@ -31,7 +31,7 @@ $toolbar->icon_list['print']['show']    = false;
 $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL') . '\'"', $order = 2);
 if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;
 if ($security_level < 2) $toolbar->icon_list['save']['show']   = false;
-if (count($extra_toolbar_buttons) > 0) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
+if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('07.04.02');
 echo $toolbar->build_toolbar(); 
 // Build the page

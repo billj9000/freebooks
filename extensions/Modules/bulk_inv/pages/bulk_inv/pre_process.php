@@ -85,7 +85,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
 	$criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
 }
 // build search filter string
-$search = (sizeof($criteria) > 0) ? (' where ' . implode(' and ', $criteria)) : '';
+$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';
 $field_list = array('id', 'sku', 'description_short');
 for ($i = 0; $i < $field_cnt; $i++) $field_list[] = $field[$i] . ' as f'.$i;
 

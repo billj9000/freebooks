@@ -52,7 +52,7 @@ switch ($_REQUEST['action']) {
 	$order->journal_rows = array(); // clean out the journal items rows to be re-generated
 	$vendor_id = false;
 	$total_amount = 0;
-	for ($i = 0; $i < sizeof($temp_rows); $i++) {
+	for ($i = 0; $i < count(is_array($temp_rows) ? $temp_rows : []); $i++) {
 	  if ($temp_rows[$i]['gl_type'] <> 'soo') continue; // remove all rows except valid order lines
 	  // fetch the sku information
 	  if ($temp_rows[$i]['sku']) {

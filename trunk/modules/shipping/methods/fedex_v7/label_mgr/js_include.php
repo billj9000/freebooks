@@ -130,7 +130,7 @@ function monitorPrinting() {
       if (e != null) {
 	    alert("Exception occured: " + e.getLocalizedMessage());
 	  } else {
-		<?php echo (sizeof($pdf_list) > 0) ? " paperPrint();\n" : " window.opener.location.reload();\n self.close();\n"; ?>
+		<?php echo (!empty($pdf_list)) ? " paperPrint();\n" : " window.opener.location.reload();\n self.close();\n"; ?>
 	  }
     }
   } else {

@@ -45,7 +45,7 @@ class aged_summary {
 	$result = $db->Execute($temp_sql);
 	if ($result->RecordCount() == 0) return false; // No data so bail now
 	while (!$result->EOF) {
-	  for ($i = 0; $i < sizeof($this->sql_field_karray); $i++) {
+	  for ($i = 0; $i < count(is_array($this->sql_field_karray) ? $this->sql_field_karray : []); $i++) {
 	    $this->accounts[$result->fields['bill_acct_id']]['c' . $i] = $result->fields['c' . $i];
 	  }
 	  $negate = (in_array($result->fields['journal_id'], array(7, 13))) ? true : false;

@@ -41,7 +41,7 @@ if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;
 if ($security_level < 2) $toolbar->icon_list['save']['show']   = false;
 if ($security_level < 2) $toolbar->icon_list['print']['show']  = false;
 $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')) . 'jID=' . JOURNAL_ID . '&amp;type=' . $type, 'SSL') . '\'"', 2);
-if (count($extra_toolbar_buttons) > 0) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
+if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 switch (JOURNAL_ID) {
   case 18: $toolbar->add_help('07.05.02'); break;
   case 20: $toolbar->add_help('07.05.01'); break;
@@ -143,7 +143,7 @@ echo '<br />' . html_input_field('bill_email', $order->bill_email, 'size="40" ma
 	echo '          <div id="pm_' . $count . '" style="visibility:hidden; position:absolute; top:22px; left:1px">' . chr(10);
 	// fetch the html inside of module
 	$disp_fields = $$value->selection();
-	for($i = 0; $i < sizeof($disp_fields['fields']); $i++) {
+	for($i = 0; $i < count(is_array($disp_fields['fields']) ? $disp_fields['fields'] : []); $i++) {
 	  echo $disp_fields['fields'][$i]['title'] . '<br />' . chr(10);
 	  echo $disp_fields['fields'][$i]['field'] . '<br />' . chr(10);
 	}

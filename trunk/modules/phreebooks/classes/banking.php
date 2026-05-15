@@ -21,6 +21,8 @@ class banking extends journal {
 	
 	function __construct() {
 		global $db;
+		$this->currencies_code     = DEFAULT_CURRENCY;
+		$this->currencies_value    = '1.0';
 		$this->journal_id          = JOURNAL_ID;
 		$this->save_payment        = false;
 		$this->search              = TEXT_SEARCH;

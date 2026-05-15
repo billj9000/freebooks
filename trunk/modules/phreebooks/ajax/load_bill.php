@@ -56,7 +56,7 @@ $bill->fields['payment_fields'] = $invoices['payment_fields'];
 $bill->fields['post_date']      = gen_locale_date($bill->fields['post_date'] ? $bill->fields['post_date'] : date('Y-m-d'));
 
 // build the form data
-if (sizeof($contact->fields) > 0) {
+if (!empty($contact->fields)) {
   $xml .= "<BillContact>\n";
   foreach ($contact->fields as $key => $value) $xml .= "\t" . xmlEntry($key, $value);
   if ($bill_add->fields) while (!$bill_add->EOF) {
@@ -67,7 +67,7 @@ if (sizeof($contact->fields) > 0) {
   }
   $xml .= "</BillContact>\n";
 }
-if (sizeof($bill->fields) > 0) { // there was an bill to open
+if (!empty($bill->fields)) { // there was an bill to open
   $xml .= "<BillData>\n";
   foreach ($bill->fields as $key => $value) $xml .= "\t\t" . xmlEntry($key, $value);
   foreach ($item_list as $item) { // there should always be invoices to pull

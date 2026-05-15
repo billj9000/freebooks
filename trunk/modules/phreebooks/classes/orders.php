@@ -23,7 +23,7 @@ class orders extends journal {
   function __construct() {
 	$this->journal_id          = JOURNAL_ID;
 	$this->gl_type             = GL_TYPE;
-	$this->gl_acct_id          = DEF_GL_ACCT;
+	$this->gl_acct_id          = defined('DEF_GL_ACCT') ? DEF_GL_ACCT : '';
 	$this->currencies_code     = DEFAULT_CURRENCY;
 	$this->currencies_value    = '1.0';
 	$this->bill_primary_name   = GEN_PRIMARY_NAME;

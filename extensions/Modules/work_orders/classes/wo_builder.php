@@ -26,7 +26,7 @@ class wo_builder {
 	if (!$tableValue) return false;
 	$sql = "select * from " . TABLE_WO_JOURNAL_MAIN . " where id = " . $tableValue;
 	$result = $db->Execute($sql);
-	while (list($key, $value) = each($result->fields)) $this->$key = db_prepare_input($value);
+	foreach ($result->fields as $key => $value) $this->$key = db_prepare_input($value);
 	$this->load_item_details($this->id);
 	$this->build_bom_list($this->sku_id);
 	$this->build_ref_lists();
@@ -131,12 +131,12 @@ class wo_builder {
 	if (is_array($this->line_items)) {
 	  foreach ($this->line_items as $step) {
 		$docs = explode(',', $step['ref_doc']);
-		if (sizeof($docs > 0)) foreach ($docs as $doc) {
+		if (count(is_array($docs > 0) ? $docs > 0 : [])) foreach ($docs as $doc) {
 		  $doc = trim($doc);
 		  if ($doc && !in_array($doc, $ref_docs)) $ref_docs[] = $doc;
 		}
 		$specs = explode(',', $step['ref_spec']);
-		if (sizeof($specs > 0)) foreach ($specs as $spec) {
+		if (count(is_array($specs > 0) ? $specs > 0 : [])) foreach ($specs as $spec) {
 		  $spec = trim($spec);
 		  if ($spec && !in_array($spec, $ref_specs)) $ref_specs[] = $spec;
 		}

@@ -277,15 +277,15 @@ class tills {
 		$closingline  = '';
 		$opendrawer   = '';
 		foreach(explode(",",$result->fields['printer_starting_line']) as $key=>$line) {
-			foreach( explode( ":" , $line) as $key => $char) $startingline .= chr($char) ;
+			foreach( explode( ":" , $line) as $key => $char) $startingline .= chr((int)$char) ;
 			$startingline .= '","';
 		}
 		foreach(explode(",",$result->fields['printer_closing_line']) as $key=>$line) {
-			foreach( explode( ":" , $line) as $key => $char) $closingline  .= chr($char) ;
+			foreach( explode( ":" , $line) as $key => $char) $closingline  .= chr((int)$char) ;
 			$closingline .= '","';
 		}
 		foreach(explode(",",$result->fields['printer_open_drawer']) as $key=>$line) {
-			foreach( explode( ":" , $line) as $key => $char) $opendrawer   .= chr($char) ;
+			foreach( explode( ":" , $line) as $key => $char) $opendrawer   .= chr((int)$char) ;
 			$opendrawer  .=  '","';
 		}
 		$startingline = rtrim($startingline, '","');

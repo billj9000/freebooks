@@ -101,7 +101,7 @@ switch ($_REQUEST['action']) {
 	  if ($mInstall->update($method)) $error = true;
 	}
 	if ($error) break; 
-	if (sizeof($mInstall->notes) > 0) foreach ($mInstall->notes as $note) $messageStack->add($note, 'caution');
+	if (!empty($mInstall->notes)) foreach ($mInstall->notes as $note) $messageStack->add($note, 'caution');
 	gen_add_audit_log(sprintf(GEN_LOG_INSTALL_SUCCESS, $method) . (($_REQUEST['action'] == 'install') ? TEXT_INSTALL : TEXT_UPDATE), constant('MODULE_' . strtoupper($method) . '_VERSION'));
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;
@@ -221,7 +221,6 @@ switch ($_REQUEST['action']) {
 			  $backup->copy_dir($dir_source, $dir_dest);
 		    }
 			break;
-		  default: // skip, should not happen
 	    }
 	  }
 	  // install reports now that categories are set up
@@ -300,7 +299,7 @@ switch ($_REQUEST['action']) {
 	  }
 	}
 	// post them to the current_status table
-	if (sizeof($sequence_array) > 0) {
+	if (!empty($sequence_array)) {
 	  $result = db_perform(TABLE_CURRENT_STATUS, $sequence_array, 'update', 'id > 0');
 	  $messageStack->add(GEN_ADM_TOOLS_POST_SEQ_SUCCESS,'success');
 	  gen_add_audit_log(GEN_ADM_TOOLS_AUDIT_LOG_SEQ);

@@ -106,7 +106,7 @@ function labelPrint() {
 	tmp += qz.getQueueInfo();
 	jzebraDonePrinting(qz);
 <?php
-	if (sizeof($pdf_list) > 0) {
+	if (!empty($pdf_list)) {
 		echo "	paperPrint();\n";
 	} else {
 		echo "	window.opener.location.reload();\n";

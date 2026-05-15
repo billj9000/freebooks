@@ -240,7 +240,7 @@ switch ($_REQUEST['action']) {
 			    	}
 			    	if ($install_mod->install($entry)) $error = true; // install any special stuff
 			    	if ($error) $messageStack->add(sprintf(MSG_ERROR_MODULE_INSTALL, $entry), 'error');
-			    	if (sizeof($install_mod->notes) > 0) $params = array_merge($params, $install_mod->notes);
+			    	if (!empty($install_mod->notes)) $params = array_merge($params, $install_mod->notes);
 	  			}
 	  		}
 	  	}
@@ -280,7 +280,7 @@ switch ($_REQUEST['action']) {
 			    		}
 			    		if ($install_mod->install($entry)) $error = true; // install any special stuff
 			    		if ($error) $messageStack->add(sprintf(MSG_ERROR_MODULE_INSTALL, $entry), 'error');
-			    		if (sizeof($install_mod->notes) > 0) $params = array_merge($params, $install_mod->notes);
+			    		if (!empty($install_mod->notes)) $params = array_merge($params, $install_mod->notes);
 	  				}
 			  	}
 	  	  	}
@@ -303,7 +303,7 @@ switch ($_REQUEST['action']) {
 		  	  admin_pass  = '" . pw_encrypt_password($user_password) . "',
 			  admin_security = '" . $security . "'");
 		  	$user_id = $db->insert_ID();
-		  	if (sizeof($params) > 0) {
+		  	if (!empty($params)) {
 		  		// create My Notes dashboard entries
 		  		$db->Execute("insert into " . TABLE_USERS_PROFILES . " set user_id = " . $user_id . ",
 				  menu_id = 'index', module_id = 'phreedom', dashboard_id = 'to_do', column_id = 1, row_id = 1, 

@@ -75,7 +75,7 @@ class open_inv_branch extends ctl_panel {
 	}
 
 	function Update() {
-		if(count($this->params) == 0){
+		if(empty($this->params)){
 			$this->params['num_rows'] = db_prepare_input($_POST['open_inv_branch_field_0']);
 		}
 		parent::Update();

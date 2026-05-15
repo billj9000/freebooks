@@ -212,7 +212,7 @@ class phreedom_admin {
 	  $mod_init = new $install_class;
 	  if (constant('MODULE_' . strtoupper($module) . '_STATUS') <> constant('MODULE_' . strtoupper($module) . '_VERSION')) {
 		// add any new constants
-		if (sizeof($mod_init->keys) > 0) foreach ($mod_init->keys as $key => $value) {
+		if (!empty($mod_init->keys)) foreach ($mod_init->keys as $key => $value) {
 		  if (!defined($key)) write_configure($key, $value);
 		}
 		admin_install_dirs($mod_init->dirlist, DIR_FS_MY_FILES.$_SESSION['company'].'/');

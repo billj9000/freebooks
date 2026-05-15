@@ -46,7 +46,7 @@
 		  </td>
 		  <td colspan="2"><?php echo PHREEFORM_SPECIAL_REPORT . ' ' . html_input_field('special_class', $report->special_class); ?></td>
 		</tr>
-		<?php for ($i = 1; $i < sizeof($report->tables); $i++) { ?>
+		<?php for ($i = 1; $i < count(is_array($report->tables) ? $report->tables : []); $i++) { ?>
 		  <tr>
 			<td><?php echo html_pull_down_menu('joinopt[]', $joinOptions, $report->tables[$i]->joinopt, ''); ?></td>
 			<td><?php echo html_pull_down_menu('table[]',   $kTables,     $report->tables[$i]->tablename, 'onchange="fieldLoad()"'); ?></td>

@@ -63,7 +63,7 @@ class xml_sync extends parser {
   function syncProducts($products) {
 	global $db, $messageStack;
 	// error check input
-	if (sizeof($products['product']) == 0) return $this->responseXML('20', SOAP_NO_SKUS_UPLOADED, 'error');
+	if (empty($products['product'])) return $this->responseXML('20', SOAP_NO_SKUS_UPLOADED, 'error');
 	if ($products['action'] <> 'Validate') return $this->responseXML('16', SOAP_BAD_ACTION,       'error');
 	
 	$result = $db->Execute("select phreebooks_sku from " . TABLE_PRODUCTS);
@@ -73,7 +73,7 @@ class xml_sync extends parser {
 	  $result->MoveNext();
 	}
 	// make sure everything went as planned
-	if (sizeof($missing_skus) > 0) {
+	if (!empty($missing_skus)) {
 	  $text = SOAP_SKUS_MISSING . implode(', ', $missing_skus);
 	  return $this->responseXML('0', $text, 'caution');
 	}

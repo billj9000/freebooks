@@ -35,7 +35,7 @@ if (empty($combined_list) ) {
 
 $toolbar->icon_list['delete']['show']     = false;
 $toolbar->icon_list['print']['show']      = false;
-if (count($extra_toolbar_buttons) > 0) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
+if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('07.05.04');
 echo $toolbar->build_toolbar($add_search = false, $add_period = false); 
 // Build the page
@@ -67,7 +67,7 @@ echo html_hidden_field('post_date', gen_locale_date($post_date))      . chr(10);
  </thead>
  <tbody class="ui-widget-content">
 	<?php $i = 0;
-	if (sizeof($combined_list) > 0) {
+	if (!empty($combined_list)) {
 	  $odd = true;
 	  foreach ($combined_list as $values) { 
 		$bkgnd = ($values['partial']) ? ' style="background-color:yellow"' : '';
@@ -78,7 +78,7 @@ echo html_hidden_field('post_date', gen_locale_date($post_date))      . chr(10);
 			<td width="30%"><?php echo htmlspecialchars($values['name']); ?></td>
 			<td width="15%" align="right"><?php if($security_level > 2) echo $currencies->format($values['dep_amount']-$values['pmt_amount']); ?></td>
 			<td width="7%" align="center">
-				<?php if (sizeof($values['detail']) == 1) {
+				<?php if (count(is_array($values['detail']) ? $values['detail'] : []) == 1) {
 				  echo html_input_field('amt_' . $i, $currencies->format(0),$values['edit'].  'style="text-align:right" size="13" onchange="updateBalance()"') . chr(10);
 				  echo html_hidden_field('id[' . $i . ']', $values['detail'][0]['id']) . chr(10); 
 				  echo html_hidden_field('pmt_' . $i, $currencies->format($values['detail'][0]['payment'])) . chr(10);
@@ -87,14 +87,14 @@ echo html_hidden_field('post_date', gen_locale_date($post_date))      . chr(10);
 				  echo html_input_field('samt_' . $i, $currencies->format(0),$values['edit']. 'style="text-align:right" size="13" onchange="updateSummary('.$i.')"') . chr(10);
 				} ?>
 			</td>
-<?php if (sizeof($values['detail']) > 1 && $security_level > 2) { ?>
+<?php if (count(is_array($values['detail']) ? $values['detail'] : []) > 1 && $security_level > 2) { ?>
 			<td id="disp_<?php echo $i; ?>" width="7%"<?php echo $bkgnd; ?> style="cursor:pointer" onclick="showDetails('<?php echo $i; ?>')"><?php echo TEXT_DETAILS; ?></td>
 <?php } else { ?>
 			<td width="7%">&nbsp;</td>
 <?php } ?>
 		</tr>
 <?php 
-		if (sizeof($values['detail']) > 1) {
+		if (count(is_array($values['detail']) ? $values['detail'] : []) > 1) {
 		  $j   = 0;
 		  $ref = $i;
 		  echo '<tr id="detail_' . $i . '" style="display:none"><td colspan="7"><table style="width:100%">' . chr(10);

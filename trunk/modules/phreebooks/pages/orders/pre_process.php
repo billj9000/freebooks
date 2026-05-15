@@ -305,7 +305,7 @@ switch ($_REQUEST['action']) {
 	if ($order->bill_city_town        === false) $error = $messageStack->add(GEN_ERRMSG_NO_DATA . $base_msg . ' / ' . GEN_CITY_TOWN, 'error');
 	if ($order->bill_state_province   === false) $error = $messageStack->add(GEN_ERRMSG_NO_DATA . $base_msg . ' / ' . GEN_STATE_PROVINCE, 'error');
 	if ($order->bill_postal_code      === false) $error = $messageStack->add(GEN_ERRMSG_NO_DATA . $base_msg . ' / ' . GEN_POSTAL_CODE, 'error');
-	if (ENABLE_SHIPPING_FUNCTIONS) {
+	if (defined('ENABLE_SHIPPING_FUNCTIONS') && ENABLE_SHIPPING_FUNCTIONS) {
 	  if ($order->ship_primary_name   === false) $error = $messageStack->add(GEN_ERRMSG_NO_DATA . ORD_SHIP_TO . ' / ' . GEN_PRIMARY_NAME, 'error');
 	  if ($order->ship_contact        === false) $error = $messageStack->add(GEN_ERRMSG_NO_DATA . ORD_SHIP_TO . ' / ' . GEN_CONTACT, 'error');
 	  if ($order->ship_address1       === false) $error = $messageStack->add(GEN_ERRMSG_NO_DATA . ORD_SHIP_TO . ' / ' . GEN_ADDRESS1, 'error');

@@ -273,7 +273,7 @@ $this->trap = true;
 	  if (ADDRESS_BOOK_SHIP_STATE_REQ        && !$psOrd->ship_state_province) $missing_fields[] = GEN_STATE_PROVINCE;
 	  if (ADDRESS_BOOK_SHIP_POSTAL_CODE_REQ  && !$psOrd->ship_postal_code)    $missing_fields[] = GEN_POSTAL_CODE;
 	}
-	if (sizeof($missing_fields) > 0) {
+	if (!empty($missing_fields)) {
 	  $this->msgAdd(sprintf(SOAP_MISSING_FIELDS, $this->order['reference'], implode(', ', $missing_fields)), 'error');
 	  return;
 	}

@@ -20,15 +20,20 @@
 require_once(DIR_FS_MODULES . 'contacts/defaults.php');
 
 class project_phases {
-    public $extra_buttons = '';
-    public $db_table      = TABLE_PROJECTS_PHASES;
-    public $help_path     = '';
-    public $title         = '';
-    public $error         = false;
+    public $extra_buttons    = '';
+    public $db_table         = TABLE_PROJECTS_PHASES;
+    public $help_path        = '';
+    public $title            = '';
+    public $error            = false;
+    public $description_short = '';
+    public $description_long  = '';
+    public $cost_type         = '';
+    public $cost_breakdown    = false;
+    public $inactive          = false;
 
     public function __construct(){
     	foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
-    	$this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+    	$this->id = isset($_POST['sID']) ? $_POST['sID'] : (isset($_GET['sID']) ? $_GET['sID'] : '');
         $this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
     }
 
@@ -94,21 +99,20 @@ class project_phases {
     $result = $db->Execute("select phase_id, description_short, description_long, cost_type, cost_breakdown, inactive from " . $this->db_table);
     $rowCnt = 0;
 	while (!$result->EOF) {
-	  $params  = unserialize($result->fields['params']);
 	  $actions = '';
 	  if ($this->security_id > 1) $actions .= html_icon('actions/edit-find-replace.png', TEXT_EDIT,   'small', 'onclick="loadPopUp(\'project_phases_edit\', ' . $result->fields['phase_id'] . ')"') . chr(10);
 	  if ($this->security_id > 3) $actions .= html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . SETUP_PROJECT_PHASES_DELETE_INTRO . '\')) subjectDelete(\'project_phases\', ' . $result->fields['phase_id'] . ')"') . chr(10);
 	  $content['tbody'][$rowCnt] = array(
 	    array('value' => htmlspecialchars($result->fields['description_short']),
-			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_costs_edit\',\''.$result->fields['cost_id'].'\')"'),
-		array('value' => htmlspecialchars($result->fields['description_long']), 
-			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_costs_edit\',\''.$result->fields['cost_id'].'\')"'),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_phases_edit\',\''.$result->fields['phase_id'].'\')"'),
+		array('value' => htmlspecialchars($result->fields['description_long']),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_phases_edit\',\''.$result->fields['phase_id'].'\')"'),
 		array('value' => $project_cost_types[$result->fields['cost_type']],
-			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_costs_edit\',\''.$result->fields['cost_id'].'\')"'),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_phases_edit\',\''.$result->fields['phase_id'].'\')"'),
 		array('value' => $result->fields['cost_breakdown'] ? TEXT_YES : '',
-			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_costs_edit\',\''.$result->fields['cost_id'].'\')"'),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_phases_edit\',\''.$result->fields['phase_id'].'\')"'),
 		array('value' => $result->fields['inactive'] ? TEXT_YES : '',
-			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_costs_edit\',\''.$result->fields['cost_id'].'\')"'),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'project_phases_edit\',\''.$result->fields['phase_id'].'\')"'),
 		array('value' => $actions,
 			  'params'=> 'align="right"'),
 	  );

@@ -132,7 +132,7 @@
 	  <tr>
 	    <td><?php echo CD_10_52_DESC; ?></td>
 	    <td><?php echo html_pull_down_menu('shipping_default_hazardous_show', $sel_show, $_POST['shipping_default_hazardous_show'] ? $_POST['shipping_default_hazardous_show'] : SHIPPING_DEFAULT_HAZARDOUS_SHOW, ''); ?></td>
-	    <td nowrap="nowrap"><?php echo TEXT_DEFAULT . ' ' . html_pull_down_menu('shipping_default_hazardous_checked', $sel_checked, $_POST['shipping_default_hazardous_checked'] ? $_POST['shipping_default_hazardous_checked'] : SHIPPING_DEFAULT_HAZARDOUS_MATERIAL_CHECKED, ''); ?></td>
+	    <td nowrap="nowrap"><?php echo TEXT_DEFAULT . ' ' . html_pull_down_menu('shipping_default_hazardous_checked', $sel_checked, $_POST['shipping_default_hazardous_checked'] ? $_POST['shipping_default_hazardous_checked'] : (defined('SHIPPING_DEFAULT_HAZARDOUS_MATERIAL_CHECKED') ? SHIPPING_DEFAULT_HAZARDOUS_MATERIAL_CHECKED : '0'), ''); ?></td>
 	    <td><?php echo '&nbsp;'; ?></td>
 	  </tr>
 	  <tr>

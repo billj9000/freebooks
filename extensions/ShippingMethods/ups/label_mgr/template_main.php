@@ -33,7 +33,7 @@ $toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . SHIPPING_D
 $toolbar->icon_list['print']['params']  = 'onclick="submitToDo(\'label\')"';
 $toolbar->icon_list['print']['text']    = SHIPPING_PRINT_LABEL;
 // pull in extra toolbar overrides and additions
-if (count($extra_toolbar_buttons) > 0) {
+if (!empty($extra_toolbar_buttons)) {
 	foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 

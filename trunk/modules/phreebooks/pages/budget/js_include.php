@@ -23,7 +23,7 @@
 <!--
 // pass any php variables generated during pre-process that are used in the javascript functions.
 // Include translations here as well.
-num_periods = <?php echo sizeof($fy_array); ?>;
+num_periods = <?php echo count(is_array($fy_array) ? $fy_array : []); ?>;
 
 function init() {
   calculateTotal();

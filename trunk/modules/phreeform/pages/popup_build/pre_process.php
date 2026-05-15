@@ -183,7 +183,7 @@ switch ($_REQUEST['action']) {
 		if ($_POST['hbox_fill_' .$key]) $properties->hfillshow    = $_POST['hbox_fill_'.$key] ? '1' : '0';
 		if ($_POST['hbox_fclr_' .$key]) $properties->hfillcolor   = $_POST['hbox_fclr_'.$key];
 		$boxfield = array();
-		for ($j = 0; $j < sizeof($_POST['box_fld_' . $key]); $j++) {
+		for ($j = 0; $j < count(is_array($_POST['box_fld_' . $key]) ? $_POST['box_fld_' . $key] : []); $j++) {
 		  $temp = new objectInfo();
 		  if ($_POST['box_fld_' .$key]) $temp->fieldname          = $_POST['box_fld_'  .$key][$j];
 		  if ($_POST['box_desc_'.$key]) $temp->description        = $_POST['box_desc_' .$key][$j];

@@ -89,7 +89,7 @@ class audit_log extends ctl_panel {
  	}
   
  	function Update() {
- 		if(count($this->params) == 0){
+ 		if(empty($this->params)){
         	$this->params['num_rows'] 		= db_prepare_input($_POST['audit_log_num_rows']);
         	$this->params['today_minus'] 	= db_prepare_input($_POST['today_minus']);
  		}

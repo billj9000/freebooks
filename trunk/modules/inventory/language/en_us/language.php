@@ -244,4 +244,7 @@ define('INV_CHEAPER_ELSEWHERE','sku %s is cheaper elsewhere.');
 define('INV_IMAGE_DUPLICATE_NAME','The name of the image is already used in the database, Change the file name to continu. ');
 define('ITEM_IS_OUT_OF_STOCK', 'item is out of stock');
 define('TEXT_SAVE_AND_COPY_TO_NEW', 'Save and Copy to New');
+define('TEXT_EXTRA_FIELDS', 'Custom Fields');
+define('TEXT_NO_IMAGE', 'No Image');
+define('TEXT_CUSTOM_TAB', 'Custom Tabs');
 ?>

@@ -19,7 +19,7 @@
 
 define('MODULE_PAYMENT_MONEYORDER_TEXT_TITLE', 'Check/Money Order');
 define('MODULE_PAYMENT_MONEYORDER_TEXT_DESCRIPTION', 'Payments via check, money order, EFT and other direct forms of payment not requiring a payment gateway.');
-define('MODULE_PAYMENT_MONEYORDER_TEXT_INTRODUCTION', 'Please make your check or money order payable to:<br />' . MODULE_PAYMENT_MONEYORDER_PAYTO . '<br />Mail your payment to:<br />' . nl2br(COMPANY_NAME));
+define('MODULE_PAYMENT_MONEYORDER_TEXT_INTRODUCTION', 'Please make your check or money order payable to:<br />' . (defined('MODULE_PAYMENT_MONEYORDER_PAYTO') ? MODULE_PAYMENT_MONEYORDER_PAYTO : '') . '<br />Mail your payment to:<br />' . (defined('COMPANY_NAME') ? nl2br(COMPANY_NAME) : ''));
 define('MODULE_PAYMENT_MONEYORDER_TEXT_REF_NUM','Reference Number');
 define('MODULE_PAYMENT_MONEYORDER_PAYTO_DESC','Make Payments To:');
 

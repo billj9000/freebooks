@@ -72,7 +72,7 @@ switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 3);
   	// foreach method if enabled, save info
-	if (sizeof($methods) > 0) foreach ($methods as $shipper) {
+	if (!empty($methods)) foreach ($methods as $shipper) {
 	  require_once($method_dir . $shipper . '/' . $shipper . '.php');
 	  if (defined('MODULE_PAYMENT_' . strtoupper($shipper) . '_STATUS')) {
 	    $properties = new $shipper();

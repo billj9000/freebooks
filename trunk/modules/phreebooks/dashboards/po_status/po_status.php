@@ -87,7 +87,7 @@ class po_status extends ctl_panel {
 	}
 
 	function Update() {
-		if(count($this->params) == 0){
+		if(empty($this->params)){
 			$this->params = array(
 			  'num_rows'=> db_prepare_input($_POST['po_status_field_0']),
 			  'order'   => db_prepare_input($_POST['po_status_field_1']),

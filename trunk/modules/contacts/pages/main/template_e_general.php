@@ -42,7 +42,7 @@ echo html_hidden_field('account_number', $cInfo->account_number); // not used fo
 	    <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_REP_ID'); ?></td>
 	    <td>
           <?php
-    		$default_selection = ($_REQUEST['action'] == 'new' ? EMP_DEFAULT_DEPARTMENT : $cInfo->dept_rep_id);
+    		$default_selection = ($_REQUEST['action'] == 'new' ? (defined('EMP_DEFAULT_DEPARTMENT') ? EMP_DEFAULT_DEPARTMENT : '') : $cInfo->dept_rep_id);
 	    	$selection_array = gen_get_pull_down(TABLE_DEPARTMENTS, true, 1);
 		    echo html_pull_down_menu('dept_rep_id', $selection_array, $default_selection);
 	      ?>
@@ -94,7 +94,7 @@ echo html_hidden_field('account_number', $cInfo->account_number); // not used fo
       <th><?php echo TEXT_ACTION; ?></th>
      </tr>
 <?php 
-if (sizeof($cInfo->attachments) > 0) {
+if (!empty($cInfo->attachments)) {
   foreach ($cInfo->attachments as $key => $value) {
     echo '<tr>';
     echo ' <td>' . html_checkbox_field('rm_attach_'.$key, '1', false) . '</td>' . chr(10);

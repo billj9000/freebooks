@@ -82,7 +82,7 @@ switch ($_REQUEST['action']) {
 			$xml .= "<PaymentMethod>\n";
 			$xml .= xmlEntry("payment_id",   $result->fields['id']);
 			$xml .= xmlEntry("payment_hint", $result->fields['hint']);
-			for ($i = 0; $i < sizeof($fields); $i++) $xml .= xmlEntry("field_" . $i, $fields[$i]);
+			for ($i = 0; $i < count(is_array($fields) ? $fields : []); $i++) $xml .= xmlEntry("field_" . $i, $fields[$i]);
 			$xml .= "</PaymentMethod>\n";
 		}
 		break;
@@ -104,7 +104,7 @@ switch ($_REQUEST['action']) {
 	default: die;
 }
 
-if (sizeof($message) > 0) $xml .= xmlEntry('message', implode("\n",$message));
+if (!empty($message)) $xml .= xmlEntry('message', implode("\n",$message));
 echo createXmlHeader() . $xml . createXmlFooter();
 die;
 ?>

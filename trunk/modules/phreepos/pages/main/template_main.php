@@ -57,7 +57,7 @@ if (defined('PHREEPOS_ENABLE_DIRECT_PRINTING') && PHREEPOS_ENABLE_DIRECT_PRINTIN
   $toolbar->icon_list['open_drawer']['text'] = TEXT_OPEN_DRAWER;
 }  
 // pull in extra toolbar overrides and additions
-if (count($extra_toolbar_buttons) > 0) {
+if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 echo $toolbar->build_toolbar();
@@ -245,7 +245,7 @@ $SeccondToolbar->icon_list['delete']['show']   = false;
 $SeccondToolbar->icon_list['print']['params']  = 'onclick="SavePayment(\'print\')"';
 $SeccondToolbar->icon_list['print']['show']    = true; 
 // pull in extra toolbar overrides and additions
-if (count($extra_SeccondToolbar_buttons) > 0) {
+if (!empty($extra_SeccondToolbar_buttons)) {
 	foreach ($extra_SeccondToolbar_buttons as $key => $value) $SeccondToolbar->icon_list[$key] = $value;
 }
 // add the help file index and build the toolbar
@@ -264,7 +264,7 @@ echo $SeccondToolbar->build_toolbar();
 	  echo '      <div id="pm_' . $count . '" style="visibility:hidden; position:absolute; top:22px; left:1px">' . chr(10);
 	  $pmt_class = $value['id'];
 	  $disp_fields = $$pmt_class->selection();
-	  for ($i=0; $i<count($disp_fields['fields']); $i++) {
+	  for ($i=0; $i<count($disp_fields['fields'] ?? []); $i++) {
 		echo $disp_fields['fields'][$i]['title'] . '<br />' . chr(10);
 		echo $disp_fields['fields'][$i]['field'] . '<br />' . chr(10);
 	  }
@@ -295,7 +295,7 @@ $thirdToolbar->icon_list['save']['show']     = true;
 $thirdToolbar->icon_list['delete']['show']   = false;
 $thirdToolbar->icon_list['print']['show']    = false; 
 // pull in extra toolbar overrides and additions
-if (count($extra_ThirdToolbar_buttons) > 0) {
+if (!empty($extra_ThirdToolbar_buttons)) {
 	foreach ($extra_ThirdToolbar_buttons as $key => $value) $thirdToolbar->icon_list[$key] = $value;
 }
 // add the help file index and build the toolbar

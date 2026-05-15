@@ -32,7 +32,7 @@
 class toolbar {
 	public $id            = 0;
 	public $search_text   = '';
-	public $search_period = CURRENT_ACCOUNTING_PERIOD;
+	public $search_period = 0;
 	public $period_strict = true; // if set to true, the 'All' option is included
 	public $search_prefix = '';
     public $icon_size     = 'large';	// default icon size (choice are small, medium, large)
@@ -41,6 +41,7 @@ class toolbar {
   function __construct($id = '0') {
     // set up the default toolbar
 	$this->id            = $id;
+	if (defined('CURRENT_ACCOUNTING_PERIOD')) $this->search_period = CURRENT_ACCOUNTING_PERIOD;
 	$this->icon_list['cancel'] = array('show' => true, 'icon' => 'actions/edit-undo.png',        'params' => '', 'text' => TEXT_CANCEL, 'order' => 1);
 	$this->icon_list['open']   = array('show' => true, 'icon' => 'actions/document-open.png',    'params' => '', 'text' => TEXT_OPEN,   'order' => 2);
 	$this->icon_list['save']   = array('show' => true, 'icon' => 'devices/media-floppy.png',     'params' => '', 'text' => TEXT_SAVE,   'order' => 3);
@@ -242,7 +243,7 @@ class objectInfo {
   function __construct($object_array = array()) {
     if (is_array($object_array)) {
       reset($object_array);
-      while (list($key, $value) = each($object_array)) $this->$key = db_prepare_input($value);
+      foreach ($object_array as $key => $value) $this->$key = db_prepare_input($value);
 	}
   }
 }
@@ -263,7 +264,7 @@ class objectInfo {
       	} else {
         	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-error"', 'text' => $message);
       	}
-      	$this->debug("\n On screen displaying '$type' message = $message file = $file line = $line");
+      	$this->debug("\n On screen displaying '$type' message = $message");
 	  	return true;
     }
 
@@ -287,7 +288,7 @@ class objectInfo {
       	} else {
         	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-error"', 'text' => $message);
       	}
-      	$this->debug("\n On screen displaying '$type' message = $message file = $file line = $line");
+      	$this->debug("\n On screen displaying '$type' message = $message");
     }
 
     function output() {

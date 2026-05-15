@@ -49,7 +49,7 @@ if (!file_exists($filename)) {
 // unlink($filename);
 
 // fill the return array
-if (!$error && sizeof($orders) > 0) foreach ($orders as $number => $details) {
+if (!$error && !empty($orders)) foreach ($orders as $number => $details) {
   $xml .= "<Order>\n";
   $xml .= "\t" . xmlEntry("Number",   $number);
   $xml .= "\t" . xmlEntry("Date",     $details['date']);

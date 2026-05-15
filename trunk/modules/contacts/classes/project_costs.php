@@ -26,9 +26,14 @@ class project_costs {
     public $title         = '';
     public $error         = false;
 
+    public $description_short = '';
+    public $description_long  = '';
+    public $cost_type         = '';
+    public $inactive          = false;
+
     public function __construct(){
     	foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
-    	$this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+    	$this->id = isset($_POST['sID']) ? $_POST['sID'] : (isset($_GET['sID']) ? $_GET['sID'] : '');
   	    $this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
     }
 
@@ -93,7 +98,6 @@ class project_costs {
     $result = $db->Execute("select cost_id, description_short, cost_type, inactive from " . $this->db_table);
     $rowCnt = 0;
 	while (!$result->EOF) {
-	  $params  = unserialize($result->fields['params']);
 	  $actions = '';
 	  if ($this->security_id > 1) $actions .= html_icon('actions/edit-find-replace.png', TEXT_EDIT,   'small', 'onclick="loadPopUp(\'project_costs_edit\', ' . $result->fields['cost_id'] . ')"') . chr(10);
 	  if ($this->security_id > 3) $actions .= html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . SETUP_PROJECT_COSTS_DELETE_INTRO . '\')) subjectDelete(\'project_costs\', ' . $result->fields['cost_id'] . ')"') . chr(10);

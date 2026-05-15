@@ -35,7 +35,7 @@ while (!$result->EOF) {
 	$xml .= "\t" . xmlEntry("id",   $result->fields['id']);
 	$xml .= "\t" . xmlEntry("name", $fields[0]); // will be the name field for credit cards
 	$xml .= "\t" . xmlEntry("hint", $result->fields['hint']);
-	for ($i = 0; $i < sizeof($fields); $i++) $xml .= "\t" . xmlEntry("field_" . $i, $fields[$i]);
+	for ($i = 0; $i < count(is_array($fields) ? $fields : []); $i++) $xml .= "\t" . xmlEntry("field_" . $i, $fields[$i]);
 	$xml .= "</Payment>\n";
 	$result->MoveNext();
 }

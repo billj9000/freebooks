@@ -32,7 +32,7 @@ class paypal_nvp extends payment {
   public function __construct(){
   	global $order;
   	parent::__construct();
-    if ((int)MODULE_PAYMENT_PAYPAL_NVP_ORDER_STATUS_ID > 0) {
+    if (defined('MODULE_PAYMENT_PAYPAL_NVP_ORDER_STATUS_ID') && (int)MODULE_PAYMENT_PAYPAL_NVP_ORDER_STATUS_ID > 0) {
       $this->order_status = MODULE_PAYMENT_PAYPAL_NVP_ORDER_STATUS_ID;
     }
 	// save the information
@@ -227,7 +227,7 @@ class paypal_nvp extends payment {
 
     // concatenate the submission data and put into $data variable
 	$data = ''; // initiate XML string
-    while(list($key, $value) = each($submit_data)) {
+    foreach ($submit_data as $key => $value) {
     	if ($value <> '') $data .= '&' . $key . '=' . urlencode($value);
     }
 
@@ -272,7 +272,7 @@ class paypal_nvp extends payment {
 	);
 
 	$data = ''; // initiate XML string
-    while(list($key, $value) = each($submit_data)) {
+    foreach ($submit_data as $key => $value) {
     	if ($value <> '') $data .= '&' . $key . '=' . urlencode($value);
     }
 	$data .= substr($data, 1) . $nvpStr_; // build the submit string
@@ -305,11 +305,11 @@ class paypal_nvp extends payment {
 	$httpParsedResponseAr = array();
 	foreach ($httpResponseAr as $i => $value) {
 		$tmpAr = explode("=", $value);
-		if(sizeof($tmpAr) > 1) {
+		if(count(is_array($tmpAr) ? $tmpAr : []) > 1) {
 			$httpParsedResponseAr[$tmpAr[0]] = $tmpAr[1];
 		}
 	}
-	if (0 == sizeof($httpParsedResponseAr) || !array_key_exists('ACK', $httpParsedResponseAr)) {
+	if (0 == count(is_array($httpParsedResponseAr) ? $httpParsedResponseAr : []) || !array_key_exists('ACK', $httpParsedResponseAr)) {
 		$messageStack->add('PayPal Response Error.','error');
 		return false;
 //		exit("Invalid HTTP Response for POST request($nvpreq) to $API_Endpoint.");

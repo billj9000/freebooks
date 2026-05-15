@@ -448,7 +448,7 @@ function BuildForm($report, $delivery_method = 'D') { // for forms only
 	  $result->MoveNext();
 	}
 	// retrieve the company information
-	for ($i = 0; $i < sizeof($report->fieldlist); $i++) {
+	for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) {
 	  if ($report->fieldlist[$i]->type == 'CDta') {
 		$report->fieldlist[$i]->text = constant($report->fieldlist[$i]->boxfield[0]->fieldname);
 	  } else if ($report->fieldlist[$i]->type == 'CBlk') {
@@ -523,7 +523,7 @@ function BuildPDF($report, $delivery_method = 'D') { // for forms only - PDF sty
 		    $strTxtBlk = implode(', ', $arrTxtBlk);
 		    $result    = $db->Execute("select " . $strTxtBlk . $TrailingSQL);
 		    $TextField = '';
-		    for ($i = 0; $i < sizeof($field->boxfield); $i++) {
+		    for ($i = 0; $i < count(is_array($field->boxfield) ? $field->boxfield : []); $i++) {
 		      $temp = $field->boxfield[$i]->formatting ? ProcessData($result->fields['r'.$i], $field->boxfield[$i]->formatting) : $result->fields['r'.$i];
 		      $TextField .= AddSep($temp, $field->boxfield[$i]->processing);
 		    }
@@ -622,7 +622,7 @@ function BuildPDF($report, $delivery_method = 'D') { // for forms only - PDF sty
 	  if ($report->setprintedflag) {
 		$id_field = $report->formbreakfield;
 		$temp     = explode('.', $report->setprintedflag);
-		if (sizeof($temp) == 2) { // need the table name and field name
+		if (count(is_array($temp) ? $temp : []) == 2) { // need the table name and field name
 		  $sql = "update " . $temp[0] . " set " . $temp[1] . " = " . $temp[1] . " + 1 where " . $report->formbreakfield . " = '" . $Fvalue . "'";
 		  $db->Execute($sql);
 		}
@@ -683,7 +683,7 @@ function BuildSeq($report, $delivery_method = 'D') { // for forms only - Sequent
 			$strTxtBlk    = implode(', ', $arrTxtBlk);
 			$result       = $db->Execute("select " . $strTxtBlk . $TrailingSQL);
 			$TextField    = '';
-			for ($i = 0; $i < sizeof($field->boxfield); $i++) {
+			for ($i = 0; $i < count(is_array($field->boxfield) ? $field->boxfield : []); $i++) {
 		      $temp = $field->boxfield[$i]->formatting ? ProcessData($result->fields['r'.$i], $field->boxfield[$i]->formatting) : $result->fields['r'.$i];
 			  $TextField .= AddSep($temp, $field->boxfield[$i]->processing);
 			}
@@ -761,7 +761,7 @@ function BuildSeq($report, $delivery_method = 'D') { // for forms only - Sequent
     if ($report->setprintedflag) {
 	  $id_field = $report->formbreakfield;
 	  $temp     = explode('.', $report->setprintedflag);
-	  if (sizeof($temp) == 2) { // need the table name and field name
+	  if (count(is_array($temp) ? $temp : []) == 2) { // need the table name and field name
 	    $sql = "update " . $temp[0] . " set " . $temp[1] . " = " . $temp[1] . " + 1 where " . $report->formbreakfield . " = '" . $Fvalue . "'";
 	    $db->Execute($sql);
 	  }
@@ -892,7 +892,7 @@ function build_criteria($report) {
 	  case 'IN_LIST':
 		if (isset($FieldValues->min_val)) { // a from value entered, check
 		  $csv_values = explode(',', $FieldValues->min_val);
-		  for ($i = 0; $i < sizeof($csv_values); $i++) $csv_values[$i] = trim($csv_values[$i]);
+		  for ($i = 0; $i < count(is_array($csv_values) ? $csv_values : []); $i++) $csv_values[$i] = trim($csv_values[$i]);
 		  $sc .= prefixTables($FieldValues->fieldname) . " in ('" . implode("','", $csv_values) . "')";
 		  $fc .= $FieldValues->description . " in (" . $FieldValues->min_val . ")";
 		}
@@ -916,7 +916,7 @@ function build_criteria($report) {
 function BuildSQL($report) { // for reports only
 	$strField = array();
 	$index = 0;
-	for ($i = 0; $i < sizeof($report->fieldlist); $i++) {
+	for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) {
 	  if ($report->fieldlist[$i]->visible) {
 		$strField[] = prefixTables($report->fieldlist[$i]->fieldname) . " AS c" . $index;
 		$index++;
@@ -928,7 +928,7 @@ function BuildSQL($report) { // for reports only
 	$filterdesc = PHREEFORM_RPTFILTER; // Initialize the filter display string
 	//fetch the groupings and build first level of SORT BY string (for sub totals)
 	$strGroup = NULL;
-	for ($i = 0; $i < sizeof($report->grouplist); $i++) {
+	for ($i = 0; $i < count(is_array($report->grouplist) ? $report->grouplist : []); $i++) {
 	  if ($report->grouplist[$i]->default) {
 		$strGroup   .= prefixTables($report->grouplist[$i]->fieldname);
 		$filterdesc .= PHREEFORM_GROUPBY . ' ' . $report->grouplist[$i]->description . '; ';
@@ -937,7 +937,7 @@ function BuildSQL($report) { // for reports only
 	}
 	// fetch the sort order and add to group by string to finish ORDER BY string
 	$strSort = $strGroup;
-	for ($i = 0; $i < sizeof($report->sortlist); $i++) {
+	for ($i = 0; $i < count(is_array($report->sortlist) ? $report->sortlist : []); $i++) {
 	  if ($report->sortlist[$i]->default) {
 		$strSort    .= ($strSort <> '' ? ', ' : '') . prefixTables($report->sortlist[$i]->fieldname);
 		$filterdesc .= PHREEFORM_SORTBY . ' ' . $report->sortlist[$i]->description . '; ';
@@ -1001,8 +1001,8 @@ function BuildDataArray($sql, $report) { // for reports only
 		$Seq[$i]['total']      = $DataFields->total;
 		$Seq[$i]['processing'] = $DataFields->processing;
 		$Seq[$i]['align']      = $DataFields->align;
-		$Seq[$i]['grptotal']   = '';
-		$Seq[$i]['rpttotal']   = '';
+		$Seq[$i]['grptotal']   = 0;
+		$Seq[$i]['rpttotal']   = 0;
 		$i++;
 	  }
 	}
@@ -1029,7 +1029,7 @@ function BuildDataArray($sql, $report) { // for reports only
 		  $OutputArray[$RowCnt][0] = 'g:' . ProcessData($GrpWorking, $GrpFieldProcessing);
 		  foreach($Seq as $offset => $TotalCtl) {
 			$OutputArray[$RowCnt][$offset+1] = ($TotalCtl['total'] == '1') ? $TotalCtl['grptotal'] : ' ';
-			$Seq[$offset]['grptotal'] = ''; // reset the total
+			$Seq[$offset]['grptotal'] = 0; // reset the total
 		  }
 		  $RowCnt++; // go to next row
 		}

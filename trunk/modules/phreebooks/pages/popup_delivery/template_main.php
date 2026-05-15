@@ -27,7 +27,7 @@ $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\', \'eta_dates\')"';
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
-if (count($extra_toolbar_buttons) > 0) {
+if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 switch (JOURNAL_ID) {

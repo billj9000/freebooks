@@ -24,8 +24,8 @@
 // Include translations here as well.
 var textShow = '<?php echo TEXT_DETAILS; ?>';
 var textHide = '<?php echo TEXT_HIDE; ?>';
-var totalCnt = <?php echo sizeof($bank_list); ?>;
-var currencyCnt = <?php echo sizeof($currencies->currencies); ?>;
+var totalCnt = <?php echo count(is_array($bank_list) ? $bank_list : []); ?>;
+var currencyCnt = <?php echo count(is_array($currencies->currencies) ? $currencies->currencies : []); ?>;
 <?php echo js_calendar_init($cal_gl); ?>
 
 function init() {

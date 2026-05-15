@@ -74,14 +74,14 @@ class backup {
 		$result = $db->Execute('SELECT * FROM ' . $table . $params);
 		if ($result->RecordCount() > 0) {
 		  $temp_array = $result->fields;
-		  while (list($key, $value) = each($temp_array)) $data['keys'][] = $key;
-		  $sql_head  = "INSERT INTO $table (`" . join($data['keys'], '`,`') . '`) VALUES ' . lnbr;
+		  foreach (array_keys($temp_array) as $key) $data['keys'][] = $key;
+		  $sql_head  = "INSERT INTO $table (`" . join('`,`', $data['keys']) . '`) VALUES ' . lnbr;
 		  $count     = 0; // set to max_count to force the sql_head at the start
 		  $query .= $sql_head;
 		  while (!$result->EOF) {
 			$data = array();
 			$temp_array = $result->fields;
-			while (list($key, $value) = each($temp_array)) {
+			foreach ($temp_array as $value) {
 			  $data[] = addslashes($value);
 			}
 			$query .= "('" . implode("', '", $data) . "')";
@@ -166,8 +166,12 @@ class backup {
     global $messageStack;
 	$error = false;
 	$source_file = $path . $filename;
-	$handle      = fopen($source_file, "rb");
-	$contents    = fread($handle, filesize($source_file));
+	$handle = fopen($source_file, "rb");
+	if ($handle === false) {
+	  $messageStack->add(GEN_BACKUP_DOWNLOAD_EMPTY, 'caution');
+	  return;
+	}
+	$contents = fread($handle, filesize($source_file));
 	fclose($handle);
 	if (!$save_source) unlink($source_file);
 	if (strlen($contents) == 0) {
@@ -194,7 +198,7 @@ class backup {
 		unlink($dir . '/' . $file);
 	  } else { // it's a directory
 	    $subdir = scandir($dir . '/' . $file);
-		if (sizeof($subdir) > 2) $this->delete_dir($dir . '/' . $file); // directory is not empty, recurse
+		if (count(is_array($subdir) ? $subdir : []) > 2) $this->delete_dir($dir . '/' . $file); // directory is not empty, recurse
 		@rmdir($dir . '/' . $file);
 	  }
 	}
@@ -351,7 +355,7 @@ class backup {
 
         if ($complete_line) {
           if ($debug==true) echo ((!$ignore_line) ? '<br />About to execute.': 'Ignoring statement. This command WILL NOT be executed.').'<br />Debug info:<br />$ line='.$line.'<br />$ complete_line='.$complete_line.'<br />$ keep_together='.$keep_together.'<br />SQL='.$newline.'<br /><br />';
-          if (get_magic_quotes_runtime() > 0) $newline=stripslashes($newline);
+          // get_magic_quotes_runtime() removed in PHP 7.4; magic quotes no longer exist
           if (trim(str_replace(';','',$newline)) != '' && !$ignore_line) $output=$db->Execute($newline);
           $results++;
           $string .= $newline.'<br />';

@@ -46,7 +46,7 @@ class HTML {
 	if ($data !== NULL) { // catches not checked column break at end of row
 	  $html_heading[] = array('align' => $align, 'value' => $data);
 	}
-	$this->numColumns = sizeof($html_heading);
+	$this->numColumns = count(is_array($html_heading) ? $html_heading : []);
 
 	$rStyle = '';
 	if ($report->page->heading->show) { // Show the company name

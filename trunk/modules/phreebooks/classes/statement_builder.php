@@ -36,7 +36,7 @@ class statement_builder {
 	  from " . TABLE_CONTACTS . " c inner join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id 
 	  where c.id = " . $this->bill_acct_id . " and a.type like '%m'";
 	$result = $db->Execute($sql);
-	while (list($key, $value) = each($result->fields)) $this->$key = db_prepare_input($value);
+	foreach ($result->fields as $key => $value) $this->$key = db_prepare_input($value);
 	// Load the prior balance and aging, first aging
 	$result = calculate_aging($this->bill_acct_id, $result->fields['type'], $result->fields['special_terms']);
 	$this->balance_0     = $result['balance_0'];
@@ -63,7 +63,7 @@ class statement_builder {
 		$partials[] = $result->fields['id'];
 		$result->MoveNext();
 	}
-	if (sizeof($partials) > 0) {
+	if (!empty($partials)) {
 	  $sql = "select sum(i.debit_amount - i.credit_amount) as payment
 		from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
 		where i.so_po_item_ref_id in (".implode(',',$partials).") 

@@ -25,7 +25,7 @@
 // Include translations here as well.
 var textShow = '<?php echo TEXT_DETAILS; ?>';
 var textHide = '<?php echo TEXT_HIDE; ?>';
-var totalCnt = <?php echo sizeof($bank_list); ?>;
+var totalCnt = <?php echo count(is_array($bank_list) ? $bank_list : []); ?>;
 
 function init() {
 	updateBalance();

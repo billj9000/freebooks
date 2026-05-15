@@ -59,7 +59,7 @@ class journal {
 	$this->post_ids[$idx] = clone $this; // save variables for later to post
 	$this->first_period = $this->period;
 	// start unposting all affected records
-	if (sizeof($this->unpost_ids) > 0) {
+	if (!empty($this->unpost_ids)) {
 	  krsort($this->unpost_ids); // unpost in reverse order
 	  $messageStack->debug("\nStarting to unPost reverse sorted id array = " . arr2string($this->unpost_ids));
 	  while (true) {
@@ -106,7 +106,7 @@ class journal {
 		if (!$glEntry->Post_account_sales_purchases()) return false;
 		$this->affected_accounts = gen_array_key_merge($this->affected_accounts, $glEntry->affected_accounts);
 		$this->first_period = min($this->first_period, $glEntry->period);
-		if (sizeof($this->repost_ids) > 0) {
+		if (!empty($this->repost_ids)) {
 			ksort($this->repost_ids); // repost by post date
 			$messageStack->debug("\nStarting to rePost entries queued from first pass, sorted id array = ".arr2string($this->repost_ids));
 			while (true) {
@@ -174,14 +174,14 @@ class journal {
 	  case  6: // Purchase/Receive Journal
 		$skus = array();
 	  	foreach ($this->journal_rows as $row) if ($row['sku'] <> '') $skus[] = $row['sku'];
-	  	if (sizeof($skus) > 0) {
+	  	if (!empty($skus)) {
 	  	  $result = $db->Execute("SELECT sku FROM ".TABLE_INVENTORY." WHERE sku IN ('".implode("', '", $skus)."') AND cost_method='a'");
 	  	  $askus = array();
 	  	  while (!$result->EOF) {
 	  		$askus[] = $result->fields['sku'];
 	  		$result->MoveNext();
 	  	  }
-	  	  if (sizeof($askus) > 0) {
+	  	  if (!empty($askus)) {
 		    $messageStack->debug("\n    Finding re-post ids for average sku list = ".arr2string($askus)." and post_date after $this->post_date");
 	  	  	$result = $db->Execute("SELECT ref_id, post_date FROM ".TABLE_JOURNAL_ITEM." WHERE sku IN ('".implode("', '", $askus)."') AND post_date > '$this->post_date'");
 	  	  	while (!$result->EOF) {
@@ -287,7 +287,7 @@ class journal {
 	  case 21: // Inventory Direct Purchase Journal
 		$accounts = array();
 		$precision = $this->currencies[DEFAULT_CURRENCY]['decimal_places'] + 2;
-	    if (sizeof($this->journal_rows) > 0) foreach ($this->journal_rows as $value) {
+	    if (!empty($this->journal_rows)) foreach ($this->journal_rows as $value) {
 		  $credit_amount = ($value['credit_amount']) ? $value['credit_amount'] : '0';
 		  $debit_amount  = ($value['debit_amount'])  ? $value['debit_amount']  : '0';
 		  if  (round($credit_amount, $precision) <> 0 || round($debit_amount, $precision) <> 0) {
@@ -296,7 +296,7 @@ class journal {
 		    $this->affected_accounts[$value['gl_account']] = 1;
 		  }
 		}
-		if (sizeof($accounts) > 0) foreach ($accounts as $gl_acct => $values) {
+		if (!empty($accounts)) foreach ($accounts as $gl_acct => $values) {
 		  if  (round($values['credit'], $precision) <> 0 || round($values['debit'], $precision) <> 0) {
 		    $sql = "UPDATE " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " SET 
 			  credit_amount = credit_amount + ".$values['credit'].", debit_amount = debit_amount + ".$values['debit'].", 
@@ -647,7 +647,7 @@ class journal {
 	  }
 	}
 	// build the cogs rows
-	if (sizeof($this->cogs_entry) > 0) foreach ($this->cogs_entry as $gl_acct => $values) {
+	if (!empty($this->cogs_entry)) foreach ($this->cogs_entry as $gl_acct => $values) {
 	  $temp_array = array(
 		'ref_id'        => $this->id,
 		'gl_type'       => 'cog',		// code for cost of goods charges

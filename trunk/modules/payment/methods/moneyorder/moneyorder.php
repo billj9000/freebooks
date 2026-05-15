@@ -29,7 +29,7 @@ class moneyorder extends payment {
   public function __construct(){
   	parent::__construct();
     $this->payment_fields = implode(':', array($this->field_0));
-    $this->key[] = array('key' => 'MODULE_PAYMENT_MONEYORDER_PAYTO', 'default' => COMPANY_NAME, 'text' => MODULE_PAYMENT_MONEYORDER_PAYTO_DESC);
+    $this->key[] = array('key' => 'MODULE_PAYMENT_MONEYORDER_PAYTO', 'default' => defined('COMPANY_NAME') ? COMPANY_NAME : '', 'text' => defined('MODULE_PAYMENT_MONEYORDER_PAYTO_DESC') ? MODULE_PAYMENT_MONEYORDER_PAYTO_DESC : '');
   }
 
   function selection() {

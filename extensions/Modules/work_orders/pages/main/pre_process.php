@@ -183,7 +183,7 @@ switch ($_REQUEST['action']) {
 	  }
 	}
 	// set the step to completed in the item db
-	if (!$error && sizeof($sql_data_array) > 0) {
+	if (!$error && !empty($sql_data_array)) {
 	  $success = db_perform(TABLE_WO_JOURNAL_ITEM, $sql_data_array, 'update', "ref_id = $id and step = $step");
 	  if (!$success) $error = $messageStack->add(WO_DB_UPDATE_ERROR,'error');
 	}

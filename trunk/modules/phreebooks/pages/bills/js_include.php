@@ -34,7 +34,7 @@ var journalID          = '<?php echo JOURNAL_ID; ?>';
 var text_enter_new     = '<?php echo TEXT_ENTER_NEW; ?>';
 var post_error         = <?php echo $error ? "true;" : "false;"; ?>
 var account_type       = '<?php echo $account_type; ?>';
-var store_country_code = '<?php echo STORE_COUNTRY; ?>';
+var store_country_code = '<?php echo COMPANY_COUNTRY; ?>';
 var payments_installed = <?php echo count($payment_modules) ? 'true' : 'false'; ?>;
 <?php echo js_calendar_init($cal_bills); ?>
 

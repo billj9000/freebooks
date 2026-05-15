@@ -115,7 +115,7 @@
   }
 
   function gen_not_null($value) {
-    return (!is_null($value) || strlen(trim($value)) > 0) ? true : false;
+    return strlen(trim((string)$value)) > 0;
   }
 
   function strip_alphanumeric($value) {
@@ -140,7 +140,7 @@
 
   function gen_array_key_merge($arr1, $arr2) {
   	if (!is_array($arr1)) $arr1 = array();
-    if (is_array($arr2) && sizeof($arr2) > 0) {
+    if (is_array($arr2) && !empty($arr2)) {
 	  foreach($arr2 as $key => $value) if (!array_key_exists($key, $arr1)) $arr1[$key] = $value;
 	}
     return $arr1;
@@ -229,7 +229,7 @@
 	if ($hide_inactive)  $params[] = "account_inactive = '0'";
 	if (!$show_all)      $params[] = "heading_only = '0'";
 	if ($restrict_types) $params[] = "account_type in (" . implode(',', $restrict_types) . ")";
-	$sql .= (sizeof($params) == 0) ? '' : ' where ' . implode(' and ', $params);
+	$sql .= (empty($params)) ? '' : ' where ' . implode(' and ', $params);
 	$sql .= " order by id";
     $result = $db->Execute($sql);
     if ($first_none) $output[] = array('id' => '', 'text' => GEN_HEADING_PLEASE_SELECT);
@@ -467,7 +467,7 @@
 	  'stats'     => $stats,
 	);
 	if ($ref_id) $fields['reference_id'] = substr($ref_id, 0, 32); // limit to field length
-	if ($amount) $fields['amount']       = (real)$amount;
+	if ($amount) $fields['amount']       = (float)$amount;
 	db_perform(TABLE_AUDIT_LOG, $fields, 'insert');
   }
 
@@ -475,9 +475,8 @@
     global $_GET;
     if ($exclude_array == '') $exclude_array = array();
     $get_url = '';
-    reset($_GET);
     $output = array();
-    while (list($key, $value) = each($_GET)) {
+    foreach ($_GET as $key => $value) {
       if (($key != session_name()) && ($key != 'error') && (!in_array($key, $exclude_array)) && $key != 'search_text') {
       	if (strlen($_REQUEST[$key]) > 0) $output[] = "$key=".$_REQUEST[$key];
       }
@@ -490,8 +489,7 @@
     global $_GET;
     if ($exclude_array == '') $exclude_array = array();
     $get_url = '';
-    reset($_GET);
-    while (list($key, $value) = each($_GET)) {
+    foreach ($_GET as $key => $value) {
       if (($key != session_name()) && ($key != 'error') && (!in_array($key, $exclude_array))) $get_url .= $key . '=' . $_REQUEST[$key] . '&';
     }
     return $get_url;
@@ -774,7 +772,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	  $mod_this_day  = min($days_in_month, $date_details['ThisDay']);
       return date('Y-m-d', mktime(0, 0, 0, $date_details['ThisMonth'] + $month_offset, $mod_this_day + $day_offset, $date_details['ThisYear'] + $year_offset));
     } else {
-	  $messageStack->add(sprintf(GEN_CALENDAR_FORMAT_ERROR, $raw_date, DATE_FORMAT, DATE_FORMAT_CALENDAR), 'error');
+	  $messageStack->add(sprintf(GEN_CALENDAR_FORMAT_ERROR, $start_date, DATE_FORMAT, DATE_FORMAT_CALENDAR), 'error');
       return date('Y-m-d');
     }
   }
@@ -832,7 +830,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
       $url = $url['host'];
     }
     $domain_array = explode('.', $url);
-    $domain_size = sizeof($domain_array);
+    $domain_size = count(is_array($domain_array) ? $domain_array : []);
     if ($domain_size > 1) {
       if (is_numeric($domain_array[$domain_size-2]) && is_numeric($domain_array[$domain_size-1])) {
         return false;
@@ -890,7 +888,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
   function arr2string($arr) {
     if (!is_array($arr)) return $arr;
     $output = "Array (";
-	if (sizeof($arr) > 0) {
+	if (!empty($arr)) {
 	  foreach ($arr as $key => $val) {
 	    if (is_array($val)) {
 	  	  $output .= ' [' . $key . '] => ' . arr2string($val);
@@ -933,15 +931,13 @@ function gen_db_date($raw_date = '', $separator = '/') {
   function db_perform($table, $data, $action = 'insert', $parameters = '') {
     global $db;
     if (!is_array($data)) return false;
-    reset($data);
     if ($action == 'insert') {
       $query = 'insert into ' . $table . ' (';
-      while (list($columns, ) = each($data)) {
+      foreach (array_keys($data) as $columns) {
         $query .= $columns . ', ';
       }
       $query = substr($query, 0, -2) . ') values (';
-      reset($data);
-      while (list(, $value) = each($data)) {
+      foreach ($data as $value) {
         switch ((string)$value) {
           case 'now()': $query .= 'now(), '; break;
           case 'null':  $query .= 'null, ';  break;
@@ -951,7 +947,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
       $query = substr($query, 0, -2) . ')';
     } elseif ($action == 'update') {
       $query = 'update ' . $table . ' set ';
-      while (list($columns, $value) = each($data)) {
+      foreach ($data as $columns => $value) {
         switch ((string)$value) {
           case 'now()': $query .= $columns . ' = now(), '; break;
           case 'null':  $query .= $columns .= ' = null, '; break;
@@ -982,7 +978,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	  }
     } elseif (is_array($string)) {
       reset($string);
-      while (list($key, $value) = each($string)) $string[$key] = db_prepare_input($value);
+      foreach (array_keys($string) as $key) $string[$key] = db_prepare_input($string[$key]);
       return $string;
     } else {
       return $string;
@@ -1060,7 +1056,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 		case 'svg' :   $subdir = 'scalable/';            break;
 	}
     $image_html = '<img src="' . DIR_WS_ICONS . $subdir . $image . '" alt="' . $alt . '"';
-    if (strpos($params, 'class=') === false) $image_html .= ' class="imgIcon"'; // class is specified, skip default
+    if (strpos((string)$params, 'class=') === false) $image_html .= ' class="imgIcon"'; // class is specified, skip default
     if (gen_not_null($alt))    $image_html .= ' title="'  . $alt    . '"';
     if (gen_not_null($id))     $image_html .= ' id="'     . $id     . '"';
     if ($width > 0)            $image_html .= ' width="'  . $width  . '"';
@@ -1225,7 +1221,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	$field .= '<img name="imgName' . $id . '" id="imgName' . $id . '" alt="" src="' . DIR_WS_ICONS . '16x16/phreebooks/pull_down_inactive.gif" height="16" width="16" align="top" style="border:none;" onmouseover="handleOver(\'imgName' . $id . '\'); return true;" onmouseout="handleOut(\'imgName' . $id . '\'); return true;" onclick="JavaScript:cbMmenuActivate(\'' . $id . '\', \'combodiv' . $id . '\', \'combosel' . $id . '\', \'imgName' . $id . '\')" />';
 	$field .= '<div id="combodiv' . $id . '" style="position:absolute; display:none; top:0px; left:0px; z-index:10000" onmouseover="javascript:oOverMenu=\'combodiv' . $id . '\';" onmouseout="javascript:oOverMenu=false;">';
 	$field .= '<select size="10" id="combosel' . $id . '" style="width:' . $width . '; border-style:none" onchange="JavaScript:textSet(\'' . $id . '\', this.value); ' . $onchange . ';" onkeypress="JavaScript:comboKey(\'' . $id . '\', this, event);">';
-    for ($i = 0; $i < sizeof($values); $i++) {
+    for ($i = 0; $i < count(is_array($values) ? $values : []); $i++) {
       $field .= '<option value="' . $values[$i]['id'] . '"';
       if ($default == $values[$i]['id']) $field .= ' selected="selected"';
       $field .= '>' . htmlspecialchars($values[$i]['text']) . '</option>';
@@ -1299,7 +1295,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	  if ($value) $output .= html_image(DIR_WS_IMAGES . $image_desc , TEXT_DESC, '', '', 'onclick="submitSortOrder(\''.$value.'\',\'desc\')"'). chr(10);
 	  $output .= '</th>' . chr(10);
 	}
-	if (sizeof($extra_headings) > 0) foreach ($extra_headings as $value) {
+	if (!empty($extra_headings)) foreach ($extra_headings as $value) {
 	  $output .= '<th nowrap="nowrap">' . $value . '</th>' . chr(10);
 	}
 	$result['html_code'] = $output;
@@ -1322,7 +1318,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	} else {
 	  $output .= '  <tr>'."\n";
 	  $output .= '    <td nowrap="nowrap">'.TEXT_NO_DATA.'</td>'."\n";
-	  for ($i = 1; $i < sizeof($content['thead']['value']); $i++) $output .= '    <td>&nbsp;</td>'."\n";
+	  for ($i = 1; $i < count(is_array($content['thead']['value']) ? $content['thead']['value'] : []); $i++) $output .= '    <td>&nbsp;</td>'."\n";
 	  $output .= '  </tr>'."\n";
 	}
  	$output .= '  </tbody>'."\n";
@@ -1345,7 +1341,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 
   function build_dir_tree($name, $full_array, $index = -1, $level = 0, $cont_level = array()) {
 	$entry_string = '';
-	for ($j = 0; $j < sizeof($full_array[$index]); $j++) {
+	for ($j = 0; $j < count(is_array($full_array[$index]) ? $full_array[$index] : []); $j++) {
 	  $new_ref   = $index . '_' . $full_array[$index][$j]['id'];
 	  $cont_temp = array_keys($cont_level);
 	  $entry_string .= '<div style="height:16px;">' . chr(10);
@@ -1353,9 +1349,9 @@ function gen_db_date($raw_date = '', $separator = '/') {
 //	  $entry_string .= '<tr><td nowrap="nowrap">' . chr(10);
 	  for ($i = 0; $i < $level; $i++) {
 	    if (false) {
-	    } elseif ($i == $level-1 && $j < sizeof($full_array[$index])-1) {
+	    } elseif ($i == $level-1 && $j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
 		  $entry_string .= html_icon('phreebooks/cont-end.gif', '', 'small');
-		} elseif ($i == $level-1 && $j == sizeof($full_array[$index])-1) {
+		} elseif ($i == $level-1 && $j == count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
 		  $entry_string .= html_icon('phreebooks/end-end.gif', '', 'small');
 		} elseif (in_array($i, $cont_temp)) {
 		  $entry_string .= html_icon('phreebooks/cont.gif', '', 'small');
@@ -1377,7 +1373,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 //	  $entry_string .= '</td></tr>' . chr(10);
 //	  $entry_string .= '</table>' . chr(10);
 	  $entry_string .= '</div>' . chr(10);
-	  if ($j < sizeof($full_array[$index])-1) {
+	  if ($j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
 		$cont_level[$level-1] = true;
 	  } else {
 		unset($cont_level[$level-1]);
@@ -1456,17 +1452,17 @@ function charConv($string, $in, $out) {
 		case 'text':
 			if ($params['length'] < 256) {
 				$length = ($params['length'] > 120) ? 'size="120"' : ('size="' . $params['length'] . '"');
-				$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->$param_array['field_name'], $length) . '</td></tr>';
+				$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->{$param_array['field_name']}, $length) . '</td></tr>';
 			} else {
-				$output .= '<td>' . html_textarea_field($param_array['field_name'], DEFAULT_INPUT_FIELD_LENGTH, 4, $cInfo->$param_array['field_name']) . '</td></tr>';
+				$output .= '<td>' . html_textarea_field($param_array['field_name'], DEFAULT_INPUT_FIELD_LENGTH, 4, $cInfo->{$param_array['field_name']}) . '</td></tr>';
 			}
 			break;
 		case 'html':
-			$output .= '<td>' . html_htmlarea_field($param_array['field_name'], DEFAULT_INPUT_FIELD_LENGTH, 4, $cInfo->$param_array['field_name']) . '</td></tr>';
+			$output .= '<td>' . html_htmlarea_field($param_array['field_name'], DEFAULT_INPUT_FIELD_LENGTH, 4, $cInfo->{$param_array['field_name']}) . '</td></tr>';
 			break;
 		case 'data_list':
 			$length = ($params['length'] > 120) ? 'size="120"' : ('size="' . $params['length'] . '"');
-			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->$param_array['field_name'], $length . " list='{$param_array['field_name']}'") . '</td>';
+			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->{$param_array['field_name']}, $length . " list='{$param_array['field_name']}'") . '</td>';
 			$output .= "<datalist id='{$param_array['field_name']}'>";
 			$choices = explode(',',$params['default']);
 			while ($choice = array_shift($choices)) {
@@ -1478,16 +1474,16 @@ function charConv($string, $in, $out) {
 		case 'hyperlink':
 		case 'image_link':
 		case 'inventory_link':
-			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->$param_array['field_name'], 'size="' . DEFAULT_INPUT_FIELD_LENGTH . '"') . '</td></tr>';
+			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->{$param_array['field_name']}, 'size="' . DEFAULT_INPUT_FIELD_LENGTH . '"') . '</td></tr>';
 			break;
 		case 'integer':
 		case 'decimal':
-			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->$param_array['field_name'], 'size="13" maxlength="12" style="text-align:right"') . '</td></tr>';
+			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->{$param_array['field_name']}, 'size="13" maxlength="12" style="text-align:right"') . '</td></tr>';
 			break;
 		case 'date':
 		case 'time':
 		case 'date_time':
-			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->$param_array['field_name'], 'size="21" maxlength="20"') . '</td></tr>';
+			$output .= '<td>' . html_input_field($param_array['field_name'], $cInfo->{$param_array['field_name']}, 'size="21" maxlength="20"') . '</td></tr>';
 			break;
 		case 'drop_down':
 		case 'enum':
@@ -1497,7 +1493,7 @@ function charConv($string, $in, $out) {
 			while ($choice = array_shift($choices)) {
 				$values = explode(':',$choice);
 				$pull_down_selection[] = array('id' => $values[0], 'text' => $values[1]);
-				if ($cInfo->$param_array['field_name'] == $values[0]) $default_selection = $values[0];
+				if ($cInfo->{$param_array['field_name']} == $values[0]) $default_selection = $values[0];
 			}
 			$output .= '<td>' . html_pull_down_menu($param_array['field_name'], $pull_down_selection, $default_selection) . '</td></tr>';
 			break;
@@ -1506,7 +1502,7 @@ function charConv($string, $in, $out) {
 			$choices = explode(',',$params['default']);
 			while ($choice = array_shift($choices)) {
 				$values = explode(':',$choice);
-				$output .= html_radio_field($param_array['field_name'], $values[0], ($cInfo->$param_array['field_name']==$values[0]) ? true : false);
+				$output .= html_radio_field($param_array['field_name'], $values[0], ($cInfo->{$param_array['field_name']}==$values[0]) ? true : false);
 				$output .= '<label for="' . $param_array['field_name']. '_' . $values[0] . '"> ' . $values[1] . '</label>';
 			}
 			$output .= '</td></tr>';
@@ -1515,7 +1511,7 @@ function charConv($string, $in, $out) {
 			$output  .= '<td>';
 			$output  .= '<table frame="border"><tr>';
 			$choices  = explode(',',$params['default']);
-			$selected = explode(',',$cInfo->$param_array['field_name']);
+			$selected = explode(',',$cInfo->{$param_array['field_name']});
 			$i = 1;
 			while ($choice = array_shift($choices)) {
 				$values = explode(':', $choice);
@@ -1533,7 +1529,7 @@ function charConv($string, $in, $out) {
 			$output .= '</td></tr>';
 			break;
 		case 'check_box':
-			$output .= '<td>' . html_checkbox_field($param_array['field_name'], '1', ($cInfo->$param_array['field_name']==1) ? true : false) . '</td></tr>';
+			$output .= '<td>' . html_checkbox_field($param_array['field_name'], '1', ($cInfo->{$param_array['field_name']}==1) ? true : false) . '</td></tr>';
 			break;
 		case 'time_stamp':
 		default:
@@ -1646,7 +1642,7 @@ function validate_ajax_user($token = 0) {
 	return true;
   }
 
-  function validate_send_mail($to_name, $to_address, $email_subject, $email_text, $from_email_name, $from_email_address, $block = array(), $attachments_list) {
+  function validate_send_mail($to_name, $to_address, $email_subject, $email_text, $from_email_name, $from_email_address, $block = array(), $attachments_list = array()) {
     global $db, $messageStack;
     // check for injection attempts. If new-line characters found in header fields, simply fail to send the message
     foreach(array($from_email_address, $to_address, $from_email_name, $to_name, $email_subject) as $key => $value) {
@@ -1673,7 +1669,7 @@ function validate_ajax_user($token = 0) {
       while (strstr($email_text, '&&'))         $email_text = str_replace('&&', '&', $email_text);
       // clean up currencies for text emails
       $fix_currencies = explode(":", CURRENCIES_TRANSLATIONS);
-      $size = sizeof($fix_currencies);
+      $size = count(is_array($fix_currencies) ? $fix_currencies : []);
       for ($i=0, $n=$size; $i<$n; $i+=2) {
         $fix_current = $fix_currencies[$i];
         $fix_replace = $fix_currencies[$i+1];
@@ -1797,7 +1793,7 @@ function pw_validate_password($plain, $encrypted) {
   if (gen_not_null($plain) && gen_not_null($encrypted)) {
 // split apart the hash / salt
     $stack = explode(':', $encrypted);
-    if (sizeof($stack) != 2) return false;
+    if (count(is_array($stack) ? $stack : []) != 2) return false;
     if (md5($stack[1] . $plain) == $stack[0]) {
       return true;
     }
@@ -1812,7 +1808,7 @@ function pw_validate_encrypt($plain) {
     $result = $db->Execute($sql);
     $encrypted = $result->fields['configuration_value'];
     $stack = explode(':', $encrypted);
-    if (sizeof($stack) != 2) return false;
+    if (count(is_array($stack) ? $stack : []) != 2) return false;
     if (md5($stack[1] . $plain) == $stack[0]) return true;
   }
   return false;
@@ -1831,10 +1827,10 @@ function pw_encrypt_password($plain) {
 function pw_create_random_value($length = 12) {
   $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
   $chars_length = (strlen($chars) - 1);
-  $string = $chars{rand(0, $chars_length)};
+  $string = $chars[rand(0, $chars_length)];
   for ($i = 1; $i < $length; $i = strlen($string)) {
-	$r = $chars{rand(0, $chars_length)};
-	if ($r != $string{$i - 1}) $string .=  $r;
+	$r = $chars[rand(0, $chars_length)];
+	if ($r != $string[$i - 1]) $string .=  $r;
   }
   return $string;
 }
@@ -1898,7 +1894,7 @@ function xml_to_object($xml = '') {
 		$end_tag = $selfclose ? ('<' . $tag . '/>') : '</' . $new_tag . '>';
 		$temp = explode(' ', $tag);
 		$tag = array_shift($temp);
-		if (sizeof($temp) > 0) {
+		if (!empty($temp)) {
 		  foreach ($temp as $prop) {
 		    if ($prop) {
 		      $oneval = explode('=', $prop);
@@ -1980,7 +1976,7 @@ function csv_string_to_array($str = '') {
 // Section 9. Error Handling Functions
 /**************************************************************************************************************/
 
-function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
+function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext = null) {
 	global $messageStack;
     if (!(error_reporting() & $errno)) {
         // This error code is not included in error_reporting
@@ -1995,7 +1991,7 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
     		$text .= " FATAL RUN-TIME ERROR: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
     		//error_log($text, 1, "operator@example.com");
     		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
-    		if ($_POST['page'] == 'ajax' || $_GET['page'] == 'ajax'){
+    		if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
                 echo createXmlHeader() . xmlEntry('error', "Sorry! FATAL RUN-TIME ERROR. We encounterd the following error: $errstr.  and had to cancel the script") . createXmlFooter();
                 die();
                 break;
@@ -2036,7 +2032,7 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
     		$text .= " FATAL COMPILE-TIME ERROR: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
     		//error_log($text, 1, "operator@example.com");
     		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
-    		if ($_POST['page'] == 'ajax' || $_GET['page'] == 'ajax'){
+    		if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
                 echo createXmlHeader() . xmlEntry('error', "Sorry! FATAL COMPILE-TIME ERROR. We encounterd the following error: $errstr.  and had to cancel the script") . createXmlFooter();
                 die();
                 break;
@@ -2054,7 +2050,7 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
     		$text .= " USER ERROR: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
     		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
     		//error_log($text, 1, "operator@example.com");
-    		if ($_POST['page'] == 'ajax' || $_GET['page'] == 'ajax'){
+    		if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
                 echo createXmlHeader() . xmlEntry('error', "Sorry! User Error. We encounterd the following error: $errstr.  and had to cancel the script") . createXmlFooter();
                 die();
                 break;
@@ -2100,14 +2096,14 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
 
 function PhreebooksExceptionHandler($exception) {
 	global $messageStack;
-	if ($_POST['page'] == 'ajax' || $_GET['page'] == 'ajax'){
+	if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
     	echo createXmlHeader() . xmlEntry('error', "Exception: " . $exception->getMessage()) . createXmlFooter();
         die();
     }
-    $messageStack->add($exception->getMessage(), 'error');
-  	$text  = date('Y-m-d H:i:s') . " User: " . $_SESSION['admin_id'] . " Company: " . $_SESSION['company'] ;
+    if (isset($messageStack)) $messageStack->add($exception->getMessage(), 'error');
+  	$text  = date('Y-m-d H:i:s') . " User: " . ($_SESSION['admin_id'] ?? '') . " Company: " . ($_SESSION['company'] ?? '');
     $text .= " Exception: '" . $exception->getMessage() . "' line " . $exception->getLine() . " in file " . $exception->getFile();
-    if(DEBUG) error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    if (defined('DEBUG') && DEBUG && defined('DIR_FS_MY_FILES')) error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
 }
 
 function Phreebooks_autoloader($class){

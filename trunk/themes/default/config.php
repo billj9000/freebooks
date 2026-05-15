@@ -41,14 +41,14 @@ if ($include_header) { ?>
 <?php } // end include_header
 
 // set up to use jquery UI calendar format
-$cal_format =  preg_replace(array('/m/','/d/','/Y/'), array('mm', 'dd', 'yy'), DATE_FORMAT);
+$cal_format = defined('DATE_FORMAT') ? preg_replace(array('/m/','/d/','/Y/'), array('mm', 'dd', 'yy'), DATE_FORMAT) : 'mm-dd-yy';
 define('DATE_FORMAT_CALENDAR', $cal_format);
 // wrappers to initialize jquery UI calendar, both javascript and html
 if (!function_exists('js_calendar_init')) {
   function js_calendar_init($properties = NULL) {
   	$options = array();
   	if (isset($properties['params']['onchange'])) $options[] = "onSelect: function(date) { ".$properties['params']['onchange']." }";
-  	$opt = sizeof($options)==0 ? '' : "{ ".implode(', ',$options)." }";
+  	$opt = empty($options) ? '' : "{ ".implode(', ',$options)." }";
     return 'addLoadEvent(function() { $("#'.$properties['fieldname'].'").datepicker('.$opt.'); });';
   }
 }

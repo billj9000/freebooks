@@ -217,9 +217,9 @@ switch ($_REQUEST['action']) {
   case 'pw_lost_sub':
   case 'pw_lost_req':
   	$companies       = load_company_dropdown();
-  	$single_company  = sizeof($companies)==1 ? true : false;
+  	$single_company  = count(is_array($companies) ? $companies : [])==1 ? true : false;
   	$languages       = load_language_dropdown();
-	$single_language = sizeof($languages)==1 ? true : false;
+	$single_language = count(is_array($languages) ? $languages : [])==1 ? true : false;
 	if (isset($_POST['company'])) { // find default company
 	  $company_index = $_POST['company'];
 	} else {

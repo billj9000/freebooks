@@ -58,7 +58,7 @@ $cal_c_gen = array(
 	   <tr><th colspan="4"><?php echo TEXT_HISTORY; ?></th></tr>
 	  </thead>
 	  <tbody class="ui-widget-content">
-<?php if (sizeof($cInfo->crm_log) > 0) foreach ($cInfo->crm_log as $value) { ?>
+<?php if (!empty($cInfo->crm_log)) foreach ($cInfo->crm_log as $value) { ?>
 	   <tr id="tr_crm_a_<?php echo $value->log_id; ?>" class="odd">
 	    <td><?php echo $security_level < 4 ? '&nbsp;' : html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\''.CRM_ROW_DELETE_ALERT.'\')) deleteCRM('.$value->log_id.');"'); ?></td>
 	    <td><?php echo $reps[$value->entered_by]; ?></td>

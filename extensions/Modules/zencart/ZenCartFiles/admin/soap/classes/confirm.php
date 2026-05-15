@@ -65,7 +65,7 @@ class xml_confirm extends parser {
   function orderConfirm($orders) {
 	global $db, $messageStack;
 	// error check input
-	if (sizeof($orders['order']) == 0)  return $this->responseXML('20', SOAP_NO_ORDERS_TO_CONFIRM, 'error');
+	if (empty($orders['order']))  return $this->responseXML('20', SOAP_NO_ORDERS_TO_CONFIRM, 'error');
 	if ($orders['action'] <> 'Confirm') return $this->responseXML('16', SOAP_BAD_ACTION, 'error');
 
     $order_cnt = 0;
@@ -90,7 +90,7 @@ class xml_confirm extends parser {
 	  $order_cnt++;
 	  $order_list[] = $value['id'];
 	}
-	$orders = (sizeof($order_list) > 0) ? (' (' . implode(', ', $order_list) . ')') : ''; 
+	$orders = (!empty($order_list)) ? (' (' . implode(', ', $order_list) . ')') : ''; 
 	$this->responseXML('0', sprintf(SOAP_CONFIRM_SUCCESS, $order_cnt . $orders), 'success');
 	return true;
   }

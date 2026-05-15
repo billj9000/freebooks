@@ -38,7 +38,7 @@
     </tr>
 	</thead>
 	<tbody class="ui-widget-content">
-<?php for ($i = 0; $i < sizeof($report->fieldlist); $i++) { ?>
+<?php for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) { ?>
     <tr>
 	  <td><?php echo html_combo_box('fld_fld[]', CreateSpecialDropDown($report), $report->fieldlist[$i]->fieldname, 'onclick="updateFieldList(this)"', '220px', '', 'fld_combo_' . $i); ?></td>
       <td><?php echo html_input_field('fld_desc[]', $report->fieldlist[$i]->description, 'size="20" maxlength="25"'); ?></td>

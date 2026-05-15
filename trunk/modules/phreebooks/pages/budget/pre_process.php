@@ -112,13 +112,13 @@ while (!$result->EOF) {
 }
 $result = $db->Execute("select id, period, budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
 	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($periods)) . ")");
-if ($gl_acct && sizeof($lf_per) > 0) {
+if ($gl_acct && !empty($lf_per)) {
   $last_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
 	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($lf_per)) . ")");
 } else {
   $next_fy = new objectInfo();
 }
-if ($gl_acct && sizeof($nf_per) > 0) {
+if ($gl_acct && !empty($nf_per)) {
   $next_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
 	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($nf_per)) . ")");
 } else {
@@ -134,8 +134,8 @@ while(!$result->EOF) {
 	'next'   => $next_fy->fields['budget'],
   );
   $result->MoveNext();
-  if (sizeof($lf_per) > 0) $last_fy->MoveNext();
-  if (sizeof($nf_per) > 0) $next_fy->MoveNext();
+  if (!empty($lf_per)) $last_fy->MoveNext();
+  if (!empty($nf_per)) $next_fy->MoveNext();
 }
 
 $include_header   = true;

@@ -34,20 +34,20 @@ while(true) {
   $i++;
   if ($runaway++ > 100) die;
 }
-if (sizeof($report->tables) < 1) {
+if (empty($report->tables)) {
   echo createXmlHeader() . xmlEntry('error', PHREEFORM_NO_TABLES_PASSED) . createXmlFooter();
   die;
 }
 $report->special_class = $_GET['sp'] ? $_GET['sp'] : false;
 
 $kFields = CreateSpecialDropDown($report);
-if (sizeof($kFields) > 0) foreach ($kFields as $value) {
+if (!empty($kFields)) foreach ($kFields as $value) {
   $xml .= "<option>\n";
   $xml .= "\t" . xmlEntry('id',   $value['id']);
   $xml .= "\t" . xmlEntry('text', $value['text']);
   $xml .= "</option>\n";
 }
-$xml .= xmlEntry("message", 'Success select length = ' . sizeof($kFields));
+$xml .= xmlEntry("message", 'Success select length = ' . count(is_array($kFields) ? $kFields : []));
 
 echo createXmlHeader() . $xml . createXmlFooter();
 die;

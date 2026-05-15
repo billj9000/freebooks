@@ -280,7 +280,7 @@ class nova_xml extends payment {
 
     // concatenate the submission data and put into $data variable
 	$data = '?xmldata=<txn>'; // initiate XML string
-    while(list($key, $value) = each($submit_data)) {
+    foreach ($submit_data as $key => $value) {
       if ($value <> '') $data .= '<' . urlencode($key) . '>' . urlencode($value) . '</' . urlencode($key) . '>';
     }
 	$data .= '</txn>'; // terminate XML string

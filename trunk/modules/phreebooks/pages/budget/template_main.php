@@ -31,7 +31,7 @@ $toolbar->add_icon('new',  'onclick="if (confirm(\'' . GL_CLEAR_ACTUAL_CONFIRM .
 $toolbar->icon_list['new']['text']      = TEXT_BUDGET_CLEAR_HINT;
 $toolbar->add_icon('copy', 'onclick="if (confirm(\'' . GL_COPY_ACTUAL_CONFIRM  . '\')) submitToDo(\'copy_fy\')"',  $order = 25);
 $toolbar->icon_list['copy']['text']     = GL_BUDGET_COPY_HINT;
-if (count($extra_toolbar_buttons) > 0) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
+if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help();
 echo $toolbar->build_toolbar(); 
 // Build the page

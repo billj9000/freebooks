@@ -31,7 +31,7 @@ class sku_pricer {
   	function processCSV($filename) { //Master
   		global $db, $messageStack;
   		$rows = $this->csv_to_array($_FILES[$filename]['tmp_name'], $delimiter=',');
-  		$messageStack->debug("\nfinished parsing, extracted number of rows = ".sizeof($rows));
+  		$messageStack->debug("\nfinished parsing, extracted number of rows = ".count(is_array($rows) ? $rows : []));
 		$valid_fields = array(
 			'description_short'		=> 'description_short',
 			'description_sales'		=> 'description_sales',
@@ -97,7 +97,7 @@ class sku_pricer {
 			}
 		}
 		if (DEBUG) $messageStack->write_debug();
-		$messageStack->add("Total lines processed: ".sizeof($rows).". Total affected rows = $count.", "success");
+		$messageStack->add("Total lines processed: ".count(is_array($rows) ? $rows : []).". Total affected rows = $count.", "success");
   	}
 
   	function csv_to_array($filename='', $delimiter=',') {

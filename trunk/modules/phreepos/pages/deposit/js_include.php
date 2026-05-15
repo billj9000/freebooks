@@ -109,7 +109,7 @@ function ClearForm() {
   // some special initialization
   document.getElementById('search').style.color           = inactive_text_color;
   document.getElementById('purchase_invoice_id').readOnly = false;
-  document.getElementById('bill_country_code').value      = '<?php echo STORE_COUNTRY; ?>';
+  document.getElementById('bill_country_code').value      = '<?php echo COMPANY_COUNTRY; ?>';
   for (var i=0; i<add_array.length; i++) {
 	add_id = add_array[i];
 	if (add_id != 'country_code') document.getElementById('bill_'+add_id).style.color = inactive_text_color;

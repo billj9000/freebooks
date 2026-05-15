@@ -32,7 +32,7 @@ $toolbar->icon_list['restore'] = array(
   'text'   => BOX_HEADING_RESTORE, 
   'order'  => 10,
 );
-if (count($extra_toolbar_buttons) > 0) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
+if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 // add the help file index and build the toolbar
 $toolbar->add_help('01');
 echo $toolbar->build_toolbar(); 

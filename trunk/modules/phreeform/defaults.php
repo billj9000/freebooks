@@ -335,7 +335,7 @@ function ProcessData($strData, $Process) {
 	case "rnd2d":   if (!is_numeric($strData)) return $strData;
 	                return number_format(round($strData, 2), 2, '.', '');
 	case "date":    return gen_locale_date($strData);
-	case "null-dlr":return (real)$strData == 0 ? '' : '$ ' . number_format($strData, 2);
+	case "null-dlr":return (float)$strData == 0 ? '' : '$ ' . number_format($strData, 2);
 	case "dlr":     if (!is_numeric($strData)) return $strData;
 	                return '$ ' . number_format(round($strData, 2), 2);
 	case "euro":    if (!is_numeric($strData)) return $strData;

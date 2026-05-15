@@ -30,7 +30,7 @@
 	 </thead>
 	 <tbody class="ui-widget-content">
 	  <?php 
-  if (sizeof($methods) > 0) foreach ($methods as $method) {
+  if (!empty($methods)) foreach ($methods as $method) {
   	// load the method properties
 	require_once($method_dir . $method . '/' . $method . '.php');
 	$properties = new $method;

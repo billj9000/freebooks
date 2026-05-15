@@ -49,6 +49,8 @@ if (!$error ) {
 	$report = get_report_details($rID);
 	$title  = $report->title;
 	$report->datedefault = 'a';
+	if (!isset($report->xfilterlist) || !is_array($report->xfilterlist)) $report->xfilterlist = [];
+	if (!isset($report->xfilterlist[0]) || !is_object($report->xfilterlist[0])) $report->xfilterlist[0] = new stdClass();
 	$report->xfilterlist[0]->fieldname = 'journal_main.id';
 	$report->xfilterlist[0]->default   = 'EQUAL';
 	$report->xfilterlist[0]->min_val   = $journal_id;

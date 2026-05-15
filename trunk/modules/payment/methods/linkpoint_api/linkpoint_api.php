@@ -30,15 +30,16 @@ class linkpoint_api extends payment {
   public $description = MODULE_PAYMENT_LINKPOINT_API_TEXT_DESCRIPTION;
   public $sort_order  = 8;
   public $enabled, $payment_status, $auth_code, $transaction_id;
-  public $_logDir = DIR_FS_SQL_CACHE;
+  public $_logDir = null;
 
   public function __construct(){
   	global $order, $messageStack;
+  	$this->_logDir = defined('DIR_FS_SQL_CACHE') ? DIR_FS_SQL_CACHE : DIR_FS_MY_FILES;
   	parent::__construct();
 	if ($this->enabled && !function_exists('curl_init')) $messageStack->add(MODULE_PAYMENT_LINKPOINT_API_TEXT_ERROR_CURL_NOT_FOUND, 'error');
-	$this->code_debug  = (MODULE_PAYMENT_LINKPOINT_API_CODE_DEBUG == 'debug') ? true : false;
+	$this->code_debug  = (defined('MODULE_PAYMENT_LINKPOINT_API_CODE_DEBUG') && MODULE_PAYMENT_LINKPOINT_API_CODE_DEBUG == 'debug') ? true : false;
 	// set error messages if misconfigured
-	if (MODULE_PAYMENT_LINKPOINT_API_STATUS) {
+	if (defined('MODULE_PAYMENT_LINKPOINT_API_STATUS') && MODULE_PAYMENT_LINKPOINT_API_STATUS) {
 		$pemFileDir = DIR_FS_WORKING . '/payment/modules/linkpoint_api/' . MODULE_PAYMENT_LINKPOINT_API_LOGIN . '.pem';
 		if (MODULE_PAYMENT_LINKPOINT_API_LOGIN == 'EnterYourStoreNumber') {
 			$this->title .= MODULE_PAYMENT_LINKPOINT_API_TEXT_NOT_CONFIGURED;
@@ -363,7 +364,7 @@ class linkpoint_api extends payment {
 		$myorder["comments"] = "Phreebooks Sales Order";
 
 		// itemized contents
-		for ($i = 0, $n = sizeof($order->item_rows); $i < $n; $i++) {
+		for ($i = 0, $n = count(is_array($order->item_rows) ? $order->item_rows : []); $i < $n; $i++) {
 			$myorder["items"][$i]['id'] = $order->item_rows[$i]['id'];
 			$myorder["items"][$i]['description'] = $order->item_rows[$i]['id']; //substr(htmlentities($order->products[$i]['name'], ENT_QUOTES, 'UTF-8'), 0, 100); //harry
 			$myorder["items"][$i]['quantity'] = $order->item_rows[$i]['pay']; //$order->products[$i]['qty']; //harry
@@ -374,7 +375,7 @@ class linkpoint_api extends payment {
 //			$myorder["items"][$i]['invoice_num'] = $order->item_rows[$i]['inv'];
 			/* harry
 			if (isset ($order->products[$i]['attributes'])) {
-				for ($j = 0, $m = sizeof($order->products[$i]['attributes']); $j < $m; $j++) {
+				for ($j = 0, $m = count(is_array($order->products[$i]['attributes']) ? $order->products[$i]['attributes'] : []); $j < $m; $j++) {
 					$myorder["items"][$i]['options' . $j]['name'] = $order->products[$i]['attributes'][$j]['option'];
 					$myorder["items"][$i]['options' . $j]['value'] = $order->products[$i]['attributes'][$j]['value'];
 				}

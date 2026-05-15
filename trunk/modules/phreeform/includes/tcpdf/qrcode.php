@@ -2180,10 +2180,10 @@ class QRcode {
 	 * @return array bitstream
 	 */
 	 protected function appendBitstream($bitstream, $append) {
-		if ((!is_array($append)) OR (count($append) == 0)) {
+		if ((!is_array($append)) OR (empty($append))) {
 			return $bitstream;
 		}
-		if (count($bitstream) == 0) {
+		if (empty($bitstream)) {
 			return $append;
 		}
 		return array_values(array_merge($bitstream, $append));

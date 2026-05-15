@@ -20,6 +20,7 @@
 
 // Window heading label
 define('HEADING_TITLE','Phreedom Help - Powered by PhreeHelp');
+define('TITLE_TOP_FRAME', 'Phreedom Help - Powered by PhreeHelp');
 
 // Tab Labels
 define('HEADING_CONTENTS','Contents');

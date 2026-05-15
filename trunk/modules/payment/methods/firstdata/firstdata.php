@@ -35,7 +35,7 @@ class firstdata extends payment {
   public function __construct(){
   	global $order;
   	parent::__construct();
-    if ((int)MODULE_PAYMENT_FIRSTDATA_ORDER_STATUS_ID > 0) $this->order_status = MODULE_PAYMENT_FIRSTDATA_ORDER_STATUS_ID;
+    if (defined('MODULE_PAYMENT_FIRSTDATA_ORDER_STATUS_ID') && (int)MODULE_PAYMENT_FIRSTDATA_ORDER_STATUS_ID > 0) $this->order_status = MODULE_PAYMENT_FIRSTDATA_ORDER_STATUS_ID;
 	// save the information
 	// Card numbers are not saved, instead keep the first and last four digits and fill middle with *'s
     $this->key[] = array('key' => 'MODULE_PAYMENT_FIRSTDATA_CONFIG_FILE',       'default' => ''			, 'text' => MODULE_PAYMENT_FIRSTDATA_CONFIG_FILE_DESC);

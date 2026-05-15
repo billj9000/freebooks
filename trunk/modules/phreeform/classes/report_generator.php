@@ -78,28 +78,28 @@ class PDF extends TCPDF {
 			$this->SetFont($report->page->heading->font, 'B', $report->page->heading->size);
 			$Colors = explode(':', $report->page->heading->color);
 			$this->SetTextColor($Colors[0], $Colors[1], $Colors[2]);
-			$CellHeight = ($report->page->heading->size + REPORT_ROWSPACE) * 0.35;
+			$CellHeight = ($report->page->heading->size + PF_DEFAULT_ROWSPACE) * 0.35;
 			$this->Cell(0, $CellHeight, COMPANY_NAME, 0, 1, $report->page->heading->align);
 		}
 		if ($report->page->title1->show) { // Set title 1 heading
 			$this->SetFont($report->page->title1->font, '', $report->page->title1->size);
 			$Colors = explode(':', $report->page->title1->color);
 			$this->SetTextColor($Colors[0], $Colors[1], $Colors[2]);
-			$CellHeight = ($report->page->title1->size + REPORT_ROWSPACE) * 0.35;
+			$CellHeight = ($report->page->title1->size + PF_DEFAULT_ROWSPACE) * 0.35;
 			$this->Cell(0, $CellHeight, TextReplace($report->page->title1->text), 0, 1, $report->page->title1->align);
 		}
 		if ($report->page->title2->show) { // Set Title 2 heading
 			$this->SetFont($report->page->title2->font, '', $report->page->title2->size);
 			$Colors = explode(':', $report->page->title2->color);
 			$this->SetTextColor($Colors[0], $Colors[1], $Colors[2]);
-			$CellHeight = ($report->page->title2->size + REPORT_ROWSPACE) * 0.35;
+			$CellHeight = ($report->page->title2->size + PF_DEFAULT_ROWSPACE) * 0.35;
 			$this->Cell(0, $CellHeight, TextReplace($report->page->title2->text), 0, 1, $report->page->title2->align);
 		}
 		// Set the filter heading
 		$this->SetFont($report->page->filter->font, '', $report->page->filter->size);
 		$Colors = explode(':', $report->page->filter->color);
 		$this->SetTextColor($Colors[0], $Colors[1], $Colors[2]);
-		$CellHeight = ($report->page->filter->size + REPORT_ROWSPACE) * 0.35; // convert points to mm
+		$CellHeight = ($report->page->filter->size + PF_DEFAULT_ROWSPACE) * 0.35; // convert points to mm
 		$this->MultiCell(0, $CellHeight, $report->page->filter->text, 'B', 1, $report->page->filter->align);
 		$this->y0 = $this->GetY(); // set y position after report headings before column titles
 		// Set the table header
@@ -108,7 +108,7 @@ class PDF extends TCPDF {
 		$this->SetTextColor($Colors[0], $Colors[1], $Colors[2]);
 		$this->SetDrawColor(128, 0, 0);
 		$this->SetLineWidth(.35); // 1 point
-		$CellHeight = ($report->page->data->size + REPORT_ROWSPACE) * 0.35;
+		$CellHeight = ($report->page->data->size + PF_DEFAULT_ROWSPACE) * 0.35;
 		// fetch the column widths
 		$CellXPos = $this->columnWidths;
 		// Fetch the column break array
@@ -159,7 +159,7 @@ class PDF extends TCPDF {
 		$this->SetFillColor($FillColor[0], $FillColor[1], $FillColor[2]);
 		$Colors     = explode(':', $report->page->data->color);
 		$this->SetTextColor($Colors[0], $Colors[1], $Colors[2]);
-		$CellHeight = ($report->page->data->size + REPORT_ROWSPACE) * 0.35;
+		$CellHeight = ($report->page->data->size + PF_DEFAULT_ROWSPACE) * 0.35;
 		// fetch the column widths
 		$CellXPos   = $this->columnWidths;
 		// Fetch the column break array and alignment array

@@ -44,7 +44,8 @@ define('FILENAME_DEFAULT', 'index');
 $request_type = (isset($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) == 'on' || $_SERVER['HTTPS'] == '1' || strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_BY']),'SSL') || strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_HOST']),'SSL'))) ? 'SSL' : 'NONSSL';
 // define the inventory types that are tracked in cost of goods sold
 define('COG_ITEM_TYPES','si,sr,ms,mi,ma,sa');
-@ini_set('session.gc_maxlifetime', (SESSION_TIMEOUT_ADMIN < 360 ? 360 : SESSION_TIMEOUT_ADMIN));
+$_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : 360;
+@ini_set('session.gc_maxlifetime', ($_session_timeout < 360 ? 360 : $_session_timeout));
 $_REQUEST = array_merge($_GET, $_POST);
 // The line below breaks the $_REQUEST string as array_map expects 2 parameters and the second array is null thus erasing all the values in $_REQUEST while keeping the keys.
 //$_REQUEST = array_map('mysql_real_escape_string', $_REQUEST); // this should pas all variables in the $_REQUEST pas the db_prepare_input function
@@ -52,7 +53,7 @@ session_start();
 $session_started = true;
 // set the language
 if   (isset($_GET['language'])) { $_SESSION['language'] = $_GET['language']; } 
-elseif (!$_SESSION['language']) { $_SESSION['language'] = defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : 'en_us'; }
+elseif (empty($_SESSION['language'])) { $_SESSION['language'] = defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : 'en_us'; }
 // see if the user is logged in
 $user_validated = isset($_SESSION['admin_id']) ? true : false;
 // load general language translation, Check for global define overrides first
@@ -84,7 +85,7 @@ $db_company = (isset($_SESSION['company'])) ? $_SESSION['company'] : $_SESSION['
 if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   define('DB_DATABASE', $db_company);
   require_once(DIR_FS_MY_FILES . $db_company . '/config.php');
-  define('DB_SERVER_HOST',DB_SERVER); // for old PhreeBooks installs
+  if (!defined('DB_SERVER_HOST') && defined('DB_SERVER')) define('DB_SERVER_HOST', DB_SERVER); // for old PhreeBooks installs
   // Load queryFactory db classes
   require_once(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
   $db = new queryFactory();
@@ -116,7 +117,8 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   if (file_exists($path)) { include($path); }
   $currencies = new currencies();
 }
-if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > (SESSION_TIMEOUT_ADMIN < 360 ? 360 : SESSION_TIMEOUT_ADMIN))) {
+$_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : $_session_timeout;
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > ($_session_timeout < 360 ? 360 : $_session_timeout))) {
 	$_SESSION = array('language'=>$_SESSION['language'], 'companies'=>$_SESSION['companies']);
 	gen_redirect(html_href_link(FILENAME_DEFAULT, '', 'SSL'));
 }

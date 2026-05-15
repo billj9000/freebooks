@@ -187,14 +187,14 @@ class income_statement {
 
   function build_income_data($cur_year, $last_year) {
 	$temp = array();
-	if (sizeof($cur_year) > 0) foreach ($cur_year as $acct => $data) {
+	if (!empty($cur_year)) foreach ($cur_year as $acct => $data) {
 		$temp[$acct] = array('desc' => $data[0], 'curr' => $data[1], 'ytd' => $data[2], 'last' => $this->zero, 'lytd' => $this->zero);
 	}
-	if (sizeof($last_year) > 0) foreach ($last_year as $acct => $data) {
+	if (!empty($last_year)) foreach ($last_year as $acct => $data) {
 		$temp[$acct]['last'] = $data[1];
 		$temp[$acct]['lytd'] = $data[2];
 	}
-	if (sizeof($temp) > 0) foreach ($temp as $data) {
+	if (!empty($temp)) foreach ($temp as $data) {
 	  if ($this->columns == 4) {
 		$this->inc_stmt_data[] = array('d', $data['desc'], $data['curr'], $data['ytd'], $data['last'], $data['lytd']);		
 	  } else {

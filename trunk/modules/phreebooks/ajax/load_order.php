@@ -80,7 +80,7 @@ if ($cID && !$just_ship) { // build the contact data
   if (!$contact->fields['dept_rep_id']) unset($contact->fields['dept_rep_id']); // clear the rep field if not set to a contact
 }
 // Now fill the order, if it is requested
-if (sizeof($order->fields) > 0) {
+if (!empty($order->fields)) {
 	// correct check boxes since changing the values will not affect the check status but change the value behind it
 	$order->fields['cb_closed']    = ($order->fields['closed']    == '1') ? 1 : 0;
 	$order->fields['cb_waiting']   = ($order->fields['waiting']   == '1') ? 1 : 0;
@@ -287,7 +287,7 @@ if (sizeof($order->fields) > 0) {
 }
 
 // build the form data
-if (sizeof($contact->fields) > 0) {
+if (!empty($contact->fields)) {
   $xml .= "<BillContact>\n";
   foreach ($contact->fields as $key => $value) $xml .= "\t" . xmlEntry($key, $value);
   if ($bill_add->fields) while (!$bill_add->EOF) {
@@ -298,7 +298,7 @@ if (sizeof($contact->fields) > 0) {
   }
   $xml .= "</BillContact>\n";
 }
-if (defined('MODULE_SHIPPING_STATUS') && sizeof($sContact->fields) > 0) { // there was a drop ship address
+if (defined('MODULE_SHIPPING_STATUS') && !empty($sContact->fields)) { // there was a drop ship address
   $xml .= "<ShipContact>\n";
   foreach ($sContact->fields as $key => $value) $xml .= "\t" . xmlEntry($key, $value);
   if ($ship_add->fields) while (!$ship_add->EOF) {
@@ -309,7 +309,7 @@ if (defined('MODULE_SHIPPING_STATUS') && sizeof($sContact->fields) > 0) { // the
   }
   $xml .= "</ShipContact>\n";
 }
-if (sizeof($order->fields) > 0) { // there was an order to open
+if (!empty($order->fields)) { // there was an order to open
   $xml .= "<OrderData>\n";
   foreach ($order->fields as $key => $value) $xml .= "\t" . xmlEntry($key, strval($value));
   foreach ($item_list as $item) {

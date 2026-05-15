@@ -42,6 +42,8 @@ if ($rID) {
 	$report->filterlist[$key] = $value;
   }
   if (isset($_GET['xfld'])) { // check for extra filters
+    if (!isset($report->xfilterlist) || !is_array($report->xfilterlist)) $report->xfilterlist = [];
+    if (!isset($report->xfilterlist[0]) || !is_object($report->xfilterlist[0])) $report->xfilterlist[0] = new stdClass();
     if (isset($_GET['xfld'])) $report->xfilterlist[0]->fieldname = $_GET['xfld'];
     if (isset($_GET['xcr']))  $report->xfilterlist[0]->default   = $_GET['xcr'];
     if (isset($_GET['xmin'])) $report->xfilterlist[0]->min_val   = $_GET['xmin'];
@@ -63,6 +65,8 @@ if ($rID) {
 	  $report->filterlist[$key] = $value;
 	}
     if (isset($_GET['xfld'])) { // check for extra filters
+      if (!isset($report->xfilterlist) || !is_array($report->xfilterlist)) $report->xfilterlist = [];
+      if (!isset($report->xfilterlist[0]) || !is_object($report->xfilterlist[0])) $report->xfilterlist[0] = new stdClass();
       if (isset($_GET['xfld'])) $report->xfilterlist[0]->fieldname = $_GET['xfld'];
       if (isset($_GET['xcr']))  $report->xfilterlist[0]->default   = $_GET['xcr'];
       if (isset($_GET['xmin'])) $report->xfilterlist[0]->min_val   = $_GET['xmin'];
@@ -301,7 +305,7 @@ foreach ($DateChoices as $key => $value) {
 }
 
 $tab_list = array();
-if ($report->reporttype == 'frm' && sizeof($r_list) > 0) {
+if ($report->reporttype == 'frm' && !empty($r_list)) {
   $tab_list['crit']  = TEXT_CRITERIA;
 } elseif ($report->reporttype == 'rpt') {
   $tab_list['crit']  = TEXT_CRITERIA;
@@ -337,7 +341,7 @@ $nyChoice    = gen_build_pull_down($NoYesChoice);
 $pFields     = gen_build_pull_down($FormProcessing);
 
 $jsArray  = 'var fieldIdx = new Array();' . chr(10);
-for ($i = 0; $i < sizeof($report->fieldlist); $i++) $jsArray .= 'fieldIdx[' . $i . '] = ' . $i . ';' . chr(10);
+for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) $jsArray .= 'fieldIdx[' . $i . '] = ' . $i . ';' . chr(10);
 
 $cal_from = array(
   'name'      => 'dateFrom',

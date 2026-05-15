@@ -102,13 +102,13 @@ switch ($_REQUEST['action']) {
 	if ($_REQUEST['action'] == 'inv_hist_fix') { // start repair
 	  	$precision = 1 / pow(10, $currencies->currencies[DEFAULT_CURRENCY]['decimal_precise'] + 1);
 	  	$result = $db->Execute("UPDATE " . TABLE_INVENTORY_HISTORY . " SET remaining = 0 WHERE remaining < " . $precision); // remove rounding errors
-	  	if (sizeof($repair) > 0) {
+	  	if (!empty($repair)) {
 	    	foreach ($repair as $key => $value) {
 		  		$db->Execute("UPDATE " . TABLE_INVENTORY . " SET quantity_on_hand = $value WHERE sku = '$key'");
 		  		$messageStack->add(sprintf(INV_TOOLS_BALANCE_CORRECTED, $key, $value), 'success');
 			}
 	  	}
-	  	if (sizeof($journal_repost) > 0) {
+	  	if (!empty($journal_repost)) {
 	  		foreach ($journal_repost as $key => $value) {
 	  			$result = $db->Execute("SELECT m.id FROM journal_main m join journal_item i ON m.id = i.ref_id WHERE i.sku = '{$value}' ORDER BY m.post_date, m.id");
 	  			$db->transStart();
@@ -151,7 +151,7 @@ switch ($_REQUEST['action']) {
 	$po = inv_status_open_orders($journal_id =  4, $gl_type = 'poo');
 	$so = inv_status_open_orders($journal_id = 10, $gl_type = 'soo');
 	// compare the results and repair
-	if (sizeof($inv) > 0) foreach ($inv as $sku => $balance) {
+	if (!empty($inv)) foreach ($inv as $sku => $balance) {
 	  if (!isset($po[$sku])) $po[$sku] = 0;
 	  if ($balance['qty_po'] <> $po[$sku]) {
 	    $messageStack->add(sprintf(INV_TOOLS_PO_ERROR, $sku, $balance['qty_po'], $po[$sku]), 'caution');

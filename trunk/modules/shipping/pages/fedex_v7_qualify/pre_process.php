@@ -55,7 +55,7 @@ switch ($_REQUEST['action']) {
 	$count = 1;
 	foreach ($shipto as $pkg) {
 	  $sInfo = new shipment();	// load defaults
-	  while (list($key, $value) = each($pkg)) $sInfo->$key = db_prepare_input($value);
+	  foreach ($pkg as $key => $value) $sInfo->$key = db_prepare_input($value);
 	  $sInfo->ship_date = date('Y-m-d');
 	  // load package information
 	  $sInfo->package = array();

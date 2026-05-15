@@ -102,7 +102,7 @@ while (!$result->EOF) {
   $period        = $result->fields['period'];
   $gl_account    = $result->fields['gl_account'];
   $cleared_items = unserialize($result->fields['cleared_items']);
-  if (sizeof($cleared_items) > 0) {
+  if (!empty($cleared_items)) {
     $one_period = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . "
       where closed = '1' and journal_id in (2, 18, 20) and id in (" . implode(',', $cleared_items) . ")");
 	$update_ids = array();

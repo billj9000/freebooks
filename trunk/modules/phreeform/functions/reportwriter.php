@@ -131,7 +131,7 @@ function import_text_params($arrSQL) {
 	    while(true) { // handles multiline fields
 		  if (substr(trim($sql), -2) == "';") break;
 		  $sql .= "\n" . array_shift($arrSQL);
-		  if (sizeof($arrSQL) < 1) break;
+		  if (empty($arrSQL)) break;
 		}
 		$sql = trim($sql);
 		$entrytype   = substr($sql, strpos($sql, '=') + 2, strpos($sql, "',") - strpos($sql, '=') - 2);

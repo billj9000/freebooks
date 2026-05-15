@@ -35,6 +35,7 @@ $security_level = validate_user($security_token);
 /**************  include page specific files    *********************/
 gen_pull_language('contacts');
 gen_pull_language('payment');
+require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_MODULES . 'payment/defaults.php');
 require_once(DIR_FS_WORKING . 'functions/phreebooks.php');
 require_once(DIR_FS_WORKING . 'classes/gen_ledger.php');
@@ -239,7 +240,7 @@ switch ($_REQUEST['action']) {
 	$temp = $payment->fields['description'];
 	$temp = strpos($temp, ':') ? substr($temp, strpos($temp, ':') + 1) : '';
 	$payment_fields = explode(':', $temp);
-	for ($i = 0; $i < sizeof($payment_fields); $i++) {
+	for ($i = 0; $i < count(is_array($payment_fields) ? $payment_fields : []); $i++) {
 	  $temp = $result->fields['shipper_code'] . '_field_' . $i;
 	  $order->$temp = $payment_fields[$i];
 	}

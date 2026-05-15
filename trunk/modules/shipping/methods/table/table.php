@@ -59,8 +59,8 @@ class table {
 
   function quote($pkg = '') {
     $order_total = (MODULE_SHIPPING_TABLE_MODE == 'price') ? $pkg->pkg_total : $pkg->pkg_weight;
-    $table_cost  = split("[:,]", MODULE_SHIPPING_TABLE_COST);
-    $size        = sizeof($table_cost);
+    $table_cost  = preg_split("/[:,]/", MODULE_SHIPPING_TABLE_COST);
+    $size        = count(is_array($table_cost) ? $table_cost : []);
     for ($i= 0, $n = $size; $i < $n; $i += 2) {
       if ($order_total <= $table_cost[$i]) {
         $shipping = $table_cost[$i+1];

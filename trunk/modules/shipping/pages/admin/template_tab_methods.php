@@ -30,7 +30,7 @@
  <tbody class="ui-widget-content">
 <?php
   $odd = true;
-  if (sizeof($methods) > 0) foreach ($methods as $method) {
+  if (!empty($methods)) foreach ($methods as $method) {
     $installed = defined('MODULE_SHIPPING_' . strtoupper($method) . '_STATUS');
 	$bkgnd = $installed ? ' class="ui-state-active"' : '';
 	if (file_exists(DIR_WS_MODULES . 'shipping/methods/' . $method . '/images/logo.png')) {

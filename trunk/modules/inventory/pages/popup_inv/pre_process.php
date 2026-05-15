@@ -96,7 +96,7 @@ if ($f1) { // sort by inventory type
 }
 if ($f2 && $contactID) $criteria[] = "p.vendor_id = " . $contactID; // limit to preferred vendor flag
 // build search filter string
-$search = (sizeof($criteria) > 0) ? (' where ' . implode(' and ', $criteria)) : '';
+$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';
 
 $field_list = array('a.id as id', 'a.sku as sku', 'inactive', 'inventory_type', 'quantity_on_hand', 'quantity_on_order', 
   'description_short');

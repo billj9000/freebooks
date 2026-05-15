@@ -67,6 +67,7 @@ define('SETUP_DEPT_TYPES_LOG','Dept Types - ');
 define('SETUP_TITLE_PROJECTS_COSTS', 'Project Costs');
 define('TEXT_SHORT_NAME', 'Short Name');
 define('TEXT_COST_TYPE', 'Cost Type');
+define('SETUP_INFO_DESC_SHORT', 'Short Description (16 chars max)');
 define('SETUP_INFO_DESC_LONG', 'Long Description (64 chars max)');
 define('SETUP_PROJECT_COSTS_INSERT_INTRO', 'Please enter the new project cost with its properties');
 define('SETUP_PROJECT_COSTS_DELETE_INTRO', 'Are you sure you want to delete this project cost?');

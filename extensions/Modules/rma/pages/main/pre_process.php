@@ -128,7 +128,7 @@ switch ($_REQUEST['action']) {
 	    'invoice_date'        => $invoice_date,
 	    'closed_date'         => $closed_date,
 	    'receive_date'        => $receive_date,
-	    'attachments'         => sizeof($attachments)>0 ? serialize($attachments) : '',
+	    'attachments'         => !empty($attachments) ? serialize($attachments) : '',
 	  );
 	  if ($id) {
 	    $success = db_perform(TABLE_RMA, $sql_data_array, 'update', 'id = ' . $id);
@@ -218,8 +218,8 @@ switch ($_REQUEST['action']) {
 /*****************   prepare to display templates  *************************/
 $user_choices = gen_get_pull_down(TABLE_USERS, true, '1', 'admin_id', 'display_name');
 // build disposition drop-dwn javascript
-$js_disp_code  = 'js_disp_code = new Array(' . sizeof($action_codes) . ');' . chr(10);
-$js_disp_value = 'js_disp_value = new Array(' . sizeof($action_codes) . ');' . chr(10);
+$js_disp_code  = 'js_disp_code = new Array(' . count(is_array($action_codes) ? $action_codes : []) . ');' . chr(10);
+$js_disp_value = 'js_disp_value = new Array(' . count(is_array($action_codes) ? $action_codes : []) . ');' . chr(10);
 $i = 0;
 foreach ($action_codes as $key => $value) {
   $js_disp_code  .= 'js_disp_code[' . $i . '] = "' . $key . '";' . chr(10);

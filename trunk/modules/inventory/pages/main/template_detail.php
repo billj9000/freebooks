@@ -53,7 +53,7 @@ if ($_REQUEST['action'] == 'properties') {
   $toolbar->add_help($cInfo->help_path);
 }
 // pull in extra toolbar overrides and additions
-if (count($extra_toolbar_buttons_detail) > 0) {
+if (!empty($extra_toolbar_buttons_detail)) {
   foreach ($extra_toolbar_buttons_detail as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 echo $toolbar->build_toolbar(); 

@@ -97,7 +97,7 @@ if ($security_level >1 && JOURNAL_ID == 4 ) {
   $toolbar->icon_list['import']['text'] = LOW_STOCK_BUTTON;
 }
 // pull in extra toolbar overrides and additions
-if (count($extra_toolbar_buttons) > 0) {
+if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 

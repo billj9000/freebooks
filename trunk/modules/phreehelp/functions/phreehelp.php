@@ -36,7 +36,7 @@ function synchronize() {
   }
   $toc = array();
   foreach ($file_list as $file_name) {
-	$file_name = str_replace(DOC_REL_PATH, DOC_ROOT_URL, $file_name); // convert to url to read script generated filenames
+	if (defined('DOC_REL_PATH')) $file_name = str_replace(DOC_REL_PATH, DOC_ROOT_URL, $file_name); // convert to url to read script generated filenames
 	$tags      = get_meta_tags($file_name);
 	$doc_html  = file_get_contents($file_name);
 	preg_match('/<title>([^>]*)<\/title>/si', $doc_html, $match);
@@ -104,15 +104,15 @@ function retrieve_toc() {
 
   function build_help_tree($name, $full_array, $index = -1, $level = 0, $cont_level = array()) {
 	$entry_string = '';
-	for ($j = 0; $j < sizeof($full_array[$index]); $j++) {
+	for ($j = 0; $j < count(is_array($full_array[$index]) ? $full_array[$index] : []); $j++) {
 	  $new_ref   = $index . '_' . $full_array[$index][$j]['id'];
 	  $cont_temp = array_keys($cont_level);
 	  $entry_string .= '<div style="height:16px;">' . chr(10);
 	  for ($i = 0; $i < $level; $i++) {
 	    if (false) {
-	    } elseif ($i == $level-1 && $j < sizeof($full_array[$index])-1) {
+	    } elseif ($i == $level-1 && $j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
 		  $entry_string .= html_icon('phreebooks/cont-end.gif', '', 'small');
-		} elseif ($i == $level-1 && $j == sizeof($full_array[$index])-1) {
+		} elseif ($i == $level-1 && $j == count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
 		  $entry_string .= html_icon('phreebooks/end-end.gif',  '', 'small');
 		} elseif (in_array($i, $cont_temp)) {
 		  $entry_string .= html_icon('phreebooks/cont.gif',     '', 'small');
@@ -132,7 +132,7 @@ function retrieve_toc() {
 	    $entry_string .= '&nbsp;' . htmlspecialchars($short_title) . chr(10);
 	  }
 	  $entry_string .= '</div>' . chr(10);
-	  if ($j < sizeof($full_array[$index])-1) {
+	  if ($j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
 		$cont_level[$level-1] = true;
 	  } else {
 		unset($cont_level[$level-1]);

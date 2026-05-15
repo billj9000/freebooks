@@ -104,7 +104,7 @@ class rma_admin {
 	  	);
 	  	$result->MoveNext();
 	  }
-	  if (sizeof($output > 0)) foreach ($output as $key => $value) {
+	  if (count(is_array($output > 0) ? $output > 0 : [])) foreach ($output as $key => $value) {
 	  	db_perform(TABLE_RMA, array('close_details'=>serialize($value)), 'update', 'id = '.$key);
 	  }
 	  if (db_table_exists(DB_PREFIX . 'rma_module_item')) $db->Execute("drop table ".DB_PREFIX.'rma_module_item');

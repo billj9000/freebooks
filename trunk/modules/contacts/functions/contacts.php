@@ -21,7 +21,7 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 	$field = '';
 	$method = substr($add_type, 1, 1);
 //echo 'entries = '; print_r($entries); echo '<br>';
-	if (!$hide_list && sizeof($entries->address_book[$method]) > 0) {
+	if (!$hide_list && !empty($entries->address_book[$method])) {
 		$field .= '<tr><td><table class="ui-widget" style="border-collapse:collapse;width:100%;">';
 		$field .= '<thead class="ui-widget-header">' . chr(10);
 		$field .= '<tr>' . chr(10);

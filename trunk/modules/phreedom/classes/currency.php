@@ -112,7 +112,7 @@ class currency {
 	  }
 	  $currency->MoveNext();
 	}
-	if (sizeof($message) > 0) $this->message = implode("\n", $message);
+	if (!empty($message)) $this->message = implode("\n", $message);
 	return true;
   }
 
@@ -120,7 +120,7 @@ class currency {
   	$page = file('http://www.oanda.com/convert/fxdaily?value=1&redirected=1&exch='.$code.'&format=CSV&dest=Get+Table&sel_list=' . $base);
   	$match = array();
   	preg_match('/(.+),(\w{3}),([0-9.]+),([0-9.]+)/i', implode('', $page), $match);
-  	return (sizeof($match) > 0) ? $match[3] : false;
+  	return (!empty($match)) ? $match[3] : false;
   }
   
   function quote_yahoo($to, $from = DEFAULT_CURRENCY) {

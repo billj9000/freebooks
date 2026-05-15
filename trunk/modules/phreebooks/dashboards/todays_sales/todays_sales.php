@@ -73,7 +73,7 @@ class todays_sales extends ctl_panel {
 	}
 
 	function Update() {
-		if(count($this->params) == 0){
+		if(empty($this->params)){
 			$this->params['num_rows'] = db_prepare_input($_POST['todays_sales_field_0']);
 		}
 		parent::Update();

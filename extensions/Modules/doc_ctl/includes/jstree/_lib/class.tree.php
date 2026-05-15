@@ -498,7 +498,7 @@ class json_tree extends _tree_struct {
 		return "{ \"status\" : 0 }";
 	}
 	function set_data($data) {
-		if(count($this->add_fields) == 0) { return "{ \"status\" : 1 }"; }
+		if(empty($this->add_fields)) { return "{ \"status\" : 1 }"; }
 		$s = "UPDATE `".$this->table."` SET `".$this->fields["id"]."` = `".$this->fields["id"]."` "; 
 		foreach($this->add_fields as $k => $v) {
 			if(isset($data[$k]))	$s .= ", `".$this->fields[$v]."` = \"".$this->db->escape($data[$k])."\" ";

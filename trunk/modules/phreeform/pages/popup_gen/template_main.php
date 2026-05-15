@@ -50,7 +50,7 @@ $toolbar->add_help('11.02');
 echo $toolbar->build_toolbar();
 ?>
 <!-- start the tabsets -->
-<?php if (sizeof($r_list) > 1) { ?>
+<?php if (count(is_array($r_list) ? $r_list : []) > 1) { ?>
   <h1><?php echo PHREEFORM_GROUP . $title; ?></h1>
 <?php } else { ?>
   <h1><?php echo ($report->reporttype == 'frm' ? TEXT_FORM : TEXT_REPORT) . ': ' . ($report->title); ?></h1>
@@ -98,7 +98,7 @@ echo $toolbar->build_toolbar();
 	   </tbody>
 	  </table>
 	</div>
-<?php if (sizeof($r_list) > 1) { ?>
+<?php if (count(is_array($r_list) ? $r_list : []) > 1) { ?>
 	<div id="frm_select">
 	<p><?php echo GEN_HEADING_PLEASE_SELECT; ?></p>
 	  <?php foreach ($r_list as $value) {
@@ -227,7 +227,7 @@ echo $toolbar->build_toolbar();
 		</tr>
 		</thead>
 		<tbody  class="ui-widget-content">
-	<?php for ($i = 0; $i < sizeof($report->fieldlist); $i++) { ?>
+	<?php for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) { ?>
 		<tr>
 		  <td nowrap="nowrap"><?php echo html_combo_box('fld_fld[]', CreateSpecialDropDown($report), $report->fieldlist[$i]->fieldname, '', '220px', '', 'fld_combo_' . $i); ?></td>
 		  <td><?php echo html_input_field('fld_desc[]', $report->fieldlist[$i]->description, 'size="20" maxlength="25"'); ?></td>

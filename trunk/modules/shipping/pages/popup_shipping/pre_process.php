@@ -42,8 +42,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'rates':
 	// overwrite the defaults with data from the form
-	reset ($_POST);
-	while (list($key, $value) = each($_POST)) $pkg->$key = db_prepare_input($value);
+	foreach ($_POST as $key => $value) $pkg->$key = db_prepare_input($value);
 	// generate ISO2 codes for countries (needed by FedEx and others)
 	$pkg->ship_from_country_iso2 = gen_get_country_iso_2_from_3($pkg->ship_country_code);
 	$pkg->ship_to_country_iso2   = gen_get_country_iso_2_from_3($pkg->ship_to_country_code);

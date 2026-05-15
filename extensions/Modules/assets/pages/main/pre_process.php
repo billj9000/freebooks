@@ -157,7 +157,7 @@ switch ($_REQUEST['action']) {
 	  saveUploadZip('file_name', ASSETS_DIR_ATTACHMENTS, 'assets_'.$id.'_'.$image_id.'.zip');
 	  $attachments[$image_id] = $_FILES['file_name']['name'];
 	}
-	$sql_data_array['attachments'] = sizeof($attachments)>0 ? serialize($attachments) : '';
+	$sql_data_array['attachments'] = !empty($attachments) ? serialize($attachments) : '';
 	
 	if ($remove_image) { // update the image with relative path
 		$_POST['image_with_path'] = '';

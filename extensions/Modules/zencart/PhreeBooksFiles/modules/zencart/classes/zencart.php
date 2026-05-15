@@ -97,7 +97,7 @@ class zencart {
 	if ($result->fields['image_with_path']) { // image file
 	  // Zencart only support one level, so we'll use the first path dir and filename only 
 	  $temp = explode('/', $result->fields['image_with_path']);
-	  if (sizeof($temp) > 1) { 
+	  if (count(is_array($temp) ? $temp : []) > 1) { 
 		$image_path     = $temp[0];
 		$image_filename = array_pop($temp);
 	  } else {
@@ -290,7 +290,7 @@ if (file_exists(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php')) {
 	}
 	$output  = array();
 	$choices = array_keys($shipping_defaults['service_levels']);
-	if (sizeof($method_array) > 0) foreach ($method_array as $method) {
+	if (!empty($method_array)) foreach ($method_array as $method) {
 	  load_method_language(DIR_FS_MODULES . 'shipping/methods/', $method);
 	  $output[$method]['title'] = constant('MODULE_SHIPPING_' . strtoupper($method) . '_TEXT_TITLE');
 	  foreach ($choices as $value) {

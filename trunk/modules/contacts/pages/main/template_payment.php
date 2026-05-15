@@ -24,7 +24,7 @@
     <table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
      <tbody id="pmt_table" class="ui-widget-content">
 <?php
-	if (sizeof($cInfo->payment_data) > 0) {
+	if (!empty($cInfo->payment_data)) {
 		$field  = '<tr><td colspan="2">';
 		$field .= '<table class="ui-widget" style="border-collapse:collapse;width:600px;margin-left:auto;margin-right:auto;">';
 		$field .= ' <thead class="ui-widget-header">';

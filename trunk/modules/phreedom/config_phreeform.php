@@ -36,11 +36,11 @@ function pf_process_phreedom($strData, $Process) {
 	case "def_cur":   if (!is_numeric($strData)) return $strData;
 	                  return $currencies->format_full($strData, true, DEFAULT_CURRENCY, 1);
 	case "null_dcur": if (!is_numeric($strData)) return $strData;
-	                  return (real)$strData == 0 ? '' : $currencies->format_full($strData, true, DEFAULT_CURRENCY, 1);
+	                  return (float)$strData == 0 ? '' : $currencies->format_full($strData, true, DEFAULT_CURRENCY, 1);
 	case "posted_cur":if (!is_numeric($strData)) return $strData;
 	                  return $currencies->format_full($strData, true, $posted_currencies['currencies_code'], $posted_currencies['currencies_value']);
 	case "null_pcur": if (!is_numeric($strData)) return $strData;
-	                  return (real)$strData == 0 ? '' : $currencies->format_full($strData, true, $posted_currencies['currencies_code'], $posted_currencies['currencies_value']);
+	                  return (float)$strData == 0 ? '' : $currencies->format_full($strData, true, $posted_currencies['currencies_code'], $posted_currencies['currencies_value']);
 	case "rep_id":    return pb_get_user_name($strData);
 	default: // Do nothing
   }

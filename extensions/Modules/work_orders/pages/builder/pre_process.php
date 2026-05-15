@@ -109,7 +109,7 @@ switch ($_REQUEST['action']) {
 	  if ($_POST['id']) { // delete the previous
 	    $db->Execute("delete from " . TABLE_WO_STEPS . " where ref_id = " . $id);
 	  }
-      while (list($key, $val) = each($step_list)) {
+      foreach ($step_list as $key => $val) {
 	    $sql_data_array = array(
 	      'ref_id'      => $id,
 	      'step'        => $val['step'],
@@ -281,7 +281,7 @@ switch ($_REQUEST['action']) {
 	}
 	if (!$f0) $criteria[] = "m.inactive = '0'"; // inactive flag
 	// build search filter string
-	$search = (sizeof($criteria) > 0) ? (' where ' . implode(' and ', $criteria)) : '';
+	$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';
 	$field_list = array('m.id', 'm.inactive', 'm.wo_title', 'i.sku', 'm.sku_id', 'm.description', 'm.revision', 
 	  'm.revision_date');
 	// hook to add new fields to the query return results

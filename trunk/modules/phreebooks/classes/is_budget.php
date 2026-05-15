@@ -168,7 +168,7 @@ class is_budget {
   function add_heading_line($title = '') {
 	global $report;
 	$line = array('d', $title);
-	for ($i = 0; $i < sizeof($report->fieldlist) - 1; $i++) $line[] = '';
+	for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []) - 1; $i++) $line[] = '';
 	$this->inc_stmt_data[] = $line;
   }
 

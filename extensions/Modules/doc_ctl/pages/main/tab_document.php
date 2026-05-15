@@ -176,7 +176,7 @@ $fieldset_content .= '  <table class="ui-widget" style="border-collapse:collapse
 $fieldset_content .= '  <thead class="ui-widget-header">' . chr(10);
 $fieldset_content .= '    <tr><th colspan="4">' . TEXT_HISTORY . '</th></tr>' . chr(10);
 
-if (sizeof($doc_history) > 0) {
+if (!empty($doc_history)) {
   $fieldset_content .= '  <tr>' . chr(10);
   $fieldset_content .= '    <th>' . TEXT_REVISION . '</th>' . chr(10);
   $fieldset_content .= '    <th>' . TEXT_SIZE     . '</th>' . chr(10);
@@ -185,7 +185,7 @@ if (sizeof($doc_history) > 0) {
   $fieldset_content .= '  </tr>' . chr(10); 
   $fieldset_content .= '  </thead>' . chr(10);
   $fieldset_content .= '  <tbody class="ui-widget-content">' . chr(10);
-  for ($i = 0; $i < sizeof($doc_history); $i++) {
+  for ($i = 0; $i < count(is_array($doc_history) ? $doc_history : []); $i++) {
     $fieldset_content .= '  <tr>' . chr(10);
     $fieldset_content .= '    <td align="center">' . $i . '</td>' . chr(10);
     $fieldset_content .= '    <td align="right">' . $doc_history[$i]['size']  . '</td>' . chr(10);

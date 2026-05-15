@@ -59,23 +59,24 @@ class payment {
   }
  
   function configure($key) {
+    $val = defined($key) ? constant($key) : '';
     switch ($key) {
         case 'MODULE_PAYMENT_'.strtoupper($this->code).'_OPEN_POS_DRAWER':
                 $temp = array(
                                 array('id' => '0', 'text' => TEXT_NO),
                                 array('id' => '1', 'text' => TEXT_YES),
                 );
-                return html_pull_down_menu(strtolower($key), $temp, constant($key));
+                return html_pull_down_menu(strtolower($key), $temp, $val);
             case 'MODULE_PAYMENT_'.strtoupper($this->code).'_SHOW_IN_POS':
                 $temp = array(
                                 array('id' => '0', 'text' => TEXT_NO),
                                 array('id' => '1', 'text' => TEXT_YES),
                 );
-                return html_pull_down_menu(strtolower($key), $temp, constant($key));
+                return html_pull_down_menu(strtolower($key), $temp, $val);
         case 'MODULE_PAYMENT_'.strtoupper($this->code).'_POS_GL_ACCT':
-                return html_pull_down_menu(strtolower($key), gen_coa_pull_down(), constant($key));
+                return html_pull_down_menu(strtolower($key), gen_coa_pull_down(), $val);
         default:
-                return html_input_field(strtolower($key), constant($key));
+                return html_input_field(strtolower($key), $val);
     }
   }
  

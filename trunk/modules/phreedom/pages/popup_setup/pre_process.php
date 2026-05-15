@@ -22,6 +22,7 @@ $topic   = $_GET['topic'];
 $subject = $_GET['subject'];
 if (!$subject || !$topic) die('The popup_setup script require a topic name and a subject name!');
 gen_pull_language($topic, 'admin');
+gen_pull_language($topic);
 gen_pull_language('phreedom','admin');
 require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 require_once(DIR_FS_MODULES . $topic . '/classes/' . $subject . '.php');

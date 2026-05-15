@@ -58,7 +58,7 @@
 	  </thead>
 	 <tbody id="rcv_table" class="ui-widget-content">
 <?php 
-if (sizeof($receive_details) > 0) {
+if (!empty($receive_details)) {
 	for ($i=0; $i<count($receive_details); $i++) { ?>
 		<tr>
 		  <td align="center"><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick = "if (confirm(image_delete_msg)) $(this).parent().parent().remove();"'); ?></td>

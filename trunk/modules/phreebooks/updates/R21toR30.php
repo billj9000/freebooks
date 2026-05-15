@@ -114,7 +114,7 @@ while (!$result->EOF) {
     if (is_array($params)) foreach ($params as $description) {
       if ($key = array_search($description, $new_reports)) $new_params[$key] = $description;
     }
-    $params = (sizeof($new_params) > 0) ? serialize($new_params) : '';
+    $params = (!empty($new_params)) ? serialize($new_params) : '';
     $db->Execute("update " . TABLE_USERS_PROFILES . " set params = '" . $params . "' where id = " . $result->fields['id']);
   }
   $result->MoveNext();

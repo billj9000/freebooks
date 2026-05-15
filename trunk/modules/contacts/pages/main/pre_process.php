@@ -129,7 +129,7 @@ switch ($_REQUEST['action']) {
 		    saveUploadZip('file_name', CONTACTS_DIR_ATTACHMENTS, 'contacts_'.$cInfo->id.'_'.$image_id.'.zip');
 		    $attachments[$image_id] = $_FILES['file_name']['name'];
 		  }
-		  $sql_data_array = array('attachments' => sizeof($attachments)>0 ? serialize($attachments) : '');
+		  $sql_data_array = array('attachments' => !empty($attachments) ? serialize($attachments) : '');
 		  db_perform(TABLE_CONTACTS, $sql_data_array, 'update', 'id = '.$cInfo->id);
 		  // check for crm notes
 		  if ($_POST['crm_action'] <> '' || $_POST['crm_note'] <> '') {
@@ -233,7 +233,7 @@ switch ($_REQUEST['action']) {
 	  		$result->MoveNext();
 		}
 	    $include_template = 'template_detail.php';
-		define('PAGE_TITLE', ($_REQUEST['action'] == 'new') ? $cInfo->page_title_new : constant('ACT_'.strtoupper($type).'_PAGE_TITLE_EDIT').' - ('.$cInfo->short_name.') '.$cInfo->address[m][0]->primary_name);
+		define('PAGE_TITLE', ($_REQUEST['action'] == 'new') ? $cInfo->page_title_new : constant('ACT_'.strtoupper($type).'_PAGE_TITLE_EDIT').' - ('.$cInfo->short_name.') '.$cInfo->address['m'][0]->primary_name);
 		break;
   default:
 		$heading_array = array('c.short_name' => constant('ACT_' . strtoupper($type) . '_SHORT_NAME'));
@@ -261,7 +261,7 @@ switch ($_REQUEST['action']) {
 		}
 		if (!$_SESSION['f0']) $criteria[] = "(c.inactive = '0' or c.inactive = '')"; // inactive flag
 	
-		$search = (sizeof($criteria) > 0) ? (' where ' . implode(' and ', $criteria)) : '';
+		$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';
 		$field_list = array('c.id', 'c.inactive', 'c.short_name', 'c.contact_first', 'c.contact_last', 
 			'a.telephone1', 'c.attachments', 'c.first_date', 'c.last_update', 'c.last_date_1', 'c.last_date_2', 
 			'a.primary_name', 'a.address1', 'a.city_town', 'a.state_province', 'a.postal_code');

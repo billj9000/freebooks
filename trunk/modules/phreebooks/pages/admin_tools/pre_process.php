@@ -255,7 +255,7 @@ switch ($_REQUEST['action']) {
 		// read and check history db values*/
 	  }
 	}
-	if ($_REQUEST['action'] == 'coa_hist_fix' && sizeof($bad_accounts) > 0) {
+	if ($_REQUEST['action'] == 'coa_hist_fix' && !empty($bad_accounts)) {
 		// *************** START TRANSACTION *************************
 		$db->transStart();
 	    $glEntry = new journal();
@@ -272,7 +272,7 @@ switch ($_REQUEST['action']) {
 			gen_add_audit_log(GEN_ADM_TOOLS_REPAIR_LOG_ENTRY);
 		}
 	}
-	if (sizeof($bad_accounts) == 0) {
+	if (empty($bad_accounts)) {
 	  $messageStack->add(GEN_ADM_TOOLS_REPAIR_SUCCESS,'success');
 	} else {
 	  $messageStack->add(GEN_ADM_TOOLS_REPAIR_ERROR,'error');

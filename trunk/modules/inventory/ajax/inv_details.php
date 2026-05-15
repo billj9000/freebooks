@@ -168,7 +168,7 @@ if ($result->RecordCount() > 0) {
     $result->MoveNext();
   }
 }
-if (sizeof($sku_usage) > 0) {
+if (!empty($sku_usage)) {
 	array_unshift($sku_usage, JS_INV_TEXT_USAGE);
 } else {
 	$sku_usage = array(JS_INV_TEXT_USAGE_NONE);
@@ -220,7 +220,7 @@ if ($jID == 4 ) {
 foreach ($inventory_array as $key => $value) $xml .= "\t" . xmlEntry($key, $value);
 // build the assembly information
 //print_r($inventory_array);
-if (sizeof($bom) > 0) foreach ($bom as $value) {
+if (!empty($bom)) foreach ($bom as $value) {
   $xml .= "<bom>\n";
   $xml .= "\t" . xmlEntry("bom_qty",               $value['qty']);
   $xml .= "\t" . xmlEntry("bom_sku",               $value['sku']);
@@ -238,7 +238,7 @@ foreach ($sku_usage as $value) {
 }
 
 // build the stock status
-if (sizeof($stock_note) > 0) {
+if (!empty($stock_note)) {
   foreach ($stock_note as $value) {
     $xml .= "<stock_note>\n";
     $xml .= "\t" . xmlEntry("text_line", $value);

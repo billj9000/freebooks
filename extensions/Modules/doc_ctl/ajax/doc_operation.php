@@ -40,7 +40,7 @@ switch ($_REQUEST['action']) {
 	$bookmarks = explode(":", $doc_details->fields['bookmarks']);
 	if (is_array($bookmarks)) foreach ($bookmarks as $value) if ($value) $output[$value] = true;
 	if (isset($output[$_SESSION['admin_id']])) unset($output[$_SESSION['admin_id']]);
-	$result = sizeof($output) == 0 ? '' : (':' . implode(":",$output) . ':');
+	$result = empty($output) ? '' : (':' . implode(":",$output) . ':');
 	$db->Execute("update " . TABLE_DC_DOCUMENT . " set bookmarks = '" . $result. "' where  id = " . $id);
     break;
   case 'lock':

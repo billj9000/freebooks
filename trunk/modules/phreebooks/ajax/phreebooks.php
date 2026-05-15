@@ -30,7 +30,7 @@ switch ($_REQUEST['action']) {
 	default: die;
 }
 
-if (sizeof($message) > 0) $xml .= xmlEntry('message', implode("\n",$message));
+if (!empty($message)) $xml .= xmlEntry('message', implode("\n",$message));
 echo createXmlHeader() . $xml . createXmlFooter();
 die;
 ?>

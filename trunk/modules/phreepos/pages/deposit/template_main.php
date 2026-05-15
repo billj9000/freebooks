@@ -41,7 +41,7 @@ if ($security_level < 2) $toolbar->icon_list['print']['show'] = false;
 $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')) . 'jID=' . JOURNAL_ID . '&amp;type=' . $type, 'SSL') . '\'"', 2);
 
 // pull in extra toolbar overrides and additions
-if (count($extra_toolbar_buttons) > 0) {
+if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 
@@ -129,7 +129,7 @@ echo '<br />' . html_pull_down_menu('bill_country_code', gen_get_countries(), $o
 		echo '          <div id="pm_' . $count . '" style="visibility:hidden; position:absolute; top:22px; left:1px">' . chr(10);
 		// fetch the html inside of module
 		$disp_fields = $$value->selection();
-		for($i=0; $i<count($disp_fields['fields']); $i++) {
+		for($i=0; $i<count($disp_fields['fields'] ?? []); $i++) {
 		  echo $disp_fields['fields'][$i]['title'] . '<br />' . chr(10);
 		  echo $disp_fields['fields'][$i]['field'] . '<br />' . chr(10);
 		}

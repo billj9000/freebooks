@@ -19,7 +19,7 @@
 ?>
 <div id="tab_stats">
 <?php 
-  if (sizeof($install->tables) > 0) {
+  if (!empty($install->tables)) {
     echo "  <fieldset><!-- db table stats -->\n";
     echo "    <legend>" . TEXT_TABLE_STATS . "</legend>\n";
     echo "    <table width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\n";

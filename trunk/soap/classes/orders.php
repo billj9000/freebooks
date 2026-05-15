@@ -43,12 +43,12 @@ class xml_orders extends parser {
 	  $this->validateUser($this->username, $this->password);
 	  $this->processOrder($objXML);
 	  $extra_response = NULL;
-	  if (sizeof($this->successful) > 0) {
+	  if (!empty($this->successful)) {
 		$result_code = '0';
 		$result_flag = 'success';
 		$extra_response .= xmlEntry('SuccessfulOrders', implode(', ', $this->successful));
 	  }
-	  if (sizeof($this->failed) > 0) {
+	  if (!empty($this->failed)) {
 		$result_code = '90';
 		$result_flag = 'error';
 		$extra_response .= xmlEntry('FailedOrders', implode(', ', $this->failed));
@@ -284,7 +284,7 @@ class xml_orders extends parser {
 	  if (ADDRESS_BOOK_SHIP_STATE_REQ        && !$psOrd->ship_state_province) $missing_fields[] = GEN_STATE_PROVINCE;
 	  if (ADDRESS_BOOK_SHIP_POSTAL_CODE_REQ  && !$psOrd->ship_postal_code)    $missing_fields[] = GEN_POSTAL_CODE;
 	}
-	if (sizeof($missing_fields) > 0) {
+	if (!empty($missing_fields)) {
 	  $this->failed[]   = $this->order['reference'];
 	  $messageStack->add(sprintf(SOAP_MISSING_FIELDS, $this->order['reference'], implode(', ', $missing_fields)), 'error');
 	  return;

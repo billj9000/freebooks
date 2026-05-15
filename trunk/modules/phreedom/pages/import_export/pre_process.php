@@ -48,7 +48,7 @@ if (substr($_REQUEST['action'], 0, 3) == 'go_') {
 }
 $coa_types = load_coa_types();
 $glEntry   = new journal();
-$glEntry->journal_id = JOURNAL_ID;
+$glEntry->journal_id = defined('JOURNAL_ID') ? JOURNAL_ID : 0;
 // retrieve the original beginning_balances
 $sql = "select c.id, beginning_balance, c.description, c.account_type
 	from " . TABLE_CHART_OF_ACCOUNTS . " c inner join " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " h on c.id = h.account_id

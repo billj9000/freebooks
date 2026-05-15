@@ -43,8 +43,8 @@
 	  </thead>
 	 <tbody id="item_table" class="ui-widget-content">
 <?php 
-if (sizeof($close_details) > 0) {
-	for ($i=0; $i<sizeof($close_details); $i++) { ?>
+if (!empty($close_details)) {
+	for ($i=0; $i<count(is_array($close_details) ? $close_details : []); $i++) { ?>
 		<tr>
 		  <td><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick = "if (confirm(image_delete_msg)) $(this).parent().parent().remove();"'); ?></td>
 		  <td><?php echo html_input_field("dis_qty[".($i+1)."]", $close_details[$i]['qty'], 'size="7" maxlength="6" style="text-align:right"'); ?></td>

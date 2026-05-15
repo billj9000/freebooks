@@ -131,7 +131,7 @@ function gen_pull_db_config_info($database, $key) {
 function admin_check_versions($module, $prerequisites = NULL) {
   global $messageStack;
   $error = false;
-  if (is_array($prerequisites) && sizeof($prerequisites) > 0) {
+  if (is_array($prerequisites) && !empty($prerequisites)) {
 	foreach ($prerequisites as $mod => $version) {
 	  if (!$cur_rev = constant('MODULE_' . strtoupper($mod) . '_VERSION')) {
 	    $messageStack->add(sprintf(ERROR_MODULE_NOT_INSTALLED, $module, $mod),'error');
@@ -171,7 +171,7 @@ function admin_remove_dirs($dirlist, $path = DIR_FS_MY_FILES) {
 function admin_install_tables($tables) {
   global $db, $messageStack;
   $error = false;
-  if (is_array($tables) && sizeof($tables) > 0) foreach ($tables as $table => $create_table_sql) {
+  if (is_array($tables) && !empty($tables)) foreach ($tables as $table => $create_table_sql) {
     if (!db_table_exists($table)) {
 	  if (!$db->Execute($create_table_sql)) $error = $messageStack->add(sprintf("Error installing table: %s", $table), 'error');
 	}
@@ -378,7 +378,7 @@ function table_import_csv($structure, $db_table, $filename) {
   global $db, $messageStack;
   $data = array_map('str_getcsv', file($_FILES[$filename]['tmp_name']));
   // read the header and build array
-  if (sizeof($data) < 2) {
+  if (count(is_array($data) ? $data : []) < 2) {
     $messageStack->add('The number of lines in the file is to small, a csv file must contain a header line and at least on input line!','error');
 	return false;
   }
@@ -418,7 +418,7 @@ function table_import_csv($structure, $db_table, $filename) {
   foreach ($data as $line) {
 	$line_array = $map_array;
 	$sql_array  = array();
-    for ($i = 0; $i < sizeof($line); $i++) $line_array[$i]['value'] = $line[$i];
+    for ($i = 0; $i < count(is_array($line) ? $line : []); $i++) $line_array[$i]['value'] = $line[$i];
 	foreach ($line_array as $value) {
 		if (!$value['table']) continue;
 		$sql_array[$value['table']][$value['cnt']][$value['field']] = $value['value'];
@@ -426,7 +426,7 @@ function table_import_csv($structure, $db_table, $filename) {
 	foreach ($sql_array as $table => $count) {
 	  foreach ($count as $cnt => $table_array) {
 	    if ($cnt == 0) { // main record, fetch id afterwards
-	      if (sizeof($table_array) > 0) {
+	      if (!empty($table_array)) {
 //echo "inserting main record to table $table data: ".print_r($table_array, true).'<br>';
 	      	db_perform(DB_PREFIX . $table, $table_array, 'insert');
 	      }

@@ -1644,7 +1644,7 @@ class PHPMailer
             } else {
                 if (count($this->to) > 0) {
                     $result .= $this->addrAppend('To', $this->to);
-                } elseif (count($this->cc) == 0) {
+                } elseif (empty($this->cc)) {
                     $result .= $this->headerLine('To', 'undisclosed-recipients:;');
                 }
             }
@@ -2785,7 +2785,7 @@ class PHPMailer
      */
     protected function lang($key)
     {
-        if (count($this->language) < 1) {
+        if (empty($this->language)) {
             $this->setLanguage('en'); // set the default language
         }
 

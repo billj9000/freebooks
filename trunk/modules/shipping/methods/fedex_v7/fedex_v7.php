@@ -35,23 +35,23 @@ STOCK_4X9_LEADING_DOC_TAB, STOCK_4X9_TRAILING_DOC_TAB */
 //define('DOCTABLOCATION', 'TOP'); // only valid for thermal labels (TOP, BOTTOM) - as it comes out of the printer
 define('DOCTABCONTENT', 'Zone001'); // (Zone001, Barcoded)
 // constants used in rate screen to match carrier descrptions
-define('fedex_v7_1DEam', MODULE_SHIPPING_FEDEX_V7_1DM);
-define('fedex_v7_1Dam',  MODULE_SHIPPING_FEDEX_V7_1DA);
-define('fedex_v7_1Dpm',  MODULE_SHIPPING_FEDEX_V7_1DP);
-define('fedex_v7_2Dam',  MODULE_SHIPPING_FEDEX_V7_2DA);
-define('fedex_v7_2Dpm',  MODULE_SHIPPING_FEDEX_V7_2DP);
-define('fedex_v7_3Dam',  MODULE_SHIPPING_FEDEX_V7_3DA);
-define('fedex_v7_3Dpm',  MODULE_SHIPPING_FEDEX_V7_3DS);
-define('fedex_v7_GND',   MODULE_SHIPPING_FEDEX_V7_GND);
-define('fedex_v7_GDR',   MODULE_SHIPPING_FEDEX_V7_GDR);
-define('fedex_v7_I2DEam',MODULE_SHIPPING_FEDEX_V7_XDM);
-define('fedex_v7_I2Dam', MODULE_SHIPPING_FEDEX_V7_XPR);
-define('fedex_v7_I3D',   MODULE_SHIPPING_FEDEX_V7_XPD);
-define('fedex_v7_1DFrt', MODULE_SHIPPING_FEDEX_V7_1DF);
-define('fedex_v7_2DFrt', MODULE_SHIPPING_FEDEX_V7_2DF);
-define('fedex_v7_3DFrt', MODULE_SHIPPING_FEDEX_V7_3DF);
-define('fedex_v7_GndFrt',MODULE_SHIPPING_FEDEX_V7_GDF);
-define('fedex_v7_EcoFrt',MODULE_SHIPPING_FEDEX_V7_ECF);
+if (defined('MODULE_SHIPPING_FEDEX_V7_1DM')) define('fedex_v7_1DEam', MODULE_SHIPPING_FEDEX_V7_1DM);
+if (defined('MODULE_SHIPPING_FEDEX_V7_1DA')) define('fedex_v7_1Dam',  MODULE_SHIPPING_FEDEX_V7_1DA);
+if (defined('MODULE_SHIPPING_FEDEX_V7_1DP')) define('fedex_v7_1Dpm',  MODULE_SHIPPING_FEDEX_V7_1DP);
+if (defined('MODULE_SHIPPING_FEDEX_V7_2DA')) define('fedex_v7_2Dam',  MODULE_SHIPPING_FEDEX_V7_2DA);
+if (defined('MODULE_SHIPPING_FEDEX_V7_2DP')) define('fedex_v7_2Dpm',  MODULE_SHIPPING_FEDEX_V7_2DP);
+if (defined('MODULE_SHIPPING_FEDEX_V7_3DA')) define('fedex_v7_3Dam',  MODULE_SHIPPING_FEDEX_V7_3DA);
+if (defined('MODULE_SHIPPING_FEDEX_V7_3DS')) define('fedex_v7_3Dpm',  MODULE_SHIPPING_FEDEX_V7_3DS);
+if (defined('MODULE_SHIPPING_FEDEX_V7_GND')) define('fedex_v7_GND',   MODULE_SHIPPING_FEDEX_V7_GND);
+if (defined('MODULE_SHIPPING_FEDEX_V7_GDR')) define('fedex_v7_GDR',   MODULE_SHIPPING_FEDEX_V7_GDR);
+if (defined('MODULE_SHIPPING_FEDEX_V7_XDM')) define('fedex_v7_I2DEam',MODULE_SHIPPING_FEDEX_V7_XDM);
+if (defined('MODULE_SHIPPING_FEDEX_V7_XPR')) define('fedex_v7_I2Dam', MODULE_SHIPPING_FEDEX_V7_XPR);
+if (defined('MODULE_SHIPPING_FEDEX_V7_XPD')) define('fedex_v7_I3D',   MODULE_SHIPPING_FEDEX_V7_XPD);
+if (defined('MODULE_SHIPPING_FEDEX_V7_1DF')) define('fedex_v7_1DFrt', MODULE_SHIPPING_FEDEX_V7_1DF);
+if (defined('MODULE_SHIPPING_FEDEX_V7_2DF')) define('fedex_v7_2DFrt', MODULE_SHIPPING_FEDEX_V7_2DF);
+if (defined('MODULE_SHIPPING_FEDEX_V7_3DF')) define('fedex_v7_3DFrt', MODULE_SHIPPING_FEDEX_V7_3DF);
+if (defined('MODULE_SHIPPING_FEDEX_V7_GDF')) define('fedex_v7_GndFrt',MODULE_SHIPPING_FEDEX_V7_GDF);
+if (defined('MODULE_SHIPPING_FEDEX_V7_ECF')) define('fedex_v7_EcoFrt',MODULE_SHIPPING_FEDEX_V7_ECF);
 // FedEx WSDL paths
 define('MODULE_SHIPPING_FEDEX_RATE_WSDL_VERSION','10');
 define('PATH_TO_TEST_RATE_WSDL',  DIR_FS_WORKING . 'methods/fedex_v7/TestRateService_v10.wsdl');
@@ -158,7 +158,9 @@ class fedex_v7 {
 
   function __construct() {
     $this->code     = 'fedex_v7';
-    $this->rate_url = MODULE_SHIPPING_FEDEX_V7_TEST_MODE == 'Test' ? FEDEX_V7_EXPRESS_TEST_RATE_URL : FEDEX_V7_EXPRESS_RATE_URL;	  
+    if (defined('MODULE_SHIPPING_FEDEX_V7_TEST_MODE') && defined('FEDEX_V7_EXPRESS_TEST_RATE_URL') && defined('FEDEX_V7_EXPRESS_RATE_URL')) {
+      $this->rate_url = MODULE_SHIPPING_FEDEX_V7_TEST_MODE == 'Test' ? FEDEX_V7_EXPRESS_TEST_RATE_URL : FEDEX_V7_EXPRESS_RATE_URL;
+    }
   }
 
   function keys() {
@@ -582,7 +584,7 @@ class fedex_v7 {
 //					'dim_weight'    => $response->CompletedShipmentDetail->CompletedPackageDetails->TrackingIds->TrackingNumber,
 //					'billed_weight' => $response->CompletedShipmentDetail->CompletedPackageDetails->TrackingIds->TrackingNumber,
 				);
-				if (sizeof($labels) > 0) {
+				if (!empty($labels)) {
 				  $cnt       = 0;
 				  $date      = explode('-',$sInfo->ship_date);
 				  $file_path = SHIPPING_DEFAULT_LABEL_DIR.$this->code.'/'.$date[0].'/'.$date[1].'/'.$date[2].'/';
@@ -1147,34 +1149,36 @@ class fedex_v7 {
 				$codReport    = base64_decode($response->CODReport);
 //				$hazMatReport = base64_decode($response->HazMatCertificate);
 //echo 'file_path = '   . $file_path   . ' and file_name = '   . $file_name   . '<br />';
-				if (!$handle = fopen($file_path . $file_name, 'w')) {
-					echo 'Cannot open file (' . $file_path . $file_name . ')';
-					$error = true;
-					continue;
-				}
-				if (fwrite($handle, $closeReport) === false) {
-					$messageStack->add('Cannot write close report to file (' . $file_path . $file_name . ')','error');
-					$error = true;
-					continue;
-				}
-				if (fwrite($handle, $mwReport) === false) {
-					$messageStack->add('Cannot write multi-weight report to file (' . $file_path . $file_name . ')','error');
-					$error = true;
-					continue;
-				}
-				if (fwrite($handle, $codReport) === false) {
-					$messageStack->add('Cannot write COD report to file (' . $file_path . $file_name . ')','error');
-					$error = true;
-					continue;
-				}
+				do {
+					if (!$handle = fopen($file_path . $file_name, 'w')) {
+						echo 'Cannot open file (' . $file_path . $file_name . ')';
+						$error = true;
+						break;
+					}
+					if (fwrite($handle, $closeReport) === false) {
+						$messageStack->add('Cannot write close report to file (' . $file_path . $file_name . ')','error');
+						$error = true;
+						break;
+					}
+					if (fwrite($handle, $mwReport) === false) {
+						$messageStack->add('Cannot write multi-weight report to file (' . $file_path . $file_name . ')','error');
+						$error = true;
+						break;
+					}
+					if (fwrite($handle, $codReport) === false) {
+						$messageStack->add('Cannot write COD report to file (' . $file_path . $file_name . ')','error');
+						$error = true;
+						break;
+					}
 /*
-				if (fwrite($handle, $hazMatReport) === false) {
-					$messageStack->add('Cannot write Hazmat report to file (' . $file_path . $file_name . ')','error');
-					$error = true;
-					continue;
-				}
+					if (fwrite($handle, $hazMatReport) === false) {
+						$messageStack->add('Cannot write Hazmat report to file (' . $file_path . $file_name . ')','error');
+						$error = true;
+						break;
+					}
 */
-				fclose($handle);
+				} while (false);
+				if ($handle) fclose($handle);
 				if (!$error) {
 					$messageStack->add(SHIPPING_FEDEX_V7_CLOSE_SUCCESS,'success');
 					return true;
@@ -1198,7 +1202,7 @@ class fedex_v7 {
 		return false;
 	}
 
-	function FormatFedExCloseRequest($date, $report_only = false, $report_type) {
+	function FormatFedExCloseRequest($date, $report_only = false, $report_type = 'MANIFEST') {
 		$request['WebAuthenticationDetail'] = array(
 			'UserCredential' => array(
 			  'Key'      => MODULE_SHIPPING_FEDEX_V7_AUTH_KEY,
@@ -1284,7 +1288,7 @@ class fedex_v7 {
 	}
 	$output .= "\n" . sprintf(SHIPPING_FEDEX_RECON_SUMMARY, $count) . "\n";
 	// set the reconciled flag
-	if (sizeof($reconciled) > 0) {
+	if (!empty($reconciled)) {
 	  $db->Execute("update " . TABLE_SHIPPING_LOG . " set reconciled = '1' where ref_id in ('" . implode("','", $reconciled) . "')");
 	}
 	// output results

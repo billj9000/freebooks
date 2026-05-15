@@ -22,7 +22,7 @@ function bank_import_csv($structure, $filename, $bank_gl_acct) {
   	$bankimport = new impbanking();
   	$data = file($_FILES[$filename]['tmp_name']);
 	// read the header and build array
-  	if (sizeof($data) < 2) {
+  	if (count(is_array($data) ? $data : []) < 2) {
 	    $messageStack->add('The number of lines in the file is to small, a csv file must contain a header line and at least on input line!','error');
 		return false;
   	}
@@ -64,7 +64,7 @@ function bank_import_csv($structure, $filename, $bank_gl_acct) {
 		$line_array = $map_array;
 		$sql_array  = array();
 		$working    = csv_explode($line);
-    	for ($i = 0; $i < sizeof($working); $i++) $line_array[$i]['value'] = $working[$i];
+    	for ($i = 0; $i < count(is_array($working) ? $working : []); $i++) $line_array[$i]['value'] = $working[$i];
 		foreach ($line_array as $value) {
 	  		$sql_array[$value['table']][$value['cnt']][$value['field']] = $value['value'];
 		}

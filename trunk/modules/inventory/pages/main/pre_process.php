@@ -246,7 +246,7 @@ switch ($_REQUEST['action']) {
   	  $criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
 	}
 	// build search filter string
-	$search = (sizeof($criteria) > 0) ? (' where ' . implode(' and ', $criteria)) : '';
+	$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';
 	$field_list = array('a.id as id', 'a.sku as sku', 'inactive', 'inventory_type', 'description_short', 'full_price', 
 			'quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order', 'quantity_on_allocation', 'last_journal_date');
 	// hook to add new fields to the query return results

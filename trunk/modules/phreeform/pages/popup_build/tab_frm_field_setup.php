@@ -40,7 +40,7 @@ require_once(DIR_FS_WORKING . 'pages/popup_build/box_html.php'); // box template
     </tr>
 	</thead>
 	<tbody class="ui-widget-content">
-<?php for ($i = 0; $i < sizeof($report->fieldlist); $i++) { ?>
+<?php for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) { ?>
     <tr>
 	  <td colspan="8" nowrap="nowrap">
 	   <div >

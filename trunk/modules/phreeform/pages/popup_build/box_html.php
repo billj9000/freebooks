@@ -135,7 +135,7 @@ function box_build($properties, $i) {
       $output .= '      <th>' . TEXT_ACTION    . '</th>' . nl;
       $output .= '    </tr>' . nl;
       $output .= '	</thead><tbody class="ui-widget-content">' . nl;
-      for ($j = 0; $j < sizeof($properties->boxfield); $j++) {
+      for ($j = 0; $j < count(is_array($properties->boxfield) ? $properties->boxfield : []); $j++) {
         $output .= '		  <tr>' . nl;
         $output .= '		    <td>' . html_pull_down_menu('box_fld_' . $i . '[]', $cFields,    $properties->boxfield[$j]->fieldname) . '</td>' . nl;
         $output .= '		    <td>' . html_pull_down_menu('box_proc_'. $i . '[]', $tProcessing,$properties->boxfield[$j]->processing) . '</td>' . nl;
@@ -268,7 +268,7 @@ function box_build($properties, $i) {
       $output .= '      <th>' . '&nbsp;'         . '</th>' . nl;
       $output .= '    </tr>' . nl;
       $output .= '	</thead><tbody class="ui-widget-content">' . nl;
-      for ($j = 0; $j < sizeof($properties->boxfield); $j++) {
+      for ($j = 0; $j < count(is_array($properties->boxfield) ? $properties->boxfield : []); $j++) {
         $output .= '	  <tr>' . nl;
         $output .= '	    <td nowrap="nowrap">' . html_combo_box('box_fld_' . $i . '[]', $kTblFields, $properties->boxfield[$j]->fieldname, 'onclick="updateFieldList(this)"', '220px', '', 'box_fld_' . $i . $j) . '</td>' . nl;
         $output .= '	    <td>' . html_input_field   ('box_desc_'. $i . '[]', $properties->boxfield[$j]->description, 'size="15"') . '</td>' . nl;
@@ -304,7 +304,7 @@ function box_build($properties, $i) {
       $output .= '      <th>' . TEXT_ACTION     . '</th>' . nl;
       $output .= '    </tr>' . nl;
       $output .= '</thead><tbody class="ui-widget-content">' . nl;
-      for ($j = 0; $j < sizeof($properties->boxfield); $j++) {
+      for ($j = 0; $j < count(is_array($properties->boxfield) ? $properties->boxfield : []); $j++) {
         $output .= '  <tr>' . nl;
         $output .= '    <td>' . html_combo_box     ('box_fld_' . $i . '[]', $kFields,    $properties->boxfield[$j]->fieldname, 'onclick="updateFieldList(this)"', '220px', '', 'box_fld_' . $i . '_' . $j) . '</td>' . nl;
         $output .= '    <td>' . html_pull_down_menu('box_proc_'. $i . '[]', $tProcessing,$properties->boxfield[$j]->processing) . '</td>' . nl;
@@ -354,7 +354,7 @@ function box_build($properties, $i) {
       $output .= '      <th>' . '&nbsp;'         . '</th>' . nl;
       $output .= '    </tr>' . nl;
       $output .= '	</thead><tbody class="ui-widget-content">' . nl;
-      for ($j = 0; $j < sizeof($properties->boxfield); $j++) {
+      for ($j = 0; $j < count(is_array($properties->boxfield) ? $properties->boxfield : []); $j++) {
         $output .= '	  <tr>' . nl;
         $output .= '	    <td nowrap="nowrap">' . html_combo_box('box_fld_' . $i . '[]', $kTblFields, $properties->boxfield[$j]->fieldname, 'onclick="updateFieldList(this)"', '220px', '', 'box_fld_' . $i . $j) . '</td>' . nl;
         $output .= '	    <td>' . html_input_field   ('box_desc_'. $i . '[]', $properties->boxfield[$j]->description, 'size="15"') . '</td>' . nl;
@@ -394,7 +394,7 @@ function box_build($properties, $i) {
       $output .= '      <th>' . TEXT_ACTION     . '</th>' . nl;
       $output .= '    </tr>' . nl;
       $output .= ' </thead><tbody class="ui-widget-content">' . nl;
-      for ($j = 0; $j < sizeof($properties->boxfield); $j++) {
+      for ($j = 0; $j < count(is_array($properties->boxfield) ? $properties->boxfield : []); $j++) {
         $output .= '  <tr>' . nl;
         $output .= '    <td>' . html_combo_box     ('box_fld_' . $i . '[]', $kFields, $properties->boxfield[$j]->fieldname, 'onclick="updateFieldList(this)"', '220px', '', 'box_fld_' . $i . $j) . '</td>' . nl;
         $output .= '    <td>' . html_pull_down_menu('box_proc_'. $i . '[]', $pFields, $properties->boxfield[$j]->processing) . '</td>' . nl;

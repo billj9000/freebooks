@@ -35,7 +35,7 @@ class pos_builder {
 	if (!$tableValue) return false;
 	$sql = "select * from " . TABLE_JOURNAL_MAIN . " where id = " . $tableValue;
 	$result = $db->Execute($sql);
-	while (list($key, $value) = each($result->fields)) $this->$key = db_prepare_input($value);
+	foreach ($result->fields as $key => $value) $this->$key = db_prepare_input($value);
 	$this->load_item_details($this->id);
 	$this->load_payment_details($this->id);
 	$this->load_account_details($this->bill_acct_id);
@@ -156,7 +156,7 @@ class pos_builder {
 	  }
 	  $result->MoveNext();
 	}
-	$this->tax_text = (sizeof($tax_list) > 0) ? implode("\n", $tax_list) : '';
+	$this->tax_text = (!empty($tax_list)) ? implode("\n", $tax_list) : '';
   }
 
   function load_account_details($id) {

@@ -84,7 +84,7 @@ switch ($_REQUEST['action']) {
 
 	$backup->make_zip('file');
 	if (file_exists($backup->source_dir . $backup->source_file)) unlink($backup->source_dir . $backup->source_file);
-	if (!$error) {
+	if (!$error && file_exists($backup->dest_dir . $backup->dest_file)) {
 	  gen_add_audit_log(GEN_AUDIT_DB_DATA_BACKUP);
 	  $backup->download($backup->dest_dir, $backup->dest_file, false);
 	}

@@ -38,7 +38,7 @@ $backup->dest_file   = 'fedex_qual.zip';
 $count = 1;
 foreach ($shipto as $pkg) {
   $sInfo = new shipment();	// load defaults
-  while (list($key, $value) = each($pkg)) $sInfo->$key = db_prepare_input($value);
+  foreach ($pkg as $key => $value) $sInfo->$key = db_prepare_input($value);
   $sInfo->ship_date = date('Y-m-d', strtotime($sInfo->ship_date));
   // load package information
   $sInfo->package = array();
@@ -62,7 +62,7 @@ foreach ($shipto as $pkg) {
 }
 // convert session messages to current stack
 if ($error || $_SESSION['messageToStack']) {
-  for ($i = 0; $i < sizeof($_SESSION['messageToStack']); $i++) {
+  for ($i = 0; $i < count(is_array($_SESSION['messageToStack']) ? $_SESSION['messageToStack'] : []); $i++) {
 	$messageStack->add($_SESSION['messageToStack'][$i]['text'], $_SESSION['messageToStack'][$i]['type']);
   }
   unset($_SESSION['messageToStack']);

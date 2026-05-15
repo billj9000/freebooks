@@ -30,6 +30,7 @@ define('TEXT_CONTACTS','Contacts');
 define('TEXT_EMPLOYEE','Employee');
 define('TEXT_LINK_TO','Link To:');
 define('TEXT_NEW_CONTACT','New Contact');
+define('TEXT_SALES',    'Sales');
 define('TEXT_SALES_REP','Sales Rep');
 define('TEXT_COPY_ADDRESS','Transfer Address');
 define('TEXT_NEW_CALL','New Call');
@@ -187,5 +188,6 @@ define('ACT_ERROR_DUPLICATE_CONTACT','The contact ID already exists in the syste
 define('CRM_ROW_DELETE_ALERT','Are you sure you want to remove this CRM note?');
 // java script errors
 define('ACT_JS_SHORT_NAME', '* The \'ID\' entry cannot be blank.');
+define('TEXT_EXTRA_FIELDS', 'Custom Fields');
 
 ?>

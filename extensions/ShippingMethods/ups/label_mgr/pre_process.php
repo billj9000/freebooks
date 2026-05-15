@@ -36,8 +36,7 @@ $action     = isset($_GET['action']) ? $_GET['action'] : $_POST['todo'];
 switch ($action) {
   case 'label':
 	// overwrite the defaults with data from the form
-	reset($_POST);
-	while (list($key, $value) = each($_POST)) $sInfo->$key = db_prepare_input($value);
+	foreach ($_POST as $key => $value) $sInfo->$key = db_prepare_input($value);
 	// generate ISO2 codes for countries
 	$sInfo->ship_country_code = gen_get_country_iso_2_from_3($sInfo->ship_country_code);
 	$sInfo->ship_date             = date('Y-m-d', strtotime($sInfo->ship_date));
@@ -129,7 +128,7 @@ switch ($action) {
 	$date         = $_GET['date'];
 	$labels       = $_GET['labels'];
 	$labels_array = explode(':', $labels);
-	if (count($labels_array) == 0) die('No labels were passed to label_viewer.php!');
+	if (empty($labels_array)) die('No labels were passed to label_viewer.php!');
 	// check output method, pdf load window, thermal print from here
 	if (MODULE_SHIPPING_UPS_PRINTER_TYPE == 'Thermal') { // autoprint the label
 	  // fetch the tracking labels
@@ -182,7 +181,7 @@ switch ($action) {
 		from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$oID;
 	$result = $db->Execute($sql);
 	if (is_array($result->fields)) {
-	  while (list($key, $value) = each($result->fields)) $sInfo->$key = $value;
+	  foreach ($result->fields as $key => $value) $sInfo->$key = $value;
 	  $temp = explode(':', $result->fields['shipper_code']);
 	  $sInfo->ship_method = $temp[1];
 	}

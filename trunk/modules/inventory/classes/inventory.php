@@ -431,7 +431,7 @@ class inventory {
 	    		saveUploadZip('file_name', INVENTORY_DIR_ATTACHMENTS, 'inventory_'.$this->id.'_'.$image_id.'.zip');
 	    		$this->attachments[$image_id] = $_FILES['file_name']['name'];
 	  		}
-	  		$sql_data_array ['attachments'] = sizeof($this->attachments) > 0 ? serialize($this->attachments) : '';
+	  		$sql_data_array ['attachments'] = !empty($this->attachments) ? serialize($this->attachments) : '';
 		}
 		unset($sql_data_array['last_journal_date]']);
 		if ($this->id != ''){

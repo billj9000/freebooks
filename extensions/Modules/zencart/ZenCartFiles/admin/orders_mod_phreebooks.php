@@ -71,7 +71,7 @@ define('PB_BULK_MESSAGE','Completed downloading orders to PhreeBooks. The number
 	  }
 	  require_once(DIR_WS_CLASSES . 'phreebooks.php');
 	  $dnXML = new phreebooks();
-	  if (sizeof($pb_orders) > 0) $dnXML->submitXML('download', $pb_orders);
+	  if (!empty($pb_orders)) $dnXML->submitXML('download', $pb_orders);
 	  $_GET['action'] = '';
 	  $action         = '';
 	  $oID            = '';
@@ -589,7 +589,7 @@ function couponpopupWindow(url) {
             <td class="dataTableHeadingContent" align="right"><?php echo TABLE_HEADING_TOTAL_INCLUDING_TAX; ?></td>
           </tr>
 <?php
-    for ($i=0, $n=sizeof($order->products); $i<$n; $i++) {
+    for ($i=0, $n=count(is_array($order->products) ? $order->products : []); $i<$n; $i++) {
       if (DISPLAY_PRICE_WITH_TAX_ADMIN == 'true')
       {
         $priceIncTax = $currencies->format(zen_round(zen_add_tax($order->products[$i]['final_price'], $order->products[$i]['tax']),$currencies->get_decimal_places($order->info['currency'])) * $order->products[$i]['qty'], true, $order->info['currency'], $order->info['currency_value']);
@@ -601,8 +601,8 @@ function couponpopupWindow(url) {
            '            <td class="dataTableContent" valign="top" align="right">' . $order->products[$i]['qty'] . '&nbsp;x</td>' . "\n" .
            '            <td class="dataTableContent" valign="top">' . $order->products[$i]['name'];
 
-      if (isset($order->products[$i]['attributes']) && (sizeof($order->products[$i]['attributes']) > 0)) {
-        for ($j = 0, $k = sizeof($order->products[$i]['attributes']); $j < $k; $j++) {
+      if (isset($order->products[$i]['attributes']) && (!empty($order->products[$i]['attributes']))) {
+        for ($j = 0, $k = count(is_array($order->products[$i]['attributes']) ? $order->products[$i]['attributes'] : []); $j < $k; $j++) {
           echo '<br /><nobr><small>&nbsp;<i> - ' . $order->products[$i]['attributes'][$j]['option'] . ': ' . nl2br(zen_output_string_protected($order->products[$i]['attributes'][$j]['value']));
           if ($order->products[$i]['attributes'][$j]['price'] != '0') echo ' (' . $order->products[$i]['attributes'][$j]['prefix'] . $currencies->format($order->products[$i]['attributes'][$j]['price'] * $order->products[$i]['qty'], true, $order->info['currency'], $order->info['currency_value']) . ')';
           if ($order->products[$i]['attributes'][$j]['product_attribute_is_free'] == '1' and $order->products[$i]['product_is_free'] == '1') echo TEXT_INFO_ATTRIBUTE_FREE;
@@ -635,7 +635,7 @@ function couponpopupWindow(url) {
           <tr>
             <td align="right" colspan="8"><table border="0" cellspacing="0" cellpadding="2">
 <?php
-    for ($i = 0, $n = sizeof($order->totals); $i < $n; $i++) {
+    for ($i = 0, $n = count(is_array($order->totals) ? $order->totals : []); $i < $n; $i++) {
       echo '              <tr>' . "\n" .
            '                <td align="right" class="'. str_replace('_', '-', $order->totals[$i]['class']) . '-Text">' . $order->totals[$i]['title'] . '</td>' . "\n" .
            '                <td align="right" class="'. str_replace('_', '-', $order->totals[$i]['class']) . '-Amount">' . $currencies->format($order->totals[$i]['value'], false) . '</td>' . "\n" .
@@ -1030,12 +1030,12 @@ if (isset($oInfo) && is_object($oInfo) && ($orders->fields['orders_id'] == $oInf
 
       $contents[] = array('text' => '<br />' . zen_image(DIR_WS_IMAGES . 'pixel_black.gif','','100%','3'));
       $order = new order($oInfo->orders_id);
-      $contents[] = array('text' => 'Products Ordered: ' . sizeof($order->products) );
-      for ($i=0; $i<sizeof($order->products); $i++) {
+      $contents[] = array('text' => 'Products Ordered: ' . count(is_array($order->products) ? $order->products : []) );
+      for ($i=0; $i<count(is_array($order->products) ? $order->products : []); $i++) {
         $contents[] = array('text' => $order->products[$i]['qty'] . '&nbsp;x&nbsp;' . $order->products[$i]['name']);
 
-        if (sizeof($order->products[$i]['attributes']) > 0) {
-          for ($j=0; $j<sizeof($order->products[$i]['attributes']); $j++) {
+        if (!empty($order->products[$i]['attributes'])) {
+          for ($j=0; $j<count(is_array($order->products[$i]['attributes']) ? $order->products[$i]['attributes'] : []); $j++) {
             $contents[] = array('text' => '&nbsp;<i> - ' . $order->products[$i]['attributes'][$j]['option'] . ': ' . nl2br(zen_output_string_protected($order->products[$i]['attributes'][$j]['value'])) . '</i></nobr>' );
           }
         }
@@ -1045,7 +1045,7 @@ if (isset($oInfo) && is_object($oInfo) && ($orders->fields['orders_id'] == $oInf
         }
       }
 
-      if (sizeof($order->products) > 0) {
+      if (!empty($order->products)) {
         $contents[] = array('align' => 'center', 'text' => '<a href="' . zen_href_link(FILENAME_ORDERS, zen_get_all_get_params(array('oID', 'action')) . 'oID=' . $oInfo->orders_id . '&action=edit', 'NONSSL') . '">' . zen_image_button('button_edit.gif', IMAGE_EDIT) . '</a>');
       }
       break;

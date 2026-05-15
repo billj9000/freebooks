@@ -108,7 +108,7 @@ function load_coa_info($types = array()) { // includes inactive accounts
   global $db;
   $coa_data = array();
   $sql = "select * from " . TABLE_CHART_OF_ACCOUNTS;
-  if (sizeof($types > 0)) $sql .= " where account_type in (" . implode(", ", $types) . ")";
+  if (count(is_array($types > 0) ? $types > 0 : [])) $sql .= " where account_type in (" . implode(", ", $types) . ")";
   $result = $db->Execute($sql);
   while (!$result->EOF) {
     $coa_data[$result->fields['id']] = array(
@@ -146,7 +146,7 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c') {
 	$sql = "select id, journal_id, post_date, terms, purch_order_id, purchase_invoice_id, total_amount, gl_acct_id 
 	  from " . TABLE_JOURNAL_MAIN . " 
 	  where (journal_id in " . $search_journal . " and closed = '0' and bill_acct_id = " . $account_id . ")";
-	if (sizeof($paid_indeces) > 0) $sql .= " or (id in (" . implode(',',$paid_indeces) . ") and closed = '0')";
+	if (!empty($paid_indeces)) $sql .= " or (id in (" . implode(',',$paid_indeces) . ") and closed = '0')";
 	$sql .= " order by post_date";
 	$result = $db->Execute($sql);
 	while (!$result->EOF) {
@@ -155,8 +155,8 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c') {
 	  }
 	  $result->fields['total_amount'] -= fetch_partially_paid($result->fields['id']);
 	  $result->fields['description']   = $result->fields['purch_order_id'];
-	  $result->fields['discount']      = '';
-	  $result->fields['amount_paid']   = '';
+	  $result->fields['discount']      = 0;
+	  $result->fields['amount_paid']   = 0;
 	  $open_invoices[$result->fields['id']] = $result->fields;
 	  $result->MoveNext();
 	}
@@ -275,7 +275,7 @@ function calculate_terms_due_dates($post_date, $terms_encoded, $type = 'AR') {
 	case '4': // Due on day of next month
 		$result['discount']   = $terms[1] / 100;
 		$result['early_date'] = gen_specific_date($post_date, $terms[2]);
-		$result['net_date']   = gen_db_date( $terms[3] );
+		$result['net_date']   = date('Y-m-d', mktime(0, 0, 0, $date_details['ThisMonth'] + 1, (int)$terms[3], $date_details['ThisYear']));
 		break;
 	case '5': // Due at end of month
 		$result['discount']   = $terms[1] / 100;
@@ -394,11 +394,11 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
 	while(!$result->EOF) {
 	  $base_id   = $result->fields['id'];
 	  $base_text = $result->fields['short_name'];
-	  if ($result->fields['account_number'] == '1' && sizeof($phases) > 0) { // use phases
+	  if ($result->fields['account_number'] == '1' && !empty($phases)) { // use phases
 		foreach ($phases as $phase_id => $phase) {
 		  $phase_base = $base_id   . ':' . $phase_id;
 		  $phase_text = $base_text . ' -> ' . $phase['text'];
-		  if ($phase['detail'] == '1' && sizeof($costs) > 0) {
+		  if ($phase['detail'] == '1' && !empty($costs)) {
 		    foreach ($costs as $cost_id => $cost) {
               $result_array[] = array('id' => $phase_base . ':' . $cost_id, 'text' => $phase_text . ' -> ' . $cost);
 			}
@@ -454,7 +454,7 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
 
   function repost_journals($journals, $start_date, $end_date) {
 	global $db, $messageStack;
-	if (sizeof($journals) > 0) {
+	if (!empty($journals)) {
 	  $sql = "SELECT id FROM ".TABLE_JOURNAL_MAIN." WHERE journal_id IN (".implode(',', $journals).") 
 		AND post_date>= '$start_date' AND post_date<'".gen_specific_date($end_date, 1)."' ORDER BY post_date, id";
 	  $result = $db->Execute($sql);
