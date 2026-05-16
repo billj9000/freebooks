@@ -23,5 +23,6 @@ define('IMPORT_ORDER_PAGE_TITLE','Order Import (csv)');
 define('IMPORT_ORDER_SELECT','Plese select the csv file to import');
 define('IMPORT_ORDER_DIRECTIONS','After a file has been selected, press the Save icon to execute the script.<br />
 		To view a template of the csv format and definitions, click the Download Template button.');
+if (!defined('TEXT_DOWNLOAD_TEMPLATE')) define('TEXT_DOWNLOAD_TEMPLATE', 'Download Template');
 
 ?>

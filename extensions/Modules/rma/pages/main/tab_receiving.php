@@ -68,7 +68,7 @@ if (!empty($receive_details)) {
 		  </td>
 		  <td><?php echo html_input_field("rcv_desc[".($i+1)."]",  $receive_details[$i]['desc'], 'size="32"'); ?></td>
 		  <td><?php echo html_input_field("rcv_mfg[".($i+1)."]",   $receive_details[$i]['mfg'],  'size="32"'); ?></td>
-		  <td><?php echo html_input_field("rcv_wrnty[".($i+1)."]", $receive_details[$i]['wrnty'],'size="32"'); ?></td>
+		  <td><?php echo html_input_field("rcv_wrnty[".($i+1)."]", $receive_details[$i]['wrnty'],'size="12"'); ?></td>
 		</tr>
 <?php
 	}

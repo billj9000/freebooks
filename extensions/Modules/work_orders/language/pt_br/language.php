@@ -42,6 +42,7 @@ define('TEXT_TASK_SEQUENCE','Sequência Tarefa');
 define('TEXT_TASK_STATUS','Situação Tarefa');
 define('TEXT_TASK_TIME','Tempo Tarefa');
 define('TEXT_USE_ALLOCATION','Usar Alocação');
+define('TEXT_WORK_ORDER','Ordem de Serviço');
 define('TEXT_WORK_ORDERS','Ordens Serviço');
 define('TEXT_WORK_ORDERS_TASK','Tarefas Ordem Serviço');
 define('TEXT_WO_ID','ID Ordem Serviço');

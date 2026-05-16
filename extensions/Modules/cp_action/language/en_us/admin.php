@@ -20,7 +20,7 @@
 
 // Module information
 define('MODULE_CP_ACTION_TITLE','CA/PA Module');
-define('MODULE_CP_ACTION_DESCRIPTION','The Corrective Action/Preventativce action module is useed as part of an internal quality control system to record, track and monitor problems in the company organizational process.');
+define('MODULE_CP_ACTION_DESCRIPTION','The Corrective Action/Preventative Action module is used as part of an internal quality control system to record, track and monitor problems in the company organizational process.');
 
 // Headings
 

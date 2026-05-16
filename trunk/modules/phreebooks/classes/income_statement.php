@@ -27,10 +27,12 @@ class income_statement {
 		$this->zero = $currencies->format(0);
 		$this->coa_types = load_coa_types();
 		$this->inc_stmt_data = array();
+		$this->last_net_income = 0;
+		$this->lytd_net_income = 0;
 	}
 
 	function load_report_data($report) {
-		global $db;
+		global $db, $Seq;
 		// see if it's a single year or year-year output
 		$this->columns = (isset($Seq[3])) ? 4 : 2;
 		$period = $report->period;
@@ -52,7 +54,9 @@ class income_statement {
 		}
 
 		// build revenues
-		$this->add_heading_line(RW_FIN_REVENUES); 
+		$last_temp = '';
+		$lytd_temp = '';
+		$this->add_heading_line(RW_FIN_REVENUES);
 		$cur_year  = $this->add_income_stmt_data(30, $first_period, $period, $negate = true); // Income account_type
 		$cur_temp  = ProcessData($this->total_2, $Seq[1]['processing']);
 		$ytd_temp  = ProcessData($this->total_3, $Seq[2]['processing']);

@@ -48,15 +48,15 @@ class queryFactory {
     }
 
     function transStart() {
-        $this->link->beginTransaction();
+        if (!$this->link->inTransaction()) $this->link->beginTransaction();
     }
 
     function transCommit() {
-        $this->link->commit();
+        if ($this->link->inTransaction()) $this->link->commit();
     }
 
     function transRollback() {
-        $this->link->rollBack();
+        if ($this->link->inTransaction()) $this->link->rollBack();
     }
 
     // Returns the escaped string without surrounding quotes, matching the original contract.

@@ -164,4 +164,9 @@ echo $toolbar->build_toolbar();
 ?>
  </tbody>
 </table>
+<?php if ($all_steps_complete && !$closed && $security_level > 1): ?>
+<div style="text-align:center;margin-top:12px">
+  <?php echo html_button_field('close_wo', TEXT_CLOSE . ' ' . TEXT_WORK_ORDER, 'onclick="submitToDo(\'close_wo\')"'); ?>
+</div>
+<?php endif; ?>
 </form>

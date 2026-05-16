@@ -48,12 +48,13 @@ $custom_path = DIR_FS_WORKING . 'custom/pages/ctl_panel/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 
 /***************   Act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'save':
   	foreach ($dashboards as $dashboard) {
 	  // build add and delete list
 	  // if post is set and not in my_profile -> add
 	  if (isset($_POST[$dashboard['dashboard_id']]) && !in_array($dashboard['dashboard_id'], $my_profile)) {
+	  	load_method_language(DIR_FS_MODULES . $dashboard['module_id'] . '/dashboards/', $dashboard['dashboard_id']);
 	  	include_once (DIR_FS_MODULES . $dashboard['module_id'] . '/dashboards/' . $dashboard['dashboard_id'] . '/' . $dashboard['dashboard_id'] . '.php');
 	    $dbItem = new $dashboard['dashboard_id'];
 	    $dbItem->menu_id      = $menu_id;
@@ -62,6 +63,7 @@ switch ($_REQUEST['action']) {
 	  }
 	  // if post is not set and in my_profile -> delete
 	  if (!isset($_POST[$dashboard['dashboard_id']]) && in_array($dashboard['dashboard_id'], $my_profile)) { // delete it
+	  	load_method_language(DIR_FS_MODULES . $dashboard['module_id'] . '/dashboards/', $dashboard['dashboard_id']);
 	  	include_once  (DIR_FS_MODULES . $dashboard['module_id'] . '/dashboards/' . $dashboard['dashboard_id'] . '/' . $dashboard['dashboard_id'] . '.php');
 	    $dbItem = new $dashboard['dashboard_id'];
 	    $dbItem->menu_id      = $menu_id;

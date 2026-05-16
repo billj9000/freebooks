@@ -40,5 +40,9 @@ echo $toolbar->build_toolbar();
   <tr>
     <td><?php echo IMPORT_ORDER_DIRECTIONS; ?></td>
   </tr>
+  <tr>
+    <td align="center"><br /><?php echo html_button_field('download_template', TEXT_DOWNLOAD_TEMPLATE, 'onclick="downloadTemplate()"'); ?></td>
+  </tr>
 </table>
+<iframe name="download_frame" style="display:none;"></iframe>
 </form>

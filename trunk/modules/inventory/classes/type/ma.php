@@ -77,7 +77,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 	function save(){
 		global $db, $currencies, $messageStack;
 		$bom_list = array();
-		for($x=0; $x < count($_POST['assy_sku']); $x++) {
+		for($x=0; $x < count($_POST['assy_sku'] ?? []); $x++) {
 			$bom_list[$x] = array(
 			  	'ref_id'      => $this->id,
 			  	'sku'         => db_prepare_input($_POST['assy_sku'][$x]),

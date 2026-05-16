@@ -122,8 +122,12 @@ class import_order {
   			// Now post like soap transaction
   			$soap_order->buildJournalEntry();
 		}
-		if (DEBUG) $messageStack->write_debug();
 		$messageStack->add("Total lines processed: ".count(is_array($rows) ? $rows : []), "success");
+  	}
+
+  	function guess_tax_id($rate_array, $rate) {
+  		foreach ($rate_array as $value) if ($value['rate'] == $rate) return $value['id'];
+  		return 0;
   	}
 
   	function csv_to_array($filename='', $delimiter=',') {

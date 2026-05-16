@@ -96,7 +96,6 @@ class sku_pricer {
 				$result = $db->Execute($sql);
 			}
 		}
-		if (DEBUG) $messageStack->write_debug();
 		$messageStack->add("Total lines processed: ".count(is_array($rows) ? $rows : []).". Total affected rows = $count.", "success");
   	}
 

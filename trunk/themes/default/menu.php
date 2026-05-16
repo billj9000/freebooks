@@ -40,7 +40,7 @@ function sortByOrder($a, $b) {
 }
 
 function create_menu(array $array){
-	if($array['security_id'] != 1 && $_SESSION['admin_id'] != 1){
+	if(($array['security_id'] ?? null) != 1 && $_SESSION['admin_id'] != 1){
 		if(isset($array['security_id']) && $array['security_id'] != ''){
 			if(array_key_exists($array['security_id'], $_SESSION['admin_security']) == false || $_SESSION['admin_security'][$array['security_id']] < 1 ) return '';
 		}
@@ -48,24 +48,25 @@ function create_menu(array $array){
 	if(isset($array['submenu'])){
 		usort($array['submenu'], 'sortByOrder');
 		if(check_permission($array['submenu'])){
-			echo '  <li><a href="'.$array['link'].'" '.$array['params'].'>'.(isset($array['icon']) ? $array['icon'].' '.$array['text'] : $array['text']).'</a>'.chr(10);
+			echo '  <li><a href="'.($array['link'] ?? '').'" '.($array['params'] ?? '').'>'.(isset($array['icon']) ? $array['icon'].' '.$array['text'] : $array['text']).'</a>'.chr(10);
 			echo '    <ul>' . chr(10);
 			foreach($array['submenu'] as $menu_item) create_menu($menu_item);
 			echo '    </ul>'.chr(10);
 			echo '  </li>'.chr(10);
 		}
 	}else{
-		echo '  <li><a href="'.$array['link'].'" '.$array['params'].'>'.chr(10);
-		if ($array['text'] == TEXT_HOME && ENABLE_ENCRYPTION && strlen($_SESSION['admin_encrypt']) > 0) echo html_icon('emblems/emblem-readonly.png', TEXT_ENCRYPTION_ENABLED, 'small');
+		echo '  <li><a href="'.($array['link'] ?? '').'" '.($array['params'] ?? '').'>'.chr(10);
+		if ($array['text'] == TEXT_HOME && ENABLE_ENCRYPTION && strlen($_SESSION['admin_encrypt'] ?? '') > 0) echo html_icon('emblems/emblem-readonly.png', TEXT_ENCRYPTION_ENABLED, 'small');
   		echo (isset($array['icon']) ? $array['icon'].' '.$array['text'] : $array['text']).'</a>  </li>'.chr(10);
 	}
 	return true;
 }
 
 function check_permission(array $array){
+	if ($_SESSION['admin_id'] == 1) return true;
 	$valid = false;
-	foreach($array as $menu_item){ 
-		if(is_array($menu_item['submenu'])) {
+	foreach($array as $menu_item){
+		if(isset($menu_item['submenu']) && is_array($menu_item['submenu'])) {
 			if(check_permission($menu_item['submenu'])) $valid = true;
 		}else{
 			if($menu_item['show_in_users_settings'] == false && $menu_item['security_id'] == SECURITY_ID_PHREEFORM) continue;

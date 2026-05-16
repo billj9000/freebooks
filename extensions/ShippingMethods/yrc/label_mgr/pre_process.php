@@ -29,7 +29,7 @@ $auto_print = false;
 $label_data = NULL;
 $pdf_list   = array();
 $sInfo      = new shipment();
-$action     = isset($_GET['action']) ? $_GET['action'] : $_POST['todo'];
+$action     = $_GET['action'] ?? $_POST['todo'] ?? '';
 /***************   Act on the action request   *************************/
 switch ($action) {
   case 'label':
@@ -197,15 +197,15 @@ switch ($action) {
 	break;
 
   case 'close':
-    $date     = ($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    $date     = $_GET['date'] ?? date('Y-m-d');
 	$shipment = new $shipping_module;
-	$shipment->close_date = ($_POST['search_date']) ? gen_db_date($_POST['search_date']) : date('Y-m-d');
+	$shipment->close_date = !empty($_POST['search_date']) ? gen_db_date($_POST['search_date']) : date('Y-m-d');
 	$shipment->closeFedEx($date);
 	gen_add_audit_log(sprintf(SHIPPING_END_OF_DAY, $shipping_module), $tracking_id);
 	break;
 
   case 'report':
-    $date = ($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    $date = $_GET['date'] ?? date('Y-m-d');
 	break;
 
   default:

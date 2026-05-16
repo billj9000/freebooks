@@ -2,6 +2,7 @@
 class _tree_struct {
 	// Structure table and fields
 	protected $table	= "";
+	protected $db;
 	protected $fields	= array(
 			"id"		=> false,
 			"parent_id"	=> false,
@@ -481,7 +482,8 @@ class _tree_struct {
 	}
 }
 
-class json_tree extends _tree_struct { 
+class json_tree extends _tree_struct {
+	protected $add_fields;
 	function __construct($table = TABLE_DC_DOCUMENT, $fields = array(), $add_fields = array("title" => "title", "type" => "type")) {
 		parent::__construct($table, $fields);
 		$this->fields = array_merge($this->fields, $add_fields);

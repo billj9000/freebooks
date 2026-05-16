@@ -33,15 +33,17 @@ require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
 require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 require_once(DIR_FS_WORKING . 'functions/import_bank.php');
 /**************   page specific initialization  *************************/
-$error     = false; 
+$error     = false;
 $bank_acct = (isset($_GET['bank_acct']) ? $_GET['bank_acct'] : $_POST['bank_acct']);
 $page_list = array();
 
-	  $page_list[$file] = array(
-	    'title'     => constant('MODULE_IMPORT_BANK_TITLE'),
-		'structure' => load_module_xml('import_bank/file'),
-	  );
-	
+$file = 'import_bank/file';
+$page_list[$file] = array(
+    'title'     => MODULE_IMPORT_BANK_TITLE,
+    'structure' => load_module_xml($file),
+);
+$subject = $_REQUEST['subject'] ?? $file;
+
 
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_MODULES . 'import_bank/custom/pages/main/extra_actions.php';

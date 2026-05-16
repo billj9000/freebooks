@@ -41,6 +41,7 @@ define('INV_LABEL_MAX_NUM_CHARS','Número Máximo de Caracteres (tamanho)');
 define('ASSETS_FIELD_DELETE_INTRO','em certeza de que quer remover este campo de ativo?');
 define('EXTRA_FIELDS_ERROR_NO_TABS','Não há abas customizadas, por favor insira ao menos uma aba antes de inserir campos.');
 define('ASSETS_FIELD_RESERVED_WORD','O nome de campo digitado é uma palavra reservada do MySQL, por favor entre um novo nome!');
+define('ASSETS_ERROR_FIELD_TYPE','Por favor selecione um tipo de campo antes de salvar.');
 define('ASSETS_ERROR_FIELD_DUPLICATE','O nome de campo digitado já está em uso, por favor entre um novo nome\"');
 define('EXTRA_TABS_LOG','Abas Ativos (%s)');
 define('INV_CATEGORY_MEMBER','Membor Aba:');

@@ -34,8 +34,6 @@ require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class.tree.php");
 /**************   page specific initialization  *************************/
 $jstree = new json_tree();
 
-if (DEBUG) $messageStack->write_debug();
-
 if ($_REQUEST["operation"] && strpos($_REQUEST["operation"], "_") !== 0 && method_exists($jstree, $_REQUEST["operation"])) {
 	header("HTTP/1.0 200 OK");
 	header('Content-type: application/json; charset=utf-8');

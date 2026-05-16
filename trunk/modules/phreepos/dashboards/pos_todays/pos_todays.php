@@ -18,7 +18,7 @@
 //
 
 class pos_todays extends ctl_panel {
-	public $dashboard_id 		= 'pos_today';
+	public $dashboard_id 		= 'pos_todays';
 	public $description	 		= CP_POS_TODAYS_DESCRIPTION;
 	public $security_id  		= SECURITY_ID_POS_MGR;
 	public $title		 		= CP_POS_TODAYS_TITLE;
@@ -28,7 +28,7 @@ class pos_todays extends ctl_panel {
 
 	function Output($params) {
 		global $db, $currencies;
-		if(count($params) != $this->size_params){ //upgrading
+		if(count(is_array($params) ? $params : []) != $this->size_params){ //upgrading
 			$params = $this->Upgrade($params);
 		}
 		$list_length = array();

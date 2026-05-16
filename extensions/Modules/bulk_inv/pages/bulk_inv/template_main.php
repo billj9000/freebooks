@@ -58,10 +58,10 @@ echo $toolbar->build_toolbar($add_search = true);
 	$odd = true;
     while (!$query_result->EOF) {
 ?>
-  <tr class="<?php echo $odd?'odd':'even'; ?>">
+  <tr class="<?php echo $odd?'odd':'even'; ?>" style="cursor:pointer;" onclick="invDetails('<?php echo addslashes($query_result->fields['sku']); ?>')">
 	<td><?php echo $query_result->fields['sku'] . html_hidden_field('id_'.$row, $query_result->fields['id']); ?></td>
 	<td><?php echo $query_result->fields['description_short']; ?></td>
-	<?php for ($i = 0; $i < $field_cnt; $i++) echo "<td>".html_input_field('f'.$i.'_'.$row, $query_result->fields['f'.$i])."</td>\n"; ?>
+	<?php for ($i = 0; $i < $field_cnt; $i++) echo "<td onclick=\"event.stopPropagation()\">".html_input_field('f'.$i.'_'.$row, $query_result->fields['f'.$i])."</td>\n"; ?>
 	<td align="right"><?php echo '&nbsp;'; ?></td>
   </tr>
 <?php

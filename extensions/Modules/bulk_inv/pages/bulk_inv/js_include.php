@@ -27,5 +27,10 @@ function init() {
 function check_form() {
   return true;
 }
+
+function invDetails(sku) {
+  window.open('index.php?module=inventory&page=main&action=properties&sku=' + encodeURIComponent(sku),
+    'inventory', 'width=800,height=600,resizable=1,scrollbars=1,top=50,left=50');
+}
 // -->
 </script>

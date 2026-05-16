@@ -53,6 +53,7 @@ define('TEXT_TASK_SEQUENCE','Task Sequence');
 define('TEXT_TASK_STATUS','Task Status');
 define('TEXT_TASK_TIME','Task Time');
 define('TEXT_USE_ALLOCATION','Use Allocation');
+define('TEXT_WORK_ORDER','Work Order');
 define('TEXT_WORK_ORDERS','Work Orders');
 define('TEXT_WORK_ORDERS_TASK','Work Order Tasks');
 define('TEXT_WO_ID','Work Order ID');

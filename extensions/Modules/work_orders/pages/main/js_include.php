@@ -26,13 +26,13 @@ var fetchDetails  = false;
 // required function called with every page load
 function init() {
   $('#inv_image').dialog({ autoOpen:false, width:800 });
-  <?php if ($_REQUEST['action'] <> 'new' && $_REQUEST['action'] <> 'edit' && $_REQUEST['action'] <> 'build') { // set focus for main window
+  <?php $__action = $_REQUEST['action'] ?? ''; if ($__action <> 'new' && $__action <> 'edit' && $__action <> 'build') { // set focus for main window
 	echo "  document.getElementById('search_text').focus();";
 	echo "  document.getElementById('search_text').select();";
   } ?>
 <?php
-  if (!$error && $_REQUEST['action'] == 'print') echo '  printWOrder(' . $id . ');';
-  if (!$error && $_REQUEST['action'] == 'new')   echo '  document.getElementById("sku").focus();';
+  if (!$error && $__action == 'print') echo '  printWOrder(' . $id . ');';
+  if (!$error && $__action == 'new')   echo '  document.getElementById("sku").focus();';
 ?>
 }
 

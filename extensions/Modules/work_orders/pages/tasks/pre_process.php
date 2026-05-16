@@ -48,7 +48,7 @@ switch ($_REQUEST['action']) {
 	  $messageStack->add(WO_TASK_ID_MISSING,'error');
 	  $error = true;
 	}
-	$result = $db->Execute("select id from " . TABLE_WO_TASK . " where task_name = '" . $task_name . "'");
+	$result = $db->Execute("select id from " . TABLE_WO_TASK . " where task_name = '" . db_input($task_name) . "'");
 	if ($result->Recordcount() > 0) {
 	  if ($result->fields['id'] <> $id) {
 	    $messageStack->add(WO_DUPLICATE_TASK_ID,'error');
@@ -100,8 +100,8 @@ switch ($_REQUEST['action']) {
 	}
 	break;
   case 'go_first':    $_REQUEST['list'] = 1;       break;
-  case 'go_previous': $_REQUEST['list'] = max($_REQUEST['list']-1, 1); break;
-  case 'go_next':     $_REQUEST['list']++;         break;
+  case 'go_previous': $_REQUEST['list'] = max(($_REQUEST['list'] ?? 1)-1, 1); break;
+  case 'go_next':     $_REQUEST['list'] = ($_REQUEST['list'] ?? 1) + 1; break;
   case 'go_last':     $_REQUEST['list'] = 99999;   break;
   case 'search':
   case 'search_reset':
@@ -138,15 +138,16 @@ $disp_order  = $result['disp_order'];
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search_fields = array('task_name', 'description', 'ref_doc', 'ref_spec');
   // hook for inserting new search fields to the query criteria.
-  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+  if (!empty($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
   $search = ' where ' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\'';
 } else {
   $search = '';
 }
 $field_list = array('id', 'task_name', 'description', 'ref_doc', 'ref_spec','dept_id', 'mfg', 'qa', 'data_entry');
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (!empty($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 
+$_REQUEST['list'] = $_REQUEST['list'] ?? 1;
 $query_raw    = "select SQL_CALC_FOUND_ROWS " . implode(', ', $field_list)  . " from " . TABLE_WO_TASK . $search . " order by $disp_order";
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
 $query_split  = new splitPageResults($_REQUEST['list'], '');

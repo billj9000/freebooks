@@ -56,7 +56,7 @@ function build_audit_xml($date_from, $date_to, $select){
 			$output .= "\t" . xmlEntry('accountDesc',		substr(htmlspecialchars($result->fields['description']),0,50),true); //generalLedger description
 			$output .= "\t" . xmlEntry('accountType',		(in_array($result->fields['account_type'],$income_types))? TEXT_INCOME_STATEMENT : TEXT_BALANCE_SHEET ,true); //generalLedger Type balance or income
 			$output .= "\t" . xmlEntry('leadCode',			$result->fields['account_type'],						 			true); //gl account type id *)
-			$output .= "\t" . xmlEntry('leadDescription',	constant($coa_types_list[$result->fields['account_type']]['text']),	true); //GL account Type description *)
+			$output .= "\t" . xmlEntry('leadDescription',	$coa_types_list[$result->fields['account_type']]['text'],	true); //GL account Type description *)
 			$output .= "\t" . '</ledgerAccount>' .chr(10);	
 			$result->MoveNext();	
 		}

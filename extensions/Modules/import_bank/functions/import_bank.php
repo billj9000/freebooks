@@ -64,7 +64,9 @@ function bank_import_csv($structure, $filename, $bank_gl_acct) {
 		$line_array = $map_array;
 		$sql_array  = array();
 		$working    = csv_explode($line);
-    	for ($i = 0; $i < count(is_array($working) ? $working : []); $i++) $line_array[$i]['value'] = $working[$i];
+    	for ($i = 0; $i < count(is_array($working) ? $working : []); $i++) {
+      	  if (isset($line_array[$i])) $line_array[$i]['value'] = $working[$i];
+      	}
 		foreach ($line_array as $value) {
 	  		$sql_array[$value['table']][$value['cnt']][$value['field']] = $value['value'];
 		}
@@ -97,6 +99,6 @@ function bank_import_csv($structure, $filename, $bank_gl_acct) {
   			$messageStack->add("succesfully posted $countline number of lines",'caution');
   		}
   	}
-  	$messageStack->write_debug();
 }
+
 ?>

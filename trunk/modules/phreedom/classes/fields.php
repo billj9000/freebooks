@@ -68,6 +68,11 @@ class fields {
            return false;
 	   }
 	}
+	if (empty($this->entry_type)) {
+		$messageStack->add(ASSETS_ERROR_FIELD_TYPE, 'error');
+		$this->error = true;
+		return false;
+	}
 	// condense the type array to a single string.
     while ($type = array_shift($this->type_array)){
         if (db_prepare_input($_POST['type_'. $type['id']]) == true) $temp_type .= $type['id'].':';

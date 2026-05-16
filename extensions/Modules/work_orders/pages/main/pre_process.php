@@ -18,6 +18,7 @@
 //
 $security_level = validate_user(SECURITY_WORK_ORDERS);
 /**************  include page specific files    *********************/
+gen_pull_language('inventory');
 require_once(DIR_FS_MODULES . 'inventory/defaults.php');
 require_once(DIR_FS_WORKING . 'functions/work_orders.php');
 /**************   page specific initialization  *************************/
@@ -28,14 +29,14 @@ $hide_save   = false;
 $image       = false;
 $step_list   = array();
 $store_id    = 0;
-$post_date   = ($_POST['post_date'])  ? gen_db_date($_POST['post_date'])  : date('Y-m-d');
-$close_date  = ($_POST['close_date']) ? $_POST['close_date'] : '';
+$post_date   = ($_POST['post_date']  ?? '') ? gen_db_date($_POST['post_date'])  : date('Y-m-d');
+$close_date  = ($_POST['close_date'] ?? '') ? $_POST['close_date'] : '';
 history_filter('wo_main');
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/main/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'new':
 	break;
   case 'save':
@@ -52,6 +53,10 @@ switch ($_REQUEST['action']) {
 	$closed   = isset($_POST['closed']) ? '1' : '0';
 	// error check
 	if (!$sku_id || !$sku || !$qty) {
+	  $messageStack->add(WO_SKU_ID_REQUIRED,'error');
+	  $error = true;
+	}
+	if (!$id && !$wo_id) {
 	  $messageStack->add(WO_SKU_ID_REQUIRED,'error');
 	  $error = true;
 	}
@@ -242,7 +247,6 @@ switch ($_REQUEST['action']) {
 		  $db->transCommit();	// post the chart of account values
 		  gen_add_audit_log(INV_LOG_ASSY . TEXT_SAVE, $sku, $qty);
 		  $messageStack->add(INV_POST_ASSEMBLY_SUCCESS . $sku, 'success');
-		  if (DEBUG) $messageStack->write_debug();
 		  // *************** END TRANSACTION *************************
 		}
 	  }
@@ -308,6 +312,20 @@ switch ($_REQUEST['action']) {
 	  );
 	  $result->MoveNext();
 	}
+	$all_steps_complete = !empty($step_list) && array_sum(array_column($step_list, 'complete')) == count($step_list);
+	break;
+  case 'close_wo':
+	validate_security($security_level, 2);
+	$id = db_prepare_input($_POST['id']);
+	if ($id) {
+	  $db->Execute("update " . TABLE_WO_JOURNAL_MAIN . " set closed='1', close_date='" . date('Y-m-d') . "' where id=" . $id);
+	  $result = $db->Execute("select qty, sku_id, wo_id from " . TABLE_WO_JOURNAL_MAIN . " where id=" . $id);
+	  $temp   = $db->Execute("select allocate from " . TABLE_WO_MAIN . " where id='" . $result->fields['wo_id'] . "'");
+	  if ($temp->fields['allocate']) allocation_adjustment($result->fields['sku_id'], 0, $result->fields['qty']);
+	  gen_add_audit_log(sprintf(WO_AUDIT_LOG_WO_COMPLETE, $id));
+	  $messageStack->add(sprintf(WO_MESSAGE_SUCCESS_COMPLETE, $id), 'success');
+	}
+	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;
   case 'delete':
 	validate_security($security_level, 4);
@@ -327,8 +345,8 @@ switch ($_REQUEST['action']) {
     $_REQUEST['action'] = '';
 	break;
   case 'go_first':    $_REQUEST['list'] = 1;       break;
-  case 'go_previous': $_REQUEST['list'] = max($_REQUEST['list']-1, 1); break;
-  case 'go_next':     $_REQUEST['list']++;         break;
+  case 'go_previous': $_REQUEST['list'] = max(($_REQUEST['list'] ?? 1)-1, 1); break;
+  case 'go_next':     $_REQUEST['list'] = ($_REQUEST['list'] ?? 1) + 1; break;
   case 'go_last':     $_REQUEST['list'] = 99999;   break;
 	  case 'search':
   case 'search_reset':
@@ -347,7 +365,7 @@ $cal_date = array(
   'default'   => gen_locale_date($post_date),
   'params'    => array('align' => 'left'),
 );
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'new':
   case 'edit':
     // build priority drop-down
@@ -380,15 +398,17 @@ switch ($_REQUEST['action']) {
     if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
       $search_fields = array('m.id', 'i.sku', 'm.wo_title');
 	  // hook for inserting new search fields to the query criteria.
-	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+	  if (!empty($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
 	  $search = ' where ' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\'';
     } else {
 	  $search = '';
 	}
+	$rev_list   = [];
 	$field_list = array('m.id', 'm.wo_num', 'm.priority', 'm.wo_title', 'i.sku', 'm.qty', 'm.sku_id', 'm.post_date', 'm.closed', 'm.close_date');
 	// hook to add new fields to the query return results
-	if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
-    $query_raw = "select SQL_CALC_FOUND_ROWS " . implode(', ', $field_list) . " 
+	if (!empty($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
+    $_REQUEST['list'] = $_REQUEST['list'] ?? 1;
+    $query_raw = "select SQL_CALC_FOUND_ROWS " . implode(', ', $field_list) . "
 	  from " . TABLE_WO_JOURNAL_MAIN . " m inner join " . TABLE_INVENTORY . " i on m.sku_id = i.id" . $search . " order by $disp_order, m.closed, m.id DESC";
     $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
     $query_split  = new splitPageResults($_REQUEST['list'], '');

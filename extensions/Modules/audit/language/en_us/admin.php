@@ -17,7 +17,7 @@
 //  Path: /modules/audit/language/en_us/admin.php
 //
 define('MODULE_AUDIT_TITLE','Audit');
-define('MODULE_AUDIT_DESCRIPTION','This module will create a page on witch you can select a period you want to export as a .xaf file for your accountant or tax autoroty.');
+define('MODULE_AUDIT_DESCRIPTION','This module will create a page on which you can select a period you want to export as a .xaf file for your accountant or tax authority.');
 //admin
 define('BOX_AUDIT_ADMIN','Audit configuration.');
 define('TEXT_AUDIT_SETTINGS','Audit settings');

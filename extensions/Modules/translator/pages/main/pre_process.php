@@ -31,10 +31,10 @@ $replace     = array();
 $criteria    = array();
 history_filter();
 // load the filters
-$f0 = isset($_POST['action']) ? $_POST['f0'] : $_GET['f0'];
-$f1 = isset($_POST['action']) ? $_POST['f1'] : $_GET['f1'];
-$f2 = isset($_POST['action']) ? $_POST['f2'] : $_GET['f2'];
-$f3 = isset($_POST['action']) ? $_POST['f3'] : $_GET['f3'];
+$f0 = isset($_POST['action']) ? ($_POST['f0'] ?? '') : ($_GET['f0'] ?? '');
+$f1 = isset($_POST['action']) ? ($_POST['f1'] ?? '') : ($_GET['f1'] ?? '');
+$f2 = isset($_POST['action']) ? ($_POST['f2'] ?? '') : ($_GET['f2'] ?? '');
+$f3 = isset($_POST['action']) ? ($_POST['f3'] ?? '') : ($_GET['f3'] ?? '');
 
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
@@ -55,7 +55,7 @@ switch ($_REQUEST['action']) {
 			foreach ($meths as $val) {
 			  if ($val == '.' || $val == '..') continue;
 			  $dir = DIR_FS_MODULES . "$value/methods/$val/language/$lang/";
-			  @include_once(DIR_FS_MODULES . "$value/methods/$val/$val" . ".php"); // fetch the version number
+			  try { @include_once(DIR_FS_MODULES . "$value/methods/$val/$val" . ".php"); } catch (\Error $e) {} // fetch the version number
 			  $ver = defined('MODULE_'.strtoupper($value).'_'.strtoupper($val).'_VERSION') ? constant('MODULE_'.strtoupper($value).'_'.strtoupper($val).'_VERSION') : '0.1';
 			  $translator->import_language($dir, $value.'-'.$val, $lang, $ver);
 			}
@@ -65,7 +65,7 @@ switch ($_REQUEST['action']) {
 			foreach ($meths as $val) {
 			  if ($val == '.' || $val == '..') continue;
 			  $dir = DIR_FS_MODULES . "$value/dashboards/$val/language/$lang/";
-			  @include_once(DIR_FS_MODULES . "$value/dashboards/$val/$val" . ".php"); // fetch the version number
+			  try { @include_once(DIR_FS_MODULES . "$value/dashboards/$val/$val" . ".php"); } catch (\Error $e) {} // fetch the version number
 			  $ver = defined('DASHBOARD_'.strtoupper($val).'_VERSION') ? constant('DASHBOARD_'.strtoupper($val).'_VERSION') : '0.1';
 			  $translator->import_language($dir, $value.'-'.$val, $lang, $ver);
 			}
@@ -76,12 +76,12 @@ switch ($_REQUEST['action']) {
 	  case 'install':
 	    $install_dir = db_prepare_input($_POST['install_dir']);
 	    $dir = DIR_FS_ADMIN . "$install_dir/language/$lang/";
-		$ver = constant('MODULE_PHREEDOM_VERSION');
+		$ver = defined('MODULE_PHREEDOM_VERSION') ? MODULE_PHREEDOM_VERSION : '0.1';
 		$translator->import_language($dir, $mod, $lang, $ver);
 		if ($_REQUEST['action'] == 'install') break; // else fall through and do the soap directory
 	  case 'soap':
 	    $dir = DIR_FS_ADMIN . "soap/language/$lang/";
-		$ver = constant('MODULE_PHREEDOM_VERSION');
+		$ver = defined('MODULE_PHREEDOM_VERSION') ? MODULE_PHREEDOM_VERSION : '0.1';
 		$translator->import_language($dir, $mod, $lang, $ver);
 		break;
 	  default:
@@ -89,11 +89,11 @@ switch ($_REQUEST['action']) {
 		  $parts = explode('-', $mod);
 	      $dir   = DIR_FS_MODULES.$parts[0]."/methods/".$parts[1]."/language/$lang/";
 		  if (is_dir($dir)) { // look for methods to load languages, else dashboards
-			include_once(DIR_FS_MODULES.$parts[0]."/methods/".$parts[1]."/".$parts[1].".php");
+			try { include_once(DIR_FS_MODULES.$parts[0]."/methods/".$parts[1]."/".$parts[1].".php"); } catch (\Error $e) {}
 		    $ver = defined('MODULE_'.strtoupper($parts[0]).'_'.strtoupper($parts[1]).'_VERSION') ? constant('MODULE_'.strtoupper($parts[0]).'_'.strtoupper($parts[1]).'_VERSION') : '0.1';
 		  } else {
 	        $dir       = DIR_FS_MODULES.$parts[0]."/dashboards/".$parts[1]."/language/$lang/";
-			include_once(DIR_FS_MODULES.$parts[0]."/dashboards/".$parts[1]."/".$parts[1].".php");
+			try { include_once(DIR_FS_MODULES.$parts[0]."/dashboards/".$parts[1]."/".$parts[1].".php"); } catch (\Error $e) {}
 		    $ver = defined('DASHBOARD_'.strtoupper($parts[1]).'_VERSION') ? constant('DASHBOARD_'.strtoupper($parts[1]).'_VERSION') : '0.1';
 		  }
 		} else {
@@ -191,7 +191,7 @@ switch ($_REQUEST['action']) {
 	if ($backup->make_zip('dir')) $error = true;
 	if ($backup->delete_dir($backup->source_dir)) $error = true;
 	if (!$error) {
-	  gen_add_audit_log(TEXT_EDIT_TRANSLATION . ' (' . TEXT_EXPORT . ')', $mod . ' ' . lang . ' R' . $ver);
+	  gen_add_audit_log(TEXT_EDIT_TRANSLATION . ' (' . TEXT_EXPORT . ')', $mod . ' ' . $lang . ' R' . $ver);
 	  $backup->download($backup->dest_dir, $backup->dest_file); // will not return if successful
 	}
 	break;
@@ -216,14 +216,14 @@ switch ($_REQUEST['action']) {
 	  if ($backup->make_zip('dir')) $error = true;
 	  if ($backup->delete_dir($backup->source_dir)) $error = true;
 	  if (!$error) {
-	    gen_add_audit_log(TEXT_EDIT_TRANSLATION . ' (' . TEXT_EXPORT . ')', 'all ' . lang . ' R' . $ver);
+	    gen_add_audit_log(TEXT_EDIT_TRANSLATION . ' (' . TEXT_EXPORT . ')', 'all ' . $lang . ' R' . $ver);
 	    $backup->download($backup->dest_dir, $backup->dest_file); // will not return if successful
 	  }
 	}
 	break;
   case 'go_first':    $_REQUEST['list'] = 1;       break;
-  case 'go_previous': $_REQUEST['list'] = max($_REQUEST['list']-1, 1); break;
-  case 'go_next':     $_REQUEST['list']++;         break;
+  case 'go_previous': $_REQUEST['list'] = max(($_REQUEST['list'] ?? 1)-1, 1); break;
+  case 'go_next':     $_REQUEST['list'] = ($_REQUEST['list'] ?? 1) + 1; break;
   case 'go_last':     $_REQUEST['list'] = 99999;   break;
   case 'search':
   case 'search_reset':
@@ -316,6 +316,7 @@ switch ($_REQUEST['action']) {
 	} else {
 	  $query_raw  = "select SQL_CALC_FOUND_ROWS distinct module, version, language from " . TABLE_TRANSLATOR . $search . " order by $disp_order";
 	}
+    $_REQUEST['list'] = $_REQUEST['list'] ?? 1;
     $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
     $query_split  = new splitPageResults($_REQUEST['list'], '');
 	if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go last was selected, now we know # pages, requery to get results

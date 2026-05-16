@@ -32,7 +32,7 @@ $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
-$toolbar->add_icon('export','onclick="submitToDo(\'export_audit\')"');
+$toolbar->add_icon('export','onclick="exportAudit()"');
 // pull in extra toolbar overrides and additions
 if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
@@ -50,3 +50,4 @@ echo $toolbar->build_toolbar();
 </fieldset>
 
 </form>
+<iframe name="download_frame" style="display:none;"></iframe>

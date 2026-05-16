@@ -75,7 +75,7 @@ switch ($_REQUEST['action']) {
 	$sql_data_array['account_maintenance']  = ''; // best_acct_guess(34,$_REQUEST['search_text'],'');
 	db_perform(TABLE_ASSETS, $sql_data_array, 'insert');
 	$id = db_insert_id();
-	gen_add_audit_log(AESSETS_LOG_ASSETS . TEXT_ADD, 'Type: ' . $asset_type . ' - ' . $asset_id);
+	gen_add_audit_log(ASSETS_LOG_ASSETS . TEXT_ADD, 'Type: ' . $asset_type . ' - ' . $asset_id);
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action')) . '&cID=' . $id . '&action=edit', 'SSL'));
 	break;
   case 'delete':
@@ -95,7 +95,7 @@ switch ($_REQUEST['action']) {
 	  if (file_exists($file_path . $result->fields['image_with_path'])) unlink ($file_path . $result->fields['image_with_path']);
 	}
 	foreach (glob(ASSETS_DIR_ATTACHMENTS.'assets_'.$id.'_*.zip') as $filename) unlink($filename); // remove attachments
-	gen_add_audit_log(AESSETS_LOG_ASSETS . TEXT_DELETE, $asset_id);
+	gen_add_audit_log(ASSETS_LOG_ASSETS . TEXT_DELETE, $asset_id);
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action')), 'SSL'));
 	break;
   case 'save':
@@ -193,7 +193,7 @@ switch ($_REQUEST['action']) {
 	// Ready to write update
 	if (!$error) {
 		db_perform(TABLE_ASSETS, $sql_data_array, 'update', "id = " . $id);
-		gen_add_audit_log(AESSETS_LOG_ASSETS . TEXT_UPDATE, $asset_id . ' - ' . $sql_data_array['description_short']);
+		gen_add_audit_log(ASSETS_LOG_ASSETS . TEXT_UPDATE, $asset_id . ' - ' . $sql_data_array['description_short']);
 	} else if ($error == true) {
 		$tab_list = $db->Execute("select id, tab_name, description 
 		  from " . TABLE_EXTRA_TABS . " where module_id='assets' order by sort_order");
@@ -240,7 +240,7 @@ switch ($_REQUEST['action']) {
 	$new_id = db_insert_id();
 	// Pictures are not copied over...
 	// now continue with newly copied item by editing it
-	gen_add_audit_log(AESSETS_LOG_ASSETS . TEXT_COPY, $old_asset_key . ' => ' . $new_asset_id);
+	gen_add_audit_log(ASSETS_LOG_ASSETS . TEXT_COPY, $old_asset_key . ' => ' . $new_asset_id);
 	$_POST['rowSeq'] = $new_id;	// set item pointer to new record
 	$_REQUEST['action'] = 'edit'; // fall through to edit case
   case 'edit':

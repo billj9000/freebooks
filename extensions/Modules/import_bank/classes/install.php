@@ -104,8 +104,10 @@ class import_bank_admin {
   	foreach ($this->tables as $table => $sql) {
 		if ($table == TABLE_IMPORT_BANK) admin_install_tables(array($table => $sql));
 	}
-	$messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_' . strtoupper($module) . '_VERSION')), 'success');
-	write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
+	$ver_const = 'MODULE_' . strtoupper($module) . '_VERSION';
+	$ver = defined($ver_const) ? constant($ver_const) : '';
+	$messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, $ver), 'success');
+	write_configure('MODULE_' . strtoupper($module) . '_STATUS', $ver);
   }
 
   function remove($module) {

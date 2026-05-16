@@ -21,8 +21,9 @@ $security_level = validate_ajax_user(SECURITY_ID_DOC_CONTROL);
 require(DIR_FS_MODULES . 'doc_ctl/defaults.php');
 require(DIR_FS_MODULES . 'doc_ctl/functions/doc_ctl.php');
 /**************   page specific initialization  *************************/
+$xml = '';
 $fieldset_content = 'NULL';
-$id = (int)$_GET['id'];
+$id = (int)($_GET['id'] ?? 0);
 if (!isset($_GET['id'])) die;
 
 $doc_details = $db->Execute("select * from " . TABLE_DC_DOCUMENT . " where id = '" . $id . "'");
@@ -34,7 +35,8 @@ if ($id == -1) { // home page
 	$list_header  = $result['html_code'];
 	$field_list   = array('id', 'file_name', 'title', 'type', 'doc_ext', 'description', 'security');
 	$query_raw    = "select " . implode(', ', $field_list)  . " from " . TABLE_DC_DOCUMENT . " where parent_id = '" . $id . "' order by position";
-	$query_split  = new splitPageResults($_GET['list'], MAX_DISPLAY_SEARCH_RESULTS, $query_raw, $query_numrows);
+	$query_numrows = 0;
+	$query_split  = new splitPageResults($_GET['list'] ?? 1, MAX_DISPLAY_SEARCH_RESULTS, $query_raw, $query_numrows);
 	$query_result = $db->Execute($query_raw);
 	include (DIR_FS_MODULES . 'doc_ctl/pages/main/tab_folder.php');
 } else { // load document details

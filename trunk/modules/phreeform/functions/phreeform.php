@@ -18,7 +18,11 @@
 //
 
 function default_report() {
-  $report = new objectInfo();
+  $report               = new objectInfo();
+  $report->page         = new objectInfo();
+  $report->page->margin = new objectInfo();
+  $report->page->title1 = new objectInfo();
+  $report->page->title2 = new objectInfo();
   $report->page->margin->top    = PF_DEFAULT_MARGIN;
   $report->page->margin->bottom = PF_DEFAULT_MARGIN;
   $report->page->margin->left   = PF_DEFAULT_MARGIN;

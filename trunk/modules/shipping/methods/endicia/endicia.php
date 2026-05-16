@@ -35,16 +35,16 @@ define('RUBBERSTAMP3','');
 // For CertifiedMail: 4�6, 7�4, 8�3, Booklet, EnvelopeSize10
 // For International: Null or any other value, 4x6c
 define('ENDICIA_LABEL_SIZE', 'DocTab');
-// constants used in rate screen to match carrier descrptions
-define('endicia_GND',   MODULE_SHIPPING_ENDICIA_GND);
-define('endicia_GDR',   MODULE_SHIPPING_ENDICIA_GDR);
-define('endicia_1DEam', MODULE_SHIPPING_ENDICIA_1DM);
-define('endicia_1Dam',  MODULE_SHIPPING_ENDICIA_1DA);
-define('endicia_1Dpm',  MODULE_SHIPPING_ENDICIA_1DP);
-define('endicia_2Dam',  MODULE_SHIPPING_ENDICIA_2DA);
-define('endicia_2Dpm',  MODULE_SHIPPING_ENDICIA_2DP);
-define('endicia_3Dam',  MODULE_SHIPPING_ENDICIA_3DA);
-define('endicia_3Dpm',  MODULE_SHIPPING_ENDICIA_3DS);
+// constants used in rate screen to match carrier descriptions
+if (defined('MODULE_SHIPPING_ENDICIA_GND')) define('endicia_GND',   MODULE_SHIPPING_ENDICIA_GND);
+if (defined('MODULE_SHIPPING_ENDICIA_GDR')) define('endicia_GDR',   MODULE_SHIPPING_ENDICIA_GDR);
+if (defined('MODULE_SHIPPING_ENDICIA_1DM')) define('endicia_1DEam', MODULE_SHIPPING_ENDICIA_1DM);
+if (defined('MODULE_SHIPPING_ENDICIA_1DA')) define('endicia_1Dam',  MODULE_SHIPPING_ENDICIA_1DA);
+if (defined('MODULE_SHIPPING_ENDICIA_1DP')) define('endicia_1Dpm',  MODULE_SHIPPING_ENDICIA_1DP);
+if (defined('MODULE_SHIPPING_ENDICIA_2DA')) define('endicia_2Dam',  MODULE_SHIPPING_ENDICIA_2DA);
+if (defined('MODULE_SHIPPING_ENDICIA_2DP')) define('endicia_2Dpm',  MODULE_SHIPPING_ENDICIA_2DP);
+if (defined('MODULE_SHIPPING_ENDICIA_3DA')) define('endicia_3Dam',  MODULE_SHIPPING_ENDICIA_3DA);
+if (defined('MODULE_SHIPPING_ENDICIA_3DS')) define('endicia_3Dpm',  MODULE_SHIPPING_ENDICIA_3DS);
 //define('endicia_I2DEam',MODULE_SHIPPING_ENDICIA_XDM);
 //define('endicia_I2Dam', MODULE_SHIPPING_ENDICIA_XPR);
 //define('endicia_I3D',   MODULE_SHIPPING_ENDICIA_XPD);

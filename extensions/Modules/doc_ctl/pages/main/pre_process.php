@@ -23,7 +23,7 @@ require(DIR_FS_WORKING . 'functions/doc_ctl.php');
 /**************   page specific initialization  *************************/
 $error       = false;
 $processed   = false;
-if ($_REQUEST['search_text'] == TEXT_SEARCH) $_REQUEST['search_text'] = '';
+if (($_REQUEST['search_text'] ?? '') == TEXT_SEARCH) $_REQUEST['search_text'] = '';
 if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search'; // if enter key pressed and search not blank
 $tab    = isset($_GET['tab'])     ? $_GET['tab']                       : 'home';
 $doc_id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['docID']);
@@ -99,7 +99,7 @@ switch ($_REQUEST['action']) {
 	$contents  = file_get_contents(DOC_CTL_DIR_MY_DOCS . $file_name);	
 	header('Content-type: text/plain');
 	header('Content-Length: ' . strlen($contents));
-	header('Content-Disposition: attachment; filename=' . urlencode($doc_details->fields['file_name']));
+	header('Content-Disposition: attachment; filename=' . urlencode($doc_details->fields['file_name'] ?? ''));
 	header('Expires: 0');
 	header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 	header('Pragma: public');

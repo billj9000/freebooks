@@ -135,8 +135,10 @@ class work_orders_admin {
 	  }
 	} 
 	if (!$error) {
-	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
-   	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_' . strtoupper($module) . '_VERSION')), 'success');
+	  $ver_const = 'MODULE_' . strtoupper($module) . '_VERSION';
+	  $ver = defined($ver_const) ? constant($ver_const) : '';
+	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', $ver);
+   	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, $ver), 'success');
 	}
 	return $error;
   }

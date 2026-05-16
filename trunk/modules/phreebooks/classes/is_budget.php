@@ -58,7 +58,7 @@ class is_budget {
 	$this->add_heading_line();
 	$this->add_heading_line(RW_FIN_COST_OF_SALES); 
 	$total  = $this->add_income_stmt_data(32, $negate = false); // Cost of Sales account_type
-	foreach ($total as $key => $value) $grand_total[$key] -= $value;
+	foreach ($total as $key => $value) { if ($key !== 'description') $grand_total[$key] -= $value; }
 	$line = array(0 => 'd');
 	foreach ($report->fieldlist as $value) {
 	  $line[] = ProcessData($temp[$value->fieldname], $value->processing);
@@ -75,7 +75,7 @@ class is_budget {
 	$this->add_heading_line();
 	$this->add_heading_line(RW_FIN_EXPENSES); 
 	$total  = $this->add_income_stmt_data(34, $negate = false); // Expenses account_type
-	foreach ($total as $key => $value) $grand_total[$key] -= $value;
+	foreach ($total as $key => $value) { if ($key !== 'description') $grand_total[$key] -= $value; }
 	// Net Income
 	$this->add_heading_line();
 	$grand_total['description'] = RW_FIN_NET_INCOME;
@@ -127,7 +127,15 @@ class is_budget {
 	$bgt_total_1     = 0;
 	$bgt_ytd_total_1 = 0;
 	$temp  = array();
-	$total = array('description' => TEXT_TOTAL . ' ' . $this->coa_types[$type]['text']);
+	$total = array(
+		'description'  => TEXT_TOTAL . ' ' . $this->coa_types[$type]['text'],
+		'current'      => 0,
+		'current_ytd'  => 0,
+		'ly_current'   => 0,
+		'ly_ytd'       => 0,
+		'budget_cur'   => 0,
+		'budget_ytd'   => 0,
+	);
 	while (!$cur_period->EOF) {
 		$factor = $negate ? -1 : 1;
 		$temp[$cur_period->fields['id']]['description'] = $cur_period->fields['description'];

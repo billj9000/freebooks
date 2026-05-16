@@ -29,8 +29,9 @@ var delete_icon_HTML  = '<?php echo substr(html_icon("emblems/emblem-unreadable.
 <?php echo js_calendar_init($cal_rcv); ?>
 <?php echo js_calendar_init($cal_close); ?>
 <?php echo js_calendar_init($cal_invoice); ?>
+addLoadEvent(function() { $('[id^="rcv_wrnty_"]').datepicker(); });
 
-<?php 
+<?php
   echo $js_disp_code . chr(10);
   echo $js_disp_value . chr(10);
 ?>
@@ -158,7 +159,7 @@ function addRcvRow() {
   cell[2] += buildIcon(icon_path+'16x16/status/folder-open.png', text_search, 'align="top" style="cursor:pointer" onclick="ItemList(\'rcv_\','+rowCnt+')"') ;
   cell[3] = '<input type="text" id="rcv_desc_'+rowCnt+'"  name="rcv_desc[]"  size="32">';
   cell[4] = '<input type="text" id="rcv_mfg_'+rowCnt+'"   name="rcv_mfg[]"   size="32">';
-  cell[5] = '<input type="text" id="rcv_wrnty_'+rowCnt+'" name="rcv_wrnty[]" size="32">';
+  cell[5] = '<input type="text" id="rcv_wrnty_'+rowCnt+'" name="rcv_wrnty[]" size="12">';
 
   for (var i=0; i<cell.length; i++) {
     newCell = newRow.insertCell(-1);
@@ -168,6 +169,7 @@ function addRcvRow() {
 	  if (confirm(image_delete_msg)) $(this).parent().parent().remove();
   };
   newRow.getElementsByTagName('input')[1].style.color = inactive_text_color;
+  $('#rcv_wrnty_'+rowCnt).datepicker();
   return rowCnt;
 }
 

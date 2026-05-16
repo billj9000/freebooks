@@ -34,7 +34,15 @@ $parent_id   = $_GET['parent_id']    ? $_GET['parent_id']: $_POST['parent_id'];
 $def_module  = $_POST['mod']         ? $_POST['mod']     : DEFAULT_MODULE;
 $def_lang    = $_POST['lang']        ? $_POST['lang']    : DEFAULT_LANGUAGE;
 $import_path = "modules/$def_module/language/$def_lang/reports/";
-$report      = new objectInfo();
+$report               = new objectInfo();
+$report->page         = new objectInfo();
+$report->page->margin = new objectInfo();
+$report->page->heading = new objectInfo();
+$report->page->title1 = new objectInfo();
+$report->page->title2 = new objectInfo();
+$report->page->filter = new objectInfo();
+$report->page->data   = new objectInfo();
+$report->page->totals = new objectInfo();
 // load the directory tree to java array (use for page display and error checking on update
 $js_dir = $db->Execute('select id, parent_id, doc_title from ' . TABLE_PHREEFORM . ' order by id');
 $dir_tree = array();

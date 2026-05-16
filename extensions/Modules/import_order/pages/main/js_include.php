@@ -28,4 +28,12 @@ function check_form() {
   return true;
 }
 
+function downloadTemplate() {
+  document.getElementById('action').value = 'download_template';
+  var form = document.getElementById('action').form;
+  form.target = 'download_frame';
+  form.submit();
+  form.target = '';
+}
+
 </script>

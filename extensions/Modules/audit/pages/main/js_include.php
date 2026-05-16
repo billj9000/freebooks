@@ -38,6 +38,14 @@ function check_form() {
   return true;
 }
 
+function exportAudit() {
+  document.getElementById('action').value = 'export_audit';
+  var form = document.getElementById('action').form;
+  form.target = 'download_frame';
+  form.submit();
+  form.target = '';
+}
+
 
 // -->
 </script>

@@ -30,7 +30,7 @@ $error      = false;
 $auto_print = false;
 $label_data = NULL;
 $sInfo      = new shipment();
-$action     = isset($_GET['action']) ? $_GET['action'] : $_POST['todo'];
+$action     = $_GET['action'] ?? $_POST['todo'] ?? '';
 
 /***************   Act on the action request   *************************/
 switch ($action) {
@@ -170,7 +170,7 @@ switch ($action) {
 	break;
 
   case 'report':
-    $date = ($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    $date = $_GET['date'] ?? date('Y-m-d');
 	break;
 
   default:

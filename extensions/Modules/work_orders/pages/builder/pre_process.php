@@ -18,6 +18,7 @@
 //
 $security_level = validate_user(SECURITY_WORK_ORDERS_BUILDER);
 /**************  include page specific files    *********************/
+gen_pull_language('inventory');
 require_once(DIR_FS_MODULES . 'inventory/defaults.php');
 /**************   page specific initialization  *************************/
 $error       = false;
@@ -27,7 +28,7 @@ $hide_save   = false;
 $criteria    = array();
 history_filter('wo_build');
 // load the filters
-$f0 = $_GET['f0'] = isset($_POST['action']) ? (isset($_POST['f0']) ? '1' : '0') : $_GET['f0']; // show inactive checkbox
+$f0 = $_GET['f0'] = isset($_POST['action']) ? (isset($_POST['f0']) ? '1' : '0') : ($_GET['f0'] ?? '0'); // show inactive checkbox
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/builder/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
@@ -237,8 +238,8 @@ switch ($_REQUEST['action']) {
     $_REQUEST['action'] = '';
 	break;
   case 'go_first':    $_REQUEST['list'] = 1;       break;
-  case 'go_previous': $_REQUEST['list'] = max($_REQUEST['list']-1, 1); break;
-  case 'go_next':     $_REQUEST['list']++;         break;
+  case 'go_previous': $_REQUEST['list'] = max(($_REQUEST['list'] ?? 1)-1, 1); break;
+  case 'go_next':     $_REQUEST['list'] = ($_REQUEST['list'] ?? 1) + 1; break;
   case 'go_last':     $_REQUEST['list'] = 99999;   break;
   case 'search':
   case 'search_reset':
@@ -276,7 +277,7 @@ switch ($_REQUEST['action']) {
     if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
       $search_fields = array('m.wo_title', 'i.sku', 'm.description');
 	  // hook for inserting new search fields to the query criteria.
-	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+	  if (!empty($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
   	  $criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
 	}
 	if (!$f0) $criteria[] = "m.inactive = '0'"; // inactive flag
@@ -285,8 +286,9 @@ switch ($_REQUEST['action']) {
 	$field_list = array('m.id', 'm.inactive', 'm.wo_title', 'i.sku', 'm.sku_id', 'm.description', 'm.revision', 
 	  'm.revision_date');
 	// hook to add new fields to the query return results
-	if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
-    $query_raw = "select SQL_CALC_FOUND_ROWS " . implode(', ', $field_list) . " 
+	if (!empty($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
+    $_REQUEST['list'] = $_REQUEST['list'] ?? 1;
+    $query_raw = "select SQL_CALC_FOUND_ROWS " . implode(', ', $field_list) . "
 	  from " . TABLE_WO_MAIN . " m inner join " . TABLE_INVENTORY . " i on m.sku_id = i.id" . $search . " order by $disp_order, m.revision DESC";
     $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
     $query_split  = new splitPageResults($_REQUEST['list'], '');
@@ -304,7 +306,6 @@ switch ($_REQUEST['action']) {
 	  $query_result->MoveNext();
 	}
 	$query_result->Move(0);
-	$query_result->MoveNext();
 	define('PAGE_TITLE', BOX_WORK_ORDERS_BUILDER);
     $include_template = 'template_main.php';
 	break;

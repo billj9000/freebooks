@@ -86,7 +86,7 @@ class _database {
                 $return = $this->row;
                 break;
         }
-        return array_map("stripslashes", $return);
+        return array_map(fn($v) => is_string($v) ? stripslashes($v) : $v, $return);
     }
 
     function get_all($mode = "both", $key = false) {

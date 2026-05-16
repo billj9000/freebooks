@@ -345,7 +345,7 @@ class ctl_panel {
 	public $max_length   		= 20;
 	public $menu_id				= 'index';
 	public $module_id 			= '';
-	public $params				= '';
+	public $params				= [];
 	public $security_id  		= '';
 	public $title		 		= '';
 	public $version      		= 1;

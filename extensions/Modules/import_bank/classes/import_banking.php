@@ -90,6 +90,10 @@ class impbanking extends journal {
 		$this->total_amount			= $this->_debitamount + $this->_creditamount ;
 		$this->post_date           	= gen_db_date($post_date);
 		$this->period              	= gen_calculate_period($this->post_date, true);
+		if (!$this->period) {
+			$messageStack->add(sprintf('Date %s does not fall within any accounting period.', $this->post_date), 'error');
+			return false;
+		}
 		$this->admin_id            	= $_SESSION['admin_id'];
 		If ($this->find_contact( $other_bank_account_number, $other_bank_account_iban )){	
 			$this->find_right_invoice();
@@ -190,14 +194,14 @@ class impbanking extends journal {
 			$gl_acct_id         		= AR_DEFAULT_GL_ACCT ;
 			$gl_disc_acct_id			= AR_DISCOUNT_SALES_ACCOUNT;
 			$this->purchase_invoice_id 	= 'DP' . $this->post_date; 
-			$this->description			= sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_18_C_WINDOW_TITLE'));
+			$this->description			= sprintf(TEXT_JID_ENTRY, defined('ORD_TEXT_18_C_WINDOW_TITLE') ? ORD_TEXT_18_C_WINDOW_TITLE : 'Customer Receipt');
 			define('GL_TYPE','pmt');
 		}else{
 			$this->_firstjid 			= 20;
 			$gl_acct_id         		= AP_DEFAULT_PURCHASE_ACCOUNT ;
 			$gl_disc_acct_id			= AP_DISCOUNT_PURCHASE_ACCOUNT;
 			$result 					= $db->Execute("select next_check_num from " . TABLE_CURRENT_STATUS);
-			$this->description			= sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_20_V_WINDOW_TITLE'));
+			$this->description			= sprintf(TEXT_JID_ENTRY, defined('ORD_TEXT_20_V_WINDOW_TITLE') ? ORD_TEXT_20_V_WINDOW_TITLE : 'Vendor Payment');
 			define('GL_TYPE','chk');
 		}
 		$this->journal_id = $this->_firstjid;
@@ -505,15 +509,16 @@ class impbanking extends journal {
 		$result = $db->Execute($sql);
 		$open_invoices = array();
 		while (!$result->EOF) {
-			$open_invoices[$result->fields['id']] = $result->fields;
-			$open_invoices['total_amount'] = ($result->fields['debit_amount']) ? $result->fields['debit_amount'] : $result->fields['credit_amount'];
-			$open_invoices['total_amount'] -= fetch_partially_paid($result->fields['id']);
+			$id = $result->fields['id'];
+			$open_invoices[$id] = $result->fields;
+			$open_invoices[$id]['total_amount'] = ($result->fields['debit_amount']) ? $result->fields['debit_amount'] : $result->fields['credit_amount'];
+			$open_invoices[$id]['total_amount'] -= fetch_partially_paid($id);
 			if ($result->fields['journal_id'] == 7 || $result->fields['journal_id'] == 13) {
-				 $open_invoices['total_amount'] = -$result->fields['total_amount'];
+				$open_invoices[$id]['total_amount'] = -$result->fields['total_amount'];
 			}
-			$open_invoices['description']   = $result->fields['purch_order_id'];
-			$open_invoices['discount']      = '';
-			$open_invoices['amount_paid']   = '';
+			$open_invoices[$id]['description'] = $result->fields['purch_order_id'];
+			$open_invoices[$id]['discount']    = 0;
+			$open_invoices[$id]['amount_paid'] = 0;
 			$result->MoveNext();
 		}
 		ksort($open_invoices);
@@ -606,7 +611,8 @@ class impbanking extends journal {
 		 
 		    // To numeric representation
 		    $search = range('A','Z');
-		    foreach (range(10,35) as $tmp) $replace[]=strval($tmp);
+		    $replace = [];
+		    foreach (range(10,35) as $tmp) $replace[] = strval($tmp);
 	    	$numstr=str_replace($search, $replace, $account.$country.'00');
 	 
 		    // Calculate checksum

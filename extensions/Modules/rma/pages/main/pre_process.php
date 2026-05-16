@@ -19,6 +19,7 @@
 $security_level = validate_user(SECURITY_RMA_MGT);
 /**************  include page specific files    *********************/
 require_once(DIR_FS_WORKING . 'defaults.php');
+gen_pull_language('inventory');
 require_once(DIR_FS_MODULES . 'inventory/defaults.php');
 /**************   page specific initialization  *************************/
 if(!isset($_REQUEST['list'])) $_REQUEST['list'] = 1;

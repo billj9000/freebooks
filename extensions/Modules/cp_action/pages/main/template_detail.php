@@ -27,7 +27,7 @@ echo html_hidden_field('action',   '')         . chr(10);
 echo html_hidden_field('rowSeq', $cInfo->id) . chr(10);
 
 // customize the toolbar actions
-$toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'page')) . 'page=main', 'SSL') . '\'"';
+$toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'page')) . '&amp;page=main', 'SSL') . '\'"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['delete']['show']   = false;
 if (($cInfo->id && $security_level > 2) || (!$cInfo->id && $security_level > 1)) {

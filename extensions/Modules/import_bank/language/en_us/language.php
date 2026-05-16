@@ -21,7 +21,8 @@ define('HEADING_MODULE_IMPORT_BANK','Import Bank Statement');
 define('GEN_BANK_IMPORT_MESSAGE',	'Select the. csv file to import and click Import <br> If there is no bank account column in your .csv then select a bank account from the drop down box.');
 define('TEXT_IMPORT',				'Import');
 define('SAMPLE_CSV',				'Sample CSV');
-define('TEXT_REQUIRED',				'REQUIRED');
+if (!defined('TEXT_REQUIRED')) define('TEXT_REQUIRED', 'REQUIRED');
+if (!defined('TEXT_LEGEND'))   define('TEXT_LEGEND',   'Legend');
 
 define('TEXT_BIMP_ERMSG1','ouwer bank account is empty');
 define('TEXT_BIMP_ERMSG2','There are two or more gl accounts with the description : ');

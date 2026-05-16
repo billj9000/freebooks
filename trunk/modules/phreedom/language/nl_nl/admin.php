@@ -44,6 +44,7 @@ define('INV_LABEL_DEFAULT_TEXT_VALUE','Standaard waarde: ');
 define('EXTRA_FIELDS_ERROR_NO_TABS','Er zijn geen aangepaste tabbladen, voeg dan ten minste een aangepaste tabblad voor het toevoegen van velden.');
 define('ASSETS_FIELD_DELETE_INTRO','Weet u zeker dat u deze veld wilt verwijderen?');
 define('ASSETS_FIELD_RESERVED_WORD','Het veld naam die u heeft opgegeven, is een MySQL gereserveerd woord, kies een nieuwe veldnaam!');
+define('ASSETS_ERROR_FIELD_TYPE','Selecteer een veldtype voordat u opslaat.');
 define('ASSETS_ERROR_FIELD_DUPLICATE','De veldnaam die u hebt ingevoerd is al in gebruik, kies een nieuwe veldnaam!');
 define('ASSETS_ERROR_FIELD_BLANK','De veldnaam leeg is, kies een veldnaam en controleer het formulier!');
 define('INV_FIELD_NAME','Veld Naam: ');

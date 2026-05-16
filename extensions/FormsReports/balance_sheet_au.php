@@ -19,6 +19,7 @@
 //
 
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
+load_special_language(DIR_FS_MODULES . 'phreebooks/', 'income_statement_au');
 require_once(DIR_FS_MODULES . 'phreebooks/classes/income_statement_au.php');
 
 // this file contains special function calls to generate the data array needed to build reports not possible

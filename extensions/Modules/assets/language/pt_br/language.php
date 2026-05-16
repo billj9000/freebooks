@@ -23,6 +23,8 @@ define('TEXT_ASSET_ID','ID Ativo');
 define('TEXT_ACQ_DATE','Data Aquisição');
 define('ASSETS_MSG_DELETE_ASSET','Tem certeza de que quer excluir este ativo?');
 define('ASSETS_MSG_RENAME_INTRO','Entre a nova ID Ativo para este ativo.');
+define('ASSETS_LOG_ASSETS','Ativos - ');
+if (!defined('TEXT_NO_IMAGE')) define('TEXT_NO_IMAGE','Sem imagem');
 define('ASSETS_ENTRY_IMAGE_PATH','Imagem Caminho Relativo');
 define('ASSETS_MSG_COPY_INTRO','Entre a nova ID Ativo para o novo ativo.');
 define('ASSETS_PURCHASE_CONDITION','Condição Compra');

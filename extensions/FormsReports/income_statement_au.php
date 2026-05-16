@@ -20,6 +20,8 @@
 
 gen_pull_language('phreebooks', 'admin'); // need coa types defines
 
+require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
+
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current reportbuilder structure.
 class income_statement_au {
@@ -28,10 +30,12 @@ class income_statement_au {
 		$this->zero = $currencies->format(0);
 		$this->coa_types = load_coa_types();
 		$this->inc_stmt_data = array();
+		$this->last_net_income = 0;
+		$this->lytd_net_income = 0;
 	}
 
 	function load_report_data($report) {
-		global $db;
+		global $db, $Seq;
 		// see if it's a single year or year-year output
 		$this->columns = (isset($Seq[3])) ? 4 : 2;
 		$period = $report->period;
@@ -53,7 +57,9 @@ class income_statement_au {
 		}
 
 		// build revenues
-		$this->add_heading_line(RW_FIN_REVENUES); 
+		$last_temp = '';
+		$lytd_temp = '';
+		$this->add_heading_line(RW_FIN_REVENUES);
 		$cur_year  = $this->add_income_stmt_data(30, $first_period, $period, $negate = true); // Income account_type
 		$cur_temp  = ProcessData($this->total_2, $Seq[1]['processing']);
 		$ytd_temp  = ProcessData($this->total_3, $Seq[2]['processing']);

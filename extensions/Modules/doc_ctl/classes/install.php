@@ -18,7 +18,7 @@
 //
 
 class doc_ctl_admin {
-  function doc_ctl_admin() {
+  function __construct() {
 	$this->notes = array(); // placeholder for any operational notes
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
 	  'phreedom'   => 3.6,
@@ -84,8 +84,10 @@ class doc_ctl_admin {
     global $db, $messageStack;
 	$error = false;
 	if (!$error) {
-	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
-   	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_' . strtoupper($module) . '_VERSION')), 'success');
+	  $ver_const = 'MODULE_' . strtoupper($module) . '_VERSION';
+	  $ver = defined($ver_const) ? constant($ver_const) : '';
+	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', $ver);
+   	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, $ver), 'success');
 	}
 	return $error;
   }

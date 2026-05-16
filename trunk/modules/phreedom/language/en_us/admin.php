@@ -271,6 +271,7 @@ define('INV_FIELD_NAME', 'Field Name:');
 define('ASSETS_ERROR_FIELD_BLANK','The asset field name is blank, please enter a field name and re-check all entries in this form!');
 define('ASSETS_ERROR_FIELD_DUPLICATE','The field name you entered is already in use, please enter a new field name!');
 define('ASSETS_FIELD_RESERVED_WORD','The field name you entered is a MySQL reserved word, please enter a new field name!');
+define('ASSETS_ERROR_FIELD_TYPE','Please select a field type before saving.');
 define('ASSETS_FIELD_DELETE_INTRO', 'Are you sure you want to delete this asset field?');
 define('EXTRA_FIELDS_ERROR_NO_TABS','There are no custom tabs, please add at least one custom tab before adding fields.');
 /************************** ( Tabs/Fields) ***********************************************/

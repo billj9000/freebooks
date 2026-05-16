@@ -40,7 +40,7 @@ echo $toolbar->build_toolbar(true);
 <?php
   $odd = true;
   while (!$query_result->EOF) {
-	$hide_action = ($query_result->fields['revision'] < $rev_list[$query_result->fields['wo_title']]) ? true : false;
+	$hide_action = (($query_result->fields['revision'] ?? 0) < ($rev_list[$query_result->fields['wo_title']] ?? 0)) ? true : false;
 ?>
   <tr class="<?php echo $odd?'odd':'even'; ?>" style="cursor:pointer">
 	<td align="center" onclick="submitSeq(<?php echo $query_result->fields['id'] . ', \'build\''; ?>)"><?php echo $query_result->fields['wo_num']; ?></td>
@@ -57,7 +57,7 @@ echo $toolbar->build_toolbar(true);
 	  // first pull in any extra buttons, this is dynamic since each row can have different buttons
 	  if (function_exists('add_extra_action_bar_buttons')) echo add_extra_action_bar_buttons($query_result->fields);
 
-	  if ($security_level > 1) echo html_icon('categories/applications-development.png', TEXT_BUILD,  'small', 'onclick="submitSeq(' . $query_result->fields['id'] . ', \'build\')"') . chr(10);
+	  if ($security_level > 1 && !$query_result->fields['closed']) echo html_icon('categories/applications-development.png', TEXT_BUILD,  'small', 'onclick="submitSeq(' . $query_result->fields['id'] . ', \'build\')"') . chr(10);
 	  if ($security_level > 1) echo html_icon('actions/edit-find-replace.png',           TEXT_EDIT,   'small', 'onclick="submitSeq(' . $query_result->fields['id'] . ', \'edit\')"') . chr(10);
 	  echo html_icon('actions/document-print.png', TEXT_PRINT, 'small', 'onclick="printWOrder(' . $query_result->fields['id'] . ')"') . chr(10);
 	  if (!$hide_action) {

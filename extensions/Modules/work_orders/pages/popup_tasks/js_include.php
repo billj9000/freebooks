@@ -21,8 +21,6 @@
 <script type="text/javascript">
 <!--
 // pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
-// var jsVariable = '<?php echo CONSTANT; ?>';
 
 function init() {
   document.getElementById('search_text').focus();

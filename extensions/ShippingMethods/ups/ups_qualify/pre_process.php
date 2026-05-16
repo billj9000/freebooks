@@ -45,7 +45,7 @@ require(DIR_FS_WORKING . 'pages/ups_qualify/data.php');
 
 /**************   page specific initialization  *************************/
 $error = false;
-$action = isset($_GET['action']) ? $_GET['action'] : $_POST['todo'];
+$action = $_GET['action'] ?? $_POST['todo'] ?? '';
 
 /***************   Act on the action request   *************************/
 switch ($action) {

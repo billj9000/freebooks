@@ -34,7 +34,7 @@
     </thead>
     <tbody id="bom_table_body" class="ui-widget-content">
 <?php
-	if (count($cInfo->bom)) {
+	if (count(is_array($cInfo->bom) ? $cInfo->bom : [])) {
 		for ($j = 0, $i = 1; $j < count($cInfo->bom); $j++, $i++) {
 			$readonly = '';
 			echo '    <tr>';

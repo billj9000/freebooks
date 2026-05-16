@@ -33,7 +33,7 @@ define('SECURITY_ASSETS_MGT',            170);
 // New database tables
 define('TABLE_ASSETS', DB_PREFIX.'assets');
 if (defined('MODULE_ASSETS_STATUS')) {
-	if(defined(ASSETS_OWN_HEADING) && ASSETS_OWN_HEADING == TRUE){ // Set the title menu
+	if(defined('ASSETS_OWN_HEADING') && ASSETS_OWN_HEADING == TRUE){ // Set the title menu
 	  $mainmenu["assets"] = array(
 	  	'order' => MENU_HEADING_ASSETS_ORDER,
 	    'text'  => MENU_HEADING_ASSETS, 

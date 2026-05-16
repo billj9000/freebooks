@@ -114,7 +114,7 @@ class ups {
 
 // See UPS Service Code specification for Puerto Rico, Mexico, and all other origins
 */
-  function ups() {
+  function __construct() {
     $this->code    = 'ups';
     $this->version = '1.0';
   }
@@ -181,7 +181,7 @@ class ups {
 	  $field = strtolower($key['key']);
 	  switch ($key['key']) {
 	    case 'MODULE_SHIPPING_UPS_TYPES': // read the checkboxes
-		  write_configure($key['key'], implode(',', $_POST[$field]));
+		  if (isset($_POST[$field])) write_configure($key['key'], implode(',', $_POST[$field]));
 		  break;
 		default:  // just write the value
 		  if (isset($_POST[$field])) write_configure($key['key'], $_POST[$field]);

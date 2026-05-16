@@ -30,7 +30,7 @@ class mini_financial extends ctl_panel {
 
 	function Output($params) {
 		global $db;
-		if(count($params) != $this->size_params){ //upgrading
+		if(count(is_array($params) ? $params : []) != $this->size_params){ //upgrading
 			$params = $this->Upgrade($params);
 		}
 		$contents = '';

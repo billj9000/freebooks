@@ -52,6 +52,8 @@ define('ASSETS_PURCHASE_CONDITION','Purchase Condition');
 define('ASSETS_ENTRY_IMAGE_PATH','Image Relative Path');
 define('ASSETS_MSG_COPY_INTRO','Enter the asset ID for the new asset.');
 define('ASSETS_MSG_RENAME_INTRO','Enter the new asset ID to rename this asset.');
+define('ASSETS_LOG_ASSETS','Assets - ');
+if (!defined('TEXT_NO_IMAGE')) define('TEXT_NO_IMAGE','No Image');
 /************ Javascript defines *********/
 define('ASSETS_MSG_DELETE_ASSET','Are you sure you want to delete this asset?');
 

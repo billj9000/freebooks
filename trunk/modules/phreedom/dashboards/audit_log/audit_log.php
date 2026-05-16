@@ -28,7 +28,7 @@ class audit_log extends ctl_panel {
 	public $security_id  		= SECURITY_ID_CONFIGURATION;
 	public $title		 		= CP_AUDIT_LOG_TITLE;
 	public $version      		= 3.5; 
-	public $size_params			= 1;
+	public $size_params			= 2;
 	public $default_params 		= array('num_rows'=> 50, 'today_minus' => '0');
 	
 	function Install($column_id = 1, $row_id = 0) {
@@ -39,7 +39,7 @@ class audit_log extends ctl_panel {
 
 	function Output($params) {
 		global $db, $currencies;
-		if(count($params) != $this->size_params){ //upgrading
+		if(count(is_array($params) ? $params : []) != $this->size_params){ //upgrading
 			$params = $this->Upgrade($params);
 		}
 		$list_length = array();
@@ -65,9 +65,10 @@ class audit_log extends ctl_panel {
         $control .= '</div></div>';
 
 // Build content box
-        $sql = "select a.action_date, a.action, a.reference_id, a.amount, u.display_name from ".TABLE_AUDIT_LOG." as a, ".TABLE_USERS." as u 
-          where a.user_id = u.admin_id and a.action_date >= '" . date('Y-m-d', strtotime('-' . $params['today_minus'] . ' day')) . "'  
-          and a.action_date <= '" . date('Y-m-d', strtotime('-' . $params['today_minus'] + 1 . ' day')) . "' order by a.action_date desc";
+        $day_ts = strtotime('-' . $params['today_minus'] . ' day');
+        $sql = "select a.action_date, a.action, a.reference_id, a.amount, u.display_name from ".TABLE_AUDIT_LOG." as a, ".TABLE_USERS." as u
+          where a.user_id = u.admin_id and a.action_date >= '" . date('Y-m-d', $day_ts) . "'
+          and a.action_date <= '" . date('Y-m-d', $day_ts + 86400) . "' order by a.action_date desc";
 
        	if ($params['num_rows']) $sql .= " limit " . $params['num_rows'];
        	$result = $db->Execute($sql);

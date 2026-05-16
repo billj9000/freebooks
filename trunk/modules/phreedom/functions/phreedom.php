@@ -162,6 +162,7 @@ function admin_remove_dirs($dirlist, $path = DIR_FS_MY_FILES) {
   if (is_array($dirlist)) {
     $temp = array_reverse($dirlist);
 	foreach($temp as $dir) {
+	  if (!is_dir($path . $dir)) continue;
 	  if (!@rmdir($path . $dir)) $error = $messageStack->add(sprintf(ERROR_CANNOT_REMOVE_MODULE_DIR, $path . $dir), 'error');
 	}
   }

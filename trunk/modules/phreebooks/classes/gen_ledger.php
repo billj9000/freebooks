@@ -303,7 +303,11 @@ class journal {
 			  last_update = '{$this->post_date}' WHERE account_id = '$gl_acct' AND period = $this->period";
 		    $messageStack->debug("\n    Post chart balances: credit_amount = ".$values['credit'].", debit_amount = ".$values['debit'].", acct = $gl_acct, period = $this->period");
 		    $result = $db->Execute($sql);
-		    if ($result->AffectedRows() <> 1) return $this->fail_message(GL_ERROR_POSTING_CHART_BALANCES . ($gl_acct ? $gl_acct : TEXT_NOT_SPECIFIED));
+		    if ($result->AffectedRows() == 0) {
+		      $db->Execute("INSERT INTO " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " (period, account_id, beginning_balance, debit_amount, credit_amount, last_update) VALUES ($this->period, '$gl_acct', 0, ".$values['debit'].", ".$values['credit'].", '{$this->post_date}')");
+		    } elseif ($result->AffectedRows() <> 1) {
+		      return $this->fail_message(GL_ERROR_POSTING_CHART_BALANCES . ($gl_acct ? $gl_acct : TEXT_NOT_SPECIFIED));
+		    }
 		  }
 		}
 		$messageStack->debug("\n  end Posting Chart Balances.");

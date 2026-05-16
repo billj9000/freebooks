@@ -20,6 +20,9 @@ $security_level = validate_user(SECURITY_ID_IMPORT_ORDER);
 /**************  include page specific files    *********************/
 gen_pull_language('contacts');
 gen_pull_language('phreebooks');
+$_soap_lang = DIR_FS_ADMIN . 'soap/language/' . $_SESSION['language'] . '/language.php';
+if (!file_exists($_soap_lang)) $_soap_lang = DIR_FS_ADMIN . 'soap/language/en_us/language.php';
+if (file_exists($_soap_lang)) include_once($_soap_lang);
 require_once (DIR_FS_WORKING.'classes/import_order.php');
 require_once (DIR_FS_ADMIN  .'soap/classes/parser.php');
 require_once (DIR_FS_ADMIN  .'soap/classes/orders.php');
@@ -33,6 +36,18 @@ define('DEF_INV_GL_ACCT', AR_DEF_GL_SALES_ACCT);
 define('DEF_GL_ACCT',     AR_DEFAULT_GL_ACCT);
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
+  case 'download_template':
+	$headers = 'Reference,StoreID,SalesGLAccount,ReceivablesGLAccount,OrderID,PurchaseOrderID,OrderDate,'
+	         . 'OrderTotal,TaxTotal,ShippingTotal,ShippingCarrier,ShippingMethod,SalesRepID,'
+	         . 'Payment->CardHolderName,Payment->Method,Payment->CardType,Payment->CardNumber,Payment->ExpirationDate,Payment->CVV2Number,'
+	         . '$entry->CompanyName,$entry->Contact,$entry->Address1,$entry->Address2,$entry->CityTown,'
+	         . '$entry->StateProvince,$entry->PostalCode,$entry->CountryCode,$entry->Telephone,$entry->Email,$entry->CustomerID';
+	$example = 'REF001,1,,,' . date('d-m-Y') . ',100.00,0,0,,,,,,,,,,,,,,,,,,,,';
+	header('Content-Type: text/csv');
+	header('Content-Disposition: attachment; filename=import_order_template.csv');
+	header('Pragma: no-cache');
+	echo $headers . "\n" . $example . "\n";
+	exit();
   case 'save':
 	if ($security_level < 1) {
 	  $messageStack->add(ERROR_NO_PERMISSION, 'error');

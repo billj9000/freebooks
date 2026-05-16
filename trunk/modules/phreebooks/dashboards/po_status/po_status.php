@@ -31,7 +31,7 @@ class po_status extends ctl_panel {
 
 	function Output($params) {
 		global $db, $currencies;
-		if(count($params) != $this->size_params){ //upgrading
+		if(count(is_array($params) ? $params : []) != $this->size_params){ //upgrading
 			$params = $this->Upgrade($params);
 		}
 		$list_length = array();
@@ -55,7 +55,7 @@ class po_status extends ctl_panel {
 		$control .= html_submit_field('sub_po_status', TEXT_SAVE);
 		$control .= '  </div>';
 		$control .= '</div>';
-		if(count($params) != $this->size_params){
+		if(count(is_array($params) ? $params : []) != $this->size_params){
 			$this->update();
 		}
 		// Build content box

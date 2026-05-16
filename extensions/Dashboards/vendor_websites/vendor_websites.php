@@ -43,7 +43,6 @@ class vendor_websites extends ctl_panel {
 				$contents .= '<div style="height:16px;">';
 				$contents .= '  <a href=" http://'. $result->fields['website'] . '" target="_blank">' . $result->fields['primary_name'] . '</a>' . chr(10);
 				$contents .= '</div>';
-				$index++;
 				$result->MoveNext();
 			}
 		} 

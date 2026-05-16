@@ -35,6 +35,13 @@ function check_form() {
   return true;
 }
 
+function downloadSampleCsv() {
+  document.getElementById('action').value = 'sample_csv';
+  var form = document.getElementById('action').form;
+  form.target = 'download_frame';
+  form.submit();
+  form.target = '';
+}
 
 // -->
 </script>

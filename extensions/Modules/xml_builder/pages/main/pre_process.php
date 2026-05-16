@@ -26,11 +26,11 @@ require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
 $working  = new xml_builder();
 $mod_xml  = new backup();
 /***************   Act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'save':
 	validate_security($security_level, 2);
   	// read the input variables
-	$mod       = $_POST['mod'];
+	$mod       = $_POST['mod'] ?? '';
 	$mod_admin = $mod . '_admin';
 	require_once(DIR_FS_MODULES . $mod . '/classes/install.php');
 	$mod_info  = new $mod_admin;

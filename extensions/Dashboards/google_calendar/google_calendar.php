@@ -25,7 +25,7 @@
 
 class google_calendar extends ctl_panel {
 
-  function google_calendar() {
+  function __construct() {
   }
 
   function Install($column_id = 1, $row_id = 0) {
