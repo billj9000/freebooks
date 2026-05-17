@@ -45,6 +45,9 @@ switch ($_REQUEST['action']) {
       $error = true;
       $messageStack->add(ERROR_WRONG_LOGIN, 'error');
     }
+    if (!$error && pw_needs_rehash($result->fields['admin_pass'])) {
+      $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input(pw_encrypt_password($admin_pass)) . "' where admin_id = " . (int)$result->fields['admin_id']);
+    }
     if (!$error) {
       $_SESSION['admin_id']       = $result->fields['admin_id'];
       $_SESSION['display_name']   = $result->fields['display_name'];

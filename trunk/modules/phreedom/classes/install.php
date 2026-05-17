@@ -155,7 +155,7 @@ class phreedom_admin {
 		  inactive enum('0','1') NOT NULL default '0',
 		  display_name varchar(32) NOT NULL default '',
 		  admin_email varchar(96) NOT NULL default '',
-		  admin_pass varchar(40) NOT NULL default '',
+		  admin_pass varchar(255) NOT NULL default '',
 		  account_id int(11) NOT NULL default '0',
 		  admin_store_id int(11) NOT NULL default '0',
 		  admin_prefs text,

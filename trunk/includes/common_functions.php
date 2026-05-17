@@ -1788,15 +1788,17 @@ function validate_ajax_user($token = 0) {
 // Section 7. Password Functions
 /**************************************************************************************************************/
 function pw_validate_password($plain, $encrypted) {
-  if (gen_not_null($plain) && gen_not_null($encrypted)) {
-// split apart the hash / salt
-    $stack = explode(':', $encrypted);
-    if (count(is_array($stack) ? $stack : []) != 2) return false;
-    if (md5($stack[1] . $plain) == $stack[0]) {
-      return true;
-    }
-  }
+  if (!gen_not_null($plain) || !gen_not_null($encrypted)) return false;
+  if (password_verify($plain, $encrypted)) return true;
+  // legacy md5+salt format: "md5hash:salt"
+  $stack = explode(':', $encrypted);
+  if (count($stack) === 2 && md5($stack[1] . $plain) === $stack[0]) return true;
   return false;
+}
+
+function pw_needs_rehash($encrypted) {
+  // old md5+salt hashes don't start with '$'; bcrypt hashes do
+  return strlen($encrypted) > 0 && $encrypted[0] !== '$';
 }
 
 function pw_validate_encrypt($plain) {
@@ -1813,13 +1815,7 @@ function pw_validate_encrypt($plain) {
 }
 
 function pw_encrypt_password($plain) {
-  $password = '';
-  for ($i=0; $i<10; $i++) {
-    $password .= general_rand();
-  }
-  $salt = substr(md5($password), 0, 2);
-  $password = md5($salt . $plain) . ':' . $salt;
-  return $password;
+  return password_hash($plain, PASSWORD_DEFAULT);
 }
 
 function pw_create_random_value($length = 12) {
