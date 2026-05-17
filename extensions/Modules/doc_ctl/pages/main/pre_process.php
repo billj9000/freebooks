@@ -130,9 +130,9 @@ switch ($_REQUEST['action']) { // figure which detail page to load
 	  $search = '';
 	}
 	$field_list = array('id', 'title', 'type');
-	$query_raw = "select SQL_CALC_FOUND_ROWS " . implode(', ', $field_list)  . " from " . TABLE_DC_DOCUMENT . $search;
+	$query_raw = "select " . implode(', ', $field_list)  . " from " . TABLE_DC_DOCUMENT . $search;
 	$query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
-	$query_split  = new splitPageResults($_REQUEST['list'], '');
+	$query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
 	$div_template = DIR_FS_WORKING . 'pages/main/' . ($id ? 'tab_document.php' : 'tab_folder.php');
 	break;
   case 'home':

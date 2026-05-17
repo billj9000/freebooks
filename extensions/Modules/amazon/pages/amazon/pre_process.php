@@ -208,11 +208,11 @@ if (isset($search_text) && $search_text <> '') {
 
 $field_list = array('id', 'post_date', 'shipper_code', 'purchase_invoice_id', 'purch_order_id', 'ship_primary_name');
 		
-$query_raw = "SELECT SQL_CALC_FOUND_ROWS ".implode(', ', $field_list)." from ".TABLE_JOURNAL_MAIN." 
+$query_raw = "SELECT ".implode(', ', $field_list)." from ".TABLE_JOURNAL_MAIN." 
 		WHERE bill_primary_name LIKE '%amazon%' AND journal_id=12 $period_filter $search ORDER BY $disp_order, purchase_invoice_id DESC";
 
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
-$query_split  = new splitPageResults($_REQUEST['list'], '');
+$query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
 
 $include_header   = true;
 $include_footer   = true;

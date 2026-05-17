@@ -146,10 +146,11 @@ class splitPageResults {
 	public  $total_num_pages		= 1;
 
 	function __construct($current_page_number, $query_num_rows) {
-    	global $db, $messageStack;
-    	if($query_num_rows == '') {
-    		$temp = $db->Execute('SELECT FOUND_ROWS() AS found_rows;');
-    		$query_num_rows = $temp->fields['found_rows'];
+    	global $db;
+    	if (is_string($query_num_rows) && stripos(ltrim($query_num_rows), 'select') === 0) {
+    		$count_sql = preg_replace('/\bSQL_CALC_FOUND_ROWS\b\s*/i', '', $query_num_rows);
+    		$temp = $db->Execute("SELECT COUNT(*) AS cnt FROM ($count_sql) AS _t");
+    		$query_num_rows = $temp->fields['cnt'];
     	}
     	$this->total_num_rows		= $query_num_rows;
       	$this->current_page_number 	= max(1, $current_page_number);

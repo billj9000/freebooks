@@ -72,16 +72,15 @@ $filters[] = "i.gl_type = 'adj'";
 $filters[] = 'm.journal_id = 16';
 $filters[] = ($adj_type == 'xfr') ? 'm.so_po_ref_id <> 0 AND i.qty < 0' : 'm.so_po_ref_id = 0';
 //if ($adj_type == 'xfr') $filters[] = 'm.bill_acct_id > 0'; // only pull the first record
-$query_raw    = "SELECT SQL_CALC_FOUND_ROWS DISTINCT " . implode(', ', $field_list) . " 
+$query_raw    = "SELECT DISTINCT " . implode(', ', $field_list) . " 
 	FROM " . TABLE_JOURNAL_MAIN . " m JOIN " . TABLE_JOURNAL_ITEM . " i ON m.id = i.ref_id 
 	WHERE " . implode(' AND ', $filters) . " GROUP BY m.id ORDER BY $disp_order, m.id";
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
-// the splitPageResults should be run directly after the query that contains SQL_CALC_FOUND_ROWS
-$query_split  = new splitPageResults($_REQUEST['list'], '');
+$query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
 if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go last was selected, now we know # pages, requery to get results
 	$_REQUEST['list'] = $query_split->current_page_number;
 	$query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
-	$query_split      = new splitPageResults($_REQUEST['list'], '');
+	$query_split      = new splitPageResults($_REQUEST['list'], $query_raw);
 }
 history_save('inv_pop_adj');
 

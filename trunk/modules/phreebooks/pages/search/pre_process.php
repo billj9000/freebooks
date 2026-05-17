@@ -172,17 +172,17 @@ $temp = gen_build_sql_date($date_prefs['params'], $date_prefs['fieldname']);
 if ($temp['sql']) $criteria[] = '(' . $temp['sql'] . ')';
 
 $crit = ($criteria) ? (" where " . implode(' and ', $criteria)) : '';
-$query_raw = "select SQL_CALC_FOUND_ROWS distinct m.id, m.journal_id, m.post_date, m.description, m.total_amount, 
+$query_raw = "select distinct m.id, m.journal_id, m.post_date, m.description, m.total_amount, 
 	m.purchase_invoice_id, m.bill_primary_name, m.bill_acct_id   
 	from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i 
 	on m.id = i.ref_id " . $crit . " order by $disp_order";
 //echo 'sql = '; print_r($query_raw); echo '<br>';
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
-$query_split  = new splitPageResults($_REQUEST['list'], '');
+$query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
 if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go last was selected, now we know # pages, requery to get results
 	$_REQUEST['list'] = $query_split->current_page_number;
 	$query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
-	$query_split  = new splitPageResults($_REQUEST['list'], '');
+	$query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
 }
 history_save('pb_search');
 
