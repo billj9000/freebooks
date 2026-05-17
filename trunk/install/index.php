@@ -16,8 +16,31 @@
 // +-----------------------------------------------------------------+
 // Path: /install/index.php
 //
+// Block re-installation if the application is already configured.
+// configure.php is written by this installer on first run; its presence
+// means the database and credentials are already set up.
+if (@filesize('../includes/configure.php') > 0) {
+  http_response_code(403);
+?>
+<!DOCTYPE html>
+<html>
+<head><title>FreeBooks — Already Installed</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:80px auto;padding:0 20px}
+h1{color:#c00}code{background:#f4f4f4;padding:2px 6px;border-radius:3px}</style>
+</head>
+<body>
+<h1>Already installed</h1>
+<p>FreeBooks is already configured. The installer cannot run again.</p>
+<p><strong>Remove this directory to eliminate this attack surface:</strong></p>
+<pre><code>docker compose exec php-app rm -rf /var/www/html/install</code></pre>
+<p><a href="../">Go to FreeBooks &rarr;</a></p>
+</body></html>
+<?php
+  exit;
+}
+
 ob_start();
-ini_set('log_errors','1'); 
+ini_set('log_errors','1');
 ini_set('display_errors', '1');
 error_reporting(E_ALL & ~E_NOTICE);
 date_default_timezone_set('Europe/London');
