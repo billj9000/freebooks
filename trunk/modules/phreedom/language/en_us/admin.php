@@ -231,6 +231,14 @@ define('GEN_BACKUP_WARNING','Warning! This operation will delete and re-write th
 define('GEN_BACKUP_NO_ZIP_CLASS','The zip class cannot be found. PHP needs the zip library installed to back up with zip compression.');
 define('GEN_BACKUP_FILE_ERROR','The zip file cannot be created. Check permissions for the directory: ');
 define('GEN_BACKUP_DOWNLOAD_EMPTY','The download file does not contain any data!');
+define('GEN_RESTORE_PROGRESS','Import Progress');
+define('GEN_RESTORE_DB_BUTTON','Database Restore');
+define('GEN_RESTORE_FULL_BUTTON','Full Restore');
+define('GEN_RESTORE_DONE','Import complete. Log out and log in again to complete the restore.');
+define('GEN_RESTORE_ERROR','Import error: ');
+define('GEN_RESTORE_EXTRACTING','Extracting archive...');
+define('GEN_RESTORE_CONFIRM_FULL','Warning! This will overwrite all company files and the database. Are you sure?');
+define('GEN_RESTORE_UPLOAD_LABEL','Dump file');
 // company manager
 define('SETUP_CO_MGR_COPY_CO','New/Copy Company');
 define('SETUP_CO_MGR_DEL_CO','Delete Company');

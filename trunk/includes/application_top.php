@@ -115,6 +115,11 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   $path = DIR_FS_MODULES . $module . '/custom/pages/' . $page . '/extra_menus.php';
   if (file_exists($path)) { include($path); }
   $currencies = new currencies();
+  // Widen admin_pass if restored from a pre-bcrypt backup (col was varchar(40))
+  $col = $db->Execute("SHOW FIELDS FROM " . TABLE_USERS . " LIKE 'admin_pass'");
+  if (!$col->EOF && strpos(strtolower($col->fields['Type']), 'varchar(40)') !== false) {
+    $db->Execute("ALTER TABLE " . TABLE_USERS . " MODIFY admin_pass VARCHAR(255) NOT NULL DEFAULT ''");
+  }
 }
 $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : $_session_timeout;
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > ($_session_timeout < 360 ? 360 : $_session_timeout))) {

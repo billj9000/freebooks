@@ -22,6 +22,7 @@ $security_level = validate_user(SECURITY_ID_BACKUP);
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'classes/backup.php');
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
+require_once(DIR_FS_WORKING . 'includes/bigdump/language/' . $_SESSION['language'] . '/language.php');
 /**************   page specific initialization  *************************/
 $error  = false;
 /***************   hook for custom actions  ***************************/
@@ -98,6 +99,41 @@ switch ($_REQUEST['action']) {
 	gen_add_audit_log(GEN_AUDIT_DB_DATA_CLEAN);
 	break;
 
+  case 'upload_restore':
+    validate_security($security_level, 2);
+    $backups_dir = DIR_FS_MY_FILES . 'backups/';
+    if (!is_dir($backups_dir)) mkdir($backups_dir, 0755, true);
+    if (is_uploaded_file($_FILES['dumpfile']['tmp_name'] ?? '') && ($_FILES['dumpfile']['error'] ?? -1) == 0) {
+      $fname = str_replace(' ', '_', $_FILES['dumpfile']['name']);
+      $fname = preg_replace('/[^_A-Za-z0-9\-\.]/i', '', $fname);
+      if (!preg_match('/\.(sql|gz|bz2|zip|csv)$/i', $fname)) {
+        $messageStack->add(BIGDUMP_UPLOAD_TYPES, 'error');
+      } elseif (file_exists($backups_dir . $fname)) {
+        $messageStack->add(sprintf(BIGDUMP_FILE_EXISTS, $fname), 'error');
+      } elseif (!@move_uploaded_file($_FILES['dumpfile']['tmp_name'], $backups_dir . $fname)) {
+        $messageStack->add(sprintf(BIGDUMP_ERROR_MOVE, $_FILES['dumpfile']['tmp_name'], $backups_dir), 'error');
+      } else {
+        $messageStack->add(sprintf(BIGDUMP_FILE_SAVED, $fname), 'success');
+      }
+    } else {
+      $messageStack->add(BIGDUMP_ERROR_UPLOAD . htmlspecialchars($_FILES['dumpfile']['name'] ?? ''), 'error');
+    }
+    gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')) . '&action=restore', 'SSL'));
+    break;
+
+  case 'delete_restore_file':
+    validate_security($security_level, 4);
+    $backups_dir = DIR_FS_MY_FILES . 'backups/';
+    $fn = preg_replace('/[^A-Za-z0-9_\-\.]/i', '', $_GET['fn'] ?? '');
+    if ($fn && preg_match('/\.(sql|gz|bz2|zip|csv)$/i', $fn) && @unlink($backups_dir . $fn)) {
+      @unlink($backups_dir . $fn . '.sql'); // remove any decompressed temp
+      $messageStack->add($fn . BIGDUMP_REMOVED, 'success');
+    } else {
+      $messageStack->add(BIGDUMP_FAIL_REMOVE . htmlspecialchars($fn), 'error');
+    }
+    gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'fn')) . '&action=restore', 'SSL'));
+    break;
+
   default:
 }
 
@@ -106,7 +142,6 @@ $include_header   = true;
 $include_footer   = true;
 switch ($_REQUEST['action']) {
   case 'restore':
-    $custom_html      = true;
     $include_template = 'template_restore.php';
     define('PAGE_TITLE', BOX_HEADING_RESTORE);
     break;
