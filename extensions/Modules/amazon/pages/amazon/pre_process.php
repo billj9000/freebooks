@@ -33,7 +33,7 @@ define('POPUP_FORM_TYPE','cust:inv');
 $error = false;
 // fill search and accounting period criteria
 $acct_period = ($_GET['search_period']) ? $_GET['search_period'] : CURRENT_ACCOUNTING_PERIOD;
-$search_text = $_POST['search_text']    ? $_POST['search_text']  : $_GET['search_text'];
+$search_text = db_prepare_input($_POST['search_text'] ? $_POST['search_text'] : $_GET['search_text']);
 if (isset($_POST['search_text'])) $_GET['search_text'] = $_POST['search_text']; // save the value for get redirects 
 if ($search_text == TEXT_SEARCH)    $search_text = '';
 $max_list    = ($_GET['pull_down_max']) ? $_GET['pull_down_max'] : MAX_DISPLAY_SEARCH_RESULTS;

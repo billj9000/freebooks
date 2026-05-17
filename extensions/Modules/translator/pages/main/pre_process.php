@@ -308,7 +308,7 @@ switch ($_REQUEST['action']) {
 	// build the list for the page selected
     if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
       $search_fields = array('module', 'language', 'version');
-	  $criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
+	  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
     }
 	$search = (empty($criteria)) ? '' : ' where ' . implode(' and ', $criteria);
     if ($ver=='L') {

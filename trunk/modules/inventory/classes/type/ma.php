@@ -84,7 +84,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 				'description' => db_prepare_input($_POST['assy_desc'][$x]),
 				'qty'         => $currencies->clean_value(db_prepare_input($_POST['assy_qty'][$x])),
 			);
-		  	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '". $_POST['assy_sku'][$x]."'" );
+		  	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '". db_input($_POST['assy_sku'][$x])."'" );
 		  	if (($result->RecordCount() == 0 || $currencies->clean_value($_POST['assy_qty'][$x]) == 0) && $_POST['assy_sku'][$x] =! '') {
 		  		// show error, bad sku, negative quantity. error check sku is valid and qty > 0
 				$error = $messageStack->add(INV_ERROR_BAD_SKU . db_prepare_input($_POST['assy_sku'][$x]), 'error');

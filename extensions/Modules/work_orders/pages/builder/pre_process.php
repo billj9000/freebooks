@@ -101,7 +101,7 @@ switch ($_REQUEST['action']) {
 	    if (!$success = db_perform(TABLE_WO_MAIN, $sql_data_array, 'insert')) $error = true;
 		$id = db_insert_id();
 		if (!$error && $bump_rev) {
-	  	  $result = $db->Execute("update " . TABLE_WO_MAIN . " set inactive = '1' where id = " . $_POST['id']);
+	  	  $result = $db->Execute("update " . TABLE_WO_MAIN . " set inactive = '1' where id = " . (int)$_POST['id']);
 		}
 	  }
 	}
@@ -278,7 +278,7 @@ switch ($_REQUEST['action']) {
       $search_fields = array('m.wo_title', 'i.sku', 'm.description');
 	  // hook for inserting new search fields to the query criteria.
 	  if (!empty($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  	  $criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
+  	  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 	}
 	if (!$f0) $criteria[] = "m.inactive = '0'"; // inactive flag
 	// build search filter string

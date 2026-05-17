@@ -73,7 +73,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   	'a.address1', 'a.address2', 'a.city_town', 'a.postal_code', 'c.account_number');
   // hook for inserting new search fields to the query criteria.
   if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  $search = ' and (' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
+  $search = ' and (' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 } else {
   $search = '';
 }

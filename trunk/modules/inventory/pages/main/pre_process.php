@@ -37,9 +37,9 @@ $f1 = $_GET['f1'] = isset($_POST['f1']) ? $_POST['f1'] : $_GET['f1']; // invento
 $id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID']);
 // getting the right inventory type.
 if (!isset($_REQUEST['inventory_type'])){
-	if(isset($_REQUEST['cID'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id='{$_REQUEST['cID']}'");
-	else if (isset($_REQUEST['rowSeq'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id='{$_REQUEST['rowSeq']}'");
-	else if (isset($_REQUEST['sku']))	 $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE sku='{$_REQUEST['sku']}'");
+	if(isset($_REQUEST['cID'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id=".(int)$_REQUEST['cID']);
+	else if (isset($_REQUEST['rowSeq'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id=".(int)$_REQUEST['rowSeq']);
+	else if (isset($_REQUEST['sku']))	 $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE sku='".db_input($_REQUEST['sku'])."'");
 	if ($result->RecordCount()>0) $type = $result->fields['inventory_type'];
 } 
 if ($type == 'as') $type = 'ma'; 
@@ -243,7 +243,7 @@ switch ($_REQUEST['action']) {
       $search_fields = array('a.sku', 'a.description_short', 'a.description_sales', 'p.description_purchase');
 	  // hook for inserting new search fields to the query criteria.
 	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  	  $criteria[] = '(' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
+  	  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 	}
 	// build search filter string
 	$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';

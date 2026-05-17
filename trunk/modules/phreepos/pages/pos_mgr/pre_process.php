@@ -136,7 +136,7 @@ if ($oid == true){
 	$search_fields = array('bill_primary_name', 'purchase_invoice_id', 'purch_order_id', 'bill_postal_code', 'ship_primary_name', 'total_amount');
 	// hook for inserting new search fields to the query criteria.
   	if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  	$search = ' and (' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
+  	$search = ' and (' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 } else {
   	$search = '';
 }

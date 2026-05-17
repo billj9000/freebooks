@@ -69,7 +69,7 @@ if ($acct_period == 'all') {
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
     $search_fields = array('short_name');
     // hook for inserting new search fields to the query criteria.  
-    $search = ' and (' . implode(' like \'%' . $_REQUEST['search_text'] . '%\' or ', $search_fields) . ' like \'%' . $_REQUEST['search_text'] . '%\')';
+    $search = ' and (' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 } else {
    $search = '';
 }

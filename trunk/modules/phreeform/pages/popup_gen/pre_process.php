@@ -89,7 +89,7 @@ if ($rID) {
 //echo 'post override report->filterlist = '; print_r($report->filterlist); echo '<br>';
 
 if (isset($_GET['xfld']) && strpos($_GET['xfld'], 'journal_main') !== false) { // try to extract email info from the journal
-  $result         = $db->Execute("select bill_primary_name, bill_email from " . TABLE_JOURNAL_MAIN . " where id = '" . $_GET['xmin'] . "'");
+  $result         = $db->Execute("select bill_primary_name, bill_email from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$_GET['xmin']);
   $_GET['rName']  = $result->fields['bill_primary_name'];
   $_GET['rEmail'] = $result->fields['bill_email'];
 }

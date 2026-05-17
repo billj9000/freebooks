@@ -529,9 +529,9 @@ class inventory {
 			if(!empty($sql_data_array)){
 				if(isset($_POST['row_id_array'][$key]) && $_POST['row_id_array'][$key] != ''){//update
 					$this->backup_purchase_array[$_POST['row_id_array'][$key]]['action'] = 'update';
-					db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'update', "id = " . $_POST['row_id_array'][$key]);
+					db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'update', "id = " . (int)$_POST['row_id_array'][$key]);
 					if($this->backup_purchase_array[$_POST['row_id_array'][$key]]['price_sheet_v'] != "" && $_POST['price_sheet_v_array'][$key] == ""){
-						$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = $this->id and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '{$this->backup_purchase_array[$_POST['row_id_array'][$key]]['price_sheet_v']}')");
+						$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = $this->id and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '".db_input($this->backup_purchase_array[$_POST['row_id_array'][$key]]['price_sheet_v'])."')");
 					}
 				}else{//insert
 					db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'insert');
