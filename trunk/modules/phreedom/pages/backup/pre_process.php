@@ -43,9 +43,9 @@ switch ($_REQUEST['action']) {
 	if (!$result = $backup->dump_db_table($db, 'all', 'both')) break;
 	// compress the company directory
 	switch ($conv_type) {
-	  case 'bz2': 
+	  case 'bz2':
 		if ($dl_type == 'file') {
-		  $backup->dest_file = $backup->db_filename . '.bz2';
+		  $backup->dest_file = $backup->db_filename . '.sql.bz2';
 		} else {
 		  $backup->dest_file = 'bu-' . $_SESSION['company'] . '-' . date('Ymd') . '.tar.bz2';
 		}

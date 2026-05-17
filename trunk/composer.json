@@ -1,0 +1,11 @@
+{
+    "name": "freebooks/freebooks",
+    "description": "FreeBooks ERP",
+    "type": "project",
+    "require": {
+        "phpmailer/phpmailer": "^7.0"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

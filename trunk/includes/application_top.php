@@ -17,9 +17,7 @@
 //  Path: /includes/application_top.php
 //
 define('PAGE_EXECUTION_START_TIME', microtime(true));
-if (!get_cfg_var('safe_mode')) {
-	if (ini_get('max_execution_time') < 60) set_time_limit(60);
-}
+if (ini_get('max_execution_time') < 60) set_time_limit(60);
 $currencies        = ''; 
 $force_reset_cache = false;
 // set php_self in the local scope
@@ -40,6 +38,7 @@ define('DIR_FS_MODULES',   DIR_FS_ADMIN . 'modules/');
 define('DIR_FS_MY_FILES',  DIR_FS_ADMIN . PATH_TO_MY_FILES);
 define('DIR_FS_THEMES',    DIR_FS_ADMIN . 'themes/');
 define('FILENAME_DEFAULT', 'index');
+if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
 // set the type of request (secure or not)
 $request_type = (isset($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) == 'on' || $_SERVER['HTTPS'] == '1' || strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_BY']),'SSL') || strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_HOST']),'SSL'))) ? 'SSL' : 'NONSSL';
 // define the inventory types that are tracked in cost of goods sold

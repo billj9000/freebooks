@@ -322,16 +322,16 @@ $sel_yes_no = array(
  array('id' => '1', 'text' => TEXT_YES),
 );
 $sel_transport = array(
-  array('id' => 'PHP',        'text' => 'PHP'),
+  array('id' => 'PHP',        'text' => 'PHP mail() — requires local MTA'),
   array('id' => 'sendmail',   'text' => 'sendmail'),
-  array('id' => 'sendmail-f', 'text' => 'sendmail-f'),
-  array('id' => 'smtp',       'text' => 'smtp'),
-  array('id' => 'smtpauth',   'text' => 'smtpauth'),
-  array('id' => 'Qmail',      'text' => 'Qmail'),
+  array('id' => 'sendmail-f', 'text' => 'sendmail -f'),
+  array('id' => 'smtp',       'text' => 'SMTP (no authentication)'),
+  array('id' => 'smtpauth',   'text' => 'SMTP with authentication'),
 );
-$sel_linefeed = array(
-  array('id' => 'LF',   'text' => 'LF'),
-  array('id' => 'CRLF', 'text' => 'CRLF'),
+$sel_smtp_encryption = array(
+  array('id' => '0',   'text' => 'None'),
+  array('id' => '1',   'text' => 'STARTTLS'),
+  array('id' => 'ssl', 'text' => 'SSL/TLS'),
 );
 $sel_format = array(
   array('id' => 'TEXT', 'text' => 'TEXT'),

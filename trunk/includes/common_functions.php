@@ -1170,7 +1170,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	  $id = str_replace('[','_', $name); // clean up for array inputs causing html errors
 	  $id = str_replace(']','',  $id);
     }
-  	$field = '<textarea class="ckeditor" name="' . $name . '" id="' . $id . '" cols="' . $width . '" rows="' . $height . '"';
+  	$field = '<textarea class="jodit-editor" name="' . $name . '" id="' . $id . '" cols="' . $width . '" rows="' . $height . '"';
     if ($parameters) $field .= ' ' . $parameters;
     $field .= '>';
     if ($text) $field .= $text;
@@ -1691,55 +1691,53 @@ function validate_ajax_user($token = 0) {
         $text = strip_tags($email_text);
       }
       // now lets build the mail object with the phpmailer class
-	  require_once(DIR_FS_MODULES . 'phreedom/includes/PHPMailer/class.phpmailer.php');
-      $mail = new PHPMailer();
-      $mail->SetLanguage();
-	  $mail->isMail(); //default
+      $mail = new \PHPMailer\PHPMailer\PHPMailer();
+      $mail->setLanguage();
+      $mail->isMail(); //default
       $mail->CharSet =  (defined('CHARSET')) ? CHARSET : "iso-8859-1";
-      if (defined('DEBUG') && DEBUG == true) $mail->SMTPDebug = 4;
-		     	if (defined('SERVER_ADDRESS') && SERVER_ADDRESS != ''){
-		      		$mail->Hello	= SERVER_ADDRESS;
-		      		$mail->Hostname = SERVER_ADDRESS;
-		      	}
+      $mail->SMTPDebug = 0;
+      if (defined('SERVER_ADDRESS') && SERVER_ADDRESS != '') {
+        $mail->Helo     = SERVER_ADDRESS;
+        $mail->Hostname = SERVER_ADDRESS;
+      }
       if (EMAIL_TRANSPORT=='smtp' || EMAIL_TRANSPORT=='smtpauth') {
-        $mail->IsSMTP();                           // set mailer to use SMTP
+        $mail->isSMTP();
         $mail->Host = EMAIL_SMTPAUTH_MAIL_SERVER;
         if (EMAIL_SMTPAUTH_MAIL_SERVER_PORT != '25' && EMAIL_SMTPAUTH_MAIL_SERVER_PORT != '') $mail->Port = EMAIL_SMTPAUTH_MAIL_SERVER_PORT;
+        if     (EMAIL_SMTPAUTH_TLS == '1')   $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        elseif (EMAIL_SMTPAUTH_TLS == 'ssl') $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+        if (defined('EMAIL_SMTP_ALLOW_SELF_SIGNED') && EMAIL_SMTP_ALLOW_SELF_SIGNED == '1') {
+          $mail->SMTPOptions = ['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]];
+        }
         if (EMAIL_TRANSPORT=='smtpauth') {
-          $mail->SMTPAuth = true;     // turn on SMTP authentication
-          if (defined('EMAIL_SMTPAUTH_TLS') && EMAIL_SMTPAUTH_TLS == '1') $mail->SMTPSecure = "tls"; //turn on SSL comment out for off
-          $mail->Username = (gen_not_null(EMAIL_SMTPAUTH_MAILBOX)) ? EMAIL_SMTPAUTH_MAILBOX : EMAIL_FROM;  // SMTP username
-          $mail->Password = EMAIL_SMTPAUTH_PASSWORD; // SMTP password
+          $mail->SMTPAuth = true;
+          $mail->Username = (gen_not_null(EMAIL_SMTPAUTH_MAILBOX)) ? EMAIL_SMTPAUTH_MAILBOX : EMAIL_FROM;
+          $mail->Password = EMAIL_SMTPAUTH_PASSWORD;
         }
       }
       $mail->Subject  = $email_subject;
       $mail->From     = $from_email_address;
       $mail->FromName = $from_email_name;
-      $mail->AddAddress($to_email_address, $to_name);
-      $mail->AddReplyTo($from_email_address, $from_email_name);
-	  if (isset($block['EMAIL_CC_ADDRESS'])) $mail->AddCC($block['EMAIL_CC_ADDRESS'], $block['EMAIL_CC_NAME']);
-      // set proper line-endings based on switch ... important for windows vs linux hosts:
-      $mail->LE = (EMAIL_LINEFEED == 'CRLF') ? "\r\n" : "\n";
-      $mail->WordWrap = 76;    // set word wrap to 76 characters
-      // if mailserver requires that all outgoing mail must go "from" an email address matching domain on server, set it to store address
+      $mail->addAddress($to_email_address, $to_name);
+      $mail->addReplyTo($from_email_address, $from_email_name);
+      if (isset($block['EMAIL_CC_ADDRESS'])) $mail->addCC($block['EMAIL_CC_ADDRESS'], $block['EMAIL_CC_NAME']);
+      $mail->WordWrap = 76;
       if (EMAIL_TRANSPORT=='sendmail-f' || EMAIL_TRANSPORT=='sendmail') {
-	    $mail->Mailer = 'sendmail';
+        $mail->isSendmail();
         $mail->Sender = $mail->From;
-	        		$mail->isSendmail();
       }
-      // process attachments
       // Note: $attachments_list array requires that the 'file' portion contains the full path to the file to be attached
-      if (EMAIL_ATTACHMENTS_ENABLED && gen_not_null($attachments_list) ) {
-        $mail->AddAttachment($attachments_list['file']);          // add attachments
-      } //endif attachments
-      if (EMAIL_USE_HTML && trim($email_html) != '' && ADMIN_EXTRA_EMAIL_FORMAT == 'HTML') {
-        $mail->IsHTML(true);           // set email format to HTML
-        $mail->Body    = $email_html;  // HTML-content of message
-        $mail->AltBody = $text;        // text-only content of message
-      }  else {                        // use only text portion if not HTML-formatted
-        $mail->Body    = $text;        // text-only content of message
+      if (gen_not_null($attachments_list)) {
+        $mail->addAttachment($attachments_list['file']);
       }
-      if (!$mail->Send()) {
+      if (EMAIL_USE_HTML && trim($email_html) != '' && ADMIN_EXTRA_EMAIL_FORMAT == 'HTML') {
+        $mail->isHTML(true);
+        $mail->Body    = $email_html;
+        $mail->AltBody = $text;
+      } else {
+        $mail->Body    = $text;
+      }
+      if (!$mail->send()) {
         $messageStack->add(sprintf(EMAIL_SEND_FAILED . '&nbsp;'. $mail->ErrorInfo, $to_name, $to_email_address, $email_subject),'error');
         return false;
 	  }else{

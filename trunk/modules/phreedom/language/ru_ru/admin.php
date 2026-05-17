@@ -111,9 +111,11 @@ define('CD_12_11_DESC','Address from which email messages will be \"sent\" by de
 define('CD_12_15_DESC','Please select the Admin extra email format');
 define('CD_12_70_DESC','Enter the mailbox account name (me@mydomain.com) supplied by your host. This is the account name that your host requires for SMTP authentication.<br />Only required if using SMTP Authentication for email.');
 define('CD_12_71_DESC','Enter the password for your SMTP mailbox. <br />Only required if using SMTP Authentication for email.');
-define('CD_12_72_DESC','Enter the DNS name of your SMTP mail server.<br />ie: mail.mydomain.com<br />or 55.66.77.88<br />Only required if using SMTP Authentication for email.');
-define('CD_12_73_DESC','Enter the IP port number that your SMTP mailserver operates on.<br />Only required if using SMTP Authentication for email.');
-define('CD_12_74_DESC','What currency conversions do you need for Text emails?<br />Default = £,');
+define('CD_12_72_DESC','Enter the DNS name or IP address of your SMTP mail server. e.g. mail.mydomain.com or 55.66.77.88');
+define('CD_12_73_DESC','Enter the IP port number that your SMTP mail server operates on. Common ports: 25 (no encryption), 587 (STARTTLS), 465 (SSL/TLS).');
+define('CD_12_74_DESC','Currency substitutions for plain-text emails, as entity,symbol pairs separated by colons. (Default = &amp;pound;,&#163;:&amp;euro;,&#8364;)');
+define('CD_12_75_DESC', 'SMTP encryption method. <strong>None</strong> = plain SMTP, no encryption. <strong>STARTTLS</strong> = upgrades the connection to encrypted after it is established (most providers). <strong>SSL/TLS</strong> = encrypted from the start (Office 365 and many cPanel hosts).');
+define('CD_12_76_DESC', 'Allow self-signed SSL certificates. Enable only for internal or development mail servers — never for public providers such as Gmail or Office 365.');
 define('SETUP_TITLE_CURRENCIES','Валюты');
 define('SETUP_CURRENCY_NAME','Валюта');
 define('SETUP_CURRENCY_CODES','Код');

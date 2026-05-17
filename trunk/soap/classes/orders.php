@@ -29,7 +29,7 @@ class xml_orders extends parser {
 	function processXML($rawXML) {
 		global $messageStack;
 //echo '<pre>' . $rawXML . '</pre>';
-	  $rawXML = utf8_decode($rawXML);
+	  $rawXML = mb_convert_encoding($rawXML, 'ISO-8859-1', 'UTF-8');
 	  $rawXML = iconv("UTF-8", "UTF-8//IGNORE", $rawXML); 
 //echo '<pre>' . $rawXML . '</pre>';
 	  if (!$objXML = xml_to_object($rawXML)) return false;  // parse the submitted string, check for errors

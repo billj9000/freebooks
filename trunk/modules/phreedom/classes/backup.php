@@ -105,15 +105,15 @@ class backup {
 	return true;
   }
 
-  function make_zip($type = 'file', $localname = NULL, $root_folder = '/') {
+  function make_zip($type = 'file', $localname = NULL, $root_folder = '') {
     global $messageStack;
     $error = false;
 	if (!class_exists('ZipArchive')) return $messageStack->add(GEN_BACKUP_NO_ZIP_CLASS, 'error');
 	$zip = new ZipArchive;
-	$res = $zip->open($this->dest_dir . $this->dest_file, ZipArchive::CREATE);
+	$res = $zip->open($this->dest_dir . $this->dest_file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 	if ($res !== true) return $messageStack->add(GEN_BACKUP_FILE_ERROR . $this->dest_dir, 'error');
 	if ($type == 'file') {
-	  $zip->addFile($this->source_dir . $this->source_file, $localname);
+	  $zip->addFile($this->source_dir . $this->source_file, $localname ?: basename($this->source_file));
 	} else { // compress all
 	  $this->addFolderToZip($this->source_dir, $zip, $root_folder);
 	}
@@ -149,11 +149,11 @@ class backup {
 	unset($output);
 	if ($type == 'file') {
 	  $this->backup_mime = 'application/x-bz2';
-	  exec("cd " . $this->source_dir . "; nice -n 19 bzip2 -k " . $this->source_file . " 2>&1", $output, $res);
-	  exec("mv " . $this->source_dir . $this->db_name . ".bz2 " . $this->dest_dir . $this->dest_file, $output, $res);
+	  exec("nice -n 19 bzip2 -kf " . escapeshellarg($this->source_dir . $this->source_file) . " 2>&1", $output, $res);
+	  if ($res == 0) exec("mv " . escapeshellarg($this->source_dir . $this->source_file . ".bz2") . " " . escapeshellarg($this->dest_dir . $this->dest_file) . " 2>&1", $output, $res);
 	} else { // compress all
 	  $this->backup_mime = 'application/x-tar';
-	  exec("cd " . $this->source_dir . "; nice -n 19 tar -jcf " . $this->dest_dir . $this->dest_file . " " . $this->source_dir . " 2>&1", $output, $res);
+	  exec("nice -n 19 tar -jcf " . escapeshellarg($this->dest_dir . $this->dest_file) . " -C " . escapeshellarg(dirname(rtrim($this->source_dir, "/"))) . " " . escapeshellarg(basename(rtrim($this->source_dir, "/"))) . " 2>&1", $output, $res);
 	}
 	if ($res > 0) {
 	  $messageStack->add(ERROR_COMPRESSION_FAILED . implode(": ", $output), 'error');
@@ -164,28 +164,24 @@ class backup {
 
   function download($path, $filename, $save_source = false) {
     global $messageStack;
-	$error = false;
 	$source_file = $path . $filename;
-	$handle = fopen($source_file, "rb");
-	if ($handle === false) {
+	clearstatcache(true, $source_file);
+	$contents = file_get_contents($source_file);
+	if ($contents === false || strlen($contents) == 0) {
 	  $messageStack->add(GEN_BACKUP_DOWNLOAD_EMPTY, 'caution');
 	  return;
 	}
-	$contents = fread($handle, filesize($source_file));
-	fclose($handle);
 	if (!$save_source) unlink($source_file);
-	if (strlen($contents) == 0) {
-	  $error = $messageStack->add(GEN_BACKUP_DOWNLOAD_EMPTY, 'caution');
-	  return;
-	}
-	header("Content-type: " . $this->backup_mime);
-	header("Content-disposition: attachment; filename=" . $filename . "; size=" . strlen($contents));
+	while (ob_get_level() > 0) ob_end_clean();
+	header("Content-Type: " . $this->backup_mime);
+	header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+	header("Content-Length: " . strlen($contents));
 	header('Pragma: cache');
 	header('Cache-Control: public, must-revalidate, max-age=0');
 	header('Connection: close');
 	header('Expires: ' . date('r', time() + 60 * 60));
 	header('Last-Modified: ' . date('r', time()));
-	print $contents;
+	echo $contents;
 	exit();
   }
 

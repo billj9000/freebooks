@@ -159,7 +159,8 @@ define('CD_01_20_DESC', 'Automatically switch to the language\'s currency when i
 define('CD_01_25_DESC', 'Whether or not to enable the shipping functions and shipping fields.');
 define('CD_01_30_DESC', 'Whether or not allow storage of encrypted fields.');
 /************************** E-mail Settings ***********************************************/
-define('CD_12_01_DESC', 'Defines the method for sending mail.<br /><strong>PHP</strong> is the default, and uses built-in PHP wrappers for processing.<br />Servers running on Windows and MacOS should change this setting to <strong>SMTP</strong>.<br /><strong>SMTPAUTH</strong> should only be used if your server requires SMTP authorization to send messages. You must also configure your SMTPAUTH settings in the appropriate fields in this admin section.<br /><strong>sendmail</strong> is for linux/unix hosts using the sendmail program on the server<br /><strong>"sendmail -f"</strong> is only for servers which require the use of the -f parameter to send mail. This is a security setting often used to prevent spoofing. Will cause errors if your host mailserver is not configured to use it.<br /><strong>Qmail</strong> is used for linux/unix hosts running Qmail as sendmail wrapper at /var/qmail/bin/sendmail.');
+define('CD_12_01_DESC', 'Defines the method for sending mail.<br /><strong>PHP mail()</strong> uses the built-in PHP mail() function and requires a local MTA (Postfix, sendmail) installed on the server. It will not work in a standard Docker container.<br /><strong>sendmail</strong> / <strong>sendmail -f</strong> are for Linux/Unix hosts with sendmail on the server; sendmail -f adds the -f envelope-sender parameter required by some hosts to prevent spoofing.<br /><strong>SMTP (no authentication)</strong> connects directly to an SMTP server without credentials.<br /><strong>SMTP with authentication</strong> is the recommended option for hosted mail services (Gmail, Office 365, etc.). Configure the server, port, credentials and encryption below.');
+
 define('CD_12_02_DESC', 'Defines the character sequence used to separate mail headers.');
 define('CD_12_04_DESC', 'Send e-mails in HTML format');
 define('CD_12_10_DESC', 'Email address of Store Owner.  Used as "display only" when informing customers of how to contact you.');
@@ -167,11 +168,12 @@ define('CD_12_11_DESC', 'Address from which email messages will be "sent" by def
 define('CD_12_15_DESC', 'Please select the Admin extra email format');
 define('CD_12_70_DESC', 'Enter the mailbox account name (me@mydomain.com) supplied by your host. This is the account name that your host requires for SMTP authentication. (Only required if using SMTP Authentication for email)');
 define('CD_12_71_DESC', 'Enter the password for your SMTP mailbox. (Only required if using SMTP Authentication for email)');
-define('CD_12_72_DESC', 'Enter the DNS name of your SMTP mail server. i.e. mail.mydomain.com or 55.66.77.88 (Only required if using SMTP Authentication for email)');
-define('CD_12_73_DESC', 'Enter the IP port number that your SMTP mailserver operates on. (Only required if using SMTP Authentication for email)');
-define('CD_12_74_DESC', 'What currency conversions do you need for Text emails? (Default = &amp;pound;,�:&amp;euro;,�)');
-define('CD_12_75_DESC', 'Do you want to send you SMTP emails through secure protocol (TLS)?');
-define('SETUP_SERVER_ADDRESS', 'As of php 5.4 some linux server can not determine your web addres and will refuse to accept your email (smtp_auth) the solution: enter here your website address<br/>How do you know when you encounter this problem.? Turn debug "on" and you should see on of the lines stating something like "Access denied - Invalid HELO name (See RFC2821 4.1.1 .1)"');
+define('CD_12_72_DESC', 'Enter the DNS name or IP address of your SMTP mail server. e.g. mail.mydomain.com or 55.66.77.88');
+define('CD_12_73_DESC', 'Enter the IP port number that your SMTP mail server operates on. Common ports: 25 (no encryption), 587 (STARTTLS), 465 (SSL/TLS).');
+define('CD_12_74_DESC', 'Currency substitutions for plain-text emails, as entity,symbol pairs separated by colons. (Default = &amp;pound;,&#163;:&amp;euro;,&#8364;)');
+define('CD_12_75_DESC', 'SMTP encryption method. <strong>None</strong> = plain SMTP, no encryption. <strong>STARTTLS</strong> = upgrades the connection to encrypted after it is established (most providers). <strong>SSL/TLS</strong> = encrypted from the start (Office 365 and many cPanel hosts).');
+define('CD_12_76_DESC', 'Allow self-signed SSL certificates. Enable only for internal or development mail servers — never for public providers such as Gmail or Office 365.');
+define('SETUP_SERVER_ADDRESS', 'Optional. PHPMailer uses this as the HELO/EHLO hostname sent to the mail server. Leave blank to let PHPMailer detect it automatically. Set this if your server cannot determine its own hostname and mail is being rejected with an error such as "Access denied - Invalid HELO name (See RFC2821 4.1.1.1)".');
 /************************** Currencies Settings ***********************************************/
 define('SETUP_TITLE_CURRENCIES', 'Currencies');
 define('SETUP_CURRENCY_NAME', 'Currency');

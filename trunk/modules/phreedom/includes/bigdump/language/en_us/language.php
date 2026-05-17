@@ -38,7 +38,7 @@ define('TEXT_PRESS','Press ');
 
 define('BIGDUMP_INTRO','This script is a modified version of the BigDump script developed by <a href="mailto:alexey@ozerov.de">Alexey Ozerov</a> - <a href="http://www.ozerov.de/bigdump.php" target="_blank">BigDump Home</a>');
 define('BIGDUMP_FILE_EXISTS','File %s already exists! Delete and upload again!');
-define('BIGDUMP_UPLOAD_TYPES','You may only upload .sql .gz or .csv files.');
+define('BIGDUMP_UPLOAD_TYPES','You may only upload .sql, .gz, .bz2, .zip, or .csv files.');
 define('BIGDUMP_ERROR_MOVE','Error moving uploaded file %s to the %s');
 define('BIGDUMP_ERROR_PERM','Check the directory permissions for %s (must be 777)!');
 define('BIGDUMP_FILE_SAVED','Uploaded file saved as %s');

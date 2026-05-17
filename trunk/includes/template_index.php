@@ -31,6 +31,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery_datatables.css'; ?>" />
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery-ui.css'; ?>" />
+  <link rel="stylesheet" type="text/css" href="jodit/jodit.min.css" />
   <script type="text/javascript">
   var module              = '<?php echo $module; ?>';
   var pbBrowser           = (document.all) ? 'IE' : 'FF';
@@ -56,7 +57,14 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <script type="text/javascript" src="includes/jquery.dataTables.min.js"></script>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="includes/common.js"></script>
-  <script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+  <script type="text/javascript" src="jodit/jodit.min.js"></script>
+  <script type="text/javascript">
+  function initJoditEditors() {
+    document.querySelectorAll('textarea.jodit-editor').forEach(function(el) {
+      Jodit.make(el);
+    });
+  }
+  </script>
 <?php 
 require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php');
 // load the jquery and javascript translations
@@ -73,7 +81,7 @@ $js_include_path = DIR_FS_WORKING . 'custom/pages/' . $page . '/extra_js.php';
 if (file_exists($js_include_path)) { require_once($js_include_path); }
 if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <script type="text/javascript">addLoadEvent(refreshSessionClock);</script>' . chr(10);
 ?>
-  <script type="text/javascript">addLoadEvent(init);</script>
+  <script type="text/javascript">addLoadEvent(init);addLoadEvent(initJoditEditors);</script>
  </head>
  <body>
   <script type="text/javascript" src="modules/phreedom/includes/wz_tooltip/wz_tooltip.js"></script>
