@@ -23,6 +23,13 @@ define('CURRENCY_SERVER_PRIMARY', 'ecb');
 define('CURRENCY_SERVER_BACKUP',  'yahoo');
 
 class currency {
+  public $security_id;
+  public $db_table;
+  public $title;
+  public $extra_buttons;
+  public $help_path;
+  public $def_currency;
+  public $message;
 
   function __construct() {
   	$this->security_id   = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];

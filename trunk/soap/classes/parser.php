@@ -18,7 +18,8 @@
 //
 
 class parser {
-   
+  public $reference;
+
   function validateUser($username = '', $password = '') {
 	global $db;
 	if (!$username || !$password) {

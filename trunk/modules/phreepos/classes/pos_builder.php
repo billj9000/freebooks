@@ -19,6 +19,7 @@
 
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
+#[\AllowDynamicProperties]
 class pos_builder {
 	public $discount 		= 0;
 	public $taxes    		= array();

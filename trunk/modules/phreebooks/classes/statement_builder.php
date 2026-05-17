@@ -20,6 +20,7 @@
 gen_pull_language('phreebooks');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php'); // needed to calculate terms, aging
 
+#[\AllowDynamicProperties]
 class statement_builder {
   function __construct() {
   }

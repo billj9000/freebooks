@@ -24,6 +24,14 @@ require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current phreeform structure.
 class is_budget {
+  public $zero;
+  public $coa_types;
+  public $inc_stmt_data;
+  public $first_period;
+  public $ly_first_period;
+  public $ly_period;
+  public $period;
+
   function __construct() {
 	global $currencies;
 	$this->zero = $currencies->format(0);

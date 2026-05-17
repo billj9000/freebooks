@@ -22,6 +22,15 @@ gen_pull_language('phreebooks', 'admin'); // need coa types defines
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current reportbuilder structure.
 class income_statement {
+	public $zero;
+	public $coa_types;
+	public $inc_stmt_data;
+	public $last_net_income;
+	public $lytd_net_income;
+	public $ytd_net_income;
+	public $cur_net_income;
+	public $columns;
+
 	function __construct() {
 		global $currencies;
 		$this->zero = $currencies->format(0);

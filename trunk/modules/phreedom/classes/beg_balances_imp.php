@@ -19,6 +19,9 @@
 //
 
 class beg_bal_import {
+  public $line_count;
+  public $records;
+
   function __construct() {
   }
 

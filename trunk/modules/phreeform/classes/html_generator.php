@@ -19,6 +19,10 @@
 //
 
 class HTML {
+  public $output;
+  public $FillColor;
+  public $HdColor;
+  public $numColumns;
 
   function __construct() {
 	$this->output    = NULL;

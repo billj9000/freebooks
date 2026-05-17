@@ -23,6 +23,10 @@ require_once (DIR_FS_MODULES."/inventory/functions/inventory.php");
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current reportbuilder structure. Targeted towards aged receivables.
 class pricelist_report {
+  public $special_field_array;
+  public $sql_field_array;
+  public $sql_field_karray;
+
   function __construct() {
 	// List the special fields as an array to substitute out for the sql, must match from the selection menu generation
 	$this->special_field_array = array(

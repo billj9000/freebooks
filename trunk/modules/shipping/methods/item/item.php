@@ -21,6 +21,8 @@
 define('MODULE_SHIPPING_ITEM_VERSION','3.2');
 
 class item {
+  public $code;
+
   function __construct() {
     $this->code = 'item';
   }

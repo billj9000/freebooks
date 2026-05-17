@@ -22,6 +22,8 @@
 define('MODULE_SHIPPING_STOREPICKUP_VERSION','3.2');
 
 class storepickup {
+  public $code;
+
   function __construct() {
     $this->code = 'storepickup';
   }

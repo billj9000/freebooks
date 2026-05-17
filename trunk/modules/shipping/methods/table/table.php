@@ -21,6 +21,8 @@
 define('MODULE_SHIPPING_TABLE_VERSION','3.2');
 
 class table {
+  public $code;
+
   function __construct() {
     $this->code = 'table';
   }

@@ -18,6 +18,7 @@
 //  Path: /modules/phreedom/classes/tabs.php
 //
 
+#[\AllowDynamicProperties]
 class tabs {
     public  $help_path   = '';
     public  $module      = '';

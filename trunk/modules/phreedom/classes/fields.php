@@ -17,6 +17,7 @@
 //  Path: /modules/phreedom/classes/fields.php
 //
 
+#[\AllowDynamicProperties]
 class fields {
 	public  $help_path      = '';
 	public  $title          = '';

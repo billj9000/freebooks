@@ -20,6 +20,13 @@
 define('lnbr', "\n");
 
 class backup {
+  public $max_count;
+  public $backup_mime;
+  public $db_filename;
+  public $source_dir;
+  public $source_file;
+  public $dest_dir;
+  public $dest_file;
 
   function __construct() {
     $this->max_count   = 200; // max 300 to work with BigDump based restore sript

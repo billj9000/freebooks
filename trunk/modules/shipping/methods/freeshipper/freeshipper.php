@@ -21,6 +21,8 @@
 define('MODULE_SHIPPING_FREESHIPPER_VERSION','3.2');
 
 class freeshipper {
+  public $code;
+
   function __construct() {
     $this->code = 'freeshipper';
   }

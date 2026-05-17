@@ -20,6 +20,16 @@
 if (file_exists(DIR_FS_ADMIN."soap/custom/orders.php")) { require_once(DIR_FS_ADMIN."soap/custom/orders.php"); }
 
 class xml_orders extends parser {
+  public $response;
+  public $successful;
+  public $failed;
+  public $username;
+  public $password;
+  public $version;
+  public $function;
+  public $action;
+  public $order;
+
   function __construct() {
 	$this->response   = array();
 	$this->successful = array();

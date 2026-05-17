@@ -20,6 +20,8 @@
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current reportbuilder structure.
 class acct_recon {
+	public $bal_sheet_data;
+
 	function __construct() {
 	}
 

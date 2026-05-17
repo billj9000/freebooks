@@ -20,6 +20,11 @@
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current reportbuilder structure.
 class subaccount_bs {
+  public $coa_info;
+  public $runaway_cnt;
+  public $bal_sheet_data;
+  public $max_num_levels;
+
   function __construct() {
 	$this->coa_info    = load_coa_info($affected_accounts = array(0, 2, 4 ,6, 8, 10, 12, 20, 22, 24, 40, 42, 44));
 	$this->runaway_cnt = 100;

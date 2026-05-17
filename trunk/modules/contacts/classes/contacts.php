@@ -19,6 +19,7 @@
 
 require_once(DIR_FS_MODULES . 'contacts/classes/contact_fields.php');
 
+#[\AllowDynamicProperties]
 class contacts {
 	public  $terms_type         = 'AP'; 
 	public  $page_title_new     = '';

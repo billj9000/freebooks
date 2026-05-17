@@ -25,6 +25,9 @@ require_once(DIR_FS_MODULES . 'phreebooks/classes/income_statement.php');
 // this file contains special function calls to generate the data array needed to build reports not possible
 // with the current reportbuilder structure.
 class balance_sheet {
+	public $coa_types;
+	public $bal_sheet_data;
+
 	function __construct() {
 		$this->coa_types = load_coa_types();
 	}

@@ -17,6 +17,7 @@
 //  Path: /modules/phreebooks/classes/gen_ledger.php
 //
 
+#[\AllowDynamicProperties]
 class journal {
   function __construct($id=0, $verbose=true) {
   	$this->affected_accounts= array();

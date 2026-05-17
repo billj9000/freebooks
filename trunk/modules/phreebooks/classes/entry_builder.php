@@ -19,6 +19,7 @@
 
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
+#[\AllowDynamicProperties]
 class entry_builder {
   function __construct() {
 	$this->discount = 0;

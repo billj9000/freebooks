@@ -239,6 +239,7 @@ class splitPageResults {
 /**************************************************************************************************************/
 // Section 3. Class objectInfo
 /**************************************************************************************************************/
+#[\AllowDynamicProperties]
 class objectInfo {
   function __construct($object_array = array()) {
     if (is_array($object_array)) {

@@ -17,6 +17,7 @@
 //  Path: /modules/inventory/classes/inventory.php
 //
 
+#[\AllowDynamicProperties]
 class inventory {
 	public $inventory_type			= '';
 	public $help_path   			= '07.04.01.02';

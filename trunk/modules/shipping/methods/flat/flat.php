@@ -21,6 +21,8 @@
 define('MODULE_SHIPPING_FLAT_VERSION','3.2');
 
 class flat {
+  public $code;
+
   function __construct() {
     $this->code = 'flat';
   }
