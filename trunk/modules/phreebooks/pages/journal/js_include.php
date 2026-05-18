@@ -215,24 +215,17 @@ function addGLRow(debit, credit, description) {
 }
 
 function removeGLRow(delRowCnt) {
-  var glIndex = (delRowCnt * 2) - 2;
-  // remove row from display by reindexing and then deleting last row
-  for (var i = delRowCnt; i < ((document.getElementById("item_table").rows.length - 1) / 2); i++) {
-	// remaining cell values
-	document.getElementById('acct_'+i).value   = document.getElementById('acct_'+(i+1)).value;
-	document.getElementById('desc_'+i).value   = document.getElementById('desc_'+(i+1)).value;
-	document.getElementById('debit_'+i).value  = document.getElementById('debit_'+(i+1)).value;
-	document.getElementById('credit_'+i).value = document.getElementById('credit_'+(i+1)).value;
-// Hidden fields
-	document.getElementById('id_'+i).value = document.getElementById('id_'+(i+1)).value;
-// End hidden fields
-	// move information fields
-	document.getElementById("item_table").rows[glIndex+1].cells[0].innerHTML = document.getElementById("item_table").rows[glIndex+3].cells[0].innerHTML;
-	document.getElementById("item_table").rows[glIndex+1].cells[1].innerHTML = document.getElementById("item_table").rows[glIndex+3].cells[1].innerHTML;
-	glIndex = glIndex + 2; // increment the row counter (two rows per entry)
+  var tbody = document.getElementById("item_table");
+  var N = tbody.rows.length / 2;
+  for (var i = delRowCnt; i < N; i++) {
+    document.getElementById('acct_'  + i).value = document.getElementById('acct_'  + (i+1)).value;
+    document.getElementById('desc_'  + i).value = document.getElementById('desc_'  + (i+1)).value;
+    document.getElementById('debit_' + i).value = document.getElementById('debit_' + (i+1)).value;
+    document.getElementById('credit_'+ i).value = document.getElementById('credit_'+ (i+1)).value;
+    document.getElementById('id_'    + i).value = document.getElementById('id_'    + (i+1)).value;
   }
-  document.getElementById("item_table").deleteRow(-1);
-  document.getElementById("item_table").deleteRow(-1);
+  tbody.deleteRow(-1);
+  tbody.deleteRow(-1);
   updateBalance(true);
 }
 
@@ -280,7 +273,7 @@ function formatRow(rowID, DebitOrCredit) {
   updateBalance();
 }
 
-function updateBalance() {
+function updateBalance(skipAutoComplete) {
   var debit_total = 0;
   var credit_total = 0;
   var balance_total = 0;
@@ -294,7 +287,7 @@ function updateBalance() {
   }
   var debit  = 0;
   var credit = 0;
-  if (debit_total != credit_total && document.getElementById('auto_complete').checked == true) { // auto fill only for new entries
+  if (!skipAutoComplete && debit_total != credit_total && document.getElementById('auto_complete').checked == true) { // auto fill only for new entries
 	if (debit_total > credit_total){
 		credit = debit_total  - credit_total;
 		credit_total += credit;
