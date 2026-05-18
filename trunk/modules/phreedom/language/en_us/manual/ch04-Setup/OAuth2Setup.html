@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="doc_pos" content="04.06.01">
+<meta name="doc_index_1" content="Email.OAuth2 Setup">
+<meta name="doc_index_2" content="OAuth2.SMTP">
+<meta name="doc_title" content="OAuth2 Setup (Gmail / Office 365)">
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>OAuth2 Setup (Gmail / Office 365)</title>
+</head>
+<body>
+<h1 align="center">OAuth2 Setup (Gmail / Office&nbsp;365)</h1>
+
+<p>Google and Microsoft have disabled password-based SMTP authentication for many
+accounts and now require OAuth2. This page explains how to register an application
+with each provider and configure FreeBooks to use it.</p>
+
+<p>The OAuth2 flow redirects the user's browser through the provider's consent screen
+&mdash; the provider never contacts your server directly &mdash; so it works correctly
+even when FreeBooks is hosted on <code>localhost</code>.</p>
+
+<h2>Overview of steps</h2>
+<ol>
+  <li>Register an application with your provider (Google Cloud Console or Azure).</li>
+  <li>Enter the Client&nbsp;ID, Client&nbsp;Secret, and other settings in
+  <strong>General Admin &rsaquo; Email</strong>.</li>
+  <li>Click <strong>Authorise with Provider</strong>. A consent window opens.</li>
+  <li>Sign in with the sending mailbox account and grant access.</li>
+  <li>The refresh token is stored automatically. Save the form.</li>
+</ol>
+
+<p>The redirect URI to register with your provider is:<br>
+<code>http(s)://&lt;your-server&gt;/oauth2_callback.php</code></p>
+
+<hr>
+
+<h2>Google (Gmail)</h2>
+
+<h3>1. Create a project and OAuth credentials</h3>
+<ol>
+  <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>
+  and sign in with a Google account that has access to the sending mailbox (or any Google
+  account &mdash; you will grant access to the mailbox during authorisation).</li>
+  <li>Create a new project (or select an existing one).</li>
+  <li>In the left menu go to <strong>APIs &amp; Services &rsaquo; OAuth consent screen</strong>.
+    <ul>
+      <li>User type: <strong>External</strong> (unless you have a Google Workspace organisation).</li>
+      <li>Fill in the App name, user support email, and developer contact email.</li>
+      <li>No scopes need to be added on this screen; click through to <strong>Save and Continue</strong>.</li>
+      <li>Under <strong>Test users</strong>, add the Gmail address you will send from.</li>
+    </ul>
+  </li>
+  <li>Go to <strong>APIs &amp; Services &rsaquo; Credentials &rsaquo; Create Credentials &rsaquo;
+  OAuth client ID</strong>.
+    <ul>
+      <li>Application type: <strong>Web application</strong>.</li>
+      <li>Under <strong>Authorised redirect URIs</strong>, add your callback URL, e.g.<br>
+      <code>http://localhost/oauth2_callback.php</code></li>
+      <li>Click <strong>Create</strong>.</li>
+    </ul>
+  </li>
+  <li>Copy the <strong>Client ID</strong> and <strong>Client secret</strong>.</li>
+</ol>
+
+<h3>2. Enable the Gmail API</h3>
+<p>Go to <strong>APIs &amp; Services &rsaquo; Library</strong>, search for
+<strong>Gmail API</strong>, and click <strong>Enable</strong>.</p>
+
+<h3>3. Configure FreeBooks</h3>
+<ul>
+  <li>Transport: <strong>SMTP with OAuth2</strong></li>
+  <li>SMTP server: <code>smtp.gmail.com</code></li>
+  <li>Port: <code>587</code> &nbsp; Encryption: <strong>STARTTLS</strong></li>
+  <li>Provider: <strong>Google (Gmail)</strong></li>
+  <li>Client ID / Client secret: paste from step&nbsp;1.</li>
+  <li>Authorised email address: the Gmail address you will send from.</li>
+  <li>Click <strong>Authorise with Provider</strong> and complete the consent screen.</li>
+  <li>Save the form.</li>
+</ul>
+
+<p><strong>Note:</strong> While the app is in <em>Testing</em> mode on the consent screen,
+only the test users you listed can authorise it. For a production deployment, submit the
+app for Google review or keep it in testing with your address added as a test user.</p>
+
+<hr>
+
+<h2>Microsoft Office 365</h2>
+
+<h3>1. Register an application in Azure</h3>
+<ol>
+  <li>Go to the
+  <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">Azure portal &rsaquo; App registrations</a>
+  and sign in with an account that has permission to register applications.</li>
+  <li>Click <strong>New registration</strong>.
+    <ul>
+      <li>Name: e.g. <em>FreeBooks Mail</em>.</li>
+      <li>Supported account types: choose <strong>Accounts in this organisational directory only</strong>
+      for a single-tenant organisation, or <strong>Accounts in any organisational directory
+      and personal Microsoft accounts</strong> for multi-tenant / personal accounts.</li>
+      <li>Redirect URI: platform <strong>Web</strong>, URI e.g.<br>
+      <code>http://localhost/oauth2_callback.php</code></li>
+      <li>Click <strong>Register</strong>.</li>
+    </ul>
+  </li>
+  <li>On the app overview page, copy the <strong>Application (client) ID</strong>
+  and <strong>Directory (tenant) ID</strong>.</li>
+  <li>Go to <strong>Certificates &amp; secrets &rsaquo; New client secret</strong>.
+  Add a description, choose an expiry, and copy the generated secret value immediately
+  (it is only shown once).</li>
+</ol>
+
+<h3>2. Add SMTP.Send permission</h3>
+<ol>
+  <li>Go to <strong>API permissions &rsaquo; Add a permission &rsaquo;
+  APIs my organisation uses</strong> and search for <strong>Office 365 Exchange Online</strong>.</li>
+  <li>Choose <strong>Delegated permissions</strong> and tick <strong>SMTP.Send</strong>.</li>
+  <li>Click <strong>Add permissions</strong>.</li>
+  <li>If your tenant requires it, click <strong>Grant admin consent</strong>.</li>
+</ol>
+
+<h3>3. Enable SMTP AUTH for the mailbox</h3>
+<p>By default, Microsoft 365 disables SMTP AUTH per mailbox. A Microsoft 365 administrator
+must enable it for the sending account:</p>
+<pre>Set-CASMailbox -Identity user@example.com -SmtpClientAuthenticationDisabled $false</pre>
+<p>Or enable it tenant-wide in the
+<a href="https://admin.microsoft.com" target="_blank">Microsoft 365 admin centre</a> under
+<strong>Settings &rsaquo; Org settings &rsaquo; Modern authentication</strong>.</p>
+
+<h3>4. Configure FreeBooks</h3>
+<ul>
+  <li>Transport: <strong>SMTP with OAuth2</strong></li>
+  <li>SMTP server: <code>smtp.office365.com</code></li>
+  <li>Port: <code>587</code> &nbsp; Encryption: <strong>STARTTLS</strong></li>
+  <li>Provider: <strong>Microsoft (Office 365 / Outlook)</strong></li>
+  <li>Client ID: Application (client) ID from step&nbsp;1.</li>
+  <li>Client secret: secret value from step&nbsp;1.</li>
+  <li>Tenant: Directory (tenant) ID from step&nbsp;1, or <code>common</code> for
+  multi-tenant / personal accounts.</li>
+  <li>Authorised email address: the Office&nbsp;365 address you will send from.</li>
+  <li>Click <strong>Authorise with Provider</strong> and complete the Microsoft login.</li>
+  <li>Save the form.</li>
+</ul>
+
+<h3>Token expiry</h3>
+<p>Refresh tokens are long-lived but can expire if unused for 90&nbsp;days (Microsoft
+default) or if the user changes their password. If email sending fails with an
+authentication error, click <strong>Authorise with Provider</strong> again to obtain
+a new refresh token.</p>
+</body>
+</html>

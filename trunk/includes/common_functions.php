@@ -1715,6 +1715,26 @@ function validate_ajax_user($token = 0) {
           $mail->Password = EMAIL_SMTPAUTH_PASSWORD;
         }
       }
+      if (EMAIL_TRANSPORT == 'oauth2') {
+        if (!function_exists('curl_init')) {
+          $messageStack->add(defined('CD_OAUTH2_ERROR_NO_CURL') ? CD_OAUTH2_ERROR_NO_CURL : 'OAuth2 requires the PHP cURL extension.', 'error');
+          return false;
+        }
+        $access_token = gen_oauth2_refresh_access_token();
+        if (!$access_token) {
+          $messageStack->add(defined('CD_OAUTH2_ERROR_NO_TOKEN') ? CD_OAUTH2_ERROR_NO_TOKEN : 'OAuth2 token refresh failed. Re-authorise in Admin > Email.', 'error');
+          return false;
+        }
+        $oauth_email = (defined('EMAIL_OAUTH2_EMAIL') && gen_not_null(EMAIL_OAUTH2_EMAIL)) ? EMAIL_OAUTH2_EMAIL : EMAIL_FROM;
+        $mail->isSMTP();
+        $mail->Host = EMAIL_SMTPAUTH_MAIL_SERVER;
+        if (EMAIL_SMTPAUTH_MAIL_SERVER_PORT != '25' && EMAIL_SMTPAUTH_MAIL_SERVER_PORT != '') $mail->Port = EMAIL_SMTPAUTH_MAIL_SERVER_PORT;
+        if     (EMAIL_SMTPAUTH_TLS == '1')   $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        elseif (EMAIL_SMTPAUTH_TLS == 'ssl') $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+        $mail->SMTPAuth = true;
+        $mail->AuthType = 'XOAUTH2';
+        $mail->setOAuth(new FreebooksOAuth($access_token, $oauth_email));
+      }
       $mail->Subject  = $email_subject;
       $mail->From     = $from_email_address;
       $mail->FromName = $from_email_name;
@@ -2119,5 +2139,51 @@ function Phreebooks_autoloader($class){
 		}
 	}
 
+}
+
+// OAuth2 SMTP support -------------------------------------------------------
+
+class FreebooksOAuth implements \PHPMailer\PHPMailer\OAuthTokenProvider {
+  private $access_token;
+  private $email;
+
+  public function __construct($access_token, $email) {
+    $this->access_token = $access_token;
+    $this->email        = $email;
+  }
+
+  public function getOauth64() {
+    return base64_encode("user=" . $this->email . "\001auth=Bearer " . $this->access_token . "\001\001");
+  }
+}
+
+function gen_oauth2_refresh_access_token() {
+  if (!defined('EMAIL_OAUTH2_REFRESH_TOKEN') || !gen_not_null(EMAIL_OAUTH2_REFRESH_TOKEN)) return false;
+  $provider = defined('EMAIL_OAUTH2_PROVIDER') ? EMAIL_OAUTH2_PROVIDER : 'google';
+  $data = array(
+    'client_id'     => defined('EMAIL_OAUTH2_CLIENT_ID')     ? EMAIL_OAUTH2_CLIENT_ID     : '',
+    'client_secret' => defined('EMAIL_OAUTH2_CLIENT_SECRET') ? EMAIL_OAUTH2_CLIENT_SECRET : '',
+    'refresh_token' => EMAIL_OAUTH2_REFRESH_TOKEN,
+    'grant_type'    => 'refresh_token',
+  );
+  if ($provider === 'google') {
+    $url = 'https://oauth2.googleapis.com/token';
+  } else {
+    $tenant = defined('EMAIL_OAUTH2_TENANT') && gen_not_null(EMAIL_OAUTH2_TENANT) ? EMAIL_OAUTH2_TENANT : 'common';
+    $url    = 'https://login.microsoftonline.com/' . rawurlencode($tenant) . '/oauth2/v2.0/token';
+  }
+  $ch = curl_init($url);
+  curl_setopt_array($ch, array(
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => http_build_query($data),
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT        => 15,
+    CURLOPT_HTTPHEADER     => array('Content-Type: application/x-www-form-urlencoded'),
+  ));
+  $response = curl_exec($ch);
+  curl_close($ch);
+  if (!$response) return false;
+  $json = json_decode($response, true);
+  return isset($json['access_token']) ? $json['access_token'] : false;
 }
 ?>

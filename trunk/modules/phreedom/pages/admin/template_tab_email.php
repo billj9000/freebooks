@@ -30,7 +30,13 @@
 <div id="tab_email">
 <table class="ui-widget email-section" style="border-style:none;width:100%">
  <thead class="ui-widget-header">
-  <tr><th colspan="2"><?php echo MENU_HEADING_EMAIL; ?></th></tr>
+  <tr>
+    <th><?php echo MENU_HEADING_EMAIL; ?></th>
+    <th style="text-align:right;font-weight:normal">
+      <a href="javascript:void(0)" style="font-size:0.85em"
+         onclick="window.open('index.php?module=phreehelp&amp;page=main&amp;idx=04.06','help','width=800,height=600,resizable=1,scrollbars=1,top=100,left=100')">&#9432; Email help</a>
+    </th>
+  </tr>
  </thead>
  <tbody class="ui-widget-content">
 
@@ -156,6 +162,90 @@
     <td class="email-field">
       <button type="button" id="smtp_test_btn" onclick="testSmtpConnection()">Test SMTP Connection</button>
       <div id="smtp_test_result" style="margin-top:8px;display:none;padding:8px 10px;border-radius:3px;font-size:0.9em;line-height:1.5em;"></div>
+    </td>
+  </tr>
+
+  <tr class="ui-widget-header" id="oauth2_header"><th colspan="2">OAuth2</th></tr>
+
+  <tr class="email-row" id="oauth2_row_provider">
+    <td class="email-label">
+      <strong>Provider</strong>
+      <span class="hint"><?php echo CD_OAUTH2_PROVIDER_DESC; ?></span>
+    </td>
+    <td class="email-field">
+      <?php echo html_pull_down_menu('email_oauth2_provider', $sel_oauth2_provider, $_POST['email_oauth2_provider'] ?? (defined('EMAIL_OAUTH2_PROVIDER') ? EMAIL_OAUTH2_PROVIDER : 'google'), 'id="email_oauth2_provider"'); ?>
+    </td>
+  </tr>
+
+  <tr class="email-row shaded" id="oauth2_row_client_id">
+    <td class="email-label">
+      <strong>Client ID</strong>
+      <span class="hint"><?php echo CD_OAUTH2_CLIENT_ID_DESC; ?></span>
+    </td>
+    <td class="email-field">
+      <?php echo html_input_field('email_oauth2_client_id', $_POST['email_oauth2_client_id'] ?? (defined('EMAIL_OAUTH2_CLIENT_ID') ? EMAIL_OAUTH2_CLIENT_ID : ''), ''); ?>
+    </td>
+  </tr>
+
+  <tr class="email-row" id="oauth2_row_client_secret">
+    <td class="email-label">
+      <strong>Client secret</strong>
+      <span class="hint"><?php echo CD_OAUTH2_CLIENT_SECRET_DESC; ?></span>
+    </td>
+    <td class="email-field">
+      <?php echo html_input_field('email_oauth2_client_secret', $_POST['email_oauth2_client_secret'] ?? (defined('EMAIL_OAUTH2_CLIENT_SECRET') ? EMAIL_OAUTH2_CLIENT_SECRET : ''), '', false, 'password'); ?>
+    </td>
+  </tr>
+
+  <tr class="email-row shaded" id="oauth2_row_tenant">
+    <td class="email-label">
+      <strong>Tenant (Microsoft only)</strong>
+      <span class="hint"><?php echo CD_OAUTH2_TENANT_DESC; ?></span>
+    </td>
+    <td class="email-field">
+      <?php echo html_input_field('email_oauth2_tenant', $_POST['email_oauth2_tenant'] ?? (defined('EMAIL_OAUTH2_TENANT') ? EMAIL_OAUTH2_TENANT : 'common'), ''); ?>
+    </td>
+  </tr>
+
+  <tr class="email-row" id="oauth2_row_email">
+    <td class="email-label">
+      <strong>Authorised email address</strong>
+      <span class="hint"><?php echo CD_OAUTH2_EMAIL_DESC; ?></span>
+    </td>
+    <td class="email-field">
+      <?php echo html_input_field('email_oauth2_email', $_POST['email_oauth2_email'] ?? (defined('EMAIL_OAUTH2_EMAIL') ? EMAIL_OAUTH2_EMAIL : ''), ''); ?>
+    </td>
+  </tr>
+
+  <tr class="email-row shaded" id="oauth2_row_refresh_token">
+    <td class="email-label">
+      <strong>Refresh token</strong>
+      <span class="hint"><?php echo CD_OAUTH2_REFRESH_TOKEN_DESC; ?></span>
+    </td>
+    <td class="email-field">
+      <?php
+        $has_token = defined('EMAIL_OAUTH2_REFRESH_TOKEN') && gen_not_null(EMAIL_OAUTH2_REFRESH_TOKEN);
+        if ($has_token) {
+          echo '<span style="color:#3c763d">' . CD_OAUTH2_AUTHORIZED . '</span> &nbsp;';
+        } else {
+          echo '<span style="color:#a94442">' . CD_OAUTH2_NOT_AUTHORIZED . '</span> &nbsp;';
+        }
+      ?>
+      <input type="hidden" name="email_oauth2_refresh_token" id="email_oauth2_refresh_token"
+        value="<?php echo htmlspecialchars(defined('EMAIL_OAUTH2_REFRESH_TOKEN') ? EMAIL_OAUTH2_REFRESH_TOKEN : ''); ?>" />
+    </td>
+  </tr>
+
+  <tr class="email-row" id="oauth2_row_authorize">
+    <td class="email-label">
+      <strong><?php echo CD_OAUTH2_AUTHORIZE; ?></strong>
+      <span class="hint"><?php echo CD_OAUTH2_AUTHORIZE_HINT; ?>
+        &nbsp;<a href="javascript:void(0)" onclick="window.open('index.php?module=phreehelp&amp;page=main&amp;idx=04.06.01','help','width=800,height=600,resizable=1,scrollbars=1,top=100,left=100')">Setup guide</a>
+      </span>
+    </td>
+    <td class="email-field">
+      <button type="button" id="oauth2_auth_btn" onclick="startOAuth2()">Authorise with Provider</button>
+      <div id="oauth2_auth_result" style="margin-top:8px;display:none;padding:8px 10px;border-radius:3px;font-size:0.9em"></div>
     </td>
   </tr>
 

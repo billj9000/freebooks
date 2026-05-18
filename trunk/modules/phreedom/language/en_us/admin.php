@@ -321,4 +321,18 @@ define('GEN_LOG_LOGIN_FAILED','Failed User Login - id -> ');
 define('GEN_LOG_LOGOFF','User Logoff -> ');
 define('GEN_LOG_RESEND_PW','Re-sent Password to email -> ');
 
+// OAuth2 SMTP
+define('CD_OAUTH2_PROVIDER_DESC',     'Select the OAuth2 provider that hosts the sending mailbox.');
+define('CD_OAUTH2_CLIENT_ID_DESC',    'OAuth2 Client ID (Application ID) from the Google Cloud Console or Azure App Registration.');
+define('CD_OAUTH2_CLIENT_SECRET_DESC','OAuth2 Client Secret from the Google Cloud Console or Azure App Registration.');
+define('CD_OAUTH2_TENANT_DESC',       'Microsoft only: Azure AD tenant ID, or use <em>common</em> for multi-tenant apps and personal accounts.');
+define('CD_OAUTH2_EMAIL_DESC',        'The email address of the account being authorised. Must match the account you consent with.');
+define('CD_OAUTH2_REFRESH_TOKEN_DESC','Stored refresh token (set automatically when you click Authorise). Clear this field to revoke access.');
+define('CD_OAUTH2_AUTHORIZE',         'Authorise');
+define('CD_OAUTH2_AUTHORIZE_HINT',    'Save client credentials first, then click Authorise to open the consent screen. The refresh token will be stored automatically.');
+define('CD_OAUTH2_AUTHORIZED',        'Authorised — refresh token is stored.');
+define('CD_OAUTH2_NOT_AUTHORIZED',    'Not yet authorised.');
+define('CD_OAUTH2_ERROR_NO_TOKEN',    'OAuth2 token refresh failed. Re-authorise in Admin &rsaquo; Email.');
+define('CD_OAUTH2_ERROR_NO_CURL',     'OAuth2 requires the PHP cURL extension.');
+
 ?>

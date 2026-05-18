@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="doc_pos" content="04.06">
+<meta name="doc_index_1" content="Email.Settings">
+<meta name="doc_index_2" content="Setup.Email">
+<meta name="doc_title" content="Email Settings">
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Email Settings</title>
+</head>
+<body>
+<h1 align="center">Email Settings</h1>
+<p>Email settings are configured in <strong>General Admin &rsaquo; Email</strong>.
+FreeBooks uses <a href="https://github.com/PHPMailer/PHPMailer" target="_blank">PHPMailer</a>
+for all outgoing mail and supports several transport methods.</p>
+
+<h2>Transport Methods</h2>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+  <thead>
+    <tr style="background:#ddd"><th>Transport</th><th>When to use</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>PHP mail()</strong></td>
+      <td>Uses the server's local MTA (sendmail/Postfix). Suitable only when a properly
+      configured MTA is present on the server.</td>
+    </tr>
+    <tr>
+      <td><strong>sendmail / sendmail&nbsp;-f</strong></td>
+      <td>Calls the sendmail binary directly. Use <em>sendmail -f</em> to set the envelope
+      sender, which can help with SPF checks.</td>
+    </tr>
+    <tr>
+      <td><strong>SMTP (no auth)</strong></td>
+      <td>Connects to an SMTP relay that does not require authentication (e.g. an internal
+      mail gateway or a relay configured to accept connections from your server's IP).</td>
+    </tr>
+    <tr>
+      <td><strong>SMTP with authentication</strong></td>
+      <td>Connects to an SMTP server with a username and password. Suitable for most
+      traditional hosting providers and for Gmail/Office&nbsp;365 App&nbsp;Passwords.</td>
+    </tr>
+    <tr>
+      <td><strong>SMTP with OAuth2</strong></td>
+      <td>Connects using OAuth2 (XOAUTH2 mechanism). Required for Gmail and Office&nbsp;365
+      when legacy authentication is disabled.
+      See <a href="OAuth2Setup.html" target="mainFrame">OAuth2 Setup</a>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Encryption Settings</h2>
+<ul>
+  <li><strong>None</strong> &mdash; plain SMTP, no encryption (port&nbsp;25). Suitable for
+  internal relays only.</li>
+  <li><strong>STARTTLS</strong> &mdash; starts a plain connection then upgrades to TLS.
+  Standard for most providers (port&nbsp;587).</li>
+  <li><strong>SSL/TLS</strong> &mdash; TLS from the start (port&nbsp;465). Used by some
+  hosts and by Office&nbsp;365 legacy SMTP.</li>
+</ul>
+
+<h2>Common Provider Settings</h2>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+  <thead>
+    <tr style="background:#ddd"><th>Provider</th><th>Server</th><th>Port</th><th>Encryption</th><th>Transport</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Gmail (App Password)</td>
+      <td>smtp.gmail.com</td><td>587</td><td>STARTTLS</td><td>SMTP with authentication</td>
+    </tr>
+    <tr>
+      <td>Gmail (OAuth2)</td>
+      <td>smtp.gmail.com</td><td>587</td><td>STARTTLS</td><td>SMTP with OAuth2</td>
+    </tr>
+    <tr>
+      <td>Office 365 (App Password)</td>
+      <td>smtp.office365.com</td><td>587</td><td>STARTTLS</td><td>SMTP with authentication</td>
+    </tr>
+    <tr>
+      <td>Office 365 (OAuth2)</td>
+      <td>smtp.office365.com</td><td>587</td><td>STARTTLS</td><td>SMTP with OAuth2</td>
+    </tr>
+    <tr>
+      <td>Generic cPanel host</td>
+      <td>mail.yourdomain.com</td><td>465</td><td>SSL/TLS</td><td>SMTP with authentication</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>See also: <a href="OAuth2Setup.html" target="mainFrame">OAuth2 Setup (Gmail &amp; Office 365)</a></p>
+</body>
+</html>

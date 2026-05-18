@@ -152,9 +152,10 @@ class splitPageResults {
     		$temp = $db->Execute("SELECT COUNT(*) AS cnt FROM ($count_sql) AS _t");
     		$query_num_rows = $temp->fields['cnt'];
     	}
-    	$this->total_num_rows		= $query_num_rows;
-      	$this->current_page_number 	= max(1, $current_page_number);
-		$this->total_num_pages		= ceil($this->total_num_rows / $this->max_rows_per_page);
+    	$this->total_num_rows		= (int)$query_num_rows;
+      	$this->current_page_number 	= max(1, (int)$current_page_number);
+      	$per_page = (int)$this->max_rows_per_page;
+		$this->total_num_pages		= $per_page > 0 ? (int)ceil($this->total_num_rows / $per_page) : 1;
 		if ($this->total_num_pages == 0) $this->total_num_pages = 1;
       	if ($this->total_num_pages < $this->current_page_number) $this->current_page_number = max(1, $this->total_num_pages);
     }

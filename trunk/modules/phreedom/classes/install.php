@@ -68,6 +68,12 @@ class phreedom_admin {
 	  'EMAIL_SMTPAUTH_MAIL_SERVER_PORT' => '25',
       'EMAIL_SMTPAUTH_TLS'            => '0',
       'EMAIL_SMTP_ALLOW_SELF_SIGNED'  => '0',
+      'EMAIL_OAUTH2_PROVIDER'        => 'google',
+      'EMAIL_OAUTH2_CLIENT_ID'       => '',
+      'EMAIL_OAUTH2_CLIENT_SECRET'   => '',
+      'EMAIL_OAUTH2_TENANT'          => 'common',
+      'EMAIL_OAUTH2_EMAIL'           => '',
+      'EMAIL_OAUTH2_REFRESH_TOKEN'   => '',
 	  'CURRENCIES_TRANSLATIONS'    => '&pound;,?:&euro;,?',
       'DATE_FORMAT'                => 'm/d/Y', // this is used for date(), use only values: Y, m and d (case sensitive)
       'DATE_DELIMITER'             => '/', // must match delimiter used in DATE_FORMAT

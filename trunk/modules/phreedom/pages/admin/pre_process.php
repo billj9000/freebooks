@@ -327,6 +327,11 @@ $sel_transport = array(
   array('id' => 'sendmail-f', 'text' => 'sendmail -f'),
   array('id' => 'smtp',       'text' => 'SMTP (no authentication)'),
   array('id' => 'smtpauth',   'text' => 'SMTP with authentication'),
+  array('id' => 'oauth2',     'text' => 'SMTP with OAuth2 (Gmail / Office 365)'),
+);
+$sel_oauth2_provider = array(
+  array('id' => 'google',    'text' => 'Google (Gmail)'),
+  array('id' => 'microsoft', 'text' => 'Microsoft (Office 365 / Outlook)'),
 );
 $sel_smtp_encryption = array(
   array('id' => '0',   'text' => 'None'),

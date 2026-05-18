@@ -28,8 +28,8 @@ $mailbox     = trim($_POST['mailbox']     ?? '');
 $password    = trim($_POST['password']    ?? '');
 $self_signed = ($_POST['self_signed']     ?? '0') === '1';
 
-if (!in_array($transport, ['smtp', 'smtpauth'])) {
-  echo json_encode(['ok' => false, 'message' => 'Test only applies to SMTP transports. Select "SMTP (no authentication)" or "SMTP with authentication" first.']);
+if (!in_array($transport, ['smtp', 'smtpauth', 'oauth2'])) {
+  echo json_encode(['ok' => false, 'message' => 'Test only applies to SMTP transports. Select an SMTP or OAuth2 transport first.']);
   die;
 }
 if ($server === '') {
@@ -102,6 +102,31 @@ if ($transport === 'smtpauth') {
   }
   $smtp->quit();
   echo json_encode(['ok' => true, 'message' => 'Connected and authenticated successfully to ' . htmlspecialchars($server) . ':' . $port . '.', 'log' => $debug_log]);
+} elseif ($transport === 'oauth2') {
+  if (!function_exists('curl_init')) {
+    $smtp->quit();
+    echo json_encode(['ok' => false, 'message' => 'PHP cURL extension is required for OAuth2.']);
+    die;
+  }
+  $access_token = gen_oauth2_refresh_access_token();
+  if (!$access_token) {
+    $smtp->quit();
+    echo json_encode(['ok' => false, 'message' => 'OAuth2 token refresh failed. Ensure the refresh token is stored (click Authorise in Admin > Email) and the client credentials are correct.']);
+    die;
+  }
+  $oauth_email = (defined('EMAIL_OAUTH2_EMAIL') && gen_not_null(EMAIL_OAUTH2_EMAIL)) ? EMAIL_OAUTH2_EMAIL : (defined('EMAIL_FROM') ? EMAIL_FROM : '');
+  $oauth = new FreebooksOAuth($access_token, $oauth_email);
+  if (!$smtp->authenticate($oauth_email, '', 'XOAUTH2', $oauth)) {
+    $last = $smtp->getError();
+    $msg  = 'Connected but XOAUTH2 authentication failed.';
+    if (!empty($last['error']))  $msg .= ' ' . htmlspecialchars($last['error']);
+    if (!empty($last['detail'])) $msg .= ' ' . htmlspecialchars($last['detail']);
+    $smtp->quit();
+    echo json_encode(['ok' => false, 'message' => $msg, 'log' => $debug_log]);
+    die;
+  }
+  $smtp->quit();
+  echo json_encode(['ok' => true, 'message' => 'OAuth2 connection and XOAUTH2 authentication successful to ' . htmlspecialchars($server) . ':' . $port . '.', 'log' => $debug_log]);
 } else {
   $smtp->quit();
   echo json_encode(['ok' => true, 'message' => 'Connected successfully to ' . htmlspecialchars($server) . ':' . $port . ' (no authentication).', 'log' => $debug_log]);
