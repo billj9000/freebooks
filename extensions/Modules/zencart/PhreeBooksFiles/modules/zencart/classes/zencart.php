@@ -1,304 +1,237 @@
 <?php
-// +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
-// +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
-// +-----------------------------------------------------------------+
-// | This program is free software: you can redistribute it and/or   |
-// | modify it under the terms of the GNU General Public License as  |
-// | published by the Free Software Foundation, either version 3 of  |
-// | the License, or any later version.                              |
-// |                                                                 |
-// | This program is distributed in the hope that it will be useful, |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
-// | GNU General Public License for more details.                    |
-// +-----------------------------------------------------------------+
-//  Path: /modules/zencart/classes/zencart.php
-//
+// Path: /modules/zencart/classes/zencart.php
 
 class zencart {
-  var $arrOutput = array();
-  var $resParser;
-  var $strXML;
+    public $sku = '';
 
-  function zencart() {
-  }
+    // Upload a single inventory product to ZenCart via the REST API.
+    public function uploadProduct(int $id, bool $inc_image = true): bool
+    {
+        global $db, $currencies, $messageStack;
 
-  function submitXML($id, $action = '', $hide_success = false, $inc_image = true) {
-	global $messageStack;
-	switch ($action) {
-	  case 'product_ul': 
-		if (!$this->buildProductUploadXML($id, $inc_image)) return false;
-		$url = 'products.php';
-		break;
-	  case 'product_sync':
-	  	if (!$this->buildProductSyncXML()) return false;
-		$url = 'sync.php';
-		break;
-	  case 'confirm':
-		if (!$this->buildConfirmXML()) return false;
-		$url = 'confirm.php';
-		break;
-	  default:
-		$messageStack->add(ZENCART_INVALID_ACTION, 'error');
-		return false;
-	}
-//echo 'Submit to ' . ZENCART_URL . '/soap/' . $url . ' and XML string = <pre>' . htmlspecialchars($this->strXML) . '</pre><br />';
-	$this->response = doCURLRequest('POST', ZENCART_URL . '/soap/' . $url, $this->strXML);
-//echo 'XML response (at the PhreeBooks side from Zencart) => <pre>' . htmlspecialchars($this->response) . '</pre><br />' . chr(10);
-	if (!$this->response) return false;
-	if (!$results = xml_to_object($this->response)) return false;
-//echo 'Parsed string = '; print_r($results); echo '<br />';
-	
-	$this->result = $results->Response->Result;
-	$this->code   = $results->Response->Code;
-	$this->text   = $results->Response->Text;
-	if ($this->code == 0) {
-	  if (!$hide_success) $messageStack->add($this->text, strtolower($this->result));
-	  return true;
-	} else {
-	  $messageStack->add(ZENCART_TEXT_ERROR . $this->code . ' - ' . $this->text, strtolower($this->result));
-	  return false;
-	}
-  }
+        $result = $db->Execute("SELECT * FROM " . TABLE_INVENTORY . " WHERE id = " . $id);
+        if ($result->RecordCount() <> 1) {
+            $messageStack->add(ZENCART_INVALID_SKU, 'error');
+            return false;
+        }
+        $inv = $result->fields;
+        $this->sku = $inv['sku'];
 
-/*************************************************************************************/
-//                           Product Upload XML string generation
-/*************************************************************************************/
-  function buildProductUploadXML($id, $inc_image = true) {
-	global $db, $currencies, $messageStack;
-	$result = $db->Execute("select * from " . TABLE_INVENTORY . " where id = " . $id);
-	if ($result->RecordCount() <> 1) {
-	  $messageStack->add(ZENCART_INVALID_SKU,'error');
-	  return false;
-	}
-	$this->sku = $result->fields['sku'];
-	if (ZENCART_USE_PRICE_SHEETS == '1') {
-	  $sql = "select id, default_levels from " . TABLE_PRICE_SHEETS . " 
-		where '" . date('Y-m-d',time()) . "' >= effective_date 
-		and sheet_name = '" . ZENCART_PRICE_SHEET . "' and inactive = '0'";
-	  $default_levels = $db->Execute($sql);
-	  if ($default_levels->RecordCount() == 0) {
-		$messageStack->add(ZENCART_ERROR_NO_PRICE_SHEET . ZENCART_PRICE_SHEET, 'error');
-		return false;
-	  }
-	  $sql = "select price_levels from " . TABLE_INVENTORY_SPECIAL_PRICES . " 
-		where inventory_id = " . $id . " and price_sheet_id = " . $default_levels->fields['id'];
-	  $special_levels = $db->Execute($sql);
-	  if ($special_levels->RecordCount() > 0) {
-		$price_levels = $special_levels->fields['price_levels'];
-	  } else {
-		$price_levels = $default_levels->fields['default_levels'];
-	  }
-	}
+        $product = [
+            'products_model'      => !empty($inv['ProductModel']) ? $inv['ProductModel'] : $inv['sku'],
+            'languageCode'        => 'en',
+            'productType'         => 'Product - General',
+            'manufacturer'        => $inv['manufacturer'] ?? '',
+            'productCategory'     => $inv['category_id'] ?? '',
+            'productName'         => $inv['description_short'] ?? '',
+            'productDescription'  => $inv['description_sales'] ?? '',
+            'productTaxable'      => !empty($inv['item_taxable']),
+            'productStatus'       => empty($inv['inactive']) ? 1 : 0,
+            'product_virtual'     => 0,
+            'productFreeShipping' => 0,
+            'productHidePrice'    => 0,
+            'productSortOrder'    => (int)$inv['id'],
+            'productWeight'       => (float)($inv['item_weight'] ?? 0),
+            'quantity'            => (float)($inv['quantity_on_hand'] ?? 0),
+            'dateAvailable'       => $inv['creation_date'] ?? date('Y-m-d'),
+            'dateUpdated'         => (($inv['last_update'] ?? '') >= ($inv['last_journal_date'] ?? ''))
+                                      ? $inv['last_update'] : $inv['last_journal_date'],
+        ];
 
-	// prepare some information before assembling string
-	if ($result->fields['image_with_path']) { // image file
-	  // Zencart only support one level, so we'll use the first path dir and filename only 
-	  $temp = explode('/', $result->fields['image_with_path']);
-	  if (count(is_array($temp) ? $temp : []) > 1) { 
-		$image_path     = $temp[0];
-		$image_filename = array_pop($temp);
-	  } else {
-		$image_path     = '';
-		$image_filename = $temp[0];
-	  }
-	}
-	if ($inc_image && $result->fields['image_with_path']) { // image file
-	  $filename = DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $result->fields['image_with_path'];
-	  if (file_exists($filename)) {
-		if ($handle = fopen($filename, "rb")) {
-		  $contents = fread($handle, filesize($filename));
-		  fclose($handle);
-		  $image_data = base64_encode($contents);
-		}
-	  } else {
-		unset($image_data);
-	  }
-	}
-	// url encode all of the values to avoid upload bugs
-	foreach ($result->fields as $key => $value) $result->fields[$key] = urlencode($result->fields[$key]);
-	$this->strXML  = '<?xml version="1.0" encoding="UTF-8" ?>' . chr(10);
-	$this->strXML .= '<Request>' . chr(10);
-	$this->strXML .= xmlEntry('Version', '2.00');
-	$this->strXML .= xmlEntry('UserName', ZENCART_USERNAME);
-	$this->strXML .= xmlEntry('UserPassword', ZENCART_PASSWORD);
-	$this->strXML .= xmlEntry('Language', $_SESSION['language']);
-	$this->strXML .= xmlEntry('Operation', 'ProductUpload');
-	$this->strXML .= xmlEntry('Action', 'InsertUpdate');
-	$this->strXML .= xmlEntry('Reference', 'Product Upload SKU: ' . $result->fields['sku']);
-	$this->strXML .= '<Product>' . chr(10);
-	$this->strXML .= xmlEntry('SKU', $result->fields['sku']);
-// Specific to Zencart
-	$this->strXML .= xmlEntry('ProductVirtual', '0');
-	$this->strXML .= xmlEntry('ProductStatus', ($result->fields['inactive'] ? '0' : '1'));
-	$this->strXML .= xmlEntry('ProductFreeShipping', '0');
-	$this->strXML .= xmlEntry('ProductHidePrice', '0');
-	$this->strXML .= xmlEntry('ProductCategory', $result->fields['category_id']);
-	$this->strXML .= xmlEntry('ProductSortOrder', $result->fields['id']);
-// End specific to Zencart
-// TBD need to map ProductType
-	$this->strXML .= xmlEntry('ProductType', 'Product - General');
-	$this->strXML .= xmlEntry('ProductName', $result->fields['description_short']);
-	$this->strXML .= xmlEntry('ProductDescription', $result->fields['description_sales']);
-	if(isset($result->fields['ProductURL']))  $this->strXML .= xmlEntry('ProductURL', $result->fields['ProductURL']);
-	if(isset($result->fields['ProductModel']))$this->strXML .= xmlEntry('ProductModel', $result->fields['ProductModel']);
-	if (isset($image_data)) {
-	  $this->strXML .= xmlEntry('ProductImageDirectory', $image_path);
-	  $this->strXML .= xmlEntry('ProductImageFileName', $image_filename);
-	  $this->strXML .= xmlEntry('ProductImageData', $image_data);
-	}
-// TBD need mappping for TaxClassType
-	$this->strXML .= xmlEntry('ProductTaxable', ($result->fields['item_taxable'] ? 'True' : 'False'));
-	$this->strXML .= xmlEntry('TaxClassType', ZENCART_PRODUCT_TAX_CLASS);
-	// Price Levels
-	$this->strXML .= '  <ProductPrice>' . chr(10);
-	$this->strXML .= xmlEntry('MSRPrice', $result->fields['full_price']);
-	$this->strXML .= xmlEntry('RetailPrice', $result->fields['full_price']);
-	if (ZENCART_USE_PRICE_SHEETS) {
-	  $this->strXML .= '    <PriceDiscounts>' . chr(10);
-	  $this->strXML .= xmlEntry('PriceDiscountType', '2'); // set to actual price type
-	  $prices = inv_calculate_prices($result->fields['item_cost'], $result->fields['full_price'], $price_levels);
-	  foreach ($prices as $level => $amount) {
-		$this->strXML .= '      <PriceLevel>' . chr(10);
-	    $this->strXML .= xmlEntry('DiscountLevel', ($level + 1));
-	    $this->strXML .= xmlEntry('Quantity', $amount['qty']);
-	    $this->strXML .= xmlEntry('Amount', $currencies->clean_value($amount['price']));
-		$this->strXML .= '      </PriceLevel>' . chr(10);
-	  }
-	  $this->strXML .= '    </PriceDiscounts>' . chr(10);
-	} else {
-	  $this->strXML .= '    <PriceDiscounts>' . chr(10);
-	  $this->strXML .= xmlEntry('PriceDiscountType', '0'); // clear qty discount flag
-	  $this->strXML .= '  </PriceDiscounts>' . chr(10);
-	}
-	$this->strXML .= '  </ProductPrice>' . chr(10);
-	$this->strXML .= xmlEntry('ProductWeight', $result->fields['item_weight']);
-	$this->strXML .= xmlEntry('DateAdded', $result->fields['creation_date']);
-	if($result->fields['last_update'] < $result->fields['last_journal_date']){
-		$this->strXML .= xmlEntry('DateUpdated', $result->fields['last_journal_date']);
-	}else{
-		$this->strXML .= xmlEntry('DateUpdated', $result->fields['last_update']);
-	}
-	$this->strXML .= xmlEntry('StockLevel', $result->fields['quantity_on_hand']);
-	$this->strXML .= xmlEntry('Manufacturer', $result->fields['manufacturer']);
-// Hook for including customiation of product attributes
-if (file_exists(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php')) {
-  include      (DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php');
+        if (!empty($inv['ProductURL'])) {
+            $product['productURL'] = $inv['ProductURL'];
+        }
+
+        // Price — use price sheet tiers if configured, otherwise simple retail price
+        if (ZENCART_USE_PRICE_SHEETS == '1' && ZENCART_PRICE_SHEET != '') {
+            $sheet = $db->Execute(
+                "SELECT id, default_levels FROM " . TABLE_PRICE_SHEETS
+                . " WHERE '" . date('Y-m-d') . "' >= effective_date"
+                . " AND sheet_name = '" . db_prepare_input(ZENCART_PRICE_SHEET) . "' AND inactive = '0'"
+            );
+            if ($sheet->RecordCount() == 0) {
+                $messageStack->add(ZENCART_ERROR_NO_PRICE_SHEET . ZENCART_PRICE_SHEET, 'error');
+                return false;
+            }
+            $special = $db->Execute(
+                "SELECT price_levels FROM " . TABLE_INVENTORY_SPECIAL_PRICES
+                . " WHERE inventory_id = " . $id . " AND price_sheet_id = " . (int)$sheet->fields['id']
+            );
+            $levels_str = $special->RecordCount() > 0
+                ? $special->fields['price_levels']
+                : $sheet->fields['default_levels'];
+            $prices = inv_calculate_prices($inv['item_cost'], $inv['full_price'], $levels_str);
+            $price_levels = [];
+            foreach ($prices as $lvl => $amount) {
+                $price_levels[$lvl + 1] = [
+                    'qty'    => $amount['qty'],
+                    'amount' => $currencies->clean_value($amount['price']),
+                ];
+            }
+            $product['priceDiscountType'] = 2;
+            $product['price_levels']      = $price_levels;
+        } else {
+            $product['priceDiscountType'] = 0;
+            $product['retailPrice']       = (float)($inv['full_price'] ?? 0);
+        }
+
+        // Image — encode with URL-safe base64 (RFC 4648) as expected by the API
+        if ($inc_image && !empty($inv['image_with_path'])) {
+            $parts = explode('/', $inv['image_with_path']);
+            if (count($parts) > 1) {
+                $img_dir  = $parts[0];
+                $img_file = array_pop($parts);
+            } else {
+                $img_dir  = '';
+                $img_file = $parts[0];
+            }
+            $full_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $inv['image_with_path'];
+            if (file_exists($full_path)) {
+                $contents = file_get_contents($full_path);
+                if ($contents !== false) {
+                    $product['productImageDirectory'] = $img_dir;
+                    $product['productImageFileName']  = $img_file;
+                    $product['productImageData']      = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($contents));
+                }
+            }
+        }
+
+        // Extension hook for site-specific product attributes
+        if (file_exists(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php')) {
+            include(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php');
+        }
+
+        return zencart_api_call('updateProducts', ['products' => [$product]]) !== false;
+    }
+
+    // Push current quantity_on_hand and retail price for all catalog=1 products.
+    // This is the FreeBooks→ZenCart stock sync (replaces the old SOAP product sync).
+    public function syncQuantities(): bool
+    {
+        global $db, $messageStack;
+
+        $result = $db->Execute(
+            "SELECT sku, ProductModel, quantity_on_hand, full_price"
+            . " FROM " . TABLE_INVENTORY . " WHERE catalog = '1'"
+        );
+        if ($result->RecordCount() == 0) {
+            $messageStack->add(ZENCART_ERROR_NO_ITEMS, 'error');
+            return false;
+        }
+
+        $products = [];
+        while (!$result->EOF) {
+            $model = !empty($result->fields['ProductModel'])
+                ? $result->fields['ProductModel']
+                : $result->fields['sku'];
+            $products[] = [
+                'products_model' => $model,
+                'quantity'       => (float)$result->fields['quantity_on_hand'],
+                'price'          => (float)$result->fields['full_price'],
+            ];
+            $result->MoveNext();
+        }
+
+        $response = zencart_api_call('updateProductsQty', ['products' => $products]);
+        if ($response === false) return false;
+
+        $n_ok  = count($response['updated']    ?? []);
+        $n_err = count($response['notUpdated'] ?? []);
+        if ($n_err > 0) {
+            $messageStack->add(
+                sprintf(ZENCART_SYNC_QTY_PARTIAL, $n_ok, $n_err)
+                . ' ' . implode(', ', $response['notUpdated']),
+                'caution'
+            );
+        } else {
+            $messageStack->add(sprintf(ZENCART_SYNC_QTY_SUCCESS, $n_ok), 'success');
+        }
+        return true;
+    }
+
+    // Confirm shipments in ZenCart for all orders shipped on $post_date.
+    public function confirmShipments(string $post_date): bool
+    {
+        global $db, $messageStack;
+
+        $shipments = $db->Execute(
+            "SELECT ref_id, carrier, method, tracking_id FROM " . TABLE_SHIPPING_LOG
+            . " WHERE ship_date LIKE '" . db_prepare_input($post_date) . " %'"
+        );
+        if ($shipments->RecordCount() == 0) {
+            $messageStack->add(ZENCART_ERROR_CONFRIM_NO_DATA, 'caution');
+            return false;
+        }
+
+        $methods = $this->loadShippingMethods();
+        $sent    = 0;
+        while (!$shipments->EOF) {
+            $ref_id     = $shipments->fields['ref_id'];
+            $invoice_id = (strpos($ref_id, '-') !== false)
+                ? substr($ref_id, 0, strpos($ref_id, '-'))
+                : $ref_id;
+
+            $main = $db->Execute(
+                "SELECT so_po_ref_id FROM " . TABLE_JOURNAL_MAIN
+                . " WHERE journal_id = 12 AND purchase_invoice_id = '" . db_prepare_input($invoice_id) . "'"
+                . " ORDER BY id DESC LIMIT 1"
+            );
+            if (!$main->EOF && !empty($main->fields['so_po_ref_id'])) {
+                $so = $db->Execute(
+                    "SELECT closed, purchase_invoice_id FROM " . TABLE_JOURNAL_MAIN
+                    . " WHERE id = " . (int)$main->fields['so_po_ref_id']
+                );
+                if (!$so->EOF) {
+                    $carrier       = $shipments->fields['carrier'];
+                    $method        = $shipments->fields['method'];
+                    $carrier_title = $methods[$carrier]['title'] ?? $carrier;
+                    $method_title  = $methods[$carrier][$method] ?? $method;
+                    $message       = sprintf(
+                        ZENCART_CONFIRM_MESSAGE,
+                        $post_date,
+                        $carrier_title,
+                        $method_title,
+                        $shipments->fields['tracking_id']
+                    );
+                    $status = $so->fields['closed']
+                        ? (int)ZENCART_STATUS_CONFIRM_ID
+                        : (int)ZENCART_STATUS_PARTIAL_ID;
+                    zencart_api_call('updateOrderComments', [
+                        'orderId' => (int)$so->fields['purchase_invoice_id'],
+                        'comment' => $message,
+                        'status'  => $status,
+                    ]);
+                    $sent++;
+                }
+            }
+            $shipments->MoveNext();
+        }
+
+        if ($sent == 0) {
+            $messageStack->add(ZENCART_ERROR_CONFRIM_NO_DATA, 'caution');
+            return false;
+        }
+        return true;
+    }
+
+    private function loadShippingMethods(): array
+    {
+        global $shipping_defaults;
+        $method_array = [];
+        foreach (scandir(DIR_FS_MODULES . 'shipping/methods/') as $m) {
+            if ($m !== '.' && $m !== '..' && defined('MODULE_SHIPPING_' . strtoupper($m) . '_STATUS')) {
+                $method_array[] = $m;
+            }
+        }
+        $output  = [];
+        $choices = array_keys($shipping_defaults['service_levels']);
+        foreach ($method_array as $m) {
+            load_method_language(DIR_FS_MODULES . 'shipping/methods/', $m);
+            $output[$m]['title'] = constant('MODULE_SHIPPING_' . strtoupper($m) . '_TEXT_TITLE');
+            foreach ($choices as $svc) {
+                $output[$m][$svc] = defined($m . '_' . $svc) ? constant($m . '_' . $svc) : '';
+            }
+        }
+        return $output;
+    }
 }
-// EOF _ Hook for customization
-
-	$this->strXML .= '</Product>' . chr(10);
-	$this->strXML .= '</Request>' . chr(10);
-	return true;
-  }
-
-/*************************************************************************************/
-//                           Product Syncronizer string generation
-/*************************************************************************************/
-  function buildProductSyncXML() { 
-	global $db, $messageStack;
-	$result = $db->Execute("select sku from " . TABLE_INVENTORY . " where catalog = '1'");
-	if ($result->RecordCount() == 0) {
-	  $messageStack->add(ZENCART_ERROR_NO_ITEMS, 'error');
-	  return false;
-	}
-	$this->strXML  = '<?xml version="1.0" encoding="UTF-8" ?>' . chr(10);
-	$this->strXML .= '<Request>' . chr(10);
-	$this->strXML .= xmlEntry('Version', '2.00');
-	$this->strXML .= xmlEntry('UserName', ZENCART_USERNAME);
-	$this->strXML .= xmlEntry('UserPassword', ZENCART_PASSWORD);
-	$this->strXML .= xmlEntry('Language', $_SESSION['language']);
-	$this->strXML .= xmlEntry('Operation', 'ProductSync');
-	$this->strXML .= xmlEntry('Action', 'Validate');
-	$this->strXML .= xmlEntry('Reference', 'Product Syncronizer');
-	$this->strXML .= xmlEntry('AutoDelete', $this->delete_zencart ? 'true' : 'false');
-	$this->strXML .= '  <Product>' . chr(10);
-	while(!$result->EOF) {
-	  $this->strXML .= '    ' . xmlEntry('SKU', urlencode($result->fields['sku']));
-	  $result->MoveNext();
-	}
-	$this->strXML .= '  </Product>' . chr(10);
-	$this->strXML .= '</Request>' . chr(10);
-	return true;
-  }
-
-/*************************************************************************************/
-//                           Product Shipping Confirmation String Generation
-/*************************************************************************************/
-  function buildConfirmXML() {
-    global $db, $messageStack;
-	$methods = $this->loadShippingMethods();
-	$this->strXML  = '<?xml version="1.0" encoding="UTF-8" ?>' . chr(10);
-	$this->strXML .= '<Request>' . chr(10);
-	$this->strXML .= xmlEntry('Version', '2.00');
-	$this->strXML .= xmlEntry('UserName', ZENCART_USERNAME);
-	$this->strXML .= xmlEntry('UserPassword', ZENCART_PASSWORD);
-	$this->strXML .= xmlEntry('Language', $_SESSION['language']);
-	$this->strXML .= xmlEntry('Operation', 'ShipConfirm');
-	$this->strXML .= xmlEntry('Action', 'Confirm');
-	$this->strXML .= xmlEntry('Reference', 'Order Ship Confirmation');
-	// fetch every shipment for the given post_date
-	$result = $db->Execute("select ref_id, carrier, method, tracking_id from " . TABLE_SHIPPING_LOG . " 
-	  where ship_date like '" . $this->post_date . " %'");
-	if ($result->RecordCount() == 0) {
-	  $messageStack->add(ZENCART_ERROR_CONFRIM_NO_DATA, 'caution');
-	  return false;
-	}
-	// foreach shipment, fetch the PO Number (it is the ZenCart order number)
-	while (!$result->EOF) {
-	  if (strpos($result->fields['ref_id'], '-') !== false) {
-	    $purchase_invoice_id = substr($result->fields['ref_id'], 0, strpos($result->fields['ref_id'], '-'));
-	  } else {
-	    $purchase_invoice_id = $result->fields['ref_id'];
-	  }
-	  $details = $db->Execute("select so_po_ref_id from " . TABLE_JOURNAL_MAIN . " 
-	    where journal_id = 12 and purchase_invoice_id = '" . $purchase_invoice_id . "' 
-		order by id desc limit 1");
-		// check to see if the order is complete
-		if ($details->fields['so_po_ref_id']) {
-		  $details = $db->Execute("select closed, purchase_invoice_id from " . TABLE_JOURNAL_MAIN . " 
-	        where id = '" . $details->fields['so_po_ref_id'] . "'");
-		  if ($details->RecordCount() == 1) {
-		    $message = sprintf(ZENCART_CONFIRM_MESSAGE, $this->post_date, $methods[$result->fields['carrier']]['title'], $methods[$result->fields['carrier']][$result->fields['method']], $result->fields['tracking_id']);
-		    $this->strXML .= '<Order>' . chr(10);
-			$this->strXML .= xmlEntry('ID', $details->fields['purchase_invoice_id']);
-			$this->strXML .= xmlEntry('Status', $details->fields['closed'] ? ZENCART_STATUS_CONFIRM_ID : ZENCART_STATUS_PARTIAL_ID);
-			$this->strXML .= xmlEntry('Message', $message);
-		    $this->strXML .= '</Order>' . chr(10);
-		  }
-		}
-		$result->MoveNext();
-	}
-	$this->strXML .= '</Request>' . chr(10);
-	return true;
-  }
-
-/*************************************************************************************/
-//                           Support Functions
-/*************************************************************************************/
-  function loadShippingMethods() {
-    global $shipping_defaults;
-	$method_array = array();
-	// load standard shipping methods
-	$methods = scandir(DIR_FS_MODULES . 'shipping/methods/');
-	foreach ($methods as $method) {
-	  if ($method <> '.' && $method <> '..' && defined('MODULE_SHIPPING_' . strtoupper($method) . '_STATUS')) {
-	    $method_array[] = $method;
-	  }
-	}
-	$output  = array();
-	$choices = array_keys($shipping_defaults['service_levels']);
-	if (!empty($method_array)) foreach ($method_array as $method) {
-	  load_method_language(DIR_FS_MODULES . 'shipping/methods/', $method);
-	  $output[$method]['title'] = constant('MODULE_SHIPPING_' . strtoupper($method) . '_TEXT_TITLE');
-	  foreach ($choices as $value) {
-		$output[$method][$value] = defined($method . '_' . $value) ? constant($method . '_' . $value) : "";
-	  }
-	}
-	return $output;  
-  }
-
-}
-?>

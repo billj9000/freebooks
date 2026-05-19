@@ -32,12 +32,8 @@
 	    <td><?php echo html_input_field('zencart_url', $_POST['zencart_url'] ? $_POST['zencart_url'] : ZENCART_URL, 'size="64"'); ?></td>
 	  </tr>
 	  <tr>
-	    <td colspan="4"><?php echo ZENCART_ADMIN_USERNAME; ?></td>
-	    <td><?php echo html_input_field('zencart_username', $_POST['zencart_username'] ? $_POST['zencart_username'] : ZENCART_USERNAME, ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_ADMIN_PASSWORD; ?></td>
-	    <td><?php echo html_input_field('zencart_password', $_POST['zencart_password'] ? $_POST['zencart_password'] : ZENCART_PASSWORD, ''); ?></td>
+	    <td colspan="4"><?php echo ZENCART_ADMIN_API_KEY; ?></td>
+	    <td><?php echo html_input_field('zencart_api_key', $_POST['zencart_api_key'] ? $_POST['zencart_api_key'] : ZENCART_API_KEY, 'size="64"'); ?></td>
 	  </tr>
 	  <tr>
 	    <td colspan="4"><?php echo ZENCART_TAX_CLASS; ?></td>

@@ -1,57 +1,73 @@
 <?php
-// +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
-// +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
-// +-----------------------------------------------------------------+
-// | This program is free software: you can redistribute it and/or   |
-// | modify it under the terms of the GNU General Public License as  |
-// | published by the Free Software Foundation, either version 3 of  |
-// | the License, or any later version.                              |
-// |                                                                 |
-// | This program is distributed in the hope that it will be useful, |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
-// | GNU General Public License for more details.                    |
-// +-----------------------------------------------------------------+
-//  Path: /modules/zencart/functions/zencart.php
-//
+// Path: /modules/zencart/functions/zencart.php
 
-function doCURLRequest($method = 'GET', $url, $vars) {
-  global $messageStack;
-  $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $url);
-  curl_setopt($ch, CURLOPT_VERBOSE, 0);
-  curl_setopt($ch, CURLOPT_HEADER, false);
-  curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_TIMEOUT, 30); // times out after 30 seconds 
-  if (strtoupper($method) == 'POST') {
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $vars);
-  }
-  $data  = curl_exec($ch);
-  $error = curl_error($ch);
-  curl_close($ch);
-  if ($data != '') {
-	return $data;
-  } else {
-	$messageStack->add('cURL error: ' . $error, 'error');
-	return false; 
-  }
+// Calls the ZenCart REST API (freebooks-zencart.php).
+// $task    — value for the ?task= query parameter
+// $body    — if set, JSON-encodes and sends as POST; otherwise GET
+// $params  — additional query string parameters (e.g. ['last_order' => 42])
+// Returns the decoded 'data' field on success, true if no 'data' field, false on error.
+function zencart_api_call(string $task, array $body = null, array $params = [])
+{
+    global $messageStack;
+
+    $qs = array_merge(['task' => $task], $params);
+    $url = rtrim(ZENCART_URL, '/') . '/freebooks-zencart.php?' . http_build_query($qs);
+
+    $headers = [
+        'Authorization: Bearer ' . ZENCART_API_KEY,
+        'Accept: application/json',
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+    if ($body !== null) {
+        $json = json_encode($body);
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'Content-Length: ' . strlen($json);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+    }
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $raw   = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
+    $http  = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($errno) {
+        $messageStack->add('ZenCart API cURL error: ' . $error, 'error');
+        return false;
+    }
+
+    $decoded = json_decode((string)$raw, true);
+    if (!is_array($decoded)) {
+        $messageStack->add('ZenCart API returned invalid JSON (HTTP ' . $http . ')', 'error');
+        return false;
+    }
+
+    if (empty($decoded['ok'])) {
+        $messageStack->add('ZenCart API error: ' . ($decoded['error'] ?? 'unknown'), 'error');
+        return false;
+    }
+
+    return $decoded['data'] ?? true;
 }
 
 function pull_down_price_sheet_list() {
-  global $db;
-  $output = array(array('id' => '0', 'text' => TEXT_NONE));
-  $sql = "select distinct sheet_name from " . TABLE_PRICE_SHEETS . " 
-	where '" . date('Y-m-d',time()) . "' >= effective_date and inactive = '0'";
-  $result = $db->Execute($sql);
-  while(!$result->EOF) {
-    $output[] = array('id' => $result->fields['sheet_name'], 'text' => $result->fields['sheet_name']);
-    $result->MoveNext();
-  }
-  return $output;
+    global $db;
+    $output = [['id' => '0', 'text' => TEXT_NONE]];
+    $result = $db->Execute(
+        "SELECT DISTINCT sheet_name FROM " . TABLE_PRICE_SHEETS
+        . " WHERE '" . date('Y-m-d') . "' >= effective_date AND inactive = '0'"
+    );
+    while (!$result->EOF) {
+        $output[] = ['id' => $result->fields['sheet_name'], 'text' => $result->fields['sheet_name']];
+        $result->MoveNext();
+    }
+    return $output;
 }
-
-?>

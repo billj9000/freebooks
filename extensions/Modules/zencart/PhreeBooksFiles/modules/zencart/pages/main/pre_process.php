@@ -38,25 +38,24 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'upload':
     $upXML = new zencart();
-	$id    = db_prepare_input($_POST['rowSeq']);
-	if ($upXML->submitXML($id, 'product_ul')) gen_add_audit_log(ZENCART_UPLOAD_PRODUCT, $upXML->sku);
-	break;
+    $id    = (int)db_prepare_input($_POST['rowSeq']);
+    if ($upXML->uploadProduct($id)) gen_add_audit_log(ZENCART_UPLOAD_PRODUCT, $upXML->sku);
+    break;
   case 'bulkupload':
-    $upXML = new bulk_upload();
-    $inc_image = isset($_POST['include_images']) ? true : false;
-	if ($upXML->bulkUpload($inc_image)) {
-		gen_add_audit_log(ZENCART_BULK_UPLOAD);
-		write_configure('MODULE_ZENCART_LAST_UPDATE', date('Y-m-d H:i:s'));
-	}
+    $upXML     = new bulk_upload();
+    $inc_image = isset($_POST['include_images']);
+    if ($upXML->bulkUpload($inc_image)) {
+        gen_add_audit_log(ZENCART_BULK_UPLOAD);
+        write_configure('MODULE_ZENCART_LAST_UPDATE', date('Y-m-d H:i:s'));
+    }
     break;
   case 'sync':
     $upXML = new zencart();
-	if ($upXML->submitXML(0, 'product_sync')) gen_add_audit_log(ZENCART_PRODUCT_SYNC);
-	break;
+    if ($upXML->syncQuantities()) gen_add_audit_log(ZENCART_PRODUCT_SYNC);
+    break;
   case 'confirm':
     $upXML = new zencart();
-	$upXML->post_date = $ship_date;
-	if ($upXML->submitXML(0, 'confirm')) gen_add_audit_log(ZENCART_SHIP_CONFIRM, $ship_date);
+    if ($upXML->confirmShipments($ship_date)) gen_add_audit_log(ZENCART_SHIP_CONFIRM, $ship_date);
     break;
   default:
 }

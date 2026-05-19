@@ -35,14 +35,14 @@ class zencart_admin {
 	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(
-	  'ZENCART_URL'               => 'http://',
-	  'ZENCART_USERNAME'          => '',
-	  'ZENCART_PASSWORD'          => '',
+	  'ZENCART_URL'               => 'https://',
+	  'ZENCART_API_KEY'           => '',
 	  'ZENCART_PRODUCT_TAX_CLASS' => '',
 	  'ZENCART_USE_PRICE_SHEETS'  => '0',
 	  'ZENCART_PRICE_SHEET'       => '',
 	  'ZENCART_STATUS_CONFIRM_ID' => '',
 	  'ZENCART_STATUS_PARTIAL_ID' => '',
+	  'ZENCART_LAST_ORDER'        => '0',
 	);
   }
 
@@ -148,7 +148,7 @@ class zencart_admin {
 	if($result->RecordCount() == 0)	return true;
 	while(!$result->EOF) {
 	  $prodXML = new zencart();
-	  if (!$prodXML->submitXML($result->fields['id'], 'product_ul', true, true)) {
+	  if (!$prodXML->uploadProduct((int)$result->fields['id'], true)) {
 		$error = true;
 		break;
 	  }
