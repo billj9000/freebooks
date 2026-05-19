@@ -40,9 +40,12 @@ class zencart_admin {
 	  'ZENCART_PRODUCT_TAX_CLASS' => '',
 	  'ZENCART_USE_PRICE_SHEETS'  => '0',
 	  'ZENCART_PRICE_SHEET'       => '',
-	  'ZENCART_STATUS_CONFIRM_ID' => '',
-	  'ZENCART_STATUS_PARTIAL_ID' => '',
-	  'ZENCART_LAST_ORDER'        => '0',
+	  'ZENCART_STATUS_CONFIRM_ID'     => '',
+	  'ZENCART_STATUS_PARTIAL_ID'     => '',
+	  'ZENCART_LAST_ORDER'            => '0',
+	  'ZENCART_CUSTOMER_ACCOUNT_ID'   => '0',
+	  'ZENCART_DEFAULT_TAX_RATE_ID'   => '0',
+	  'ZENCART_CREATE_INVOICE'        => '0',
 	);
   }
 

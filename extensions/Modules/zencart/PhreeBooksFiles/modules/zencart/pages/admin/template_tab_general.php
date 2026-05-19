@@ -55,6 +55,18 @@
 	    <td colspan="4"><?php echo ZENCART_PARTIAL_ID; ?></td>
 	    <td><?php echo html_input_field('zencart_status_partial_id', $_POST['zencart_status_partial_id'] ? $_POST['zencart_status_partial_id'] : ZENCART_STATUS_PARTIAL_ID, ''); ?></td>
 	  </tr>
+	  <tr>
+	    <td colspan="4"><?php echo ZENCART_CUSTOMER_ACCOUNT_ID; ?></td>
+	    <td><?php echo html_input_field('zencart_customer_account_id', $_POST['zencart_customer_account_id'] ? $_POST['zencart_customer_account_id'] : ZENCART_CUSTOMER_ACCOUNT_ID, 'size="10"'); ?></td>
+	  </tr>
+	  <tr>
+	    <td colspan="4"><?php echo ZENCART_DEFAULT_TAX_RATE_ID; ?></td>
+	    <td><?php echo html_input_field('zencart_default_tax_rate_id', $_POST['zencart_default_tax_rate_id'] ? $_POST['zencart_default_tax_rate_id'] : ZENCART_DEFAULT_TAX_RATE_ID, 'size="10"'); ?></td>
+	  </tr>
+	  <tr>
+	    <td colspan="4"><?php echo ZENCART_CREATE_INVOICE; ?></td>
+	    <td><?php echo html_pull_down_menu('zencart_create_invoice', $sel_yes_no, $_POST['zencart_create_invoice'] ? $_POST['zencart_create_invoice'] : ZENCART_CREATE_INVOICE, ''); ?></td>
+	  </tr>
 	</tbody>
 </table>
 </fieldset>

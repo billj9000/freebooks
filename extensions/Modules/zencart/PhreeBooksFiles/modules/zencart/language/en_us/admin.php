@@ -32,6 +32,9 @@ define('ZENCART_CONFIG_SAVED','Zencart configuration values updated/saved.');
 define('ZENCART_CATALOG_ADD','Allow upload to ZenCart Catalog');
 define('ZENCART_CATALOG_CATEGORY_ID','ZenCart - category id. Needs to match Zen Cart category where product will be located.');
 define('ZENCART_CATALOG_MANUFACTURER','ZenCart - product manufacturer. Needs to match with the manufacturer name as defined in ZenCart.');
+define('ZENCART_CUSTOMER_ACCOUNT_ID','Catch-all customer contact ID for unmatched email addresses (0 = skip unmatched orders)');
+define('ZENCART_DEFAULT_TAX_RATE_ID','Default FreeBooks tax rate ID for imported orders (0 = untaxed; match a rate from the Tax Rates table)');
+define('ZENCART_CREATE_INVOICE','Also create a Sales Invoice (journal 12) for each imported order');
 // audit log messages
 define('ZENCART_LOG_TABS','Zencart Inventory Add Tab');
 define('ZENCART_LOG_FIELDS','Zencart Inventory Add Field');
