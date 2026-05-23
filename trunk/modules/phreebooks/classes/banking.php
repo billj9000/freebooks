@@ -106,15 +106,24 @@ class banking extends journal {
 					if (!$this->encrypt_payment($method, $processor->enable_encryption)) return false;
 				}
 				if ($processor->before_process()) return false;
-				
-				// Description might have changed if processor adds its completion status, for example Paypal transaction ID.
-				// Assume the last row is the total (as added earlier).
-				for( $i=0 ; $i<count($this->journal_rows) ; $i++ )
-				{
-					if( $this->journal_rows[$i]['gl_type'] == ['ttl'] )
-						$this->journal_rows[$i]['description'] = GEN_ADM_TOOLS_J18 . '-' . TEXT_TOTAL . ':' . $processor->payment_fields;
+
+				// Store payment reference (field_0) in purch_order_id on new posts.
+				$purch_order_ref = explode(':', $processor->payment_fields)[0];
+				if ($new_post == 'insert' && $purch_order_ref !== '') {
+					$db->Execute("UPDATE " . TABLE_JOURNAL_MAIN . " SET purch_order_id = '" . db_input($purch_order_ref) . "' WHERE id = " . (int)$this->id);
 				}
-				
+
+				// Update the 'ttl' row description with full payment_fields (may include gateway transaction ID).
+				for ($i = 0; $i < count($this->journal_rows); $i++) {
+					if ($this->journal_rows[$i]['gl_type'] == 'ttl') {
+						$desc = GEN_ADM_TOOLS_J18 . '-' . TEXT_TOTAL . ':' . $processor->payment_fields;
+						$this->journal_rows[$i]['description'] = $desc;
+						$db->Execute("UPDATE " . TABLE_JOURNAL_ITEM . " SET description = '" . db_input($desc) . "'"
+							. " WHERE ref_id = " . (int)$this->id . " AND gl_type = 'ttl'");
+						break;
+					}
+				}
+
 				break;
 			case 20:
 				if ($new_post == 'insert') { // only increment if posting a new payment
