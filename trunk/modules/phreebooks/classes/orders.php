@@ -49,6 +49,7 @@ class orders extends journal {
 	$this->shipper_code        = '';
 	$this->drop_ship           = 0;
 	$this->freight             = 0;
+	$this->freight_tax_id      = 0;
 	switch ($this->journal_id) { // default to company data for purchases/PO's
 	  case  3:
 	  case  4:
@@ -343,15 +344,16 @@ class orders extends journal {
       }
 
       switch ($this->journal_id) {
-	    case  3: 
+	    case  3:
 	    case  4:
 	    case  6:
 	    case  7: $freight_tax_id = $tax_freight ? AP_ADD_SALES_TAX_TO_SHIPPING : 0; break;
 	    case  9:
-	    case 10: 
+	    case 10:
 	    case 12:
 	    case 13: $freight_tax_id = $tax_freight ? AR_ADD_SALES_TAX_TO_SHIPPING : 0; break;
-	  }	   
+	  }
+	  if ((int)$this->freight_tax_id > 0) $freight_tax_id = (int)$this->freight_tax_id;
 	  if ($this->freight) { // calculate freight charges
 		$this->journal_rows[] = array(
 		  'qty'                     => '1',

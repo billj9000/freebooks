@@ -425,15 +425,20 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
 <?php if (defined('MODULE_SHIPPING_STATUS')) { ?>
         <tr>
           <td>
-<?php echo ORD_FREIGHT_GL_ACCT . ' '; 
+<?php echo ORD_FREIGHT_GL_ACCT . ' ';
       echo html_pull_down_menu('ship_gl_acct_id', $gl_array_list, $order->ship_gl_acct_id, ''); ?>
 		  </td>
           <td align="right">
-<?php echo html_button_field('estimate', TEXT_ESTIMATE, 'onclick="FreightList()"');
-  echo ORD_SHIP_CARRIER . ' ' . html_pull_down_menu('ship_carrier', $methods, $default = '', 'onchange="buildFreightDropdown()"');
+<?php
+  $frt_tax_default = isset($order->freight_tax_id) && $order->freight_tax_id > 0 ? $order->freight_tax_id : (($account_type == 'c') ? AR_ADD_SALES_TAX_TO_SHIPPING : AP_ADD_SALES_TAX_TO_SHIPPING);
+  echo '<span style="white-space:nowrap">';
+  echo html_button_field('estimate', TEXT_ESTIMATE, 'onclick="FreightList()"');
+  echo ' ' . ORD_SHIP_CARRIER . ' ' . html_pull_down_menu('ship_carrier', $methods, $default = '', 'onchange="buildFreightDropdown()"');
   echo ' ' . ORD_FREIGHT_SERVICE . ' ' . html_pull_down_menu('ship_service', gen_null_pull_down(), '');
   echo ' ' . ORD_FREIGHT . ' ';
-  echo html_input_field('freight', $currencies->format(($order->freight ? $order->freight : '0.00'), true, $order->currencies_code, $order->currencies_value), 'size="15" maxlength="20" onchange="updateTotalPrices()" style="text-align:right"'); ?>
+  echo html_input_field('freight', $currencies->format(($order->freight ? $order->freight : '0.00'), true, $order->currencies_code, $order->currencies_value), 'size="15" maxlength="20" onchange="updateTotalPrices()" style="text-align:right"');
+  echo '</span><br />';
+  echo ORD_FREIGHT_TAX . ' ' . html_pull_down_menu('freight_tax_id', $tax_rates, $frt_tax_default, 'onchange="updateTotalPrices()"'); ?>
 		  </td>
         </tr>
 <?php } else {
@@ -442,6 +447,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
   echo html_pull_down_menu('ship_service', gen_null_pull_down(), '', 'style="visibility:hidden"');
   echo html_hidden_field('ship_gl_acct_id', '');
   echo html_hidden_field('freight', '0') . chr(10);
+  echo html_hidden_field('freight_tax_id', '0') . chr(10);
   echo '        </td></tr>' . chr(10);
 } ?>
         <tr>

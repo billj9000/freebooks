@@ -60,6 +60,7 @@ define('ORD_EXPECTED_DATES','Expected Delivery Dates - ');
 define('TEXT_EXPIRATION_DATE','Expiration Date');
 define('GL_FISCAL_YEAR','Fiscal Year');
 define('ORD_FREIGHT', 'Freight');
+define('ORD_FREIGHT_TAX', 'Freight Tax');
 define('ORD_FREIGHT_ESTIMATE', 'Freight Estimate');
 define('TEXT_JOURNAL_TYPE', 'Journal Type');
 define('ORD_FREIGHT_SERVICE', 'Service');

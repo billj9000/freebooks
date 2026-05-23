@@ -291,6 +291,9 @@ function fillOrder(xml) {
 	    case 'frt':
 		  insertValue('freight',                      $(this).find("total").text());
 		  if ($(this).find("gl_account").text()) insertValue('ship_gl_acct_id', $(this).find("gl_account").text());
+		  if (document.getElementById('freight_tax_id') && $(this).find("taxable").text()) {
+		    document.getElementById('freight_tax_id').value = $(this).find("taxable").text();
+		  }
 		  break;
 	    case 'soo':
 	    case 'sos':
@@ -964,8 +967,10 @@ function updateTotalPrices() {
   if (isNaN(freight)) freight = 0;
   strFreight = new String(freight);
   document.getElementById('freight').value = formatCurrency(strFreight);
-  if (tax_freight != 0 && freight_def_tax != 0) for (keyVar in tax_rates) {
-    if (tax_rates[keyVar].id == tax_freight) taxable_subtotal += parseFloat(freight) * tax_rates[keyVar].rate / 100;
+  var frtEl = document.getElementById('freight_tax_id');
+  var cur_freight_tax = frtEl ? frtEl.value : tax_freight;
+  if (cur_freight_tax != 0) for (var frtIdx = 0; frtIdx < tax_rates.length; frtIdx++) {
+    if (tax_rates[frtIdx].id == cur_freight_tax) { taxable_subtotal += parseFloat(freight) * tax_rates[frtIdx].rate / 100; break; }
   }
 
   var nst = new String(taxable_subtotal);

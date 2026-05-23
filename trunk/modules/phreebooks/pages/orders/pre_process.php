@@ -217,6 +217,7 @@ switch ($_REQUEST['action']) {
 	  $order->shipper_code        = implode(':', array(db_prepare_input($_POST['ship_carrier']), db_prepare_input($_POST['ship_service'])));
 	  $order->drop_ship           = isset($_POST['drop_ship']) ? $_POST['drop_ship'] : 0;
 	  $order->freight             = $currencies->clean_value(db_prepare_input($_POST['freight']), $order->currencies_code) / $order->currencies_value;
+	  $order->freight_tax_id      = (int)db_prepare_input($_POST['freight_tax_id'] ?? 0);
 	}
 	// load journal main data
 	$order->id = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive

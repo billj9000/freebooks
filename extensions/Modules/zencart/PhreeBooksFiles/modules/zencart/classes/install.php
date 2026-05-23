@@ -200,6 +200,11 @@ class zencart_admin {
 		  $db->Execute("alter table " . TABLE_INVENTORY . " add column ProductModel varchar(64) default ''");
 	}
 
+	if (!db_field_exists(TABLE_JOURNAL_MAIN, 'freight_tax_id')) {
+	  $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN
+	    . " ADD COLUMN freight_tax_id SMALLINT NOT NULL DEFAULT 0 AFTER freight");
+	}
+
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
    	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_' . strtoupper($module) . '_VERSION')), 'success');

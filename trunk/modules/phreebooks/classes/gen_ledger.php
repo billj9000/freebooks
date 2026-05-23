@@ -1287,6 +1287,7 @@ class journal {
 	if (isset($this->closed))              $main_record['closed']              = $this->closed;
 	if (isset($this->closed_date))         $main_record['closed_date']         = $this->closed_date;
 	if (isset($this->freight))             $main_record['freight']             = $this->freight;
+	if (isset($this->freight_tax_id))      $main_record['freight_tax_id']      = $this->freight_tax_id;
 	if (isset($this->discount))            $main_record['discount']            = $this->discount;
 	if (isset($this->shipper_code))        $main_record['shipper_code']        = $this->shipper_code;
 	if (isset($this->terms))               $main_record['terms']               = $this->terms;
