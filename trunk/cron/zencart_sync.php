@@ -145,12 +145,15 @@ define('TABLE_INVENTORY_SPECIAL_PRICES',  DB_PREFIX . 'inventory_special_prices'
 $messageStack = new messageStack;
 $currencies   = new currencies();
 
-// Language strings needed by journal classes
+// Language strings needed by journal classes and ZenCart module
 $_prev_er = error_reporting(E_ALL & ~E_WARNING);
 gen_pull_language('contacts');          // GEN_CONTACT, GEN_ADDRESS1, …
 gen_pull_language('phreebooks');        // TEXT_SUCCESSFULLY_POSTED, GL_ERROR_*, …
 gen_pull_language('phreebooks', 'menu'); // ORD_TEXT_10_WINDOW_TITLE
 error_reporting($_prev_er); unset($_prev_er);
+if (file_exists(DIR_FS_MODULES . 'zencart/language/' . $_SESSION['language'] . '/language.php')) {
+    require_once(DIR_FS_MODULES . 'zencart/language/' . $_SESSION['language'] . '/language.php');
+}
 
 // PhreeBooks journal classes and helpers
 require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
@@ -225,6 +228,7 @@ if (!file_exists(DIR_FS_WORKING . 'functions/zencart.php')) {
     exit(1);
 }
 require_once(DIR_FS_WORKING . 'functions/zencart.php');
+require_once(DIR_FS_WORKING . 'classes/zencart.php');
 
 // ─── Helper: convert a country value to a 3-letter ISO code (FreeBooks format) ─
 // Accepts ISO-2 ('US'), ISO-3 ('USA'), or full names ('United States').
@@ -327,6 +331,7 @@ if ($response === false) {
 $zc_orders = $response['orders'] ?? [];
 if (empty($zc_orders)) {
     echo ts() . " No new orders (last_order=$last_order).\n";
+    zc_sync_stock();
     exit(0);
 }
 echo ts() . " Fetched " . count($zc_orders) . " order(s) from ZenCart.\n";
@@ -825,9 +830,23 @@ foreach ($zc_orders as $zc) {
 }
 
 echo ts() . " Done. Imported $imported order(s). Highest ZC order ID: $highest_id\n";
-exit($imported > 0 || $highest_id > $last_order ? 0 : 0);
+zc_sync_stock();
+exit(0);
 
 // ─────────────────────────────────────────────────────────────────────────────
+function zc_sync_stock(): void
+{
+    echo ts() . " Syncing stock quantities to ZenCart...\n";
+    $sync = new zencart();
+    $sync_ok = $sync->syncQuantities();
+    $sync_msgs = zc_drain_messages();
+    if ($sync_ok) {
+        echo ts() . " Stock sync complete." . ($sync_msgs ? " ($sync_msgs)" : '') . "\n";
+    } else {
+        fwrite(STDERR, ts() . " Stock sync failed" . ($sync_msgs ? ": $sync_msgs" : '') . "\n");
+    }
+}
+
 function ts(): string
 {
     return '[' . date('Y-m-d H:i:s') . ']';

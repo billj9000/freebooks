@@ -23,11 +23,11 @@
 switch ($_REQUEST['action']) {
 // Begin - Upload operation added by PhreeSoft to upload products to ZenCart
   case 'upload_zc':
-	$id = db_prepare_input($_POST['rowSeq']);
+	$id = (int)db_prepare_input($_POST['rowSeq']);
 	require_once(DIR_FS_MODULES . 'zencart/functions/zencart.php');
 	require_once(DIR_FS_MODULES . 'zencart/classes/zencart.php');
 	$upXML = new zencart();
-	$upXML->submitXML($id, 'product_ul');
+	if ($upXML->uploadProduct($id)) gen_add_audit_log(ZENCART_UPLOAD_PRODUCT, $upXML->sku);
 	$_REQUEST['action'] = '';
 	break;
 // End - Upload operation added by PhreeSoft	
