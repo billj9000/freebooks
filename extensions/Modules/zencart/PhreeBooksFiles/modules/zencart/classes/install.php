@@ -46,6 +46,8 @@ class zencart_admin {
 	  'ZENCART_CUSTOMER_ACCOUNT_ID'   => '0',
 	  'ZENCART_DEFAULT_TAX_RATE_ID'   => '0',
 	  'ZENCART_CREATE_INVOICE'        => '0',
+	  'ZENCART_DEFAULT_REP_ID'        => '0',
+	  'ZENCART_PAYMENT_MAP'           => '',
 	);
   }
 

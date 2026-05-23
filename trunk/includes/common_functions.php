@@ -965,7 +965,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
   }
 
   function db_input($string) {
-    return addslashes($string);
+    return addslashes((string)($string ?? ''));
   }
 
   function db_prepare_input($string, $required = false) {

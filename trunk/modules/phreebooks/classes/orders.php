@@ -21,11 +21,17 @@ class orders extends journal {
  var $closed = '0';
 	
   function __construct() {
+	parent::__construct(); // initialize affected_accounts, post_ids, unpost_ids, cogs_entry
 	$this->journal_id          = JOURNAL_ID;
 	$this->gl_type             = GL_TYPE;
 	$this->gl_acct_id          = defined('DEF_GL_ACCT') ? DEF_GL_ACCT : '';
 	$this->currencies_code     = DEFAULT_CURRENCY;
 	$this->currencies_value    = '1.0';
+	$this->id                  = '';
+	$this->purchase_invoice_id = '';
+	$this->recur_id            = 0;
+	$this->terminal_date       = '';
+	$this->store_id            = 0;
 	$this->bill_primary_name   = GEN_PRIMARY_NAME;
 	$this->bill_contact        = GEN_CONTACT;
 	$this->bill_address1       = GEN_ADDRESS1;
@@ -433,7 +439,7 @@ class orders extends journal {
 			if ($rate['id'] == $line_item['taxable']) {
 			  $auths = explode(':', $rate['auths']);
 		      foreach ($auths as $auth) {
-				$line_total = $line_item['debit_amount'] + $line_item['credit_amount']; // one will always be zero
+				$line_total = ($line_item['debit_amount'] ?? 0) + ($line_item['credit_amount'] ?? 0); // one will always be zero
 			    if (ENABLE_ORDER_DISCOUNT && $tax_discount == '0' && $line_item['gl_type'] <> 'frt') {
 				  $line_total = $line_total * (1 - $this->disc_percent);
 				}
@@ -441,7 +447,7 @@ class orders extends journal {
 //				if (ROUND_TAX_BY_AUTH) {
 //				  $auth_array[$auth] += number_format(($tax_auths[$auth]['tax_rate'] / 100) * $line_total, $currencies->currencies[DEFAULT_CURRENCY]['decimal_places'], '.', '');
 //				} else {
-				  $auth_array[$auth] += ($tax_auths[$auth]['tax_rate'] / 100) * $line_total;
+				  $auth_array[$auth] = ($auth_array[$auth] ?? 0) + ($tax_auths[$auth]['tax_rate'] / 100) * $line_total;
 //				}
 			  }
 			}

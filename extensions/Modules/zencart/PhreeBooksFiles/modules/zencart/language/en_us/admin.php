@@ -32,9 +32,12 @@ define('ZENCART_CONFIG_SAVED','Zencart configuration values updated/saved.');
 define('ZENCART_CATALOG_ADD','Allow upload to ZenCart Catalog');
 define('ZENCART_CATALOG_CATEGORY_ID','ZenCart - category id. Needs to match Zen Cart category where product will be located.');
 define('ZENCART_CATALOG_MANUFACTURER','ZenCart - product manufacturer. Needs to match with the manufacturer name as defined in ZenCart.');
-define('ZENCART_CUSTOMER_ACCOUNT_ID','Catch-all customer contact ID for unmatched email addresses (0 = skip unmatched orders)');
-define('ZENCART_DEFAULT_TAX_RATE_ID','Default FreeBooks tax rate ID for imported orders (0 = untaxed; match a rate from the Tax Rates table)');
-define('ZENCART_CREATE_INVOICE','Also create a Sales Invoice (journal 12) for each imported order');
+define('ZENCART_LBL_CATCH_ALL_ACCT','Catch-all customer contact ID for orders where email cannot be matched or a new customer cannot be created (0 = skip such orders)');
+define('ZENCART_LBL_DEFAULT_TAX','Fallback tax rate ID when ZenCart\'s item tax % cannot be matched in the Tax Rates table (0 = untaxed)');
+define('ZENCART_LBL_CREATE_INVOICE','Also create a Sales Invoice (journal 12) for each imported order');
+define('ZENCART_LBL_DEFAULT_REP','Default sales rep for imported orders (0 = none)');
+define('ZENCART_LBL_LAST_ORDER','Last imported ZenCart order ID — edit to re-import orders from a given point');
+define('ZENCART_LBL_PAYMENT_MAP','Payment module map — comma-separated entries of the form zcmodule=fbmodule:glacct (e.g. paypalexpress=paypal_nvp:1020,stripe=freecharger:1030). fbmodule and glacct are each optional.');
 // audit log messages
 define('ZENCART_LOG_TABS','Zencart Inventory Add Tab');
 define('ZENCART_LOG_FIELDS','Zencart Inventory Add Field');

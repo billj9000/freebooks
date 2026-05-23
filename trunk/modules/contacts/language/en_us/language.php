@@ -147,7 +147,6 @@ define('ACT_CARD_HINT','Card Hint');
 define('ACT_EXP','Exp');
 define('ACT_PAYMENT_CREDIT_CARD_CVV2','Security Code');
 // Account Terms
-define('ACT_SPECIAL_TERMS','Special Terms');
 define('ACT_TERMS_DUE','Terms (Due)');
 define('ACT_TERMS_DEFAULT','Default: ');
 define('ACT_TERMS_USE_DEFAULTS', 'Use Default Terms');

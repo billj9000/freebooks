@@ -98,14 +98,14 @@ class journal {
 		  $messageStack->debug("\n  journal_rows = " . arr2string($glEntry->journal_rows[$i]));
 		  $glEntry->journal_rows[$i]['ref_id'] = $glEntry->id;	// link the rows to the journal main id
 		  db_perform(TABLE_JOURNAL_ITEM, $glEntry->journal_rows[$i], 'insert');
-		  if (!$glEntry->journal_rows[$i]['id']) $glEntry->journal_rows[$i]['id'] = db_insert_id();
+		  if (!($glEntry->journal_rows[$i]['id'] ?? null)) $glEntry->journal_rows[$i]['id'] = db_insert_id();
 		}
 		$messageStack->debug("\nStarting auxilliary post functions ...");
 	  	// Inventory needs to be posted first because function may add additional journal rows for COGS
 		if (!$glEntry->Post_inventory())               return false; 
 		if (!$glEntry->Post_chart_balances())          return false;
 		if (!$glEntry->Post_account_sales_purchases()) return false;
-		$this->affected_accounts = gen_array_key_merge($this->affected_accounts, $glEntry->affected_accounts);
+		$this->affected_accounts = gen_array_key_merge($this->affected_accounts ?? [], $glEntry->affected_accounts ?? []);
 		$this->first_period = min($this->first_period, $glEntry->period);
 		if (!empty($this->repost_ids)) {
 			ksort($this->repost_ids); // repost by post date
@@ -220,7 +220,7 @@ class journal {
 			}
 	  	}
 	  	// find if any COGS owed for items
-	  	foreach ($this->journal_rows as $row) if ($row['sku']) {
+	  	foreach ($this->journal_rows as $row) if ($row['sku'] ?? null) {
 	  		if (($row['qty']>0 && in_array($this->journal_id, array(6, 13, 14, 16))) || ($row['qty'] < 0 && in_array($this->journal_id, array(7, 12)))) {
 			  	$sql = "SELECT id, journal_main_id, qty, post_date FROM ".TABLE_INVENTORY_COGS_OWED." WHERE sku='".$row['sku']."'";
 			  	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id = " . $this->store_id;
@@ -287,13 +287,13 @@ class journal {
 	  case 20: // Cash Distribution Journal
 	  case 21: // Inventory Direct Purchase Journal
 		$accounts = array();
-		$precision = $this->currencies[DEFAULT_CURRENCY]['decimal_places'] + 2;
+		$precision = $currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] + 2;
 	    if (!empty($this->journal_rows)) foreach ($this->journal_rows as $value) {
-		  $credit_amount = ($value['credit_amount']) ? $value['credit_amount'] : '0';
-		  $debit_amount  = ($value['debit_amount'])  ? $value['debit_amount']  : '0';
+		  $credit_amount = $value['credit_amount'] ?? 0;
+		  $debit_amount  = $value['debit_amount']  ?? 0;
 		  if  (round($credit_amount, $precision) <> 0 || round($debit_amount, $precision) <> 0) {
-			$accounts[$value['gl_account']]['credit'] += $credit_amount;
-			$accounts[$value['gl_account']]['debit']  += $debit_amount;
+			$accounts[$value['gl_account']]['credit'] = ($accounts[$value['gl_account']]['credit'] ?? 0) + $credit_amount;
+			$accounts[$value['gl_account']]['debit']  = ($accounts[$value['gl_account']]['debit']  ?? 0) + $debit_amount;
 		    $this->affected_accounts[$value['gl_account']] = 1;
 		  }
 		}
@@ -499,7 +499,7 @@ class journal {
 		$purchase_invoice_id = $this->purchase_invoice_id ? $this->purchase_invoice_id : $this->journal_main_array['purchase_invoice_id'];
 		$history_array = array(
 		  'ref_id'              => $this->id, 
-		  'so_po_ref_id'        => $this->so_po_ref_id,
+		  'so_po_ref_id'        => $this->so_po_ref_id ?? null,
 		  'acct_id'             => $this->bill_acct_id, 
 		  'journal_id'          => $this->journal_id, 
 		  'purchase_invoice_id' => $purchase_invoice_id,
@@ -600,9 +600,9 @@ class journal {
 	// adjust inventory stock status levels (also fills inv_list array)
 	$item_rows_to_process = count($this->journal_rows); // NOTE: variable needs to be here because journal_rows may grow within for loop (COGS)
 	for ($i = 0; $i < $item_rows_to_process; $i++) {
-	  if ($this->journal_rows[$i]['sku']) {
-		if ($this->journal_rows[$i]['debit_amount'])  $price = $this->journal_rows[$i]['debit_amount']  / $this->journal_rows[$i]['qty'];
-		if ($this->journal_rows[$i]['credit_amount']) $price = $this->journal_rows[$i]['credit_amount'] / $this->journal_rows[$i]['qty'];
+	  if ($this->journal_rows[$i]['sku'] ?? null) {
+		if ($this->journal_rows[$i]['debit_amount']  ?? null) $price = $this->journal_rows[$i]['debit_amount']  / $this->journal_rows[$i]['qty'];
+		if ($this->journal_rows[$i]['credit_amount'] ?? null) $price = $this->journal_rows[$i]['credit_amount'] / $this->journal_rows[$i]['qty'];
 		$inv_list = array(
 		  'id'                => $this->journal_rows[$i]['id'],
 		  'gl_type'           => $this->journal_rows[$i]['gl_type'],
@@ -618,7 +618,7 @@ class journal {
 		switch ($this->journal_id) {
 		  case 4:
 		  case 10:
-			$adjustment = ($item_array[$inv_list['id']]['processed'] > 0) ? $item_array[$inv_list['id']]['processed'] : 0;
+			$adjustment = (($item_array[$inv_list['id']]['processed'] ?? 0) > 0) ? $item_array[$inv_list['id']]['processed'] : 0;
 			if ($this->closed) $adjustment = $this->journal_rows[$i]['qty'];
 			$item_cost  = ($this->journal_id ==  4) ? $inv_list['price'] : 0;
 			$full_price = ($this->journal_id == 10) ? $inv_list['price'] : 0;
@@ -668,31 +668,31 @@ class journal {
 	}
 	// update inventory status
 	for ($i = 0; $i < count($this->journal_rows); $i++) {
-	  $post_qty   = $this->journal_rows[$i]['qty'];
+	  $post_qty   = $this->journal_rows[$i]['qty'] ?? null;
 	  $item_cost  = 0;
 	  $full_price = 0;
 	  switch ($this->journal_id) {
 		case  4:
-		  if (ENABLE_AUTO_ITEM_COST == 'PO' && $this->journal_rows[$i]['qty']) $item_cost = $this->journal_rows[$i]['debit_amount'] / $this->journal_rows[$i]['qty'];
+		  if (ENABLE_AUTO_ITEM_COST == 'PO' && ($this->journal_rows[$i]['qty'] ?? null)) $item_cost = $this->journal_rows[$i]['debit_amount'] / $this->journal_rows[$i]['qty'];
 		  break;
 		case  6:
 		case 21:
-		  if (ENABLE_AUTO_ITEM_COST == 'PR' && $this->journal_rows[$i]['qty']) $item_cost = $this->journal_rows[$i]['debit_amount'] / $this->journal_rows[$i]['qty'];
+		  if (ENABLE_AUTO_ITEM_COST == 'PR' && ($this->journal_rows[$i]['qty'] ?? null)) $item_cost = $this->journal_rows[$i]['debit_amount'] / $this->journal_rows[$i]['qty'];
 		  break;
 		case 12:
-		  if ($this->journal_rows[$i]['qty']) $full_price = $this->journal_rows[$i]['credit_amount'] / $this->journal_rows[$i]['qty'];
+		  if ($this->journal_rows[$i]['qty'] ?? null) $full_price = ($this->journal_rows[$i]['credit_amount'] ?? 0) / $this->journal_rows[$i]['qty'];
 		case  7:
 		case 19:
 		  $post_qty = -$post_qty;
 		  break;
 		case 14:
-		  if ($i == 0 && $this->journal_rows[$i]['qty'] > 0) { // only for the item being assembled
+		  if ($i == 0 && ($this->journal_rows[$i]['qty'] ?? 0) > 0) { // only for the item being assembled
 			$item_cost = $this->journal_rows[$i]['debit_amount'] / $this->journal_rows[$i]['qty'];
 		  }
 		  break;
 		default:
 	  }
-	  if (!$this->update_inventory_status($this->journal_rows[$i]['sku'], $str_field, $post_qty, $item_cost, $this->journal_rows[$i]['description'], $full_price)) return false;
+	  if (!$this->update_inventory_status($this->journal_rows[$i]['sku'] ?? null, $str_field, $post_qty, $item_cost, $this->journal_rows[$i]['description'], $full_price)) return false;
 	}
 	$messageStack->debug("\n  end Posting Inventory.");
 	return true;
@@ -1147,7 +1147,7 @@ class journal {
 	  if (!$post && $id) $sql .= " and m.id <> " . $id; // unposting so don't include current id (journal_id = 6 or 12)
 	  $result = $db->Execute($sql);
 	  while(!$result->EOF) {
-		if ($result->fields['sku']) $item_array[$result->fields['id']]['processed'] += $result->fields['qty'];
+		if ($result->fields['sku'] ?? null) $item_array[$result->fields['id']]['processed'] = ($item_array[$result->fields['id']]['processed'] ?? 0) + $result->fields['qty'];
 		$result->MoveNext();
 	  }
 	}
@@ -1352,6 +1352,7 @@ class journal {
 	//   editing quantities on po/so to match the number received (from po/so journal)
 	//   receiving all (or more) po/so items through one or more purchases/sales (from purchase/sales journal)
 	$messageStack->debug("\n  Checking for closed entry. action = " . $action);
+	$gl_type = null;
 	switch ($this->journal_id) {
 	  case  4: $gl_type = 'poo';
 		// continue like sales order
@@ -1360,13 +1361,13 @@ class journal {
 		$ordr_diff = 0;
 		if (is_array($this->so_po_balance_array)) {
 		  foreach($this->so_po_balance_array as $counts) {
-			if ($counts['ordered'] > $counts['processed']) $ordr_diff = 1;
+			if ($counts['ordered'] > ($counts['processed'] ?? 0)) $ordr_diff = 1;
 		  }
 		}
 		// determine if all items quantities have been entered as zero
 		$item_rows_all_zero = 1;
 		for ($i = 0; $i < count($this->journal_rows); $i++) {
-		  if ($this->journal_rows[$i]['qty'] && $this->journal_rows[$i]['gl_type'] == $gl_type) $item_rows_all_zero = 0; // at least one qty is non-zero
+		  if (($this->journal_rows[$i]['qty'] ?? null) && $this->journal_rows[$i]['gl_type'] == $gl_type) $item_rows_all_zero = 0; // at least one qty is non-zero
 		}
 		// also close if the 'Close' box was checked
 		if (!$ordr_diff || $item_rows_all_zero || $this->closed) $this->close_so_po($this->id, true);
@@ -1401,7 +1402,7 @@ class journal {
 		if ($action == 'Post') {
 		  $temp = array();
 		  for ($i = 0; $i < count($this->journal_rows); $i++) { // fetch the list of paid invoices
-			if ($this->journal_rows[$i]['so_po_item_ref_id']) {
+			if ($this->journal_rows[$i]['so_po_item_ref_id'] ?? null) {
 			  $temp[$this->journal_rows[$i]['so_po_item_ref_id']] = true;
 			}
 		  }
