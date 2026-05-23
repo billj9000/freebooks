@@ -71,7 +71,7 @@ switch ($_REQUEST['action']) {
 	    'erp_entry'   => $erp_entry,
 	  );
 	  if ($id) {
-	    $success = db_perform(TABLE_WO_TASK, $sql_data_array, 'update', 'id = ' . $id);
+	    $success = db_perform(TABLE_WO_TASK, $sql_data_array, 'update', 'id = ' . (int)$id);
 		if ($success) gen_add_audit_log(sprintf(WO_AUDIT_LOG_TASK, TEXT_UPDATE) . $task_name);
 		else $error = true;
 	  } else {
@@ -90,9 +90,9 @@ switch ($_REQUEST['action']) {
   case 'delete':
 	$id = db_prepare_input($_GET['cID']);
 	// check to see if the task is used in any defined work orders. If so don't let it be deleted.
-	$result = $db->Execute("select ref_id from " . TABLE_WO_JOURNAL_ITEM . " where task_id = " . $id);
+	$result = $db->Execute("select ref_id from " . TABLE_WO_JOURNAL_ITEM . " where task_id = " . (int)$id);
 	if ($result->RecordCount() == 0) {
-	  $db->Execute("delete from " . TABLE_WO_TASK . " where id = " . $id);
+	  $db->Execute("delete from " . TABLE_WO_TASK . " where id = " . (int)$id);
 	  gen_add_audit_log(sprintf(WO_AUDIT_LOG_TASK, TEXT_DELETE), $id);
 	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	} else {
