@@ -609,7 +609,7 @@ function BuildPDF($report, $delivery_method = 'D') { // for forms only - PDF sty
 		  if ($report->special_class) {
 		    $FieldValues = $special_form->load_total_results($field);
 		  } else {
-		    $ttlField = '';
+		    $ttlField = [];
 		    foreach ($field->boxfield as $TotalField) $ttlField[] = prefixTables($TotalField->fieldname);
 		    $sql         = "select sum(" . implode(' + ', $ttlField) . ") as form_total" . $TrailingSQL;
 		    $result      = $db->Execute($sql);
@@ -746,7 +746,7 @@ function BuildSeq($report, $delivery_method = 'D') { // for forms only - Sequent
 		  if ($report->special_class) {
 			$FieldValues = $special_form->load_total_results($field);
 		  } else {
-			$ttlField = '';
+			$ttlField = [];
 			foreach ($field->boxfield as $TotalField) $ttlField[] = prefixTables($TotalField->fieldname);
 			$sql         = "select sum(" . implode(' + ', $ttlField) . ") as form_total" . $TrailingSQL;
 			$result      = $db->Execute($sql);
