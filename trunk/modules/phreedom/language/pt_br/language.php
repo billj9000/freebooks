@@ -37,6 +37,7 @@ define('ERROR_CURRENCY_DELETE_IN_USE','Erro - A moeda padrão não pode ser excl
 define('ERROR_CANNOT_DELETE_DEFAULT_CURRENCY','Erro - A moeda padrão não pode ser excluída, por favor altere o padrão para outra moeda antes de excluir.');
 define('PB_USE_ACCOUNTING_PERIODS','Usar Períodos Fiscais (field: period)');
 define('ERROR_WRONG_LOGIN','Você digitou um nome ou uma senha errados.');
+define('ERROR_ACCOUNT_LOCKED', 'Too many failed login attempts. This account is temporarily locked. Please try again later.');
 define('TEXT_EMAIL_SUBJECT','Sua solitação de nova senha ');
 define('SUCCESS_PASSWORD_SENT','Sucesso: Uma nova Senha foi enviada para seu endereço de email.');
 define('ERROR_WRONG_EMAIL','Você entrou um endereço de email errado.');

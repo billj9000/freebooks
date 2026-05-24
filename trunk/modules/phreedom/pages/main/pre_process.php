@@ -33,22 +33,32 @@ switch ($_REQUEST['action']) {
     $admin_pass     = db_prepare_input($_POST['admin_pass']);
     $admin_company  = $_SESSION['companies'][$_POST['company']];
     $admin_language = db_prepare_input($_POST['language']);
-    $sql = "select admin_id, admin_name, inactive, display_name, admin_email, admin_pass, account_id, admin_prefs, admin_security 
+    $sql = "select admin_id, admin_name, inactive, display_name, admin_email, admin_pass, account_id, admin_prefs, admin_security, failed_attempts, locked_until,
+        (locked_until IS NOT NULL AND locked_until > UTC_TIMESTAMP()) AS is_locked
 		from " . TABLE_USERS . " where admin_name = '" . db_input($admin_name) . "'";
 	$result = false;
     if ($db->db_connected) $result = $db->Execute($sql);
 	if (!$result || $admin_name <> $result->fields['admin_name'] || $result->fields['inactive']) {
       $error = true;
       $messageStack->add(ERROR_WRONG_LOGIN, 'error');
+      pw_validate_password($admin_pass, '$2y$12$invalidhashusedtoequaliseresponsetime000000000000000000'); // timing equaliser — prevents username enumeration via response time
     }
-    if (!pw_validate_password($admin_pass, $result->fields['admin_pass'])) {
+    if (!$error && $result->fields['is_locked']) {
+      $error = true;
+      $messageStack->add(ERROR_ACCOUNT_LOCKED, 'error');
+    }
+    if (!$error && !pw_validate_password($admin_pass, $result->fields['admin_pass'])) {
       $error = true;
       $messageStack->add(ERROR_WRONG_LOGIN, 'error');
+      $new_attempts = (int)$result->fields['failed_attempts'] + 1;
+      $lock_clause  = $new_attempts >= LOGIN_MAX_ATTEMPTS ? ', locked_until = DATE_ADD(UTC_TIMESTAMP(), INTERVAL ' . LOGIN_LOCKOUT_MINUTES . ' MINUTE)' : '';
+      $db->Execute("UPDATE " . TABLE_USERS . " SET failed_attempts = $new_attempts$lock_clause WHERE admin_id = " . (int)$result->fields['admin_id']);
     }
     if (!$error && pw_needs_rehash($result->fields['admin_pass'])) {
       $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input(pw_encrypt_password($admin_pass)) . "' where admin_id = " . (int)$result->fields['admin_id']);
     }
     if (!$error) {
+      $db->Execute("UPDATE " . TABLE_USERS . " SET failed_attempts = 0, locked_until = NULL WHERE admin_id = " . (int)$result->fields['admin_id']);
       session_regenerate_id(true); // prevent session fixation
       $_SESSION['admin_id']       = $result->fields['admin_id'];
       $_SESSION['display_name']   = $result->fields['display_name'];

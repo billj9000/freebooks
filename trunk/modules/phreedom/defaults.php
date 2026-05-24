@@ -27,6 +27,8 @@ define('DEFAULT_THEME','default');
 define('DEFAULT_MENU','top');
 define('DEFAULT_COLORS','start');
 define('MAX_CP_COLUMNS', 3); // set the maximum number of dashboard columns
+define('LOGIN_MAX_ATTEMPTS',    5);  // failed logins before lockout
+define('LOGIN_LOCKOUT_MINUTES', 15); // lockout duration
 define('VERSION_CHECK_URL','http://www.phreesoft.com/revisions.xml');
 define('MAX_IMPORT_CSV_ITEMS',5); // for importing linked tables if possible with csv
 define('DEFAULT_TEXT_LENGTH', '32');

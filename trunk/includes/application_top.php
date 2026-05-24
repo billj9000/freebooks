@@ -121,6 +121,11 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   if (!$col->EOF && strpos(strtolower($col->fields['Type']), 'varchar(40)') !== false) {
     $db->Execute("ALTER TABLE " . TABLE_USERS . " MODIFY admin_pass VARCHAR(255) NOT NULL DEFAULT ''");
   }
+  // Add brute-force lockout columns if not present
+  $col = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS . " LIKE 'failed_attempts'");
+  if ($col->EOF) {
+    $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN failed_attempts INT NOT NULL DEFAULT 0, ADD COLUMN locked_until DATETIME NULL");
+  }
 }
 $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : $_session_timeout;
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > ($_session_timeout < 360 ? 360 : $_session_timeout))) {

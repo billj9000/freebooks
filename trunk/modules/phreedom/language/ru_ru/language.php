@@ -332,6 +332,7 @@ define('ERROR_WRONG_EMAIL','<p>You entered the wrong email address.</p>');
 define('SUCCESS_PASSWORD_SENT','<p>Success: A new password has been sent to your e-mail address.</p>');
 define('TEXT_EMAIL_SUBJECT','Your requested password reset request');
 define('ERROR_WRONG_LOGIN','You entered the wrong username or password.');
+define('ERROR_ACCOUNT_LOCKED', 'Too many failed login attempts. This account is temporarily locked. Please try again later.');
 define('PB_USE_ACCOUNTING_PERIODS','Use Accounting Periods (field: period)');
 define('ERROR_CANNOT_DELETE_DEFAULT_CURRENCY','Error - The default currency cannot be deleted, please change the default to another currency before deleting this currency.');
 define('ERROR_CURRENCY_DELETE_IN_USE','Error - The currency cannot be deleted because there are journal entries using this currency.');

@@ -360,6 +360,7 @@ define('ERROR_WRONG_EMAIL','U heeft een verkeerd email adres ingevoerd.');
 define('SUCCESS_PASSWORD_SENT','Succes: Een nieuw wachtwoord is naar uw e-mail adres verstuurd.');
 define('TEXT_EMAIL_SUBJECT','U heeft een wachtwoord reset verzocht');
 define('ERROR_WRONG_LOGIN','U heeft een verkeerde gebruikersnaam of wachtwoord ingevoerd.');
+define('ERROR_ACCOUNT_LOCKED', 'Too many failed login attempts. This account is temporarily locked. Please try again later.');
 define('PB_USE_ACCOUNTING_PERIODS','Gebruik Boekhoud Periodes (veld: periode)');
 define('ERROR_CANNOT_DELETE_DEFAULT_CURRENCY','Error - De standaard valuta kan niet verwijderd worden, verander de standaard valuta naar andere valuta voordat deze verwijderd.');
 define('ERROR_CURRENCY_DELETE_IN_USE','Error - Deze valuta kan niet verwijderd worden omdat er journaal boekingen mee gedaan zijn.');
