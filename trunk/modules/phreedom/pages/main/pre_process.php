@@ -49,6 +49,7 @@ switch ($_REQUEST['action']) {
       $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input(pw_encrypt_password($admin_pass)) . "' where admin_id = " . (int)$result->fields['admin_id']);
     }
     if (!$error) {
+      session_regenerate_id(true); // prevent session fixation
       $_SESSION['admin_id']       = $result->fields['admin_id'];
       $_SESSION['display_name']   = $result->fields['display_name'];
       $_SESSION['admin_email']    = $result->fields['admin_email'];
@@ -59,8 +60,9 @@ switch ($_REQUEST['action']) {
       $_SESSION['admin_security'] = gen_parse_permissions($result->fields['admin_security']);
 	  // set some cookies for the next visit to remember the company, language, and theme
 	  $cookie_exp = 2592000 + time(); // one month
-	  setcookie('pb_company' , $admin_company,  $cookie_exp);
-	  setcookie('pb_language', $admin_language, $cookie_exp);
+	  $cookie_opts = ['expires' => $cookie_exp, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'];
+	  setcookie('pb_company' , $admin_company,  $cookie_opts);
+	  setcookie('pb_language', $admin_language, $cookie_opts);
 	  // load init functions for each module and execute
 	  require(DIR_FS_MODULES . 'phreedom/classes/install.php');
 	  $phreedom = new phreedom_admin();
