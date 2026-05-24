@@ -13,6 +13,7 @@ define('INV_TYPES_SI','Единица на складе');
 define('INV_TYPES_SR','Сериализация');
 define('INV_TYPES_MS','Единица главного склада');
 define('INV_TYPES_AS','Сборная единица');
+define('INV_TYPES_PB','Комплект товаров');
 define('INV_TYPES_SA','Серийная сборная единица');
 define('INV_TYPES_NS','Нескладская единица');
 define('INV_TYPES_LB','Рабочая сила');

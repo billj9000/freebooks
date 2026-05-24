@@ -355,6 +355,9 @@ class phreebooks_admin {
 			CHANGE qty qty DOUBLE NOT NULL DEFAULT '0',
 			CHANGE purch_package_quantity purch_package_quantity DOUBLE NOT NULL DEFAULT '0'");
 	}
+	if (MODULE_PHREEBOOKS_STATUS < 3.71) {
+		include_once(DIR_FS_MODULES . 'phreebooks/updates/R31toR32.php');
+	}
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));
    	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_'.strtoupper($module).'_VERSION')), 'success');

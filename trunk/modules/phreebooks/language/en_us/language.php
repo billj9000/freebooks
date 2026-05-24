@@ -233,6 +233,9 @@ define('GL_ERROR_UNPOSTING_COGS','Error rolling back the cost of goods sold. SKU
 define('GL_ERROR_BAD_SKU_ENTERED','The sku entered could not be found. No action was taken.');
 define('GL_ERROR_SKU_NOT_ASSY','Cannot assemble an inventory item that has no components. SKU: ');
 define('GL_ERROR_NOT_ENOUGH_PARTS','Not enough parts to build the requested number of assemblies. SKU: ');
+define('GL_ERROR_PB_CANNOT_ADJUST','Product Bundle items cannot be adjusted directly. Adjust the component items instead.');
+define('GL_ERROR_PB_CANNOT_ASSEMBLE','Product Bundle items cannot be assembled into stock. They are virtual items.');
+define('GL_ERROR_PB_NO_COMPONENTS','Product Bundle has no bill of materials. SKU: ');
 define('GL_ERROR_POSTING_NEG_INVENTORY','Error posting cost of good sold for a vendor credit, inventory will go negative and cogs cannot be calculated. Affected SKU is: ');
 define('GL_ERROR_SERIALIZE_QUANTITY','Error calculating COGS for a serialized item, the quantity was not equal to 1 per line item submitted.');
 define('GL_ERROR_SERIALIZE_EMPTY','Error calculating COGS for a serialized item, the serial number entered was blank.');

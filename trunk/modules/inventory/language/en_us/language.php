@@ -24,6 +24,7 @@ define('INV_TYPES_SR','Serialized Item');
 define('INV_TYPES_MS','Master Stock Item');
 define('INV_TYPES_MB','Master Stock Assembly');
 define('INV_TYPES_AS','Item Assembly');
+define('INV_TYPES_PB','Product Bundle');
 define('INV_TYPES_SA','Serialized Assembly');
 define('INV_TYPES_NS','Non-stock Item');
 define('INV_TYPES_LB','Labor');

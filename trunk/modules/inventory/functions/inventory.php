@@ -243,11 +243,11 @@
 		}
 		// get the inventory prices
 		if($type == 'v'){
-			if ($contact_id) $inventory = $db->Execute("select p.item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id' and p.vendor_id = '$contact_id'");
-			else $inventory = $db->Execute("select MAX(p.item_cost) as item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id'");
+			if ($contact_id) $inventory = $db->Execute("select p.item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a left join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id' and p.vendor_id = '$contact_id'");
+			else $inventory = $db->Execute("select MAX(p.item_cost) as item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a left join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id'");
 			$inv_price_sheet = $inventory->fields['price_sheet_v'];
 		}else{
-			$inventory = $db->Execute("select MAX(p.item_cost) as item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id'");
+			$inventory = $db->Execute("select MAX(p.item_cost) as item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a left join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id'");
 			$inv_price_sheet = $inventory->fields['price_sheet'];
 		}
 		// set the default tax rates

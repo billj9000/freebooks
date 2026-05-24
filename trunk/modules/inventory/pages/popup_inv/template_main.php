@@ -59,7 +59,17 @@ echo $toolbar->build_toolbar($add_search = true);
   $odd = true;
 	while (!$query_result->EOF) {
 	  $display_stock = true;
-	  if (strpos(COG_ITEM_TYPES, $query_result->fields['inventory_type']) === false) {
+	  if ($query_result->fields['inventory_type'] == 'pb') {
+	    // Product Bundle: show virtual stock computed from component quantities
+	    $vr = $db->Execute(
+	      "SELECT MIN(FLOOR(i.quantity_on_hand / a.qty)) AS v
+	       FROM " . TABLE_INVENTORY_ASSY_LIST . " a
+	       INNER JOIN " . TABLE_INVENTORY . " i ON a.sku = i.sku
+	       WHERE a.ref_id = '" . $query_result->fields['id'] . "' AND a.qty > 0"
+	    );
+	    $query_result->fields['quantity_on_hand'] = (!$vr->EOF && $vr->fields['v'] !== null) ? max(0, (int)$vr->fields['v']) : 0;
+	    $store_stock = $query_result->fields['quantity_on_hand'];
+	  } elseif (strpos(COG_ITEM_TYPES, $query_result->fields['inventory_type']) === false) {
 		$display_stock = false;
 		$return_stock  = TEXT_NA;
 	  } elseif (ENABLE_MULTI_BRANCH) {

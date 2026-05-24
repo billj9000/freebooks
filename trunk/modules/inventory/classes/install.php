@@ -230,18 +230,20 @@ class inventory_admin {
 			case 'full_price_with_tax':
 			case 'product_margin':
 			case 'product_markup':
-				$temp['inventory_type'] = 'ci:ia:lb:ma:mb:mi:ms:ns:sa:sf:si:sr:sv';
+				$temp['inventory_type'] = 'ci:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv';
 				break;
 			case 'image_with_path':
-				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:sa:si:sr';
 				break;
 			case 'cost_method':
-				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:si';
+				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:si';
 				break;
 			case 'item_weight':
-				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:sa:si:sr';
 				break;
 			case 'quantity_on_hand':
+				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr';
+				break;
 			case 'minimum_stock_level':
 			case 'reorder_quantity':
 				$temp['inventory_type'] = 'ia:ma:mi:ns:sa:si:sr';
@@ -251,16 +253,16 @@ class inventory_admin {
 				$temp['inventory_type'] = 'ia:mi:sa:si:sr';
 				break;
 			case 'quantity_on_sales_order':
-				$temp['inventory_type'] = 'ia:ma:mi:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mi:pb:sa:si:sr';
 				break;
 			case 'lead_time':
 				$temp['inventory_type'] = 'ai:ia:lb:ma:mb:mi:ms:ns:sa:sf:si:sr:sv';
 				break;
 			case 'upc_code':
-				$temp['inventory_type'] = 'ia:ma:mi:ns:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr';
 				break;
 			default:
-				$temp['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:ms:ns:sa:sf:si:sr:sv';
+				$temp['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv';
 		}
 		$updateDB = $db->Execute("update " . TABLE_EXTRA_FIELDS . " set params = '" . serialize($temp) . "' where id = '".$result->fields['id']."'");
 		$result->MoveNext();
@@ -466,6 +468,40 @@ class inventory_admin {
 				db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "id = " . $result->fields['id']);
 			}
 			$result->MoveNext();
+		}
+	}
+	if (version_compare(MODULE_INVENTORY_STATUS, '3.8', '<')) {
+		// Add Product Bundle (pb) type to xtra_fields visibility lists
+		$pb_fields = $db->Execute("SELECT id, field_name, params FROM " . TABLE_EXTRA_FIELDS . " WHERE module_id = 'inventory'");
+		while (!$pb_fields->EOF) {
+			$params = unserialize($pb_fields->fields['params']);
+			switch ($pb_fields->fields['field_name']) {
+				case 'item_taxable': case 'purch_taxable': case 'item_cost': case 'price_sheet':
+				case 'price_sheet_v': case 'full_price': case 'full_price_with_tax':
+				case 'product_margin': case 'product_markup':
+					$params['inventory_type'] = 'ci:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv'; break;
+				case 'image_with_path': case 'item_weight':
+					$params['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:sa:si:sr'; break;
+				case 'cost_method':
+					$params['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:si'; break;
+				case 'quantity_on_hand':
+					$params['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr'; break;
+				case 'quantity_on_sales_order':
+					$params['inventory_type'] = 'ia:ma:mi:pb:sa:si:sr'; break;
+				case 'upc_code':
+					$params['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr'; break;
+				case 'account_cost_of_sales':
+					$params['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv'; break;
+				case 'minimum_stock_level': case 'reorder_quantity': case 'lead_time':
+				case 'serialize': case 'quantity_on_order': case 'quantity_on_allocation':
+					break; // pb intentionally excluded from these fields
+				default:
+					if (strpos($params['inventory_type'] ?? '', 'ma') !== false && strpos($params['inventory_type'], 'pb') === false) {
+						$params['inventory_type'] = str_replace(':ma:', ':ma:pb:', $params['inventory_type']);
+					}
+			}
+			$db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET params='" . serialize($params) . "' WHERE id='" . $pb_fields->fields['id'] . "'");
+			$pb_fields->MoveNext();
 		}
 	}
 	if (!$error) {

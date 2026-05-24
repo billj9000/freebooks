@@ -126,13 +126,26 @@ $iID = $inventory_array['id']; // set the item id (just in case UPC or sku was t
 $sku = $inventory_array['sku'];
 // fix some values for special cases
 $cog_types = explode(',', COG_ITEM_TYPES);
-if (!in_array($inventory_array['inventory_type'], $cog_types)) $inventory_array['quantity_on_hand'] = 'NA';
-// load branch stock ( must be before BOM loading )
-$inventory_array['branch_qty_in_stock'] = (strpos(COG_ITEM_TYPES,$inventory_array['inventory_type']) === false) ? 'NA' : strval(load_store_stock($sku, $bID));
+if ($inventory_array['inventory_type'] == 'pb') {
+  // Product Bundle: virtual stock = how many bundles the current component stock can satisfy
+  $vstock = $db->Execute(
+    "SELECT MIN(FLOOR(i.quantity_on_hand / a.qty)) AS v
+     FROM " . TABLE_INVENTORY_ASSY_LIST . " a
+     INNER JOIN " . TABLE_INVENTORY . " i ON a.sku = i.sku
+     WHERE a.ref_id = '$iID' AND a.qty > 0"
+  );
+  $virtual_stock = (!$vstock->EOF && $vstock->fields['v'] !== null) ? max(0, (int)$vstock->fields['v']) : 0;
+  $inventory_array['quantity_on_hand']  = $virtual_stock;
+  $inventory_array['branch_qty_in_stock'] = strval($virtual_stock);
+} else {
+  if (!in_array($inventory_array['inventory_type'], $cog_types)) $inventory_array['quantity_on_hand'] = 'NA';
+  // load branch stock ( must be before BOM loading )
+  $inventory_array['branch_qty_in_stock'] = (strpos(COG_ITEM_TYPES,$inventory_array['inventory_type']) === false) ? 'NA' : strval(load_store_stock($sku, $bID));
+}
 //$debug .= 'qty in stock = ' . $inventory_array['quantity_on_hand'] . ' and branch qty = ' . $inventory_array['branch_qty_in_stock'];
 // Load the assembly information
 $assy_cost = 0;
-if ($inventory_array['inventory_type'] == 'ma' || $inventory_array['inventory_type'] == 'sa') {
+if ($inventory_array['inventory_type'] == 'ma' || $inventory_array['inventory_type'] == 'sa' || $inventory_array['inventory_type'] == 'pb') {
   $result = $db->Execute("select sku, qty from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = '$iID'");
   $bom    = array();
   while (!$result->EOF) {
@@ -190,7 +203,7 @@ switch($jID) {
   case '12':
   case '19':
 	// check for stock available for SO, Customer Quote and Sales
-	if ($qty > $inventory_array['branch_qty_in_stock'] && strpos(COG_ITEM_TYPES, $inventory_array['inventory_type']) !== false) {
+	if ($qty > $inventory_array['branch_qty_in_stock'] && (strpos(COG_ITEM_TYPES, $inventory_array['inventory_type']) !== false || $inventory_array['inventory_type'] == 'pb')) {
 	  $stock_note[] = ORD_INV_STOCK_LOW;
 	  $stock_note[] = ORD_INV_STOCK_BAL . $inventory_array['branch_qty_in_stock'];
 	  // fetch open orders

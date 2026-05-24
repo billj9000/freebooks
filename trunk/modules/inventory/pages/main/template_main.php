@@ -76,7 +76,15 @@ echo $toolbar->build_toolbar($add_search = true);
     while (!$query_result->EOF) {
 	  // only show quantity on hand if it is an inventory trackable item
 	  $not_show_types = array('ns','lb','sv','sf','ci','ai','ds');
-	  if (in_array($query_result->fields['inventory_type'], $not_show_types)) {
+	  if ($query_result->fields['inventory_type'] == 'pb') {
+		$vr = $db->Execute(
+		  "SELECT MIN(FLOOR(i.quantity_on_hand / a.qty)) AS v
+		   FROM " . TABLE_INVENTORY_ASSY_LIST . " a
+		   INNER JOIN " . TABLE_INVENTORY . " i ON a.sku = i.sku
+		   WHERE a.ref_id = '" . $query_result->fields['id'] . "' AND a.qty > 0"
+		);
+		$qty_in_stock = (!$vr->EOF && $vr->fields['v'] !== null) ? max(0, (int)$vr->fields['v']) : 0;
+	  } elseif (in_array($query_result->fields['inventory_type'], $not_show_types)) {
 		$qty_in_stock = '';
 	  } else {
 		$qty_in_stock = $query_result->fields['quantity_on_hand'];

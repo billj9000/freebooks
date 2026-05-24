@@ -206,6 +206,7 @@ define('INV_TYPES_SV','Serviço');
 define('INV_TYPES_LB','Mão Obra');
 define('INV_TYPES_NS','Item Não Estoque');
 define('INV_TYPES_AS','Item Montagem');
+define('INV_TYPES_PB','Pacote de Produto');
 define('INV_TYPES_SA','Montagem de Série');
 define('INV_TYPES_MS','Item Mestre');
 define('INV_TYPES_SR','Item de Série');

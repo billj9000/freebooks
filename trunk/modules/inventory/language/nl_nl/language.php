@@ -14,6 +14,7 @@ define('INV_TYPES_SR','Serie Voorraad Item');
 define('INV_TYPES_MS','Hoofd Voorraad Item');
 define('INV_TYPES_MB','Hoofd Voorraad Assemblage');
 define('INV_TYPES_AS','Assemblage artikel');
+define('INV_TYPES_PB','Productbundel');
 define('INV_TYPES_SA','Serie Assemblage');
 define('INV_TYPES_NS','Niet Voorraad Item');
 define('INV_TYPES_LB','Arbeid');

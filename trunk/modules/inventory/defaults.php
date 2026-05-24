@@ -27,6 +27,7 @@ $inventory_types = array(
   'ms' => INV_TYPES_MS,
   'mb' => INV_TYPES_MB,
   'ma' => INV_TYPES_AS,
+  'pb' => INV_TYPES_PB,
   'sa' => INV_TYPES_SA,
   'ns' => INV_TYPES_NS,
   'lb' => INV_TYPES_LB,

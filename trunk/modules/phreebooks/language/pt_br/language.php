@@ -76,6 +76,9 @@ define('GL_ERROR_SERIALIZE_QUANTITY','Erro calculando custo da mercadoria vendid
 define('GL_ERROR_POSTING_NEG_INVENTORY','Erro enviando custo da mercadoria vendida para um crédito de fornecedor, inventário vai ficar negativo e CMV não pode ser calculado. SKU: ');
 define('GL_ERROR_NOT_ENOUGH_PARTS','Não há itens suficientes para que o número montagens solicitado seja montado. SKU: ');
 define('GL_ERROR_SKU_NOT_ASSY','Não é possível montar um item de inventário quenão tem componentes. SKU: ');
+define('GL_ERROR_PB_CANNOT_ADJUST','Pacotes de produto não podem ser ajustados diretamente. Ajuste os itens componentes.');
+define('GL_ERROR_PB_CANNOT_ASSEMBLE','Pacotes de produto não podem ser montados em estoque. São itens virtuais.');
+define('GL_ERROR_PB_NO_COMPONENTS','Pacote de produto não tem lista de materiais. SKU: ');
 define('GL_ERROR_BAD_SKU_ENTERED','O SKU digitado não pode ser encontrado. Nenhuma ação foi realizada.');
 define('GL_ERROR_UNPOSTING_COGS','Erro desfazendo o custo da mercadoria vendida. SKU: ');
 define('GL_ERROR_POSTING_NEGATIVE_INV','Este lançamento não pode ser enviado porque deixaria o estoque negativo. Suas especificações não permitem inventário negativo!');

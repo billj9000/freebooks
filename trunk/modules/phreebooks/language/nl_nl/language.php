@@ -216,6 +216,9 @@ define('GL_ERROR_UNPOSTING_COGS','Error bij terugdraaien van de kostenprijs. Art
 define('GL_ERROR_BAD_SKU_ENTERED','De ingevoerde Art.nr. kon niet gevonden worden. Er is geen actie ondernomen.');
 define('GL_ERROR_SKU_NOT_ASSY','Kan voorraadartikel niet assembleren omdat het geen componenten heeft. Art.nr.: ');
 define('GL_ERROR_NOT_ENOUGH_PARTS','Niet genoeg onderdelen om de gevraagde aantal assemblages te bouwen. Art.nr.:');
+define('GL_ERROR_PB_CANNOT_ADJUST','Productbundels kunnen niet direct worden aangepast. Pas de componentartikelen aan.');
+define('GL_ERROR_PB_CANNOT_ASSEMBLE','Productbundels kunnen niet als voorraad worden geassembleerd. Ze zijn virtuele artikelen.');
+define('GL_ERROR_PB_NO_COMPONENTS','Productbundel heeft geen stuklijst. Art.nr.: ');
 define('GL_ERROR_POSTING_NEG_INVENTORY','Error bij opslaan van kostprijs voor het leverancier krediet, Voorraad wordt negatief en kostprijs kan niet berekend worden. Getroffen Art.nr.: ');
 define('GL_ERROR_SERIALIZE_QUANTITY','Error Berekenen van Kostprijs voor een serie item, De aantallen waren niet gelijk aan 1 per regel item.');
 define('GL_ERROR_SERIALIZE_EMPTY','Error bij de berekening van de kostprijs voor een serieel item, het serienummer is leeg.');

@@ -615,6 +615,9 @@ class journal {
 		  'store_id'          => $this->store_id,
 		  'post_date'         => $this->post_date,
 		);
+		// fetch inventory type once for bundle dispatch
+		$inv_type_r = $db->Execute("SELECT inventory_type FROM " . TABLE_INVENTORY . " WHERE sku='" . db_input($inv_list['sku']) . "'");
+		$inv_type = (!$inv_type_r->EOF) ? $inv_type_r->fields['inventory_type'] : '';
 		switch ($this->journal_id) {
 		  case 4:
 		  case 10:
@@ -622,14 +625,18 @@ class journal {
 			if ($this->closed) $adjustment = $this->journal_rows[$i]['qty'];
 			$item_cost  = ($this->journal_id ==  4) ? $inv_list['price'] : 0;
 			$full_price = ($this->journal_id == 10) ? $inv_list['price'] : 0;
-			if (!$this->update_inventory_status($inv_list['sku'], $str_field, -$adjustment, $item_cost, $inv_list['description'], $full_price)) return false;							
+			if (!$this->update_inventory_status($inv_list['sku'], $str_field, -$adjustment, $item_cost, $inv_list['description'], $full_price)) return false;
 			break;
 		  case 12: // a sale so make quantity negative (pulling from inventory) and continue
 		  case 19:
-			$inv_list['qty'] = -$inv_list['qty']; 
+			$inv_list['qty'] = -$inv_list['qty'];
 		  case  6:
 		  case 21:
-			if (!$this->calculate_COGS($inv_list)) return false;
+			if ($inv_type == 'pb') {
+			  if (!$this->calculate_bundle_cogs($inv_list)) return false;
+			} else {
+			  if (!$this->calculate_COGS($inv_list)) return false;
+			}
 			if ($inv_list['so_po_item_ref_id']) { // check for reference to po/so to adjust qty on order/sales order
 			  // do not allow qty on order to go below zero.
 			  $bal_before_post = $item_array[$inv_list['so_po_item_ref_id']]['ordered'] - $item_array[$inv_list['so_po_item_ref_id']]['processed'] + $this->journal_rows[$i]['qty'];
@@ -638,14 +645,20 @@ class journal {
 			}
 			break;
 		  case 14:
+			if ($inv_type == 'pb') return $this->fail_message(GL_ERROR_PB_CANNOT_ASSEMBLE);
 			$assy_cost = $this->calculate_assembly_list($inv_list); // for assembly parts list
 			if ($assy_cost === false) return false; // there was an error
 			break;
 		  case  7: // a vendor credit memo, negate the quantity and process same as customer credit memo
-			$inv_list['qty'] = -$inv_list['qty']; 
+			$inv_list['qty'] = -$inv_list['qty'];
 		  case 13: // a customer credit memo, qty stays positive
 		  case 16:
-			if (!$this->calculate_COGS($inv_list)) return false;
+			if ($inv_type == 'pb') {
+			  if ($this->journal_id == 16) return $this->fail_message(GL_ERROR_PB_CANNOT_ADJUST);
+			  if (!$this->calculate_bundle_cogs($inv_list)) return false;
+			} else {
+			  if (!$this->calculate_COGS($inv_list)) return false;
+			}
 			break;
 		  default: // nothing
 		}
@@ -765,7 +778,18 @@ class journal {
 			default:
 			  $qty = $this->journal_rows[$i]['qty'];
 		  }
-		  if (!$this->update_inventory_status($this->journal_rows[$i]['sku'], 'quantity_on_hand', -$qty)) return false;
+		  $inv_type_r = $db->Execute("SELECT inventory_type, id FROM " . TABLE_INVENTORY . " WHERE sku='" . db_input($this->journal_rows[$i]['sku']) . "'");
+		  $sku_inv_type = (!$inv_type_r->EOF) ? $inv_type_r->fields['inventory_type'] : '';
+		  if ($sku_inv_type == 'pb') {
+			$bundle_id = $inv_type_r->fields['id'];
+			$bom = $db->Execute("SELECT sku, qty FROM " . TABLE_INVENTORY_ASSY_LIST . " WHERE ref_id = " . (int)$bundle_id);
+			while (!$bom->EOF) {
+			  if (!$this->update_inventory_status($bom->fields['sku'], 'quantity_on_hand', -$qty * $bom->fields['qty'])) return false;
+			  $bom->MoveNext();
+			}
+		  } else {
+			if (!$this->update_inventory_status($this->journal_rows[$i]['sku'], 'quantity_on_hand', -$qty)) return false;
+		  }
 		  // adjust po/so inventory, if necessary, based on min of qty on ordered and qty shipped/received
 		  if ($this->journal_rows[$i]['so_po_item_ref_id']) {
 			$item_array = $this->load_so_po_balance($this->so_po_ref_id, $this->id, false);
@@ -804,8 +828,8 @@ class journal {
 	  }
 	}
 	$type = $result->fields['inventory_type'];
-	// only update items that are to be tracked in inventory (non-stock are tracked for PO/SO only)
-	if (strpos(COG_ITEM_TYPES, $type) !== false || ($type == 'ns' && $field <> 'quantity_on_hand')) {
+	// only update items that are to be tracked in inventory (non-stock and bundles are tracked for SO only)
+	if (strpos(COG_ITEM_TYPES, $type) !== false || (in_array($type, ['ns', 'pb']) && $field <> 'quantity_on_hand')) {
 	  $sql = "UPDATE ".TABLE_INVENTORY." SET $field=$field+$adjustment, ";
 	  if ($item_cost) $sql .= "item_cost=$item_cost, ";
 	  $sql .= "last_journal_date = now() WHERE sku='$sku'";
@@ -1234,6 +1258,39 @@ class journal {
 	$inv_list['price'] = $assy_cost / $qty; // insert the assembly cost of materials - unit price
 	// Adjust inventory levels for assembly, if unbuild, also calcuate COGS differences
 	if ($this->calculate_COGS($inv_list, $return_cogs = ($qty < 0) ? false : true) === false) return false;
+	return true;
+  }
+
+  function calculate_bundle_cogs($inv_list) {
+	global $db, $messageStack;
+	$messageStack->debug("\n    Calculating Bundle COGS, SKU = " . $inv_list['sku'] . ' and QTY = ' . $inv_list['qty']);
+	$bundle = $db->Execute("SELECT id FROM " . TABLE_INVENTORY . " WHERE sku='" . db_input($inv_list['sku']) . "'");
+	if ($bundle->RecordCount() == 0) return $this->fail_message(GL_ERROR_BAD_SKU_ENTERED);
+	$bundle_id = $bundle->fields['id'];
+	$sql = "SELECT a.sku, a.description, a.qty, i.inventory_type, i.quantity_on_hand, i.account_inventory_wage, i.item_cost AS price
+	        FROM " . TABLE_INVENTORY_ASSY_LIST . " a
+	        INNER JOIN " . TABLE_INVENTORY . " i ON a.sku = i.sku
+	        WHERE a.ref_id = " . (int)$bundle_id;
+	$components = $db->Execute($sql);
+	if ($components->RecordCount() == 0) return $this->fail_message(GL_ERROR_PB_NO_COMPONENTS . $inv_list['sku']);
+	while (!$components->EOF) {
+	  $component_qty = $inv_list['qty'] * $components->fields['qty'];
+	  $component_item = array(
+	    'id'               => $inv_list['id'],
+	    'gl_type'          => 'bdi',
+	    'sku'              => $components->fields['sku'],
+	    'description'      => $components->fields['description'],
+	    'qty'              => $component_qty,
+	    'price'            => $components->fields['price'],
+	    'store_id'         => $this->store_id,
+	    'post_date'        => $this->post_date,
+	    'so_po_item_ref_id' => null,
+	    'serialize_number'  => null,
+	  );
+	  if (!$this->calculate_COGS($component_item)) return false;
+	  if (!$this->update_inventory_status($component_item['sku'], 'quantity_on_hand', $component_qty)) return false;
+	  $components->MoveNext();
+	}
 	return true;
   }
 
