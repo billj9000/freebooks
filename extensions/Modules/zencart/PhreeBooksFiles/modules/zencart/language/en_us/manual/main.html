@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="doc_pos" content="09.ZC">
+<meta name="doc_index_1" content="ZenCart.Overview">
+<meta name="doc_index_2" content="E-Commerce.ZenCart">
+<meta name="doc_title" content="ZenCart Module">
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>ZenCart Module</title>
+</head>
+<body>
+
+<h1 align="center">ZenCart Module</h1>
+
+<p>The ZenCart module integrates FreeBooks with a ZenCart e-commerce store.
+It provides two-way synchronisation:</p>
+
+<ul>
+  <li><strong>ZenCart &rarr; FreeBooks</strong>: imports orders as Sales Orders,
+      optionally with linked Sales Invoices and Cash Receipts</li>
+  <li><strong>FreeBooks &rarr; ZenCart</strong>: uploads product data, syncs
+      stock quantities and prices, confirms shipments</li>
+</ul>
+
+<h2>Installation</h2>
+
+<h3>ZenCart side</h3>
+<p>Copy <code>freebooks-zencart.php</code> (from the <code>zencart-api</code> repository)
+to your ZenCart web root (the same directory as ZenCart's <code>index.php</code>).
+Then insert an API key into the ZenCart <code>configuration</code> table:</p>
+
+<pre>
+INSERT INTO configuration
+  (configuration_title, configuration_key, configuration_value,
+   configuration_description, configuration_group_id, sort_order, date_added)
+VALUES
+  ('FreeBooks API Key', 'FREEBOOKS_API_KEY', '&lt;your-key&gt;',
+   'Secret key for FreeBooks ERP integration', 1, 100, NOW());
+</pre>
+
+<p>Generate a strong key with: <code>php -r "echo bin2hex(random_bytes(32));"</code></p>
+
+<h3>FreeBooks side</h3>
+<p>Copy <code>PhreeBooksFiles/modules/zencart/</code> into <code>trunk/modules/</code>.
+The module will appear under <strong>Tools &rarr; ZenCart</strong> and
+<strong>Company &rarr; Configuration &rarr; ZenCart</strong> after the next page load.</p>
+
+<h2>Configuration</h2>
+
+<p>Go to <strong>Company &rarr; Configuration &rarr; ZenCart</strong> to set up
+the connection and import options.</p>
+
+<table border="1" cellpadding="4" cellspacing="0">
+  <thead><tr><th>Field</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>ZenCart store URL</td><td>Base URL with no trailing slash, e.g. <code>https://shop.example.com</code></td></tr>
+    <tr><td>API key</td><td>Must match <code>FREEBOOKS_API_KEY</code> in the ZenCart configuration table</td></tr>
+    <tr><td>ZenCart Tax Class</td><td>Exact text name of the taxable products tax class in ZenCart</td></tr>
+    <tr><td>Use price sheets</td><td>Enable quantity-tiered pricing via a FreeBooks price sheet</td></tr>
+    <tr><td>Price sheet</td><td>The active price sheet to apply when &ldquo;Use price sheets&rdquo; is Yes</td></tr>
+    <tr><td>Shipped status ID</td><td>ZenCart numeric order status code for fully shipped orders</td></tr>
+    <tr><td>Partial status ID</td><td>ZenCart numeric order status code for partially shipped orders</td></tr>
+    <tr><td>Catch-all customer ID</td><td>FreeBooks contact ID to use when a customer cannot be matched or created; 0 = skip such orders</td></tr>
+    <tr><td>Fallback tax rate ID</td><td>FreeBooks tax rate ID when ZenCart's item tax % has no match; 0 = untaxed</td></tr>
+    <tr><td>Create invoice</td><td>Also create a Sales Invoice (journal 12) for each imported order</td></tr>
+    <tr><td>Default sales rep</td><td>FreeBooks rep ID for imported orders; 0 = none</td></tr>
+    <tr><td>Last imported order ID</td><td>Highest ZenCart order ID successfully imported; edit to re-import from a given point</td></tr>
+    <tr><td>Payment module map</td><td>Maps ZenCart payment codes to FreeBooks modules and GL accounts (see Order Import below)</td></tr>
+  </tbody>
+</table>
+
+<h2>Order Import (ZenCart &rarr; FreeBooks)</h2>
+
+<p>Orders are imported automatically at the end of each cron run. To run manually:</p>
+<pre>php /var/www/html/cron/zencart_sync.php</pre>
+
+<p>For each new ZenCart order the cron creates:</p>
+<ol>
+  <li>A <strong>Sales Order</strong> (journal 10) &mdash; always</li>
+  <li>A <strong>Sales Invoice</strong> (journal 12) &mdash; only when &ldquo;Create invoice&rdquo; is Yes</li>
+  <li>A <strong>Cash Receipt</strong> (journal 18) &mdash; automatically when an invoice is created and a payment amount is present</li>
+</ol>
+
+<p>The ZenCart order ID is stored as <code>ZC-{id}</code> in the Sales Order's
+PO reference field, so re-running the cron is safe &mdash; already-imported
+orders are skipped.</p>
+
+<h3>Customer matching</h3>
+<p>Each order is matched to an existing FreeBooks customer contact by email address.
+If no match is found, a new contact is created automatically from the billing address.
+If contact creation fails and a catch-all customer ID is configured, the order is
+assigned to that contact instead; otherwise the order is skipped.</p>
+
+<h3>Tax handling</h3>
+<p>ZenCart supplies a VAT percentage for each product line. The cron maps this to the
+nearest whole-number FreeBooks tax rate ID. If no match is found, the fallback tax
+rate ID is used. Do <em>not</em> rely on the <code>item_taxable</code> flag in
+inventory &mdash; FreeBooks defaults it to 0, which would strip VAT from every
+recognised SKU.</p>
+
+<h3>Rounding adjustment</h3>
+<p>If FreeBooks' calculated total differs from the ZenCart paid amount by between
+&pound;0.001 and &pound;0.99, a zero-tax line item with SKU <code>ROUNDING</code>
+is added automatically so both systems show the same total.</p>
+
+<h3>Discounts and coupons</h3>
+<p>ZenCart coupon discounts arrive as a line item with SKU <code>Discount</code>.
+The absolute discount amount is applied to the Sales Order's discount field.</p>
+
+<p><strong>VAT mismatch warning</strong>: FreeBooks by default calculates VAT on
+the pre-discount subtotal, while ZenCart calculates VAT on the post-discount amount.
+For orders with coupons, FreeBooks and ZenCart totals will differ by
+<code>VAT rate &times; discount amount</code> (e.g. &pound;2.00 on a &pound;10 coupon
+at 20% VAT).</p>
+
+<p>To make FreeBooks match ZenCart's totals, go to
+<strong>PhreeBooks Admin &rarr; Customers tab</strong> and set:</p>
+<ul>
+  <li><em>Enable percent/value discounts on order totals</em> &rarr; <strong>Yes</strong></li>
+  <li><em>Calculate Customer Sales Tax Before Discount Applied</em> &rarr; <strong>After Discount</strong></li>
+</ul>
+
+<p><strong>Discount percentage display</strong>: FreeBooks back-calculates the displayed
+discount percentage as <code>discount &divide; (products + shipping subtotal)</code>.
+Because shipping is carried as a product line (see below), a product-only coupon
+will display as a slightly lower percentage than expected. The monetary amounts are
+correct.</p>
+
+<h3>Shipping</h3>
+<p>The ZenCart shipping line (SKU <code>Shipping</code>) is mapped to the
+<code>freight</code> field on the Sales Order. The tax rate is taken from
+ZenCart's shipping tax percentage and mapped to a FreeBooks tax rate ID,
+allowing shipping to carry a different VAT rate than the products.
+(FreeBooks' built-in freight field uses a single global freight tax rate and
+cannot carry a per-order rate, which is why shipping is handled this way.)</p>
+
+<h3>Payment module map</h3>
+<p>The payment module map tells FreeBooks which payment method and GL account to
+use for each ZenCart payment module. Format:</p>
+<pre>zcmodule=fbmodule:glacct, ...</pre>
+<p>Example: <code>paypalexpress=paypal_nvp:1020, stripe=freecharger:1030</code></p>
+<p>Either part may be omitted (e.g. <code>paypalexpress=paypal_nvp</code> or
+<code>stripe=:1030</code>). Unmapped modules use <code>freecharger</code> with
+the default cash account.</p>
+
+<h2>Product Upload (FreeBooks &rarr; ZenCart)</h2>
+
+<h3>Single product upload</h3>
+<p>From the Inventory list, select a product and use the <strong>ZenCart Upload</strong>
+toolbar button. The product's details, price, and image are sent to ZenCart.</p>
+
+<h3>Bulk upload</h3>
+<p>From <strong>Tools &rarr; ZenCart</strong>, click <strong>Bulk Upload</strong>
+to upload all inventory items that have the <em>catalog</em> checkbox set.
+Tick <em>Include Images</em> to include product images.</p>
+
+<h3>Quantity sync</h3>
+<p>The <strong>Synchronize</strong> button (and the cron) pushes current stock
+quantities and prices to ZenCart for all catalog items:</p>
+<ul>
+  <li>Items with <strong>multiple quantity price tiers</strong> are uploaded
+      individually so ZenCart receives the full tier structure and can display
+      quantity discounts.</li>
+  <li>All other items are sent in a single bulk API call.</li>
+</ul>
+
+<h3>Price sheets and quantity discounts</h3>
+<p>When <em>Use price sheets</em> is Yes and a price sheet is selected, each item's
+price is calculated from that sheet. Items with more than one active quantity tier
+are uploaded as full products, writing tier rows to ZenCart's
+<code>products_discount_quantity</code> table so quantity discounts appear on the
+product page.</p>
+<p>If no global price sheet is configured, the module falls back to the item-level
+<em>price_sheet</em> field on each inventory record.</p>
+
+<h2>Shipment Confirmation</h2>
+
+<p>From <strong>Tools &rarr; ZenCart</strong>, select a date and click
+<strong>Confirm Shipments</strong>. The module reads the FreeBooks shipping log
+for that date and posts a comment to the matching ZenCart orders containing the
+carrier, method, and tracking number. Fully shipped orders receive the Shipped
+status; partially shipped orders receive the Partial status.</p>
+
+<h2>Cron Setup</h2>
+
+<p>Add to crontab (adjust path as needed):</p>
+<pre>*/15 * * * * php /var/www/html/cron/zencart_sync.php &gt;&gt; /var/log/zencart_sync.log 2&gt;&amp;1</pre>
+
+<p>The script is safe to run frequently &mdash; it only imports orders with IDs
+higher than the last imported order ID and always runs a stock quantity sync
+at the end.</p>
+
+</body>
+</html>
