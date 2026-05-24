@@ -1076,6 +1076,9 @@ function gen_db_date($raw_date = '', $separator = '/') {
     $form .= '" method="' . $method . '"';
     if (gen_not_null($params)) $form .= ' ' . $params;
     $form .= '>';
+    if (strtolower($method) === 'post' && !empty($_SESSION['csrf_token'])) {
+        $form .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES) . '">';
+    }
     return $form;
   }
 

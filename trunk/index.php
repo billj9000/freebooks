@@ -29,6 +29,15 @@ elseif (isset($_GET['page']))   $page = $_GET['page'];
 else                     		$page = 'main';
 $user_validated = false;
 require_once('includes/application_top.php');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $csrf_ok = isset($_POST['csrf_token']) && isset($_SESSION['csrf_token'])
+          && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+  if (!$csrf_ok) {
+    if ($page == 'ajax') { echo createXmlHeader() . xmlEntry('error', 'Invalid request token.') . createXmlFooter(); }
+    else { http_response_code(403); die('Invalid request token.'); }
+    die;
+  }
+}
 if (!$user_validated) {
   if ($page == 'ajax'){
 	echo createXmlHeader() . xmlEntry('error', SORRY_YOU_ARE_LOGGED_OUT) . createXmlFooter();

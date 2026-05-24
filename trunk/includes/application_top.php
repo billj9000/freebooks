@@ -51,6 +51,7 @@ $_REQUEST = array_merge($_GET, $_POST);
 session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict', 'secure' => ENABLE_SSL_ADMIN === 'true']);
 session_start();
 $session_started = true;
+if (empty($_SESSION['csrf_token'])) $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 // set the language
 if   (isset($_GET['language'])) { $_SESSION['language'] = $_GET['language']; } 
 elseif (empty($_SESSION['language'])) { $_SESSION['language'] = defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : 'en_us'; }
