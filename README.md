@@ -2,7 +2,11 @@
 
 FreeBooks is an open-source ERP/accounting web application for small businesses, based on PhreeBooks 3.7.1 and updated for modern PHP and MariaDB.
 
-See the [freebooks-docker](https://github.com/billj9000/freebooks-docker) repository for Docker deployment instructions.
+## Deployment
+
+FreeBooks can be deployed directly to any PHP 8.x-capable web server (Apache or Nginx) with a MySQL/MariaDB database — no Docker required. Deploy the `trunk/` directory as the web root, then visit `/install/` in a browser to run the installer.
+
+For a containerised setup, see the [freebooks-docker](https://github.com/billj9000/freebooks-docker) repository.
 
 ## Post-install security
 
