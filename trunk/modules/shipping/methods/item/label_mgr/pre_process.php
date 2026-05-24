@@ -22,8 +22,8 @@ $shipping_module = 'item';
 
 /**************  include page specific files    *********************/
 load_method_language(DEFAULT_MOD_DIR, $shipping_module);
-require(DIR_FS_WORKING . 'shipping/functions/shipping.php');
-require(DIR_FS_WORKING . 'shipping/classes/shipping.php');
+require(DIR_FS_MODULES . 'shipping/functions/shipping.php');
+require(DIR_FS_MODULES . 'shipping/classes/shipping.php');
 require(DIR_FS_WORKING . 'methods/' . $shipping_module . '/' . $shipping_module . '.php');
 
 /**************   page specific initialization  *************************/
