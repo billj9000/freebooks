@@ -42,15 +42,24 @@ class zencart {
             $product['productURL'] = $inv['ProductURL'];
         }
 
-        // Price — use price sheet tiers if configured, otherwise simple retail price
-        if (ZENCART_USE_PRICE_SHEETS == '1' && ZENCART_PRICE_SHEET != '') {
+        // Price — global ZENCART_PRICE_SHEET takes priority; item-level inventory.price_sheet
+        // is the fallback. Either way, tiers are sent as a sequential JSON array.
+        $sheet_name = '';
+        if (defined('ZENCART_USE_PRICE_SHEETS') && ZENCART_USE_PRICE_SHEETS == '1'
+            && defined('ZENCART_PRICE_SHEET') && ZENCART_PRICE_SHEET != '' && ZENCART_PRICE_SHEET != '0') {
+            $sheet_name = ZENCART_PRICE_SHEET;
+        } elseif (!empty($inv['price_sheet'])) {
+            $sheet_name = $inv['price_sheet'];
+        }
+
+        if ($sheet_name !== '') {
             $sheet = $db->Execute(
                 "SELECT id, default_levels FROM " . TABLE_PRICE_SHEETS
                 . " WHERE '" . date('Y-m-d') . "' >= effective_date"
-                . " AND sheet_name = '" . db_prepare_input(ZENCART_PRICE_SHEET) . "' AND inactive = '0'"
+                . " AND sheet_name = '" . db_input($sheet_name) . "' AND inactive = '0'"
             );
             if ($sheet->RecordCount() == 0) {
-                $messageStack->add(ZENCART_ERROR_NO_PRICE_SHEET . ZENCART_PRICE_SHEET, 'error');
+                $messageStack->add(ZENCART_ERROR_NO_PRICE_SHEET . $sheet_name, 'error');
                 return false;
             }
             $special = $db->Execute(
@@ -61,13 +70,12 @@ class zencart {
                 ? $special->fields['price_levels']
                 : $sheet->fields['default_levels'];
             $prices = inv_calculate_prices($inv['item_cost'], $inv['full_price'], $levels_str);
-            $price_levels = [];
-            foreach ($prices as $lvl => $amount) {
-                $price_levels[$lvl + 1] = [
-                    'qty'    => $amount['qty'],
-                    'amount' => $currencies->clean_value($amount['price']),
-                ];
-            }
+            // array_values() re-indexes so json_encode produces a JSON array, not an object.
+            // Sparse keys arise when "Not Used" levels are skipped by inv_calculate_prices().
+            $price_levels = array_values(array_map(fn($a) => [
+                'qty'    => (int)$a['qty'],
+                'amount' => $currencies->clean_value($a['price']),
+            ], $prices ?: []));
             $product['priceDiscountType'] = 2;
             $product['price_levels']      = $price_levels;
         } else {
@@ -105,13 +113,33 @@ class zencart {
     }
 
     // Push current quantity_on_hand and retail price for all catalog=1 products.
-    // This is the FreeBooks→ZenCart stock sync (replaces the old SOAP product sync).
+    // Items with quantity-tiered price sheets are uploaded individually via uploadProduct()
+    // so ZenCart receives the full tier structure. All other items go through the bulk
+    // updateProductsQty endpoint.
     public function syncQuantities(): bool
     {
         global $db, $messageStack;
 
+        $use_sheet  = defined('ZENCART_USE_PRICE_SHEETS') && ZENCART_USE_PRICE_SHEETS == '1'
+                   && defined('ZENCART_PRICE_SHEET') && ZENCART_PRICE_SHEET != '' && ZENCART_PRICE_SHEET != '0';
+        $sheet_id     = 0;
+        $sheet_levels = '';
+        if ($use_sheet) {
+            $sheet = $db->Execute(
+                "SELECT id, default_levels FROM " . TABLE_PRICE_SHEETS
+                . " WHERE '" . date('Y-m-d') . "' >= effective_date"
+                . " AND sheet_name = '" . db_input(ZENCART_PRICE_SHEET) . "' AND inactive = '0'"
+            );
+            if ($sheet->RecordCount() == 0) {
+                $messageStack->add(ZENCART_ERROR_NO_PRICE_SHEET . ZENCART_PRICE_SHEET, 'error');
+                return false;
+            }
+            $sheet_id     = (int)$sheet->fields['id'];
+            $sheet_levels = $sheet->fields['default_levels'];
+        }
+
         $result = $db->Execute(
-            "SELECT sku, ProductModel, quantity_on_hand, full_price"
+            "SELECT id, sku, ProductModel, quantity_on_hand, item_cost, full_price"
             . " FROM " . TABLE_INVENTORY . " WHERE catalog = '1'"
         );
         if ($result->RecordCount() == 0) {
@@ -119,31 +147,73 @@ class zencart {
             return false;
         }
 
-        $products = [];
+        $bulk_products = [];
+        $n_tiered_ok   = 0;
+        $n_tiered_err  = 0;
+
         while (!$result->EOF) {
-            $model = !empty($result->fields['ProductModel'])
+            $inv_id = (int)$result->fields['id'];
+            $model  = !empty($result->fields['ProductModel'])
                 ? $result->fields['ProductModel']
                 : $result->fields['sku'];
-            $products[] = [
+
+            if ($use_sheet) {
+                $special = $db->Execute(
+                    "SELECT price_levels FROM " . TABLE_INVENTORY_SPECIAL_PRICES
+                    . " WHERE inventory_id = " . $inv_id
+                    . " AND price_sheet_id = " . $sheet_id
+                );
+                $levels = $special->RecordCount() > 0
+                    ? $special->fields['price_levels']
+                    : $sheet_levels;
+                $tiers = inv_calculate_prices($result->fields['item_cost'], $result->fields['full_price'], $levels);
+
+                if (is_array($tiers) && count($tiers) > 1) {
+                    // Multiple quantity tiers — upload full product so ZenCart gets qty discounts
+                    if ($this->uploadProduct($inv_id, false)) {
+                        $n_tiered_ok++;
+                    } else {
+                        $n_tiered_err++;
+                    }
+                    $result->MoveNext();
+                    continue;
+                }
+
+                $price = is_array($tiers) && !empty($tiers)
+                    ? (float)$tiers[0]['price']
+                    : (float)$result->fields['full_price'];
+            } else {
+                $price = (float)$result->fields['full_price'];
+            }
+
+            $bulk_products[] = [
                 'products_model' => $model,
                 'quantity'       => (float)$result->fields['quantity_on_hand'],
-                'price'          => (float)$result->fields['full_price'],
+                'price'          => $price,
             ];
             $result->MoveNext();
         }
 
-        $response = zencart_api_call('updateProductsQty', ['products' => $products]);
-        if ($response === false) return false;
+        // Bulk update for non-tiered items
+        $n_bulk_ok  = 0;
+        $n_bulk_err = 0;
+        if (!empty($bulk_products)) {
+            $response = zencart_api_call('updateProductsQty', ['products' => $bulk_products]);
+            if ($response === false) return false;
+            $n_bulk_ok  = count($response['updated']    ?? []);
+            $n_bulk_err = count($response['notUpdated'] ?? []);
+            if ($n_bulk_err > 0) {
+                $messageStack->add(
+                    sprintf(ZENCART_SYNC_QTY_PARTIAL, $n_bulk_ok, $n_bulk_err)
+                    . ' ' . implode(', ', $response['notUpdated']),
+                    'caution'
+                );
+            }
+        }
 
-        $n_ok  = count($response['updated']    ?? []);
-        $n_err = count($response['notUpdated'] ?? []);
-        if ($n_err > 0) {
-            $messageStack->add(
-                sprintf(ZENCART_SYNC_QTY_PARTIAL, $n_ok, $n_err)
-                . ' ' . implode(', ', $response['notUpdated']),
-                'caution'
-            );
-        } else {
+        $n_ok  = $n_bulk_ok  + $n_tiered_ok;
+        $n_err = $n_bulk_err + $n_tiered_err;
+        if ($n_err == 0) {
             $messageStack->add(sprintf(ZENCART_SYNC_QTY_SUCCESS, $n_ok), 'success');
         }
         return true;
