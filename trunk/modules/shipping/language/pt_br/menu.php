@@ -9,5 +9,6 @@
 // Path: /modules/shipping/language/pt_br/menu.php
 
 define('BOX_SHIPPING_MANAGER','Entregas');
+define('BOX_SHIPPING_PACKAGES','Embalagens de Envio');
 
 ?>

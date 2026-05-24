@@ -19,4 +19,5 @@
 //
 
 define('BOX_SHIPPING_MANAGER','Shipping Manager');
+define('BOX_SHIPPING_PACKAGES','Shipping Packages');
 ?>

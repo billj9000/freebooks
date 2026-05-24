@@ -81,6 +81,10 @@
 	    <td nowrap="nowrap"><?php echo html_input_field('shipping_default_height', $_POST['shipping_default_height'] ? $_POST['shipping_default_height'] : SHIPPING_DEFAULT_HEIGHT, 'size="10" style="text-align:right"') . TEXT_HEIGHT; ?></td>
 	  </tr>
 	  <tr>
+	    <td colspan="3"><?php echo CD_10_08_DESC; ?></td>
+	    <td><?php echo html_input_field('shipping_vol_weight_divisor', $_POST['shipping_vol_weight_divisor'] ? $_POST['shipping_vol_weight_divisor'] : SHIPPING_VOL_WEIGHT_DIVISOR, 'size="10" style="text-align:right"'); ?></td>
+	  </tr>
+	  <tr>
 	    <td><?php echo CD_10_10_DESC; ?></td>
 	    <td><?php echo html_pull_down_menu('shipping_default_additional_handling_show', $sel_show, $_POST['shipping_default_additional_handling_show'] ? $_POST['shipping_default_additional_handling_show'] : SHIPPING_DEFAULT_ADDITIONAL_HANDLING_SHOW, ''); ?></td>
 	    <td nowrap="nowrap"><?php echo TEXT_DEFAULT . ' ' . html_pull_down_menu('shipping_default_additional_handling_checked', $sel_checked, $_POST['shipping_default_additional_handling_checked'] ? $_POST['shipping_default_additional_handling_checked'] : SHIPPING_DEFAULT_ADDITIONAL_HANDLING_CHECKED, ''); ?></td>

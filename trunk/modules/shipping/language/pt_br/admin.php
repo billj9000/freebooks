@@ -26,6 +26,7 @@ define('CD_10_26_DESC','Confirmação de Entrega');
 define('CD_10_20_DESC','Pewrmite que entregas gandes possam ser divididas para utilizar serviço de embalagem menor');
 define('CD_10_14_DESC','Seleçãpo de opção de seguro de entrega.');
 define('CD_10_10_DESC','Taxa adicional de manuseio do pacote');
+define('CD_10_08_DESC','Divisor de peso volumétrico (ex: 5000 para cm/kg, 139 para in/lb).');
 define('CD_10_07_DESC','Dimensões padrão para utilizar em uma entrega normal (nas unidades especificadas acima).');
 define('CD_10_06_DESC','Tipo padrão de serviço de coleta para seu serviço de entrega');
 define('CD_10_05_DESC','Tipo padrão pacote entrega');

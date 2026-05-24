@@ -159,4 +159,31 @@ define('SHIPPING_RECEIPIENT','Destinatário');
 define('SHIPPING_THIRD_PARTY','Terceiro');
 define('SHIPPING_COLLECT','Coleta');
 
+// Shipping Packages page
+define('SHPKG_HEADING_TITLE',       'Embalagens de Envio');
+define('SHPKG_TEXT_CODE',           'Código');
+define('SHPKG_TEXT_NAME',           'Nome');
+define('SHPKG_TEXT_DESCRIPTION',    'Descrição');
+define('SHPKG_TEXT_WEIGHT',         'Peso da Embalagem');
+define('SHPKG_TEXT_MAX_WEIGHT',     'Peso Máximo');
+define('SHPKG_TEXT_CARRIER',        'Transportadora');
+define('SHPKG_TEXT_ALL_CARRIERS',   'Todas as transportadoras');
+define('SHPKG_TEXT_EXTERNAL',       'Externo');
+define('SHPKG_TEXT_INTERNAL',       'Interno');
+define('SHPKG_TEXT_EXT_DIMS',       'Dimensões Externas (C&times;L&times;A)');
+define('SHPKG_TEXT_INT_DIMS',       'Dimensões Internas (C&times;L&times;A)');
+define('SHPKG_TEXT_EXT_LENGTH',     'Comp. Externo');
+define('SHPKG_TEXT_EXT_WIDTH',      'Larg. Externa');
+define('SHPKG_TEXT_EXT_HEIGHT',     'Alt. Externa');
+define('SHPKG_TEXT_INT_LENGTH',     'Comp. Interno');
+define('SHPKG_TEXT_INT_WIDTH',      'Larg. Interna');
+define('SHPKG_TEXT_INT_HEIGHT',     'Alt. Interna');
+define('SHPKG_TEXT_VOL_WEIGHT',     'Peso Vol.');
+define('SHPKG_TEXT_COST',           'Custo');
+define('SHPKG_TEXT_INACTIVE',       'Inativo');
+define('SHPKG_TEXT_SORT_ORDER',     'Ordem de Classificação');
+define('SHPKG_ERROR_DUP_CODE',      'Já existe uma embalagem com esse código.');
+define('SHPKG_ERROR_MISSING_CODE',  'O código da embalagem é obrigatório.');
+define('SHPKG_ERROR_MISSING_NAME',  'O nome da embalagem é obrigatório.');
+
 ?>

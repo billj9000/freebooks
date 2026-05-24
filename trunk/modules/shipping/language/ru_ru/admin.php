@@ -17,6 +17,7 @@ define('CD_10_04_DESC','0 - Sets the default residential ship box to unchecked (
 define('CD_10_05_DESC','Specify the default package type to use for shipping.');
 define('CD_10_06_DESC','Specify the default type of pickup service for your package service.');
 define('CD_10_07_DESC','Enter the default package length to use for a standard shipment.');
+define('CD_10_08_DESC','Делитель объёмного веса (напр. 5000 для см/кг, 139 для дюйм/фунт).');
 define('CD_10_10_DESC','Show the additional handling charge checkbox');
 define('CD_10_14_DESC','Shows the insurance selection option.');
 define('CD_10_20_DESC','Show the checkbox to allow heavy shipments to be broken down for small package service.');

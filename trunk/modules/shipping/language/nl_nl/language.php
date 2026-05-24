@@ -159,4 +159,31 @@ define('SHIPPING_RECEIPIENT','Ontvanger');
 define('SHIPPING_THIRD_PARTY','Ontv/Derde Acct #');
 define('SHIPPING_COLLECT','Verzamel');
 
+// Shipping Packages page
+define('SHPKG_HEADING_TITLE',       'Verzendverpakkingen');
+define('SHPKG_TEXT_CODE',           'Code');
+define('SHPKG_TEXT_NAME',           'Naam');
+define('SHPKG_TEXT_DESCRIPTION',    'Omschrijving');
+define('SHPKG_TEXT_WEIGHT',         'Tarra Gewicht');
+define('SHPKG_TEXT_MAX_WEIGHT',     'Max. Gewicht');
+define('SHPKG_TEXT_CARRIER',        'Vervoerder');
+define('SHPKG_TEXT_ALL_CARRIERS',   'Alle vervoerders');
+define('SHPKG_TEXT_EXTERNAL',       'Buiten');
+define('SHPKG_TEXT_INTERNAL',       'Binnen');
+define('SHPKG_TEXT_EXT_DIMS',       'Buitenafmetingen (L&times;B&times;H)');
+define('SHPKG_TEXT_INT_DIMS',       'Binnenafmetingen (L&times;B&times;H)');
+define('SHPKG_TEXT_EXT_LENGTH',     'Buiten lengte');
+define('SHPKG_TEXT_EXT_WIDTH',      'Buiten breedte');
+define('SHPKG_TEXT_EXT_HEIGHT',     'Buiten hoogte');
+define('SHPKG_TEXT_INT_LENGTH',     'Binnen lengte');
+define('SHPKG_TEXT_INT_WIDTH',      'Binnen breedte');
+define('SHPKG_TEXT_INT_HEIGHT',     'Binnen hoogte');
+define('SHPKG_TEXT_VOL_WEIGHT',     'Vol. Gewicht');
+define('SHPKG_TEXT_COST',           'Kosten');
+define('SHPKG_TEXT_INACTIVE',       'Inactief');
+define('SHPKG_TEXT_SORT_ORDER',     'Sorteervolgorde');
+define('SHPKG_ERROR_DUP_CODE',      'Er bestaat al een verpakking met die code.');
+define('SHPKG_ERROR_MISSING_CODE',  'Verpakkingscode is verplicht.');
+define('SHPKG_ERROR_MISSING_NAME',  'Verpakkingsnaam is verplicht.');
+
 ?>

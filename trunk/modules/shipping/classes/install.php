@@ -74,6 +74,7 @@ class shipping_admin {
 	  'SHIPPING_DEFAULT_RETURN_SERVICE_SHOW'           => '1',
 	  'SHIPPING_DEFAULT_RETURN_SERVICE_CHECKED'        => '0',
 	  'SHIPPING_DEFAULT_RETURN_SERVICE'                => '2',
+	  'SHIPPING_VOL_WEIGHT_DIVISOR'                    => '5000',
 	);
 	// add new directories to store images and data
 	$this->dirlist = array(
@@ -81,6 +82,26 @@ class shipping_admin {
 	);
 	// Load tables
 	$this->tables = array(
+	  TABLE_SHIPPING_PACKAGES => "CREATE TABLE " . TABLE_SHIPPING_PACKAGES . " (
+		  id int(11) NOT NULL auto_increment,
+		  package_code varchar(20) NOT NULL default '',
+		  name varchar(64) NOT NULL default '',
+		  description varchar(255) NOT NULL default '',
+		  weight decimal(10,4) NOT NULL default '0.0000',
+		  max_weight decimal(10,4) NOT NULL default '0.0000',
+		  ext_length decimal(10,4) NOT NULL default '0.0000',
+		  ext_width decimal(10,4) NOT NULL default '0.0000',
+		  ext_height decimal(10,4) NOT NULL default '0.0000',
+		  int_length decimal(10,4) NOT NULL default '0.0000',
+		  int_width decimal(10,4) NOT NULL default '0.0000',
+		  int_height decimal(10,4) NOT NULL default '0.0000',
+		  cost decimal(10,4) NOT NULL default '0.0000',
+		  sort_order int(11) NOT NULL default '0',
+		  inactive enum('0','1') NOT NULL default '0',
+		  carrier varchar(32) NOT NULL default '',
+		  PRIMARY KEY (id),
+		  UNIQUE KEY package_code (package_code)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
 	  TABLE_SHIPPING_LOG => "CREATE TABLE " . TABLE_SHIPPING_LOG . " (
 		  id int(11) NOT NULL auto_increment,
 		  shipment_id int(11) NOT NULL default '0',
@@ -129,6 +150,13 @@ class shipping_admin {
 	}
 	if (MODULE_SHIPPING_STATUS < 3.7) {
 		$db->Execute("ALTER TABLE ".TABLE_SHIPPING_LOG." CHANGE cost cost DOUBLE NOT NULL DEFAULT '0'");
+	}
+	if (version_compare((string)MODULE_SHIPPING_STATUS, '3.8', '<')) {
+		if (!db_table_exists(TABLE_SHIPPING_PACKAGES)) $db->Execute($this->tables[TABLE_SHIPPING_PACKAGES]);
+		if (!defined('SHIPPING_VOL_WEIGHT_DIVISOR')) write_configure('SHIPPING_VOL_WEIGHT_DIVISOR', '5000');
+	}
+	if (version_compare((string)MODULE_SHIPPING_STATUS, '3.9', '<')) {
+		if (!db_field_exists(TABLE_SHIPPING_PACKAGES, 'carrier')) $db->Execute("ALTER TABLE " . TABLE_SHIPPING_PACKAGES . " ADD carrier varchar(32) NOT NULL default '' AFTER inactive");
 	}
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));

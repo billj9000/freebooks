@@ -9,5 +9,6 @@
 // Path: /modules/shipping/language/nl_nl/menu.php
 
 define('BOX_SHIPPING_MANAGER','Verzendings Manager');
+define('BOX_SHIPPING_PACKAGES','Verzendverpakkingen');
 
 ?>

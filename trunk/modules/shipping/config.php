@@ -26,15 +26,24 @@
 // 3.6 => 2013-06-30 - bug fixes
 // 3.7 => 2014-07-21 - bug fixes
 // Module software version information
-define('MODULE_SHIPPING_VERSION', 3.7);
+define('MODULE_SHIPPING_VERSION', 3.9);
 // Menu Sort Positions
 // Menu Security id's (refer to master doc to avoid security setting overlap)
-define('SECURITY_ID_SHIPPING_MANAGER', 13);
+define('SECURITY_ID_SHIPPING_MANAGER',  13);
+define('SECURITY_ID_SHIPPING_PACKAGES', 157);
 // New Database Tables
-define('TABLE_SHIPPING_LOG', DB_PREFIX . 'shipping_log');
+define('TABLE_SHIPPING_LOG',      DB_PREFIX . 'shipping_log');
+define('TABLE_SHIPPING_PACKAGES', DB_PREFIX . 'shipping_packages');
 // Set the title menu
 // Set the menus
 if (defined('MODULE_SHIPPING_STATUS')) {
+  $mainmenu["tools"]['submenu']['shipping_packages'] = array(
+    	'text'        => BOX_SHIPPING_PACKAGES,
+    	'order'       => 6,
+    	'security_id' => SECURITY_ID_SHIPPING_PACKAGES,
+    	'link'        => html_href_link(FILENAME_DEFAULT, 'module=shipping&amp;page=packages&amp;list=1', 'SSL'),
+    	'show_in_users_settings' => true,
+  );
   $mainmenu["tools"]['submenu']['shipping'] = array(
     	'text'        => BOX_SHIPPING_MANAGER,
     	'order'       => 5,

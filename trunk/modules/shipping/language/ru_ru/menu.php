@@ -9,5 +9,6 @@
 // Path: //modules/shipping/language/ru_ru/menu.php
 
 define('BOX_SHIPPING_MANAGER','Управление отправлениями');
+define('BOX_SHIPPING_PACKAGES','Упаковки для отправления');
 
 ?>

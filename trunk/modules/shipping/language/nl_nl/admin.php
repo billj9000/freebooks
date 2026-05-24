@@ -18,6 +18,7 @@ define('CD_10_04_DESC','Standaard residentiële verzend doos (niet aangevinkt - 
 define('CD_10_05_DESC','Geef het standaard pakket type te gebruiken bij verzending.');
 define('CD_10_06_DESC','Geeft de standaard type pick-up service voor uw pakket dienst.');
 define('CD_10_07_DESC','Voer het standaard pakket lengte in te gebruiken voor een standaard zending.');
+define('CD_10_08_DESC','Volumetrische gewichtsdeler (bijv. 5000 voor cm/kg, 139 voor in/lb).');
 define('CD_10_10_DESC','Toon de extra administratiekosten checkbox');
 define('CD_10_14_DESC','Toon verzekering selectie optie.');
 define('CD_10_20_DESC','Toon de checkbox om zware zendingen worden uitgesplitst voor kleine pakket service.');

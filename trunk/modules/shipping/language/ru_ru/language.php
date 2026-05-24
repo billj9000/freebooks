@@ -144,4 +144,31 @@ define('SHIPPING_RECEIPIENT','Receipient');
 define('SHIPPING_THIRD_PARTY','Третья сторона');
 define('SHIPPING_COLLECT','Collect');
 
+// Shipping Packages page
+define('SHPKG_HEADING_TITLE',       'Упаковки для отправления');
+define('SHPKG_TEXT_CODE',           'Код');
+define('SHPKG_TEXT_NAME',           'Наименование');
+define('SHPKG_TEXT_DESCRIPTION',    'Описание');
+define('SHPKG_TEXT_WEIGHT',         'Вес тары');
+define('SHPKG_TEXT_MAX_WEIGHT',     'Макс. вес');
+define('SHPKG_TEXT_CARRIER',        'Перевозчик');
+define('SHPKG_TEXT_ALL_CARRIERS',   'Все перевозчики');
+define('SHPKG_TEXT_EXTERNAL',       'Внешние');
+define('SHPKG_TEXT_INTERNAL',       'Внутренние');
+define('SHPKG_TEXT_EXT_DIMS',       'Внешние габариты (Д&times;Ш&times;В)');
+define('SHPKG_TEXT_INT_DIMS',       'Внутренние габариты (Д&times;Ш&times;В)');
+define('SHPKG_TEXT_EXT_LENGTH',     'Внешняя длина');
+define('SHPKG_TEXT_EXT_WIDTH',      'Внешняя ширина');
+define('SHPKG_TEXT_EXT_HEIGHT',     'Внешняя высота');
+define('SHPKG_TEXT_INT_LENGTH',     'Внутренняя длина');
+define('SHPKG_TEXT_INT_WIDTH',      'Внутренняя ширина');
+define('SHPKG_TEXT_INT_HEIGHT',     'Внутренняя высота');
+define('SHPKG_TEXT_VOL_WEIGHT',     'Объёмный вес');
+define('SHPKG_TEXT_COST',           'Стоимость');
+define('SHPKG_TEXT_INACTIVE',       'Неактивный');
+define('SHPKG_TEXT_SORT_ORDER',     'Порядок сортировки');
+define('SHPKG_ERROR_DUP_CODE',      'Упаковка с таким кодом уже существует.');
+define('SHPKG_ERROR_MISSING_CODE',  'Код упаковки обязателен.');
+define('SHPKG_ERROR_MISSING_NAME',  'Наименование упаковки обязательно.');
+
 ?>

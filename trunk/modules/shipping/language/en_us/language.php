@@ -85,6 +85,33 @@ define('SHIPPING_SHIPMENT_DETAILS','Shipment Details');
 define('SHIPPING_PACKAGE_DETAILS','Package Details');
 define('SHIPPING_VOID_SHIPMENT','Void Shipment');
 
+// Shipping Packages page
+define('SHPKG_HEADING_TITLE',       'Shipping Packages');
+define('SHPKG_TEXT_CODE',           'Code');
+define('SHPKG_TEXT_NAME',           'Name');
+define('SHPKG_TEXT_DESCRIPTION',    'Description');
+define('SHPKG_TEXT_WEIGHT',         'Tare Weight');
+define('SHPKG_TEXT_MAX_WEIGHT',     'Max Weight');
+define('SHPKG_TEXT_CARRIER',        'Carrier');
+define('SHPKG_TEXT_ALL_CARRIERS',   'All Carriers');
+define('SHPKG_TEXT_EXTERNAL',       'External');
+define('SHPKG_TEXT_INTERNAL',       'Internal');
+define('SHPKG_TEXT_EXT_DIMS',       'External Dims (L&times;W&times;H)');
+define('SHPKG_TEXT_INT_DIMS',       'Internal Dims (L&times;W&times;H)');
+define('SHPKG_TEXT_EXT_LENGTH',     'Ext. Length');
+define('SHPKG_TEXT_EXT_WIDTH',      'Ext. Width');
+define('SHPKG_TEXT_EXT_HEIGHT',     'Ext. Height');
+define('SHPKG_TEXT_INT_LENGTH',     'Int. Length');
+define('SHPKG_TEXT_INT_WIDTH',      'Int. Width');
+define('SHPKG_TEXT_INT_HEIGHT',     'Int. Height');
+define('SHPKG_TEXT_VOL_WEIGHT',     'Vol. Weight');
+define('SHPKG_TEXT_COST',           'Cost');
+define('SHPKG_TEXT_INACTIVE',       'Inactive');
+define('SHPKG_TEXT_SORT_ORDER',     'Sort Order');
+define('SHPKG_ERROR_DUP_CODE',      'A package with that code already exists.');
+define('SHPKG_ERROR_MISSING_CODE',  'Package code is required.');
+define('SHPKG_ERROR_MISSING_NAME',  'Package name is required.');
+
 define('SHIPPING_TEXT_CARRIER','Carrier');
 define('SHIPPING_TEXT_SERVICE','Service');
 define('SHIPPING_TEXT_FREIGHT_QUOTE','Freight Quote');
