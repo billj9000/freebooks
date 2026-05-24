@@ -30,7 +30,7 @@ $custom_path = DIR_FS_MODULES . 'phreepos/custom/pages/main/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
 if(isset($_GET['oID'])){
-	$journal_id = $_GET['oID'];
+	$journal_id = (int)$_GET['oID'];
 }else {
 	$order = $db->Execute("select MAX(id) AS id from " . TABLE_JOURNAL_MAIN . "
 	    where journal_id = '" . JOURNAL_ID . "' and admin_id = '".$_SESSION['admin_id']."'");

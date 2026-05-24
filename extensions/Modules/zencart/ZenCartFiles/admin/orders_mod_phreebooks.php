@@ -91,15 +91,18 @@ define('PB_BULK_MESSAGE','Completed downloading orders to PhreeBooks. The number
 // EOF - Download operation added by PhreeSoft
 
       case 'edit':
+        $edit_oID            = (int)($_GET['oID']             ?? 0);
+        $edit_reset_on       = (int)($_GET['download_reset_on']  ?? 0);
+        $edit_reset_off      = (int)($_GET['download_reset_off'] ?? 0);
       // reset single download to on
-        if ($_GET['download_reset_on'] > 0) {
+        if ($edit_reset_on > 0) {
           // adjust download_maxdays based on current date
           $check_status = $db->Execute("select customers_name, customers_email_address, orders_status,
                                       date_purchased from " . TABLE_ORDERS . "
-                                      where orders_id = '" . $_GET['oID'] . "'");
+                                      where orders_id = " . $edit_oID);
 
           // check for existing product attribute download days and max
-          $chk_products_download_query = "SELECT orders_products_id, orders_products_filename, products_prid from " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " WHERE orders_products_download_id='" . $_GET['download_reset_on'] . "'";
+          $chk_products_download_query = "SELECT orders_products_id, orders_products_filename, products_prid from " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " WHERE orders_products_download_id=" . $edit_reset_on;
           $chk_products_download = $db->Execute($chk_products_download_query);
 
           $chk_products_download_time_query = "SELECT pa.products_attributes_id, pa.products_id, pad.products_attributes_filename, pad.products_attributes_maxdays, pad.products_attributes_maxcount
@@ -112,10 +115,10 @@ define('PB_BULK_MESSAGE','Completed downloading orders to PhreeBooks. The number
 
           if ($chk_products_download_time->EOF) {
             $zc_max_days = (DOWNLOAD_MAX_DAYS == 0 ? 0 : zen_date_diff($check_status->fields['date_purchased'], date('Y-m-d H:i:s', time())) + DOWNLOAD_MAX_DAYS);
-            $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_maxdays='" . $zc_max_days . "', download_count='" . DOWNLOAD_MAX_COUNT . "' where orders_id='" . $_GET['oID'] . "' and orders_products_download_id='" . $_GET['download_reset_on'] . "'";
+            $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_maxdays='" . $zc_max_days . "', download_count='" . DOWNLOAD_MAX_COUNT . "' where orders_id=" . $edit_oID . " and orders_products_download_id=" . $edit_reset_on;
           } else {
             $zc_max_days = ($chk_products_download_time->fields['products_attributes_maxdays'] == 0 ? 0 : zen_date_diff($check_status->fields['date_purchased'], date('Y-m-d H:i:s', time())) + $chk_products_download_time->fields['products_attributes_maxdays']);
-            $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_maxdays='" . $zc_max_days . "', download_count='" . $chk_products_download_time->fields['products_attributes_maxcount'] . "' where orders_id='" . $_GET['oID'] . "' and orders_products_download_id='" . $_GET['download_reset_on'] . "'";
+            $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_maxdays='" . $zc_max_days . "', download_count='" . $chk_products_download_time->fields['products_attributes_maxcount'] . "' where orders_id=" . $edit_oID . " and orders_products_download_id=" . $edit_reset_on;
           }
 
           $db->Execute($update_downloads_query);
@@ -125,11 +128,11 @@ define('PB_BULK_MESSAGE','Completed downloading orders to PhreeBooks. The number
           zen_redirect(zen_href_link(FILENAME_ORDERS, zen_get_all_get_params(array('action')) . 'action=edit', 'NONSSL'));
         }
       // reset single download to off
-        if ($_GET['download_reset_off'] > 0) {
+        if ($edit_reset_off > 0) {
           // adjust download_maxdays based on current date
           // *** fix: adjust count not maxdays to cancel download
-//          $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_maxdays='0', download_count='0' where orders_id='" . $_GET['oID'] . "' and orders_products_download_id='" . $_GET['download_reset_off'] . "'";
-          $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_count='0' where orders_id='" . $_GET['oID'] . "' and orders_products_download_id='" . $_GET['download_reset_off'] . "'";
+//          $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_maxdays='0', download_count='0' where orders_id=" . $edit_oID . " and orders_products_download_id=" . $edit_reset_off;
+          $update_downloads_query = "update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_count='0' where orders_id=" . $edit_oID . " and orders_products_download_id=" . $edit_reset_off;
           $db->Execute($update_downloads_query);
           unset($_GET['download_reset_off']);
 

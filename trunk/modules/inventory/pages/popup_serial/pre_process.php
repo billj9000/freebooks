@@ -19,10 +19,10 @@
 $security_level = validate_user(0, true);
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
-$snDef = $_GET['def'];
-$sku   = $_GET['sku'];
+$snDef = db_prepare_input($_GET['def']);
+$sku   = db_prepare_input($_GET['sku']);
 $store = isset($_GET['storeID']) ? (int)$_GET['store_id'] : 0;
-$rowID = $_GET['rowID'];
+$rowID = db_prepare_input($_GET['rowID']);
 // retrieve some inventory item details
 $result = $db->Execute("SELECT description_short FROM ".TABLE_INVENTORY." WHERE sku='$sku'");
 $description = $result->fields['description_short'];

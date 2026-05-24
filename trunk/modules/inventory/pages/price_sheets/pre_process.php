@@ -20,7 +20,7 @@ $security_level = validate_user(SECURITY_ID_PRICE_SHEET_MANAGER);
 /**************  include page specific files    *********************/
 require_once(DIR_FS_WORKING . 'defaults.php');
 /**************   page specific initialization  *************************/
-$type        = isset($_GET['type'])  ? $_GET['type']   : 'c';
+$type        = (isset($_GET['type']) && $_GET['type'] === 'v') ? 'v' : 'c';
 history_filter('inv_prices');
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_MODULES . 'inventory/pages/price_sheets/extra_actions.php';
@@ -30,7 +30,7 @@ switch ($_REQUEST['action']) {
   case 'save':
   case 'update':
 	validate_security($security_level, 2);
-  	$id             = db_prepare_input($_POST['id']);
+  	$id             = (int)$_POST['id'];
 	$sheet_name     = db_prepare_input($_POST['sheet_name']);
 	$revision       = db_prepare_input($_POST['revision']);
 	$effective_date = gen_db_date($_POST['effective_date']);
@@ -104,7 +104,7 @@ switch ($_REQUEST['action']) {
 
   case 'revise':
 	validate_security($security_level, 2);
-  	$old_id  = db_prepare_input($_GET['psID']);
+  	$old_id  = (int)$_GET['psID'];
 	$result  = $db->Execute("select * from " . TABLE_PRICE_SHEETS . " where id = $old_id");
 	$old_rev = $result->fields['revision'];
 	$output_array = array(
@@ -129,7 +129,7 @@ switch ($_REQUEST['action']) {
 	gen_add_audit_log(PRICE_SHEETS_LOG . TEXT_REVISE, $result->fields['sheet_name'] . ' Rev. ' . $old_rev . ' => ' . ($old_rev + 1));
 	$_REQUEST['action'] = 'edit'; // continue with edit.
   case 'edit':
-	if(!isset($id)) $id = db_prepare_input($_POST['rowSeq']);
+	if(!isset($id)) $id = (int)$_POST['rowSeq'];
 	$result         = $db->Execute("select * from " . TABLE_PRICE_SHEETS . " where id = $id");
 	$sheet_name     = $result->fields['sheet_name'];
 	$revision       = $result->fields['revision'];

@@ -23,8 +23,8 @@ require_once(DIR_FS_MODULES . 'inventory/defaults.php');
 /**************   page specific initialization  *************************/
 $id         = (int)$_GET['iID'];
 $full_price = $_GET['price'];
-$type       = isset($_GET['type']) ? $_GET['type'] : 'c';
-$vendor_id  = isset($_GET['vendor_id']) ? $_GET['vendor_id'] : '';
+$type       = (isset($_GET['type']) && $_GET['type'] === 'v') ? 'v' : 'c';
+$vendor_id  = isset($_GET['vendor_id']) ? (int)$_GET['vendor_id'] : 0;
 // retrieve some item details
 $inventory_details = $db->Execute("select sku, description_short, quantity_on_hand, quantity_on_order, item_cost, 
 	quantity_on_allocation, quantity_on_sales_order from " . TABLE_INVENTORY . " where id = " . $id);
@@ -39,7 +39,7 @@ switch ($_REQUEST['action']) {
 	while (true) {
 	  if (!isset($_POST['id_' . $tab_id])) break;
 	  $sheet_id = (int)$_POST['id_' . $tab_id];
-	  $sheet_name = $_POST['sheet_name_'. $tab_id];
+	  $sheet_name = db_prepare_input($_POST['sheet_name_'. $tab_id]);
 	  $default_checked = isset($_POST['def_' . $tab_id]) ? true : false;
 	  if ($default_checked) {
 		$db->Execute("delete from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = $id and price_sheet_id = '$sheet_id'");
