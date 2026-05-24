@@ -149,6 +149,7 @@ class splitPageResults {
     	global $db;
     	if (is_string($query_num_rows) && stripos(ltrim($query_num_rows), 'select') === 0) {
     		$count_sql = preg_replace('/\bSQL_CALC_FOUND_ROWS\b\s*/i', '', $query_num_rows);
+    		$count_sql = preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', $count_sql);
     		$temp = $db->Execute("SELECT COUNT(*) AS cnt FROM ($count_sql) AS _t");
     		$query_num_rows = $temp->fields['cnt'];
     	}
