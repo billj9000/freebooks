@@ -48,7 +48,7 @@ $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMI
 $_REQUEST = array_merge($_GET, $_POST);
 // The line below breaks the $_REQUEST string as array_map expects 2 parameters and the second array is null thus erasing all the values in $_REQUEST while keeping the keys.
 //$_REQUEST = array_map('mysql_real_escape_string', $_REQUEST); // this should pas all variables in the $_REQUEST pas the db_prepare_input function
-session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict']);
+session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict', 'secure' => ENABLE_SSL_ADMIN === 'true']);
 session_start();
 $session_started = true;
 // set the language

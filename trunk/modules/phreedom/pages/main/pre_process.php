@@ -60,7 +60,7 @@ switch ($_REQUEST['action']) {
       $_SESSION['admin_security'] = gen_parse_permissions($result->fields['admin_security']);
 	  // set some cookies for the next visit to remember the company, language, and theme
 	  $cookie_exp = 2592000 + time(); // one month
-	  $cookie_opts = ['expires' => $cookie_exp, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'];
+	  $cookie_opts = ['expires' => $cookie_exp, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict', 'secure' => ENABLE_SSL_ADMIN === 'true'];
 	  setcookie('pb_company' , $admin_company,  $cookie_opts);
 	  setcookie('pb_language', $admin_language, $cookie_opts);
 	  // load init functions for each module and execute
