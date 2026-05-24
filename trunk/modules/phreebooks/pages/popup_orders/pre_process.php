@@ -103,7 +103,7 @@ if (!$date == false){
 	$acct_period   = '';
 }else{
 	if ($acct_period == false) $acct_period = CURRENT_ACCOUNTING_PERIOD;
-	$period_filter = ($acct_period == 'all') ? '' : (' and period = ' . $acct_period);
+	$period_filter = gen_period_sql_filter($acct_period);
 	$date = '';
 }
 // build the list for the page selected

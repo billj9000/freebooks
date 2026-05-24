@@ -53,7 +53,7 @@ $disp_order  = $result['disp_order'];
 // build the list for the page selected
 $acct_period = ($_GET['search_period']) ? $_GET['search_period'] : $_POST['search_period'];
 if (!$acct_period) $acct_period = CURRENT_ACCOUNTING_PERIOD;
-$period_filter = ($acct_period == 'all') ? '' : (' and period = ' . $acct_period);
+$period_filter = gen_period_sql_filter($acct_period);
 
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search_fields = array('purchase_invoice_id', 'total_amount');

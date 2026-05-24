@@ -212,13 +212,28 @@
     global $db;
     $period_values = $db->Execute("select period, start_date, end_date from " . TABLE_ACCOUNTING_PERIODS . " order by period");
     $period_array = array();
-    if ($include_all) $period_array[] = array('id' => 'all', 'text' => TEXT_ALL);
+    if ($include_all) {
+      $period_array[] = array('id' => 'all',      'text' => TEXT_ALL);
+      $period_array[] = array('id' => 'last_60',  'text' => TEXT_LAST_60_DAYS);
+      $period_array[] = array('id' => 'last_90',  'text' => TEXT_LAST_90_DAYS);
+      $period_array[] = array('id' => 'last_12m', 'text' => TEXT_LAST_12_MONTHS);
+    }
     while (!$period_values->EOF) {
 	  $text_value = TEXT_PERIOD . ' ' . $period_values->fields['period'] . ' : ' . gen_locale_date($period_values->fields['start_date']) . ' - ' . gen_locale_date($period_values->fields['end_date']);
       $period_array[] = array('id' => $period_values->fields['period'], 'text' => $text_value);
       $period_values->MoveNext();
     }
     return $period_array;
+  }
+
+  function gen_period_sql_filter($search_period, $period_col = 'period', $date_col = 'post_date') {
+    switch ($search_period) {
+      case 'all':     return '';
+      case 'last_60': return " and $date_col >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)";
+      case 'last_90': return " and $date_col >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)";
+      case 'last_12m':return " and $date_col >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)";
+      default:        return is_numeric($search_period) ? " and $period_col = " . (int)$search_period : '';
+    }
   }
 
   function gen_coa_pull_down($show_id = SHOW_FULL_GL_NAMES, $first_none = true, $hide_inactive = true, $show_all = false, $restrict_types = false) {
@@ -1243,7 +1258,8 @@ function gen_db_date($raw_date = '', $separator = '/') {
   	if ( $_REQUEST['search_text'] == TEXT_SEARCH) $_REQUEST['search_text'] = '';
   	if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search'; // if enter key pressed and search not blank
   	if ( $_REQUEST['search_text'] <> '' && $_REQUEST['search_text'] <> $_SESSION[$key]['search']) $_REQUEST['list'] = 1;
-  	if (!isset($_REQUEST['search_period'])) $_REQUEST['search_period']= isset($_SESSION[$key]['period'])? $_SESSION[$key]['period']: CURRENT_ACCOUNTING_PERIOD;
+  	$_default_period = isset($_SESSION['admin_prefs']['default_period']) ? $_SESSION['admin_prefs']['default_period'] : CURRENT_ACCOUNTING_PERIOD;
+  	if (!isset($_REQUEST['search_period'])) $_REQUEST['search_period']= isset($_SESSION[$key]['period'])? $_SESSION[$key]['period']: $_default_period;
   	if (!isset($_REQUEST['search_date']))   $_REQUEST['search_date']  = isset($_SESSION[$key]['date'])  ? $_SESSION[$key]['date']  : '';
   	if ($_REQUEST['reset']) {
   		$_REQUEST['sf']    = $defaults['sf'];
@@ -1257,6 +1273,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
   }
 
   function history_save($key=false) {
+    global $db;
   	if (!$key) $key = $_GET['module'];
   	$_SESSION[$key]['sf']    = $_REQUEST['sf'];
   	$_SESSION[$key]['so']    = $_REQUEST['so'];
@@ -1264,6 +1281,13 @@ function gen_db_date($raw_date = '', $separator = '/') {
     $_SESSION[$key]['search']= $_REQUEST['search_text'];
     $_SESSION[$key]['period']= $_REQUEST['search_period'];
     $_SESSION[$key]['date']  = $_REQUEST['search_date'];
+    $pref_periods = array('all', 'last_60', 'last_90', 'last_12m');
+    if (in_array($_REQUEST['search_period'], $pref_periods) && isset($_SESSION['admin_id'])) {
+      if (!isset($_SESSION['admin_prefs']['default_period']) || $_SESSION['admin_prefs']['default_period'] !== $_REQUEST['search_period']) {
+        $_SESSION['admin_prefs']['default_period'] = $_REQUEST['search_period'];
+        if ($db->db_connected) $db->Execute("UPDATE " . TABLE_USERS . " SET admin_prefs = '" . db_input(serialize($_SESSION['admin_prefs'])) . "' WHERE admin_id = " . (int)$_SESSION['admin_id']);
+      }
+    }
   }
 
 /**

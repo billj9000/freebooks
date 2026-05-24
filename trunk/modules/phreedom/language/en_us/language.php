@@ -310,6 +310,9 @@ define('TEXT_YES','Yes');
 define('PB_PF_YES_SKIP_NO','Yes, blank No');
 // Definitions for date criteria
 define('TEXT_ALL','All');
+define('TEXT_LAST_60_DAYS','Last 60 days');
+define('TEXT_LAST_90_DAYS','Last 90 days');
+define('TEXT_LAST_12_MONTHS','Last 12 months');
 define('TEXT_RANGE','Range');
 define('TEXT_TODAY','Today');
 define('TEXT_WEEK','This Week');

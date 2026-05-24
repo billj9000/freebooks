@@ -146,7 +146,7 @@ $list_header = $result['html_code'];
 $disp_order  = $result['disp_order'];
 
 // build the list for the page selected
-$period_filter = ($_REQUEST['search_period'] == 'all') ? '' : (" and period=".$_REQUEST['search_period']." ");
+$period_filter = gen_period_sql_filter($_REQUEST['search_period']);
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   // hook for inserting new search fields to the query criteria.
   if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
