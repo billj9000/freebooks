@@ -206,7 +206,8 @@ switch ($_REQUEST['action']) {
 	print $contents;
 	exit();
   case 'php_info':
-  	die(phpinfo());
+  	if ($_SESSION['admin_id'] == 1) die(phpinfo());
+  	break;
   default:
 }
 
