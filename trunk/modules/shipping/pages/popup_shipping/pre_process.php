@@ -27,6 +27,34 @@ require_once(DIR_FS_WORKING . 'classes/shipping.php');
 /**************   page specific initialization  *************************/
 $error       = false;
 $pkg         = new shipment();
+// Pre-populate form fields from GET params on initial load.
+// Back button sends both ship_to_* (TO) and ship_city_town etc. (FROM) explicitly.
+// Estimate button hx-include sends only order field names (ship_city_town etc.) which map to TO only.
+if (empty($_REQUEST['action'])) {
+  $is_back = array_key_exists('ship_to_city', $_GET) || array_key_exists('ship_to_country_code', $_GET);
+  if ($is_back) {
+    // Restore FROM address (user may have edited it before clicking Continue)
+    foreach (['ship_city_town', 'ship_state_province', 'ship_postal_code', 'ship_country_code'] as $f) {
+      if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
+    }
+    // Restore TO address using the ship_to_* names sent by the Back button
+    foreach (['ship_to_city', 'ship_to_state', 'ship_to_postal_code', 'ship_to_country_code'] as $f) {
+      if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
+    }
+  } else {
+    // Initial open from Estimate button (hx-include): order delivery fields map to TO address only
+    if (isset($_GET['ship_city_town'])      && $_GET['ship_city_town']      !== '') $pkg->ship_to_city         = db_prepare_input($_GET['ship_city_town']);
+    if (isset($_GET['ship_state_province']) && $_GET['ship_state_province'] !== '') $pkg->ship_to_state        = db_prepare_input($_GET['ship_state_province']);
+    if (isset($_GET['ship_postal_code'])    && $_GET['ship_postal_code']    !== '') $pkg->ship_to_postal_code  = db_prepare_input($_GET['ship_postal_code']);
+    if (isset($_GET['ship_country_code'])   && $_GET['ship_country_code']   !== '') $pkg->ship_to_country_code = db_prepare_input($_GET['ship_country_code']);
+  }
+  // Package fields apply in both cases
+  foreach (['pkg_weight', 'pkg_weight_unit', 'pkg_length', 'pkg_width', 'pkg_height', 'pkg_dimension_unit'] as $f) {
+    if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
+  }
+  if (isset($_GET['ship_date'])         && $_GET['ship_date']         !== '') $pkg->ship_date         = db_prepare_input($_GET['ship_date']);
+  if (isset($_GET['residential_address']))                                     $pkg->residential_address = $_GET['residential_address'] ? '1' : '0';
+}
 $methods     = array();
 $files       = scandir(DEFAULT_MOD_DIR);
 foreach ($files as $choice) {
@@ -84,8 +112,10 @@ $cal_ship = array(
   'default'   => date(DATE_FORMAT),
   'params'    => array('align' => 'left'),
 );
-$include_header   = false;
-$include_footer   = false;
+// Return a bare fragment (no page wrapper) when called by htmx
+$custom_html    = !empty($_SERVER['HTTP_HX_REQUEST']);
+$include_header = false;
+$include_footer = false;
 switch ($_REQUEST['action']) {
   case 'rates':
     $include_template = 'template_detail.php';

@@ -18,6 +18,11 @@
 //
 
 ?>
+<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
+<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+<link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
+<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
+<script src="ext/htmx.min.js" defer></script>
 <script type="text/javascript">
 <!--
 // pass any php variables generated during pre-process that are used in the javascript functions.
@@ -294,6 +299,47 @@ function refreshOrderClock() {
   resClockID = setTimeout("refreshOrderClock()", 250);
 }
 <?php } ?>
+
+// ── Shipping estimator modal ──────────────────────────────────────
+// htmx:afterSwap fires on the swapped element and bubbles; we catch it
+// here on the body and react whenever the estimator body is updated.
+document.addEventListener('htmx:afterSwap', function(e) {
+  var tgt = (e.detail && e.detail.target) ? e.detail.target : e.target;
+  if (tgt && tgt.id === 'shipping-estimator-body') {
+    populateEstimatorForm();
+    var modalEl = document.getElementById('shippingEstimatorModal');
+    if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  }
+});
+
+function populateEstimatorForm() {
+  // Address fields are pre-populated server-side via hx-include on the Estimate button.
+  // Only copy dynamic order values that aren't available to the server at request time.
+  var map = [
+    ['est-pkg-weight', 'weight'],
+    ['est-pkg-total',  'total'],
+    ['est-pkg-count',  'item_count'],
+  ];
+  map.forEach(function(pair) {
+    var src = document.getElementById(pair[1]);
+    var dst = document.getElementById(pair[0]);
+    if (src && dst) dst.value = src.value;
+  });
+}
+
+function openEstimatorModal() {
+  populateEstimatorForm();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('shippingEstimatorModal')).show();
+}
+
+function selectEstimatedRate(rate, carrier, service) {
+  document.getElementById('freight').value      = rate;
+  document.getElementById('ship_carrier').value = carrier;
+  buildFreightDropdown();
+  document.getElementById('ship_service').value = service;
+  updateTotalPrices();
+  bootstrap.Modal.getInstance(document.getElementById('shippingEstimatorModal')).hide();
+}
 
 // -->
 </script>

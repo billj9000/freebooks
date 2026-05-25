@@ -41,6 +41,18 @@
   --bs-table-border-color: #a6c9e2;
 }
 
+/* ── Shared glosswave header — mirrors .ui-widget-header ────────────────── */
+.fb-widget-header {
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border:              1px solid #4297d7;
+  color:               #eaf5f7;
+  font-weight:         bold;
+  font-size:           11px;
+}
+
 /* ── pkg-table: match .ui-widget / .ui-widget-header / .ui-widget-content ── */
 .pkg-table {
   font-family:     Verdana, Arial, sans-serif;

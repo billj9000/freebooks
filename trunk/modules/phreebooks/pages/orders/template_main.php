@@ -432,7 +432,12 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
 <?php
   $frt_tax_default = isset($order->freight_tax_id) && $order->freight_tax_id > 0 ? $order->freight_tax_id : (($account_type == 'c') ? AR_ADD_SALES_TAX_TO_SHIPPING : AP_ADD_SALES_TAX_TO_SHIPPING);
   echo '<span style="white-space:nowrap">';
-  echo html_button_field('estimate', TEXT_ESTIMATE, 'onclick="FreightList()"');
+  echo '<button type="button" class="btn btn-sm btn-secondary"'
+     . ' hx-get="index.php?module=shipping&page=popup_shipping"'
+     . ' hx-include="[name=\'ship_city_town\'],[name=\'ship_state_province\'],[name=\'ship_postal_code\'],[name=\'ship_country_code\']"'
+     . ' hx-target="#shipping-estimator-body"'
+     . ' hx-swap="innerHTML">'
+     . htmlspecialchars(TEXT_ESTIMATE) . '</button>';
   echo ' ' . ORD_SHIP_CARRIER . ' ' . html_pull_down_menu('ship_carrier', $methods, $default = '', 'onchange="buildFreightDropdown()"');
   echo ' ' . ORD_FREIGHT_SERVICE . ' ' . html_pull_down_menu('ship_service', gen_null_pull_down(), '');
   echo ' ' . ORD_FREIGHT . ' ';
@@ -478,3 +483,21 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
 echo $hidden_fields;
 ?>
 </form>
+<?php if (defined('MODULE_SHIPPING_STATUS')): ?>
+<div class="modal fade pkg-modal" id="shippingEstimatorModal" tabindex="-1"
+     aria-labelledby="shippingEstimatorLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="shippingEstimatorLabel">
+          <?php echo SHIPPING_POPUP_WINDOW_TITLE; ?>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="shipping-estimator-body">
+        <!-- htmx loads the estimator form here -->
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>

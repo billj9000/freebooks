@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,56 +17,98 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/pages/popup_shipping/template_detail.php
 //
-echo html_form('step2', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . chr(10);
-// include hidden fields
-echo html_hidden_field('action', '')   . chr(10);
-echo html_hidden_field('rowSeq', '') . chr(10);
-// customize the toolbar actions
-$toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
-$toolbar->icon_list['open']['show']     = false;
-$toolbar->icon_list['save']['show']     = false;
-$toolbar->icon_list['delete']['show']   = false;
-$toolbar->icon_list['print']['show']    = false;
-$toolbar->add_icon('back', 'onclick="submitToDo(\'back\')"', $order = 9);
-if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
-$toolbar->add_help('09');
-echo $toolbar->build_toolbar();
-// Build the page
+$rateData = $rates['rates'] ?? [];
+ksort($rateData);
+$pendingMsgs = $_SESSION['messageToStack'] ?? [];
+$messageStack->reset();
 ?>
-<h1><?php echo SHIPPING_POPUP_WINDOW_RATE_TITLE; ?></h1>
+
+<?php if (!empty($pendingMsgs)): ?>
+<div class="alert alert-warning mb-2" style="font-size:12px">
+  <?php foreach ($pendingMsgs as $msg): ?><div><?php echo $msg['text']; ?></div><?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<?php if (empty($rateData)): ?>
+<div class="alert alert-warning mb-3"><?php echo SHIPPING_NO_PACKAGES; ?></div>
+<?php else: ?>
+
+<?php foreach ($rateData as $carrier => $services): ?>
+<?php if (!is_array($services) || empty($services)) continue; ?>
+<div class="mb-3">
+  <table class="pkg-table table-bordered">
+    <thead>
+      <tr>
+        <?php
+          $logoBase = DIR_WS_MODULES . 'shipping/methods/' . $carrier . '/images/logo';
+          $logoFile = false;
+          foreach (['.png', '.gif', '.jpg'] as $ext) {
+            if (is_file(DIR_FS_MODULES . 'shipping/methods/' . $carrier . '/images/logo' . $ext)) {
+              $logoFile = $logoBase . $ext;
+              break;
+            }
+          }
+        ?>
+        <th style="width:35%">
+          <?php if ($logoFile): ?>
+            <img src="<?php echo $logoFile; ?>" alt="<?php echo $carrier; ?>" style="max-height:28px;width:auto">
+          <?php else: ?>
+            <?php echo constant('MODULE_SHIPPING_' . strtoupper($carrier) . '_TITLE_SHORT'); ?>
+          <?php endif; ?>
+        </th>
+        <th class="text-end" style="width:15%"><?php echo SHIPPING_TEXT_FREIGHT_QUOTE; ?></th>
+        <th class="text-end" style="width:15%"><?php echo SHIPPING_TEXT_BOOK_PRICE; ?></th>
+        <th class="text-end" style="width:15%"><?php echo SHIPPING_TEXT_COST; ?></th>
+        <th style="width:20%"><?php echo SHIPPING_TEXT_NOTES; ?></th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php $odd = true; foreach ($services as $key => $prices): ?>
+      <tr class="<?php echo $odd ? 'odd' : 'even'; ?>" style="cursor:pointer"
+          onclick="selectEstimatedRate('<?php echo addslashes($currencies->format($prices['quote'])); ?>','<?php echo addslashes($carrier); ?>','<?php echo addslashes($key); ?>')">
+        <td><?php echo constant($carrier . '_' . $key); ?></td>
+        <td class="text-end"><?php echo $prices['quote'] !== '' ? $currencies->format($prices['quote']) : '&nbsp;'; ?></td>
+        <td class="text-end"><?php echo $prices['book']  !== '' ? $currencies->format($prices['book'])  : '&nbsp;'; ?></td>
+        <td class="text-end"><?php echo $prices['cost']  !== '' ? $currencies->format($prices['cost'])  : '&nbsp;'; ?></td>
+        <td><?php echo htmlspecialchars($prices['note'] ?? ''); ?></td>
+      </tr>
+      <?php $odd = !$odd; endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php endforeach; ?>
+
+<?php endif; ?>
+
 <?php
-  $temp = $rates['rates'];
-//echo 'temp array = '; print_r($temp); echo '<br />';
-  if (is_array($temp)) {
-	ksort($temp);
-	foreach ($temp as $carrier => $value) {
-		// build the heading row
-		echo '<table class="ui-widget" style="border-collapse:collapse;width:100%">';
-		echo '<thead class="ui-widget-header"><tr>';
-		$def_filename  = DIR_WS_MODULES . 'shipping/methods/' . $carrier . '/images/logo';
-		$filename = false;
-		if      (is_file($def_filename . '.gif'))  { $filename = $def_filename . '.gif'; }
-		else if (is_file($def_filename . '.png'))  { $filename = $def_filename . '.png'; }
-		else if (is_file($def_filename . '.jpg'))  { $filename = $def_filename . '.jpg'; }
-		echo '<th width="30%" align="center">' . ($filename ? html_image($filename, $alt = $method, '', '30') : constant('MODULE_SHIPPING_'.strtoupper($carrier).'_TITLE_SHORT')) . '</th>' . chr(10);
-		echo '<th width="15%">' . SHIPPING_TEXT_FREIGHT_QUOTE . '</th>' . chr(10);
-		echo '<th width="15%">' . SHIPPING_TEXT_BOOK_PRICE    . '</th>' . chr(10);
-		echo '<th width="15%">' . SHIPPING_TEXT_COST          . '</th>' . chr(10);
-		echo '<th width="30%">' . SHIPPING_TEXT_NOTES         . '</th>' . chr(10);
-		echo '</tr></thead><tbody class="ui-widget-content">' . chr(10);
-		$odd = true;
-		if (is_array($value)) foreach ($value as $key => $prices) {
-			echo '<tr class="' . ($odd?'odd':'even') . '" style="cursor:pointer" onclick="setReturnRate(\'' . $currencies->format($prices['quote']) . '\', \'' . $carrier . '\', \'' . $key . '\')">' . chr(10);
-			echo '<td>' . constant($carrier . '_' . $key) . '</td>' . chr(10);
-			echo '<td align="right">' . (($prices['quote'] !== '') ? $currencies->format($prices['quote']) : '&nbsp;') . '</td>' . chr(10);
-			echo '<td align="right">' . (($prices['book']  !== '') ? $currencies->format($prices['book']) : '&nbsp;') . '</td>' . chr(10);
-			echo '<td align="right">' . (($prices['cost']  !== '') ? $currencies->format($prices['cost']) : '&nbsp;') . '</td>' . chr(10);
-			echo '<td align="center">' . $prices['note'] . '</td>' . chr(10);
-			echo '</tr>';
-			$odd = !$odd;
-		}
-		echo '</tbody></table>';
-	}
-  }
+$back_qs = http_build_query([
+  'ship_city_town'      => $pkg->ship_city_town,
+  'ship_state_province' => $pkg->ship_state_province,
+  'ship_postal_code'    => $pkg->ship_postal_code,
+  'ship_country_code'   => $pkg->ship_country_code,
+  'ship_to_city'        => $pkg->ship_to_city,
+  'ship_to_state'       => $pkg->ship_to_state,
+  'ship_to_postal_code' => $pkg->ship_to_postal_code,
+  'ship_to_country_code'=> $pkg->ship_to_country_code,
+  'pkg_weight'          => $pkg->pkg_weight,
+  'pkg_weight_unit'     => $pkg->pkg_weight_unit,
+  'pkg_length'          => $pkg->pkg_length,
+  'pkg_width'           => $pkg->pkg_width,
+  'pkg_height'          => $pkg->pkg_height,
+  'pkg_dimension_unit'  => $pkg->pkg_dimension_unit,
+  'ship_date'           => $pkg->ship_date ?? date('Y-m-d'),
+  'residential_address' => $pkg->residential_address,
+]);
 ?>
-</form>
+<!-- Back button reloads the options form with current values -->
+<div class="d-flex gap-2 mt-1">
+  <button type="button" class="btn btn-secondary btn-sm"
+          hx-get="index.php?module=shipping&page=popup_shipping&<?php echo htmlspecialchars($back_qs); ?>"
+          hx-target="#shipping-estimator-body"
+          hx-swap="innerHTML">
+    <?php echo TEXT_BACK; ?>
+  </button>
+  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+    <?php echo TEXT_CANCEL; ?>
+  </button>
+</div>

@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,54 +17,58 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/pages/popup_shipping/js_include.php
 //
+// This file runs only for direct (non-htmx) popup access.
+// For the normal modal path, all JS lives in orders/js_include.php.
 ?>
+<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
+<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+<link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
+<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
+<script src="ext/htmx.min.js" defer></script>
 <script type="text/javascript">
 <!--
-// pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
-var action   = '<?php echo $_REQUEST['action']; ?>'; 
-var formName = '<?php echo $_GET['form']; ?>'; 
+var action   = '<?php echo $_REQUEST['action']; ?>';
+var formName = '<?php echo $_GET['form'] ?? ''; ?>';
 <?php echo js_calendar_init($cal_ship); ?>
 
 function init() {
-	switch (action) {
-	  case 'rates':
-	    break;
-	  default:
-		if (window.opener.document.getElementById('ship_city_town').value != '<?php echo GEN_CITY_TOWN ?>') {
-			document.step1.ship_to_city.value = window.opener.document.getElementById('ship_city_town').value;
-		}
-		if (window.opener.document.getElementById('ship_state_province').value != '<?php echo GEN_STATE_PROVINCE ?>') {
-			document.step1.ship_to_state.value = window.opener.document.getElementById('ship_state_province').value;
-		}
-		if (window.opener.document.getElementById('ship_postal_code').value != '<?php echo GEN_POSTAL_CODE ?>') {
-			document.step1.ship_to_postal_code.value = window.opener.document.getElementById('ship_postal_code').value;
-		}
-		var ship_to_country = window.opener.document.getElementById('ship_country_code').value;
-		if (!ship_to_country) ship_to_country = '<?php echo COMPANY_COUNTRY; ?>'
-		document.getElementById('ship_to_country_code').value = ship_to_country;
-		document.getElementById('pkg_item_count').value = window.opener.document.getElementById('item_count').value;
-		document.getElementById('pkg_weight').value     = window.opener.document.getElementById('weight').value;
-		document.getElementById('pkg_total').value      = window.opener.document.getElementById('total').value;
-		if (document.getElementById('cod_amount')) {
-			document.getElementById('cod_amount').value = window.opener.document.getElementById('total').value;
-		}
-	}
+  switch (action) {
+    case 'rates':
+      break;
+    default:
+      // pre-populate To fields from opener (legacy popup path)
+      if (!window.opener) break;
+      var fields = [
+        ['ship_to_city',         'ship_city_town'],
+        ['ship_to_state',        'ship_state_province'],
+        ['ship_to_postal_code',  'ship_postal_code'],
+        ['pkg_weight',           'weight'],
+        ['pkg_total',            'total'],
+        ['pkg_item_count',       'item_count'],
+      ];
+      fields.forEach(function(pair) {
+        var src = window.opener.document.getElementById(pair[1]);
+        var dst = document.getElementById(pair[0]);
+        if (src && dst) dst.value = src.value;
+      });
+      var srcCountry = window.opener.document.getElementById('ship_country_code');
+      var dstCountry = document.getElementById('ship_to_country_code');
+      if (srcCountry && dstCountry) dstCountry.value = srcCountry.value;
+  }
 }
 
-function check_form() {
-  return true;
-}
+function check_form() { return true; }
 
-// Insert other page specific functions here.
+// Legacy popup: write rate back to opener and close
 function setReturnRate(rate, method, service) {
-	window.opener.document.getElementById('freight').value      = rate;
-	window.opener.document.getElementById('ship_carrier').value = method;
-	window.opener.buildFreightDropdown();
-	window.opener.document.getElementById('ship_service').value = service;
-	window.opener.updateTotalPrices();
-	self.close();
+  if (window.opener) {
+    window.opener.document.getElementById('freight').value      = rate;
+    window.opener.document.getElementById('ship_carrier').value = method;
+    window.opener.buildFreightDropdown();
+    window.opener.document.getElementById('ship_service').value = service;
+    window.opener.updateTotalPrices();
+    self.close();
+  }
 }
-
 // -->
 </script>
