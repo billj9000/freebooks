@@ -192,12 +192,16 @@
   color:            #222222;
 }
 
-/* ── H1 ──────────────────────────────────────────────────────────── */
-.pkg-wrap h1 {
-  color:        #003080;
-  font-size:    16px;
-  font-variant: small-caps;
-  font-weight:  bold;
+/* ── H1: match original stylesheet.css global h1 rule ───────────── */
+h1 {
+  width:            auto;
+  clear:            both;
+  color:            #003080;
+  font-size:        16px;
+  font-variant:     small-caps;
+  font-weight:      bold;
+  background-color: transparent;
+  padding:          4px;
 }
 
 /* ── Theme / filter bar ──────────────────────────────────────────── */
@@ -222,3 +226,66 @@
 .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
 .htmx-request .htmx-indicator { opacity: 1; }
 .htmx-request.htmx-indicator  { opacity: 1; }
+
+/* ── FreeBooks detail tabs — match jQuery UI "start" theme ───────────
+   Use .fb-tabs on <ul class="nav nav-tabs"> and
+       .fb-tab-content on <div class="tab-content"> */
+
+/* Nav bar: blue gloss-wave header (same as .ui-widget-header) */
+.fb-tabs {
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border:              1px solid #4297d7;
+  border-bottom:       1px solid #a6c9e2;
+  padding:             3px 3px 0;
+  flex-wrap:           wrap;
+}
+
+/* Inactive tab: blue glass (.ui-state-default) */
+.fb-tabs .nav-link {
+  background-color:    #0078ae;
+  background-image:    url(/themes/default/css/start/images/ui-bg_glass_45_0078ae_1x400.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border:              1px solid #77d5f7 !important;
+  border-radius:       5px 5px 0 0 !important;
+  color:               #ffffff !important;
+  font-size:           11px;
+  font-family:         Verdana, Arial, sans-serif;
+  font-weight:         normal;
+  padding:             4px 10px;
+  margin-right:        2px;
+  margin-bottom:       -1px;
+  line-height:         1.4;
+  white-space:         nowrap;
+}
+
+/* Hover: light-blue glass (.ui-state-hover) */
+.fb-tabs .nav-link:hover,
+.fb-tabs .nav-link:focus {
+  background-color:    #79c9ec !important;
+  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png) !important;
+  border-color:        #448dae !important;
+  color:               #026890 !important;
+}
+
+/* Active tab: green gloss-wave (.ui-state-active) */
+.fb-tabs .nav-link.active {
+  background-color:    #6eac2c !important;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_50_6eac2c_500x100.png) !important;
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #acdd4a !important;
+  border-bottom-color: #ffffff !important; /* merges tab with content area */
+  color:               #ffffff !important;
+}
+
+/* Content area: white with blue border (.ui-widget-content) */
+.fb-tab-content {
+  border:           1px solid #a6c9e2;
+  border-top:       none;
+  background-color: #ffffff;
+  padding:          8px;
+}

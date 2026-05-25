@@ -26,8 +26,9 @@
 // 3.6 => 2013-06-30 - bug fixes
 // 3.7 => 2014-07-21 - bug fixes, average costing fix
 // 3.71 => adds freight_tax_id column to journal_main
+// 3.72 => adds shipping/customs columns to inventory table
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.71);
+define('MODULE_PHREEBOOKS_VERSION',    3.72);
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);

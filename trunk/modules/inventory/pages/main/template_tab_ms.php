@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,7 +19,7 @@
 //
 // start the master stock tab html
 ?>
-<div id="tab_master"><?php echo TEXT_MS_HELP;?>
+<?php echo TEXT_MS_HELP;?>
 <div style="margin:auto;min-height:165px;">
  <?php if($cInfo->edit_ms_list){?>
   <div style="float:left;width:50%">
@@ -142,6 +143,5 @@
     </tbody>
   </table>
  </div>
- 
-</div>
+
 </div>

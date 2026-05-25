@@ -52,8 +52,9 @@ class inventory {
 		foreach ($_POST as $key => $value) $this->$key = $value;
 		$this->creation_date = date('Y-m-d H:i:s');
 	  	$this->last_update   = date('Y-m-d H:i:s');
-		$this->tab_list['general'] = array('file'=>'template_tab_gen',	'tag'=>'general', 'order'=>10, 'text'=>TEXT_SYSTEM);
-		$this->tab_list['history'] = array('file'=>'template_tab_hist',	'tag'=>'history', 'order'=>20, 'text'=>TEXT_HISTORY);
+		$this->tab_list['general']  = array('file'=>'template_tab_gen',      'tag'=>'general',  'order'=>10, 'text'=>TEXT_SYSTEM);
+		$this->tab_list['shipping'] = array('file'=>'template_tab_shipping', 'tag'=>'shipping', 'order'=>15, 'text'=>INV_TAB_SHIPPING);
+		$this->tab_list['history']  = array('file'=>'template_tab_hist',     'tag'=>'history',  'order'=>20, 'text'=>TEXT_HISTORY);
 		if($this->auto_field){
 			$result = $db->Execute("select ".$this->auto_field." from ".TABLE_CURRENT_STATUS);
         	$this->new_sku = $result->fields[$this->auto_field];
