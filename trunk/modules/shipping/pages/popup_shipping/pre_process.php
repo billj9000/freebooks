@@ -24,6 +24,7 @@ gen_pull_language('contacts');
 require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'functions/shipping.php');
 require_once(DIR_FS_WORKING . 'classes/shipping.php');
+require_once(DIR_FS_WORKING . 'classes/box_packer.php');
 /**************   page specific initialization  *************************/
 $error       = false;
 $pkg         = new shipment();
@@ -33,27 +34,66 @@ $pkg         = new shipment();
 if (empty($_REQUEST['action'])) {
   $is_back = array_key_exists('ship_to_city', $_GET) || array_key_exists('ship_to_country_code', $_GET);
   if ($is_back) {
-    // Restore FROM address (user may have edited it before clicking Continue)
+    // Back button: restore FROM and TO addresses and all package fields from URL
     foreach (['ship_city_town', 'ship_state_province', 'ship_postal_code', 'ship_country_code'] as $f) {
       if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
     }
-    // Restore TO address using the ship_to_* names sent by the Back button
     foreach (['ship_to_city', 'ship_to_state', 'ship_to_postal_code', 'ship_to_country_code'] as $f) {
       if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
     }
+    foreach (['pkg_weight', 'pkg_weight_unit', 'pkg_length', 'pkg_width', 'pkg_height', 'pkg_dimension_unit'] as $f) {
+      if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
+    }
+    if (isset($_GET['ship_date'])          && $_GET['ship_date']          !== '') $pkg->ship_date          = db_prepare_input($_GET['ship_date']);
+    if (isset($_GET['residential_address']))                                       $pkg->residential_address = $_GET['residential_address'] ? '1' : '0';
   } else {
-    // Initial open from Estimate button (hx-include): order delivery fields map to TO address only
+    // Initial open from Estimate button (hx-include): map order delivery address to TO fields
     if (isset($_GET['ship_city_town'])      && $_GET['ship_city_town']      !== '') $pkg->ship_to_city         = db_prepare_input($_GET['ship_city_town']);
     if (isset($_GET['ship_state_province']) && $_GET['ship_state_province'] !== '') $pkg->ship_to_state        = db_prepare_input($_GET['ship_state_province']);
     if (isset($_GET['ship_postal_code'])    && $_GET['ship_postal_code']    !== '') $pkg->ship_to_postal_code  = db_prepare_input($_GET['ship_postal_code']);
     if (isset($_GET['ship_country_code'])   && $_GET['ship_country_code']   !== '') $pkg->ship_to_country_code = db_prepare_input($_GET['ship_country_code']);
+    // Box packing: build item list from sku_N / qty_N GET params sent via hx-include
+    $order_items = [];
+    for ($i = 1; $i <= 200; $i++) {
+      if (!array_key_exists('sku_' . $i, $_GET)) break;
+      $sku = trim(db_prepare_input($_GET['sku_' . $i]));
+      $qty = max(0, (int)($_GET['qty_' . $i] ?? 0));
+      if ($sku !== '' && $qty > 0) $order_items[] = ['sku' => $sku, 'qty' => $qty];
+    }
+    if (!empty($order_items)) {
+      $pack_result      = BoxPackingService::pack($order_items);
+      $boxes            = BoxPackingService::summarise($pack_result['packed']);
+      $weight_only_g    = $pack_result['weight_only_g'];
+      $weight_only_skus = $pack_result['weight_only_skus'];
+      $unpacked_skus    = array_unique(array_column($pack_result['unpacked'], 'sku'));
+      if (!empty($boxes)) {
+        // Single-package: first (and typically only) box + weight-only items
+        $b = $boxes[0];
+        $pkg->pkg_weight = BoxPackingService::fromGrams($b['weight_g'] + $weight_only_g);
+        $pkg->pkg_length = BoxPackingService::fromMm($b['length_mm']);
+        $pkg->pkg_width  = BoxPackingService::fromMm($b['width_mm']);
+        $pkg->pkg_height = BoxPackingService::fromMm($b['depth_mm']);
+      } else {
+        // No box found — weight only (packer had nothing to place, or no boxes configured)
+        $pkg->pkg_weight = BoxPackingService::fromGrams($weight_only_g) ?: (float)($_GET['weight'] ?? 0);
+      }
+      if (!empty($weight_only_skus)) {
+        $messageStack->add(
+          SHIPPING_BOX_PACKER_NO_DIMS . implode(', ', $weight_only_skus),
+          'caution'
+        );
+      }
+      if (!empty($unpacked_skus)) {
+        $messageStack->add(
+          SHIPPING_BOX_PACKER_NOT_FOUND . implode(', ', $unpacked_skus),
+          'caution'
+        );
+      }
+    } else {
+      // No SKUs passed — fall back to order content weight from JS-maintained hidden field
+      $pkg->pkg_weight = (float)($_GET['weight'] ?? 0);
+    }
   }
-  // Package fields apply in both cases
-  foreach (['pkg_weight', 'pkg_weight_unit', 'pkg_length', 'pkg_width', 'pkg_height', 'pkg_dimension_unit'] as $f) {
-    if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
-  }
-  if (isset($_GET['ship_date'])         && $_GET['ship_date']         !== '') $pkg->ship_date         = db_prepare_input($_GET['ship_date']);
-  if (isset($_GET['residential_address']))                                     $pkg->residential_address = $_GET['residential_address'] ? '1' : '0';
 }
 $methods     = array();
 $files       = scandir(DEFAULT_MOD_DIR);

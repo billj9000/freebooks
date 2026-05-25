@@ -313,10 +313,9 @@ document.addEventListener('htmx:afterSwap', function(e) {
 });
 
 function populateEstimatorForm() {
-  // Address fields are pre-populated server-side via hx-include on the Estimate button.
-  // Only copy dynamic order values that aren't available to the server at request time.
+  // Address and weight/dimensions are pre-populated server-side via hx-include.
+  // Copy only values the server cannot determine: pkg_total and pkg_item_count.
   var map = [
-    ['est-pkg-weight', 'weight'],
     ['est-pkg-total',  'total'],
     ['est-pkg-count',  'item_count'],
   ];

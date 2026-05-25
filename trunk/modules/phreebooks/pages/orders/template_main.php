@@ -434,7 +434,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
   echo '<span style="white-space:nowrap">';
   echo '<a href="#" class="ui-state-default ui-corner-all"'
      . ' hx-get="index.php?module=shipping&page=popup_shipping"'
-     . ' hx-include="[name=\'ship_city_town\'],[name=\'ship_state_province\'],[name=\'ship_postal_code\'],[name=\'ship_country_code\']"'
+     . ' hx-include="[name=\'ship_city_town\'],[name=\'ship_state_province\'],[name=\'ship_postal_code\'],[name=\'ship_country_code\'],[name^=\'sku_\'],[name^=\'qty_\'],[name=\'weight\']"'
      . ' hx-target="#shipping-estimator-body"'
      . ' hx-swap="innerHTML">'
      . htmlspecialchars(TEXT_ESTIMATE) . '</a>';

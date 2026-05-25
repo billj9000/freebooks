@@ -139,6 +139,8 @@ define('SHIPPING_LABEL_DELETED','Label Deleted');
 define('SHIPPING_END_OF_DAY','End of Day Close - %s');
 
 define('SHIPPING_ERROR_WEIGHT_ZERO','Shipment weight cannot be zero.');
+define('SHIPPING_BOX_PACKER_NO_DIMS','Box dimensions exclude items with no dimensions set (weight included): ');
+define('SHIPPING_BOX_PACKER_NOT_FOUND','Items not found in inventory (excluded from estimate): ');
 define('SHIPPING_DELETE_CONFIRM', 'Are you sure you want to delete this package?');
 define('SHIPPING_NO_SHIPMENTS', 'There are no shipments from this carrier today!');
 define('SHIPPING_ERROR_CONFIGURATION', '<strong>Shipping Configuration errors!</strong>');

@@ -136,8 +136,16 @@ class BoxPackingService
     /**
      * Pack order items into available shipping boxes.
      *
+     * Items with missing dimensions are excluded from geometric packing but their
+     * weight is tracked separately so the caller can add it to the total.
+     *
      * @param  array  $order_items  [ ['sku' => string, 'qty' => int], ... ]
-     * @return array  ['packed' => PackedBoxList, 'unpacked' => array]
+     * @return array {
+     *   packed:           PackedBoxList,
+     *   unpacked:         array of items that couldn't fit in any box,
+     *   weight_only_g:    int   — grams from items excluded due to missing dimensions,
+     *   weight_only_skus: array — SKUs excluded from geometric packing,
+     * }
      */
     public static function pack(array $order_items): array
     {
@@ -169,45 +177,63 @@ class BoxPackingService
             }
         }
 
-        $unpacked_items = [];
+        $unpacked_items   = [];
+        $weight_only_g    = 0;
+        $weight_only_skus = [];
+
         foreach ($order_items as $line) {
             $sku = $line['sku'];
             $qty = max(1, (int)($line['qty'] ?? 1));
-            if (isset($inv[$sku])) {
-                $packer->addItem(new FbItem($inv[$sku]), $qty);
+
+            if (!isset($inv[$sku])) {
+                $unpacked_items[] = ['sku' => $sku, 'qty' => $qty, 'reason' => 'not_in_inventory'];
+                continue;
+            }
+
+            $row      = $inv[$sku];
+            $has_dims = ((float)($row['item_length'] ?? 0) > 0
+                      && (float)($row['item_width']  ?? 0) > 0
+                      && (float)($row['item_height'] ?? 0) > 0);
+
+            if ($has_dims) {
+                $packer->addItem(new FbItem($row), $qty);
             } else {
-                $unpacked_items[] = ['sku' => $sku, 'qty' => $qty, 'reason' => 'no_dimensions'];
+                // No geometry — still count the weight
+                $weight_only_g   += self::toGrams((float)($row['item_weight'] ?? 0)) * $qty;
+                $weight_only_skus[] = $sku;
             }
         }
 
+        $weight_only_skus = array_unique($weight_only_skus);
+
         try {
             $packed = $packer->pack();
-            return ['packed' => $packed, 'unpacked' => $unpacked_items];
         } catch (NoBoxesAvailableException $e) {
-            $affected = $e->getAffectedItems();
-            foreach ($affected as $item) {
+            foreach ($e->getAffectedItems() as $item) {
                 $unpacked_items[] = ['sku' => $item->getDescription(), 'qty' => 1, 'reason' => 'no_box_fits'];
             }
-            return ['packed' => new PackedBoxList(), 'unpacked' => $unpacked_items];
+            $packed = new PackedBoxList();
         }
+
+        return [
+            'packed'           => $packed,
+            'unpacked'         => $unpacked_items,
+            'weight_only_g'    => $weight_only_g,
+            'weight_only_skus' => $weight_only_skus,
+        ];
     }
 
     /**
      * Summarise a PackedBoxList into a simple array for use by shipping modules.
      *
-     * Returns:
-     *   [
-     *     ['box_code' => string, 'box_name' => string|null, 'weight_g' => int, 'items' => [['sku'=>..,'qty'=>..], ...]],
-     *     ...
-     *   ]
-     * Weight is total (box + contents) in grams.
+     * Each entry: box_code, box_name, weight_g (total incl. box), outer dimensions in mm, items[].
      */
     public static function summarise(PackedBoxList $packed): array
     {
         $result = [];
         foreach ($packed as $packedBox) {
-            $box       = $packedBox->box;
-            $sku_qtys  = [];
+            $box      = $packedBox->box;
+            $sku_qtys = [];
             foreach ($packedBox->items as $packedItem) {
                 $sku = $packedItem->item->getDescription();
                 $sku_qtys[$sku] = ($sku_qtys[$sku] ?? 0) + 1;
@@ -217,12 +243,47 @@ class BoxPackingService
                 $items[] = ['sku' => $sku, 'qty' => $qty];
             }
             $result[] = [
-                'box_code' => $box->getReference(),
-                'box_name' => ($box instanceof FbBox) ? $box->getName() : $box->getReference(),
-                'weight_g' => $packedBox->getWeight(),
-                'items'    => $items,
+                'box_code'   => $box->getReference(),
+                'box_name'   => ($box instanceof FbBox) ? $box->getName() : $box->getReference(),
+                'weight_g'   => $packedBox->getWeight(),
+                'length_mm'  => $box->getOuterLength(),
+                'width_mm'   => $box->getOuterWidth(),
+                'depth_mm'   => $box->getOuterDepth(),
+                'items'      => $items,
             ];
         }
         return $result;
+    }
+
+    /** Convert configured dimension unit → mm. */
+    public static function toMm(float $val): int
+    {
+        return (defined('SHIPPING_DEFAULT_PKG_DIM_UNIT') && SHIPPING_DEFAULT_PKG_DIM_UNIT === 'CM')
+            ? (int)round($val * 10)
+            : (int)round($val * 25.4);
+    }
+
+    /** Convert configured weight unit → grams. */
+    public static function toGrams(float $val): int
+    {
+        return (defined('SHIPPING_DEFAULT_WEIGHT_UNIT') && SHIPPING_DEFAULT_WEIGHT_UNIT === 'KGS')
+            ? (int)round($val * 1000)
+            : (int)round($val * 453.592);
+    }
+
+    /** Convert mm → configured dimension unit (IN or CM). */
+    public static function fromMm(int $mm): float
+    {
+        return (defined('SHIPPING_DEFAULT_PKG_DIM_UNIT') && SHIPPING_DEFAULT_PKG_DIM_UNIT === 'CM')
+            ? round($mm / 10, 2)
+            : round($mm / 25.4, 2);
+    }
+
+    /** Convert grams → configured weight unit (KGS or LBS). */
+    public static function fromGrams(int $g): float
+    {
+        return (defined('SHIPPING_DEFAULT_WEIGHT_UNIT') && SHIPPING_DEFAULT_WEIGHT_UNIT === 'KGS')
+            ? round($g / 1000, 3)
+            : round($g / 453.592, 3);
     }
 }
