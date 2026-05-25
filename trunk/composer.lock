@@ -4,20 +4,98 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1ff3d7abfdc48abc88e97f08e039eb5b",
+    "content-hash": "5ff579626b815826a7ec91c5814e3d37",
     "packages": [
         {
-            "name": "phpmailer/phpmailer",
-            "version": "v7.1.0",
+            "name": "dvdoug/boxpacker",
+            "version": "4.1.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/PHPMailer/PHPMailer.git",
-                "reference": "e193b921a73e65bff40cab89ea0b0293be0e0c20"
+                "url": "https://github.com/dvdoug/BoxPacker.git",
+                "reference": "100cec65b57c189bc528823583125d1550da36f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/e193b921a73e65bff40cab89ea0b0293be0e0c20",
-                "reference": "e193b921a73e65bff40cab89ea0b0293be0e0c20",
+                "url": "https://api.github.com/repos/dvdoug/BoxPacker/zipball/100cec65b57c189bc528823583125d1550da36f9",
+                "reference": "100cec65b57c189bc528823583125d1550da36f9",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "^8.2",
+                "psr/log": "^1.0||^2.0||^3.0"
+            },
+            "require-dev": {
+                "behat/behat": "^3.23",
+                "dvdoug/behat-code-coverage": "^5.3",
+                "friendsofphp/php-cs-fixer": "^3.83",
+                "monolog/monolog": "^3.8",
+                "phpunit/phpunit": "^11.5||^12.2"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DVDoug\\BoxPacker\\": [
+                        "src/",
+                        "tests/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Doug Wright",
+                    "role": "Developer"
+                }
+            ],
+            "description": "An implementation of the 3D (actually 4D) bin packing/knapsack problem (aka creating parcels by putting items into boxes)",
+            "homepage": "https://boxpacker.io/",
+            "keywords": [
+                "bin packing",
+                "binpacking",
+                "box",
+                "boxes",
+                "boxpacking",
+                "container",
+                "knapsack",
+                "packaging",
+                "packing",
+                "parcel",
+                "parcelpacking",
+                "shipping"
+            ],
+            "support": {
+                "issues": "https://github.com/dvdoug/BoxPacker/issues",
+                "source": "https://github.com/dvdoug/BoxPacker/tree/4.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/dvdoug",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-07-21T21:50:01+00:00"
+        },
+        {
+            "name": "phpmailer/phpmailer",
+            "version": "v7.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPMailer/PHPMailer.git",
+                "reference": "1bc1716a507a65e039d4ac9d9adebbbd0d346e15"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/1bc1716a507a65e039d4ac9d9adebbbd0d346e15",
+                "reference": "1bc1716a507a65e039d4ac9d9adebbbd0d346e15",
                 "shasum": ""
             },
             "require": {
@@ -78,7 +156,7 @@
             "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
             "support": {
                 "issues": "https://github.com/PHPMailer/PHPMailer/issues",
-                "source": "https://github.com/PHPMailer/PHPMailer/tree/v7.1.0"
+                "source": "https://github.com/PHPMailer/PHPMailer/tree/v7.1.1"
             },
             "funding": [
                 {
@@ -86,7 +164,57 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-15T14:22:59+00:00"
+            "time": "2026-05-18T08:06:14+00:00"
+        },
+        {
+            "name": "psr/log",
+            "version": "3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/log.git",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Log\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
+            "keywords": [
+                "log",
+                "psr",
+                "psr-3"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
+            },
+            "time": "2024-09-11T13:17:53+00:00"
         }
     ],
     "packages-dev": [],
@@ -95,7 +223,9 @@
     "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": {},
+    "platform": {
+        "php": ">=8.0"
+    },
     "platform-dev": {},
     "plugin-api-version": "2.9.0"
 }

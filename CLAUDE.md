@@ -10,7 +10,9 @@ In either case, the `trunk/` directory is deployed as the web root. The other to
 
 After deploying `trunk/`, visit `/install/` in a browser to run the web-based installer, which creates `trunk/includes/configure.php` and seeds the database.
 
-There is no `composer.json`, `package.json`, Makefile, or automated test runner. All dependencies (jQuery 1.6.2, jQuery UI 1.8.16, DataTables, CKEditor) are vendored into the repo. Manual test procedures are in `TestProcedures/` as ODS spreadsheets.
+There is no `package.json`, Makefile, or automated test runner. Manual test procedures are in `TestProcedures/` as ODS spreadsheets.
+
+PHP dependencies are managed via Composer (`trunk/composer.json`). The `trunk/vendor/` directory is **intentionally committed to the repository** so that deployment requires no build step — just copy `trunk/` to the web root as with all other vendored assets (jQuery, Bootstrap, etc.). To add or update a package, run `composer update` locally and commit the resulting changes to `vendor/` and `composer.lock`.
 
 ## Configuration
 

@@ -1,0 +1,30 @@
+# Set update schedule for GitHub Actions
+
+version: 2
+updates:
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "npm"
+    directory: "/visualiser"
+    schedule:
+      interval: "daily"
+    versioning-strategy: increase
+    ignore:
+      # only alert on major bumps
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+    groups:
+      babylon:
+        patterns:
+          - "@babylonjs*"
+
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "daily"

@@ -1,0 +1,3 @@
+# RTD pins by default to ancient versions
+sphinx-rtd-theme ~= 3.0
+myst_parser ~= 4.0
