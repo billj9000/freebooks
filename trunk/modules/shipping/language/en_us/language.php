@@ -165,6 +165,36 @@ define('SHIPPING_I2DAM','Worldwide Express');
 define('SHIPPING_I3D','Worldwide Expedited');
 define('SHIPPING_IGND','Ground (Canada)');
 
+// Royal Mail domestic
+define('SHIPPING_RM24',  'RM Tracked 24');
+define('SHIPPING_RM48',  'RM Tracked 48');
+define('SHIPPING_RMSD9', 'RM Special Delivery 9am');
+define('SHIPPING_RMSD1', 'RM Special Delivery 1pm');
+define('SHIPPING_RM1CL', 'RM 1st Class');
+define('SHIPPING_RM2CL', 'RM 2nd Class');
+// Royal Mail international
+define('SHIPPING_RMIT',  'RM International Tracked');
+define('SHIPPING_RMIS',  'RM International Signed');
+define('SHIPPING_RMITS', 'RM International Tracked & Signed');
+define('SHIPPING_RMIE',  'RM International Economy');
+// Parcelforce domestic
+define('SHIPPING_PFX9',  'Parcelforce Express 9');
+define('SHIPPING_PFX10', 'Parcelforce Express 10');
+define('SHIPPING_PFXAM', 'Parcelforce Express AM');
+define('SHIPPING_PFX24', 'Parcelforce Express 24');
+define('SHIPPING_PFX48', 'Parcelforce Express 48');
+define('SHIPPING_PFX4L', 'Parcelforce Express 48 Large');
+// Parcelforce international
+define('SHIPPING_PFGX',  'Parcelforce Global Express');
+define('SHIPPING_PFGP',  'Parcelforce Global Priority');
+define('SHIPPING_PFGV',  'Parcelforce Global Value');
+define('SHIPPING_PFGE',  'Parcelforce Global Economy');
+// DHL Express
+define('SHIPPING_DHLWW', 'DHL Express Worldwide');
+define('SHIPPING_DHLE9', 'DHL Express 9:00');
+define('SHIPPING_DHL12', 'DHL Express 12:00');
+define('SHIPPING_DHLEV', 'DHL Express Envelope');
+
 define('SHIPPING_SHIP_PACKAGE','Ship a Package');
 define('SHIPPING_CREATE_ENTRY','Create a Shipment Entry');
 define('SHIPPING_RECON_BILL','Reconcile Bill');

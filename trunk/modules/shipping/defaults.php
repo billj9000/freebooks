@@ -44,6 +44,35 @@ $shipping_defaults['service_levels'] = array( // order determines sequence in pu
   'I2Dam'  => SHIPPING_I2DAM,
   'I3D'    => SHIPPING_I3D,
   'IGND'   => SHIPPING_IGND,
+  // Royal Mail domestic
+  'RM24'  => SHIPPING_RM24,
+  'RM48'  => SHIPPING_RM48,
+  'RMSD9' => SHIPPING_RMSD9,
+  'RMSD1' => SHIPPING_RMSD1,
+  'RM1CL' => SHIPPING_RM1CL,
+  'RM2CL' => SHIPPING_RM2CL,
+  // Royal Mail international
+  'RMIT'  => SHIPPING_RMIT,
+  'RMIS'  => SHIPPING_RMIS,
+  'RMITS' => SHIPPING_RMITS,
+  'RMIE'  => SHIPPING_RMIE,
+  // Parcelforce domestic
+  'PFX9'  => SHIPPING_PFX9,
+  'PFX10' => SHIPPING_PFX10,
+  'PFXAM' => SHIPPING_PFXAM,
+  'PFX24' => SHIPPING_PFX24,
+  'PFX48' => SHIPPING_PFX48,
+  'PFX4L' => SHIPPING_PFX4L,
+  // Parcelforce international
+  'PFGX'  => SHIPPING_PFGX,
+  'PFGP'  => SHIPPING_PFGP,
+  'PFGV'  => SHIPPING_PFGV,
+  'PFGE'  => SHIPPING_PFGE,
+  // DHL Express
+  'DHLWW' => SHIPPING_DHLWW,
+  'DHLE9' => SHIPPING_DHLE9,
+  'DHL12' => SHIPPING_DHL12,
+  'DHLEV' => SHIPPING_DHLEV,
 );
 // Pickup Type Code - conforms to UPS standards per the XML specification
 $shipping_defaults['pickup_service'] = array(
