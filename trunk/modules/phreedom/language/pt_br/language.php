@@ -232,6 +232,8 @@ define('TEXT_NUM_AVAILABLE','# Disponível');
 define('TEXT_NOTES','Notas');
 define('TEXT_NEW','Novo');
 define('TEXT_NOT_EQUAL','Diferente de');
+define('TEXT_NOT_NULL','não é Nulo');
+define('TEXT_NULL','é Nulo');
 define('TEXT_NOTE','Nota:');
 define('TEXT_NONE','Nenhum');
 define('TEXT_NOT_USED','Não utilizado');

@@ -56,9 +56,9 @@ function get_mime_image($ext, $folder = false) {
 
 function convertPfColor($color = '0:0:0') {
   $colors   = explode(':', $color);
-  $hexcolor = str_pad(dechex($colors[0]), 2, STR_PAD_LEFT) .
-              str_pad(dechex($colors[1]), 2, STR_PAD_LEFT) .
-			  str_pad(dechex($colors[2]), 2, STR_PAD_LEFT);
+  $hexcolor = str_pad(dechex((int)$colors[0]), 2, '0', STR_PAD_LEFT) .
+              str_pad(dechex((int)$colors[1]), 2, '0', STR_PAD_LEFT) .
+              str_pad(dechex((int)$colors[2]), 2, '0', STR_PAD_LEFT);
   return $hexcolor;
 }
 

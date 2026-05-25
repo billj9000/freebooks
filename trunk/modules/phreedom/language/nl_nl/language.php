@@ -156,6 +156,8 @@ define('TEXT_OPEN','Open');
 define('TEXT_NUM_REQUIRED','# Benodigd');
 define('TEXT_OF','of');
 define('TEXT_NOT_EQUAL','Niet gelijk aan');
+define('TEXT_NOT_NULL','is niet Null');
+define('TEXT_NULL','is Null');
 define('TEXT_NUM_AVAILABLE','# Beschikbaar');
 define('TEXT_NOTES','Aantekeningen');
 define('TEXT_NEW','Nieuw');

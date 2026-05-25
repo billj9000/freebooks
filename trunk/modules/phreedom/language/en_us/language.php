@@ -186,6 +186,8 @@ define('TEXT_NOTE', 'Note:');
 define('TEXT_NOTES', 'Notes');
 define('TEXT_NEW', 'New');
 define('TEXT_NOT_EQUAL','Not Equal To');
+define('TEXT_NOT_NULL','is not Null');
+define('TEXT_NULL','is Null');
 define('TEXT_NUM_AVAILABLE', '# Available');
 define('TEXT_NUM_REQUIRED', '# Required');
 define('TEXT_OF','of');

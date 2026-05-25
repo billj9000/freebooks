@@ -155,6 +155,8 @@ define('TEXT_NOTE','Примечание:');
 define('TEXT_NOTES','Примичания');
 define('TEXT_NEW','Новый');
 define('TEXT_NOT_EQUAL','Не равно');
+define('TEXT_NOT_NULL','не является Null');
+define('TEXT_NULL','является Null');
 define('TEXT_NUM_AVAILABLE','# Доступно');
 define('TEXT_NUM_REQUIRED','# Обязательный');
 define('TEXT_OF','из');

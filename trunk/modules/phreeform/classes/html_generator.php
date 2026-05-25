@@ -188,7 +188,7 @@ class HTML {
     $colors = explode(':', $value);
 	$output = NULL;
 	foreach ($colors as $decimal) {
-	  $output .= str_pad(dechex($decimal), 2, "0", STR_PAD_LEFT);
+	  $output .= str_pad(dechex((int)$decimal), 2, "0", STR_PAD_LEFT);
 	}
 	return '#' . $output;
   }
