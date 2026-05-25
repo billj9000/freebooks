@@ -278,8 +278,7 @@ class phreebooks_admin {
 	// copy standard images to phreeform images directory
 	$dir_source = DIR_FS_MODULES  . 'phreebooks/images/';
 	$dir_dest   = DIR_FS_MY_FILES . $_SESSION['company'] . '/phreeform/images/';
-	@copy($dir_source . 'phreebooks_logo.jpg', $dir_dest . 'phreebooks_logo.jpg');
-	@copy($dir_source . 'phreebooks_logo.png', $dir_dest . 'phreebooks_logo.png');
+	@copy($dir_source . 'freebooks_compact_logo.png', $dir_dest . 'freebooks_compact_logo.png');
 	$this->notes[] = MODULE_PHREEBOOKS_NOTES_1;
 	$this->notes[] = MODULE_PHREEBOOKS_NOTES_2;
 	$this->notes[] = MODULE_PHREEBOOKS_NOTES_3;

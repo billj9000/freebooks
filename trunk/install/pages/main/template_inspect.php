@@ -25,8 +25,8 @@
 		<thead class="ui-widget-header">
 			<tr>
 				<th align="right"><img
-					src="../modules/phreedom/images/phreesoft_logo.png"
-					alt="Phreedom Small Business Toolkit" height="50" /></th>
+					src="../modules/phreedom/images/freebooks_logo.png"
+					alt="FreeBooks ERP" height="40" style="width:auto" /></th>
 			</tr>
 		</thead>
 		<tbody class="ui-widget-content">

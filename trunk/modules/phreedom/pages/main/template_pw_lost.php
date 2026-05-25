@@ -22,7 +22,7 @@ echo html_form('pw_lost', FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;a
 <div style="margin-left:25%;margin-right:25%;margin-top:50px;">
 <table class="ui-widget" style="border-collapse:collapse;width:100%">
  <thead class="ui-widget-header">
-   <tr height="70"><th colspan="2" align="right"><img src="modules/phreedom/images/phreesoft_logo.png" alt="Phreedom Business Toolkit" height="50" /></th></tr>
+   <tr height="70"><th colspan="2" align="right"><img src="modules/phreedom/images/freebooks_logo.png" alt="FreeBooks ERP" height="40" style="width:auto" /></th></tr>
  </thead>
  <tbody class="ui-widget-content">
   <tr><td colspan="2"><h2><?php echo TEXT_PASSWORD_FORGOTTEN; ?></h2></td></tr>

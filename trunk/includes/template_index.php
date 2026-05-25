@@ -96,16 +96,17 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
   </div>
   <!-- Footer -->
   <?php if ($include_footer) { // Hook for custom logo
-  $image_path = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/phreedom/images/phreesoft_logo.png');
+  $image_path = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/phreedom/images/freebooks_logo.png');
   ?>
-  <div style="clear:both;text-align:center;font-size:9px;padding-bottom:1.5em">
+  <div style="clear:both;text-align:center;padding-bottom:1.5em">
+  <img src="<?php echo $image_path; ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
   <?php
   $footer_info  = COMPANY_NAME.' | '.TEXT_ACCOUNTING_PERIOD.': '.CURRENT_ACCOUNTING_PERIOD.' | FreeBooks ('.MODULE_PHREEDOM_VERSION.') ';
   if ($module <> 'phreedom') $footer_info .= '(' . $module . ' ' . constant('MODULE_' . strtoupper($module) . '_STATUS') . ') ';
   $footer_info .= '<br />' . TEXT_COPYRIGHT . ' &copy;' . date('Y') . ' Bill Jones';
   $footer_info .= ' (' . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . ' ms) ' . $db->count_queries . ' SQLs (' . (int)($db->total_query_time * 1000).' ms)';
   $footer_info .= '<br />Portions Copyright &copy;2008-2014 PhreeSoft';
-  echo $footer_info;
+  echo '<span style="font-size:9px">' . $footer_info . '</span>';
   ?>
   </div>
   <?php } // end if include_footer ?>

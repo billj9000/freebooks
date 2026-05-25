@@ -24,8 +24,8 @@ if ($single_language) echo html_hidden_field('language', $languages[0]['id']) . 
 <div style="margin-left:25%;margin-right:25%;margin-top:50px;">
 	  <table class="ui-widget">
         <thead class="ui-widget-header">
-        <tr height="70">
-          <th style="text-align:right"><img src="modules/phreedom/images/phreesoft_logo.png" alt="Phreedom Business Toolkit" height="50" /></th>
+        <tr height="20">
+          <th style="text-align:center">&nbsp;</th>
         </tr>
         </thead>
         <tbody class="ui-widget-content">
@@ -68,6 +68,7 @@ if ($single_language) echo html_hidden_field('language', $languages[0]['id']) . 
                 <td colspan="2">
 <?php echo TEXT_COPYRIGHT; ?> (c) 2008 - 2013 <a href="http://www.PhreeSoft.com">PhreeSoft, LLC</a><br />
 <?php echo sprintf(TEXT_COPYRIGHT_NOTICE, '<a href="' . DIR_WS_MODULES . 'phreedom/language/en_us/manual/ch01-Introduction/license.html">' . TEXT_HERE . '</a>'); ?>
+<br><img src="modules/phreedom/images/freebooks_logo.png" alt="FreeBooks ERP" height="80" style="width:auto;margin-top:8px;display:block;margin-left:auto;margin-right:auto" />
 				</td>
               </tr>
             </table>
