@@ -19,26 +19,31 @@
 
 define('MODULE_SHIPPING_DHL_EXPRESS_VERSION', '1.0');
 
-// DHL Express Commerce REST API
-// Auth: HTTP Basic (apiKey:apiSecret)
+// DHL Express Commerce REST API — auth: HTTP Basic (apiKey:apiSecret)
 define('DHL_API_BASE_LIVE', 'https://express.api.dhl.com/mydhlapi');
-define('DHL_API_BASE_TEST', 'https://express.api.dhl.com/mydhlapi'); // use DHL sandbox credentials for test
+define('DHL_API_BASE_TEST', 'https://express.api.dhl.com/mydhlapi/test');
 
-// Wire up service level constants for the shipping estimator dropdown
-if (defined('MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLWW')) define('dhl_express_DHLWW', MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLWW);
-if (defined('MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLE9')) define('dhl_express_DHLE9', MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLE9);
-if (defined('MODULE_SHIPPING_DHL_EXPRESS_SVC_DHL12')) define('dhl_express_DHL12', MODULE_SHIPPING_DHL_EXPRESS_SVC_DHL12);
-if (defined('MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLEV')) define('dhl_express_DHLEV', MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLEV);
+// Pre-define display names for DHL product codes (keyed as dhl_express_DHL_{code}).
+// These are used by build_js_methods() at page-load time and by template_detail.php.
+// quote() will override these with live names from the API if they differ.
+define('dhl_express_DHL_P', 'DHL Express Worldwide');
+define('dhl_express_DHL_D', 'DHL Express Worldwide (Dutiable)');
+define('dhl_express_DHL_I', 'DHL Express Worldwide (Doc)');
+define('dhl_express_DHL_N', 'DHL Domestic Express');
+define('dhl_express_DHL_G', 'DHL Domestic Economy Select');
+define('dhl_express_DHL_Y', 'DHL Express 9:00');
+define('dhl_express_DHL_E', 'DHL Express 9:00 (Dutiable)');
+define('dhl_express_DHL_K', 'DHL Express 9:00 (Regional)');
+define('dhl_express_DHL_T', 'DHL Express 12:00');
+define('dhl_express_DHL_L', 'DHL Express 10:30');
+define('dhl_express_DHL_M', 'DHL Express 10:30 (Dutiable)');
+define('dhl_express_DHL_W', 'DHL Express 12:00 (Dutiable)');
+define('dhl_express_DHL_Q', 'DHL Medical Express');
+define('dhl_express_DHL_C', 'DHL Medical Express (Domestic)');
+define('dhl_express_DHL_H', 'DHL Economy Select');
+define('dhl_express_DHL_8', 'DHL Express Easy');
 
 class dhl_express {
-
-  // Maps our internal codes → DHL product codes
-  var $DHLProductMap = array(
-    'DHLWW' => 'P',  // Express Worldwide
-    'DHLE9' => 'Y',  // Express 9:00
-    'DHL12' => 'T',  // Express 12:00
-    'DHLEV' => 'D',  // Express Envelope (document)
-  );
 
   function __construct() {
     $this->code = 'dhl_express';
@@ -51,8 +56,7 @@ class dhl_express {
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_API_SECRET',     'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER', 'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE',      'default' => 'Test'),
-      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_TYPES',          'default' => 'DHLWW'),
-      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',     'default' => '30'),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',     'default' => '50'),
     );
   }
 
@@ -64,22 +68,6 @@ class dhl_express {
           array('id' => 'Production', 'text' => TEXT_PRODUCTION),
         );
         return html_pull_down_menu(strtolower($key), $temp, constant($key));
-
-      case 'MODULE_SHIPPING_DHL_EXPRESS_TYPES':
-        $all_services = array(
-          array('id' => 'DHLWW', 'text' => MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLWW),
-          array('id' => 'DHLE9', 'text' => MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLE9),
-          array('id' => 'DHL12', 'text' => MODULE_SHIPPING_DHL_EXPRESS_SVC_DHL12),
-          array('id' => 'DHLEV', 'text' => MODULE_SHIPPING_DHL_EXPRESS_SVC_DHLEV),
-        );
-        $enabled = explode(',', str_replace(' ', '', constant($key)));
-        $choices = array();
-        foreach ($all_services as $svc) {
-          $choices[] = html_checkbox_field(strtolower($key) . '[]', $svc['id'],
-            in_array($svc['id'], $enabled), '', '') . ' ' . $svc['text'];
-        }
-        return implode('<br />' . chr(10), $choices);
-
       default:
         return html_input_field(strtolower($key), constant($key), '');
     }
@@ -87,17 +75,14 @@ class dhl_express {
 
   function update() {
     foreach ($this->keys() as $key) {
-      $field = strtolower($key['key']);
-      if ($key['key'] == 'MODULE_SHIPPING_DHL_EXPRESS_TYPES') {
-        write_configure($key['key'], implode(',', $_POST[$field]));
-      } elseif (isset($_POST[$field])) {
-        write_configure($key['key'], $_POST[$field]);
+      if (isset($_POST[strtolower($key['key'])])) {
+        write_configure($key['key'], $_POST[strtolower($key['key'])]);
       }
     }
   }
 
   // ---------------------------------------------------------------
-  //  Rate quoting
+  //  Rate quoting — returns all products DHL quotes for the route
   // ---------------------------------------------------------------
   function quote($pkg) {
     global $messageStack;
@@ -109,87 +94,100 @@ class dhl_express {
     $apiSecret = defined('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET')     ? MODULE_SHIPPING_DHL_EXPRESS_API_SECRET     : '';
     $account   = defined('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER') ? MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER : '';
     if (!$apiKey || !$apiSecret) {
-      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_NOKEY, 'error');
-      return false;
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_NOKEY, 'caution');
+      return array('result' => 'success', 'rates' => array());
     }
 
-    $base      = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
-    $enabled   = explode(',', str_replace(' ', '', MODULE_SHIPPING_DHL_EXPRESS_TYPES));
-    $weightKg  = $this->toKg($pkg->pkg_weight, $pkg->pkg_weight_unit);
-    $lenCm     = $this->toCm($pkg->pkg_length, $pkg->pkg_dimension_unit);
-    $widCm     = $this->toCm($pkg->pkg_width,  $pkg->pkg_dimension_unit);
-    $hgtCm     = $this->toCm($pkg->pkg_height, $pkg->pkg_dimension_unit);
-    $fromISO2  = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
-    $fromPost  = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
-    $fromCity  = defined('COMPANY_CITY_TOWN') ? COMPANY_CITY_TOWN : '';
-    $toISO2    = $pkg->ship_to_country_iso2 ?? $fromISO2;
-    $toPost    = $pkg->ship_to_postal_code;
-    $toCity    = $pkg->ship_to_city ?? '';
-    $shipDate  = date('Y-m-d\TH:i:00', strtotime($pkg->ship_date . ' 12:00:00')) . 'GMT+00:00';
+    $base     = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
+    $weightKg = $this->toKg($pkg->pkg_weight, $pkg->pkg_weight_unit);
+    $lenCm    = $this->toCm($pkg->pkg_length, $pkg->pkg_dimension_unit);
+    $widCm    = $this->toCm($pkg->pkg_width,  $pkg->pkg_dimension_unit);
+    $hgtCm    = $this->toCm($pkg->pkg_height, $pkg->pkg_dimension_unit);
+    $fromISO2 = defined('COMPANY_COUNTRY')     ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
+    $fromPost = defined('COMPANY_POSTAL_CODE') ? trim(COMPANY_POSTAL_CODE) : '';
+    $fromCity = defined('COMPANY_CITY_TOWN')   ? trim(COMPANY_CITY_TOWN)   : '';
+    $toISO2   = $pkg->ship_to_country_iso2 ?? $fromISO2;
+    $toPost   = trim($pkg->ship_to_postal_code ?? '');
+    $toCity   = trim($pkg->ship_to_city_town ?? $pkg->ship_to_city ?? '');
     $isDomestic = ($fromISO2 === $toISO2);
 
-    $params = http_build_query(array(
-      'accountNumber'               => $account,
-      'originCountryCode'           => $fromISO2,
-      'originCityName'              => $fromCity,
-      'originPostalCode'            => $fromPost,
-      'destinationCountryCode'      => $toISO2,
-      'destinationCityName'         => $toCity,
-      'destinationPostalCode'       => $toPost,
-      'weight'                      => number_format($weightKg, 3, '.', ''),
-      'length'                      => $lenCm,
-      'width'                       => $widCm,
-      'height'                      => $hgtCm,
-      'plannedShippingDateAndTime'  => $shipDate,
-      'isCustomsDeclarable'         => $isDomestic ? 'false' : 'true',
-      'unitOfMeasurement'           => 'metric',
-      'nextBusinessDay'             => 'false',
-      'strictValidation'            => 'false',
-      'getAllValueAddedServices'     => 'false',
-      'requestEstimatedDeliveryDate'=> 'true',
-    ));
+    $ts = strtotime($pkg->ship_date);
+    if (!$ts) $ts = time();
+    // Advance to tomorrow if noon UTC today has already passed
+    $noonUtc = gmmktime(12, 0, 0, (int)gmdate('n', $ts), (int)gmdate('j', $ts), (int)gmdate('Y', $ts));
+    if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
+    $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
 
-    $response = $this->curlRequest('GET', $base . '/rates?' . $params,
-      array('Accept: application/json'),
-      null, $apiKey, $apiSecret);
+    $package = array('weight' => $weightKg);
+    if ($lenCm && $widCm && $hgtCm) {
+      $package['dimensions'] = array('length' => $lenCm, 'width' => $widCm, 'height' => $hgtCm);
+    }
+
+    $shipper  = array('postalCode' => $fromPost, 'countryCode' => $fromISO2);
+    $receiver = array('postalCode' => $toPost,   'countryCode' => $toISO2);
+    if ($fromCity) $shipper['cityName']  = $fromCity;
+    if ($toCity)   $receiver['cityName'] = $toCity;
+
+    $body = array(
+      'customerDetails'            => array('shipperDetails' => $shipper, 'receiverDetails' => $receiver),
+      'accounts'                   => array(array('typeCode' => 'shipper', 'number' => $account)),
+      'plannedShippingDateAndTime' => $shipDate,
+      'unitOfMeasurement'          => 'metric',
+      'isCustomsDeclarable'        => !$isDomestic,
+      'packages'                   => array($package),
+      'nextBusinessDay'            => true,
+    );
+
+    $response = $this->curlRequest('POST', $base . '/rates',
+      $this->dhlHeaders(), json_encode($body), $apiKey, $apiSecret);
 
     if ($response === false) {
-      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_RATES . 'API request failed.', 'error');
+      $messageStack->add('DHL curl failed', 'error');
       return false;
     }
 
     $data = json_decode($response, true);
     if (empty($data['products']) || !is_array($data['products'])) {
-      $msg = $data['title'] ?? $data['detail'] ?? $response;
-      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_RATES . $msg, 'caution');
+      // "Product not found" = no services for this route/date — not an error
+      if (($data['title'] ?? '') !== 'Product not found') {
+        $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_RATES . ($data['detail'] ?? $response), 'caution');
+      }
       return array('result' => 'success', 'rates' => array());
     }
 
-    $reverseMap = array_flip($this->DHLProductMap);
-    $arrRates   = array();
+    $arrRates = array();
     foreach ($data['products'] as $product) {
-      $dhlCode      = $product['productCode'] ?? '';
-      $internalCode = $reverseMap[$dhlCode] ?? null;
-      if (!$internalCode || !in_array($internalCode, $enabled)) continue;
+      $dhlCode = $product['productCode'] ?? '';
+      if (!$dhlCode) continue;
 
-      $price = 0;
-      if (!empty($product['totalPrice'])) {
-        foreach ($product['totalPrice'] as $tp) {
-          if (($tp['currencyType'] ?? '') === 'BILLC') {
-            $price = (float)($tp['price'] ?? 0);
-            break;
-          }
-        }
-        if (!$price) $price = (float)($product['totalPrice'][0]['price'] ?? 0);
+      // Rate key uses DHL_ prefix so it matches the service_levels keys in defaults.php
+      $rateKey   = 'DHL_' . $dhlCode;
+      $constName = 'dhl_express_' . $rateKey;
+      // Pre-defined constants cannot be redefined; only define if this code wasn't pre-defined
+      if (!defined($constName)) {
+        define($constName, $product['productName'] ?? ('DHL ' . $dhlCode));
       }
-      if ($price <= 0) continue;
+
+      // Prefer BILLC billing price; fall back to first available price
+      $price = 0;
+      foreach ($product['totalPrice'] ?? array() as $tp) {
+        if (($tp['currencyType'] ?? '') === 'BILLC') {
+          $price = (float)($tp['price'] ?? 0);
+          break;
+        }
+      }
+      if (!$price) {
+        foreach ($product['totalPrice'] ?? array() as $tp) {
+          if (($tp['price'] ?? 0) > 0) { $price = (float)$tp['price']; break; }
+        }
+      }
 
       $deliveryNote = '';
       if (!empty($product['deliveryCapabilities']['estimatedDeliveryDateAndTime'])) {
         $deliveryNote = 'Est: ' . substr($product['deliveryCapabilities']['estimatedDeliveryDateAndTime'], 0, 10);
       }
 
-      $arrRates[$this->code][$internalCode] = array(
+      $arrRates[$this->code][$rateKey] = array(
         'book'  => $price,
         'quote' => $price,
         'cost'  => $price,
@@ -213,17 +211,18 @@ class dhl_express {
       return false;
     }
 
-    $base       = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
-    $productCode= $this->DHLProductMap[$sInfo->ship_method] ?? 'P';
-    $fromISO2   = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
-    $toISO2     = strlen($sInfo->ship_country_code) == 3
+    $base = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
+    // ship_method is stored with DHL_ prefix (matches service_levels key); strip it for the API
+    $rawMethod   = $sInfo->ship_method;
+    $productCode = (strncmp($rawMethod, 'DHL_', 4) === 0) ? substr($rawMethod, 4) : $rawMethod;
+    $fromISO2    = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
+    $toISO2      = strlen($sInfo->ship_country_code) == 3
       ? gen_get_country_iso_2_from_3($sInfo->ship_country_code)
       : $sInfo->ship_country_code;
     $isDomestic  = ($fromISO2 === $toISO2);
     $shipDate    = date('Y-m-d\TH:i:00', strtotime($sInfo->ship_date . ' 12:00:00')) . 'GMT+00:00';
     $declaredValue = (float)($sInfo->customs_value ?: $sInfo->total_value ?: 0);
 
-    // Build packages
     $packages = array();
     foreach ($sInfo->package as $pkg) {
       $packages[] = array(
@@ -238,11 +237,9 @@ class dhl_express {
 
     $body = array(
       'plannedShippingDateAndTime' => $shipDate,
-      'pickup'   => array('isRequested' => false),
+      'pickup'      => array('isRequested' => false),
       'productCode' => $productCode,
-      'accounts' => array(
-        array('typeCode' => 'shipper', 'number' => $account),
-      ),
+      'accounts'    => array(array('typeCode' => 'shipper', 'number' => $account)),
       'customerDetails' => array(
         'shipperDetails' => array(
           'postalAddress' => array(
@@ -276,13 +273,13 @@ class dhl_express {
         ),
       ),
       'content' => array(
-        'packages'            => $packages,
-        'isCustomsDeclarable' => !$isDomestic,
-        'description'         => $sInfo->customs_description ?: 'Goods',
-        'declaredValue'       => $declaredValue,
+        'packages'             => $packages,
+        'isCustomsDeclarable'  => !$isDomestic,
+        'description'          => $sInfo->customs_description ?: 'Goods',
+        'declaredValue'        => $declaredValue,
         'declaredValueCurrency'=> 'GBP',
-        'unitOfMeasurement'   => 'metric',
-        'incoterm'            => 'DAP',
+        'unitOfMeasurement'    => 'SI',
+        'incoterm'             => 'DAP',
       ),
       'outputImageProperties' => array(
         'printerDPI'     => 300,
@@ -296,17 +293,16 @@ class dhl_express {
       ),
     );
 
-    // Add export declaration for international shipments
     if (!$isDomestic && !empty($sInfo->customs_description)) {
       $body['content']['exportDeclaration'] = array(
         'lineItems' => array(
           array(
-            'number'      => 1,
-            'description' => $sInfo->customs_description,
-            'price'       => $declaredValue,
-            'priceCurrency'=> 'GBP',
+            'number'           => 1,
+            'description'      => $sInfo->customs_description,
+            'price'            => $declaredValue,
+            'priceCurrency'    => 'GBP',
             'exportReasonType' => 'permanent',
-            'quantity'    => array('value' => 1, 'unitOfMeasurement' => 'PCS'),
+            'quantity'         => array('value' => 1, 'unitOfMeasurement' => 'PCS'),
             'commodityCodes'   => array(
               array('typeCode' => 'outbound', 'value' => $sInfo->hs_code ?? ''),
             ),
@@ -327,9 +323,8 @@ class dhl_express {
       );
     }
 
-    $headers  = array('Content-Type: application/json', 'Accept: application/json');
-    $response = $this->curlRequest('POST', $base . '/shipments', $headers,
-      json_encode($body), $apiKey, $apiSecret);
+    $response = $this->curlRequest('POST', $base . '/shipments',
+      $this->dhlHeaders(), json_encode($body), $apiKey, $apiSecret);
 
     if ($response === false) {
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'API request failed.', 'error');
@@ -343,12 +338,10 @@ class dhl_express {
       return false;
     }
 
-    $tracking = $data['shipmentTrackingNumber'];
-    $date     = $sInfo->ship_date;
-    $file_path = SHIPPING_DEFAULT_LABEL_DIR . $this->code . '/' . str_replace('-', '/', $date) . '/';
+    $tracking  = $data['shipmentTrackingNumber'];
+    $file_path = SHIPPING_DEFAULT_LABEL_DIR . $this->code . '/' . str_replace('-', '/', $sInfo->ship_date) . '/';
     validate_path($file_path);
 
-    // DHL returns one label per package in packages[].documents[]
     $results = array();
     $pkgs = $data['packages'] ?? array(array('trackingNumber' => $tracking, 'documents' => $data['documents'] ?? array()));
     foreach ($pkgs as $idx => $pkg_result) {
@@ -383,6 +376,15 @@ class dhl_express {
   // ---------------------------------------------------------------
   //  Helpers
   // ---------------------------------------------------------------
+  private function dhlHeaders() {
+    return array(
+      'Accept: application/json',
+      'Content-Type: application/json',
+      'Message-Reference: freebooks-' . uniqid(),
+      'Message-Reference-Date: ' . gmdate('Y-m-d\TH:i:s \G\M\T+00:00'),
+    );
+  }
+
   private function curlRequest($method, $url, $headers, $body = null, $user = null, $pass = null) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -397,13 +399,10 @@ class dhl_express {
       curl_setopt($ch, CURLOPT_POST, true);
       curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     }
-    $result   = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error    = curl_error($ch);
+    $result = curl_exec($ch);
+    $error  = curl_error($ch);
     curl_close($ch);
-    if ($error) return false;
-    if ($httpCode >= 400) return $result;
-    return $result;
+    return $error ? false : $result;
   }
 
   private function toKg($value, $unit) {

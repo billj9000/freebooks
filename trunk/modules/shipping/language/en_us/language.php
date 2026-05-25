@@ -165,6 +165,23 @@ define('SHIPPING_I2DAM','Worldwide Express');
 define('SHIPPING_I3D','Worldwide Expedited');
 define('SHIPPING_IGND','Ground (Canada)');
 
+// DHL Express product codes (keyed as DHL_{productCode})
+define('SHIPPING_DHL_P', 'DHL Express Worldwide');
+define('SHIPPING_DHL_D', 'DHL Express Worldwide (Dutiable)');
+define('SHIPPING_DHL_I', 'DHL Express Worldwide (Doc)');
+define('SHIPPING_DHL_N', 'DHL Domestic Express');
+define('SHIPPING_DHL_G', 'DHL Domestic Economy Select');
+define('SHIPPING_DHL_Y', 'DHL Express 9:00');
+define('SHIPPING_DHL_E', 'DHL Express 9:00 (Dutiable)');
+define('SHIPPING_DHL_K', 'DHL Express 9:00 (Regional)');
+define('SHIPPING_DHL_T', 'DHL Express 12:00');
+define('SHIPPING_DHL_L', 'DHL Express 10:30');
+define('SHIPPING_DHL_M', 'DHL Express 10:30 (Dutiable)');
+define('SHIPPING_DHL_W', 'DHL Express 12:00 (Dutiable)');
+define('SHIPPING_DHL_Q', 'DHL Medical Express');
+define('SHIPPING_DHL_C', 'DHL Medical Express (Domestic)');
+define('SHIPPING_DHL_H', 'DHL Economy Select');
+define('SHIPPING_DHL_8', 'DHL Express Easy');
 // Royal Mail domestic
 define('SHIPPING_RM24',  'RM Tracked 24');
 define('SHIPPING_RM48',  'RM Tracked 48');
@@ -189,12 +206,6 @@ define('SHIPPING_PFGX',  'Parcelforce Global Express');
 define('SHIPPING_PFGP',  'Parcelforce Global Priority');
 define('SHIPPING_PFGV',  'Parcelforce Global Value');
 define('SHIPPING_PFGE',  'Parcelforce Global Economy');
-// DHL Express
-define('SHIPPING_DHLWW', 'DHL Express Worldwide');
-define('SHIPPING_DHLE9', 'DHL Express 9:00');
-define('SHIPPING_DHL12', 'DHL Express 12:00');
-define('SHIPPING_DHLEV', 'DHL Express Envelope');
-
 define('SHIPPING_SHIP_PACKAGE','Ship a Package');
 define('SHIPPING_CREATE_ENTRY','Create a Shipment Entry');
 define('SHIPPING_RECON_BILL','Reconcile Bill');

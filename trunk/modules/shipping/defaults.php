@@ -44,6 +44,23 @@ $shipping_defaults['service_levels'] = array( // order determines sequence in pu
   'I2Dam'  => SHIPPING_I2DAM,
   'I3D'    => SHIPPING_I3D,
   'IGND'   => SHIPPING_IGND,
+  // DHL Express product codes (keyed as DHL_{productCode})
+  'DHL_P' => SHIPPING_DHL_P,
+  'DHL_D' => SHIPPING_DHL_D,
+  'DHL_I' => SHIPPING_DHL_I,
+  'DHL_N' => SHIPPING_DHL_N,
+  'DHL_G' => SHIPPING_DHL_G,
+  'DHL_Y' => SHIPPING_DHL_Y,
+  'DHL_E' => SHIPPING_DHL_E,
+  'DHL_K' => SHIPPING_DHL_K,
+  'DHL_T' => SHIPPING_DHL_T,
+  'DHL_L' => SHIPPING_DHL_L,
+  'DHL_M' => SHIPPING_DHL_M,
+  'DHL_W' => SHIPPING_DHL_W,
+  'DHL_Q' => SHIPPING_DHL_Q,
+  'DHL_C' => SHIPPING_DHL_C,
+  'DHL_H' => SHIPPING_DHL_H,
+  'DHL_8' => SHIPPING_DHL_8,
   // Royal Mail domestic
   'RM24'  => SHIPPING_RM24,
   'RM48'  => SHIPPING_RM48,
@@ -68,11 +85,6 @@ $shipping_defaults['service_levels'] = array( // order determines sequence in pu
   'PFGP'  => SHIPPING_PFGP,
   'PFGV'  => SHIPPING_PFGV,
   'PFGE'  => SHIPPING_PFGE,
-  // DHL Express
-  'DHLWW' => SHIPPING_DHLWW,
-  'DHLE9' => SHIPPING_DHLE9,
-  'DHL12' => SHIPPING_DHL12,
-  'DHLEV' => SHIPPING_DHLEV,
 );
 // Pickup Type Code - conforms to UPS standards per the XML specification
 $shipping_defaults['pickup_service'] = array(

@@ -18,7 +18,9 @@
 //
 
 define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE',        'Royal Mail / Parcelforce');
+define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_DESCRIPTION',  'Royal Mail and Parcelforce shipping (UK)');
 define('MODULE_SHIPPING_ROYAL_MAIL_TITLE',             'Royal Mail Title');
+define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_SHORT',       'Royal Mail');
 define('MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY', 'Click &amp; Drop API Key');
 define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID',      'RM Shipping API Client ID');
 define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET',  'RM Shipping API Client Secret');
@@ -37,6 +39,25 @@ define('MODULE_SHIPPING_ROYAL_MAIL_PFGX_RATE',         'Parcelforce Global Expre
 define('MODULE_SHIPPING_ROYAL_MAIL_PFGP_RATE',         'Parcelforce Global Priority Rate (£)');
 define('MODULE_SHIPPING_ROYAL_MAIL_PFGV_RATE',         'Parcelforce Global Value Rate (£)');
 define('MODULE_SHIPPING_ROYAL_MAIL_PFGE_RATE',         'Parcelforce Global Economy Rate (£)');
+// Admin panel field descriptions (one per key() entry)
+define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_DESC',            'Title shown in the shipping estimator.');
+define('MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY_DESC','Click &amp; Drop API key. Obtain from your Royal Mail OBA portal under Integrations.');
+define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID_DESC',     'RM Shipping API client ID (x-ibm-client-id). Obtain from the Royal Mail Developer Portal.');
+define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET_DESC', 'RM Shipping API client secret (x-ibm-client-secret).');
+define('MODULE_SHIPPING_ROYAL_MAIL_OBA_ACCOUNT_DESC',      'Your Royal Mail OBA (Online Business Account) account number.');
+define('MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE_DESC',        'Test uses sandbox credentials; Production uses live credentials.');
+define('MODULE_SHIPPING_ROYAL_MAIL_TYPES_DESC',            'Select the Royal Mail and Parcelforce services to offer.');
+define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER_DESC',       'Sort order of display. Lowest is displayed first.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFX9_RATE_DESC',        'Your contracted rate (£) for Parcelforce Express 9.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFX10_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 10.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFXAM_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express AM.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFX24_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 24.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFX48_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 48.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFX4L_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 48 Large.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFGX_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Express.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFGP_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Priority.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFGV_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Value.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PFGE_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Economy.');
 // Service display names (used in type checkboxes)
 define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM24',  'RM Tracked 24');
 define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM48',  'RM Tracked 48');
