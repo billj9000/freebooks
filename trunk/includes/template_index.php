@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -29,6 +30,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <title><?php echo PAGE_TITLE; ?></title>
   <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
+  <style>body{display:flex;flex-direction:column;min-height:100vh}#content-wrap{flex:1 0 auto}</style>
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery_datatables.css'; ?>" />
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery-ui.css'; ?>" />
   <link rel="stylesheet" type="text/css" href="jodit/jodit.min.css" />
@@ -88,7 +90,7 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
   <script type="text/javascript" src="modules/phreedom/includes/wz_tooltip/tip_balloon.js"></script>  
   <div id="please_wait"><p><?php echo html_icon('phreebooks/please_wait.gif', TEXT_PLEASE_WAIT, 'large'); ?></p></div>
   <!-- Menu -->
-  <?php if ($include_header) { require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/menu.php'); } else echo "<div>\n"?>
+  <?php if ($include_header) { require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/menu.php'); } else echo "<div id=\"content-wrap\">\n"; ?>
   <!-- Template -->
   <?php if (is_file($template_path)) { require($template_path); } else trigger_error('No template file: ' . $template_path, E_USER_ERROR); ?>
   </div>
@@ -96,13 +98,13 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
   <?php if ($include_footer) { // Hook for custom logo
   $image_path = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/phreedom/images/phreesoft_logo.png');
   ?>
-  <div style="clear:both;text-align:center;font-size:9px">
-    <a href="http://www.PhreeSoft.com" target="_blank"><?php echo html_image($image_path, TEXT_PHREEDOM_INFO, NULL, '64'); ?></a><br />
-  <?php 
-  $footer_info  = COMPANY_NAME.' | '.TEXT_ACCOUNTING_PERIOD.': '.CURRENT_ACCOUNTING_PERIOD.' | '.TEXT_PHREEDOM_INFO.' ('.MODULE_PHREEDOM_VERSION.') ';
+  <div style="clear:both;text-align:center;font-size:9px;padding-bottom:1.5em">
+  <?php
+  $footer_info  = COMPANY_NAME.' | '.TEXT_ACCOUNTING_PERIOD.': '.CURRENT_ACCOUNTING_PERIOD.' | FreeBooks ('.MODULE_PHREEDOM_VERSION.') ';
   if ($module <> 'phreedom') $footer_info .= '(' . $module . ' ' . constant('MODULE_' . strtoupper($module) . '_STATUS') . ') ';
-  $footer_info .= '<br />' . TEXT_COPYRIGHT .  ' &copy;' . date('Y') . ' <a href="http://www.PhreeSoft.com" target="_blank">PhreeSoft, LLC&trade;</a>';
-  $footer_info .= '(' . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . ' ms) ' . $db->count_queries . ' SQLs (' . (int)($db->total_query_time * 1000).' ms)';
+  $footer_info .= '<br />' . TEXT_COPYRIGHT . ' &copy;' . date('Y') . ' Bill Jones';
+  $footer_info .= ' (' . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . ' ms) ' . $db->count_queries . ' SQLs (' . (int)($db->total_query_time * 1000).' ms)';
+  $footer_info .= '<br />Portions Copyright &copy;2008-2014 PhreeSoft';
   echo $footer_info;
   ?>
   </div>

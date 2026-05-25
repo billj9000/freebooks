@@ -1,0 +1,224 @@
+/* +-----------------------------------------------------------------+
+ * |                          FreeBooks ERP                          |
+ * +-----------------------------------------------------------------+
+ * | Copyright(c) 2026 Bill Jones                                    |
+ * +-----------------------------------------------------------------+
+ * | This program is free software: you can redistribute it and/or   |
+ * | modify it under the terms of the GNU General Public License as  |
+ * | published by the Free Software Foundation, either version 3 of  |
+ * | the License, or any later version.                              |
+ * |                                                                 |
+ * | This program is distributed in the hope that it will be useful, |
+ * | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+ * | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+ * | GNU General Public License for more details.                    |
+ * +-----------------------------------------------------------------+ */
+/*
+ * Bootstrap 5 CSS variable overrides to match FreeBooks "start" / jQuery UI theme.
+ * Load AFTER bootstrap.min.css.
+ *
+ * Colour reference (from themes/default/css/start/jquery-ui.css):
+ *   header bg      #2191c0  border #4297d7  text #eaf5f7
+ *   content bg     #fcfdfd  border #a6c9e2  text #222222
+ *   hover bg       #79c9ec  border #448dae  text #026890
+ *   highlight bg   #f8da4e  border #fcd113  text #915608
+ *   primary btn bg #0078ae
+ */
+
+/* ── Bootstrap CSS variable overrides ───────────────────────────── */
+:root {
+  --bs-primary:           #0078ae;
+  --bs-primary-rgb:       0, 120, 174;
+  --bs-body-font-family:  Verdana, Arial, sans-serif;
+  --bs-body-font-size:    11px;
+  --bs-body-color:        #222222;
+  --bs-border-color:      #a6c9e2;
+  --bs-border-radius:     0;
+  --bs-border-radius-sm:  0;
+  --bs-border-radius-lg:  0;
+  --bs-link-color:        #0078ae;
+  --bs-link-color-rgb:    0, 120, 174;
+  --bs-table-border-color: #a6c9e2;
+}
+
+/* ── pkg-table: match .ui-widget / .ui-widget-header / .ui-widget-content ── */
+.pkg-table {
+  font-family:     Verdana, Arial, sans-serif;
+  font-size:       11px;
+  color:           #222222;
+  border-collapse: collapse;
+  border:          1px solid #a6c9e2;
+  width:           100%;
+}
+
+/* Header row: single background spanning full width, matching .ui-widget-header */
+.pkg-table > thead > tr {
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+}
+
+/* Cells transparent so the row background shows through uninterrupted */
+.pkg-table > thead > tr > th {
+  background:      transparent;
+  color:           #eaf5f7;
+  border:          none;
+  border-bottom:   1px solid #4297d7;
+  font-weight:     bold;
+  font-size:       11px;
+  padding:         4px 6px;
+  white-space:     nowrap;
+  vertical-align:  middle;
+}
+
+/* Cells: no internal borders, matching FreeBooks borderless look */
+.pkg-table > tbody > tr > td {
+  border:          none;
+  padding:         3px 6px;
+  font-size:       11px;
+  vertical-align:  middle;
+}
+
+/* Odd rows: soft lavender — lighter than the DataTables default #E2E4FF */
+.pkg-table > tbody > tr.odd > td  { background-color: #E2E4FF; }
+
+/* Even rows: white */
+.pkg-table > tbody > tr.even > td { background-color: #ffffff; }
+
+/* Hover — lighter than .ui-state-hover #79c9ec */
+.pkg-table > tbody > tr:hover > td {
+  background-color: #b8e2f5 !important;
+  color:            #026890 !important;
+}
+
+/* ── Modal: match widget-header / widget-content look ──────────── */
+.pkg-modal .modal-content {
+  border:        1px solid #a6c9e2;
+  border-radius: 0;
+  font-family:   Verdana, Arial, sans-serif;
+  font-size:     11px;
+}
+
+.pkg-modal .modal-header {
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  color:               #eaf5f7;
+  border-bottom:       1px solid #4297d7;
+  padding:             6px 12px;
+  border-radius:       0;
+}
+
+.pkg-modal .modal-title {
+  font-size:   13px;
+  font-weight: bold;
+  color:       #eaf5f7;
+}
+
+.pkg-modal .btn-close {
+  filter: invert(1) brightness(1.5);
+}
+
+.pkg-modal .modal-body {
+  background-color: #fcfdfd;
+  padding:          10px 14px;
+}
+
+.pkg-modal .modal-footer {
+  background-color: #f0f6fb;
+  border-top:       1px solid #a6c9e2;
+  padding:          6px 12px;
+}
+
+/* ── Modal form controls ─────────────────────────────────────────── */
+.pkg-modal .form-label {
+  font-family:   Verdana, Arial, sans-serif;
+  font-size:     11px;
+  font-weight:   bold;
+  margin-bottom: 2px;
+  color:         #222222;
+}
+
+.pkg-modal .form-control,
+.pkg-modal .form-select {
+  font-family:  Verdana, Arial, sans-serif;
+  font-size:    11px;
+  border-color: #a6c9e2;
+  border-radius: 0;
+  padding:      2px 4px;
+  height:       auto;
+}
+
+.pkg-modal .form-control:focus,
+.pkg-modal .form-select:focus {
+  border-color: #4297d7;
+  box-shadow:   0 0 0 2px rgba(33, 145, 192, 0.25);
+}
+
+.pkg-modal .form-control.bg-light {
+  background-color: #eef4f8 !important;
+  color: #555;
+}
+
+.pkg-modal .form-check-input:checked {
+  background-color: #0078ae;
+  border-color:     #0078ae;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.pkg-modal .btn-primary {
+  background-color: #0078ae;
+  border-color:     #0078ae;
+  font-size:        11px;
+  border-radius:    0;
+}
+.pkg-modal .btn-primary:hover,
+.pkg-modal .btn-primary:focus {
+  background-color: #005f8a;
+  border-color:     #005f8a;
+}
+.pkg-modal .btn-secondary {
+  background-color: #e4e4e4;
+  border-color:     #aaaaaa;
+  color:            #222222;
+  font-size:        11px;
+  border-radius:    0;
+}
+.pkg-modal .btn-secondary:hover {
+  background-color: #cccccc;
+  border-color:     #999999;
+  color:            #222222;
+}
+
+/* ── H1 ──────────────────────────────────────────────────────────── */
+.pkg-wrap h1 {
+  color:        #003080;
+  font-size:    16px;
+  font-variant: small-caps;
+  font-weight:  bold;
+}
+
+/* ── Theme / filter bar ──────────────────────────────────────────── */
+.pkg-theme-bar {
+  font-family: Verdana, Arial, sans-serif;
+  font-size:   11px;
+  color:       #555;
+}
+.pkg-theme-bar select {
+  font-size:    11px;
+  border-color: #a6c9e2;
+}
+
+/* ── Protect FreeBooks toolbar/nav from Bootstrap Reboot ─────────── */
+.ddsmoothmenu img, .ui-state-hover img, .imgIcon img, #please_wait img {
+  max-width: none !important;
+  width:     auto !important;
+  height:    auto !important;
+}
+
+/* ── htmx indicator ──────────────────────────────────────────────── */
+.htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+.htmx-request .htmx-indicator { opacity: 1; }
+.htmx-request.htmx-indicator  { opacity: 1; }

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -29,9 +30,9 @@ echo '  </ul>' . chr(10);
 echo '<br style="clear:left" />'.chr(10);
 echo '</div>'.chr(10);
 switch (MY_MENU) {
-   case 'left': echo '<div style="float:left;margin-left:auto;margin-right:auto;">'.chr(10); break;
+   case 'left': echo '<div id="content-wrap" style="float:left;margin-left:auto;margin-right:auto;">'.chr(10); break;
    case 'top':
-   default:     echo '<div>'.chr(10); break;
+   default:     echo '<div id="content-wrap">'.chr(10); break;
 }
 
 function sortByOrder($a, $b) {
