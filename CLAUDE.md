@@ -82,6 +82,16 @@ Optional extension modules are available in `extensions/Modules/` and are copied
 
 The `custom/` subdirectory within any module is a drop-in override layer. If `modules/{module}/custom/pages/{page}/pre_process.php` exists, it is loaded instead of the standard file. This allows local modifications without patching core files.
 
+### UI Standards for New Pages
+
+All new pages must use the **FreeBooks Bootstrap/htmx theme**. Concretely:
+
+- Use Bootstrap classes for layout and components (grid, cards, modals, buttons, tables)
+- Use htmx attributes (`hx-get`, `hx-post`, `hx-target`, `hx-swap`, etc.) for dynamic interactions instead of writing custom jQuery AJAX calls
+- The existing shipping estimator modal (`trunk/modules/phreebooks/pages/orders/`) is a reference implementation of this pattern
+
+Do not introduce new jQuery-only UI patterns or custom CSS frameworks on new pages.
+
 ### Security Model
 
 ## File Header Policy
