@@ -24,7 +24,13 @@ $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
 $toolbar->icon_list['delete']['show']   = false;
-$toolbar->icon_list['print']['show']    = false;
+if (!empty($label_viewer_url)) {
+  $toolbar->icon_list['print']['show']   = true;
+  $toolbar->icon_list['print']['params'] = 'onclick="window.open(\'' . $label_viewer_url . '\', \'label_reprint\', \'width=800,height=600\')"';
+  $toolbar->icon_list['print']['text']   = defined('SHIPPING_TEXT_PRINT_LABEL') ? SHIPPING_TEXT_PRINT_LABEL : 'Reprint Label';
+} else {
+  $toolbar->icon_list['print']['show']   = false;
+}
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('');
 echo $toolbar->build_toolbar();

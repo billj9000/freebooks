@@ -65,10 +65,18 @@ switch ($_REQUEST['action']) {
 $js_methods = build_js_methods($methods);
 
 if ($sID) {
-  $sql = "select id, shipment_id, carrier, ref_id, method, ship_date, deliver_date, tracking_id, cost 
+  $sql = "select id, shipment_id, carrier, ref_id, method, ship_date, deliver_date, tracking_id, cost
 	from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID;
   $result = $db->Execute($sql);
   $cInfo = new objectInfo($result->fields);
+  $label_viewer_url = '';
+  $ship_date_only   = substr($cInfo->ship_date, 0, 10);
+  $label_file_path  = SHIPPING_DEFAULT_LABEL_DIR . $cInfo->carrier . '/' . str_replace('-', '/', $ship_date_only) . '/';
+  if (!empty(glob($label_file_path . $cInfo->tracking_id . '*.pdf'))) {
+    $label_viewer_url = html_href_link(FILENAME_DEFAULT,
+      'module=shipping&page=popup_label_viewer&method=' . $cInfo->carrier .
+      '&date=' . $ship_date_only . '&labels=' . $cInfo->tracking_id, 'SSL');
+  }
   // need to build the methods pull down
   $carrier_methods = array();
   foreach ($shipping_defaults['service_levels'] as $key => $value) {
