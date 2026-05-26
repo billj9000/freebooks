@@ -116,6 +116,27 @@ define('SHIPPING_ON_CALL','On Call Air');
 define('SHIPPING_RETAIL','Suggested Retail Rates');
 define('SHIPPING_DROP_BOX','Drop Box/Center');
 define('SHIPPING_AIR_SRV','Air Service Center');
+// Packing list page
+define('PKL_PAGE_TITLE',         'Упаковочный лист');
+define('PKL_PRINT_LINK',         'Печать упаковочного листа');
+define('PKL_BTN_PRINT',          'Печать');
+define('PKL_BTN_CLOSE',          'Закрыть');
+define('PKL_TEXT_SHIP_TO',       'Адрес доставки');
+define('PKL_TEXT_SHIPMENT_DETAILS', 'Детали отправления');
+define('PKL_TEXT_CARRIER',       'Перевозчик');
+define('PKL_TEXT_SERVICE',       'Сервис');
+define('PKL_TEXT_CUSTOMER_REF',  'Ссылка клиента');
+define('PKL_TEXT_PACKAGES',      'Упаковки');
+define('PKL_TEXT_ITEMS',         'Товары');
+define('PKL_TEXT_BOX',           'Коробка');
+define('PKL_TEXT_SKU',           'Артикул');
+define('PKL_TEXT_DESCRIPTION',   'Описание');
+define('PKL_TEXT_QTY',           'Кол-во');
+define('PKL_NO_PACKAGES',        'Для этого заказа не записаны товары.');
+define('PKL_BOX_NO_ITEMS',       'Для этой коробки не записаны товары.');
+define('PKL_ERROR_NO_ORDER',     'Не указан ID заказа.');
+define('PKL_ERROR_NOT_FOUND',    'Заказ не найден.');
+
 define('SHIPPING_TEXT_LBS','lbs');
 define('SHIPPING_TEXT_KGS','kgs');
 define('SHIPPING_TEXT_IN','in');

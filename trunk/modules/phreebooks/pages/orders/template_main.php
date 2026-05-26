@@ -443,7 +443,9 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
   echo ' ' . ORD_FREIGHT . ' ';
   echo html_input_field('freight', $currencies->format(($order->freight ? $order->freight : '0.00'), true, $order->currencies_code, $order->currencies_value), 'size="15" maxlength="20" onchange="updateTotalPrices()" style="text-align:right"');
   echo '</span><br />';
-  echo ORD_FREIGHT_TAX . ' ' . html_pull_down_menu('freight_tax_id', $tax_rates, $frt_tax_default, 'onchange="updateTotalPrices()"'); ?>
+  echo ORD_FREIGHT_TAX . ' ' . html_pull_down_menu('freight_tax_id', $tax_rates, $frt_tax_default, 'onchange="updateTotalPrices()"');
+  echo html_hidden_field('ship_packages', htmlspecialchars($order->ship_packages ?? ''));
+  echo '<br><a id="packing-list-link" href="#" target="_blank" style="font-size:11px;display:none">' . htmlspecialchars(PKL_PRINT_LINK) . '</a>'; ?>
 		  </td>
         </tr>
 <?php } else {
@@ -453,6 +455,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
   echo html_hidden_field('ship_gl_acct_id', '');
   echo html_hidden_field('freight', '0') . chr(10);
   echo html_hidden_field('freight_tax_id', '0') . chr(10);
+  echo html_hidden_field('ship_packages', '') . chr(10);
   echo '        </td></tr>' . chr(10);
 } ?>
         <tr>

@@ -147,15 +147,22 @@ class BoxPackingService
      *   weight_only_skus: array — SKUs excluded from geometric packing,
      * }
      */
-    public static function pack(array $order_items): array
+    /**
+     * @param string $carrier_code  Filter boxes to this carrier ('' or carrier = 'all') plus all-carrier boxes.
+     */
+    public static function pack(array $order_items, string $carrier_code = ''): array
     {
         global $db;
 
         $packer = new Packer();
 
+        $carrier_filter = ($carrier_code !== '')
+            ? " AND (carrier = '' OR carrier = '" . db_input($carrier_code) . "')"
+            : '';
         $boxes = $db->Execute(
             "SELECT * FROM " . TABLE_SHIPPING_PACKAGES
-            . " WHERE inactive = '0' ORDER BY sort_order ASC, id ASC"
+            . " WHERE inactive = '0'" . $carrier_filter
+            . " ORDER BY sort_order ASC, id ASC"
         );
         while (!$boxes->EOF) {
             $packer->addBox(new FbBox($boxes->fields));

@@ -215,6 +215,7 @@ switch ($_REQUEST['action']) {
 	  $order->ship_telephone1     = db_prepare_input(($_POST['ship_telephone1']     <> GEN_TELEPHONE1)     ? $_POST['ship_telephone1']     : '', ADDRESS_BOOK_TELEPHONE1_REQUIRED);
 	  $order->ship_email          = db_prepare_input(($_POST['ship_email']          <> GEN_EMAIL)          ? $_POST['ship_email']          : '', ADDRESS_BOOK_EMAIL_REQUIRED);
 	  $order->shipper_code        = implode(':', array(db_prepare_input($_POST['ship_carrier']), db_prepare_input($_POST['ship_service'])));
+	  $order->ship_packages       = db_prepare_input($_POST['ship_packages'] ?? '');
 	  $order->drop_ship           = isset($_POST['drop_ship']) ? $_POST['drop_ship'] : 0;
 	  $order->freight             = $currencies->clean_value(db_prepare_input($_POST['freight']), $order->currencies_code) / $order->currencies_value;
 	  $order->freight_tax_id      = (int)db_prepare_input($_POST['freight_tax_id'] ?? 0);

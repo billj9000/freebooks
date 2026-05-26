@@ -34,15 +34,21 @@ $pkg         = new shipment();
 if (empty($_REQUEST['action'])) {
   $is_back = array_key_exists('ship_to_city', $_GET) || array_key_exists('ship_to_country_code', $_GET);
   if ($is_back) {
-    // Back button: restore FROM and TO addresses and all package fields from URL
+    // Back button: restore all form state from URL params
     foreach (['ship_city_town', 'ship_state_province', 'ship_postal_code', 'ship_country_code'] as $f) {
       if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
     }
     foreach (['ship_to_city', 'ship_to_state', 'ship_to_postal_code', 'ship_to_country_code'] as $f) {
       if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
     }
-    foreach (['pkg_weight', 'pkg_weight_unit', 'pkg_length', 'pkg_width', 'pkg_height', 'pkg_dimension_unit'] as $f) {
-      if (isset($_GET[$f]) && $_GET[$f] !== '') $pkg->$f = db_prepare_input($_GET[$f]);
+    if (isset($_GET['pkg_weight_unit'])    && $_GET['pkg_weight_unit']    !== '') $pkg->pkg_weight_unit    = db_prepare_input($_GET['pkg_weight_unit']);
+    if (isset($_GET['pkg_dimension_unit']) && $_GET['pkg_dimension_unit'] !== '') $pkg->pkg_dimension_unit = db_prepare_input($_GET['pkg_dimension_unit']);
+    if (isset($_GET['pkg_weight'])         && $_GET['pkg_weight']         !== '') $pkg->pkg_weight         = (float)$_GET['pkg_weight'];
+    $n = max(0, (int)($_GET['num_items'] ?? 0));
+    for ($i = 1; $i <= $n; $i++) {
+      $sku = trim(db_prepare_input($_GET['sku_' . $i] ?? ''));
+      $qty = max(0, (int)($_GET['qty_' . $i] ?? 0));
+      if ($sku !== '' && $qty > 0) $pkg->items[] = ['sku' => $sku, 'qty' => $qty];
     }
     if (isset($_GET['ship_date'])          && $_GET['ship_date']          !== '') $pkg->ship_date          = db_prepare_input($_GET['ship_date']);
     if (isset($_GET['residential_address']))                                       $pkg->residential_address = $_GET['residential_address'] ? '1' : '0';
@@ -52,45 +58,28 @@ if (empty($_REQUEST['action'])) {
     if (isset($_GET['ship_state_province']) && $_GET['ship_state_province'] !== '') $pkg->ship_to_state        = db_prepare_input($_GET['ship_state_province']);
     if (isset($_GET['ship_postal_code'])    && $_GET['ship_postal_code']    !== '') $pkg->ship_to_postal_code  = db_prepare_input($_GET['ship_postal_code']);
     if (isset($_GET['ship_country_code'])   && $_GET['ship_country_code']   !== '') $pkg->ship_to_country_code = db_prepare_input($_GET['ship_country_code']);
-    // Box packing: build item list from sku_N / qty_N GET params sent via hx-include
-    $order_items = [];
+    // Parse item list from hx-include params; compute total weight from inventory for the fallback field
     for ($i = 1; $i <= 200; $i++) {
       if (!array_key_exists('sku_' . $i, $_GET)) break;
       $sku = trim(db_prepare_input($_GET['sku_' . $i]));
       $qty = max(0, (int)($_GET['qty_' . $i] ?? 0));
-      if ($sku !== '' && $qty > 0) $order_items[] = ['sku' => $sku, 'qty' => $qty];
+      if ($sku !== '' && $qty > 0) $pkg->items[] = ['sku' => $sku, 'qty' => $qty];
     }
-    if (!empty($order_items)) {
-      $pack_result      = BoxPackingService::pack($order_items);
-      $boxes            = BoxPackingService::summarise($pack_result['packed']);
-      $weight_only_g    = $pack_result['weight_only_g'];
-      $weight_only_skus = $pack_result['weight_only_skus'];
-      $unpacked_skus    = array_unique(array_column($pack_result['unpacked'], 'sku'));
-      if (!empty($boxes)) {
-        // Single-package: first (and typically only) box + weight-only items
-        $b = $boxes[0];
-        $pkg->pkg_weight = BoxPackingService::fromGrams($b['weight_g'] + $weight_only_g);
-        $pkg->pkg_length = BoxPackingService::fromMm($b['length_mm']);
-        $pkg->pkg_width  = BoxPackingService::fromMm($b['width_mm']);
-        $pkg->pkg_height = BoxPackingService::fromMm($b['depth_mm']);
-      } else {
-        // No box found — weight only (packer had nothing to place, or no boxes configured)
-        $pkg->pkg_weight = BoxPackingService::fromGrams($weight_only_g) ?: (float)($_GET['weight'] ?? 0);
+    if (!empty($pkg->items)) {
+      $skus    = array_unique(array_column($pkg->items, 'sku'));
+      $in_list = implode(',', array_map(fn($s) => "'" . db_input($s) . "'", $skus));
+      $inv_rows = $db->Execute("SELECT sku, item_weight FROM " . TABLE_INVENTORY . " WHERE sku IN ($in_list)");
+      $inv_wt = [];
+      while (!$inv_rows->EOF) {
+        $inv_wt[$inv_rows->fields['sku']] = (float)$inv_rows->fields['item_weight'];
+        $inv_rows->MoveNext();
       }
-      if (!empty($weight_only_skus)) {
-        $messageStack->add(
-          SHIPPING_BOX_PACKER_NO_DIMS . implode(', ', $weight_only_skus),
-          'caution'
-        );
+      $total_g = 0;
+      foreach ($pkg->items as $line) {
+        $total_g += BoxPackingService::toGrams($inv_wt[$line['sku']] ?? 0) * $line['qty'];
       }
-      if (!empty($unpacked_skus)) {
-        $messageStack->add(
-          SHIPPING_BOX_PACKER_NOT_FOUND . implode(', ', $unpacked_skus),
-          'caution'
-        );
-      }
+      $pkg->pkg_weight = BoxPackingService::fromGrams($total_g);
     } else {
-      // No SKUs passed — fall back to order content weight from JS-maintained hidden field
       $pkg->pkg_weight = (float)($_GET['weight'] ?? 0);
     }
   }
@@ -111,6 +100,15 @@ switch ($_REQUEST['action']) {
   case 'rates':
 	// overwrite the defaults with data from the form
 	foreach ($_POST as $key => $value) $pkg->$key = db_prepare_input($value);
+	// parse item list from hidden fields into $pkg->items
+	$num_items = max(0, (int)($pkg->num_items ?? 0));
+	$pkg->items = [];
+	for ($i = 1; $i <= $num_items; $i++) {
+	  $sku = trim(db_prepare_input($_POST['sku_' . $i] ?? ''));
+	  $qty = max(0, (int)($_POST['qty_' . $i] ?? 0));
+	  if ($sku !== '' && $qty > 0) $pkg->items[] = ['sku' => $sku, 'qty' => $qty];
+	}
+	// pkg_weight is already set from POST (fallback weight field)
 	// generate ISO2 codes for countries (needed by FedEx and others)
 	$pkg->ship_from_country_iso2 = gen_get_country_iso_2_from_3($pkg->ship_country_code);
 	$pkg->ship_to_country_iso2   = gen_get_country_iso_2_from_3($pkg->ship_to_country_code);

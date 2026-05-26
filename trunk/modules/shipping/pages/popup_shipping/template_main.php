@@ -111,31 +111,35 @@ $sel_sm = 'class="form-select form-select-sm"';
     </div>
   </div>
 
-  <!-- Package -->
+  <!-- Item list: passed as hidden fields so carriers can do their own box selection -->
+  <input type="hidden" name="num_items" value="<?php echo count($pkg->items); ?>">
+  <?php foreach ($pkg->items as $ii => $item): ?>
+  <input type="hidden" name="sku_<?php echo $ii+1; ?>" value="<?php echo htmlspecialchars($item['sku']); ?>">
+  <input type="hidden" name="qty_<?php echo $ii+1; ?>" value="<?php echo (int)$item['qty']; ?>">
+  <?php endforeach; ?>
+  <?php if (!empty($pkg->items)): ?>
+  <div class="mb-2" style="font-size:11px;color:#666">
+    <?php
+    $summary = array_slice($pkg->items, 0, 6);
+    $parts = array_map(fn($i) => htmlspecialchars($i['sku']) . '&times;' . (int)$i['qty'], $summary);
+    echo implode(', ', $parts) . (count($pkg->items) > 6 ? ' &hellip;' : '');
+    ?>
+  </div>
+  <?php endif; ?>
+
+  <!-- Fallback weight (shown to user; used by carriers when item dimensions are unavailable) -->
   <div class="row g-2 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-5">
       <label class="form-label"><?php echo TEXT_WEIGHT; ?></label>
       <div class="input-group input-group-sm">
-        <input type="text" class="form-control" name="pkg_weight" id="est-pkg-weight"
-               value="<?php echo $pkg->pkg_weight; ?>">
+        <input type="text" class="form-control" name="pkg_weight"
+               value="<?php echo htmlspecialchars($pkg->pkg_weight ?? 0); ?>">
         <?php echo html_pull_down_menu('pkg_weight_unit', gen_build_pull_down($shipping_defaults['weight_unit']), $pkg->pkg_weight_unit, $sel_sm); ?>
       </div>
-    </div>
-    <div class="col-md-8">
-      <label class="form-label"><?php echo SHIPPING_TEXT_DIMENSIONS; ?></label>
-      <div class="input-group input-group-sm">
-        <input type="text" class="form-control" name="pkg_length" placeholder="<?php echo TEXT_LENGTH; ?>"
-               value="<?php echo $pkg->pkg_length; ?>" style="max-width:4rem">
-        <span class="input-group-text px-1">×</span>
-        <input type="text" class="form-control" name="pkg_width" placeholder="<?php echo TEXT_WIDTH; ?>"
-               value="<?php echo $pkg->pkg_width; ?>" style="max-width:4rem">
-        <span class="input-group-text px-1">×</span>
-        <input type="text" class="form-control" name="pkg_height" placeholder="<?php echo TEXT_HEIGHT; ?>"
-               value="<?php echo $pkg->pkg_height; ?>" style="max-width:4rem">
-        <?php echo html_pull_down_menu('pkg_dimension_unit', gen_build_pull_down($shipping_defaults['dimension_unit']), $pkg->pkg_dimension_unit, $sel_sm); ?>
-      </div>
+      <div class="form-text" style="font-size:10px;color:#888"><?php echo SHIPPING_TEXT_WEIGHT_FALLBACK; ?></div>
     </div>
   </div>
+  <input type="hidden" name="pkg_dimension_unit" value="<?php echo htmlspecialchars($pkg->pkg_dimension_unit); ?>">
 
   <!-- Methods -->
   <div class="mb-3">

@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -56,6 +56,10 @@ class shipment {
 	var $split_large_shipments      = '1';
 	var $split_large_shipments_unit = 'LBS';
 	var $split_large_shipments_value= '75';
+	// Multi-package: array of ['weight', 'length', 'width', 'height'] in pkg_weight_unit / pkg_dimension_unit
+	var $packages = array();
+	// Order item list for carrier-side box selection: [['sku' => string, 'qty' => int], ...]
+	var $items = array();
 
 // class constructor
   function __construct() {
@@ -95,6 +99,25 @@ class shipment {
 	$this->split_large_shipments      = defined('SHIPPING_DEFAULT_SPLIT_LARGE_SHIPMENTS_CHECKED') ? SHIPPING_DEFAULT_SPLIT_LARGE_SHIPMENTS_CHECKED  : $this->split_large_shipments;
 	$this->split_large_shipments_unit = defined('SHIPPING_DEFAULT_WEIGHT_UNIT')                   ? SHIPPING_DEFAULT_WEIGHT_UNIT                   : $this->split_large_shipments_unit;
 	$this->split_large_shipments_value= defined('SHIPPING_DEFAULT_SPLIT_LARGE_SHIPMENTS_VALUE')   ? SHIPPING_DEFAULT_SPLIT_LARGE_SHIPMENTS_VALUE    : $this->split_large_shipments_value;
+  }
+
+  /**
+   * Returns packages array, falling back to a single synthetic package from scalar properties.
+   * Each element: ['weight' => float, 'length' => float, 'width' => float, 'height' => float]
+   */
+  function get_packages() {
+    if (!empty($this->packages)) return $this->packages;
+    return array(array(
+      'weight' => (float)$this->pkg_weight,
+      'length' => (float)$this->pkg_length,
+      'width'  => (float)$this->pkg_width,
+      'height' => (float)$this->pkg_height,
+    ));
+  }
+
+  function get_total_weight() {
+    if (!empty($this->packages)) return array_sum(array_column($this->packages, 'weight'));
+    return (float)$this->pkg_weight;
   }
 
   function split_shipment($pkg) {

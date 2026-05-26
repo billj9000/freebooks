@@ -1347,6 +1347,7 @@ class journal {
 	if (isset($this->freight_tax_id))      $main_record['freight_tax_id']      = $this->freight_tax_id;
 	if (isset($this->discount))            $main_record['discount']            = $this->discount;
 	if (isset($this->shipper_code))        $main_record['shipper_code']        = $this->shipper_code;
+	if (isset($this->ship_packages))       $main_record['ship_packages']       = $this->ship_packages;
 	if (isset($this->terms))               $main_record['terms']               = $this->terms;
 	if (isset($this->sales_tax))           $main_record['sales_tax']           = $this->sales_tax;
 	if (isset($this->total_amount))        $main_record['total_amount']        = $this->total_amount;

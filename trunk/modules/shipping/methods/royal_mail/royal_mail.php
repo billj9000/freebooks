@@ -190,17 +190,65 @@ class royal_mail {
   // ---------------------------------------------------------------
   function quote($pkg) {
     global $messageStack;
-    if ($pkg->pkg_weight == 0) {
+
+    // Run carrier-specific box packing when item list is available
+    $rate_packages = [];
+    $weightG       = 0;
+    $lengthMm      = 0;
+    $widthMm       = 0;
+    $depthMm       = 0;
+
+    if (!empty($pkg->items)) {
+      $pack_result      = BoxPackingService::pack($pkg->items, $this->code);
+      $boxes            = BoxPackingService::summarise($pack_result['packed']);
+      $weight_only_g    = $pack_result['weight_only_g'];
+      $weight_only_skus = $pack_result['weight_only_skus'];
+      $unpacked_skus    = array_unique(array_column($pack_result['unpacked'], 'sku'));
+
+      if (!empty($boxes)) {
+        // RM quotes per-parcel; use total shipment weight and first box dimensions
+        $weightG  = $weight_only_g;
+        foreach ($boxes as $b) $weightG += $b['weight_g'];
+        $lengthMm = $boxes[0]['length_mm'];
+        $widthMm  = $boxes[0]['width_mm'];
+        $depthMm  = $boxes[0]['depth_mm'];
+        foreach ($boxes as $bi => $b) {
+          $extra_g = ($bi === 0) ? $weight_only_g : 0;
+          $rate_packages[] = array(
+            'box_code' => $b['box_code'],
+            'box_name' => $b['box_name'],
+            'qty'      => 1,
+            'weight'   => BoxPackingService::fromGrams($b['weight_g'] + $extra_g),
+            'length'   => BoxPackingService::fromMm($b['length_mm']),
+            'width'    => BoxPackingService::fromMm($b['width_mm']),
+            'height'   => BoxPackingService::fromMm($b['depth_mm']),
+            'items'    => $b['items'],
+          );
+        }
+      }
+      if (!empty($weight_only_skus)) {
+        $messageStack->add(SHIPPING_BOX_PACKER_NO_DIMS . implode(', ', $weight_only_skus), 'caution');
+      }
+      if (!empty($unpacked_skus)) {
+        $messageStack->add(SHIPPING_BOX_PACKER_NOT_FOUND . implode(', ', $unpacked_skus), 'caution');
+      }
+    }
+    // Fallback: no items provided, or no RM-compatible boxes configured
+    if ($weightG === 0) {
+      $weightG = $this->toGrams($pkg->get_total_weight(), $pkg->pkg_weight_unit);
+    }
+    if ($weightG === 0) {
       $messageStack->add(SHIPPING_ERROR_WEIGHT_ZERO, 'error');
       return false;
     }
-    $enabled = explode(',', str_replace(' ', '', MODULE_SHIPPING_ROYAL_MAIL_TYPES));
+
+    $enabled  = explode(',', str_replace(' ', '', MODULE_SHIPPING_ROYAL_MAIL_TYPES));
     $arrRates = array();
 
     // RM services: live rates via RM Shipping API
     $rmEnabled = array_diff($enabled, $this->pfServices);
     if (!empty($rmEnabled)) {
-      $rmRates = $this->queryRMRates($pkg, $rmEnabled);
+      $rmRates = $this->queryRMRates($pkg, $rmEnabled, $weightG, $lengthMm, $widthMm, $depthMm, $rate_packages);
       if (is_array($rmRates)) $arrRates = array_merge($arrRates, $rmRates);
     }
 
@@ -211,10 +259,11 @@ class royal_mail {
       $rate = defined($rateKey) ? (float)constant($rateKey) : 0.0;
       if ($rate > 0) {
         $arrRates[$this->code][$code] = array(
-          'book'  => $rate,
-          'quote' => $rate,
-          'cost'  => $rate,
-          'note'  => '',
+          'book'     => $rate,
+          'quote'    => $rate,
+          'cost'     => $rate,
+          'note'     => '',
+          'packages' => $rate_packages,
         );
       }
     }
@@ -222,23 +271,22 @@ class royal_mail {
     return array('result' => 'success', 'rates' => $arrRates);
   }
 
-  private function queryRMRates($pkg, $enabledCodes) {
+  private function queryRMRates($pkg, $enabledCodes, $weightG, $lengthMm, $widthMm, $depthMm, $ratePackages) {
     global $messageStack;
     $clientId     = defined('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID')     ? MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID     : '';
     $clientSecret = defined('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET') ? MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET : '';
     if (!$clientId || !$clientSecret) return array();
 
     $base     = (MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE == 'Production') ? RM_API_BASE_LIVE : RM_API_BASE_TEST;
-    $weightG  = $this->toGrams($pkg->pkg_weight, $pkg->pkg_weight_unit);
     $fromPost = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
     $toPost   = $pkg->ship_to_postal_code;
     $fromISO2 = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
     $toISO2   = $pkg->ship_to_country_iso2 ?? $fromISO2;
 
     $body = json_encode(array(
-      'originPostcode'      => $fromPost,
-      'destinationPostcode' => $toPost,
-      'originCountryCode'   => $fromISO2,
+      'originPostcode'         => $fromPost,
+      'destinationPostcode'    => $toPost,
+      'originCountryCode'      => $fromISO2,
       'destinationCountryCode' => $toISO2,
       'weight' => array(
         'unitOfMeasure' => 'g',
@@ -246,9 +294,9 @@ class royal_mail {
       ),
       'dimensions' => array(
         'unitOfMeasure' => 'mm',
-        'length'        => $this->toMm($pkg->pkg_length, $pkg->pkg_dimension_unit),
-        'width'         => $this->toMm($pkg->pkg_width,  $pkg->pkg_dimension_unit),
-        'depth'         => $this->toMm($pkg->pkg_height, $pkg->pkg_dimension_unit),
+        'length'        => $lengthMm,
+        'width'         => $widthMm,
+        'depth'         => $depthMm,
       ),
     ));
 
@@ -284,10 +332,11 @@ class royal_mail {
       $price = (float)($svc['totalPackageNetCharge']['amount'] ?? $svc['price']['netPrice'] ?? 0);
       if ($price <= 0) continue;
       $arrRates[$this->code][$internalCode] = array(
-        'book'  => $price,
-        'quote' => $price,
-        'cost'  => $price,
-        'note'  => $svc['serviceName'] ?? '',
+        'book'     => $price,
+        'quote'    => $price,
+        'cost'     => $price,
+        'note'     => $svc['serviceName'] ?? '',
+        'packages' => $ratePackages,
       );
     }
     return $arrRates;

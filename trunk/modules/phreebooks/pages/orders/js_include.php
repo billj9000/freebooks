@@ -331,13 +331,31 @@ function openEstimatorModal() {
   bootstrap.Modal.getOrCreateInstance(document.getElementById('shippingEstimatorModal')).show();
 }
 
-function selectEstimatedRate(rate, carrier, service) {
-  document.getElementById('freight').value      = rate;
-  document.getElementById('ship_carrier').value = carrier;
+function selectEstimatedRate(rate, carrier, service, packagesJson) {
+  document.getElementById('freight').value       = rate;
+  document.getElementById('ship_carrier').value  = carrier;
   buildFreightDropdown();
-  document.getElementById('ship_service').value = service;
+  document.getElementById('ship_service').value  = service;
+  var pkgField = document.getElementById('ship_packages');
+  if (pkgField) pkgField.value = packagesJson || '';
   updateTotalPrices();
   bootstrap.Modal.getInstance(document.getElementById('shippingEstimatorModal')).hide();
+  updatePackingListLink();
+}
+
+function updatePackingListLink() {
+  var link    = document.getElementById('packing-list-link');
+  var idField = document.getElementById('id');
+  var pkgField = document.getElementById('ship_packages');
+  if (!link) return;
+  var orderId = idField  ? idField.value   : '';
+  var hasPkgs = pkgField ? pkgField.value  : '';
+  if (orderId && hasPkgs) {
+    link.href = 'index.php?module=phreebooks&page=packing_list&id=' + orderId;
+    link.style.display = '';
+  } else {
+    link.style.display = 'none';
+  }
 }
 
 // -->

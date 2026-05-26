@@ -64,13 +64,27 @@ $messageStack->reset();
     </thead>
     <tbody>
       <?php $odd = true; foreach ($services as $key => $prices): ?>
+      <?php $pkgsJson = htmlspecialchars(json_encode($prices['packages'] ?? []), ENT_QUOTES); ?>
+      <?php
+        $pkgSummary = '';
+        if (!empty($prices['packages'])) {
+          $counts = [];
+          foreach ($prices['packages'] as $p) {
+            $label = $p['box_name'] ?? $p['box_code'] ?? '';
+            if ($label !== '') $counts[$label] = ($counts[$label] ?? 0) + ($p['qty'] ?? 1);
+          }
+          $parts = [];
+          foreach ($counts as $label => $qty) $parts[] = $qty . '&times; ' . htmlspecialchars($label);
+          $pkgSummary = implode(', ', $parts);
+        }
+      ?>
       <tr class="<?php echo $odd ? 'odd' : 'even'; ?>" style="cursor:pointer"
-          onclick="selectEstimatedRate('<?php echo addslashes($currencies->format($prices['quote'])); ?>','<?php echo addslashes($carrier); ?>','<?php echo addslashes($key); ?>')">
+          onclick="selectEstimatedRate('<?php echo addslashes($currencies->format($prices['quote'])); ?>','<?php echo addslashes($carrier); ?>','<?php echo addslashes($key); ?>','<?php echo $pkgsJson; ?>')">
         <td><?php echo constant($carrier . '_' . $key); ?></td>
         <td class="text-end"><?php echo $prices['quote'] !== '' ? $currencies->format($prices['quote']) : '&nbsp;'; ?></td>
         <td class="text-end"><?php echo $prices['book']  !== '' ? $currencies->format($prices['book'])  : '&nbsp;'; ?></td>
         <td class="text-end"><?php echo $prices['cost']  !== '' ? $currencies->format($prices['cost'])  : '&nbsp;'; ?></td>
-        <td><?php echo htmlspecialchars($prices['note'] ?? ''); ?></td>
+        <td><?php echo htmlspecialchars($prices['note'] ?? ''); ?><?php if ($pkgSummary): ?><br><small class="text-muted"><?php echo $pkgSummary; ?></small><?php endif; ?></td>
       </tr>
       <?php $odd = !$odd; endforeach; ?>
     </tbody>
@@ -81,7 +95,7 @@ $messageStack->reset();
 <?php endif; ?>
 
 <?php
-$back_qs = http_build_query([
+$back_params = [
   'ship_city_town'      => $pkg->ship_city_town,
   'ship_state_province' => $pkg->ship_state_province,
   'ship_postal_code'    => $pkg->ship_postal_code,
@@ -92,13 +106,17 @@ $back_qs = http_build_query([
   'ship_to_country_code'=> $pkg->ship_to_country_code,
   'pkg_weight'          => $pkg->pkg_weight,
   'pkg_weight_unit'     => $pkg->pkg_weight_unit,
-  'pkg_length'          => $pkg->pkg_length,
-  'pkg_width'           => $pkg->pkg_width,
-  'pkg_height'          => $pkg->pkg_height,
   'pkg_dimension_unit'  => $pkg->pkg_dimension_unit,
   'ship_date'           => $pkg->ship_date ?? date('Y-m-d'),
   'residential_address' => $pkg->residential_address,
-]);
+  'num_items'           => count($pkg->items),
+];
+foreach ($pkg->items as $pi => $item) {
+  $n = $pi + 1;
+  $back_params['sku_' . $n] = $item['sku'];
+  $back_params['qty_' . $n] = (int)$item['qty'];
+}
+$back_qs = http_build_query($back_params);
 ?>
 <!-- Back button reloads the options form with current values -->
 <div class="d-flex gap-2 mt-1">

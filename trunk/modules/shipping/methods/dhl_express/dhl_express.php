@@ -86,10 +86,58 @@ class dhl_express {
   // ---------------------------------------------------------------
   function quote($pkg) {
     global $messageStack;
-    if ($pkg->pkg_weight == 0) {
-      $messageStack->add(SHIPPING_ERROR_WEIGHT_ZERO, 'error');
-      return false;
+
+    // Run carrier-specific box packing when item list is available
+    $api_packages  = [];
+    $rate_packages = [];
+    if (!empty($pkg->items)) {
+      $pack_result      = BoxPackingService::pack($pkg->items, $this->code);
+      $boxes            = BoxPackingService::summarise($pack_result['packed']);
+      $weight_only_g    = $pack_result['weight_only_g'];
+      $weight_only_skus = $pack_result['weight_only_skus'];
+      $unpacked_skus    = array_unique(array_column($pack_result['unpacked'], 'sku'));
+      if (!empty($boxes)) {
+        foreach ($boxes as $bi => $b) {
+          $extra_g  = ($bi === 0) ? $weight_only_g : 0;
+          $total_g  = $b['weight_g'] + $extra_g;
+          $weightKg = round($total_g / 1000, 3);
+          $lenCm    = (int)round($b['length_mm'] / 10);
+          $widCm    = (int)round($b['width_mm']  / 10);
+          $hgtCm    = (int)round($b['depth_mm']  / 10);
+          $p = array('weight' => $weightKg);
+          if ($lenCm && $widCm && $hgtCm) {
+            $p['dimensions'] = array('length' => $lenCm, 'width' => $widCm, 'height' => $hgtCm);
+          }
+          $api_packages[]  = $p;
+          $rate_packages[] = array(
+            'box_code' => $b['box_code'],
+            'box_name' => $b['box_name'],
+            'qty'      => 1,
+            'weight'   => BoxPackingService::fromGrams($total_g),
+            'length'   => BoxPackingService::fromMm($b['length_mm']),
+            'width'    => BoxPackingService::fromMm($b['width_mm']),
+            'height'   => BoxPackingService::fromMm($b['depth_mm']),
+            'items'    => $b['items'],
+          );
+        }
+      }
+      if (!empty($weight_only_skus)) {
+        $messageStack->add(SHIPPING_BOX_PACKER_NO_DIMS . implode(', ', $weight_only_skus), 'caution');
+      }
+      if (!empty($unpacked_skus)) {
+        $messageStack->add(SHIPPING_BOX_PACKER_NOT_FOUND . implode(', ', $unpacked_skus), 'caution');
+      }
     }
+    // Fallback: no items provided, or no DHL-compatible boxes configured
+    if (empty($api_packages)) {
+      $totalWeight = $pkg->get_total_weight();
+      if ($totalWeight == 0) {
+        $messageStack->add(SHIPPING_ERROR_WEIGHT_ZERO, 'error');
+        return false;
+      }
+      $api_packages[] = array('weight' => $this->toKg($totalWeight, $pkg->pkg_weight_unit));
+    }
+
     $apiKey    = defined('MODULE_SHIPPING_DHL_EXPRESS_API_KEY')        ? MODULE_SHIPPING_DHL_EXPRESS_API_KEY        : '';
     $apiSecret = defined('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET')     ? MODULE_SHIPPING_DHL_EXPRESS_API_SECRET     : '';
     $account   = defined('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER') ? MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER : '';
@@ -99,10 +147,6 @@ class dhl_express {
     }
 
     $base     = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
-    $weightKg = $this->toKg($pkg->pkg_weight, $pkg->pkg_weight_unit);
-    $lenCm    = $this->toCm($pkg->pkg_length, $pkg->pkg_dimension_unit);
-    $widCm    = $this->toCm($pkg->pkg_width,  $pkg->pkg_dimension_unit);
-    $hgtCm    = $this->toCm($pkg->pkg_height, $pkg->pkg_dimension_unit);
     $fromISO2 = defined('COMPANY_COUNTRY')     ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
     $fromPost = defined('COMPANY_POSTAL_CODE') ? trim(COMPANY_POSTAL_CODE) : '';
     $fromCity = defined('COMPANY_CITY_TOWN')   ? trim(COMPANY_CITY_TOWN)   : '';
@@ -118,10 +162,7 @@ class dhl_express {
     if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
     $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
 
-    $package = array('weight' => $weightKg);
-    if ($lenCm && $widCm && $hgtCm) {
-      $package['dimensions'] = array('length' => $lenCm, 'width' => $widCm, 'height' => $hgtCm);
-    }
+    $packages = $api_packages;
 
     $shipper  = array('postalCode' => $fromPost, 'countryCode' => $fromISO2);
     $receiver = array('postalCode' => $toPost,   'countryCode' => $toISO2);
@@ -134,7 +175,7 @@ class dhl_express {
       'plannedShippingDateAndTime' => $shipDate,
       'unitOfMeasurement'          => 'metric',
       'isCustomsDeclarable'        => !$isDomestic,
-      'packages'                   => array($package),
+      'packages'                   => $packages,
       'nextBusinessDay'            => true,
     );
 
@@ -188,10 +229,11 @@ class dhl_express {
       }
 
       $arrRates[$this->code][$rateKey] = array(
-        'book'  => $price,
-        'quote' => $price,
-        'cost'  => $price,
-        'note'  => $deliveryNote,
+        'book'     => $price,
+        'quote'    => $price,
+        'cost'     => $price,
+        'note'     => $deliveryNote,
+        'packages' => $rate_packages,
       );
     }
 

@@ -131,6 +131,27 @@ define('SHIPPING_ON_CALL','Wachten op Vlucht');
 define('SHIPPING_RETAIL','Voorgestelde Verkoop Prijs');
 define('SHIPPING_DROP_BOX','Drop Box/Centrum');
 define('SHIPPING_AIR_SRV','Lucht service center');
+// Packing list page
+define('PKL_PAGE_TITLE',         'Paklijst');
+define('PKL_PRINT_LINK',         'Paklijst afdrukken');
+define('PKL_BTN_PRINT',          'Afdrukken');
+define('PKL_BTN_CLOSE',          'Sluiten');
+define('PKL_TEXT_SHIP_TO',       'Verzenden naar');
+define('PKL_TEXT_SHIPMENT_DETAILS', 'Verzendgegevens');
+define('PKL_TEXT_CARRIER',       'Vervoerder');
+define('PKL_TEXT_SERVICE',       'Service');
+define('PKL_TEXT_CUSTOMER_REF',  'Klant referentie');
+define('PKL_TEXT_PACKAGES',      'Pakketten');
+define('PKL_TEXT_ITEMS',         'Artikelen');
+define('PKL_TEXT_BOX',           'Doos');
+define('PKL_TEXT_SKU',           'SKU');
+define('PKL_TEXT_DESCRIPTION',   'Omschrijving');
+define('PKL_TEXT_QTY',           'Aantal');
+define('PKL_NO_PACKAGES',        'Geen artikelen geregistreerd voor deze bestelling.');
+define('PKL_BOX_NO_ITEMS',       'Geen artikelen geregistreerd voor deze doos.');
+define('PKL_ERROR_NO_ORDER',     'Geen order ID opgegeven.');
+define('PKL_ERROR_NOT_FOUND',    'Bestelling niet gevonden.');
+
 define('SHIPPING_TEXT_LBS','lbs');
 define('SHIPPING_TEXT_KGS','kgs');
 define('SHIPPING_TEXT_IN','in');

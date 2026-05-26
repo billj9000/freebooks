@@ -357,6 +357,7 @@ function fillOrder(xml) {
     insertValue('discount', order_discount);
     calculateDiscountPercent();
   });
+  if (typeof updatePackingListLink === 'function') updatePackingListLink();
 }
 
 function AccountList(override) {

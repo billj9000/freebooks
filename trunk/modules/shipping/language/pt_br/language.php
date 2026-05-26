@@ -131,6 +131,27 @@ define('TEXT_SHIPPING_MODULES_AVAILABLE','Métodos Entrega Disponíveis');
 define('SHIPPING_HEADING_SHIP_MGR','Módulo Gerenciamento Entrega');
 define('HEADING_TITLE_MODULES_SHIPPING','Serviços Entrega');
 define('SHIPPING_AIR_SRV','Centro Serviço Aéreo');
+// Packing list page
+define('PKL_PAGE_TITLE',         'Lista de Embalagem');
+define('PKL_PRINT_LINK',         'Imprimir Lista de Embalagem');
+define('PKL_BTN_PRINT',          'Imprimir');
+define('PKL_BTN_CLOSE',          'Fechar');
+define('PKL_TEXT_SHIP_TO',       'Enviar Para');
+define('PKL_TEXT_SHIPMENT_DETAILS', 'Detalhes do Envio');
+define('PKL_TEXT_CARRIER',       'Transportadora');
+define('PKL_TEXT_SERVICE',       'Serviço');
+define('PKL_TEXT_CUSTOMER_REF',  'Referência do Cliente');
+define('PKL_TEXT_PACKAGES',      'Pacotes');
+define('PKL_TEXT_ITEMS',         'Itens');
+define('PKL_TEXT_BOX',           'Caixa');
+define('PKL_TEXT_SKU',           'SKU');
+define('PKL_TEXT_DESCRIPTION',   'Descrição');
+define('PKL_TEXT_QTY',           'Qtd');
+define('PKL_NO_PACKAGES',        'Nenhum item registrado para este pedido.');
+define('PKL_BOX_NO_ITEMS',       'Nenhum item registrado para esta caixa.');
+define('PKL_ERROR_NO_ORDER',     'Nenhum ID de pedido fornecido.');
+define('PKL_ERROR_NOT_FOUND',    'Pedido não encontrado.');
+
 define('SHIPPING_TEXT_LBS','lbs');
 define('SHIPPING_TEXT_KGS','kgs');
 define('SHIPPING_TEXT_IN','in');

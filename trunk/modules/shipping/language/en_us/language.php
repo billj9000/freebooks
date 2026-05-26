@@ -141,6 +141,7 @@ define('SHIPPING_END_OF_DAY','End of Day Close - %s');
 define('SHIPPING_ERROR_WEIGHT_ZERO','Shipment weight cannot be zero.');
 define('SHIPPING_BOX_PACKER_NO_DIMS','Box dimensions exclude items with no dimensions set (weight included): ');
 define('SHIPPING_BOX_PACKER_NOT_FOUND','Items not found in inventory (excluded from estimate): ');
+define('SHIPPING_TEXT_WEIGHT_FALLBACK','Used when item dimensions are unavailable');
 define('SHIPPING_DELETE_CONFIRM', 'Are you sure you want to delete this package?');
 define('SHIPPING_NO_SHIPMENTS', 'There are no shipments from this carrier today!');
 define('SHIPPING_ERROR_CONFIGURATION', '<strong>Shipping Configuration errors!</strong>');
@@ -225,6 +226,27 @@ define('SHIPPING_ON_CALL','On Call Air');
 define('SHIPPING_RETAIL','Suggested Retail Rates');
 define('SHIPPING_DROP_BOX','Drop Box/Center');
 define('SHIPPING_AIR_SRV','Air Service Center');
+
+// Packing list page
+define('PKL_PAGE_TITLE',         'Packing List');
+define('PKL_PRINT_LINK',         'Print Packing List');
+define('PKL_BTN_PRINT',          'Print');
+define('PKL_BTN_CLOSE',          'Close');
+define('PKL_TEXT_SHIP_TO',       'Ship To');
+define('PKL_TEXT_SHIPMENT_DETAILS', 'Shipment Details');
+define('PKL_TEXT_CARRIER',       'Carrier');
+define('PKL_TEXT_SERVICE',       'Service');
+define('PKL_TEXT_CUSTOMER_REF',  'Customer Ref');
+define('PKL_TEXT_PACKAGES',      'Packages');
+define('PKL_TEXT_ITEMS',         'Items');
+define('PKL_TEXT_BOX',           'Box');
+define('PKL_TEXT_SKU',           'SKU');
+define('PKL_TEXT_DESCRIPTION',   'Description');
+define('PKL_TEXT_QTY',           'Qty');
+define('PKL_NO_PACKAGES',        'No items recorded for this order.');
+define('PKL_BOX_NO_ITEMS',       'No items recorded for this box.');
+define('PKL_ERROR_NO_ORDER',     'No order ID provided.');
+define('PKL_ERROR_NOT_FOUND',    'Order not found.');
 
 define('SHIPPING_TEXT_LBS','lbs');
 define('SHIPPING_TEXT_KGS','kgs');
