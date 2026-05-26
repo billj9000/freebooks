@@ -102,9 +102,9 @@ echo $toolbar->build_toolbar();
       <td><?php echo DHL_TEXT_EXPORT_REASON; ?></td>
       <td><?php
         $reasons = array(
-          array('id' => 'permanent',   'text' => TEXT_SALE ?? 'Sale / Permanent Export'),
+          array('id' => 'permanent',   'text' => defined('TEXT_SALE')   ? TEXT_SALE   : 'Sale / Permanent Export'),
           array('id' => 'temporary',   'text' => 'Temporary Export'),
-          array('id' => 'return',      'text' => TEXT_RETURN ?? 'Return'),
+          array('id' => 'return',      'text' => defined('TEXT_RETURN') ? TEXT_RETURN : 'Return'),
           array('id' => 'used_exhibition_goods_to_origin', 'text' => 'Exhibition'),
           array('id' => 'personal_effects', 'text' => 'Personal Effects'),
           array('id' => 'commercial_purpose_or_sale', 'text' => 'Commercial Sale'),

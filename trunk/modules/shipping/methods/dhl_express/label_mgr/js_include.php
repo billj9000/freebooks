@@ -34,15 +34,15 @@ function init() {
     echo "  document.getElementById('wt_1') && document.getElementById('wt_1').focus();\n";
   ?>
   toggleCustoms();
+  updateWeight();
 }
 
 function toggleCustoms() {
-  // DHL always shows customs section — just dim it for domestic shipments
   var sel = document.getElementById('ship_country_code');
   var destCountry = sel ? sel.value : '';
   var isDomestic = (destCountry === originCountry);
   var sec = document.getElementById('customs_section');
-  if (sec) sec.style.opacity = isDomestic ? '0.5' : '1.0';
+  if (sec) sec.style.display = isDomestic ? 'none' : '';
 }
 
 function check_form() {

@@ -262,7 +262,10 @@ class dhl_express {
       ? gen_get_country_iso_2_from_3($sInfo->ship_country_code)
       : $sInfo->ship_country_code;
     $isDomestic  = ($fromISO2 === $toISO2);
-    $shipDate    = date('Y-m-d\TH:i:00', strtotime($sInfo->ship_date . ' 12:00:00')) . 'GMT+00:00';
+    $ts       = strtotime($sInfo->ship_date);
+    $noonUtc  = gmmktime(12, 0, 0, (int)gmdate('n', $ts), (int)gmdate('j', $ts), (int)gmdate('Y', $ts));
+    if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
+    $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
     $declaredValue = (float)($sInfo->customs_value ?: $sInfo->total_value ?: 0);
 
     $packages = array();
@@ -320,7 +323,7 @@ class dhl_express {
         'description'          => $sInfo->customs_description ?: 'Goods',
         'declaredValue'        => $declaredValue,
         'declaredValueCurrency'=> 'GBP',
-        'unitOfMeasurement'    => 'SI',
+        'unitOfMeasurement'    => 'metric',
         'incoterm'             => 'DAP',
       ),
       'outputImageProperties' => array(
@@ -375,7 +378,11 @@ class dhl_express {
 
     $data = json_decode($response, true);
     if (empty($data['shipmentTrackingNumber'])) {
+      error_log('DHL label error: ' . $response);
       $msg = $data['title'] ?? $data['detail'] ?? $response;
+      if (!empty($data['additionalDetails']) && is_array($data['additionalDetails'])) {
+        $msg .= ': ' . implode('; ', $data['additionalDetails']);
+      }
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . $msg, 'error');
       return false;
     }
@@ -384,32 +391,31 @@ class dhl_express {
     $file_path = SHIPPING_DEFAULT_LABEL_DIR . $this->code . '/' . str_replace('-', '/', $sInfo->ship_date) . '/';
     validate_path($file_path);
 
-    $results = array();
-    $pkgs = $data['packages'] ?? array(array('trackingNumber' => $tracking, 'documents' => $data['documents'] ?? array()));
-    foreach ($pkgs as $idx => $pkg_result) {
-      $pkgTracking = $pkg_result['trackingNumber'] ?? $tracking;
-      foreach ($pkg_result['documents'] ?? array() as $doc) {
-        if (($doc['typeCode'] ?? '') !== 'label') continue;
-        $labelData = base64_decode($doc['content'] ?? '');
-        if (!$labelData) continue;
-        $file_name = $pkgTracking . ($idx > 0 ? '-' . $idx : '') . '.pdf';
-        if (!file_put_contents($file_path . $file_name, $labelData)) {
-          $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'Cannot write label file.', 'error');
-          return false;
-        }
+    // DHL returns label documents at the root level; packages[] has tracking numbers but no documents
+    $results  = array();
+    $labelIdx = 0;
+    foreach ($data['documents'] ?? array() as $doc) {
+      if (($doc['typeCode'] ?? '') !== 'label') continue;
+      $labelData = base64_decode($doc['content'] ?? '');
+      if (!$labelData) continue;
+      $labelTracking = $tracking . ($labelIdx > 0 ? '-' . $labelIdx : '');
+      if (!file_put_contents($file_path . $labelTracking . '.pdf', $labelData)) {
+        $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'Cannot write label file.', 'error');
+        return false;
       }
       $results[] = array(
-        'ref_id'        => $sInfo->purchase_invoice_id . ($idx > 0 ? '-' . ($idx + 1) : ''),
-        'tracking'      => $pkgTracking,
+        'ref_id'        => $sInfo->purchase_invoice_id . ($labelIdx > 0 ? '-' . ($labelIdx + 1) : ''),
+        'tracking'      => $labelTracking,
         'zone'          => '',
         'book_cost'     => 0,
         'net_cost'      => 0,
         'delivery_date' => $data['estimatedDeliveryTime'] ?? '',
       );
+      $labelIdx++;
     }
 
     if (empty($results)) {
-      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'No label documents in response.', 'error');
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'No label documents in API response.', 'error');
       return false;
     }
     return $results;

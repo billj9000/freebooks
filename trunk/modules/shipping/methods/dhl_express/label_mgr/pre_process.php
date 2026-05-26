@@ -32,7 +32,7 @@ $sInfo      = new shipment();
 switch ($_REQUEST['action']) {
   case 'label':
     foreach ($_POST as $key => $value) $sInfo->$key = db_prepare_input($value);
-    $sInfo->ship_date = date('Y-m-d', strtotime($sInfo->ship_date));
+    $sInfo->ship_date = gen_db_date($sInfo->ship_date);
     // Package rows
     $sInfo->package = array();
     $i = 0;
@@ -132,13 +132,45 @@ switch ($_REQUEST['action']) {
     if ($oID) {
       $sql = "select shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
           ship_city_town, ship_state_province, ship_postal_code, ship_country_code, ship_telephone1,
-          ship_email, purchase_invoice_id, purch_order_id, total_amount
+          ship_email, purchase_invoice_id, purch_order_id, total_amount, ship_packages
           from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$oID;
       $result = $db->Execute($sql);
       if (is_array($result->fields)) {
         foreach ($result->fields as $key => $value) $sInfo->$key = $value;
         $temp = explode(':', $result->fields['shipper_code']);
-        $sInfo->ship_method = $temp[1] ?? '';
+        $sInfo->ship_method  = $temp[1] ?? '';
+        $sInfo->total_value  = $result->fields['total_amount'];
+        // Pre-populate package rows from ship_packages JSON
+        if (!empty($result->fields['ship_packages'])) {
+          if (!class_exists('BoxPackingService')) {
+            require_once(DIR_FS_MODULES . 'shipping/classes/box_packer.php');
+          }
+          $raw_pkgs = json_decode($result->fields['ship_packages'], true);
+          if (is_array($raw_pkgs)) {
+            $sInfo->package      = [];
+            $weight_total        = 0;
+            foreach ($raw_pkgs as $pkg) {
+              $qty = max(1, (int)($pkg['qty'] ?? 1));
+              // Support new (weight_g / *_mm) and legacy (weight / length / width / height) formats
+              if (isset($pkg['weight_g'])) {
+                $w  = round(BoxPackingService::fromGrams((int)$pkg['weight_g']),   3);
+                $l  = round(BoxPackingService::fromMm((int)($pkg['length_mm'] ?? 0)), 1);
+                $wd = round(BoxPackingService::fromMm((int)($pkg['width_mm']  ?? 0)), 1);
+                $h  = round(BoxPackingService::fromMm((int)($pkg['depth_mm']  ?? 0)), 1);
+              } else {
+                $w  = (float)($pkg['weight'] ?? 0);
+                $l  = (float)($pkg['length'] ?? 0);
+                $wd = (float)($pkg['width']  ?? 0);
+                $h  = (float)($pkg['height'] ?? 0);
+              }
+              for ($j = 0; $j < $qty; $j++) {
+                $sInfo->package[] = ['weight' => $w, 'length' => $l, 'width' => $wd, 'height' => $h, 'value' => 0];
+                $weight_total += $w;
+              }
+            }
+            $sInfo->total_weight = round($weight_total, 3);
+          }
+        }
       }
     }
 }
