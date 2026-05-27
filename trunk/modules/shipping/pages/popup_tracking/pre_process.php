@@ -35,6 +35,24 @@ if (file_exists($custom_path)) { include($custom_path); }
 
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
+  case 'delete':
+    $row = $db->Execute("select carrier, ship_date, tracking_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+    if ($row->RecordCount() == 0) { $messageStack->add(SHIPPING_DELETE_ERROR, 'error'); break; }
+    $del_carrier  = $row->fields['carrier'];
+    $del_tracking = $row->fields['tracking_id'];
+    $del_date     = substr($row->fields['ship_date'], 0, 10);
+    load_specific_method('shipping', $del_carrier);
+    $carrier_obj = new $del_carrier();
+    if (method_exists($carrier_obj, 'cancelShipment')) {
+      if (!$carrier_obj->cancelShipment($del_tracking)) break; // error already on messageStack
+    }
+    $label_path = SHIPPING_DEFAULT_LABEL_DIR . $del_carrier . '/' . str_replace('-', '/', $del_date) . '/';
+    foreach (glob($label_path . $del_tracking . '*.pdf') ?: array() as $f) @unlink($f);
+    $db->Execute("delete from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+    gen_add_audit_log(SHIPPING_LABEL_DELETED, $sID);
+    $sID         = '';
+    $close_popup = true;
+    break;
   case 'save':
     if (!$method) break;
 	$sql_data_array = array(
@@ -69,14 +87,17 @@ if ($sID) {
 	from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID;
   $result = $db->Execute($sql);
   $cInfo = new objectInfo($result->fields);
-  $label_viewer_url = '';
-  $ship_date_only   = substr($cInfo->ship_date, 0, 10);
-  $label_file_path  = SHIPPING_DEFAULT_LABEL_DIR . $cInfo->carrier . '/' . str_replace('-', '/', $ship_date_only) . '/';
+  $label_viewer_url  = '';
+  $has_carrier_cancel = false;
+  $ship_date_only    = substr($cInfo->ship_date, 0, 10);
+  $label_file_path   = SHIPPING_DEFAULT_LABEL_DIR . $cInfo->carrier . '/' . str_replace('-', '/', $ship_date_only) . '/';
   if (!empty(glob($label_file_path . $cInfo->tracking_id . '*.pdf'))) {
     $label_viewer_url = html_href_link(FILENAME_DEFAULT,
       'module=shipping&page=popup_label_viewer&method=' . $cInfo->carrier .
       '&date=' . $ship_date_only . '&labels=' . $cInfo->tracking_id, 'SSL');
   }
+  load_specific_method('shipping', $cInfo->carrier);
+  $has_carrier_cancel = method_exists(new $cInfo->carrier(), 'cancelShipment');
   // need to build the methods pull down
   $carrier_methods = array();
   foreach ($shipping_defaults['service_levels'] as $key => $value) {

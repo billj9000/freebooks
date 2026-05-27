@@ -21,7 +21,7 @@ echo html_hidden_field('action', '') . chr(10);
 $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
-$toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) submitToDo(\'delete\')"';
+$toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['params']  = 'onclick="submitToDo(\'label\')"';
 $toolbar->icon_list['print']['text']    = SHIPPING_TEXT_PRINT_LABEL;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;

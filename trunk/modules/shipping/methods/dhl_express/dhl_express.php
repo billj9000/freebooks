@@ -446,11 +446,34 @@ class dhl_express {
     if ($method === 'POST') {
       curl_setopt($ch, CURLOPT_POST, true);
       curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    } elseif ($method !== 'GET') {
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+      if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     }
     $result = curl_exec($ch);
     $error  = curl_error($ch);
     curl_close($ch);
     return $error ? false : $result;
+  }
+
+  public function cancelShipment($tracking) {
+    global $messageStack;
+    $apiKey   = MODULE_SHIPPING_DHL_EXPRESS_API_KEY;
+    $apiSecret= MODULE_SHIPPING_DHL_EXPRESS_API_SECRET;
+    $base     = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
+    $response = $this->curlRequest('DELETE', $base . '/shipments/' . urlencode($tracking),
+      $this->dhlHeaders(), null, $apiKey, $apiSecret);
+    if ($response === false) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'Cancellation request failed.', 'caution');
+      return false;
+    }
+    // 200 with empty body or a confirmation object both indicate success
+    $data = json_decode($response, true);
+    if (!empty($data['title']) && stripos($data['title'], 'error') !== false) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . ($data['detail'] ?? $data['title']), 'caution');
+      return false;
+    }
+    return true;
   }
 
   private function toKg($value, $unit) {

@@ -168,7 +168,6 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
 	  case 12:
 	    if (defined('MODULE_SHIPPING_STATUS') && $shipper_code) {
 		  if ($sID) {
-		    if ($date_shipped == $date_today) echo html_icon('phreebooks/void-truck-icon.png', ORD_VOID_SHIP, 'small', 'onclick="if (confirm(\'Are you sure you want to delete this shipment?\')) voidShipment('.$shipped.', \''.$shipper_code.'\')"').chr(10);
 	  	    echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'' . $shipper_code . '\', \'edit\', ' . $sID . ')"') . chr(10);
 		  } elseif (!$shipped) {
 		    echo html_icon('phreebooks/truck-icon.png', TEXT_SHIP, 'small', 'onclick="shipList(' . $oID . ', \'' . $shipper_code . '\')"') . chr(10);

@@ -47,9 +47,6 @@ function shipList(oID, carrier) {
   window.open("index.php?module=shipping&page=popup_label_mgr&method="+carrier+"&oID="+oID,"popup_label_mgr","width=800,height=700,resizable=1,scrollbars=1,top=50,left=50");
 }
 
-function voidShipment(sID, carrier) {
-  window.open("index.php?module=shipping&page=popup_label_mgr&method="+carrier+"&action=delete&sID="+sID,"popup_label_mgr","width=800,height=700,resizable=1,scrollbars=1,top=50,left=50");
-}
 
 function closeShipment(carrier) {
   window.open("index.php?module=shipping&page=popup_label_mgr&method="+carrier+"&action=close","popup_label_mgr","width=800,height=700,resizable=1,scrollbars=1,top=50,left=50");

@@ -22,8 +22,10 @@ echo html_hidden_field('action', '') . chr(10);
 // customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
 $toolbar->icon_list['open']['show']     = false;
-$toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
-$toolbar->icon_list['delete']['show']   = false;
+$toolbar->icon_list['save']['show']     = false;
+$toolbar->icon_list['delete']['show']   = !empty($sID);
+$delete_confirm = !empty($has_carrier_cancel) ? SHIPPING_CANCEL_CONFIRM : SHIPPING_DELETE_CONFIRM;
+$toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . addslashes($delete_confirm) . '\')) submitToDo(\'delete\')"';
 if (!empty($label_viewer_url)) {
   $toolbar->icon_list['print']['show']   = true;
   $toolbar->icon_list['print']['params'] = 'onclick="window.open(\'' . $label_viewer_url . '\', \'label_reprint\', \'width=800,height=600\')"';
@@ -48,31 +50,31 @@ echo $toolbar->build_toolbar();
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_REFERENCE_ID; ?></td>
-	<td><?php echo html_input_field('ref_id', $cInfo->ref_id); ?></td>
+	<td><?php echo html_input_field('ref_id', $cInfo->ref_id, 'readonly="readonly"'); ?></td>
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_CARRIER; ?></td>
-	<td><?php echo html_pull_down_menu('carrier', $methods, $cInfo->carrier, 'onchange="buildFreightDropdown()"'); ?></td>
+	<td><?php echo html_pull_down_menu('carrier', $methods, $cInfo->carrier, 'disabled="disabled"'); ?></td>
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_SERVICE; ?></td>
-	<td><?php echo html_pull_down_menu('method', $carrier_methods, $cInfo->method); ?></td>
+	<td><?php echo html_pull_down_menu('method', $carrier_methods, $cInfo->method, 'disabled="disabled"'); ?></td>
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_TRACKING_NUM; ?></td>
-	<td><?php echo html_input_field('tracking_id', $cInfo->tracking_id); ?></td>
+	<td><?php echo html_input_field('tracking_id', $cInfo->tracking_id, 'readonly="readonly"'); ?></td>
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_SHIPMENT_DATE; ?></td>
-	<td><?php echo html_calendar_field($cal_ship); ?></td>
+	<td><?php echo html_input_field('ship_date', gen_locale_date($cInfo->ship_date), 'readonly="readonly"'); ?></td>
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_EXPECTED_DATE; ?></td>
-	<td><?php echo html_calendar_field($cal_del); ?></td>
+	<td><?php echo html_input_field('deliver_date', gen_locale_date($cInfo->deliver_date), 'readonly="readonly"'); ?></td>
   </tr>
   <tr>
 	<td><?php echo SHIPPING_TEXT_COST; ?></td>
-	<td><?php echo html_input_field('cost', $cInfo->cost); ?></td>
+	<td><?php echo html_input_field('cost', $cInfo->cost, 'readonly="readonly"'); ?></td>
   </tr>
  </tbody>
 </table>

@@ -94,7 +94,8 @@ define('SHIPPING_CANNOT_DELETE','Fout - Kan verzending niet verwijderen waarvan 
 define('SHIPPING_LABEL_DELETED','Label Verwijderd');
 define('SHIPPING_END_OF_DAY','Einde van de dag Gesloten - %s');
 define('SHIPPING_ERROR_WEIGHT_ZERO','Pakket gewicht kan niet nul zijn.');
-define('SHIPPING_DELETE_CONFIRM','Weet u zeker dat u dit pakketje wil verwijderen?');
+define('SHIPPING_DELETE_CONFIRM','Weet u zeker dat u deze verzending wil verwijderen?');
+define('SHIPPING_CANCEL_CONFIRM','Dit annuleert de verzending bij de vervoerder en verwijdert het record. Weet u het zeker?');
 define('SHIPPING_NO_SHIPMENTS','Er zijn geen verzendingen van deze koerier vandaag!');
 define('SHIPPING_ERROR_CONFIGURATION','<strong>Verzending Configuratie errors!</strong>');
 define('SHIPPING_BAD_QUOTE_DATE','De datum van verzending kan niet voor vandaag zijn voor een offerte. Het te verzenden datum is veranderd naar vandaag voor offerte doeleinden.');

@@ -105,28 +105,6 @@ switch ($_REQUEST['action']) {
     }
     break;
 
-  case 'delete':
-    $shipment_id = db_prepare_input($_GET['sID']);
-    $shipments   = $db->Execute("select method, ship_date, tracking_id from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
-    if ($shipments->RecordCount() == 0) {
-      $messageStack->add(SHIPPING_DELETE_ERROR, 'error');
-      break;
-    }
-    if ($shipments->fields['ship_date'] < date('Y-m-d')) {
-      $messageStack->add(SHIPPING_CANNOT_DELETE, 'error');
-      break;
-    }
-    while (!$shipments->EOF) {
-      $tracking  = $shipments->fields['tracking_id'];
-      $date      = explode('-', substr($shipments->fields['ship_date'], 0, 10));
-      $file_path = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . $date[0] . '/' . $date[1] . '/' . $date[2] . '/';
-      foreach (glob($file_path . $tracking . '*.pdf') as $f) @unlink($f);
-      $shipments->MoveNext();
-    }
-    $db->Execute("delete from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
-    gen_add_audit_log(SHIPPING_LABEL_DELETED, $shipment_id);
-    break;
-
   default:
     $oID = db_prepare_input($_GET['oID']);
     if ($oID) {

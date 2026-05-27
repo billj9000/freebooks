@@ -89,7 +89,8 @@ define('SHIPPING_TEXT_ACTUAL_DATE','Реальная дата доставки')
 define('SHIPPING_TEXT_DOWNLOAD','Download Thermal Label');
 define('SHIPPING_TEXT_NO_LABEL','No Label Found!');
 define('SHIPPING_ERROR_WEIGHT_ZERO','Shipment weight cannot be zero.');
-define('SHIPPING_DELETE_CONFIRM','Are you sure you want to delete this package?');
+define('SHIPPING_DELETE_CONFIRM','Are you sure you want to delete this shipment?');
+define('SHIPPING_CANCEL_CONFIRM','This will cancel the shipment at the carrier and delete the record. Are you sure?');
 define('SHIPPING_NO_SHIPMENTS','There are no shipments from this carrier today!');
 define('SHIPPING_ERROR_CONFIGURATION','<strong>Shipping Configuration errors!</strong>');
 define('SHIPPING_LOG_FEDEX_LABEL_PRINTED','Label Generated');
