@@ -42,7 +42,10 @@ define('CD_10_48_DESC', 'Saturday delivery checkbox');
 define('CD_10_52_DESC', 'Hazardous material checkbox');
 define('CD_10_56_DESC', 'Dry ice checkbox');
 define('CD_10_60_DESC', 'Return services checkbox');
+define('CD_10_64_DESC', 'Shipper EORI number for international customs declarations (e.g. GB123456789000)');
+define('CD_10_65_DESC', 'Shipper IOSS number for EU imports below €150 (format: IM + 10 digits)');
 
+define('SHIPPING_TEXT_INTL_COMPLIANCE', 'International Compliance');
 define('NEXT_SHIPMENT_NUM_DESC','Next Shipment Number');
 define('TEXT_SHIPPING_PREFS','Shipping Address Book Settings');
 define('CONTACT_SHIP_FIELD_REQ', 'Whether or not to require field: %s to be entered for a new shipping address');

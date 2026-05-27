@@ -151,6 +151,15 @@
 	    <td nowrap="nowrap"><?php echo TEXT_DEFAULT . ' ' . html_pull_down_menu('shipping_default_return_service_checked', $sel_checked, $_POST['shipping_default_return_service_checked'] ? $_POST['shipping_default_return_service_checked'] : SHIPPING_DEFAULT_RETURN_SERVICE_CHECKED, ''); ?></td>
 	    <td nowrap="nowrap"><?php echo TEXT_VALUE . ' ' . html_pull_down_menu('shipping_default_return_service', gen_build_pull_down($shipping_defaults['return_label']), $_POST['shipping_default_return_service'] ? $_POST['shipping_default_return_service'] : SHIPPING_DEFAULT_RETURN_SERVICE, ''); ?></td>
 	  </tr>
+	  <tr class="ui-widget-header"><th colspan="4"><?php echo SHIPPING_TEXT_INTL_COMPLIANCE; ?></th></tr>
+	  <tr>
+	    <td colspan="3"><?php echo CD_10_64_DESC; ?></td>
+	    <td><?php echo html_input_field('shipping_shipper_eori', isset($_POST['shipping_shipper_eori']) ? $_POST['shipping_shipper_eori'] : (defined('SHIPPING_SHIPPER_EORI') ? SHIPPING_SHIPPER_EORI : ''), 'size="30"'); ?></td>
+	  </tr>
+	  <tr>
+	    <td colspan="3"><?php echo CD_10_65_DESC; ?></td>
+	    <td><?php echo html_input_field('shipping_shipper_ioss', isset($_POST['shipping_shipper_ioss']) ? $_POST['shipping_shipper_ioss'] : (defined('SHIPPING_SHIPPER_IOSS') ? SHIPPING_SHIPPER_IOSS : ''), 'size="20"'); ?></td>
+	  </tr>
   </tbody>
 </table>
 </div>

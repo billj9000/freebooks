@@ -300,7 +300,11 @@ class dhl_express {
             'fullName'    => defined('AR_CONTACT_NAME')    ? AR_CONTACT_NAME    : (defined('COMPANY_NAME') ? COMPANY_NAME : ''),
             'email'       => defined('COMPANY_EMAIL')      ? COMPANY_EMAIL      : '',
           ),
-        ),
+        ) + (defined('SHIPPING_SHIPPER_EORI') && SHIPPING_SHIPPER_EORI !== '' ? array(
+          'registrationNumbers' => array(
+            array('typeCode' => 'EOR', 'number' => SHIPPING_SHIPPER_EORI, 'issuerCountryCode' => $fromISO2),
+          ),
+        ) : array()),
         'receiverDetails' => array(
           'postalAddress' => array(
             'postalCode'   => $sInfo->ship_postal_code,
@@ -351,8 +355,9 @@ class dhl_express {
             'commodityCodes'   => array(
               array('typeCode' => 'outbound', 'value' => $sInfo->hs_code ?? ''),
             ),
-            'manufacturerCountry' => $sInfo->country_of_origin
-              ?? (defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB'),
+            'manufacturerCountry' => !empty($sInfo->country_of_origin)
+              ? gen_get_country_iso_2_from_3($sInfo->country_of_origin)
+              : (defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB'),
             'weight' => array(
               'netValue'   => $this->toKg($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
               'grossValue' => $this->toKg($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
