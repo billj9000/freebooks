@@ -26,6 +26,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
  <head>
   <!-- module: <?php echo $module; ?> - page: <?php echo $page; ?> -->
   <meta http-equiv="Content-Type" content="text/html; charset=<?php echo CHARSET; ?>" />
+  <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES); ?>"><?php // consumed by htmx:configRequest in common.js ?>
 <?php if ($force_reset_cache) { header("Cache-Control: no-cache, must-revalidate"); header("Expires: ".date('D, j M \2\0\0\0 G:i:s T')); } ?>  
   <title><?php echo PAGE_TITLE; ?></title>
   <link rel="shortcut icon" type="image/ico" href="favicon.ico" />

@@ -556,3 +556,12 @@ function Collapse(tab_type) {
 	}
   }
 }
+
+// Inject CSRF token into every htmx POST automatically.
+// Reads from the <meta name="csrf-token"> set by template_index.php.
+document.addEventListener('htmx:configRequest', function(e) {
+  if (e.detail.verb === 'post') {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) e.detail.parameters['csrf_token'] = meta.getAttribute('content');
+  }
+});

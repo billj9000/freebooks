@@ -23,7 +23,6 @@
     <?php echo html_icon('actions/go-previous.png',       TEXT_BACK,    'large', 'style="cursor:pointer;" onclick="parent.mainFrame.history.back()"') . "\n"; ?>
     <?php echo html_icon('actions/go-next.png',           TEXT_FORWARD, 'large', 'style="cursor:pointer;" onclick="parent.mainFrame.history.forward()"') . "\n"; ?>
     <?php echo html_icon('devices/printer.png',           TEXT_PRINT,   'large', 'style="cursor:pointer;" onclick="parent.mainFrame.focus(); parent.mainFrame.print()"') . "\n"; ?>
-    <?php echo html_icon('apps/internet-web-browser.png', TEXT_SUPPORT, 'large', 'style="cursor:pointer;" onclick="parent.mainFrame.location.href=\'http://www.phreesoft.com\'"') . "\n"; ?>
     <?php echo html_icon('actions/system-log-out.png',    TEXT_EXIT,    'large', 'style="cursor:pointer;" onclick="parent.window.close()"') . "\n"; ?>
   </div>
 </body>
