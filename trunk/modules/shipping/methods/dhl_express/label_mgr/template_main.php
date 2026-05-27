@@ -25,7 +25,7 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['params']  = 'onclick="submitToDo(\'label\')"';
 $toolbar->icon_list['print']['text']    = SHIPPING_TEXT_PRINT_LABEL;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
-$toolbar->add_help('09.01');
+$toolbar->add_help('09.01.02');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo MODULE_SHIPPING_DHL_EXPRESS_TEXT_TITLE; ?></h1>

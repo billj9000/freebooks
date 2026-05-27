@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="09.01.02">
+<meta name="doc_index_1" content="Shipping Modules.DHL Express">
+<meta name="doc_index_2" content="DHL Express.Setup">
+<meta name="doc_title" content="Shipping Modules - DHL Express">
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+<title>Shipping Modules - DHL Express</title>
+</head>
+<body>
+
+<h1 align="center">Shipping Modules - DHL Express</h1>
+
+<p>FreeBooks includes a shipping module for DHL Express using the MyDHL API. The module supports
+international and domestic rate queries, label generation for multi-package shipments, customs
+export declarations, and shipment cancellation directly from the invoice list.</p>
+
+<p>A DHL Express account and API credentials are required. Credentials are obtained from the
+<a href="https://developer.dhl.com" target="_blank">DHL Developer Portal</a>.</p>
+
+<h4>Features</h4>
+<ul>
+  <li>Real-time rate quotes from within the order/invoice form</li>
+  <li>Label generation for all DHL Express service levels (Worldwide, 9:00, 10:30, 12:00, Domestic, Economy Select, etc.)</li>
+  <li>Multi-package shipments</li>
+  <li>Automatic customs / export declaration for international shipments</li>
+  <li>Shipment cancellation via the DHL API</li>
+  <li>Label reprint from the Shipment Details popup</li>
+  <li>Test (sandbox) and Production modes</li>
+</ul>
+
+<h4>Prerequisites</h4>
+<ol>
+  <li>A DHL Express account number.</li>
+  <li>MyDHL API credentials (API key and API secret) from the
+      <a href="https://developer.dhl.com" target="_blank">DHL Developer Portal</a>.
+      Separate credentials exist for the sandbox (Test) and live (Production) environments.</li>
+  <li>Company address fields completed in <strong>Admin &rarr; Company Information</strong>
+      (postal code, city, and country are sent to DHL as the ship-from address).</li>
+</ol>
+
+<h4>Installation</h4>
+<ol>
+  <li>Go to <strong>Setup &rarr; Shipping Settings</strong>.</li>
+  <li>Locate the <em>DHL Express</em> row and click <strong>Install</strong>.</li>
+  <li>Click the DHL Express row again and click <strong>Edit</strong>.</li>
+  <li>Enter your API Key, API Secret, and DHL Account Number.</li>
+  <li>Set <strong>Mode</strong> to <em>Test</em> to use the sandbox, or <em>Production</em>
+      for live shipments.</li>
+  <li>Click <strong>Update</strong>.</li>
+</ol>
+
+<h4>International Compliance Settings (EORI / IOSS)</h4>
+<p>Shipper EORI and IOSS numbers are configured in
+<strong>Setup &rarr; Shipping Settings &rarr; General &rarr; International Compliance</strong>.</p>
+<ul>
+  <li><strong>Shipper EORI Number</strong> &mdash; sent to DHL on every international shipment as a
+      shipper registration number. Required for exporting from the UK or EU.</li>
+  <li><strong>Shipper IOSS Number</strong> &mdash; stored for reference only. Because DHL does not
+      currently provide a per-shipment IOSS field in the MyDHL API, the IOSS number must be
+      registered directly on your DHL account at
+      <a href="https://mydhl.express.dhl" target="_blank">mydhl.express.dhl</a>.
+      Once registered on the account, DHL applies it automatically to eligible EU import
+      shipments (goods valued below &euro;150).</li>
+</ul>
+
+<h4>Getting a Rate Quote</h4>
+<ol>
+  <li>Open a sales invoice or order.</li>
+  <li>Click the <strong>Shipping Estimator</strong> button next to the freight method field.</li>
+  <li>Verify or update the destination address and package details, then click <strong>Next</strong>.</li>
+  <li>Available DHL Express services and rates are listed. Click the desired rate to populate
+      the carrier, service, and cost on the order; the popup closes automatically.</li>
+</ol>
+
+<h4>Printing a Label</h4>
+<ol>
+  <li>Post (save) the invoice first. The invoice must be in posted state before a label can
+      be generated.</li>
+  <li>In <strong>Customers &rarr; Invoice Manager</strong>, locate the invoice and click the
+      <strong>Ship</strong> (truck) icon on its row.</li>
+  <li>A label manager popup opens with recipient address and shipment details pre-filled from
+      the invoice.</li>
+  <li>Review and adjust the following fields as needed:
+    <ul>
+      <li><strong>Ship Date</strong> &mdash; defaults to today. DHL will advance to the next
+          business day if the request is made after noon UTC.</li>
+      <li><strong>Service Type</strong> &mdash; select the DHL Express service level.</li>
+      <li><strong>Package Details</strong> &mdash; enter weight and dimensions for each package.
+          Click the <strong>+</strong> icon to add packages for multi-piece shipments.</li>
+      <li><strong>Customs / Export Information</strong> &mdash; shown automatically for
+          international destinations. Complete the Goods Description, Declared Value, HS/Commodity
+          Code, Country of Origin, and Reason for Export.</li>
+    </ul>
+  </li>
+  <li>Click <strong>Print Label</strong>. The label PDF is retrieved from DHL and stored on the
+      server; the label viewer opens automatically.</li>
+  <li>Print the label from the viewer. Close the popup when done.</li>
+</ol>
+
+<h4>Reprinting a Label</h4>
+<ol>
+  <li>In Invoice Manager, click the <strong>View Shipment</strong> (log) icon on the invoice row.
+      The Shipment Details popup opens.</li>
+  <li>Click <strong>Reprint Label</strong> in the toolbar. The stored PDF is displayed without
+      contacting DHL again.</li>
+</ol>
+
+<h4>Cancelling a Shipment</h4>
+<ol>
+  <li>In Invoice Manager, click the <strong>View Shipment</strong> icon on the invoice row.
+      The Shipment Details popup opens.</li>
+  <li>Click the <strong>Delete</strong> (bin) icon in the toolbar.</li>
+  <li>A confirmation dialog warns that the shipment will be cancelled at DHL. Confirm to
+      proceed.</li>
+  <li>FreeBooks sends a cancellation request to the DHL API, deletes the stored label file,
+      and removes the shipment log entry. The invoice row reverts to the <em>Ship</em> state
+      and can be re-shipped if required.</li>
+</ol>
+<p><strong>Note:</strong> DHL Express cancellations are subject to DHL's own cut-off rules.
+Shipments that have already been collected by DHL may not be cancellable via the API.</p>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="../../ShippingHome.html">Shipping Manager</a><br>
+  <a href="../ModulesHome.html">Shipping Modules Overview</a><br>
+  <a href="../../../../ch07-UsersManual/03-Customers/05-Invoices/04-InvoiceManager.html">Invoice Manager</a>
+</p>
+
+</body>
+</html>
