@@ -30,6 +30,22 @@ $pdf_list   = array();
 $sInfo      = new shipment();
 /***************  Act on the action request  ************************/
 switch ($_REQUEST['action']) {
+  case 'save_items':
+    $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));
+    for ($i = 1; $i <= $num_li; $i++) {
+      $sku = db_prepare_input($_POST['li_sku_' . $i] ?? '');
+      if (!$sku) continue;
+      $db->Execute("UPDATE " . TABLE_INVENTORY . " SET
+        customs_description = '" . db_input(db_prepare_input($_POST['li_desc_'   . $i] ?? '')) . "',
+        country_of_origin   = '" . db_input(db_prepare_input($_POST['li_origin_' . $i] ?? '')) . "',
+        hs_code             = '" . db_input(db_prepare_input($_POST['li_hs_'     . $i] ?? '')) . "',
+        item_weight         = "  . (float)($_POST['li_wt_' . $i] ?? 0) . "
+        WHERE sku = '" . db_input($sku) . "'");
+    }
+    $messageStack->add(DHL_ITEMS_SAVED, 'success');
+    gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array()), 'SSL'));
+    break;
+
   case 'label':
     foreach ($_POST as $key => $value) $sInfo->$key = db_prepare_input($value);
     $sInfo->ship_date = gen_db_date($sInfo->ship_date);
@@ -52,6 +68,22 @@ switch ($_REQUEST['action']) {
           'value'  => $_POST['ins_' . $i],
         );
       }
+    }
+    // Line items for customs declaration
+    $sInfo->line_items = array();
+    $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));
+    for ($i = 1; $i <= $num_li; $i++) {
+      $sku = db_prepare_input($_POST['li_sku_' . $i] ?? '');
+      if (!$sku) continue;
+      $sInfo->line_items[] = array(
+        'sku'         => $sku,
+        'description' => db_prepare_input($_POST['li_desc_'   . $i] ?? ''),
+        'origin'      => db_prepare_input($_POST['li_origin_' . $i] ?? ''),
+        'hs_code'     => db_prepare_input($_POST['li_hs_'     . $i] ?? ''),
+        'qty'         => (float)($_POST['li_qty_' . $i] ?? 1),
+        'weight'      => (float)($_POST['li_wt_'  . $i] ?? 0),
+        'value'       => (float)($_POST['li_val_' . $i] ?? 0),
+      );
     }
 
     if (count($sInfo->package) > 0) {
@@ -148,6 +180,34 @@ switch ($_REQUEST['action']) {
             }
             $sInfo->total_weight = round($weight_total, 3);
           }
+        }
+        // Load inventory customs data for each line item
+        $li_sql = "SELECT ji.sku, ji.qty, ji.description, ji.full_price, ji.credit_amount,
+                     i.customs_description, i.country_of_origin, i.hs_code, i.item_weight
+                   FROM " . TABLE_JOURNAL_ITEM . " ji
+                   LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku
+                   WHERE ji.ref_id = " . (int)$oID . "
+                     AND ji.sku IS NOT NULL AND ji.sku != ''
+                   ORDER BY ji.item_cnt";
+        $li_result = $db->Execute($li_sql);
+        $sInfo->line_items = array();
+        while (!$li_result->EOF) {
+          $f   = $li_result->fields;
+          $qty = (float)$f['qty'];
+          // full_price is unit price; fall back to credit_amount/qty for older rows where full_price is 0
+          $unit_price = (float)$f['full_price'] > 0
+            ? (float)$f['full_price']
+            : ($qty > 0 ? (float)$f['credit_amount'] / $qty : 0);
+          $sInfo->line_items[] = array(
+            'sku'         => $f['sku'],
+            'description' => $f['customs_description'] ?: ($f['description'] ?: ''),
+            'origin'      => $f['country_of_origin'] ?: '',
+            'hs_code'     => $f['hs_code'] ?: '',
+            'qty'         => $qty,
+            'weight'      => (float)$f['item_weight'],
+            'value'       => $unit_price,
+          );
+          $li_result->MoveNext();
         }
       }
     }

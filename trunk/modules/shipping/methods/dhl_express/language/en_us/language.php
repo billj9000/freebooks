@@ -45,4 +45,10 @@ define('DHL_TEXT_HS_CODE',        'HS / Commodity Code');
 define('DHL_TEXT_ORIGIN_COUNTRY', 'Country of Origin');
 define('DHL_TEXT_EXPORT_REASON',  'Reason for Export');
 define('DHL_TEXT_IS_CUSTOMS',     'Customs Declarable');
+// Line items table
+define('DHL_LINE_ITEMS_HEADER',  'Shipment Contents (Customs Declaration)');
+define('DHL_TEXT_UNIT_WEIGHT',   'Unit Weight');
+define('DHL_TEXT_UNIT_VALUE',    'Unit Value');
+define('DHL_TEXT_SAVE_TO_INV',   'Save descriptions to inventory');
+define('DHL_ITEMS_SAVED',        'Item descriptions saved to inventory.');
 ?>

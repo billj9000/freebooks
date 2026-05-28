@@ -266,7 +266,13 @@ class dhl_express {
     $noonUtc  = gmmktime(12, 0, 0, (int)gmdate('n', $ts), (int)gmdate('j', $ts), (int)gmdate('Y', $ts));
     if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
     $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
-    $declaredValue = (float)($sInfo->customs_value ?: $sInfo->total_value ?: 0);
+    if (!empty($sInfo->line_items)) {
+      $declaredValue = 0;
+      foreach ($sInfo->line_items as $_li) $declaredValue += (float)$_li['value'] * (float)$_li['qty'];
+      $declaredValue = round($declaredValue, 2);
+    } else {
+      $declaredValue = (float)($sInfo->customs_value ?: $sInfo->total_value ?: 0);
+    }
 
     $packages = array();
     foreach ($sInfo->package as $pkg) {
@@ -324,7 +330,7 @@ class dhl_express {
       'content' => array(
         'packages'             => $packages,
         'isCustomsDeclarable'  => !$isDomestic,
-        'description'          => $sInfo->customs_description ?: 'Goods',
+        'description'          => (!empty($sInfo->line_items) ? ($sInfo->line_items[0]['description'] ?: 'Goods') : ($sInfo->customs_description ?: 'Goods')),
         'declaredValue'        => $declaredValue,
         'declaredValueCurrency'=> 'GBP',
         'unitOfMeasurement'    => 'metric',
@@ -342,35 +348,67 @@ class dhl_express {
       ),
     );
 
-    if (!$isDomestic && !empty($sInfo->customs_description)) {
-      $body['content']['exportDeclaration'] = array(
-        'lineItems' => array(
-          array(
-            'number'           => 1,
-            'description'      => $sInfo->customs_description,
-            'price'            => $declaredValue,
-            'priceCurrency'    => 'GBP',
-            'exportReasonType' => 'permanent',
-            'quantity'         => array('value' => 1, 'unitOfMeasurement' => 'PCS'),
+    if (!$isDomestic) {
+      $currency   = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP';
+      $fallbackCountry = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
+      $lineItems  = array();
+
+      if (!empty($sInfo->line_items)) {
+        $itemNum = 1;
+        foreach ($sInfo->line_items as $item) {
+          if ((float)$item['qty'] <= 0) continue;
+          $lineItems[] = array(
+            'number'           => $itemNum++,
+            'description'      => $item['description'] ?: 'Goods',
+            'price'            => round((float)$item['value'], 2),
+            'priceCurrency'    => $currency,
+            'exportReasonType' => $sInfo->customs_reason ?: 'permanent',
+            'quantity'         => array('value' => max(1, (int)round((float)$item['qty'])), 'unitOfMeasurement' => 'PCS'),
             'commodityCodes'   => array(
-              array('typeCode' => 'outbound', 'value' => $sInfo->hs_code ?? ''),
+              array('typeCode' => 'outbound', 'value' => $item['hs_code'] ?: ''),
             ),
-            'manufacturerCountry' => !empty($sInfo->country_of_origin)
-              ? gen_get_country_iso_2_from_3($sInfo->country_of_origin)
-              : (defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB'),
+            'manufacturerCountry' => $item['origin'] ?: $fallbackCountry,
             'weight' => array(
-              'netValue'   => $this->toKg($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
-              'grossValue' => $this->toKg($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
+              'netValue'   => round($this->toKg((float)$item['weight'] * (float)$item['qty'], $sInfo->pkg_weight_unit), 3),
+              'grossValue' => round($this->toKg((float)$item['weight'] * (float)$item['qty'], $sInfo->pkg_weight_unit), 3),
             ),
+          );
+        }
+      }
+
+      // Fall back to single-line summary when no per-item data is available
+      if (empty($lineItems) && !empty($sInfo->customs_description)) {
+        $lineItems[] = array(
+          'number'           => 1,
+          'description'      => $sInfo->customs_description,
+          'price'            => $declaredValue,
+          'priceCurrency'    => $currency,
+          'exportReasonType' => 'permanent',
+          'quantity'         => array('value' => 1, 'unitOfMeasurement' => 'PCS'),
+          'commodityCodes'   => array(
+            array('typeCode' => 'outbound', 'value' => $sInfo->hs_code ?? ''),
           ),
-        ),
-        'invoice' => array(
-          'number'        => $sInfo->purchase_invoice_id,
-          'date'          => $sInfo->ship_date,
-          'signatureName' => defined('AR_CONTACT_NAME') ? AR_CONTACT_NAME : '',
-        ),
-        'exportReason' => $sInfo->customs_reason ?: 'permanent',
-      );
+          'manufacturerCountry' => !empty($sInfo->country_of_origin)
+            ? gen_get_country_iso_2_from_3($sInfo->country_of_origin)
+            : $fallbackCountry,
+          'weight' => array(
+            'netValue'   => $this->toKg($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
+            'grossValue' => $this->toKg($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
+          ),
+        );
+      }
+
+      if (!empty($lineItems)) {
+        $body['content']['exportDeclaration'] = array(
+          'lineItems'    => $lineItems,
+          'invoice'      => array(
+            'number'        => $sInfo->purchase_invoice_id,
+            'date'          => $sInfo->ship_date,
+            'signatureName' => defined('AR_CONTACT_NAME') ? AR_CONTACT_NAME : '',
+          ),
+          'exportReason' => $sInfo->customs_reason ?: 'permanent',
+        );
+      }
     }
 
     $response = $this->curlRequest('POST', $base . '/shipments',

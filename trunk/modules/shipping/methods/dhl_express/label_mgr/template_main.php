@@ -79,25 +79,7 @@ echo $toolbar->build_toolbar();
   </fieldset>
 </div>
 <div id="customs_section">
-  <fieldset>
-  <legend><?php echo DHL_CUSTOMS_SECTION; ?></legend>
   <table>
-    <tr>
-      <td><?php echo DHL_TEXT_DESCRIPTION; ?></td>
-      <td><?php echo html_input_field('customs_description', $sInfo->customs_description ?? '', 'size="33" maxlength="80"'); ?></td>
-    </tr>
-    <tr>
-      <td><?php echo DHL_TEXT_DECLARED_VALUE; ?></td>
-      <td><?php echo html_input_field('customs_value', $sInfo->customs_value ?? $sInfo->total_value ?? '0.00', 'size="10" maxlength="10" style="text-align:right"'); ?></td>
-    </tr>
-    <tr>
-      <td><?php echo DHL_TEXT_HS_CODE; ?></td>
-      <td><?php echo html_input_field('hs_code', $sInfo->hs_code ?? '', 'size="15" maxlength="15"'); ?></td>
-    </tr>
-    <tr>
-      <td><?php echo DHL_TEXT_ORIGIN_COUNTRY; ?></td>
-      <td><?php echo html_pull_down_menu('country_of_origin', gen_get_countries(), $sInfo->country_of_origin ?? (defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : '')); ?></td>
-    </tr>
     <tr>
       <td><?php echo DHL_TEXT_EXPORT_REASON; ?></td>
       <td><?php
@@ -113,7 +95,6 @@ echo $toolbar->build_toolbar();
       ?></td>
     </tr>
   </table>
-  </fieldset>
 </div>
 </td>
 <td width="50%" valign="top">
@@ -202,4 +183,41 @@ echo $toolbar->build_toolbar();
     <td align="left"><?php echo html_icon('actions/list-add.png', TEXT_ADD, 'medium', 'onclick="addRow()"'); ?></td>
   </tr>
 </table>
+
+<?php if (!empty($sInfo->line_items)): ?>
+<div id="line_items_section">
+  <table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;margin-top:10px;width:98%">
+    <tr><th class="ui-widget-header" colspan="7"><?php echo DHL_LINE_ITEMS_HEADER; ?></th></tr>
+    <tr class="ui-widget-header">
+      <th><?php echo TEXT_SKU; ?></th>
+      <th><?php echo DHL_TEXT_DESCRIPTION; ?></th>
+      <th><?php echo DHL_TEXT_ORIGIN_COUNTRY; ?></th>
+      <th><?php echo DHL_TEXT_HS_CODE; ?></th>
+      <th><?php echo TEXT_QUANTITY; ?></th>
+      <th><?php echo DHL_TEXT_UNIT_WEIGHT; ?> (<?php echo htmlspecialchars($sInfo->pkg_weight_unit ?? SHIPPING_DEFAULT_WEIGHT); ?>)</th>
+      <th><?php echo DHL_TEXT_UNIT_VALUE; ?></th>
+    </tr>
+    <input type="hidden" name="num_line_items" value="<?php echo count($sInfo->line_items); ?>">
+    <?php foreach ($sInfo->line_items as $li => $item): $n = $li + 1; ?>
+    <tr class="ui-widget-content">
+      <td style="padding:2px 4px"><?php echo htmlspecialchars($item['sku']); ?>
+        <input type="hidden" name="li_sku_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['sku']); ?>">
+        <input type="hidden" name="li_qty_<?php echo $n; ?>" id="li_qty_<?php echo $n; ?>" value="<?php echo (float)$item['qty']; ?>">
+      </td>
+      <td><input type="text" name="li_desc_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['description']); ?>" size="30" maxlength="80"></td>
+      <td><input type="text" name="li_origin_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['origin']); ?>" size="4" maxlength="2" placeholder="XX" style="text-align:center;text-transform:uppercase"></td>
+      <td><input type="text" name="li_hs_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['hs_code']); ?>" size="12" maxlength="20"></td>
+      <td style="text-align:right"><?php echo number_format((float)$item['qty'], 0); ?></td>
+      <td><input type="text" name="li_wt_<?php echo $n; ?>" id="li_wt_<?php echo $n; ?>" value="<?php echo number_format((float)$item['weight'], 3); ?>" size="8" maxlength="10" style="text-align:right" onchange="updateWeight()"></td>
+      <td><input type="text" name="li_val_<?php echo $n; ?>" id="li_val_<?php echo $n; ?>" value="<?php echo number_format((float)$item['value'], 2); ?>" size="8" maxlength="10" style="text-align:right" onchange="updateWeight()"></td>
+    </tr>
+    <?php endforeach; ?>
+  </table>
+  <div style="text-align:right;margin-right:1%;margin-top:4px">
+    <?php echo html_icon('actions/document-save.png', DHL_TEXT_SAVE_TO_INV, 'small',
+      'style="cursor:pointer;vertical-align:middle" onclick="submitToDo(\'save_items\')"'); ?>
+    &nbsp;<a href="#" onclick="submitToDo('save_items'); return false;"><?php echo DHL_TEXT_SAVE_TO_INV; ?></a>
+  </div>
+</div>
+<?php endif; ?>
 </form>

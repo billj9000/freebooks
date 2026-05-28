@@ -41,8 +41,11 @@ function toggleCustoms() {
   var sel = document.getElementById('ship_country_code');
   var destCountry = sel ? sel.value : '';
   var isDomestic = (destCountry === originCountry);
+  var display = isDomestic ? 'none' : '';
   var sec = document.getElementById('customs_section');
-  if (sec) sec.style.display = isDomestic ? 'none' : '';
+  if (sec) sec.style.display = display;
+  var li = document.getElementById('line_items_section');
+  if (li) li.style.display = display;
 }
 
 function check_form() {
@@ -90,21 +93,43 @@ function removeRow(delRowCnt) {
 }
 
 function updateWeight() {
-  var weightTotal = 0, valueTotal = 0;
+  // Total weight from package rows
+  var weightTotal = 0;
   var tbl = document.getElementById('item_table');
   for (var i = 1; i < tbl.rows.length + 1; i++) {
     var wEl = document.getElementById('wt_'+i);
     var qEl = document.getElementById('qty_'+i);
-    var vEl = document.getElementById('ins_'+i);
     if (!wEl) break;
     var w = parseFloat(cleanCurrency(wEl.value));
     var q = parseFloat(cleanCurrency(qEl.value));
-    if (!isNaN(w)) weightTotal += q * w;
-    var v = parseFloat(cleanCurrency(vEl.value));
-    if (!isNaN(v)) valueTotal += q * v;
+    if (!isNaN(w) && !isNaN(q)) weightTotal += q * w;
+  }
+  // Fall back to line-item weights when no package weights have been entered
+  if (weightTotal === 0) {
+    for (var j = 1; ; j++) {
+      var wliEl = document.getElementById('li_wt_' + j);
+      var qliEl = document.getElementById('li_qty_' + j);
+      if (!wliEl) break;
+      var wli = parseFloat(cleanCurrency(wliEl.value));
+      var qli = qliEl ? parseFloat(qliEl.value) : 1;
+      if (!isNaN(wli) && !isNaN(qli)) weightTotal += wli * qli;
+    }
   }
   document.getElementById('total_weight').value = weightTotal;
-  document.getElementById('total_value').value  = formatCurrency(String(valueTotal));
+  // Total value from line items (unit value * qty per item)
+  var valueTotal = 0, hasItems = false;
+  for (var j = 1; ; j++) {
+    var vEl = document.getElementById('li_val_' + j);
+    var qEl2 = document.getElementById('li_qty_' + j);
+    if (!vEl) break;
+    hasItems = true;
+    var v = parseFloat(cleanCurrency(vEl.value));
+    var q2 = qEl2 ? parseFloat(qEl2.value) : 1;
+    if (!isNaN(v) && !isNaN(q2)) valueTotal += v * q2;
+  }
+  if (hasItems) {
+    document.getElementById('total_value').value = formatCurrency(String(valueTotal));
+  }
 }
 // -->
 </script>
