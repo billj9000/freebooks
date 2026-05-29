@@ -28,8 +28,9 @@
 // 3.71 => adds freight_tax_id column to journal_main
 // 3.72 => adds shipping/customs columns to inventory table
 // 3.73 => adds ship_packages column to journal_main
+// 3.74 => adds recipient_name and recipient_email columns to shipping_log
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.73);
+define('MODULE_PHREEBOOKS_VERSION',    3.74);
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);

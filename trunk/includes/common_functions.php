@@ -1767,7 +1767,8 @@ function validate_ajax_user($token = 0) {
       $mail->FromName = $from_email_name;
       $mail->addAddress($to_email_address, $to_name);
       $mail->addReplyTo($from_email_address, $from_email_name);
-      if (isset($block['EMAIL_CC_ADDRESS'])) $mail->addCC($block['EMAIL_CC_ADDRESS'], $block['EMAIL_CC_NAME']);
+      if (!empty($block['EMAIL_CC_ADDRESS']))  $mail->addCC($block['EMAIL_CC_ADDRESS'],  $block['EMAIL_CC_NAME']  ?? '');
+      if (!empty($block['EMAIL_BCC_ADDRESS'])) $mail->addBCC($block['EMAIL_BCC_ADDRESS'], $block['EMAIL_BCC_NAME'] ?? '');
       $mail->WordWrap = 76;
       if (EMAIL_TRANSPORT=='sendmail-f' || EMAIL_TRANSPORT=='sendmail') {
         $mail->isSendmail();

@@ -74,6 +74,12 @@ define('SHIPPING_EMAIL_SENDER','E-mail Sender');
 define('SHIPPING_EMAIL_RECIPIENT','E-mail Recipient');
 define('SHIPPING_EMAIL_SENDER_ADD','Sender E-mail Address');
 define('SHIPPING_EMAIL_RECIPIENT_ADD','Recipient E-mail Address');
+define('SHIPPING_LABEL_TO_NAME',   'To: Name');
+define('SHIPPING_LABEL_TO_EMAIL',  'To: E-mail');
+define('SHIPPING_LABEL_FROM_NAME', 'From: Name');
+define('SHIPPING_LABEL_FROM_EMAIL','From: E-mail');
+define('SHIPPING_LABEL_CC_EMAIL',  'CC:');
+define('SHIPPING_LABEL_BCC_EMAIL', 'BCC:');
 define('SHIPPING_TEXT_EXCEPTION','Exception');
 define('SHIPPING_TEXT_DELIVER','Deliver');
 define('SHIPPING_BILL_CHARGES_TO','Bill charges to');
@@ -281,6 +287,13 @@ define('SHIPPING_RET_MAILS','Carrier Prints and Mails Return Label');
 
 define('SHIPPING_SENDER','Sender');
 define('SHIPPING_RECIPIENT','Recipient');
+// Label viewer
+define('SHIPPING_LABEL_DOWNLOAD',      'Download');
+define('SHIPPING_LABEL_EMAIL',         'Email');
+define('SHIPPING_LABEL_EMAIL_SENT',    'Shipping label emailed successfully.');
+define('SHIPPING_LABEL_EMAIL_ERROR',   'Failed to send email. Please check your email settings.');
+define('SHIPPING_LABEL_EMAIL_SUBJECT', 'Shipping Label');
+define('SHIPPING_LABEL_EMAIL_BODY',    'Please find your shipping label attached.');
 define('SHIPPING_RECEIPIENT','Receipient');
 define('SHIPPING_THIRD_PARTY','Third Party');
 define('SHIPPING_COLLECT','Collect');

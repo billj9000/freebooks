@@ -223,7 +223,7 @@ define('TEXT_QUANTITY','Quantity');
 define('TEXT_READ_ONLY','Read Only');
 define('TEXT_RECEIVE','Receive');
 define('TEXT_RECEIVE_ALL','Receive PO');
-define('TEXT_RECEPIENT_NAME','Recepient Name: ');
+define('TEXT_RECEPIENT_NAME','Recipient Name: ');
 define('TEXT_RECEIPTS','Receipts');
 define('TEXT_RECUR','Recur');
 define('TEXT_REFERENCE','Reference');
