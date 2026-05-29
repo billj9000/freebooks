@@ -23,6 +23,7 @@
 <script>
 var formName          = 'label_mgr';
 var image_delete_msg  = '<?php echo addslashes(SHIPPING_DELETE_CONFIRM); ?>';
+var _joditMsgBody     = null;
 
 function init() {
   <?php
@@ -32,9 +33,21 @@ function init() {
     }
   ?>
   toggleCustoms();
+  toggleEmailEditor();
   updateWeight();
   var w1 = document.getElementById('wt_1');
   if (w1) w1.focus();
+}
+
+function toggleEmailEditor() {
+  var sel  = document.querySelector('input[name="delivery_method"]:checked');
+  var show = (sel && sel.value === 'S');
+  document.getElementById('email_editor').style.display = show ? 'block' : 'none';
+  if (show && !_joditMsgBody) {
+    setTimeout(function() {
+      _joditMsgBody = Jodit.make(document.getElementById('message_body'));
+    }, 0);
+  }
 }
 
 function toggleCustoms() {

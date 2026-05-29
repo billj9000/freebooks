@@ -116,6 +116,30 @@ switch ($_REQUEST['action']) {
       }
       $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
       gen_add_audit_log(SHIPPING_LOG_LABEL_PRINTED, $shipment_num . '-' . $sInfo->purchase_invoice_id);
+      // Send email if delivery_method = 'S'
+      if (($sInfo->delivery_method ?? 'I') === 'S' && !empty($sInfo->to_email)) {
+        $file_path = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . str_replace('-', '/', $sInfo->ship_date) . '/';
+        $block = array();
+        if (!empty($sInfo->cc_email)) {
+          $block['EMAIL_CC_NAME']    = $sInfo->cc_name ?? '';
+          $block['EMAIL_CC_ADDRESS'] = $sInfo->cc_email;
+        }
+        foreach ($labels_array as $tracking_num) {
+          foreach (glob($file_path . $tracking_num . '*.pdf') as $pdf_file) {
+            validate_send_mail(
+              $sInfo->to_name ?: $sInfo->to_email,
+              $sInfo->to_email,
+              $sInfo->message_subject ?: DHL_EMAIL_LABEL_SUBJECT,
+              $sInfo->message_body    ?: DHL_EMAIL_LABEL_BODY,
+              $sInfo->from_name       ?: '',
+              $sInfo->from_email      ?: '',
+              $block,
+              array('file' => $pdf_file)
+            );
+          }
+        }
+        $messageStack->add(DHL_EMAIL_LABEL_SENT, 'success');
+      }
       // DHL labels are always PDF — redirect to viewer
       gen_redirect(html_href_link(FILENAME_DEFAULT,
         'module=shipping&page=popup_label_viewer&method=' . $shipping_module .
@@ -265,6 +289,16 @@ switch ($_REQUEST['action']) {
         }
       }
     }
+    // Email delivery defaults
+    $sInfo->delivery_method  = 'I';
+    $sInfo->from_name        = defined('COMPANY_NAME')  ? COMPANY_NAME  : '';
+    $sInfo->from_email       = defined('COMPANY_EMAIL') ? COMPANY_EMAIL : '';
+    $sInfo->to_name          = $sInfo->sender_primary_name ?? '';
+    $sInfo->to_email         = $sInfo->sender_email ?? '';
+    $sInfo->cc_name          = '';
+    $sInfo->cc_email         = '';
+    $sInfo->message_subject  = DHL_EMAIL_LABEL_SUBJECT;
+    $sInfo->message_body     = DHL_EMAIL_LABEL_BODY;
 }
 
 /*****************  prepare to display templates  ******************/

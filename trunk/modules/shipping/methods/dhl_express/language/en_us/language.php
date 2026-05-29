@@ -53,4 +53,21 @@ define('DHL_TEXT_UNIT_WEIGHT',   'Unit Weight');
 define('DHL_TEXT_UNIT_VALUE',    'Unit Value');
 define('DHL_TEXT_SAVE_TO_INV',   'Save descriptions to inventory');
 define('DHL_ITEMS_SAVED',        'Item descriptions saved to inventory.');
+// Delivery method chooser
+define('DHL_DELIVERY_METHOD',   'Label Method');
+define('DHL_DELIVERY_BROWSER',  'Browser');
+define('DHL_DELIVERY_DOWNLOAD', 'Download');
+define('DHL_DELIVERY_EMAIL',    'Email');
+// Email editor fields
+define('DHL_EMAIL_FROM_NAME',    'From Name');
+define('DHL_EMAIL_FROM_EMAIL',   'From Email');
+define('DHL_EMAIL_TO_NAME',      'To Name');
+define('DHL_EMAIL_TO_EMAIL',     'To Email');
+define('DHL_EMAIL_CC_EMAIL',     'CC Email');
+define('DHL_EMAIL_SUBJECT',      'Subject');
+define('DHL_EMAIL_BODY_LABEL',   'Message');
+// Email content defaults / messages
+define('DHL_EMAIL_LABEL_SUBJECT', 'DHL Shipping Label');
+define('DHL_EMAIL_LABEL_BODY',    'Please find your DHL shipping label attached.');
+define('DHL_EMAIL_LABEL_SENT',    'Shipping label emailed.');
 ?>

@@ -32,138 +32,222 @@ $sel_sm = 'class="form-select form-select-sm"';
 ?>
 <h1><?php echo MODULE_SHIPPING_DHL_EXPRESS_TEXT_TITLE; ?></h1>
 
-<!-- === Sender / Recipient address row === -->
-<div class="row g-2 mb-3 align-items-start" style="max-width:780px">
+<!-- === Sender / Recipient / Delivery Method row === -->
+<div class="row g-2 mb-3 align-items-start">
 
-  <!-- Sender -->
-  <div class="col">
-    <div class="card h-100">
-      <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_SENDER; ?></div>
+  <!-- Sender + Swap + Recipient (constrained to original width) -->
+  <div class="col-auto">
+    <div class="d-flex gap-2 align-items-start" style="max-width:780px">
+
+      <!-- Sender -->
+      <div class="flex-fill">
+        <div class="card h-100">
+          <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_SENDER; ?></div>
+          <div class="card-body py-2">
+            <div class="row g-1">
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_PRIMARY_NAME; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_primary_name" id="sender_primary_name"
+                       value="<?php echo htmlspecialchars($sInfo->sender_primary_name ?? ''); ?>" maxlength="60">
+              </div>
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_CONTACT; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_contact" id="sender_contact"
+                       value="<?php echo htmlspecialchars($sInfo->sender_contact ?? ''); ?>" maxlength="60">
+              </div>
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_ADDRESS1; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_address1" id="sender_address1"
+                       value="<?php echo htmlspecialchars($sInfo->sender_address1 ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_ADDRESS2; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_address2" id="sender_address2"
+                       value="<?php echo htmlspecialchars($sInfo->sender_address2 ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-7">
+                <label class="form-label"><?php echo GEN_CITY_TOWN; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_city_town" id="sender_city_town"
+                       value="<?php echo htmlspecialchars($sInfo->sender_city_town ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-5">
+                <label class="form-label"><?php echo GEN_STATE_PROVINCE; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_state_province" id="sender_state_province"
+                       value="<?php echo htmlspecialchars($sInfo->sender_state_province ?? ''); ?>" maxlength="30">
+              </div>
+              <div class="col-5">
+                <label class="form-label"><?php echo GEN_POSTAL_CODE; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_postal_code" id="sender_postal_code"
+                       value="<?php echo htmlspecialchars($sInfo->sender_postal_code ?? ''); ?>" maxlength="15">
+              </div>
+              <div class="col-7">
+                <label class="form-label"><?php echo GEN_COUNTRY; ?></label>
+                <?php echo html_pull_down_menu('sender_country_code', $country_list, $sInfo->sender_country_code ?? '',
+                  $sel_sm . ' onchange="toggleCustoms()"'); ?>
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo GEN_TELEPHONE1; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_telephone1" id="sender_telephone1"
+                       value="<?php echo htmlspecialchars($sInfo->sender_telephone1 ?? ''); ?>" maxlength="20">
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo GEN_EMAIL; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_email" id="sender_email"
+                       value="<?php echo htmlspecialchars($sInfo->sender_email ?? ''); ?>" maxlength="60">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swap button -->
+      <div class="flex-shrink-0 align-self-center text-center">
+        <button type="button" class="btn btn-primary btn-sm" onclick="swapShipAddresses()"
+                title="<?php echo SHIPPING_TEXT_SWAP_ADDRESSES; ?>">&harr;</button>
+      </div>
+
+      <!-- Recipient -->
+      <div class="flex-fill">
+        <div class="card h-100">
+          <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_RECIPIENT; ?></div>
+          <div class="card-body py-2">
+            <div class="row g-1">
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_PRIMARY_NAME; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_primary_name" id="ship_primary_name"
+                       value="<?php echo htmlspecialchars($sInfo->ship_primary_name ?? ''); ?>" maxlength="60">
+              </div>
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_CONTACT; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_contact" id="ship_contact"
+                       value="<?php echo htmlspecialchars($sInfo->ship_contact ?? ''); ?>" maxlength="60">
+              </div>
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_ADDRESS1; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_address1" id="ship_address1"
+                       value="<?php echo htmlspecialchars($sInfo->ship_address1 ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-12">
+                <label class="form-label"><?php echo GEN_ADDRESS2; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_address2" id="ship_address2"
+                       value="<?php echo htmlspecialchars($sInfo->ship_address2 ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-7">
+                <label class="form-label"><?php echo GEN_CITY_TOWN; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_city_town" id="ship_city_town"
+                       value="<?php echo htmlspecialchars($sInfo->ship_city_town ?? ''); ?>" maxlength="50">
+              </div>
+              <div class="col-5">
+                <label class="form-label"><?php echo GEN_STATE_PROVINCE; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_state_province" id="ship_state_province"
+                       value="<?php echo htmlspecialchars($sInfo->ship_state_province ?? ''); ?>" maxlength="30">
+              </div>
+              <div class="col-5">
+                <label class="form-label"><?php echo GEN_POSTAL_CODE; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_postal_code" id="ship_postal_code"
+                       value="<?php echo htmlspecialchars($sInfo->ship_postal_code ?? ''); ?>" maxlength="15">
+              </div>
+              <div class="col-7">
+                <label class="form-label"><?php echo GEN_COUNTRY; ?></label>
+                <?php echo html_pull_down_menu('ship_country_code', $country_list, $sInfo->ship_country_code ?? '',
+                  $sel_sm . ' onchange="toggleCustoms()"'); ?>
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo GEN_TELEPHONE1; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_telephone1" id="ship_telephone1"
+                       value="<?php echo htmlspecialchars($sInfo->ship_telephone1 ?? ''); ?>" maxlength="20">
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo GEN_EMAIL; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_email" id="ship_email"
+                       value="<?php echo htmlspecialchars($sInfo->ship_email ?? ''); ?>" maxlength="60">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Delivery Method -->
+  <div class="col-auto">
+    <div class="card">
+      <div class="card-header py-1 fb-widget-header"><?php echo DHL_DELIVERY_METHOD; ?></div>
       <div class="card-body py-2">
-        <div class="row g-1">
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_PRIMARY_NAME; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_primary_name" id="sender_primary_name"
-                   value="<?php echo htmlspecialchars($sInfo->sender_primary_name ?? ''); ?>" maxlength="60">
+        <div class="d-flex gap-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="delivery_method" id="dm_browser" value="I"
+                   <?php if (($sInfo->delivery_method ?? 'I') === 'I') echo 'checked'; ?>
+                   onchange="toggleEmailEditor()">
+            <label class="form-check-label" for="dm_browser"><?php echo DHL_DELIVERY_BROWSER; ?></label>
           </div>
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_CONTACT; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_contact" id="sender_contact"
-                   value="<?php echo htmlspecialchars($sInfo->sender_contact ?? ''); ?>" maxlength="60">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="delivery_method" id="dm_download" value="D"
+                   <?php if (($sInfo->delivery_method ?? '') === 'D') echo 'checked'; ?>
+                   onchange="toggleEmailEditor()">
+            <label class="form-check-label" for="dm_download"><?php echo DHL_DELIVERY_DOWNLOAD; ?></label>
           </div>
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_ADDRESS1; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_address1" id="sender_address1"
-                   value="<?php echo htmlspecialchars($sInfo->sender_address1 ?? ''); ?>" maxlength="50">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="delivery_method" id="dm_email" value="S"
+                   <?php if (($sInfo->delivery_method ?? '') === 'S') echo 'checked'; ?>
+                   onchange="toggleEmailEditor()">
+            <label class="form-check-label" for="dm_email"><?php echo DHL_DELIVERY_EMAIL; ?></label>
           </div>
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_ADDRESS2; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_address2" id="sender_address2"
-                   value="<?php echo htmlspecialchars($sInfo->sender_address2 ?? ''); ?>" maxlength="50">
+        </div>
+        <!-- Email editor -->
+        <div id="email_editor" style="display:none">
+          <div class="row g-2 mb-1">
+            <div class="col">
+              <label class="form-label"><?php echo DHL_EMAIL_FROM_NAME; ?></label>
+              <input type="text" class="form-control form-control-sm" name="from_name"
+                     value="<?php echo htmlspecialchars($sInfo->from_name ?? ''); ?>" maxlength="60">
+            </div>
+            <div class="col">
+              <label class="form-label"><?php echo DHL_EMAIL_FROM_EMAIL; ?></label>
+              <input type="email" class="form-control form-control-sm" name="from_email"
+                     value="<?php echo htmlspecialchars($sInfo->from_email ?? ''); ?>" maxlength="100">
+            </div>
           </div>
-          <div class="col-7">
-            <label class="form-label"><?php echo GEN_CITY_TOWN; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_city_town" id="sender_city_town"
-                   value="<?php echo htmlspecialchars($sInfo->sender_city_town ?? ''); ?>" maxlength="50">
+          <div class="row g-2 mb-1">
+            <div class="col">
+              <label class="form-label"><?php echo DHL_EMAIL_TO_NAME; ?></label>
+              <input type="text" class="form-control form-control-sm" name="to_name"
+                     value="<?php echo htmlspecialchars($sInfo->to_name ?? ''); ?>" maxlength="60">
+            </div>
+            <div class="col">
+              <label class="form-label"><?php echo DHL_EMAIL_TO_EMAIL; ?></label>
+              <input type="email" class="form-control form-control-sm" name="to_email"
+                     value="<?php echo htmlspecialchars($sInfo->to_email ?? ''); ?>" maxlength="100">
+            </div>
+            <div class="col">
+              <label class="form-label"><?php echo DHL_EMAIL_CC_EMAIL; ?> <small class="text-muted">(optional)</small></label>
+              <input type="email" class="form-control form-control-sm" name="cc_email"
+                     value="<?php echo htmlspecialchars($sInfo->cc_email ?? ''); ?>" maxlength="100">
+            </div>
           </div>
-          <div class="col-5">
-            <label class="form-label"><?php echo GEN_STATE_PROVINCE; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_state_province" id="sender_state_province"
-                   value="<?php echo htmlspecialchars($sInfo->sender_state_province ?? ''); ?>" maxlength="30">
+          <div class="row g-2 mb-1">
+            <div class="col-12">
+              <label class="form-label"><?php echo DHL_EMAIL_SUBJECT; ?></label>
+              <input type="text" class="form-control form-control-sm" name="message_subject"
+                     value="<?php echo htmlspecialchars($sInfo->message_subject ?? DHL_EMAIL_LABEL_SUBJECT); ?>"
+                     maxlength="150">
+            </div>
           </div>
-          <div class="col-5">
-            <label class="form-label"><?php echo GEN_POSTAL_CODE; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_postal_code" id="sender_postal_code"
-                   value="<?php echo htmlspecialchars($sInfo->sender_postal_code ?? ''); ?>" maxlength="15">
-          </div>
-          <div class="col-7">
-            <label class="form-label"><?php echo GEN_COUNTRY; ?></label>
-            <?php echo html_pull_down_menu('sender_country_code', $country_list, $sInfo->sender_country_code ?? '',
-              $sel_sm . ' onchange="toggleCustoms()"'); ?>
-          </div>
-          <div class="col-6">
-            <label class="form-label"><?php echo GEN_TELEPHONE1; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_telephone1" id="sender_telephone1"
-                   value="<?php echo htmlspecialchars($sInfo->sender_telephone1 ?? ''); ?>" maxlength="20">
-          </div>
-          <div class="col-6">
-            <label class="form-label"><?php echo GEN_EMAIL; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_email" id="sender_email"
-                   value="<?php echo htmlspecialchars($sInfo->sender_email ?? ''); ?>" maxlength="60">
+          <div class="row g-2">
+            <div class="col-12">
+              <label class="form-label"><?php echo DHL_EMAIL_BODY_LABEL; ?></label>
+              <textarea name="message_body" id="message_body" rows="6"><?php
+                echo htmlspecialchars($sInfo->message_body ?? DHL_EMAIL_LABEL_BODY);
+              ?></textarea>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Swap button -->
-  <div class="col-auto text-center align-self-center">
-    <button type="button" class="btn btn-primary btn-sm" onclick="swapShipAddresses()"
-            title="<?php echo SHIPPING_TEXT_SWAP_ADDRESSES; ?>">&harr;</button>
-  </div>
-
-  <!-- Recipient -->
-  <div class="col">
-    <div class="card h-100">
-      <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_RECIPIENT; ?></div>
-      <div class="card-body py-2">
-        <div class="row g-1">
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_PRIMARY_NAME; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_primary_name" id="ship_primary_name"
-                   value="<?php echo htmlspecialchars($sInfo->ship_primary_name ?? ''); ?>" maxlength="60">
-          </div>
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_CONTACT; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_contact" id="ship_contact"
-                   value="<?php echo htmlspecialchars($sInfo->ship_contact ?? ''); ?>" maxlength="60">
-          </div>
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_ADDRESS1; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_address1" id="ship_address1"
-                   value="<?php echo htmlspecialchars($sInfo->ship_address1 ?? ''); ?>" maxlength="50">
-          </div>
-          <div class="col-12">
-            <label class="form-label"><?php echo GEN_ADDRESS2; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_address2" id="ship_address2"
-                   value="<?php echo htmlspecialchars($sInfo->ship_address2 ?? ''); ?>" maxlength="50">
-          </div>
-          <div class="col-7">
-            <label class="form-label"><?php echo GEN_CITY_TOWN; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_city_town" id="ship_city_town"
-                   value="<?php echo htmlspecialchars($sInfo->ship_city_town ?? ''); ?>" maxlength="50">
-          </div>
-          <div class="col-5">
-            <label class="form-label"><?php echo GEN_STATE_PROVINCE; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_state_province" id="ship_state_province"
-                   value="<?php echo htmlspecialchars($sInfo->ship_state_province ?? ''); ?>" maxlength="30">
-          </div>
-          <div class="col-5">
-            <label class="form-label"><?php echo GEN_POSTAL_CODE; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_postal_code" id="ship_postal_code"
-                   value="<?php echo htmlspecialchars($sInfo->ship_postal_code ?? ''); ?>" maxlength="15">
-          </div>
-          <div class="col-7">
-            <label class="form-label"><?php echo GEN_COUNTRY; ?></label>
-            <?php echo html_pull_down_menu('ship_country_code', $country_list, $sInfo->ship_country_code ?? '',
-              $sel_sm . ' onchange="toggleCustoms()"'); ?>
-          </div>
-          <div class="col-6">
-            <label class="form-label"><?php echo GEN_TELEPHONE1; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_telephone1" id="ship_telephone1"
-                   value="<?php echo htmlspecialchars($sInfo->ship_telephone1 ?? ''); ?>" maxlength="20">
-          </div>
-          <div class="col-6">
-            <label class="form-label"><?php echo GEN_EMAIL; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_email" id="ship_email"
-                   value="<?php echo htmlspecialchars($sInfo->ship_email ?? ''); ?>" maxlength="60">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- end address row -->
+</div><!-- end address/delivery row -->
 
 <!-- === Summary + Shipment Details row === -->
 <div class="row g-2 mb-3">
