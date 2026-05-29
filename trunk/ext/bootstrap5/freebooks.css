@@ -179,29 +179,76 @@
   border-color:     #0078ae;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────── */
-.pkg-modal .btn-primary {
-  background-color: #0078ae;
-  border-color:     #0078ae;
-  font-size:        11px;
-  border-radius:    0;
+/* ── Buttons: jQuery UI "start" glass theme applied globally ─────── */
+.btn {
+  font-family:   Verdana, Arial, sans-serif;
+  font-size:     11px;
+  border-radius: 0;
+  line-height:   1.4;
 }
-.pkg-modal .btn-primary:hover,
-.pkg-modal .btn-primary:focus {
-  background-color: #005f8a;
-  border-color:     #005f8a;
+.btn-sm { font-size: 11px; padding: 2px 8px; }
+
+.btn-primary {
+  background-color:    #0078ae;
+  background-image:    url(/themes/default/css/start/images/ui-bg_glass_45_0078ae_1x400.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #77d5f7;
+  color:               #ffffff;
 }
-.pkg-modal .btn-secondary {
-  background-color: #e4e4e4;
-  border-color:     #aaaaaa;
-  color:            #222222;
-  font-size:        11px;
-  border-radius:    0;
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color:    #79c9ec;
+  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #448dae;
+  color:               #026890;
+  box-shadow:          none;
 }
-.pkg-modal .btn-secondary:hover {
-  background-color: #cccccc;
-  border-color:     #999999;
-  color:            #222222;
+.btn-primary:active,
+.btn-primary.active {
+  background-color:    #6eac2c;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_50_6eac2c_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #acdd4a;
+  color:               #ffffff;
+}
+
+.btn-secondary {
+  background-color:    #aaaaaa;
+  background-image:    url(/themes/default/css/start/images/ui-bg_flat_75_aaaaaa_40x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #bbbbbb;
+  color:               #ffffff;
+}
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color:    #79c9ec;
+  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #448dae;
+  color:               #026890;
+  box-shadow:          none;
+}
+
+.btn-outline-primary {
+  border-color:  #0078ae;
+  color:         #0078ae;
+  border-radius: 0;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color:    #79c9ec;
+  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-color:        #448dae;
+  color:               #026890;
+  box-shadow:          none;
 }
 
 /* ── H1: match original stylesheet.css global h1 rule ───────────── */
@@ -300,4 +347,52 @@ h1 {
   border-top:       none;
   background-color: #ffffff;
   padding:          8px;
+}
+
+/* ── Popup label viewer ─────────────────────────────────────────── */
+.fb-viewer-toolbar {
+  display:             flex;
+  align-items:         center;
+  gap:                 4px;
+  flex-wrap:           wrap;
+  padding:             4px 6px;
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-bottom:       1px solid #4297d7;
+}
+
+.fb-viewer-panel {
+  background-color: #fcfdfd;
+  border-bottom:    1px solid #a6c9e2;
+  padding:          8px 12px;
+  font-family:      Verdana, Arial, sans-serif;
+  font-size:        11px;
+  color:            #222222;
+}
+.fb-viewer-panel .form-label {
+  font-family:   Verdana, Arial, sans-serif;
+  font-size:     11px;
+  font-weight:   bold;
+  margin-bottom: 2px;
+  color:         #222222;
+}
+.fb-viewer-panel .form-control {
+  font-family:   Verdana, Arial, sans-serif;
+  font-size:     11px;
+  border-color:  #a6c9e2;
+  border-radius: 0;
+  padding:       2px 4px;
+  height:        auto;
+}
+.fb-viewer-panel .form-control:focus {
+  border-color: #4297d7;
+  box-shadow:   0 0 0 2px rgba(33, 145, 192, 0.25);
+}
+.fb-viewer-panel .alert {
+  font-family: Verdana, Arial, sans-serif;
+  font-size:   11px;
+  padding:     4px 10px;
+  border-radius: 0;
 }

@@ -43,7 +43,7 @@ $post_url = html_href_link(FILENAME_DEFAULT,
 
 
 <!-- Toolbar -->
-<div class="d-flex align-items-center gap-2 p-2 border-bottom bg-light flex-wrap">
+<div class="fb-viewer-toolbar">
   <button type="button" class="btn btn-secondary btn-sm"
           onclick="if(window.opener)window.opener.location.reload(); window.close()">
     <?php echo TEXT_CLOSE; ?>
@@ -66,14 +66,10 @@ $post_url = html_href_link(FILENAME_DEFAULT,
           onclick="toggleEmailPanel()"><?php echo SHIPPING_LABEL_EMAIL; ?></button>
 </div>
 
-<div id="email_success" style="display:none" class="alert alert-success alert-dismissible fade show mb-0 rounded-0 py-2 px-3" role="alert">
-  <?php echo SHIPPING_LABEL_EMAIL_SENT; ?>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-
 <!-- Email panel -->
-<div id="email_panel" style="display:none" class="border-bottom p-3 bg-white">
-  <div id="email_error" style="display:none" class="alert alert-danger py-2 mb-2"><?php echo SHIPPING_LABEL_EMAIL_ERROR; ?></div>
+<div id="email_panel" style="display:none" class="fb-viewer-panel">
+  <div id="email_success" style="display:none" class="alert alert-success mb-2"><?php echo SHIPPING_LABEL_EMAIL_SENT; ?></div>
+  <div id="email_error"   style="display:none" class="alert alert-danger  mb-2"><?php echo SHIPPING_LABEL_EMAIL_ERROR; ?></div>
   <form id="email_form">
     <div class="row g-2 mb-2">
       <div class="col-md-3">
@@ -125,8 +121,13 @@ $post_url = html_href_link(FILENAME_DEFAULT,
                   rows="3"><?php echo htmlspecialchars(SHIPPING_LABEL_EMAIL_BODY); ?></textarea>
       </div>
     </div>
-    <button type="button" class="btn btn-primary btn-sm"
-            onclick="sendEmail()"><?php echo TEXT_SEND; ?></button>
+    <button type="button" class="btn btn-primary btn-sm" onclick="sendEmail()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor"
+           viewBox="0 0 16 16" style="margin-right:3px;vertical-align:-1px">
+        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+      </svg>
+      <?php echo TEXT_SEND; ?>
+    </button>
   </form>
 </div>
 
@@ -168,8 +169,12 @@ function sendEmail() {
     .then(function(r) { return r.json(); })
     .then(function(json) {
       if (json.status === 'ok') {
-        document.getElementById('email_panel').style.display   = 'none';
         document.getElementById('email_success').style.display = '';
+        document.getElementById('email_error').style.display   = 'none';
+        setTimeout(function() {
+          document.getElementById('email_panel').style.display   = 'none';
+          document.getElementById('email_success').style.display = 'none';
+        }, 2000);
       } else {
         document.getElementById('email_error').style.display = '';
       }
