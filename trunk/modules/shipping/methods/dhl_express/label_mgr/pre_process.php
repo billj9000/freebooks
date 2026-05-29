@@ -281,6 +281,17 @@ switch ($_REQUEST['action']) {
 }
 
 /*****************  prepare to display templates  ******************/
+$available_packages = [];
+if (defined('TABLE_SHIPPING_PACKAGES')) {
+  $pkgQ = $db->Execute("SELECT name, ext_length, ext_width, ext_height
+    FROM " . TABLE_SHIPPING_PACKAGES . "
+    WHERE (carrier = '' OR carrier = 'dhl_express') AND inactive = '0'
+    ORDER BY sort_order ASC, name ASC");
+  while (!$pkgQ->EOF) {
+    $available_packages[] = $pkgQ->fields;
+    $pkgQ->MoveNext();
+  }
+}
 $shipping_methods = array();
 foreach ($shipping_defaults['service_levels'] as $key => $value) {
   if (defined($shipping_module . '_' . $key)) {

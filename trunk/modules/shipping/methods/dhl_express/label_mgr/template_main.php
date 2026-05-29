@@ -326,7 +326,29 @@ $sel_sm = 'class="form-select form-select-sm"';
         endif; ?>
       </tbody>
     </table>
+    <?php if (empty($available_packages)): ?>
     <button type="button" class="btn btn-secondary btn-sm" onclick="addRow()"><?php echo TEXT_ADD; ?></button>
+    <?php else: ?>
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <?php echo TEXT_ADD; ?>
+      </button>
+      <ul class="dropdown-menu">
+        <?php foreach ($available_packages as $pkg):
+          $dims = number_format((float)$pkg['ext_length'], 1) . ' &times; '
+                . number_format((float)$pkg['ext_width'],  1) . ' &times; '
+                . number_format((float)$pkg['ext_height'], 1);
+        ?>
+        <li><a class="dropdown-item" href="#"
+               onclick="addRow(<?php echo (float)$pkg['ext_length']; ?>,<?php echo (float)$pkg['ext_width']; ?>,<?php echo (float)$pkg['ext_height']; ?>);return false;">
+          <?php echo htmlspecialchars($pkg['name']); ?> (<?php echo $dims; ?>)
+        </a></li>
+        <?php endforeach; ?>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" onclick="addRow();return false;"><?php echo DHL_TEXT_CUSTOM_PACKAGE; ?></a></li>
+      </ul>
+    </div>
+    <?php endif; ?>
   </div>
 </div>
 

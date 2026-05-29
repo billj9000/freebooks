@@ -74,10 +74,13 @@ function check_form() {
   return true;
 }
 
-function addRow() {
+function addRow(len, wid, hgt) {
   var tbl = document.getElementById('item_table');
   var rowCnt = tbl.rows.length + 1;
   var newRow = tbl.insertRow(-1);
+  var lv = (len !== undefined && len !== 0) ? len : '';
+  var wv = (wid !== undefined && wid !== 0) ? wid : '';
+  var hv = (hgt !== undefined && hgt !== 0) ? hgt : '';
   var cells = [
     '<button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 lh-1"' +
       ' onclick="if(confirm(\'' + image_delete_msg.replace(/'/g, "\\'") + '\')) removeRow(' + rowCnt + ')">&times;</button>',
@@ -87,11 +90,11 @@ function addRow() {
       ' name="wt_' + rowCnt + '" id="wt_' + rowCnt + '" value=""' +
       ' onchange="updateWeight(' + rowCnt + ')">',
     '<input type="text" class="form-control form-control-sm text-end" style="width:5em"' +
-      ' name="len_' + rowCnt + '" id="len_' + rowCnt + '" value="">',
+      ' name="len_' + rowCnt + '" id="len_' + rowCnt + '" value="' + lv + '">',
     '<input type="text" class="form-control form-control-sm text-end" style="width:5em"' +
-      ' name="wid_' + rowCnt + '" id="wid_' + rowCnt + '" value="">',
+      ' name="wid_' + rowCnt + '" id="wid_' + rowCnt + '" value="' + wv + '">',
     '<input type="text" class="form-control form-control-sm text-end" style="width:5em"' +
-      ' name="hgt_' + rowCnt + '" id="hgt_' + rowCnt + '" value="">',
+      ' name="hgt_' + rowCnt + '" id="hgt_' + rowCnt + '" value="' + hv + '">',
     '<input type="text" class="form-control form-control-sm text-end" style="width:7em"' +
       ' name="ins_' + rowCnt + '" id="ins_' + rowCnt + '" value="0.00">',
   ];

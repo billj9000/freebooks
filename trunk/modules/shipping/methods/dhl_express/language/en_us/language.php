@@ -53,4 +53,5 @@ define('DHL_TEXT_UNIT_WEIGHT',   'Unit Weight');
 define('DHL_TEXT_UNIT_VALUE',    'Unit Value');
 define('DHL_TEXT_SAVE_TO_INV',   'Save descriptions to inventory');
 define('DHL_ITEMS_SAVED',        'Item descriptions saved to inventory.');
+define('DHL_TEXT_CUSTOM_PACKAGE', 'Custom');
 ?>
