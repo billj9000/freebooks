@@ -270,6 +270,12 @@ switch ($_REQUEST['action']) {
           );
           $li_result->MoveNext();
         }
+        // Use goods-only total for the declared value display (excludes shipping/VAT line items)
+        if (!empty($sInfo->line_items)) {
+          $goods_sum = 0;
+          foreach ($sInfo->line_items as $_li) $goods_sum += (float)$_li['value'] * (float)$_li['qty'];
+          $sInfo->total_value = $goods_sum;
+        }
       }
     }
 }

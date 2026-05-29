@@ -182,11 +182,30 @@ $sel_sm = 'class="form-select form-select-sm"';
         <div class="row g-2 align-items-center">
           <div class="col-auto"><label class="form-label mb-0"><?php echo SHIPPING_TOTAL_VALUE; ?></label></div>
           <div class="col-auto">
-            <input type="text" class="form-control form-control-sm text-end" style="width:8em"
-                   name="total_value" id="total_value"
-                   value="<?php echo htmlspecialchars($sInfo->total_value ?? ''); ?>" readonly>
+            <?php $home_currency = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP'; ?>
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control form-control-sm text-end" style="width:8em"
+                     name="total_value" id="total_value"
+                     value="<?php echo htmlspecialchars($sInfo->total_value ?? ''); ?>" readonly>
+              <span class="input-group-text" style="font-size:11px;border-radius:0;padding:2px 5px">
+                <?php echo htmlspecialchars($home_currency); ?>
+              </span>
+            </div>
           </div>
+          <?php
+          $order_currency = $sInfo->currencies_code ?? '';
+          if ($order_currency && $order_currency !== $home_currency):
+            $eur_value = number_format(round((float)($sInfo->total_value ?? 0) * (float)($sInfo->currencies_value ?: 1), 2), 2);
+          ?>
+          <div class="col-auto">
+            <span class="badge" style="background-color:#2191c0;font-size:11px;border-radius:0">
+              <?php echo $eur_value . ' ' . htmlspecialchars($order_currency); ?>
+            </span>
+          </div>
+          <?php endif; ?>
         </div>
+        <input type="hidden" name="currencies_code"  value="<?php echo htmlspecialchars($sInfo->currencies_code  ?? ''); ?>">
+        <input type="hidden" name="currencies_value" value="<?php echo htmlspecialchars($sInfo->currencies_value ?? '1'); ?>">
       </div>
     </div>
   </div>
