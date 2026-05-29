@@ -23,14 +23,16 @@ define('MODULE_SHIPPING_DHL_EXPRESS_TITLE',            'DHL Express Title');
 define('MODULE_SHIPPING_DHL_EXPRESS_TITLE_SHORT',      'DHL Express');
 define('MODULE_SHIPPING_DHL_EXPRESS_API_KEY',          'API Key (username)');
 define('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET',       'API Secret (password)');
-define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER',   'DHL Account Number');
+define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER',        'Export Account Number');
+define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT', 'Import Account Number');
 define('MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE',        'Mode');
 define('MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',       'Sort Order');
 // Admin panel field descriptions (one per key() entry)
 define('MODULE_SHIPPING_DHL_EXPRESS_TITLE_DESC',          'Title shown in the shipping estimator.');
 define('MODULE_SHIPPING_DHL_EXPRESS_API_KEY_DESC',        'DHL Express Commerce API key (username). Obtain from the DHL developer portal.');
 define('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET_DESC',     'DHL Express Commerce API secret (password).');
-define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_DESC', 'Your DHL Express account number for billing.');
+define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_DESC',        'Your DHL Express account number for export (outbound) shipments.');
+define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT_DESC', 'Your DHL Express account number for import (inbound) shipments. Leave blank to use the export account number.');
 define('MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE_DESC',      'Test uses DHL sandbox credentials; Production uses live credentials.');
 define('MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER_DESC',     'Sort order of display. Lowest is displayed first.');
 // Error messages

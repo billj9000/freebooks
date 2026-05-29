@@ -48,7 +48,9 @@ switch ($_REQUEST['action']) {
 
   case 'label':
     foreach ($_POST as $key => $value) $sInfo->$key = db_prepare_input($value);
-    $sInfo->ship_date = gen_db_date($sInfo->ship_date);
+    // <input type="date"> submits Y-m-d already; gen_db_date() would mangle it on non-Y-m-d locales
+    $sInfo->ship_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $sInfo->ship_date)
+      ? $sInfo->ship_date : gen_db_date($sInfo->ship_date);
     // Package rows
     $sInfo->package = array();
     $i = 0;
@@ -140,13 +142,64 @@ switch ($_REQUEST['action']) {
   default:
     $oID = db_prepare_input($_GET['oID']);
     if ($oID) {
-      $sql = "select shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
+      $sql = "select journal_id, shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
           ship_city_town, ship_state_province, ship_postal_code, ship_country_code, ship_telephone1,
-          ship_email, purchase_invoice_id, purch_order_id, total_amount, ship_packages
+          ship_email, bill_primary_name, bill_contact, bill_address1, bill_address2,
+          bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_telephone1, bill_email,
+          purchase_invoice_id, purch_order_id, total_amount, ship_packages,
+          currencies_code, currencies_value
           from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$oID;
       $result = $db->Execute($sql);
       if (is_array($result->fields)) {
         foreach ($result->fields as $key => $value) $sInfo->$key = $value;
+        $journal_id = (int)($result->fields['journal_id'] ?? $_GET['jID'] ?? 0);
+        if (in_array($journal_id, [3, 4, 6, 7])) {
+          $sInfo->is_purchase          = true;
+          $sInfo->vendor_primary_name  = $result->fields['bill_primary_name']   ?? '';
+          $sInfo->vendor_contact       = $result->fields['bill_contact']        ?? '';
+          $sInfo->vendor_address1      = $result->fields['bill_address1']       ?? '';
+          $sInfo->vendor_address2      = $result->fields['bill_address2']       ?? '';
+          $sInfo->vendor_city_town     = $result->fields['bill_city_town']      ?? '';
+          $sInfo->vendor_state_province= $result->fields['bill_state_province'] ?? '';
+          $sInfo->vendor_postal_code   = $result->fields['bill_postal_code']    ?? '';
+          $sInfo->vendor_country_code  = $result->fields['bill_country_code']   ?? '';
+          $sInfo->vendor_telephone1    = $result->fields['bill_telephone1']     ?? '';
+          $sInfo->vendor_email         = $result->fields['bill_email']          ?? '';
+          // For purchases, ship_* = our receiving address; fall back to company constants if blank
+          if (!$sInfo->ship_primary_name) $sInfo->ship_primary_name = defined('COMPANY_NAME')         ? COMPANY_NAME         : '';
+          if (!$sInfo->ship_city_town)    $sInfo->ship_city_town    = defined('COMPANY_CITY_TOWN')    ? COMPANY_CITY_TOWN    : '';
+          if (!$sInfo->ship_postal_code)  $sInfo->ship_postal_code  = defined('COMPANY_POSTAL_CODE')  ? COMPANY_POSTAL_CODE  : '';
+          if (!$sInfo->ship_country_code) $sInfo->ship_country_code = defined('COMPANY_COUNTRY')      ? COMPANY_COUNTRY      : '';
+          // Fill in the full receiving address from company constants where blank
+          if (!$sInfo->ship_address1)      $sInfo->ship_address1      = defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '';
+          if (!($sInfo->ship_address2??''))$sInfo->ship_address2      = defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '';
+          if (!$sInfo->ship_state_province)$sInfo->ship_state_province= defined('COMPANY_ZONE')        ? COMPANY_ZONE        : '';
+          if (!($sInfo->ship_telephone1??''))$sInfo->ship_telephone1  = defined('COMPANY_TELEPHONE1')  ? COMPANY_TELEPHONE1  : '';
+          if (!($sInfo->ship_email??''))   $sInfo->ship_email         = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
+          // Sender = vendor
+          $sInfo->sender_primary_name   = $sInfo->vendor_primary_name   ?? '';
+          $sInfo->sender_contact        = $sInfo->vendor_contact        ?? '';
+          $sInfo->sender_address1       = $sInfo->vendor_address1       ?? '';
+          $sInfo->sender_address2       = $sInfo->vendor_address2       ?? '';
+          $sInfo->sender_city_town      = $sInfo->vendor_city_town      ?? '';
+          $sInfo->sender_state_province = $sInfo->vendor_state_province ?? '';
+          $sInfo->sender_postal_code    = $sInfo->vendor_postal_code    ?? '';
+          $sInfo->sender_country_code   = $sInfo->vendor_country_code   ?? '';
+          $sInfo->sender_telephone1     = $sInfo->vendor_telephone1     ?? '';
+          $sInfo->sender_email          = $sInfo->vendor_email          ?? '';
+        } else {
+          // Sender = company
+          $sInfo->sender_primary_name   = defined('COMPANY_NAME')        ? COMPANY_NAME        : '';
+          $sInfo->sender_contact        = defined('AR_CONTACT_NAME')     ? AR_CONTACT_NAME     : '';
+          $sInfo->sender_address1       = defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '';
+          $sInfo->sender_address2       = defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '';
+          $sInfo->sender_city_town      = defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '';
+          $sInfo->sender_state_province = defined('COMPANY_ZONE')        ? COMPANY_ZONE        : '';
+          $sInfo->sender_postal_code    = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
+          $sInfo->sender_country_code   = defined('COMPANY_COUNTRY')     ? COMPANY_COUNTRY     : '';
+          $sInfo->sender_telephone1     = defined('COMPANY_TELEPHONE1')  ? COMPANY_TELEPHONE1  : '';
+          $sInfo->sender_email          = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
+        }
         $temp = explode(':', $result->fields['shipper_code']);
         $sInfo->ship_method  = $temp[1] ?? '';
         $sInfo->total_value  = $result->fields['total_amount'];
@@ -182,7 +235,7 @@ switch ($_REQUEST['action']) {
           }
         }
         // Load inventory customs data for each line item
-        $li_sql = "SELECT ji.sku, ji.qty, ji.description, ji.full_price, ji.credit_amount,
+        $li_sql = "SELECT ji.sku, ji.qty, ji.description, ji.full_price, ji.debit_amount, ji.credit_amount,
                      i.customs_description, i.country_of_origin, i.hs_code, i.item_weight
                    FROM " . TABLE_JOURNAL_ITEM . " ji
                    LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku
@@ -194,10 +247,11 @@ switch ($_REQUEST['action']) {
         while (!$li_result->EOF) {
           $f   = $li_result->fields;
           $qty = (float)$f['qty'];
-          // full_price is unit price; fall back to credit_amount/qty for older rows where full_price is 0
+          // Purchases use debit_amount; sales use credit_amount. full_price (unit) takes priority when set.
+          $line_total = !empty($sInfo->is_purchase) ? (float)$f['debit_amount'] : (float)$f['credit_amount'];
           $unit_price = (float)$f['full_price'] > 0
             ? (float)$f['full_price']
-            : ($qty > 0 ? (float)$f['credit_amount'] / $qty : 0);
+            : ($qty > 0 ? $line_total / $qty : 0);
           $sInfo->line_items[] = array(
             'sku'         => $f['sku'],
             'description' => $f['customs_description'] ?: ($f['description'] ?: ''),

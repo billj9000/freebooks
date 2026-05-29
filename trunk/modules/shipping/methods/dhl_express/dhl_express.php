@@ -54,7 +54,8 @@ class dhl_express {
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_TITLE',          'default' => 'DHL Express'),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_API_KEY',        'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_API_SECRET',     'default' => ''),
-      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER', 'default' => ''),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER',        'default' => ''),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT', 'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE',      'default' => 'Test'),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',     'default' => '50'),
     );
@@ -135,7 +136,16 @@ class dhl_express {
         $messageStack->add(SHIPPING_ERROR_WEIGHT_ZERO, 'error');
         return false;
       }
-      $api_packages[] = array('weight' => $this->toKg($totalWeight, $pkg->pkg_weight_unit));
+      $p = array('weight' => $this->toKg($totalWeight, $pkg->pkg_weight_unit));
+      $dimUnit = strtoupper(trim($pkg->pkg_dimension_unit ?? 'IN'));
+      $factor  = ($dimUnit === 'CM') ? 1.0 : 2.54;
+      $lenCm   = (int)round((float)($pkg->pkg_length ?? 0) * $factor);
+      $widCm   = (int)round((float)($pkg->pkg_width  ?? 0) * $factor);
+      $hgtCm   = (int)round((float)($pkg->pkg_height ?? 0) * $factor);
+      if ($lenCm > 0 && $widCm > 0 && $hgtCm > 0) {
+        $p['dimensions'] = array('length' => $lenCm, 'width' => $widCm, 'height' => $hgtCm);
+      }
+      $api_packages[] = $p;
     }
 
     $apiKey    = defined('MODULE_SHIPPING_DHL_EXPRESS_API_KEY')        ? MODULE_SHIPPING_DHL_EXPRESS_API_KEY        : '';
@@ -147,9 +157,10 @@ class dhl_express {
     }
 
     $base     = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
-    $fromISO2 = defined('COMPANY_COUNTRY')     ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
-    $fromPost = defined('COMPANY_POSTAL_CODE') ? trim(COMPANY_POSTAL_CODE) : '';
-    $fromCity = defined('COMPANY_CITY_TOWN')   ? trim(COMPANY_CITY_TOWN)   : '';
+    $fromISO2 = !empty($pkg->ship_from_country_iso2) ? $pkg->ship_from_country_iso2
+              : (defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB');
+    $fromPost = trim($pkg->ship_postal_code ?? (defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : ''));
+    $fromCity = trim($pkg->ship_city_town   ?? (defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : ''));
     $toISO2   = $pkg->ship_to_country_iso2 ?? $fromISO2;
     $toPost   = trim($pkg->ship_to_postal_code ?? '');
     $toCity   = trim($pkg->ship_to_city_town ?? $pkg->ship_to_city ?? '');
@@ -245,9 +256,10 @@ class dhl_express {
   // ---------------------------------------------------------------
   function retrieveLabel($sInfo) {
     global $messageStack;
-    $apiKey    = defined('MODULE_SHIPPING_DHL_EXPRESS_API_KEY')        ? MODULE_SHIPPING_DHL_EXPRESS_API_KEY        : '';
-    $apiSecret = defined('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET')     ? MODULE_SHIPPING_DHL_EXPRESS_API_SECRET     : '';
-    $account   = defined('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER') ? MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER : '';
+    $apiKey        = defined('MODULE_SHIPPING_DHL_EXPRESS_API_KEY')               ? MODULE_SHIPPING_DHL_EXPRESS_API_KEY               : '';
+    $apiSecret     = defined('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET')            ? MODULE_SHIPPING_DHL_EXPRESS_API_SECRET            : '';
+    $accountExport = defined('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER')        ? MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER        : '';
+    $accountImport = defined('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT') ? MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT : '';
     if (!$apiKey || !$apiSecret) {
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_NOKEY, 'error');
       return false;
@@ -257,7 +269,16 @@ class dhl_express {
     // ship_method is stored with DHL_ prefix (matches service_levels key); strip it for the API
     $rawMethod   = $sInfo->ship_method;
     $productCode = (strncmp($rawMethod, 'DHL_', 4) === 0) ? substr($rawMethod, 4) : $rawMethod;
-    $fromISO2    = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
+    $sc = trim($sInfo->sender_country_code ?? '');
+    if ($sc !== '') {
+      $fromISO2 = strlen($sc) === 3 ? gen_get_country_iso_2_from_3($sc) : $sc;
+    } elseif (!empty($sInfo->vendor_country_code)) {
+      $vc = $sInfo->vendor_country_code;
+      $fromISO2 = strlen($vc) === 3 ? gen_get_country_iso_2_from_3($vc) : $vc;
+    } else {
+      $fromISO2 = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
+    }
+    $companyISO2 = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : '';
     $toISO2      = strlen($sInfo->ship_country_code) == 3
       ? gen_get_country_iso_2_from_3($sInfo->ship_country_code)
       : $sInfo->ship_country_code;
@@ -266,12 +287,14 @@ class dhl_express {
     $noonUtc  = gmmktime(12, 0, 0, (int)gmdate('n', $ts), (int)gmdate('j', $ts), (int)gmdate('Y', $ts));
     if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
     $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
+    // item values and total_amount are stored in base (home) currency; convert to invoice currency
+    $fx = max(1e-9, (float)($sInfo->currencies_value ?? 1));
     if (!empty($sInfo->line_items)) {
       $declaredValue = 0;
       foreach ($sInfo->line_items as $_li) $declaredValue += (float)$_li['value'] * (float)$_li['qty'];
-      $declaredValue = round($declaredValue, 2);
+      $declaredValue = round($declaredValue * $fx, 2);
     } else {
-      $declaredValue = (float)($sInfo->customs_value ?: $sInfo->total_value ?: 0);
+      $declaredValue = round((float)($sInfo->customs_value ?: $sInfo->total_value ?: 0) * $fx, 2);
     }
 
     $packages = array();
@@ -285,28 +308,35 @@ class dhl_express {
         ),
       );
     }
+    // DHL rejects any contactInformation/postalAddress field that is present but empty.
+    $a2  = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('addressLine2' => $v) : array(); };
+    $tel = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('phone' => $v)        : array(); };
+    $eml = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('email' => $v)        : array(); };
 
     $body = array(
       'plannedShippingDateAndTime' => $shipDate,
       'pickup'      => array('isRequested' => false),
       'productCode' => $productCode,
-      'accounts'    => array(array('typeCode' => 'shipper', 'number' => $account)),
+      'accounts'    => array(array(
+        'typeCode' => 'shipper',
+        'number'   => ($companyISO2 !== '' && $fromISO2 === $companyISO2)
+          ? $accountExport
+          : ($accountImport ?: $accountExport),
+      )),
       'customerDetails' => array(
         'shipperDetails' => array(
           'postalAddress' => array(
-            'postalCode'   => defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '',
-            'cityName'     => defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '',
+            'postalCode'   => $sInfo->sender_postal_code   ?? '',
+            'cityName'     => $sInfo->sender_city_town     ?? '',
             'countryCode'  => $fromISO2,
-            'addressLine1' => defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '',
-            'addressLine2' => defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '',
-          ),
+            'addressLine1' => $sInfo->sender_address1      ?? '',
+          ) + $a2($sInfo->sender_address2 ?? ''),
           'contactInformation' => array(
-            'phone'       => defined('COMPANY_TELEPHONE1') ? COMPANY_TELEPHONE1 : '',
-            'companyName' => defined('COMPANY_NAME')       ? COMPANY_NAME       : '',
-            'fullName'    => defined('AR_CONTACT_NAME')    ? AR_CONTACT_NAME    : (defined('COMPANY_NAME') ? COMPANY_NAME : ''),
-            'email'       => defined('COMPANY_EMAIL')      ? COMPANY_EMAIL      : '',
-          ),
-        ) + (defined('SHIPPING_SHIPPER_EORI') && SHIPPING_SHIPPER_EORI !== '' ? array(
+            'companyName' => $sInfo->sender_primary_name   ?? '',
+            'fullName'    => $sInfo->sender_contact ?: ($sInfo->sender_primary_name ?? ''),
+          ) + $tel($sInfo->sender_telephone1 ?? '') + $eml($sInfo->sender_email ?? ''),
+        ) + (defined('SHIPPING_SHIPPER_EORI') && SHIPPING_SHIPPER_EORI !== ''
+            && $companyISO2 !== '' && $fromISO2 === $companyISO2 ? array(
           'registrationNumbers' => array(
             array('typeCode' => 'EOR', 'number' => SHIPPING_SHIPPER_EORI, 'issuerCountryCode' => $fromISO2),
           ),
@@ -317,14 +347,11 @@ class dhl_express {
             'cityName'     => $sInfo->ship_city_town,
             'countryCode'  => $toISO2,
             'addressLine1' => $sInfo->ship_address1,
-            'addressLine2' => $sInfo->ship_address2 ?? '',
-          ),
+          ) + $a2($sInfo->ship_address2 ?? ''),
           'contactInformation' => array(
-            'phone'       => $sInfo->ship_telephone1 ?? '',
             'companyName' => $sInfo->ship_primary_name,
             'fullName'    => $sInfo->ship_contact ?: $sInfo->ship_primary_name,
-            'email'       => $sInfo->ship_email ?? '',
-          ),
+          ) + $tel($sInfo->ship_telephone1 ?? '') + $eml($sInfo->ship_email ?? ''),
         ),
       ),
       'content' => array(
@@ -332,7 +359,7 @@ class dhl_express {
         'isCustomsDeclarable'  => !$isDomestic,
         'description'          => (!empty($sInfo->line_items) ? ($sInfo->line_items[0]['description'] ?: 'Goods') : ($sInfo->customs_description ?: 'Goods')),
         'declaredValue'        => $declaredValue,
-        'declaredValueCurrency'=> 'GBP',
+        'declaredValueCurrency'=> $sInfo->currencies_code ?: 'GBP',
         'unitOfMeasurement'    => 'metric',
         'incoterm'             => 'DAP',
       ),
@@ -349,7 +376,7 @@ class dhl_express {
     );
 
     if (!$isDomestic) {
-      $currency   = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP';
+      $currency     = $sInfo->currencies_code ?: (defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP');
       $fallbackCountry = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
       $lineItems  = array();
 
@@ -360,7 +387,7 @@ class dhl_express {
           $lineItems[] = array(
             'number'           => $itemNum++,
             'description'      => $item['description'] ?: 'Goods',
-            'price'            => round((float)$item['value'], 2),
+            'price'            => max(0.01, round((float)$item['value'] * $fx, 2)),
             'priceCurrency'    => $currency,
             'exportReasonType' => $sInfo->customs_reason ?: 'permanent',
             'quantity'         => array('value' => max(1, (int)round((float)$item['qty'])), 'unitOfMeasurement' => 'PCS'),
@@ -381,7 +408,7 @@ class dhl_express {
         $lineItems[] = array(
           'number'           => 1,
           'description'      => $sInfo->customs_description,
-          'price'            => $declaredValue,
+          'price'            => max(0.01, (float)$declaredValue),
           'priceCurrency'    => $currency,
           'exportReasonType' => 'permanent',
           'quantity'         => array('value' => 1, 'unitOfMeasurement' => 'PCS'),
@@ -411,8 +438,9 @@ class dhl_express {
       }
     }
 
+    $bodyJson = json_encode($body);
     $response = $this->curlRequest('POST', $base . '/shipments',
-      $this->dhlHeaders(), json_encode($body), $apiKey, $apiSecret);
+      $this->dhlHeaders(), $bodyJson, $apiKey, $apiSecret);
 
     if ($response === false) {
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'API request failed.', 'error');
@@ -421,11 +449,13 @@ class dhl_express {
 
     $data = json_decode($response, true);
     if (empty($data['shipmentTrackingNumber'])) {
-      error_log('DHL label error: ' . $response);
-      $msg = $data['title'] ?? $data['detail'] ?? $response;
-      if (!empty($data['additionalDetails']) && is_array($data['additionalDetails'])) {
-        $msg .= ': ' . implode('; ', $data['additionalDetails']);
-      }
+      $parts = array_filter([
+        $data['title']  ?? '',
+        $data['detail'] ?? '',
+        !empty($data['additionalDetails']) && is_array($data['additionalDetails'])
+          ? implode('; ', $data['additionalDetails']) : '',
+      ]);
+      $msg = implode(' — ', $parts) ?: $response;
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . $msg, 'error');
       return false;
     }

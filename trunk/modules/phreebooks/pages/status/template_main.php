@@ -118,7 +118,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
 	<td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $purch_order_id; ?></td>
 	<td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $closed; ?></td>
 	<td align="right" onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $total_amount; ?></td>
-<?php if (defined('MODULE_SHIPPING_STATUS') && JOURNAL_ID == 12) { 
+<?php if (defined('MODULE_SHIPPING_STATUS') && in_array(JOURNAL_ID, [4, 12])) {
       $sID            = 0;
       $shipped        = false;
 	  $result = $db->Execute("select id, shipment_id, ship_date from " . TABLE_SHIPPING_LOG . " where ref_id like '" . $query_result->fields['purchase_invoice_id'] . "%'");
@@ -131,8 +131,9 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
 	  $shipper_code   = $temp[0];
 	  $ship_meth      = defined('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') ? constant('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') : $temp[0];
 	  $ship_srv       = defined($temp[0].'_'.$temp[1]) ? constant($temp[0].'_'.$temp[1]) : $temp[1];
+	  $order_link     = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;action=edit', 'SSL');
 ?>
-	<td align="center" onclick="window.open('<?php echo html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=12&amp;action=edit', 'SSL'); ?>','_blank')"><?php echo $ship_meth ? ($ship_meth . ' ' . $ship_srv) : '&nbsp;'; ?></td>
+	<td align="center" onclick="window.open('<?php echo $order_link; ?>','_blank')"><?php echo $ship_meth ? ($ship_meth . ' ' . $ship_srv) : '&nbsp;'; ?></td>
 <?php } // end MODULE_SHIPPING_STATUS ?>
 	<td align="right">
 <?php // build the action toolbar
@@ -144,7 +145,14 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
 	    echo html_icon('actions/system-shutdown.png',   TEXT_TOGGLE, 'small', 'onclick="submitSeq(' . $oID . ', \'toggle\')"') . chr(10);
 		echo html_icon('actions/document-print.png',    TEXT_PRINT,  'small', 'onclick="printOrder('. $oID . ')"') . chr(10);
 	    break;
-	  case  4: 
+	  case  4:
+	    if (defined('MODULE_SHIPPING_STATUS') && $shipper_code) {
+		  if ($sID) {
+		    echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'' . $shipper_code . '\', \'edit\', ' . $sID . ')"') . chr(10);
+		  } elseif (!$shipped) {
+		    echo html_icon('phreebooks/truck-icon.png', TEXT_SHIP, 'small', 'onclick="shipList(' . $oID . ', \'' . $shipper_code . '\')"') . chr(10);
+		  }
+		}
 		if (!$query_result->fields['closed']) echo html_button_field('invoice_' . $oID, TEXT_RECEIVE, 'onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=6&amp;action=prc_so', 'SSL') . '\',\'_blank\')"') . chr(10);
 		echo html_button_field('delivery_' . $oID, ORD_DELIVERY_DATES, 'onclick="deliveryList(' . $oID . ')"') . chr(10);
 	    echo html_icon('actions/system-shutdown.png',   TEXT_TOGGLE, 'small', 'onclick="submitSeq(' . $oID . ', \'toggle\')"') . chr(10);

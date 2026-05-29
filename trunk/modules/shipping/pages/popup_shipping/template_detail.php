@@ -106,9 +106,13 @@ $back_params = [
   'ship_to_country_code'=> $pkg->ship_to_country_code,
   'pkg_weight'          => $pkg->pkg_weight,
   'pkg_weight_unit'     => $pkg->pkg_weight_unit,
+  'pkg_length'          => $pkg->pkg_length,
+  'pkg_width'           => $pkg->pkg_width,
+  'pkg_height'          => $pkg->pkg_height,
   'pkg_dimension_unit'  => $pkg->pkg_dimension_unit,
   'ship_date'           => $pkg->ship_date ?? date('Y-m-d'),
   'residential_address' => $pkg->residential_address,
+  'account_type'        => $pkg->account_type ?? '',
   'num_items'           => count($pkg->items),
 ];
 foreach ($pkg->items as $pi => $item) {

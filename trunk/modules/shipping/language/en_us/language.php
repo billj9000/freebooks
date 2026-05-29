@@ -48,6 +48,7 @@ define('SHIPPING_TEXT_SHIP_FROM_ZIP','Ship From Postal Code: ');
 define('SHIPPING_TEXT_SHIP_TO_ZIP','Ship To Postal Code: ');
 define('SHIPPING_TEXT_SHIP_FROM_COUNTRY','Ship From Country: ');
 define('SHIPPING_TEXT_SHIP_TO_COUNTRY','Ship To Country: ');
+define('SHIPPING_TEXT_SWAP_ADDRESSES','Swap From / To');
 define('SHIPPING_TEXT_PACKAGE_INFORMATION','Package Information');
 define('SHIPPING_TEXT_PACKAGE_TYPE','Type of Packaging ');
 define('SHIPPING_TEXT_PICKUP_SERVICE','Pickup Service ');
@@ -279,6 +280,7 @@ define('SHIPPING_RET_LOCAL','Print Local Return Label');
 define('SHIPPING_RET_MAILS','Carrier Prints and Mails Return Label');
 
 define('SHIPPING_SENDER','Sender');
+define('SHIPPING_RECIPIENT','Recipient');
 define('SHIPPING_RECEIPIENT','Receipient');
 define('SHIPPING_THIRD_PARTY','Third Party');
 define('SHIPPING_COLLECT','Collect');

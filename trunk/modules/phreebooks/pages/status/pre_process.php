@@ -95,6 +95,10 @@ switch (JOURNAL_ID) {
 	$page_title = ORD_TEXT_3_WINDOW_TITLE;
 	break;
   case  4:	// Purchase Order Journal
+	if (defined('MODULE_SHIPPING_STATUS')) {
+	  $shipping_modules = load_all_methods('shipping');
+	  $heading_array['shipper_code'] = TEXT_CARRIER;
+	}
 	define('POPUP_FORM_TYPE','vend:po');
 	$page_title = ORD_TEXT_4_WINDOW_TITLE;
 	break;

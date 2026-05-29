@@ -18,7 +18,8 @@
 //  Path: /modules/shipping/pages/popup_shipping/template_main.php
 //
 $country_list = gen_get_countries();
-$sel_sm = 'class="form-select form-select-sm"';
+$sel_sm   = 'class="form-select form-select-sm"';
+$sel_unit = 'class="form-select form-select-sm" style="min-width:5rem;flex:0 0 auto"';
 ?>
 <?php if (!empty($_SESSION['messageToStack'])): ?>
 <div class="alert alert-warning mb-3" style="font-size:12px">
@@ -34,6 +35,7 @@ $sel_sm = 'class="form-select form-select-sm"';
       hx-indicator="#est-spinner">
 
   <input type="hidden" name="action"        value="rates">
+  <input type="hidden" name="account_type" value="<?php echo htmlspecialchars($pkg->account_type ?? ''); ?>">
   <input type="hidden" name="pkg_total"     id="est-pkg-total"  value="<?php echo htmlspecialchars($pkg->pkg_total); ?>">
   <input type="hidden" name="pkg_item_count" id="est-pkg-count" value="<?php echo htmlspecialchars($pkg->pkg_item_count); ?>">
 
@@ -47,36 +49,39 @@ $sel_sm = 'class="form-select form-select-sm"';
   </div>
 
   <!-- From / To -->
-  <div class="row g-2 mb-3">
-    <div class="col-md-6">
+  <div class="row g-2 mb-3 align-items-start">
+    <div class="col">
       <div class="card h-100">
         <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_TEXT_SHIP_FROM_CITY; ?></div>
         <div class="card-body py-2">
           <div class="row g-1">
             <div class="col-7">
               <label class="form-label">City</label>
-              <input type="text" class="form-control form-control-sm" name="ship_city_town"
+              <input type="text" class="form-control form-control-sm" name="ship_city_town" id="est-from-city"
                      value="<?php echo htmlspecialchars($pkg->ship_city_town); ?>">
             </div>
             <div class="col-5">
               <label class="form-label">State</label>
-              <input type="text" class="form-control form-control-sm" name="ship_state_province"
+              <input type="text" class="form-control form-control-sm" name="ship_state_province" id="est-from-state"
                      value="<?php echo htmlspecialchars($pkg->ship_state_province); ?>">
             </div>
             <div class="col-5">
               <label class="form-label"><?php echo SHIPPING_TEXT_SHIP_FROM_ZIP; ?></label>
-              <input type="text" class="form-control form-control-sm" name="ship_postal_code"
+              <input type="text" class="form-control form-control-sm" name="ship_postal_code" id="est-from-postal"
                      value="<?php echo htmlspecialchars($pkg->ship_postal_code); ?>">
             </div>
             <div class="col-7">
               <label class="form-label"><?php echo SHIPPING_TEXT_SHIP_FROM_COUNTRY; ?></label>
-              <?php echo html_pull_down_menu('ship_country_code', $country_list, $pkg->ship_country_code, 'id="est-from-country" ' . $sel_sm); ?>
+              <?php echo html_pull_down_menu('ship_country_code', $country_list, $pkg->ship_country_code, $sel_sm); ?>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-auto text-center align-self-center">
+      <button type="button" class="btn btn-primary btn-sm" onclick="swapShipAddresses()" title="<?php echo SHIPPING_TEXT_SWAP_ADDRESSES; ?>">&harr;</button>
+    </div>
+    <div class="col">
       <div class="card h-100">
         <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_TEXT_SHIP_TO_CITY; ?></div>
         <div class="card-body py-2">
@@ -98,7 +103,7 @@ $sel_sm = 'class="form-select form-select-sm"';
             </div>
             <div class="col-7">
               <label class="form-label"><?php echo SHIPPING_TEXT_SHIP_TO_COUNTRY; ?></label>
-              <?php echo html_pull_down_menu('ship_to_country_code', $country_list, $pkg->ship_to_country_code, 'id="est-to-country" ' . $sel_sm); ?>
+              <?php echo html_pull_down_menu('ship_to_country_code', $country_list, $pkg->ship_to_country_code, $sel_sm); ?>
             </div>
             <div class="col-12 d-flex align-items-center gap-1 pt-1">
               <input type="checkbox" class="form-check-input mt-0" name="residential_address" value="1"
@@ -127,19 +132,32 @@ $sel_sm = 'class="form-select form-select-sm"';
   </div>
   <?php endif; ?>
 
-  <!-- Fallback weight (shown to user; used by carriers when item dimensions are unavailable) -->
-  <div class="row g-2 mb-3">
-    <div class="col-md-5">
+  <!-- Fallback weight + dimensions -->
+  <div class="row g-2 mb-1 align-items-end">
+    <div class="col-auto">
       <label class="form-label"><?php echo TEXT_WEIGHT; ?></label>
       <div class="input-group input-group-sm">
-        <input type="text" class="form-control" name="pkg_weight"
+        <input type="text" class="form-control" style="width:5em" name="pkg_weight"
                value="<?php echo htmlspecialchars($pkg->pkg_weight ?? 0); ?>">
-        <?php echo html_pull_down_menu('pkg_weight_unit', gen_build_pull_down($shipping_defaults['weight_unit']), $pkg->pkg_weight_unit, $sel_sm); ?>
+        <?php echo html_pull_down_menu('pkg_weight_unit', gen_build_pull_down($shipping_defaults['weight_unit']), $pkg->pkg_weight_unit, $sel_unit); ?>
       </div>
-      <div class="form-text" style="font-size:10px;color:#888"><?php echo SHIPPING_TEXT_WEIGHT_FALLBACK; ?></div>
+    </div>
+    <div class="col-auto">
+      <label class="form-label"><?php echo SHIPPING_TEXT_DIMENSIONS; ?></label>
+      <div class="input-group input-group-sm">
+        <input type="text" class="form-control" style="width:4em" name="pkg_length"
+               value="<?php echo htmlspecialchars($pkg->pkg_length); ?>" placeholder="L">
+        <span class="input-group-text px-1">&times;</span>
+        <input type="text" class="form-control" style="width:4em" name="pkg_width"
+               value="<?php echo htmlspecialchars($pkg->pkg_width); ?>" placeholder="W">
+        <span class="input-group-text px-1">&times;</span>
+        <input type="text" class="form-control" style="width:4em" name="pkg_height"
+               value="<?php echo htmlspecialchars($pkg->pkg_height); ?>" placeholder="H">
+        <?php echo html_pull_down_menu('pkg_dimension_unit', gen_build_pull_down($shipping_defaults['dimension_unit']), $pkg->pkg_dimension_unit, $sel_unit); ?>
+      </div>
     </div>
   </div>
-  <input type="hidden" name="pkg_dimension_unit" value="<?php echo htmlspecialchars($pkg->pkg_dimension_unit); ?>">
+  <div class="mb-3 form-text" style="font-size:10px;color:#888"><?php echo SHIPPING_TEXT_WEIGHT_FALLBACK; ?></div>
 
   <!-- Methods -->
   <div class="mb-3">
@@ -162,3 +180,24 @@ $sel_sm = 'class="form-select form-select-sm"';
   </div>
 
 </form>
+<script>
+function swapShipAddresses() {
+  // City/state/postal have unique IDs so getElementById is fine.
+  var pairs = [
+    ['est-from-city',   'est-to-city'],
+    ['est-from-state',  'est-to-state'],
+    ['est-from-postal', 'est-to-postal'],
+  ];
+  pairs.forEach(function(p) {
+    var a = document.getElementById(p[0]), b = document.getElementById(p[1]);
+    if (!a || !b) return;
+    var t = a.value; a.value = b.value; b.value = t;
+  });
+  // Country selects share name="ship_country_code" with the parent orders form,
+  // so getElementById would find the wrong element — scope the lookup to this modal.
+  var scope = document.getElementById('shipping-estimator-body') || document;
+  var fc = scope.querySelector('[name="ship_country_code"]');
+  var tc = scope.querySelector('[name="ship_to_country_code"]');
+  if (fc && tc) { var t = fc.value; fc.value = tc.value; tc.value = t; }
+}
+</script>

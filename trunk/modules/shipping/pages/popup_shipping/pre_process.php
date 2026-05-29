@@ -44,6 +44,9 @@ if (empty($_REQUEST['action'])) {
     if (isset($_GET['pkg_weight_unit'])    && $_GET['pkg_weight_unit']    !== '') $pkg->pkg_weight_unit    = db_prepare_input($_GET['pkg_weight_unit']);
     if (isset($_GET['pkg_dimension_unit']) && $_GET['pkg_dimension_unit'] !== '') $pkg->pkg_dimension_unit = db_prepare_input($_GET['pkg_dimension_unit']);
     if (isset($_GET['pkg_weight'])         && $_GET['pkg_weight']         !== '') $pkg->pkg_weight         = (float)$_GET['pkg_weight'];
+    if (isset($_GET['pkg_length'])         && $_GET['pkg_length']         !== '') $pkg->pkg_length         = (float)$_GET['pkg_length'];
+    if (isset($_GET['pkg_width'])          && $_GET['pkg_width']          !== '') $pkg->pkg_width          = (float)$_GET['pkg_width'];
+    if (isset($_GET['pkg_height'])         && $_GET['pkg_height']         !== '') $pkg->pkg_height         = (float)$_GET['pkg_height'];
     $n = max(0, (int)($_GET['num_items'] ?? 0));
     for ($i = 1; $i <= $n; $i++) {
       $sku = trim(db_prepare_input($_GET['sku_' . $i] ?? ''));
@@ -52,12 +55,43 @@ if (empty($_REQUEST['action'])) {
     }
     if (isset($_GET['ship_date'])          && $_GET['ship_date']          !== '') $pkg->ship_date          = db_prepare_input($_GET['ship_date']);
     if (isset($_GET['residential_address']))                                       $pkg->residential_address = $_GET['residential_address'] ? '1' : '0';
+    if (isset($_GET['account_type'])       && $_GET['account_type']       !== '') $pkg->account_type        = db_prepare_input($_GET['account_type']);
   } else {
-    // Initial open from Estimate button (hx-include): map order delivery address to TO fields
-    if (isset($_GET['ship_city_town'])      && $_GET['ship_city_town']      !== '') $pkg->ship_to_city         = db_prepare_input($_GET['ship_city_town']);
-    if (isset($_GET['ship_state_province']) && $_GET['ship_state_province'] !== '') $pkg->ship_to_state        = db_prepare_input($_GET['ship_state_province']);
-    if (isset($_GET['ship_postal_code'])    && $_GET['ship_postal_code']    !== '') $pkg->ship_to_postal_code  = db_prepare_input($_GET['ship_postal_code']);
-    if (isset($_GET['ship_country_code'])   && $_GET['ship_country_code']   !== '') $pkg->ship_to_country_code = db_prepare_input($_GET['ship_country_code']);
+    // Initial open from Estimate button (hx-include / hx-vals)
+    $pkg->account_type = db_prepare_input($_GET['account_type'] ?? '');
+    if ($pkg->account_type === 'v') {
+      // Purchase order: vendor address is ship-FROM, company is ship-TO.
+      // Look up the vendor's address book directly: prefer shipping ('vs'), fall back to mailing ('vm').
+      $vendor_id = (int)($_GET['bill_acct_id'] ?? 0);
+      if ($vendor_id > 0) {
+        $vaddr = $db->Execute("SELECT city_town, state_province, postal_code, country_code
+                               FROM " . TABLE_ADDRESS_BOOK . "
+                               WHERE ref_id = " . $vendor_id . "
+                               AND type IN ('vs', 'vm')
+                               ORDER BY FIELD(type, 'vs', 'vm') LIMIT 1");
+        if (!$vaddr->EOF) {
+          $pkg->ship_city_town      = $vaddr->fields['city_town']     ?? '';
+          $pkg->ship_state_province = $vaddr->fields['state_province'] ?? '';
+          $pkg->ship_postal_code    = $vaddr->fields['postal_code']   ?? '';
+          $pkg->ship_country_code   = $vaddr->fields['country_code']  ?? '';
+        }
+      } else {
+        $pkg->ship_city_town      = '';
+        $pkg->ship_state_province = '';
+        $pkg->ship_postal_code    = '';
+      }
+      $pkg->ship_to_city         = defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '';
+      $pkg->ship_to_state        = defined('COMPANY_ZONE')        ? COMPANY_ZONE        : '';
+      $pkg->ship_to_postal_code  = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
+      $pkg->ship_to_country_code = defined('COMPANY_COUNTRY')     ? COMPANY_COUNTRY     : '';
+      $pkg->residential_address  = '0';
+    } else {
+      // Sale: order delivery address (ship_*) is ship-TO, company is ship-FROM (already in defaults)
+      if (isset($_GET['ship_city_town'])      && $_GET['ship_city_town']      !== '') $pkg->ship_to_city         = db_prepare_input($_GET['ship_city_town']);
+      if (isset($_GET['ship_state_province']) && $_GET['ship_state_province'] !== '') $pkg->ship_to_state        = db_prepare_input($_GET['ship_state_province']);
+      if (isset($_GET['ship_postal_code'])    && $_GET['ship_postal_code']    !== '') $pkg->ship_to_postal_code  = db_prepare_input($_GET['ship_postal_code']);
+      if (isset($_GET['ship_country_code'])   && $_GET['ship_country_code']   !== '') $pkg->ship_to_country_code = db_prepare_input($_GET['ship_country_code']);
+    }
     // Parse item list from hx-include params; compute total weight from inventory for the fallback field
     for ($i = 1; $i <= 200; $i++) {
       if (!array_key_exists('sku_' . $i, $_GET)) break;
