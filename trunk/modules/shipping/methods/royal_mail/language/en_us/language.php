@@ -59,4 +59,17 @@ define('RM_DECL_DOCUMENTS',         'Documents');
 define('RM_DECL_COMMERCIAL_SAMPLE', 'Commercial Sample');
 define('RM_DECL_RETURNED_GOODS',    'Returned Goods');
 define('RM_DECL_OTHER',             'Other');
+// Manifest page
+define('RM_MANIFEST_TITLE',         'Royal Mail Manifest');
+define('RM_MANIFEST_HEADING',       'Royal Mail End-of-Day Manifest');
+define('RM_MANIFEST_DESC',          'Submits all unmanifested labels to Royal Mail for today\'s collection. Run this once at the end of each shipping day.');
+define('RM_MANIFEST_BTN',           'Manifest Now');
+define('RM_MANIFEST_SUCCESS',       'Manifest submitted successfully.');
+define('RM_MANIFEST_ID',            'Manifest ID');
+define('RM_MANIFEST_CONFIRM',       'Submit all unmanifested Royal Mail orders for collection?');
+define('RM_MANIFEST_ERROR',         'Manifest request failed.');
+define('RM_MANIFEST_NONE_TODAY',    'No Royal Mail shipments today.');
+define('RM_MANIFEST_SHIPMENTS',     'Today\'s Royal Mail Shipments');
+define('RM_MANIFEST_OPEN_BTN',      'RM Manifest');
+define('RM_TEXT_RECIPIENT',         'Recipient');
 ?>

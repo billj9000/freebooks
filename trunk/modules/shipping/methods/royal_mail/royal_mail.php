@@ -82,6 +82,19 @@ class royal_mail {
   }
 
   // ---------------------------------------------------------------
+  //  Shipping estimator — RM has no live rates API; return service list with blank pricing
+  // ---------------------------------------------------------------
+  function quote($pkg = '') {
+    $rates = array();
+    foreach (array_keys($this->CDServiceMap) as $code) {
+      if (defined('royal_mail_' . $code)) {
+        $rates[$this->code][$code] = array('quote' => 0, 'book' => '', 'cost' => '');
+      }
+    }
+    return array('result' => 'success', 'rates' => $rates);
+  }
+
+  // ---------------------------------------------------------------
   //  Label generation — two-step: POST /orders then GET /orders/{id}/label
   // ---------------------------------------------------------------
   function retrieveLabel($sInfo) {
@@ -327,7 +340,7 @@ class royal_mail {
     global $messageStack;
     $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
     $response = $this->curlRequest('POST', RM_CD_BASE . '/manifests',
-      $this->rmHeaders($apiKey), '{}');
+      $this->rmHeaders($apiKey));
     if ($response === false) {
       $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Manifest request failed.', 'error');
       return false;
