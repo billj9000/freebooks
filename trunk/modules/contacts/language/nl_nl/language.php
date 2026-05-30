@@ -95,6 +95,8 @@ define('ACT_V_FIRST_DATE','Leverancier Sinds: ');
 define('ACT_V_LAST_DATE1','Laatste Factuur Datum: ');
 define('ACT_V_LAST_DATE2','Laatste Betaal Datum: ');
 define('ACT_V_PAGE_TITLE_EDIT','Bewerk Leverancier');
+define('ACT_VAT_NUMBER','BTW-nummer');
+define('ACT_EORI_NUMBER','EORI-nummer');
 define('ACT_CATEGORY_CONTACT','Contact Informatie');
 define('ACT_CATEGORY_M_ADDRESS','Post Adres');
 define('ACT_CATEGORY_S_ADDRESS','Verzend Adres');

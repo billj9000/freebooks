@@ -232,6 +232,8 @@ class contacts {
     $sql_data_array['store_id']        = $this->store_id;
     $sql_data_array['gl_type_account'] = (is_array($this->gl_type_account)) ? implode('', array_keys($this->gl_type_account)) : $this->gl_type_account;
     $sql_data_array['gov_id_number']   = $this->gov_id_number;
+    $sql_data_array['vat_number']      = $this->vat_number ?? '';
+    $sql_data_array['eori_number']     = $this->eori_number ?? '';
     $sql_data_array['dept_rep_id']     = $this->dept_rep_id;
     $sql_data_array['account_number']  = $this->account_number;
     $sql_data_array['special_terms']   = $this->special_terms;

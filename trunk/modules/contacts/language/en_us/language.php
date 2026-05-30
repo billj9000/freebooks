@@ -79,7 +79,7 @@ define('ACT_C_TYPE_NAME','Customers');
 define('ACT_C_HEADING_TITLE', 'Customers');
 define('ACT_C_SHORT_NAME', 'Customer ID');
 define('ACT_C_GL_ACCOUNT_TYPE','Sales GL Account');
-define('ACT_C_ID_NUMBER','Resale License Number');
+define('ACT_C_ID_NUMBER','Resale License');
 define('ACT_C_REP_ID','Sales Rep ID');
 define('ACT_C_ACCOUNT_NUMBER','Account Number');
 define('ACT_C_FIRST_DATE','Customer Since: ');
@@ -123,6 +123,8 @@ define('ACT_V_LAST_DATE1','Last Invoice Date: ');
 define('ACT_V_LAST_DATE2','Last Payment Date: ');
 define('ACT_V_PAGE_TITLE_EDIT','Edit Vendor');
 // Category headings
+define('ACT_VAT_NUMBER','VAT Number');
+define('ACT_EORI_NUMBER','EORI Number');
 define('ACT_CATEGORY_CONTACT','Contact Information');
 define('ACT_CATEGORY_M_ADDRESS','Main Mailing Address');
 define('ACT_CATEGORY_S_ADDRESS','Shipping Addresses');

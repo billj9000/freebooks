@@ -61,11 +61,17 @@
 	   <td align="right"><?php echo INV_ENTRY_ITEM_TAXABLE; ?></td>
        <td><?php echo html_pull_down_menu('tax_id', $tax_rates, $cInfo->tax_id); ?></td>
        <td><?php  echo ACT_CATEGORY_PAYMENT_TERMS; ?></td>
-	   <td><?php 
+	   <td><?php
     	  echo html_hidden_field('terms', $cInfo->special_terms) . chr(10);
 	      echo html_input_field('terms_text', gen_terms_to_language($cInfo->special_terms, true, $cInfo->terms_type), 'readonly="readonly" size="20"') . '&nbsp;' . chr(10);
     	  echo html_icon('apps/accessories-text-editor.png', ACT_TERMS_DUE, 'small', 'style="cursor:pointer" onclick="TermsList()"'); ?>
 	   </td>
+      </tr>
+      <tr>
+       <td align="right"><?php echo ACT_VAT_NUMBER; ?></td>
+       <td><?php echo html_input_field('vat_number', $cInfo->vat_number ?? '', 'size="21" maxlength="20"'); ?></td>
+       <td align="right"><?php echo ACT_EORI_NUMBER; ?></td>
+       <td><?php echo html_input_field('eori_number', $cInfo->eori_number ?? '', 'size="21" maxlength="20"'); ?></td>
       </tr>
     </table>
   </fieldset>
