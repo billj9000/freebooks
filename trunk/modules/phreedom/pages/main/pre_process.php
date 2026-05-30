@@ -273,7 +273,7 @@ switch ($_REQUEST['action']) {
 		where user_id = '".$_SESSION['admin_id']."' and menu_id = '$menu_id' order by column_id, row_id");
 	$include_template  = 'template_main.php';
 	$use_bootstrap_nav = true;
-	define('PAGE_TITLE', COMPANY_NAME.' - '.TITLE);
+	define('PAGE_TITLE', COMPANY_NAME);
 	break;
 }
 
