@@ -313,6 +313,37 @@ class dhl_express {
     $tel = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('phone' => $v)        : array(); };
     $eml = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('email' => $v)        : array(); };
 
+    // Build registration number arrays for shipper and receiver.
+    // Sender EORI: prefer form value; fall back to SHIPPING_SHIPPER_EORI constant when the
+    // sender is the company itself (fromISO2 matches the configured company country).
+    $shipperRegNums = [];
+    $senderEori = trim($sInfo->sender_eori_number ?? '');
+    if ($senderEori === '' && defined('SHIPPING_SHIPPER_EORI') && SHIPPING_SHIPPER_EORI !== ''
+        && $companyISO2 !== '' && $fromISO2 === $companyISO2) {
+      $senderEori = SHIPPING_SHIPPER_EORI;
+    }
+    if ($senderEori !== '') {
+      $shipperRegNums[] = array('typeCode' => 'EOR', 'number' => $senderEori, 'issuerCountryCode' => $fromISO2);
+    }
+    $senderVat = trim($sInfo->sender_vat_number ?? '');
+    if ($senderVat === '' && defined('SHIPPING_SHIPPER_VAT') && SHIPPING_SHIPPER_VAT !== ''
+        && $companyISO2 !== '' && $fromISO2 === $companyISO2) {
+      $senderVat = SHIPPING_SHIPPER_VAT;
+    }
+    if ($senderVat !== '') {
+      $shipperRegNums[] = array('typeCode' => 'VAT', 'number' => $senderVat, 'issuerCountryCode' => $fromISO2);
+    }
+
+    $receiverRegNums = [];
+    $shipEori = trim($sInfo->ship_eori_number ?? '');
+    if ($shipEori !== '') {
+      $receiverRegNums[] = array('typeCode' => 'EOR', 'number' => $shipEori, 'issuerCountryCode' => $toISO2);
+    }
+    $shipVat = trim($sInfo->ship_vat_number ?? '');
+    if ($shipVat !== '') {
+      $receiverRegNums[] = array('typeCode' => 'VAT', 'number' => $shipVat, 'issuerCountryCode' => $toISO2);
+    }
+
     $body = array(
       'plannedShippingDateAndTime' => $shipDate,
       'pickup'      => array('isRequested' => false),
@@ -335,12 +366,7 @@ class dhl_express {
             'companyName' => $sInfo->sender_primary_name   ?? '',
             'fullName'    => $sInfo->sender_contact ?: ($sInfo->sender_primary_name ?? ''),
           ) + $tel($sInfo->sender_telephone1 ?? '') + $eml($sInfo->sender_email ?? ''),
-        ) + (defined('SHIPPING_SHIPPER_EORI') && SHIPPING_SHIPPER_EORI !== ''
-            && $companyISO2 !== '' && $fromISO2 === $companyISO2 ? array(
-          'registrationNumbers' => array(
-            array('typeCode' => 'EOR', 'number' => SHIPPING_SHIPPER_EORI, 'issuerCountryCode' => $fromISO2),
-          ),
-        ) : array()),
+        ) + ($shipperRegNums ? array('registrationNumbers' => $shipperRegNums) : array()),
         'receiverDetails' => array(
           'postalAddress' => array(
             'postalCode'   => $sInfo->ship_postal_code,
@@ -352,7 +378,7 @@ class dhl_express {
             'companyName' => $sInfo->ship_primary_name,
             'fullName'    => $sInfo->ship_contact ?: $sInfo->ship_primary_name,
           ) + $tel($sInfo->ship_telephone1 ?? '') + $eml($sInfo->ship_email ?? ''),
-        ),
+        ) + ($receiverRegNums ? array('registrationNumbers' => $receiverRegNums) : array()),
       ),
       'content' => array(
         'packages'             => $packages,

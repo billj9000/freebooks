@@ -158,6 +158,10 @@
 	  </tr>
 	  <tr>
 	    <td colspan="3"><?php echo CD_10_65_DESC; ?></td>
+	    <td><?php echo html_input_field('shipping_shipper_vat', isset($_POST['shipping_shipper_vat']) ? $_POST['shipping_shipper_vat'] : (defined('SHIPPING_SHIPPER_VAT') ? SHIPPING_SHIPPER_VAT : ''), 'size="30"'); ?></td>
+	  </tr>
+	  <tr>
+	    <td colspan="3"><?php echo CD_10_66_DESC; ?></td>
 	    <td><?php echo html_input_field('shipping_shipper_ioss', isset($_POST['shipping_shipper_ioss']) ? $_POST['shipping_shipper_ioss'] : (defined('SHIPPING_SHIPPER_IOSS') ? SHIPPING_SHIPPER_IOSS : ''), 'size="20"'); ?></td>
 	  </tr>
   </tbody>

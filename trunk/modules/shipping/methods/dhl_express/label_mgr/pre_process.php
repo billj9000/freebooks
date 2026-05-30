@@ -149,7 +149,7 @@ switch ($_REQUEST['action']) {
   default:
     $oID = db_prepare_input($_GET['oID']);
     if ($oID) {
-      $sql = "select journal_id, shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
+      $sql = "select journal_id, bill_acct_id, shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
           ship_city_town, ship_state_province, ship_postal_code, ship_country_code, ship_telephone1,
           ship_email, bill_primary_name, bill_contact, bill_address1, bill_address2,
           bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_telephone1, bill_email,
@@ -160,6 +160,18 @@ switch ($_REQUEST['action']) {
       if (is_array($result->fields)) {
         foreach ($result->fields as $key => $value) $sInfo->$key = $value;
         $journal_id = (int)($result->fields['journal_id'] ?? $_GET['jID'] ?? 0);
+        // Look up EORI / VAT from the customer or vendor contact record
+        $contact_vat  = '';
+        $contact_eori = '';
+        $bill_acct_id = (int)($result->fields['bill_acct_id'] ?? 0);
+        if ($bill_acct_id) {
+          $cReg = $db->Execute("SELECT vat_number, eori_number FROM " . TABLE_CONTACTS
+              . " WHERE id = " . $bill_acct_id . " LIMIT 1");
+          if (!$cReg->EOF) {
+            $contact_vat  = $cReg->fields['vat_number']  ?? '';
+            $contact_eori = $cReg->fields['eori_number'] ?? '';
+          }
+        }
         if (in_array($journal_id, [3, 4, 6, 7])) {
           $sInfo->is_purchase          = true;
           $sInfo->vendor_primary_name  = $result->fields['bill_primary_name']   ?? '';
@@ -194,6 +206,9 @@ switch ($_REQUEST['action']) {
           $sInfo->sender_country_code   = $sInfo->vendor_country_code   ?? '';
           $sInfo->sender_telephone1     = $sInfo->vendor_telephone1     ?? '';
           $sInfo->sender_email          = $sInfo->vendor_email          ?? '';
+          // Vendor EORI/VAT → sender registration numbers
+          $sInfo->sender_vat_number     = $contact_vat;
+          $sInfo->sender_eori_number    = $contact_eori;
         } else {
           // Sender = company
           $sInfo->sender_primary_name   = defined('COMPANY_NAME')        ? COMPANY_NAME        : '';
@@ -206,6 +221,18 @@ switch ($_REQUEST['action']) {
           $sInfo->sender_country_code   = defined('COMPANY_COUNTRY')     ? COMPANY_COUNTRY     : '';
           $sInfo->sender_telephone1     = defined('COMPANY_TELEPHONE1')  ? COMPANY_TELEPHONE1  : '';
           $sInfo->sender_email          = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
+          // Company EORI/VAT → sender registration numbers from branch contact; fall back to admin constant
+          $branchReg = $db->Execute("SELECT vat_number, eori_number FROM " . TABLE_CONTACTS
+              . " WHERE type = 'b' AND inactive = '0' ORDER BY id ASC LIMIT 1");
+          $branch_vat  = (!$branchReg->EOF) ? ($branchReg->fields['vat_number']  ?? '') : '';
+          $branch_eori = (!$branchReg->EOF) ? ($branchReg->fields['eori_number'] ?? '') : '';
+          if (!$branch_eori && defined('SHIPPING_SHIPPER_EORI')) $branch_eori = SHIPPING_SHIPPER_EORI;
+          if (!$branch_vat  && defined('SHIPPING_SHIPPER_VAT'))  $branch_vat  = SHIPPING_SHIPPER_VAT;
+          $sInfo->sender_vat_number     = $branch_vat;
+          $sInfo->sender_eori_number    = $branch_eori;
+          // Customer EORI/VAT → recipient registration numbers
+          $sInfo->ship_vat_number       = $contact_vat;
+          $sInfo->ship_eori_number      = $contact_eori;
         }
         $temp = explode(':', $result->fields['shipper_code']);
         $sInfo->ship_method  = $temp[1] ?? '';

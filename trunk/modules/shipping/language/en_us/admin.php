@@ -43,7 +43,8 @@ define('CD_10_52_DESC', 'Hazardous material checkbox');
 define('CD_10_56_DESC', 'Dry ice checkbox');
 define('CD_10_60_DESC', 'Return services checkbox');
 define('CD_10_64_DESC', 'Shipper EORI number for international customs declarations (e.g. GB123456789000)');
-define('CD_10_65_DESC', 'Shipper IOSS number for EU imports below €150 (format: IM + 10 digits)');
+define('CD_10_65_DESC', 'Shipper VAT number for international shipments (used when no branch contact VAT is set)');
+define('CD_10_66_DESC', 'Shipper IOSS number for EU imports below €150 (format: IM + 10 digits)');
 
 define('SHIPPING_TEXT_INTL_COMPLIANCE', 'International Compliance');
 define('NEXT_SHIPMENT_NUM_DESC','Next Shipment Number');

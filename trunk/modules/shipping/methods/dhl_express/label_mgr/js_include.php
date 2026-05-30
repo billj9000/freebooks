@@ -52,7 +52,8 @@ function toggleCustoms() {
 
 function swapShipAddresses() {
   var textFields = ['primary_name', 'contact', 'address1', 'address2',
-                    'city_town', 'state_province', 'postal_code', 'telephone1', 'email'];
+                    'city_town', 'state_province', 'postal_code', 'telephone1', 'email',
+                    'vat_number', 'eori_number'];
   textFields.forEach(function(f) {
     var a = document.getElementById('sender_' + f);
     var b = document.getElementById('ship_' + f);

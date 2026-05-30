@@ -91,6 +91,16 @@ $sel_sm = 'class="form-select form-select-sm"';
                 <input type="text" class="form-control form-control-sm" name="sender_email" id="sender_email"
                        value="<?php echo htmlspecialchars($sInfo->sender_email ?? ''); ?>" maxlength="60">
               </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo ACT_VAT_NUMBER; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_vat_number" id="sender_vat_number"
+                       value="<?php echo htmlspecialchars($sInfo->sender_vat_number ?? ''); ?>" maxlength="32">
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo ACT_EORI_NUMBER; ?></label>
+                <input type="text" class="form-control form-control-sm" name="sender_eori_number" id="sender_eori_number"
+                       value="<?php echo htmlspecialchars($sInfo->sender_eori_number ?? ''); ?>" maxlength="32">
+              </div>
             </div>
           </div>
         </div>
@@ -157,6 +167,16 @@ $sel_sm = 'class="form-select form-select-sm"';
                 <label class="form-label"><?php echo GEN_EMAIL; ?></label>
                 <input type="text" class="form-control form-control-sm" name="ship_email" id="ship_email"
                        value="<?php echo htmlspecialchars($sInfo->ship_email ?? ''); ?>" maxlength="60">
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo ACT_VAT_NUMBER; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_vat_number" id="ship_vat_number"
+                       value="<?php echo htmlspecialchars($sInfo->ship_vat_number ?? ''); ?>" maxlength="32">
+              </div>
+              <div class="col-6">
+                <label class="form-label"><?php echo ACT_EORI_NUMBER; ?></label>
+                <input type="text" class="form-control form-control-sm" name="ship_eori_number" id="ship_eori_number"
+                       value="<?php echo htmlspecialchars($sInfo->ship_eori_number ?? ''); ?>" maxlength="32">
               </div>
             </div>
           </div>

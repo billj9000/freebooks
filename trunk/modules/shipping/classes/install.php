@@ -76,6 +76,7 @@ class shipping_admin {
 	  'SHIPPING_DEFAULT_RETURN_SERVICE'                => '2',
 	  'SHIPPING_VOL_WEIGHT_DIVISOR'                    => '5000',
 	  'SHIPPING_SHIPPER_EORI'                          => '',
+	  'SHIPPING_SHIPPER_VAT'                           => '',
 	  'SHIPPING_SHIPPER_IOSS'                          => '',
 	);
 	// add new directories to store images and data

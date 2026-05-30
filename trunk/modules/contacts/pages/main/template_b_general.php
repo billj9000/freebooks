@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -36,6 +37,12 @@
         <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="32"', false); ?></td>
         <td align="right"><?php echo GEN_LAST_NAME; ?></td>
         <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="32"', false); ?></td>
+      </tr>
+      <tr>
+        <td align="right"><?php echo ACT_VAT_NUMBER; ?></td>
+        <td><?php echo html_input_field('vat_number', $cInfo->vat_number ?? '', 'size="21" maxlength="32"'); ?></td>
+        <td align="right"><?php echo ACT_EORI_NUMBER; ?></td>
+        <td><?php echo html_input_field('eori_number', $cInfo->eori_number ?? '', 'size="21" maxlength="32"'); ?></td>
       </tr>
     </table>
   </fieldset>
