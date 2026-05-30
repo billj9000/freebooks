@@ -211,7 +211,7 @@ function ReadDefReports($name, $path) {
 		$ReportList[$report->groupname][$i]['FileName'] = $pinfo[basename];
 		$i++;
 	    break;
-	  default: continue; // not a report
+	  default: break; // not a report
 	}
   }
   closedir($dh);
