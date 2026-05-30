@@ -17,78 +17,46 @@
 //  Path: /modules/shipping/methods/royal_mail/language/en_us/language.php
 //
 
-define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE',        'Royal Mail / Parcelforce');
-define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_DESCRIPTION',  'Royal Mail and Parcelforce shipping (UK)');
-define('MODULE_SHIPPING_ROYAL_MAIL_TITLE',             'Royal Mail Title');
-define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_SHORT',       'Royal Mail');
-define('MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY', 'Click &amp; Drop API Key');
-define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID',      'RM Shipping API Client ID');
-define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET',  'RM Shipping API Client Secret');
-define('MODULE_SHIPPING_ROYAL_MAIL_OBA_ACCOUNT',       'OBA Account Number');
-define('MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE',         'Mode');
-define('MODULE_SHIPPING_ROYAL_MAIL_TYPES',             'Enabled Services');
-define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER',        'Sort Order');
-// Parcelforce configured rates (contract rates, not from API)
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX9_RATE',         'Parcelforce Express 9 Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX10_RATE',        'Parcelforce Express 10 Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFXAM_RATE',        'Parcelforce Express AM Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX24_RATE',        'Parcelforce Express 24 Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX48_RATE',        'Parcelforce Express 48 Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX4L_RATE',        'Parcelforce Express 48L Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGX_RATE',         'Parcelforce Global Express Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGP_RATE',         'Parcelforce Global Priority Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGV_RATE',         'Parcelforce Global Value Rate (£)');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGE_RATE',         'Parcelforce Global Economy Rate (£)');
-// Admin panel field descriptions (one per key() entry)
-define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_DESC',            'Title shown in the shipping estimator.');
-define('MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY_DESC','Click &amp; Drop API key. Obtain from your Royal Mail OBA portal under Integrations.');
-define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID_DESC',     'RM Shipping API client ID (x-ibm-client-id). Obtain from the Royal Mail Developer Portal.');
-define('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET_DESC', 'RM Shipping API client secret (x-ibm-client-secret).');
-define('MODULE_SHIPPING_ROYAL_MAIL_OBA_ACCOUNT_DESC',      'Your Royal Mail OBA (Online Business Account) account number.');
-define('MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE_DESC',        'Test uses sandbox credentials; Production uses live credentials.');
-define('MODULE_SHIPPING_ROYAL_MAIL_TYPES_DESC',            'Select the Royal Mail and Parcelforce services to offer.');
-define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER_DESC',       'Sort order of display. Lowest is displayed first.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX9_RATE_DESC',        'Your contracted rate (£) for Parcelforce Express 9.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX10_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 10.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFXAM_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express AM.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX24_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 24.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX48_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 48.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFX4L_RATE_DESC',       'Your contracted rate (£) for Parcelforce Express 48 Large.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGX_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Express.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGP_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Priority.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGV_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Value.');
-define('MODULE_SHIPPING_ROYAL_MAIL_PFGE_RATE_DESC',        'Your contracted rate (£) for Parcelforce Global Economy.');
-// Service display names (used in type checkboxes)
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM24',  'RM Tracked 24');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM48',  'RM Tracked 48');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD9', 'RM Special Delivery 9am');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD1', 'RM Special Delivery 1pm');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM1CL', 'RM 1st Class');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM2CL', 'RM 2nd Class');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIT',  'RM International Tracked');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIS',  'RM International Signed');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMITS', 'RM International Tracked &amp; Signed');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIE',  'RM International Economy');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX9',  'Parcelforce Express 9');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX10', 'Parcelforce Express 10');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFXAM', 'Parcelforce Express AM');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX24', 'Parcelforce Express 24');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX48', 'Parcelforce Express 48');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX4L', 'Parcelforce Express 48L');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGX',  'Parcelforce Global Express');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGP',  'Parcelforce Global Priority');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGV',  'Parcelforce Global Value');
-define('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGE',  'Parcelforce Global Economy');
+define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE',       'Royal Mail Click & Drop');
+define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_DESCRIPTION', 'Royal Mail Click & Drop label printing (OBA)');
+define('MODULE_SHIPPING_ROYAL_MAIL_TITLE',            'Royal Mail Title');
+define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_SHORT',      'Royal Mail');
+define('MODULE_SHIPPING_ROYAL_MAIL_API_KEY',          'Click & Drop API Key');
+define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER',       'Sort Order');
+// Admin field descriptions
+define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_DESC',      'Title shown for this carrier.');
+define('MODULE_SHIPPING_ROYAL_MAIL_API_KEY_DESC',    'Click & Drop API key. Obtain from your Click & Drop account under Settings &rarr; API.');
+define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER_DESC', 'Sort order of display. Lowest is displayed first.');
 // Error messages
-define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_TOKEN',  'Royal Mail: Failed to obtain API access token.');
-define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_RATES',  'Royal Mail: Rate query failed - ');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL',  'Royal Mail: Label creation failed - ');
-define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_KEY', 'Royal Mail: Click &amp; Drop API key not configured.');
-// Label form labels
-define('RM_CUSTOMS_SECTION',      'Customs Information (international)');
-define('RM_TEXT_DESCRIPTION',     'Goods Description');
-define('RM_TEXT_DECLARED_VALUE',  'Declared Value');
-define('RM_TEXT_HS_CODE',         'HS / Commodity Code');
-define('RM_TEXT_ORIGIN_COUNTRY',  'Country of Origin');
-define('RM_TEXT_EXPORT_REASON',   'Reason for Export');
+define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NOKEY',  'Royal Mail: Click & Drop API key not configured.');
+// Label form — customs section
+define('RM_CUSTOMS_SECTION',           'Customs / Export Information');
+define('RM_TEXT_DECLARATION_CATEGORY', 'Declaration Category');
+define('RM_TEXT_DECLARED_VALUE',       'Declared Value');
+define('RM_TEXT_HS_CODE',              'HS / Commodity Code');
+define('RM_TEXT_ORIGIN_COUNTRY',       'Country of Origin');
+define('RM_TEXT_RETURNS_LABEL',        'Include Returns Label');
+// Label form — line items table
+define('RM_LINE_ITEMS_HEADER',   'Shipment Contents (Customs Declaration)');
+define('RM_TEXT_UNIT_WEIGHT',    'Unit Weight');
+define('RM_TEXT_UNIT_VALUE',     'Unit Value');
+define('RM_TEXT_SAVE_TO_INV',    'Save descriptions to inventory');
+define('RM_ITEMS_SAVED',         'Item descriptions saved to inventory.');
+// Label form — package formats
+define('RM_TEXT_PACKAGE_FORMAT',   'Format');
+define('RM_PKG_LETTER',            'Letter');
+define('RM_PKG_LARGE_LETTER',      'Large Letter');
+define('RM_PKG_SMALL_PARCEL',      'Small Parcel');
+define('RM_PKG_MEDIUM_PARCEL',     'Medium Parcel');
+define('RM_PKG_LARGE_PARCEL',      'Large Parcel');
+define('RM_PKG_PARCEL',            'Parcel');
+define('RM_PKG_DOCUMENTS',         'Documents');
+// Declaration category options
+define('RM_DECL_SALE_OF_GOODS',     'Commercial Sale');
+define('RM_DECL_GIFT',              'Gift');
+define('RM_DECL_DOCUMENTS',         'Documents');
+define('RM_DECL_COMMERCIAL_SAMPLE', 'Commercial Sample');
+define('RM_DECL_RETURNED_GOODS',    'Returned Goods');
+define('RM_DECL_OTHER',             'Other');
 ?>

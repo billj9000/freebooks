@@ -19,88 +19,43 @@
 
 define('MODULE_SHIPPING_ROYAL_MAIL_VERSION', '1.0');
 
-// RM Shipping API (OBA) — rate quoting
-// Auth: x-ibm-client-id / x-ibm-client-secret headers
-define('RM_API_BASE_LIVE', 'https://api.royalmail.net/shipping/v3');
-define('RM_API_BASE_TEST', 'https://api.royalmail.net/shipping/v3'); // same endpoint, different credentials
+// Royal Mail Click & Drop REST API
+// Auth: Authorization: Bearer {API key} (obtain from Click & Drop → Settings → API)
+define('RM_CD_BASE', 'https://api.parcel.royalmail.com/api/v1');
 
-// Click & Drop API — label generation (RM and Parcelforce)
-// Auth: OBA-API-KEY header
-define('RM_CD_BASE_LIVE', 'https://api.clickanddrop.royalmail.com/v2');
-define('RM_CD_BASE_TEST', 'https://api.clickanddrop.royalmail.com/v2');
-
-// Map our internal service codes → RM Shipping API service codes (for rate quoting)
-// Map our internal service codes → Click & Drop service codes (for label generation)
-// These match the Royal Mail OBA / Click & Drop v2 API service identifiers.
-
-// Wire up service level constants for the shipping estimator dropdown
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM24'))  define('royal_mail_RM24',  MODULE_SHIPPING_ROYAL_MAIL_SVC_RM24);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM48'))  define('royal_mail_RM48',  MODULE_SHIPPING_ROYAL_MAIL_SVC_RM48);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD9')) define('royal_mail_RMSD9', MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD9);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD1')) define('royal_mail_RMSD1', MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD1);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM1CL')) define('royal_mail_RM1CL', MODULE_SHIPPING_ROYAL_MAIL_SVC_RM1CL);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RM2CL')) define('royal_mail_RM2CL', MODULE_SHIPPING_ROYAL_MAIL_SVC_RM2CL);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIT'))  define('royal_mail_RMIT',  MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIT);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIS'))  define('royal_mail_RMIS',  MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIS);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMITS')) define('royal_mail_RMITS', MODULE_SHIPPING_ROYAL_MAIL_SVC_RMITS);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIE'))  define('royal_mail_RMIE',  MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIE);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX9'))  define('royal_mail_PFX9',  MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX9);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX10')) define('royal_mail_PFX10', MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX10);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFXAM')) define('royal_mail_PFXAM', MODULE_SHIPPING_ROYAL_MAIL_SVC_PFXAM);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX24')) define('royal_mail_PFX24', MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX24);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX48')) define('royal_mail_PFX48', MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX48);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX4L')) define('royal_mail_PFX4L', MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX4L);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGX'))  define('royal_mail_PFGX',  MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGX);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGP'))  define('royal_mail_PFGP',  MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGP);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGV'))  define('royal_mail_PFGV',  MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGV);
-if (defined('MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGE'))  define('royal_mail_PFGE',  MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGE);
+// Service display names — keyed as royal_mail_{internal_code}.
+// pre_process.php filters service_levels to only show codes with a defined constant here.
+// Domestic
+define('royal_mail_RM24',  'RM Tracked 24');
+define('royal_mail_RM48',  'RM Tracked 48');
+define('royal_mail_RMSD9', 'RM Special Delivery 9am');
+define('royal_mail_RMSD1', 'RM Special Delivery 1pm');
+define('royal_mail_RM1CL', 'RM Signed For 1st Class');
+define('royal_mail_RM2CL', 'RM Signed For 2nd Class');
+// International
+define('royal_mail_RMIT',  'RM International Business Mail Tracked');
+define('royal_mail_RMIS',  'RM International Business Mail Signed');
+define('royal_mail_RMITS', 'RM International Business Mail Tracked & Signed');
+define('royal_mail_RMIE',  'RM International Business Parcel Standard');
 
 class royal_mail {
 
-  // Maps our internal codes to RM OBA API service codes (rate quoting)
-  var $RMRateMap = array(
-    'RM24'  => 'TM',   // Tracked 24
-    'RM48'  => 'TP',   // Tracked 48
-    'RMSD9' => 'SD9',  // Special Delivery Guaranteed 9am
-    'RMSD1' => 'SD1',  // Special Delivery Guaranteed 1pm
-    'RM1CL' => '1C',   // 1st Class
-    'RM2CL' => '2C',   // 2nd Class
-    'RMIT'  => 'IT',   // International Tracked
-    'RMIS'  => 'IS',   // International Signed
-    'RMITS' => 'ITS',  // International Tracked & Signed
-    'RMIE'  => 'IE',   // International Economy
-  );
-
-  // Maps our internal codes to Click & Drop service codes (label generation)
+  // Internal code → Click & Drop API serviceCode.
+  // Actual values depend on your OBA account — verify in Click & Drop Settings → Services.
   var $CDServiceMap = array(
-    'RM24'  => 'TM',
-    'RM48'  => 'TP',
-    'RMSD9' => 'SD9',
+    'RM24'  => 'TPN24',
+    'RM48'  => 'TPS48',
+    'RMSD9' => 'SD4',
     'RMSD1' => 'SD1',
-    'RM1CL' => '1C',
-    'RM2CL' => '2C',
-    'RMIT'  => 'IT',
-    'RMIS'  => 'IS',
-    'RMITS' => 'ITS',
-    'RMIE'  => 'IE',
-    // Parcelforce via Click & Drop
-    'PFX9'  => 'express9',
-    'PFX10' => 'express10',
-    'PFXAM' => 'expressAM',
-    'PFX24' => 'express24',
-    'PFX48' => 'express48',
-    'PFX4L' => 'express48L',
-    'PFGX'  => 'globalExpress',
-    'PFGP'  => 'globalPriority',
-    'PFGV'  => 'globalValue',
-    'PFGE'  => 'globalEconomy',
+    'RM1CL' => 'STL1',
+    'RM2CL' => 'STL2',
+    'RMIT'  => 'MTK',
+    'RMIS'  => 'MTM',
+    'RMITS' => 'MTG',
+    'RMIE'  => 'MP9',
   );
 
-  // International service codes (require customs data on labels)
-  var $intlServices = array('RMIT','RMIS','RMITS','RMIE','PFGX','PFGP','PFGV','PFGE');
-
-  // Parcelforce service codes (use configured rates, not live API)
-  var $pfServices = array('PFX9','PFX10','PFXAM','PFX24','PFX48','PFX4L','PFGX','PFGP','PFGV','PFGE');
+  var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE');
 
   function __construct() {
     $this->code = 'royal_mail';
@@ -108,357 +63,240 @@ class royal_mail {
 
   function keys() {
     return array(
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_TITLE',            'default' => 'Royal Mail / Parcelforce'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY','default' => ''),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID',     'default' => ''),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET', 'default' => ''),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_OBA_ACCOUNT',      'default' => ''),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE',        'default' => 'Test'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_TYPES',            'default' => 'RM24,RM48'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER',       'default' => '20'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFX9_RATE',        'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFX10_RATE',       'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFXAM_RATE',       'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFX24_RATE',       'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFX48_RATE',       'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFX4L_RATE',       'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFGX_RATE',        'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFGP_RATE',        'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFGV_RATE',        'default' => '0.00'),
-      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PFGE_RATE',        'default' => '0.00'),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_TITLE',      'default' => 'Royal Mail'),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_API_KEY',    'default' => ''),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER', 'default' => '40'),
     );
   }
 
   function configure($key) {
-    switch ($key) {
-      case 'MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE':
-        $temp = array(
-          array('id' => 'Test',       'text' => TEXT_TEST),
-          array('id' => 'Production', 'text' => TEXT_PRODUCTION),
-        );
-        return html_pull_down_menu(strtolower($key), $temp, constant($key));
-
-      case 'MODULE_SHIPPING_ROYAL_MAIL_TYPES':
-        $all_services = array(
-          array('id' => 'RM24',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RM24),
-          array('id' => 'RM48',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RM48),
-          array('id' => 'RMSD9', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD9),
-          array('id' => 'RMSD1', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RMSD1),
-          array('id' => 'RM1CL', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RM1CL),
-          array('id' => 'RM2CL', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RM2CL),
-          array('id' => 'RMIT',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIT),
-          array('id' => 'RMIS',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIS),
-          array('id' => 'RMITS', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RMITS),
-          array('id' => 'RMIE',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_RMIE),
-          array('id' => 'PFX9',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX9),
-          array('id' => 'PFX10', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX10),
-          array('id' => 'PFXAM', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFXAM),
-          array('id' => 'PFX24', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX24),
-          array('id' => 'PFX48', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX48),
-          array('id' => 'PFX4L', 'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFX4L),
-          array('id' => 'PFGX',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGX),
-          array('id' => 'PFGP',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGP),
-          array('id' => 'PFGV',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGV),
-          array('id' => 'PFGE',  'text' => MODULE_SHIPPING_ROYAL_MAIL_SVC_PFGE),
-        );
-        $enabled = explode(',', str_replace(' ', '', constant($key)));
-        $choices = array();
-        foreach ($all_services as $svc) {
-          $choices[] = html_checkbox_field(strtolower($key) . '[]', $svc['id'],
-            in_array($svc['id'], $enabled), '', '') . ' ' . $svc['text'];
-        }
-        return implode('<br />' . chr(10), $choices);
-
-      default:
-        return html_input_field(strtolower($key), constant($key), '');
-    }
+    return html_input_field(strtolower($key), constant($key), '');
   }
 
   function update() {
     foreach ($this->keys() as $key) {
-      $field = strtolower($key['key']);
-      if ($key['key'] == 'MODULE_SHIPPING_ROYAL_MAIL_TYPES') {
-        write_configure($key['key'], implode(',', $_POST[$field]));
-      } elseif (isset($_POST[$field])) {
-        write_configure($key['key'], $_POST[$field]);
+      if (isset($_POST[strtolower($key['key'])])) {
+        write_configure($key['key'], $_POST[strtolower($key['key'])]);
       }
     }
   }
 
   // ---------------------------------------------------------------
-  //  Rate quoting
+  //  Label generation — two-step: POST /orders then GET /orders/{id}/label
   // ---------------------------------------------------------------
-  function quote($pkg) {
+  function retrieveLabel($sInfo) {
     global $messageStack;
 
-    // Run carrier-specific box packing when item list is available
-    $rate_packages = [];
-    $weightG       = 0;
-    $lengthMm      = 0;
-    $widthMm       = 0;
-    $depthMm       = 0;
-
-    if (!empty($pkg->items)) {
-      $pack_result      = BoxPackingService::pack($pkg->items, $this->code);
-      $boxes            = BoxPackingService::summarise($pack_result['packed']);
-      $weight_only_g    = $pack_result['weight_only_g'];
-      $weight_only_skus = $pack_result['weight_only_skus'];
-      $unpacked_skus    = array_unique(array_column($pack_result['unpacked'], 'sku'));
-
-      if (!empty($boxes)) {
-        // RM quotes per-parcel; use total shipment weight and first box dimensions
-        $weightG  = $weight_only_g;
-        foreach ($boxes as $b) $weightG += $b['weight_g'];
-        $lengthMm = $boxes[0]['length_mm'];
-        $widthMm  = $boxes[0]['width_mm'];
-        $depthMm  = $boxes[0]['depth_mm'];
-        foreach ($boxes as $bi => $b) {
-          $extra_g = ($bi === 0) ? $weight_only_g : 0;
-          $rate_packages[] = array(
-            'box_code' => $b['box_code'],
-            'box_name' => $b['box_name'],
-            'qty'      => 1,
-            'weight'   => BoxPackingService::fromGrams($b['weight_g'] + $extra_g),
-            'length'   => BoxPackingService::fromMm($b['length_mm']),
-            'width'    => BoxPackingService::fromMm($b['width_mm']),
-            'height'   => BoxPackingService::fromMm($b['depth_mm']),
-            'items'    => $b['items'],
-          );
-        }
-      }
-      if (!empty($weight_only_skus)) {
-        $messageStack->add(SHIPPING_BOX_PACKER_NO_DIMS . implode(', ', $weight_only_skus), 'caution');
-      }
-      if (!empty($unpacked_skus)) {
-        $messageStack->add(SHIPPING_BOX_PACKER_NOT_FOUND . implode(', ', $unpacked_skus), 'caution');
-      }
-    }
-    // Fallback: no items provided, or no RM-compatible boxes configured
-    if ($weightG === 0) {
-      $weightG = $this->toGrams($pkg->get_total_weight(), $pkg->pkg_weight_unit);
-    }
-    if ($weightG === 0) {
-      $messageStack->add(SHIPPING_ERROR_WEIGHT_ZERO, 'error');
+    $apiKey = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
+    if (!$apiKey) {
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_NOKEY, 'error');
       return false;
     }
 
-    $enabled  = explode(',', str_replace(' ', '', MODULE_SHIPPING_ROYAL_MAIL_TYPES));
-    $arrRates = array();
+    // Map internal service code to Click & Drop API serviceCode
+    $internalCode = $sInfo->ship_method ?? '';
+    $serviceCode  = $this->CDServiceMap[$internalCode] ?? $internalCode;
+    $isDomestic   = !in_array($internalCode, $this->intlServices);
 
-    // RM services: live rates via RM Shipping API
-    $rmEnabled = array_diff($enabled, $this->pfServices);
-    if (!empty($rmEnabled)) {
-      $rmRates = $this->queryRMRates($pkg, $rmEnabled, $weightG, $lengthMm, $widthMm, $depthMm, $rate_packages);
-      if (is_array($rmRates)) $arrRates = array_merge($arrRates, $rmRates);
+    // Also detect domestic by country match (covers manual service code entry)
+    $sc       = trim($sInfo->sender_country_code ?? '');
+    $fromISO2 = $sc !== ''
+      ? (strlen($sc) === 3 ? gen_get_country_iso_2_from_3($sc) : $sc)
+      : (defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB');
+    $toCC     = trim($sInfo->ship_country_code ?? '');
+    $toISO2   = $toCC !== ''
+      ? (strlen($toCC) === 3 ? gen_get_country_iso_2_from_3($toCC) : $toCC)
+      : '';
+    if ($fromISO2 !== '' && $toISO2 !== '' && $fromISO2 === $toISO2) $isDomestic = true;
+
+    // Despatch date
+    $ts           = strtotime($sInfo->ship_date ?? 'today') ?: time();
+    $despatchDate = date('Y-m-d', $ts);
+
+    // Declared value in invoice currency
+    $fx = max(1e-9, (float)($sInfo->currencies_value ?? 1));
+    if (!empty($sInfo->line_items)) {
+      $goodsValue = 0;
+      foreach ($sInfo->line_items as $li) $goodsValue += (float)$li['value'] * (float)$li['qty'];
+      $goodsValue = round($goodsValue * $fx, 2);
+    } else {
+      $goodsValue = round((float)($sInfo->customs_value ?: $sInfo->total_value ?: 0) * $fx, 2);
     }
 
-    // Parcelforce services: configured rates
-    $pfEnabled = array_intersect($enabled, $this->pfServices);
-    foreach ($pfEnabled as $code) {
-      $rateKey = 'MODULE_SHIPPING_ROYAL_MAIL_' . $code . '_RATE';
-      $rate = defined($rateKey) ? (float)constant($rateKey) : 0.0;
-      if ($rate > 0) {
-        $arrRates[$this->code][$code] = array(
-          'book'     => $rate,
-          'quote'    => $rate,
-          'cost'     => $rate,
-          'note'     => '',
-          'packages' => $rate_packages,
+    // Packages — weight in grams + optional format identifier
+    $packages = array();
+    foreach ($sInfo->package as $pkg) {
+      $entry = array(
+        'weightInGrams' => $this->toGrams($pkg['weight'] ?? 0, $sInfo->pkg_weight_unit ?? 'KGS'),
+      );
+      $fmt = trim($pkg['format'] ?? '');
+      if ($fmt && $fmt !== 'undefined') $entry['packageFormatIdentifier'] = $fmt;
+      $packages[] = $entry;
+    }
+    if (empty($packages)) {
+      $messageStack->add(SHIPPING_NO_PACKAGES, 'error');
+      return false;
+    }
+
+    // Customs line item contents for international shipments
+    $contents = array();
+    if (!$isDomestic && !empty($sInfo->line_items)) {
+      foreach ($sInfo->line_items as $item) {
+        if ((float)($item['qty'] ?? 0) <= 0) continue;
+        $originCC = trim($item['origin'] ?? '');
+        if ($originCC && strlen($originCC) === 3) $originCC = gen_get_country_iso_2_from_3($originCC);
+        $contents[] = array(
+          'name'                       => $item['description'] ?: 'Goods',
+          'SKU'                        => $item['sku'] ?? '',
+          'quantity'                   => max(1, (int)round((float)$item['qty'])),
+          'unitValue'                  => max(0.01, round((float)$item['value'] * $fx, 2)),
+          'unitWeightInGrams'          => $this->toGrams((float)($item['weight'] ?? 0), $sInfo->pkg_weight_unit ?? 'KGS'),
+          'customsCode'                => $item['hs_code'] ?? '',
+          'originCountryCode'          => $originCC ?: $fromISO2,
+          'customsDescription'         => substr($item['description'] ?: 'Goods', 0, 50),
+          'customsDeclarationCategory' => $sInfo->customs_declaration_category ?? 'saleOfGoods',
         );
       }
     }
 
-    return array('result' => 'success', 'rates' => $arrRates);
-  }
+    $currency      = $sInfo->currencies_code ?: (defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP');
+    $recipientEori = trim($sInfo->ship_eori_number ?? '');
+    $recipientVat  = trim($sInfo->ship_vat_number  ?? '');
+    $ioss          = (!$isDomestic && defined('SHIPPING_SHIPPER_IOSS') && SHIPPING_SHIPPER_IOSS)
+                     ? SHIPPING_SHIPPER_IOSS : '';
 
-  private function queryRMRates($pkg, $enabledCodes, $weightG, $lengthMm, $widthMm, $depthMm, $ratePackages) {
-    global $messageStack;
-    $clientId     = defined('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID')     ? MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_ID     : '';
-    $clientSecret = defined('MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET') ? MODULE_SHIPPING_ROYAL_MAIL_RM_CLIENT_SECRET : '';
-    if (!$clientId || !$clientSecret) return array();
+    // Build recipient object — address fields are nested inside 'address' per API spec
+    $address = array(
+      'addressLine1' => $sInfo->ship_address1 ?? '',
+      'city'         => $sInfo->ship_city_town ?? '',
+      'countryCode'  => $toISO2,
+      'postcode'     => $sInfo->ship_postal_code ?? '',
+      'fullName'     => $sInfo->ship_contact ?: ($sInfo->ship_primary_name ?? ''),
+      'companyName'  => $sInfo->ship_primary_name ?? '',
+    );
+    if (trim($sInfo->ship_address2 ?? '') !== '') $address['addressLine2'] = $sInfo->ship_address2;
+    $recipient = array('address' => $address);
+    if (trim($sInfo->ship_telephone1 ?? '') !== '') $recipient['phoneNumber']  = $sInfo->ship_telephone1;
+    if (trim($sInfo->ship_email      ?? '') !== '') $recipient['emailAddress'] = $sInfo->ship_email;
 
-    $base     = (MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE == 'Production') ? RM_API_BASE_LIVE : RM_API_BASE_TEST;
-    $fromPost = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
-    $toPost   = $pkg->ship_to_postal_code;
-    $fromISO2 = defined('COMPANY_COUNTRY') ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB';
-    $toISO2   = $pkg->ship_to_country_iso2 ?? $fromISO2;
+    // Contents (customs line items) belong inside the package, not on the order
+    if (!empty($contents) && !empty($packages)) {
+      $packages[0]['contents'] = $contents;
+    }
 
-    $body = json_encode(array(
-      'originPostcode'         => $fromPost,
-      'destinationPostcode'    => $toPost,
-      'originCountryCode'      => $fromISO2,
-      'destinationCountryCode' => $toISO2,
-      'weight' => array(
-        'unitOfMeasure' => 'g',
-        'value'         => $weightG,
-      ),
-      'dimensions' => array(
-        'unitOfMeasure' => 'mm',
-        'length'        => $lengthMm,
-        'width'         => $widthMm,
-        'depth'         => $depthMm,
-      ),
+    // postageDetails: service code + all optional fields that the API spec places here
+    $postageDetails = array('serviceCode' => $serviceCode);
+    if (!$isDomestic && $recipientEori) $postageDetails['recipientEoriNumber']    = $recipientEori;
+    if ($ioss)                          $postageDetails['IOSSNumber']             = $ioss;
+    if (!$isDomestic && !empty($sInfo->purchase_invoice_id)) {
+      $postageDetails['commercialInvoiceNumber'] = $sInfo->purchase_invoice_id;
+      $postageDetails['commercialInvoiceDate']   = $despatchDate;
+    }
+
+    // Billing address — required for UK orders; use sender (company) details
+    $billing = array('address' => array(
+      'fullName'     => $sInfo->sender_primary_name ?? '',
+      'companyName'  => $sInfo->sender_primary_name ?? '',
+      'addressLine1' => $sInfo->sender_address1     ?? '',
+      'city'         => $sInfo->sender_city_town    ?? '',
+      'postcode'     => $sInfo->sender_postal_code  ?? '',
+      'countryCode'  => $fromISO2,
     ));
-
-    $headers = array(
-      'Content-Type: application/json',
-      'Accept: application/json',
-      'x-ibm-client-id: '     . $clientId,
-      'x-ibm-client-secret: ' . $clientSecret,
-    );
-
-    // The RM Shipping API v3 prices endpoint (verify path against RM Developer Portal)
-    $response = $this->curlRequest('POST', $base . '/prices', $headers, $body);
-    if ($response === false) {
-      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_RATES . 'API request failed.', 'error');
-      return array();
-    }
-
-    $data = json_decode($response, true);
-    if (!isset($data['availableServices']) || !is_array($data['availableServices'])) {
-      if (isset($data['httpMessage'])) {
-        $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_RATES . $data['httpMessage'], 'caution');
-      }
-      return array();
-    }
-
-    // Build a reverse map: RM API code → our internal code
-    $reverseMap = array_flip($this->RMRateMap);
-    $arrRates = array();
-    foreach ($data['availableServices'] as $svc) {
-      $rmCode = $svc['serviceCode'] ?? '';
-      $internalCode = $reverseMap[$rmCode] ?? null;
-      if (!$internalCode || !in_array($internalCode, $enabledCodes)) continue;
-      $price = (float)($svc['totalPackageNetCharge']['amount'] ?? $svc['price']['netPrice'] ?? 0);
-      if ($price <= 0) continue;
-      $arrRates[$this->code][$internalCode] = array(
-        'book'     => $price,
-        'quote'    => $price,
-        'cost'     => $price,
-        'note'     => $svc['serviceName'] ?? '',
-        'packages' => $ratePackages,
-      );
-    }
-    return $arrRates;
-  }
-
-  // ---------------------------------------------------------------
-  //  Label generation via Click & Drop
-  // ---------------------------------------------------------------
-  function retrieveLabel($sInfo) {
-    global $messageStack;
-    $apiKey = defined('MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_CLICKDROP_API_KEY : '';
-    if (!$apiKey) {
-      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_KEY, 'error');
-      return false;
-    }
-
-    $base    = (MODULE_SHIPPING_ROYAL_MAIL_TEST_MODE == 'Production') ? RM_CD_BASE_LIVE : RM_CD_BASE_TEST;
-    $headers = array(
-      'Content-Type: application/json',
-      'Accept: application/json',
-      'OBA-API-KEY: ' . $apiKey,
-    );
-
-    $serviceCode = $this->CDServiceMap[$sInfo->ship_method] ?? $sInfo->ship_method;
-    $isIntl      = in_array($sInfo->ship_method, $this->intlServices);
-
-    // Build packages array
-    $packages = array();
-    foreach ($sInfo->package as $pkg) {
-      $packages[] = array(
-        'weightInGrams' => $this->toGrams($pkg['weight'], $sInfo->pkg_weight_unit),
-      );
-    }
+    if (trim($sInfo->sender_address2 ?? '') !== '') $billing['address']['addressLine2'] = $sInfo->sender_address2;
 
     $order = array(
-      'orderDate'       => date('Y-m-d\TH:i:s', strtotime($sInfo->ship_date)),
-      'orderIdentifier' => $sInfo->purchase_invoice_id,
-      'label'           => array('format' => 'PDF'),
-      'recipient'       => array(
-        'address' => array(
-          'fullName'    => $sInfo->ship_primary_name,
-          'companyName' => $sInfo->ship_primary_name,
-          'addressLine1'=> $sInfo->ship_address1,
-          'addressLine2'=> $sInfo->ship_address2 ?? '',
-          'city'        => $sInfo->ship_city_town,
-          'postcode'    => $sInfo->ship_postal_code,
-          'countryCode' => strlen($sInfo->ship_country_code) == 3
-            ? gen_get_country_iso_2_from_3($sInfo->ship_country_code)
-            : $sInfo->ship_country_code,
-        ),
-        'phoneNumber'   => $sInfo->ship_telephone1 ?? '',
-        'emailAddress'  => $sInfo->ship_email ?? '',
-      ),
-      'sender' => array(
-        'tradingName'  => defined('COMPANY_NAME') ? COMPANY_NAME : '',
-        'phoneNumber'  => defined('COMPANY_TELEPHONE1') ? COMPANY_TELEPHONE1 : '',
-        'emailAddress' => defined('COMPANY_EMAIL') ? COMPANY_EMAIL : '',
-      ),
-      'serviceCode' => $serviceCode,
-      'packages'    => $packages,
+      'orderDate'           => gmdate('Y-m-d\TH:i:s\Z'),
+      'orderReference'      => $sInfo->purchase_invoice_id ?? '',
+      'currencyCode'        => $currency,
+      'subtotal'            => $goodsValue,
+      'shippingCostCharged' => 0,
+      'total'               => $goodsValue,
+      'recipient'           => $recipient,
+      'billing'             => $billing,
+      'packages'            => $packages,
+      'postageDetails'      => $postageDetails,
     );
 
-    // Add customs for international shipments
-    if ($isIntl && !empty($sInfo->customs_description)) {
-      $declaredValue = (float)($sInfo->customs_value ?: $sInfo->total_value ?: 0);
-      $order['customsInfo'] = array(
-        'reasonForExport' => $sInfo->customs_reason ?: 'SALE',
-        'invoiceDate'     => $sInfo->ship_date,
-        'invoiceNumber'   => $sInfo->purchase_invoice_id,
-        'totalValue'      => $declaredValue,
-        'currency'        => 'GBP',
-        'items'           => array(
-          array(
-            'description'        => $sInfo->customs_description,
-            'quantity'           => 1,
-            'unitValue'          => $declaredValue,
-            'unitWeightInGrams'  => $this->toGrams($sInfo->total_weight ?? 0, $sInfo->pkg_weight_unit),
-            'hsCode'             => $sInfo->hs_code ?? '',
-            'countryOfOriginCode'=> $sInfo->country_of_origin ?? (defined('COMPANY_COUNTRY')
-              ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : 'GB'),
-          ),
-        ),
-      );
+    if (!$isDomestic && $recipientVat) {
+      $order['importer'] = array('vatNumber' => $recipientVat);
+      if ($recipientEori) $order['importer']['eoriNumber'] = $recipientEori;
     }
 
-    $body     = json_encode(array('orders' => array($order)));
-    $response = $this->curlRequest('POST', $base . '/orders', $headers, $body);
+    // Step 1: POST /orders — body is CreateOrdersRequest: {"items":[...]}
+    $body = array('items' => array($order));
+    $bodyJson = json_encode($body);
+    if ($bodyJson === false) {
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'JSON encode failed: ' . json_last_error_msg(), 'error');
+      return false;
+    }
+    $response = $this->curlRequest('POST', RM_CD_BASE . '/orders',
+      $this->rmHeaders($apiKey), $bodyJson);
+
     if ($response === false) {
       $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'API request failed.', 'error');
       return false;
     }
 
-    $data = json_decode($response, true);
-    if (empty($data['createdOrders'][0])) {
-      $msg = $data['message'] ?? $data['httpMessage'] ?? $response;
-      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . $msg, 'error');
+    $data          = json_decode($response, true);
+    $createdOrders = $data['createdOrders'] ?? array();
+    if (empty($createdOrders)) {
+      $failedMsg = $data['failedOrders'][0]['errors'][0]['errorMessage']
+                ?? ($data['failedOrders'][0]['errors'][0]['message']
+                ?? ($data['message'] ?? substr($response, 0, 300)));
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . $failedMsg, 'error');
       return false;
     }
 
-    $created  = $data['createdOrders'][0];
-    $tracking = $created['trackingNumber'] ?? $created['orderID'] ?? '';
-    $labelB64 = $created['label']['content'] ?? $created['label']['pdf'] ?? '';
-
-    if (!$labelB64 || !$tracking) {
-      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'No label or tracking number in response.', 'error');
+    $orderIdentifier = $createdOrders[0]['orderIdentifier'] ?? '';
+    $trackingNumber  = $createdOrders[0]['trackingNumber']
+                    ?? ($createdOrders[0]['packages'][0]['trackingNumber'] ?? '');
+    if (!$orderIdentifier) {
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'No order identifier returned.', 'error');
       return false;
     }
 
-    // Save label PDF
-    $date      = $sInfo->ship_date;
-    $file_path = SHIPPING_DEFAULT_LABEL_DIR . $this->code . '/' . str_replace('-', '/', $date) . '/';
+    // Step 2: GET /orders/{id}/label — returns raw PDF
+    $includeReturns = !empty($sInfo->include_returns_label) ? 'true' : 'false';
+    $labelParams    = 'documentType=postageLabel&includeReturnsLabel=' . $includeReturns;
+    if (!$isDomestic) $labelParams .= '&includeCN=true';
+    $labelHeaders   = $this->rmHeaders($apiKey);
+    $labelHeaders[] = 'Accept: application/pdf';
+    $labelResponse  = $this->curlRequest('GET',
+      RM_CD_BASE . '/orders/' . urlencode($orderIdentifier) . '/label?' . $labelParams,
+      $labelHeaders);
+
+    if ($labelResponse === false) {
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Label download failed.', 'error');
+      return false;
+    }
+    if (substr($labelResponse, 0, 4) !== '%PDF') {
+      $errData = json_decode($labelResponse, true);
+      $errMsg  = $errData['message'] ?? substr($labelResponse, 0, 200);
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . $errMsg, 'error');
+      return false;
+    }
+
+    // Step 3: GET /orders/{id} to retrieve the tracking number assigned during label printing
+    $orderData = $this->curlRequest('GET',
+      RM_CD_BASE . '/orders/' . urlencode($orderIdentifier),
+      $this->rmHeaders($apiKey));
+    if ($orderData !== false) {
+      $ord = json_decode($orderData, true);
+      $trackingNumber = $ord[0]['trackingNumber']
+                     ?? ($ord[0]['packages'][0]['trackingNumber'] ?? $trackingNumber);
+    }
+
+    $file_path = SHIPPING_DEFAULT_LABEL_DIR . $this->code . '/' . str_replace('-', '/', $sInfo->ship_date) . '/';
     validate_path($file_path);
-    $file_name = $tracking . '.pdf';
-    $labelData = base64_decode($labelB64);
-    if (!file_put_contents($file_path . $file_name, $labelData)) {
+    $labelFile = ($trackingNumber ?: $orderIdentifier) . '.pdf';
+    if (!file_put_contents($file_path . $labelFile, $labelResponse)) {
       $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Cannot write label file.', 'error');
       return false;
     }
 
     return array(array(
       'ref_id'        => $sInfo->purchase_invoice_id,
-      'tracking'      => $tracking,
+      'tracking'      => $trackingNumber ?: $orderIdentifier,
       'zone'          => '',
       'book_cost'     => 0,
       'net_cost'      => 0,
@@ -467,8 +305,48 @@ class royal_mail {
   }
 
   // ---------------------------------------------------------------
+  //  Cancel an order by its Click & Drop orderIdentifier
+  // ---------------------------------------------------------------
+  public function cancelShipment($orderIdentifier) {
+    global $messageStack;
+    $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
+    $response = $this->curlRequest('DELETE',
+      RM_CD_BASE . '/orders/' . urlencode($orderIdentifier),
+      $this->rmHeaders($apiKey));
+    if ($response === false) {
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Cancellation failed.', 'caution');
+      return false;
+    }
+    return true;
+  }
+
+  // ---------------------------------------------------------------
+  //  Manifest all eligible orders (end-of-day closure with Royal Mail)
+  // ---------------------------------------------------------------
+  public function manifestOrders() {
+    global $messageStack;
+    $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
+    $response = $this->curlRequest('POST', RM_CD_BASE . '/manifests',
+      $this->rmHeaders($apiKey), '{}');
+    if ($response === false) {
+      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Manifest request failed.', 'error');
+      return false;
+    }
+    $data = json_decode($response, true);
+    return $data['manifestIdentifier'] ?? true;
+  }
+
+  // ---------------------------------------------------------------
   //  Helpers
   // ---------------------------------------------------------------
+  private function rmHeaders($apiKey) {
+    return array(
+      'Authorization: Bearer ' . $apiKey,
+      'Accept: application/json',
+      'Content-Type: application/json',
+    );
+  }
+
   private function curlRequest($method, $url, $headers, $body = null) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -477,25 +355,20 @@ class royal_mail {
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     if ($method === 'POST') {
       curl_setopt($ch, CURLOPT_POST, true);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+      if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    } elseif ($method !== 'GET') {
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+      if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     }
-    $result   = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error    = curl_error($ch);
+    $result = curl_exec($ch);
+    $error  = curl_error($ch);
     curl_close($ch);
-    if ($error) return false;
-    if ($httpCode >= 400) return $result; // return body so caller can extract error message
-    return $result;
+    return $error ? false : $result;
   }
 
   private function toGrams($value, $unit) {
     $v = (float)$value;
-    return ($unit === 'KGS') ? (int)round($v * 1000) : (int)round($v * 453.592);
-  }
-
-  private function toMm($value, $unit) {
-    $v = (float)$value;
-    return ($unit === 'CM') ? (int)round($v * 10) : (int)round($v * 25.4);
+    return (strtoupper($unit) === 'KGS') ? (int)round($v * 1000) : (int)round($v * 453.592);
   }
 
 } // end class royal_mail

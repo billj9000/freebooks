@@ -30,28 +30,56 @@ $pdf_list   = array();
 $sInfo      = new shipment();
 /***************  Act on the action request  ************************/
 switch ($_REQUEST['action']) {
+  case 'save_items':
+    $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));
+    for ($i = 1; $i <= $num_li; $i++) {
+      $sku = db_prepare_input($_POST['li_sku_' . $i] ?? '');
+      if (!$sku) continue;
+      $db->Execute("UPDATE " . TABLE_INVENTORY . " SET
+        customs_description = '" . db_input(db_prepare_input($_POST['li_desc_'   . $i] ?? '')) . "',
+        country_of_origin   = '" . db_input(db_prepare_input($_POST['li_origin_' . $i] ?? '')) . "',
+        hs_code             = '" . db_input(db_prepare_input($_POST['li_hs_'     . $i] ?? '')) . "',
+        item_weight         = "  . (float)($_POST['li_wt_' . $i] ?? 0) . "
+        WHERE sku = '" . db_input($sku) . "'");
+    }
+    $messageStack->add(RM_ITEMS_SAVED, 'success');
+    gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array()), 'SSL'));
+    break;
+
   case 'label':
     foreach ($_POST as $key => $value) $sInfo->$key = db_prepare_input($value);
-    $sInfo->ship_date = date('Y-m-d', strtotime($sInfo->ship_date));
-    // Package rows
+    $sInfo->ship_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $sInfo->ship_date)
+      ? $sInfo->ship_date : date('Y-m-d', strtotime($sInfo->ship_date));
+    // Package rows (weight + format identifier; no L/W/H for Royal Mail)
     $sInfo->package = array();
     $i = 0;
     while (true) {
       $i++;
       if (!isset($_POST['qty_' . $i])) break;
       if (!$_POST['qty_' . $i] || !$_POST['wt_' . $i]) continue;
-      if (!$_POST['len_' . $i]) $_POST['len_' . $i] = SHIPPING_DEFAULT_LENGTH;
-      if (!$_POST['wid_' . $i]) $_POST['wid_' . $i] = SHIPPING_DEFAULT_WIDTH;
-      if (!$_POST['hgt_' . $i]) $_POST['hgt_' . $i] = SHIPPING_DEFAULT_HEIGHT;
       for ($j = 0; $j < (int)$_POST['qty_' . $i]; $j++) {
         $sInfo->package[] = array(
           'weight' => $_POST['wt_'  . $i],
-          'length' => $_POST['len_' . $i],
-          'width'  => $_POST['wid_' . $i],
-          'height' => $_POST['hgt_' . $i],
-          'value'  => $_POST['ins_' . $i],
+          'format' => $_POST['fmt_' . $i] ?? 'parcel',
+          'value'  => $_POST['ins_' . $i] ?? '0',
         );
       }
+    }
+    // Line items for customs declaration
+    $sInfo->line_items = array();
+    $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));
+    for ($i = 1; $i <= $num_li; $i++) {
+      $sku = db_prepare_input($_POST['li_sku_' . $i] ?? '');
+      if (!$sku) continue;
+      $sInfo->line_items[] = array(
+        'sku'         => $sku,
+        'description' => db_prepare_input($_POST['li_desc_'   . $i] ?? ''),
+        'origin'      => db_prepare_input($_POST['li_origin_' . $i] ?? ''),
+        'hs_code'     => db_prepare_input($_POST['li_hs_'     . $i] ?? ''),
+        'qty'         => (float)($_POST['li_qty_' . $i] ?? 1),
+        'weight'      => (float)($_POST['li_wt_'  . $i] ?? 0),
+        'value'       => (float)($_POST['li_val_' . $i] ?? 0),
+      );
     }
 
     if (count($sInfo->package) > 0) {
@@ -68,24 +96,30 @@ switch ($_REQUEST['action']) {
       $labels_array = array();
       foreach ($result as $pkg_result) {
         $sql_array = array(
-          'ref_id'       => $pkg_result['ref_id'],
-          'shipment_id'  => $shipment_num,
-          'carrier'      => $shipping_module,
-          'method'       => $sInfo->ship_method,
-          'ship_date'    => $sInfo->ship_date . ' ' . date('H:i:s'),
-          'deliver_date' => $pkg_result['delivery_date'],
-          'tracking_id'  => $pkg_result['tracking'],
-          'cost'         => $pkg_result['net_cost'],
+          'ref_id'          => $pkg_result['ref_id'],
+          'shipment_id'     => $shipment_num,
+          'carrier'         => $shipping_module,
+          'method'          => $sInfo->ship_method,
+          'ship_date'       => $sInfo->ship_date . ' ' . date('H:i:s'),
+          'deliver_date'    => $pkg_result['delivery_date'],
+          'tracking_id'     => $pkg_result['tracking'],
+          'cost'            => $pkg_result['net_cost'],
+          'recipient_name'  => $sInfo->ship_primary_name ?? '',
+          'recipient_email' => $sInfo->ship_email ?? '',
         );
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
         $labels_array[] = $pkg_result['tracking'];
       }
       $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
       gen_add_audit_log(SHIPPING_LOG_LABEL_PRINTED, $shipment_num . '-' . $sInfo->purchase_invoice_id);
-      // All RM labels are PDF — redirect to viewer immediately
       gen_redirect(html_href_link(FILENAME_DEFAULT,
         'module=shipping&page=popup_label_viewer&method=' . $shipping_module .
-        '&date=' . $sInfo->ship_date . '&labels=' . implode(':', $labels_array), 'SSL'));
+        '&date='       . $sInfo->ship_date .
+        '&labels='     . implode(':', $labels_array) .
+        '&to_name='    . urlencode($sInfo->ship_primary_name ?? '') .
+        '&to_email='   . urlencode($sInfo->ship_email ?? '') .
+        '&from_name='  . urlencode(defined('COMPANY_NAME')  ? COMPANY_NAME  : '') .
+        '&from_email=' . urlencode(defined('COMPANY_EMAIL') ? COMPANY_EMAIL : ''), 'SSL'));
     }
     break;
 
@@ -105,41 +139,140 @@ switch ($_REQUEST['action']) {
     }
     break;
 
-  case 'delete':
-    $shipment_id = db_prepare_input($_GET['sID']);
-    $shipments   = $db->Execute("select method, ship_date, tracking_id from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
-    if ($shipments->RecordCount() == 0) {
-      $messageStack->add(SHIPPING_DELETE_ERROR, 'error');
-      break;
-    }
-    if ($shipments->fields['ship_date'] < date('Y-m-d')) {
-      $messageStack->add(SHIPPING_CANNOT_DELETE, 'error');
-      break;
-    }
-    while (!$shipments->EOF) {
-      $tracking = $shipments->fields['tracking_id'];
-      $date     = explode('-', substr($shipments->fields['ship_date'], 0, 10));
-      $file_path = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . $date[0] . '/' . $date[1] . '/' . $date[2] . '/';
-      $filename = $file_path . $tracking . '.pdf';
-      if (is_file($filename)) @unlink($filename);
-      $shipments->MoveNext();
-    }
-    $db->Execute("delete from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
-    gen_add_audit_log(SHIPPING_LABEL_DELETED, $shipment_id);
-    break;
-
   default:
     $oID = db_prepare_input($_GET['oID']);
     if ($oID) {
-      $sql = "select shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
+      $sql = "select journal_id, bill_acct_id, shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
           ship_city_town, ship_state_province, ship_postal_code, ship_country_code, ship_telephone1,
-          ship_email, purchase_invoice_id, purch_order_id, total_amount
+          ship_email, bill_primary_name, bill_contact, bill_address1, bill_address2,
+          bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_telephone1, bill_email,
+          purchase_invoice_id, purch_order_id, total_amount, ship_packages,
+          currencies_code, currencies_value
           from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$oID;
       $result = $db->Execute($sql);
       if (is_array($result->fields)) {
         foreach ($result->fields as $key => $value) $sInfo->$key = $value;
+        $journal_id = (int)($result->fields['journal_id'] ?? $_GET['jID'] ?? 0);
+        // Look up EORI / VAT from the customer or vendor contact record
+        $contact_vat  = '';
+        $contact_eori = '';
+        $bill_acct_id = (int)($result->fields['bill_acct_id'] ?? 0);
+        if ($bill_acct_id) {
+          $cReg = $db->Execute("SELECT vat_number, eori_number FROM " . TABLE_CONTACTS
+              . " WHERE id = " . $bill_acct_id . " LIMIT 1");
+          if (!$cReg->EOF) {
+            $contact_vat  = $cReg->fields['vat_number']  ?? '';
+            $contact_eori = $cReg->fields['eori_number'] ?? '';
+          }
+        }
+        if (in_array($journal_id, [3, 4, 6, 7])) {
+          // Purchase: vendor is sender, company is recipient
+          $sInfo->is_purchase           = true;
+          $sInfo->sender_primary_name   = $result->fields['bill_primary_name']   ?? '';
+          $sInfo->sender_contact        = $result->fields['bill_contact']        ?? '';
+          $sInfo->sender_address1       = $result->fields['bill_address1']       ?? '';
+          $sInfo->sender_address2       = $result->fields['bill_address2']       ?? '';
+          $sInfo->sender_city_town      = $result->fields['bill_city_town']      ?? '';
+          $sInfo->sender_state_province = $result->fields['bill_state_province'] ?? '';
+          $sInfo->sender_postal_code    = $result->fields['bill_postal_code']    ?? '';
+          $sInfo->sender_country_code   = $result->fields['bill_country_code']   ?? '';
+          $sInfo->sender_telephone1     = $result->fields['bill_telephone1']     ?? '';
+          $sInfo->sender_email          = $result->fields['bill_email']          ?? '';
+          $sInfo->sender_vat_number     = $contact_vat;
+          $sInfo->sender_eori_number    = $contact_eori;
+          // Recipient = our receiving address (fill blanks from company constants)
+          if (!$sInfo->ship_primary_name)  $sInfo->ship_primary_name  = defined('COMPANY_NAME')        ? COMPANY_NAME        : '';
+          if (!$sInfo->ship_address1)      $sInfo->ship_address1      = defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '';
+          if (!($sInfo->ship_address2??''))$sInfo->ship_address2      = defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '';
+          if (!$sInfo->ship_city_town)     $sInfo->ship_city_town     = defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '';
+          if (!$sInfo->ship_state_province)$sInfo->ship_state_province= defined('COMPANY_ZONE')        ? COMPANY_ZONE        : '';
+          if (!$sInfo->ship_postal_code)   $sInfo->ship_postal_code   = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
+          if (!$sInfo->ship_country_code)  $sInfo->ship_country_code  = defined('COMPANY_COUNTRY')     ? COMPANY_COUNTRY     : '';
+          if (!($sInfo->ship_telephone1??'')) $sInfo->ship_telephone1  = defined('COMPANY_TELEPHONE1') ? COMPANY_TELEPHONE1  : '';
+          if (!($sInfo->ship_email??''))   $sInfo->ship_email         = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
+        } else {
+          // Sale: company is sender, customer is recipient
+          $sInfo->sender_primary_name   = defined('COMPANY_NAME')        ? COMPANY_NAME        : '';
+          $sInfo->sender_contact        = defined('AR_CONTACT_NAME')     ? AR_CONTACT_NAME     : '';
+          $sInfo->sender_address1       = defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '';
+          $sInfo->sender_address2       = defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '';
+          $sInfo->sender_city_town      = defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '';
+          $sInfo->sender_state_province = defined('COMPANY_ZONE')        ? COMPANY_ZONE        : '';
+          $sInfo->sender_postal_code    = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
+          $sInfo->sender_country_code   = defined('COMPANY_COUNTRY')     ? COMPANY_COUNTRY     : '';
+          $sInfo->sender_telephone1     = defined('COMPANY_TELEPHONE1')  ? COMPANY_TELEPHONE1  : '';
+          $sInfo->sender_email          = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
+          // Company EORI/VAT from branch contact; fall back to admin constants
+          $branchReg = $db->Execute("SELECT vat_number, eori_number FROM " . TABLE_CONTACTS
+              . " WHERE type = 'b' AND inactive = '0' ORDER BY id ASC LIMIT 1");
+          $branch_vat  = (!$branchReg->EOF) ? ($branchReg->fields['vat_number']  ?? '') : '';
+          $branch_eori = (!$branchReg->EOF) ? ($branchReg->fields['eori_number'] ?? '') : '';
+          if (!$branch_eori && defined('SHIPPING_SHIPPER_EORI')) $branch_eori = SHIPPING_SHIPPER_EORI;
+          if (!$branch_vat  && defined('SHIPPING_SHIPPER_VAT'))  $branch_vat  = SHIPPING_SHIPPER_VAT;
+          $sInfo->sender_vat_number     = $branch_vat;
+          $sInfo->sender_eori_number    = $branch_eori;
+          // Customer EORI/VAT → recipient
+          $sInfo->ship_vat_number       = $contact_vat;
+          $sInfo->ship_eori_number      = $contact_eori;
+        }
         $temp = explode(':', $result->fields['shipper_code']);
         $sInfo->ship_method = $temp[1] ?? '';
+        $sInfo->total_value = $result->fields['total_amount'];
+        // Pre-populate package rows from ship_packages JSON (weight only; format defaults to parcel)
+        if (!empty($result->fields['ship_packages'])) {
+          if (!class_exists('BoxPackingService')) {
+            require_once(DIR_FS_MODULES . 'shipping/classes/box_packer.php');
+          }
+          $raw_pkgs = json_decode($result->fields['ship_packages'], true);
+          if (is_array($raw_pkgs)) {
+            $sInfo->package  = array();
+            $weight_total    = 0;
+            foreach ($raw_pkgs as $pkg) {
+              $qty = max(1, (int)($pkg['qty'] ?? 1));
+              $w   = isset($pkg['weight_g'])
+                ? round(BoxPackingService::fromGrams((int)$pkg['weight_g']), 3)
+                : (float)($pkg['weight'] ?? 0);
+              for ($j = 0; $j < $qty; $j++) {
+                $sInfo->package[] = array('weight' => $w, 'format' => 'parcel', 'value' => 0);
+                $weight_total += $w;
+              }
+            }
+            $sInfo->total_weight = round($weight_total, 3);
+          }
+        }
+        // Load inventory customs data for each line item
+        $li_sql = "SELECT ji.sku, ji.qty, ji.description, ji.full_price, ji.debit_amount, ji.credit_amount,
+                     i.customs_description, i.country_of_origin, i.hs_code, i.item_weight
+                   FROM " . TABLE_JOURNAL_ITEM . " ji
+                   LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku
+                   WHERE ji.ref_id = " . (int)$oID . "
+                     AND ji.sku IS NOT NULL AND ji.sku != ''
+                   ORDER BY ji.item_cnt";
+        $li_result = $db->Execute($li_sql);
+        $sInfo->line_items = array();
+        while (!$li_result->EOF) {
+          $f          = $li_result->fields;
+          $qty        = (float)$f['qty'];
+          $line_total = !empty($sInfo->is_purchase) ? (float)$f['debit_amount'] : (float)$f['credit_amount'];
+          $unit_price = (float)$f['full_price'] > 0
+            ? (float)$f['full_price']
+            : ($qty > 0 ? $line_total / $qty : 0);
+          $sInfo->line_items[] = array(
+            'sku'         => $f['sku'],
+            'description' => $f['customs_description'] ?: ($f['description'] ?: ''),
+            'origin'      => $f['country_of_origin'] ?: '',
+            'hs_code'     => $f['hs_code'] ?: '',
+            'qty'         => $qty,
+            'weight'      => (float)$f['item_weight'],
+            'value'       => $unit_price,
+          );
+          $li_result->MoveNext();
+        }
+        if (!empty($sInfo->line_items)) {
+          $goods_sum = 0;
+          foreach ($sInfo->line_items as $_li) $goods_sum += (float)$_li['value'] * (float)$_li['qty'];
+          $sInfo->total_value = $goods_sum;
+        }
       }
     }
 }
@@ -151,9 +284,6 @@ foreach ($shipping_defaults['service_levels'] as $key => $value) {
     $shipping_methods[$key] = constant($shipping_module . '_' . $key);
   }
 }
-
-// International service codes (JS needs this list to show/hide customs section)
-$intl_service_codes = array('RMIT','RMIS','RMITS','RMIE','PFGX','PFGP','PFGV','PFGE');
 
 $include_header   = false;
 $include_footer   = false;
