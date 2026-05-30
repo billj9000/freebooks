@@ -254,9 +254,10 @@ switch ($_REQUEST['action']) {
 		if ($value['id'] == $default_language) $language_index = $value['id'];
 	  }
 	}
-	$include_template = $_REQUEST['action'] == 'pw_lost_req' ? 'template_pw_lost.php' : 'template_login.php';
-  	$include_header   = false;
-	$include_footer   = false;
+	$include_template  = $_REQUEST['action'] == 'pw_lost_req' ? 'template_pw_lost.php' : 'template_login.php';
+	$use_bootstrap_nav = true;
+  	$include_header    = false;
+	$include_footer    = false;
 	define('PAGE_TITLE', TITLE);
     break;
   case 'crash':

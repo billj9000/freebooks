@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -15,66 +15,80 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /modules/phreedom/pages/main/template_main.php
+//  Path: /modules/phreedom/pages/main/template_login.php
 //
-echo html_form('login', FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;action=validate', 'post', 'onsubmit="return submit_wait();"').chr(10);
-if ($single_company)  echo html_hidden_field('company',  $companies[0]['id']) . chr(10);
-if ($single_language) echo html_hidden_field('language', $languages[0]['id']) . chr(10);
+$_login_logo = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/phreedom/images/freebooks_logo.png');
 ?>
-<div style="margin-left:25%;margin-right:25%;margin-top:50px;">
-	  <table class="ui-widget">
-        <thead class="ui-widget-header">
-        <tr height="20">
-          <th style="text-align:center">&nbsp;</th>
-        </tr>
-        </thead>
-        <tbody class="ui-widget-content">
-        <tr>
-          <td>
-		    <table>
-			  <tr>
-			    <td colspan="2"><?php echo $messageStack->output(); ?></td>
-			  </tr>
-              <tr>
-                <td width="35%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo TEXT_LOGIN_NAME; ?></td>
-                <td width="65%"><?php echo html_input_field('admin_name', (isset($_POST['admin_name']) ? $_POST['admin_name'] : '')); ?></td>
-              </tr>
-              <tr>
-                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo TEXT_LOGIN_PASS; ?></td>
-                <td><?php echo html_password_field('admin_pass', ''); ?></td>
-              </tr>
-<?php if (!$single_company) { ?>
-              <tr>
-                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo TEXT_LOGIN_COMPANY; ?></td>
-                <td><?php echo html_pull_down_menu('company', $companies, $company_index); ?></td>
-              </tr>
-<?php } ?>
-<?php if (!$single_language) { ?>
-              <tr>
-                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo TEXT_LOGIN_LANGUAGE; ?></td>
-                <td><?php echo html_pull_down_menu('language', $languages, $language_index); ?></td>
-              </tr>
-<?php } ?>
-              <tr>
-                <td colspan="2" align="right">&nbsp;
-				  <div id="wait_msg" style="display:none;"><?php echo TEXT_FORM_PLEASE_WAIT; ?></div>
-				  <?php echo html_submit_field('submit', TEXT_LOGIN_BUTTON); ?>
-				</td>
-              </tr>
-              <tr>
-                <td colspan="2"><?php echo '<a href="' . html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;req=pw_lost_req', 'SSL') . '">' . TEXT_PASSWORD_FORGOTTEN . '</a>'; ?></td>
-              </tr>
-              <tr>
-                <td colspan="2">
-<?php echo TEXT_COPYRIGHT; ?> (c) 2008 - 2013 <a href="http://www.PhreeSoft.com">PhreeSoft, LLC</a><br />
-<?php echo sprintf(TEXT_COPYRIGHT_NOTICE, '<a href="' . DIR_WS_MODULES . 'phreedom/language/en_us/manual/ch01-Introduction/license.html">' . TEXT_HERE . '</a>'); ?>
-<br><img src="modules/phreedom/images/freebooks_logo.png" alt="FreeBooks ERP" height="80" style="width:auto;margin-top:8px;display:block;margin-left:auto;margin-right:auto" />
-				</td>
-              </tr>
-            </table>
-	      </td>
-        </tr>
-        </tbody>
-      </table>
+<style>
+  body { background-color: #e8f4fb; }
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+</style>
+
+<div class="login-wrap">
+  <div style="width:100%;max-width:360px">
+
+    <!-- Logo -->
+    <div class="text-center mb-3">
+      <img src="<?php echo $_login_logo; ?>" alt="FreeBooks" style="height:80px;width:auto">
+    </div>
+
+    <!-- Card -->
+    <div class="card">
+      <div class="card-header py-2 fb-widget-header text-center" style="font-size:13px">
+        <?php echo TEXT_LOGIN_BUTTON; ?>
+      </div>
+      <div class="card-body p-3">
+
+        <?php echo html_form('login', FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;action=validate', 'post', 'onsubmit="return submit_wait();"'); ?>
+        <?php if ($single_company)  echo html_hidden_field('company',  $companies[0]['id']); ?>
+        <?php if ($single_language) echo html_hidden_field('language', $languages[0]['id']); ?>
+
+        <?php $msgs = $messageStack->output(); if ($msgs) echo '<div class="mb-2">' . $msgs . '</div>'; ?>
+
+        <div class="mb-2">
+          <label class="form-label fw-bold" for="admin_name"><?php echo TEXT_LOGIN_NAME; ?></label>
+          <input type="text" class="form-control form-control-sm" id="admin_name" name="admin_name"
+                 value="<?php echo htmlspecialchars($_POST['admin_name'] ?? '', ENT_QUOTES); ?>" autocomplete="username">
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label fw-bold" for="admin_pass"><?php echo TEXT_LOGIN_PASS; ?></label>
+          <input type="password" class="form-control form-control-sm" id="admin_pass" name="admin_pass" autocomplete="current-password">
+        </div>
+
+        <?php if (!$single_company): ?>
+        <div class="mb-2">
+          <label class="form-label fw-bold"><?php echo TEXT_LOGIN_COMPANY; ?></label>
+          <?php echo html_pull_down_menu('company', $companies, $company_index, 'class="form-select form-select-sm"'); ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!$single_language): ?>
+        <div class="mb-2">
+          <label class="form-label fw-bold"><?php echo TEXT_LOGIN_LANGUAGE; ?></label>
+          <?php echo html_pull_down_menu('language', $languages, $language_index, 'class="form-select form-select-sm"'); ?>
+        </div>
+        <?php endif; ?>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;req=pw_lost_req', 'SSL'); ?>"
+             style="font-size:11px"><?php echo TEXT_PASSWORD_FORGOTTEN; ?></a>
+          <button type="submit" class="btn btn-primary btn-sm"><?php echo TEXT_LOGIN_BUTTON; ?></button>
+        </div>
+
+        <div id="wait_msg" style="display:none" class="text-center mt-2 text-muted" style="font-size:11px">
+          <?php echo TEXT_FORM_PLEASE_WAIT; ?>
+        </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-3" style="font-size:9px;color:#888">
+      <?php echo TEXT_COPYRIGHT; ?> &copy; <?php echo date('Y'); ?> Bill Jones<br>
+      Portions &copy; 2008&ndash;2014 <a href="http://www.PhreeSoft.com" style="color:#888">PhreeSoft, LLC</a>
+    </div>
+
+  </div>
 </div>
-</form>
