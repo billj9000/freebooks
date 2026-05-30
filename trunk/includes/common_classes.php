@@ -364,10 +364,12 @@ class ctl_panel {
 
   	function pre_install($odd, $my_profile){
   		if(!$this->valid_user) return false;
-		$output  = '<tr class="'.($odd?'odd':'even').'"><td align="center">';
 		$checked = (in_array($this->dashboard_id, $my_profile)) ? ' selected' : '';
-		$output .=  html_checkbox_field($this->dashboard_id, '1', $checked, '', $parameters = '');
-		$output .=' </td><td>' . $this->title . '</td><td>' . $this->description . '</td></tr>';
+		$output  = '<tr>';
+		$output .= '<td class="text-center">' . html_checkbox_field($this->dashboard_id, '1', $checked, '', '') . '</td>';
+		$output .= '<td>' . $this->title . '</td>';
+		$output .= '<td>' . $this->description . '</td>';
+		$output .= '</tr>';
 		return $output;
 	}
 
@@ -401,94 +403,66 @@ class ctl_panel {
   	function build_div($title, $contents, $controls) {
 	  	if(!$this->valid_user) return false;
 	  	$output = '';
-	  	if($this->version < 3.5 || ! $this->version ) $output .= 'update dashboard ' . $this->title . '<br/>';
-		$output .= '<!--// start: ' . $this->dashboard_id . ' //-->' . chr(10);
-		$output .= '<div id="' . $this->dashboard_id . '" style="position:relative;">' . chr(10);
-		$output .= '<table class="ui-widget" style="border-collapse:collapse;width:100%">' . chr(10);
-		$output .= '<thead class="ui-widget-header">' . chr(10);
-		$output .= '<tr>' . chr(10);
-		// heading text
-		$output .= '<td style="width:90%">' . $this->title . '&nbsp;</td>' . chr(10);
-		// edit/cancel image (text)
-		$output .= '<td>' . chr(10);
-		$output .= '  <div id="'.$this->dashboard_id.'_add"><a href="javascript:void(0)" onclick ="return box_edit(\''.$this->dashboard_id.'\');">';
-		$output .= html_icon('categories/preferences-system.png', TEXT_PROPERTIES, $size = 'small', '', '16', '16');
-		$output .= '  </a></div>' . chr(10);
-		$output .= '  <div id="'.$this->dashboard_id . '_can" style="display:none"><a href="javascript:void(0)" onclick ="return box_cancel(\'' . $this->dashboard_id . '\');">';
-		$output .= html_icon('status/dialog-error.png', TEXT_CANCEL, $size = 'small', '', '16', '16');
-		$output .= '  </a></div>' . chr(10);
-		$output .= '</td>' . chr(10);
-		// minimize/maximize image
-		$output .= '<td>' . chr(10);
-		$output .= '<a href="javascript:void(0)" id="' . $this->dashboard_id . '_min" onclick="this.blur(); return min_box(\'' . $this->dashboard_id . '\')">' . chr(10);
-		$output .= html_icon('actions/list-remove.png', TEXT_COLLAPSE, $size = 'small', '', '16', '16', $this->dashboard_id . '_exp');
-		$output .= '</a></td>' . chr(10);
-		// delete image
-		$output .= '<td>' . chr(10);
-		$output .= '<a href="javascript:void(0)" id="' . $this->dashboard_id . '_del" onclick="return del_box(\'' . $this->dashboard_id . '\')">';
-		$output .= html_icon('emblems/emblem-unreadable.png', TEXT_REMOVE, $size = 'small');
-		$output .= '</a>' . chr(10);
-		$output .= '</td></tr>' . chr(10);
-		$output .= '</thead>' . chr(10);
-		// properties contents
-		$output .= '<tbody class="ui-widget-content">' . chr(10);
-		$output .= '<tr id="' . $this->dashboard_id . '_prop" style="display:none"><td colspan="4">' . chr(10);
-		$output .= html_form($this->dashboard_id . '_frm', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . chr(10);
+	  	if($this->version < 3.5 || !$this->version) $output .= 'update dashboard ' . $this->title . '<br/>';
+		$id = $this->dashboard_id;
+		$output .= '<!--// start: ' . $id . ' //-->' . "\n";
+		$output .= '<div id="' . $id . '" class="card mb-2">' . "\n";
+		// Card header with title and control buttons
+		$output .= '<div class="card-header d-flex justify-content-between align-items-center py-1 px-2 fb-widget-header" style="font-size:12px">' . "\n";
+		$output .= '<span>' . $this->title . '</span>' . "\n";
+		$output .= '<div class="d-flex gap-1 align-items-center">' . "\n";
+		$output .= '<div id="' . $id . '_add"><a href="javascript:void(0)" onclick="return box_edit(\'' . $id . '\')">';
+		$output .= html_icon('categories/preferences-system.png', TEXT_PROPERTIES, 'small', '', '16', '16') . '</a></div>' . "\n";
+		$output .= '<div id="' . $id . '_can" style="display:none"><a href="javascript:void(0)" onclick="return box_cancel(\'' . $id . '\')">';
+		$output .= html_icon('status/dialog-error.png', TEXT_CANCEL, 'small', '', '16', '16') . '</a></div>' . "\n";
+		$output .= '<a href="javascript:void(0)" id="' . $id . '_min" onclick="this.blur(); return min_box(\'' . $id . '\')">';
+		$output .= html_icon('actions/list-remove.png', TEXT_COLLAPSE, 'small', '', '16', '16', $id . '_exp') . '</a>' . "\n";
+		$output .= '<a href="javascript:void(0)" id="' . $id . '_del" onclick="return del_box(\'' . $id . '\')">';
+		$output .= html_icon('emblems/emblem-unreadable.png', TEXT_REMOVE, 'small') . '</a>' . "\n";
+		$output .= '</div>' . "\n";
+		$output .= '</div>' . "\n";
+		// Properties panel (hidden until edit clicked)
+		$output .= '<div id="' . $id . '_prop" class="card-body py-2 border-bottom" style="display:none">' . "\n";
+		$output .= html_form($id . '_frm', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . "\n";
 		$output .= $this->build_move_buttons($this->column_id, $this->row_id);
-		$output .= $controls . chr(10);
-		$output .= '<input type="hidden" name="dashboard_id" value="' . $this->dashboard_id . '" />' . chr(10);
-		$output .= '<input type="hidden" name="column_id" value="' . $this->column_id . '" />' . chr(10);
-		$output .= '<input type="hidden" name="row_id" value="' . $this->row_id . '" />' . chr(10);
-		$output .= '<input type="hidden" name="action" id="' . $this->dashboard_id . '_action" value="save" />' . chr(10);
-		$output .= '</form></td></tr>' . chr(10);
-		$output .= '<tr id="' . $this->dashboard_id . '_hr" style="display:none"><td colspan="4"><hr /></td></tr>' . chr(10);
-		// box contents
-		$output .= '<tr><td colspan="4">' . chr(10);
-		$output .= '<div id="' . $this->dashboard_id . '_body">' . chr(10);
+		$output .= $controls . "\n";
+		$output .= '<input type="hidden" name="dashboard_id" value="' . $id . '" />' . "\n";
+		$output .= '<input type="hidden" name="column_id" value="' . $this->column_id . '" />' . "\n";
+		$output .= '<input type="hidden" name="row_id" value="' . $this->row_id . '" />' . "\n";
+		$output .= '<input type="hidden" name="action" id="' . $id . '_action" value="save" />' . "\n";
+		$output .= '</form></div>' . "\n";
+		$output .= '<div id="' . $id . '_hr" style="display:none"></div>' . "\n";
+		// Card body content
+		$output .= '<div class="card-body py-2">' . "\n";
+		$output .= '<div id="' . $id . '_body">' . "\n";
 		$output .= $contents;
-		$output .= '</div>';
-		$output .= '</td></tr></tbody></table>' . chr(10);
-		// finish it up
-		$output .= '</div>' . chr(10);
-		$output .= '<!--// end: ' . $this->dashboard_id . ' //--><br />' . chr(10) . chr(10);
+		$output .= '</div>' . "\n";
+		$output .= '</div>' . "\n";
+		$output .= '</div>' . "\n";
+		$output .= '<!--// end: ' . $id . ' //-->' . "\n\n";
 		return $output;
   	}
 
   	function build_move_buttons($column_id, $row_id) {
-		$output = '<table style="border-collapse:collapse"><tr>' . chr(10);
-		// move button - Left
+		$id     = $this->dashboard_id;
+		$output = '<div class="d-flex gap-1 mb-2">' . "\n";
 		if ($column_id > 1) {
-			$output .= '<td>' . chr(10);
-		  	$output .= '<a href="javascript:void(0)" onclick="return move_box(\'' . $this->dashboard_id . '\', \'move_left\')">';
-		  	$output .= html_icon('actions/go-previous.png', TEXT_MOVE_LEFT, $size = 'small');
-		  	$output .= '</a>' . chr(10);
-		  	$output .= '</td>' . chr(10);
+		  	$output .= '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary py-0" onclick="return move_box(\'' . $id . '\', \'move_left\')">';
+		  	$output .= html_icon('actions/go-previous.png', TEXT_MOVE_LEFT, 'small') . '</a>' . "\n";
 		}
-		// move button - Right
 		if ($column_id < MAX_CP_COLUMNS) {
-		  	$output .= '<td>' . chr(10);
-		  	$output .= '<a href="javascript:void(0)" onclick="return move_box(\'' . $this->dashboard_id . '\', \'move_right\')">';
-		  	$output .= html_icon('actions/go-next.png', TEXT_MOVE_RIGHT, $size = 'small');
-		  	$output .= '</a>' . chr(10);
-		  	$output .= '</td>' . chr(10);
+		  	$output .= '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary py-0" onclick="return move_box(\'' . $id . '\', \'move_right\')">';
+		  	$output .= html_icon('actions/go-next.png', TEXT_MOVE_RIGHT, 'small') . '</a>' . "\n";
 		}
-		// move button - Up
 		if ($row_id > 1) {
-		  	$output .= '<td>' . chr(10);
-		  	$output .= '<a href="javascript:void(0)" onclick="return move_box(\'' . $this->dashboard_id . '\', \'move_up\')">';
-		  	$output .= html_icon('actions/go-up.png', TEXT_MOVE_UP, $size = 'small');
-		  	$output .= '</a>' . chr(10);
-		  	$output .= '</td>' . chr(10);
+		  	$output .= '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary py-0" onclick="return move_box(\'' . $id . '\', \'move_up\')">';
+		  	$output .= html_icon('actions/go-up.png', TEXT_MOVE_UP, 'small') . '</a>' . "\n";
 		}
-		// move button - Down
 		if ($row_id < $this->get_next_row($column_id) - 1) {
-		  	$output .= '<td>' . chr(10);
-		  	$output .= '<a href="javascript:void(0)" onclick="return move_box(\'' . $this->dashboard_id . '\', \'move_down\')">';
-		  	$output .= html_icon('actions/go-down.png', TEXT_MOVE_DOWN, $size = 'small');
-		  	$output .= '</a>' . chr(10);
-		  	$output .= '</td>' . chr(10);
+		  	$output .= '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary py-0" onclick="return move_box(\'' . $id . '\', \'move_down\')">';
+		  	$output .= html_icon('actions/go-down.png', TEXT_MOVE_DOWN, 'small') . '</a>' . "\n";
 		}
-		$output .= '</tr></table>';
+		$output .= '</div>';
 		return $output;
   	}
 

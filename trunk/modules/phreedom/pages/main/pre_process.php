@@ -271,7 +271,8 @@ switch ($_REQUEST['action']) {
 	}
 	$cp_boxes = $db->Execute("select * from ".TABLE_USERS_PROFILES." 
 		where user_id = '".$_SESSION['admin_id']."' and menu_id = '$menu_id' order by column_id, row_id");
-	$include_template = 'template_main.php';
+	$include_template  = 'template_main.php';
+	$use_bootstrap_nav = true;
 	define('PAGE_TITLE', COMPANY_NAME.' - '.TITLE);
 	break;
 }

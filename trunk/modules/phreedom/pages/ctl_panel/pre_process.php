@@ -78,9 +78,10 @@ switch ($_REQUEST['action'] ?? '') {
 
 /*****************   prepare to display templates  *************************/
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header    = true;
+$include_footer    = true;
+$include_template  = 'template_main.php';
+$use_bootstrap_nav = true;
 define('PAGE_TITLE', CP_ADD_REMOVE_BOXES);
 
 ?>
