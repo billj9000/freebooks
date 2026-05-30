@@ -48,7 +48,7 @@ $_login_logo = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/p
         <div class="mb-2">
           <label class="form-label fw-bold" for="admin_name"><?php echo TEXT_LOGIN_NAME; ?></label>
           <input type="text" class="form-control form-control-sm" id="admin_name" name="admin_name"
-                 value="<?php echo htmlspecialchars($_POST['admin_name'] ?? '', ENT_QUOTES); ?>" autocomplete="username">
+                 value="<?php echo htmlspecialchars($_POST['admin_name'] ?? '', ENT_QUOTES); ?>" autocomplete="username" autofocus>
         </div>
 
         <div class="mb-2">
