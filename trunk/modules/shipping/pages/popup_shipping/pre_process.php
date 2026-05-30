@@ -185,6 +185,7 @@ $cal_ship = array(
   'params'    => array('align' => 'left'),
 );
 // Return a bare fragment (no page wrapper) when called by htmx
+$use_bootstrap_nav = true;
 $custom_html    = !empty($_SERVER['HTTP_HX_REQUEST']);
 $include_header = false;
 $include_footer = false;

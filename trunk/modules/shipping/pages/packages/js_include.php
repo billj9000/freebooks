@@ -18,11 +18,6 @@
 
 $vol_divisor = defined('SHIPPING_VOL_WEIGHT_DIVISOR') ? (float)SHIPPING_VOL_WEIGHT_DIVISOR : 5000;
 ?>
-<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-<link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
-<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
-<script src="ext/htmx.min.js" defer></script>
 <script>
 var volDivisor = <?php echo $vol_divisor; ?>;
 

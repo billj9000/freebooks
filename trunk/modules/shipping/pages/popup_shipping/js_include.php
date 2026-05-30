@@ -20,11 +20,6 @@
 // This file runs only for direct (non-htmx) popup access.
 // For the normal modal path, all JS lives in orders/js_include.php.
 ?>
-<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-<link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
-<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
-<script src="ext/htmx.min.js" defer></script>
 <script type="text/javascript">
 <!--
 var action   = '<?php echo $_REQUEST['action']; ?>';

@@ -17,9 +17,6 @@
 //  Path: /modules/shipping/methods/dhl_express/label_mgr/js_include.php
 //
 ?>
-<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
 <script>
 var formName          = 'label_mgr';
 var image_delete_msg  = '<?php echo addslashes(SHIPPING_DELETE_CONFIRM); ?>';

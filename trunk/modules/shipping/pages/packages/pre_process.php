@@ -108,6 +108,7 @@ if ($pkgID) {
   if (!$r->EOF) $selected_pkg = $r->fields;
 }
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

@@ -349,6 +349,73 @@ h1 {
   padding:          8px;
 }
 
+/* ── Bootstrap navbar: matches ddsmoothmenu "start" theme ────────── */
+.fb-navbar {
+  background-color: #2191c0;
+  background-image: url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat: repeat-x;
+  background-position: 50% 50%;
+  border-bottom: 1px solid #4297d7;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+}
+.fb-navbar .navbar-brand,
+.fb-navbar .nav-link { color: #ffffff; }
+.fb-navbar .nav-link:hover,
+.fb-navbar .nav-link:focus {
+  background-color: #026890;
+  color: #ffffff;
+}
+.fb-navbar .nav-link.show,
+.fb-navbar .nav-item.show > .nav-link {
+  background-color: #026890;
+  color: #ffffff;
+}
+.fb-navbar .navbar-toggler-icon { filter: invert(1); }
+
+/* Dropdown panel */
+.fb-navbar .dropdown-menu {
+  background-color: #ffffff;
+  border: 1px solid #a6c9e2;
+  border-radius: 0;
+  padding: 2px 0;
+  min-width: 170px;
+  font-size: 12px;
+  font-weight: normal;
+}
+.fb-navbar .dropdown-item {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px;
+  color: #222222;
+  padding: 5px 12px;
+  border-bottom: 1px solid #dddddd;
+}
+.fb-navbar .dropdown-item:last-child { border-bottom: none; }
+.fb-navbar .dropdown-item:hover,
+.fb-navbar .dropdown-item:focus {
+  background-color: #026890;
+  color: #ffffff;
+}
+
+/* Hover-open mode (set via My Profile) */
+.fb-navbar-hover .nav-item.dropdown:hover > .dropdown-menu { display: block; }
+
+/* Three-level nested dropdowns (CSS hover, no extra JS needed) */
+.fb-navbar .dropdown-submenu { position: relative; }
+.fb-navbar .dropdown-submenu > .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -3px;
+  display: none;
+}
+.fb-navbar .dropdown-submenu:hover > .dropdown-menu { display: block; }
+.fb-navbar .dropdown-submenu > a::after {
+  content: " \25B6";
+  font-size: 8px;
+  vertical-align: middle;
+}
+
 /* ── Popup label viewer ─────────────────────────────────────────── */
 .fb-viewer-toolbar {
   display:             flex;

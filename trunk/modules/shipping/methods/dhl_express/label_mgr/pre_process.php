@@ -326,6 +326,7 @@ foreach ($shipping_defaults['service_levels'] as $key => $value) {
   }
 }
 
+$use_bootstrap_nav = true;
 $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';

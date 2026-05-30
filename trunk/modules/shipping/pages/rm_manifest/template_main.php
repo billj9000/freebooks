@@ -25,10 +25,6 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
 echo $toolbar->build_toolbar();
 ?>
-<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
-
 <h1><?php echo RM_MANIFEST_HEADING; ?></h1>
 <div style="max-width:680px">
 

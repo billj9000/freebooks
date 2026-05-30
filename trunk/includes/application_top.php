@@ -74,8 +74,9 @@ $custom_path = DIR_FS_MODULES . $module . '/custom/pages/' . $page . '/extra_def
 if (file_exists($custom_path)) { include($custom_path); }
 gen_pull_language($module);
 define('DIR_WS_THEMES', 'themes/' . (isset($_SESSION['admin_prefs']['theme']) ? $_SESSION['admin_prefs']['theme'] : DEFAULT_THEME) . '/');
-define('MY_COLORS',isset($_SESSION['admin_prefs']['colors'])?$_SESSION['admin_prefs']['colors']:DEFAULT_COLORS);
-define('MY_MENU',  isset($_SESSION['admin_prefs']['menu'])  ?$_SESSION['admin_prefs']['menu']  :DEFAULT_MENU);
+define('MY_COLORS',      isset($_SESSION['admin_prefs']['colors'])     ?$_SESSION['admin_prefs']['colors']     :DEFAULT_COLORS);
+define('MY_MENU',        isset($_SESSION['admin_prefs']['menu'])       ?$_SESSION['admin_prefs']['menu']       :DEFAULT_MENU);
+define('MY_MENU_HOVER',  isset($_SESSION['admin_prefs']['menu_hover']) ?$_SESSION['admin_prefs']['menu_hover'] :0);
 define('DIR_WS_IMAGES', DIR_WS_THEMES . 'images/');
 if (file_exists(DIR_WS_THEMES . 'icons/')) { define('DIR_WS_ICONS',  DIR_WS_THEMES . 'icons/'); }
 else { define('DIR_WS_ICONS', 'themes/default/icons/'); } // use default

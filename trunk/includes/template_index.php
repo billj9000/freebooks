@@ -34,6 +34,13 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <style>body{display:flex;flex-direction:column;min-height:100vh}#content-wrap{flex:1 0 auto}</style>
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery_datatables.css'; ?>" />
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery-ui.css'; ?>" />
+<?php if (!empty($use_bootstrap_nav)): ?>
+  <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
+  <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+  <link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
+  <script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
+  <script src="ext/htmx.min.js" defer></script>
+<?php endif; ?>
   <link rel="stylesheet" type="text/css" href="jodit/jodit.min.css" />
   <script type="text/javascript">
   var module              = '<?php echo $module; ?>';
@@ -91,7 +98,12 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
   <script type="text/javascript" src="modules/phreedom/includes/wz_tooltip/tip_balloon.js"></script>  
   <div id="please_wait"><p><?php echo html_icon('phreebooks/please_wait.gif', TEXT_PLEASE_WAIT, 'large'); ?></p></div>
   <!-- Menu -->
-  <?php if ($include_header) { require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/menu.php'); } else echo "<div id=\"content-wrap\">\n"; ?>
+  <?php if ($include_header) {
+    $menu_file = !empty($use_bootstrap_nav)
+      ? DIR_FS_ADMIN . DIR_WS_THEMES . '/menu_bs.php'
+      : DIR_FS_ADMIN . DIR_WS_THEMES . '/menu.php';
+    require_once($menu_file);
+  } else echo "<div id=\"content-wrap\">\n"; ?>
   <!-- Template -->
   <?php if (is_file($template_path)) { require($template_path); } else trigger_error('No template file: ' . $template_path, E_USER_ERROR); ?>
   </div>
