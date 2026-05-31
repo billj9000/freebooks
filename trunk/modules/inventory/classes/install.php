@@ -182,6 +182,7 @@ class inventory_admin {
 		  purch_package_quantity double NOT NULL default '1',
 		  purch_taxable int(11) NOT NULL default '0',
 		  item_cost double NOT NULL default '0',
+		  currency_code varchar(3) NOT NULL default '',
 		  price_sheet_v varchar(32) default NULL,
 		  PRIMARY KEY (id),
 		  INDEX (sku)

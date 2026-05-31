@@ -30,8 +30,9 @@
 // 3.73 => adds ship_packages column to journal_main
 // 3.74 => adds recipient_name and recipient_email columns to shipping_log
 // 3.75 => adds vat_number and eori_number columns to contacts
+// 3.76 => adds currency_code column to inventory_purchase
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.75);
+define('MODULE_PHREEBOOKS_VERSION',    3.76);
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);

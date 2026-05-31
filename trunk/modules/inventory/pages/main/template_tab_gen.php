@@ -209,6 +209,7 @@
           <th style="width:5%"></th>
           <th><?php echo INV_HEADING_PREFERRED_VENDOR; ?></th>
           <th><?php echo INV_ENTRY_INVENTORY_DESC_PURCHASE; ?></th>
+          <th><?php echo INV_ENTRY_COST_CURRENCY; ?></th>
           <th><?php echo INV_ENTRY_INV_ITEM_COST; ?></th>
           <th><?php echo TEXT_PACKAGE_QUANTITY; ?></th>
           <th><?php echo INV_ENTRY_PURCH_TAX; ?></th>
@@ -225,7 +226,8 @@
         echo html_hidden_field('row_id_array[]', $purchaseRow['id']);
         echo '<td>' . (isset($cInfo->vendor_id) ? html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $purchaseRow['vendor_id'], 'class="form-select form-select-sm"') : '') . '</td>';
         echo '<td>' . (isset($cInfo->description_purchase) ? html_textarea_field('description_purchase_array[]', 40, 2, $purchaseRow['description_purchase'], 'class="form-control form-control-sm"', true) : '') . '</td>';
-        echo '<td>' . (isset($cInfo->item_cost) ? html_input_field('item_cost_array[]', $currencies->precise($purchaseRow['item_cost']), 'onchange="what_to_update();" class="form-control form-control-sm text-end" style="width:100px" maxlength="20"', false) : '') . '</td>';
+        echo '<td>' . (isset($cInfo->item_cost) ? html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), $purchaseRow['currency_code'] ?: DEFAULT_CURRENCY, 'class="form-select form-select-sm"') : '') . '</td>';
+        echo '<td>' . (isset($cInfo->item_cost) ? html_input_field('item_cost_array[]', $currencies->precise($purchaseRow['item_cost'], false, $purchaseRow['currency_code'] ?: DEFAULT_CURRENCY), 'onchange="what_to_update();" class="form-control form-control-sm text-end" style="width:100px" maxlength="20"', false) : '') . '</td>';
         echo '<td>' . (isset($cInfo->item_cost) ? html_input_field('purch_package_quantity_array[]', $currencies->precise($purchaseRow['purch_package_quantity']), 'class="form-control form-control-sm text-end" style="width:70px" maxlength="5"') : '') . '</td>';
         echo '<td>' . (isset($cInfo->purch_taxable) ? html_pull_down_menu('purch_taxable_array[]', $purch_tax_rates, $purchaseRow['purch_taxable'], 'class="form-select form-select-sm"') : '') . '</td>';
         echo '<td>' . (isset($cInfo->price_sheet_v) ? html_pull_down_menu('price_sheet_v_array[]', get_price_sheet_data('v'), $purchaseRow['price_sheet_v'], 'class="form-select form-select-sm"')
@@ -238,7 +240,7 @@
       <tfoot>
         <tr>
           <td><?php echo html_icon('actions/list-add.png', TEXT_ADD, 'medium', 'onclick="addVendorRow()"'); ?></td>
-          <td colspan="6"></td>
+          <td colspan="7"></td>
         </tr>
       </tfoot>
     </table>

@@ -46,6 +46,20 @@ var filter_contains     = '<?php echo FILTER_CONTAINS;?>';
 <?php if (isset($SecondField))      echo $SecondField; ?>
 <?php if (isset($SecondFieldValue)) echo $SecondFieldValue; ?>
 <?php if (isset($SecondFieldId))    echo $SecondFieldId; ?>
+<?php echo $currencies->build_js_currency_arrays(); ?>
+var defaultCurrency = '<?php echo DEFAULT_CURRENCY; ?>';
+
+function getCurrencyRate(code) {
+  for (var i = 0; i < js_currency_codes.length; i++) {
+    if (js_currency_codes[i] == code) return parseFloat(js_currency_values[i]);
+  }
+  return 1;
+}
+// Convert a cost in any currency to company currency (rate = foreign per 1 company).
+function costToCompany(cost, currCode) {
+  var rate = getCurrencyRate(currCode || defaultCurrency);
+  return rate == 0 ? cost : cost / rate;
+}
 
 function init() {
   // Bootstrap 5 tabs are data-attribute driven — no explicit init needed.
@@ -134,10 +148,13 @@ function product_margin_change() {
 
 function what_to_update() {
   var highest = 0;
-  document.getElementsByName("item_cost_array[]").forEach(function(el) {
-    var v = cleanCurrency(el.value);
+  var costEls = document.getElementsByName("item_cost_array[]");
+  var currEls = document.getElementsByName("item_cost_currency_array[]");
+  for (var i = 0; i < costEls.length; i++) {
+    var curr = currEls[i] ? currEls[i].value : defaultCurrency;
+    var v = costToCompany(cleanCurrency(costEls[i].value), curr);
     if (v > highest) highest = v;
-  });
+  }
   var margin = cleanCurrency(document.getElementById('product_margin').value);
   var markup = cleanCurrency(document.getElementById('product_markup').value);
   if (document.getElementById('full_price_with_tax').value != formatCurrency(highest * margin)) {
@@ -151,10 +168,13 @@ function what_to_update() {
 function update_full_price_incl_tax(margin, inclTax, fullprice) {
   var highest = 0;
   if (margin) {
-    document.getElementsByName("item_cost_array[]").forEach(function(el) {
-      var v = parseFloat(cleanCurrency(el.value));
+    var costEls = document.getElementsByName("item_cost_array[]");
+    var currEls = document.getElementsByName("item_cost_currency_array[]");
+    for (var i = 0; i < costEls.length; i++) {
+      var curr = currEls[i] ? currEls[i].value : defaultCurrency;
+      var v = costToCompany(parseFloat(cleanCurrency(costEls[i].value)), curr);
       if (v > highest) highest = v;
-    });
+    }
     var sell = cleanCurrency(document.getElementById('full_price').value);
     document.getElementById('product_margin').value = formatCurrency(((sell - highest) / sell) * 100);
     document.getElementById('product_markup').value = formatCurrency(cleanCurrency(document.getElementById('full_price_with_tax').value) / highest);
@@ -380,6 +400,7 @@ function addVendorRow() {
   $cells = [
     isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $cInfo->vendor_id ?? '')) : '',
     isset($cInfo->description_purchase) ? str_replace("'", "\'", html_textarea_field('description_purchase_array[]', 40, 2, $cInfo->description_purchase ?? '', '', true)) : '',
+    isset($cInfo->item_cost)           ? str_replace("'", "\'", html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), DEFAULT_CURRENCY, 'class="form-select form-select-sm"')) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_input_field('item_cost_array[]', $cInfo->item_cost ?? 0, 'onchange="what_to_update();" size="12" maxlength="20" class="text-end"', false)) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_input_field('purch_package_quantity_array[]', 1, 'size="6" maxlength="5" class="text-end"')) : '',
     isset($cInfo->purch_taxable)       ? str_replace("'", "\'", html_pull_down_menu('purch_taxable_array[]', $purch_tax_rates ?? [], INVENTORY_DEFAULT_PURCH_TAX)) : '',

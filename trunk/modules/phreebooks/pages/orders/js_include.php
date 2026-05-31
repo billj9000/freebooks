@@ -363,4 +363,4 @@ function updatePackingListLink() {
 
 // -->
 </script>
-<script type="text/javascript" src="modules/phreebooks/javascript/orders.js"></script>
+<script type="text/javascript" src="modules/phreebooks/javascript/orders.js?v=<?php echo filemtime(DIR_FS_MODULES.'phreebooks/javascript/orders.js'); ?>"></script>

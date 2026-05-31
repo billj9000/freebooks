@@ -149,6 +149,7 @@ define('INV_ENTRY_ACCT_SALES', 'Sales/Income Account');
 define('INV_ENTRY_ACCT_INV', 'Inventory/Wage Account');
 define('INV_ENTRY_ACCT_COS', 'Cost of Sales Account');
 define('INV_ENTRY_INV_ITEM_COST','Item Cost');
+define('INV_ENTRY_COST_CURRENCY', 'Currency');
 define('INV_ENTRY_FULL_PRICE', 'Full Price');
 define('INV_ENTRY_FULL_PRICE_WT', 'Full Price with tax');
 define('INV_MARGIN','Margin');

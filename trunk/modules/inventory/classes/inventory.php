@@ -471,6 +471,7 @@ class inventory {
 				'vendor_id' 				=> $result->fields['vendor_id'],
 				'description_purchase'		=> $result->fields['description_purchase'],
 				'item_cost'	 				=> $result->fields['item_cost'],
+				'currency_code'				=> $result->fields['currency_code'],
 				'purch_package_quantity'	=> $result->fields['purch_package_quantity'],
 				'purch_taxable'	 			=> $result->fields['purch_taxable'],
 				'price_sheet_v'				=> $result->fields['price_sheet_v'],
@@ -490,11 +491,12 @@ class inventory {
 				'vendor_id' 				=> $result->fields['vendor_id'],
 				'description_purchase'		=> $result->fields['description_purchase'],
 				'item_cost'	 				=> $result->fields['item_cost'],
+				'currency_code'				=> $result->fields['currency_code'],
 				'purch_package_quantity'	=> $result->fields['purch_package_quantity'],
 				'purch_taxable'	 			=> $result->fields['purch_taxable'],
 				'price_sheet_v'				=> $result->fields['price_sheet_v'],
 				'action'					=> 'delete',
-			); // mark delete by default overwrite later if 
+			); // mark delete by default overwrite later if
 			$result->MoveNext();
 		}
 		$i = 0;
@@ -514,7 +516,11 @@ class inventory {
 			if(isset($_POST['item_cost_array'][$key])) {
 				$sql_data_array['item_cost']	 				= $currencies->clean_value($_POST['item_cost_array'][$key]);
 				$this->purchase_array[$i]['item_cost']	 			= $currencies->clean_value($_POST['item_cost_array'][$key]);
-			}	
+			}
+			if(isset($_POST['item_cost_currency_array'][$key])) {
+				$sql_data_array['currency_code']				= $_POST['item_cost_currency_array'][$key];
+				$this->purchase_array[$i]['currency_code']			= $_POST['item_cost_currency_array'][$key];
+			}
 			if(isset($_POST['purch_package_quantity_array'][$key])){
 				$sql_data_array['purch_package_quantity']		= $_POST['purch_package_quantity_array'][$key];
 				$this->purchase_array[$i]['purch_package_quantity']	= $_POST['purch_package_quantity_array'][$key];
@@ -541,11 +547,12 @@ class inventory {
 						'vendor_id' 				=> $_POST['vendor_id_array'][$key],
 						'description_purchase'		=> $_POST['description_purchase_array'][$key],
 						'item_cost'	 				=> $_POST['item_cost_array'][$key],
+						'currency_code'				=> $_POST['item_cost_currency_array'][$key] ?? DEFAULT_CURRENCY,
 						'purch_package_quantity'	=> $_POST['purch_package_quantity_array'][$key],
 						'purch_taxable'	 			=> $_POST['purch_taxable_array'][$key],
 						'price_sheet_v'				=> $_POST['price_sheet_v_array'][$key],
 						'action'					=> 'insert',
-					);// mark delete by default overwrite later if 
+					);
 				}
 				$lowest_cost = min($lowest_cost, $sql_data_array['item_cost']);
 				if ($lowest_cost == $sql_data_array['item_cost']) $this->min_vendor_id = $sql_data_array['vendor_id'];

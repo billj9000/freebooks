@@ -1164,6 +1164,20 @@ function recalculateCurrencies() {
   document.getElementById('currencies_value').value = new String(newValue);
 }
 
+function getCurrencyValue(code) {
+  for (var i = 0; i < js_currency_codes.length; i++) {
+    if (js_currency_codes[i] == code) return parseFloat(js_currency_values[i]);
+  }
+  return 0;
+}
+
+// Convert a cost stored in costCurr to the order's display currency.
+// Rates are foreign-units-per-1-company-currency, so: cost / costRate * orderRate.
+function convertCost(cost, costCurr, orderRate) {
+  var costRate = getCurrencyValue(costCurr);
+  return (costRate == 0) ? cost : cost / costRate * orderRate;
+}
+
 // AJAX auto load SKU pair
 function loadSkuDetails(iID, rowCnt) {
 	if (!rowCnt) return;
@@ -1250,8 +1264,8 @@ function fillInventory(sXml) {
 	  qty_pstd = 'qty_';
 	  document.getElementById('qty_'   +rowCnt).value     = formatPrecise($(xml).find("qty").first().text());
 	  document.getElementById('acct_'  +rowCnt).value     = $(xml).find("account_inventory_wage").text();
-	  document.getElementById('price_' +rowCnt).value     = formatPrecise($(xml).find("sales_price").text() * exchange_rate);
-	  document.getElementById('full_'  +rowCnt).value     = formatCurrency($(xml).find("item_cost").text() * exchange_rate);
+	  document.getElementById('price_' +rowCnt).value     = formatPrecise(convertCost(parseFloat($(xml).find("sales_price").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
+	  document.getElementById('full_'  +rowCnt).value     = formatCurrency(convertCost(parseFloat($(xml).find("item_cost").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
 	  if(default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = $(xml).find("purch_taxable").text();
 	  if ($(xml).find("description_purchase").text()) {
 	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_purchase").text();
@@ -1277,8 +1291,9 @@ function fillInventory(sXml) {
 	  qty_pstd = 'pstd_';
 	  document.getElementById('pstd_'  +rowCnt).value     = formatPrecise($(xml).find("qty").first().text());
 	  document.getElementById('acct_'  +rowCnt).value     = $(xml).find("account_inventory_wage").text();
-	  document.getElementById('price_' +rowCnt).value     = formatPrecise($(xml).find("sales_price").text() * exchange_rate);
-	  document.getElementById('full_'    +rowCnt).value   = formatCurrency($(xml).find("item_cost").text() * exchange_rate);
+
+	  document.getElementById('price_' +rowCnt).value     = formatPrecise(convertCost(parseFloat($(xml).find("sales_price").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
+	  document.getElementById('full_'    +rowCnt).value   = formatCurrency(convertCost(parseFloat($(xml).find("item_cost").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
 	  if(default_sales_tax == -1) document.getElementById('tax_'   +rowCnt).value     = $(xml).find("purch_taxable").text();
 	  if ($(xml).find("description_purchase").text()) {
 	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_purchase").text();
