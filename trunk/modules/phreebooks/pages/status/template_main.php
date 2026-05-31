@@ -148,7 +148,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
           }
         }
         if (!$query_result->fields['closed']) echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=6&amp;action=prc_so', 'SSL') . '\',\'_blank\')">' . TEXT_RECEIVE . '</button>' . chr(10);
-        echo '<button type="button" class="btn btn-secondary btn-sm" onclick="deliveryList(' . $oID . ')">' . ORD_DELIVERY_DATES . '</button>' . chr(10);
+        echo '<button type="button" class="btn btn-primary btn-sm" onclick="deliveryList(' . $oID . ')">' . ORD_DELIVERY_DATES . '</button>' . chr(10);
         echo html_icon('actions/system-shutdown.png', TEXT_TOGGLE, 'small', 'onclick="submitSeq(' . $oID . ', \'toggle\')"') . chr(10);
         echo html_icon('actions/document-print.png',  TEXT_PRINT,  'small', 'onclick="printOrder('. $oID . ')"') . chr(10);
         break;
@@ -163,7 +163,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         break;
       case 10:
         if (!$query_result->fields['closed']) echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=12&amp;action=prc_so', 'SSL') . '\',\'_blank\')">' . TEXT_INVOICE . '</button>' . chr(10);
-        echo '<button type="button" class="btn btn-secondary btn-sm" onclick="deliveryList(' . $oID . ')">' . ORD_DELIVERY_DATES . '</button>' . chr(10);
+        echo '<button type="button" class="btn btn-primary btn-sm" onclick="deliveryList(' . $oID . ')">' . ORD_DELIVERY_DATES . '</button>' . chr(10);
         echo html_icon('actions/system-shutdown.png', TEXT_TOGGLE, 'small', 'onclick="submitSeq(' . $oID . ', \'toggle\')"') . chr(10);
         echo html_icon('actions/document-print.png',  TEXT_PRINT,  'small', 'onclick="printOrder('. $oID . ')"') . chr(10);
         break;
