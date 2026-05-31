@@ -320,6 +320,10 @@ switch ($_REQUEST['action']) {
 	}
 	// Item row errors
 	if (!$order->item_rows) $error = $messageStack->add(GL_ERROR_NO_ITEMS, 'error');
+	if (JOURNAL_ID == 12 && $order->item_rows) {
+	  $total_qty = array_sum(array_column($order->item_rows, 'pstd'));
+	  if (!$total_qty) $error = $messageStack->add(GL_ERROR_INVOICE_ALL_ZERO_QTY, 'error');
+	}
 	// End of error checking, check for attachments and process the order
 	if (!$error) { // Post the order
 	  if ($post_success = $order->post_ordr($_REQUEST['action'])) {	// Post the order class to the db

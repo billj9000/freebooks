@@ -211,6 +211,7 @@ define('GL_ERROR_NO_REFERENCE','For recurring transactions, a starting reference
 define('GL_ERROR_RECUR_ROLL_REQD','This is a recurring entry. Do you want to update future entries as well? (Press Cancel to update only this entry)');
 define('GL_ERROR_RECUR_DEL_ROLL_REQD','This is a recurring entry. Do you want to delete future entries as well? (Press Cancel to delete only this entry)');
 define('GL_ERROR_NO_ITEMS','There were no items posted, In order for an item to be registered, the quantity must be non-blank.');
+define('GL_ERROR_INVOICE_ALL_ZERO_QTY','This invoice has no quantities — all line items have a quantity of zero. The invoice has not been saved.');
 define('GL_ERROR_NO_POST','There were errors during processing, the record was not posted.');
 define('GL_ERROR_NO_DELETE','There were errors during processing, the record was not deleted.');
 define('GL_ERROR_CANNOT_FIND_NEXT_ID','Could not read the next order/invoice number from table: %s');

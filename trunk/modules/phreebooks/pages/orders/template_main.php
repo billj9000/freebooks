@@ -435,9 +435,8 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
           echo '</tr>' . chr(10);
           $odd = !$odd;
         }
-      } else {
-        $hidden_fields .= '<script type="text/javascript">addInvRow();</script>' . chr(10);
       }
+      $hidden_fields .= '<script type="text/javascript">addInvRow();</script>' . chr(10);
 ?>
   </tbody>
 </table>
