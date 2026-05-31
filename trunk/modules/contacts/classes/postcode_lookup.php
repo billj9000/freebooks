@@ -77,26 +77,29 @@ class VehicleDataProvider implements PostcodeLookupProvider {
     public function getName(): string { return 'Vehicle Data'; }
 
     public function lookup(string $postcode, string $country): array {
-        $url = 'https://api.vehicledata.co.uk/v2/api/address/lookup'
-             . '?postcode=' . urlencode($postcode) . '&country=' . urlencode($country);
+        $url = 'https://uk.api.vehicledataglobal.com/r2/lookup'
+             . '?packageName=AddressDetails'
+             . '&postcode=' . urlencode($postcode);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: ' . $this->apiKey]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $this->apiKey]);
         $raw = curl_exec($ch);
         curl_close($ch);
         if (!$raw) return [];
         $data = json_decode($raw, true);
-        if (!isset($data['addresses'])) return [];
+        if (empty($data['ResponseInformation']['IsSuccessStatusCode'])) return [];
+        $list = $data['Results']['AddressDetails']['AddressList'] ?? [];
         $out = [];
-        foreach ($data['addresses'] as $a) {
+        foreach ($list as $a) {
+            $f = $a['FormattedAddressLines'] ?? [];
             $out[] = [
-                'primary_name'   => '',
-                'address1'       => $a['line_1']  ?? '',
-                'address2'       => $a['line_2']  ?? '',
-                'city_town'      => $a['town']     ?? '',
-                'state_province' => $a['county']   ?? '',
-                'postal_code'    => $a['postcode'] ?? $postcode,
+                'primary_name'   => $f['Organisation'] ?? '',
+                'address1'       => trim(($f['Premises'] ?? '') . ' ' . ($f['Street'] ?? '')),
+                'address2'       => $f['Locality']                                     ?? '',
+                'city_town'      => ucwords(strtolower($f['PostTown']                  ?? '')),
+                'state_province' => $f['County']                                       ?? '',
+                'postal_code'    => $f['Postcode']                                     ?? $postcode,
             ];
         }
         return $out;
