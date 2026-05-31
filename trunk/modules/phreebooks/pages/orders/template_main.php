@@ -181,7 +181,7 @@ $tip = (in_array(JOURNAL_ID, array(6,7))) ? ORD_JS_WAITING_FOR_PAYMENT : ORD_TT_
 <?php } ?>
             <tr>
               <td colspan="2" class="text-center">
-                <div id="closed_text" class="alert alert-danger py-1 px-2 mb-0 small" style="display:none"><?php echo TEXT_ORDER_CLOSED_FIELD; ?></div>
+                <div id="closed_text" class="alert alert-success py-1 px-2 mb-0 small" style="display:none"><?php echo TEXT_ORDER_CLOSED_FIELD; ?></div>
               </td>
             </tr>
           </table>
