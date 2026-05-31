@@ -1417,7 +1417,8 @@ class journal {
 		// continue like sales order
 	  case 10: if (!$gl_type) $gl_type = 'soo';
 		// determine if shipped/received items are still outstanding
-		$ordr_diff = 0;
+		// empty balance array means no SKU-tracked items — treat as outstanding so no-SKU orders stay open
+		$ordr_diff = empty($this->so_po_balance_array) ? 1 : 0;
 		if (is_array($this->so_po_balance_array)) {
 		  foreach($this->so_po_balance_array as $counts) {
 			if ($counts['ordered'] > ($counts['processed'] ?? 0)) $ordr_diff = 1;
