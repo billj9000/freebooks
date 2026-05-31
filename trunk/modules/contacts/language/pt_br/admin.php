@@ -69,5 +69,11 @@ define('SETUP_INFO_HEADING_NEW_PROJECT_PHASES','Nova Fase Projeto');
 define('SETUP_INFO_HEADING_EDIT_PROJECT_PHASES','Alterar Fase Projeto');
 define('SETUP_PROJECT_PHASESS_LOG','Fases Projeto - ');
 define('SETUP_PROJECT_PHASESS_DELETE_ERROR','Não é possível remover esta fase de projeto, ela está em uso em um lançamento de diário.');
+define('TEXT_POSTCODE_LOOKUP',               'Postcode Lookup');
+define('ACT_POSTCODE_LOOKUP_BUTTON',         'Find Address');
+define('ACT_POSTCODE_LOOKUP_STATUS_DESC',    'Enable postcode lookup');
+define('ACT_POSTCODE_LOOKUP_PROVIDER_DESC',  'Postcode lookup provider');
+define('ACT_POSTCODE_LOOKUP_API_KEY_DESC',   'API key');
+define('ACT_POSTCODE_LOOKUP_COUNTRY_DESC',   'Default country code (e.g. GB)');
 
 ?>

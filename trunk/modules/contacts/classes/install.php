@@ -38,6 +38,10 @@ class contacts_admin {
 	  'ADDRESS_BOOK_POSTAL_CODE_REQUIRED'    => '1',
 	  'ADDRESS_BOOK_TELEPHONE1_REQUIRED'     => '0',
 	  'ADDRESS_BOOK_EMAIL_REQUIRED'          => '0',
+	  'POSTCODE_LOOKUP_STATUS'               => '0',
+	  'POSTCODE_LOOKUP_PROVIDER'             => '',
+	  'POSTCODE_LOOKUP_API_KEY'              => '',
+	  'POSTCODE_LOOKUP_COUNTRY'              => 'GB',
 	);
 	// add new directories to store images and data
 	$this->dirlist = array(

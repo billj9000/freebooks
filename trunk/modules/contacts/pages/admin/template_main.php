@@ -38,6 +38,7 @@ echo $toolbar->build_toolbar();
 <div id="admintabs">
 <ul>
 <?php
+  echo add_tab_list('tab_postcode_lookup', TEXT_POSTCODE_LOOKUP);
   echo add_tab_list('tab_add_book',      TEXT_ADDRESS_BOOK);
   echo add_tab_list('tab_departments',   HR_POPUP_WINDOW_TITLE);
   echo add_tab_list('tab_dept_types',    SETUP_TITLE_DEPT_TYPES);
@@ -52,6 +53,7 @@ echo $toolbar->build_toolbar();
 ?>
 </ul>
 <?php
+  require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_postcode_lookup.php');
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_add_book.php');
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_departments.php');
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_dept_types.php');

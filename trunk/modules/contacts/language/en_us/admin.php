@@ -86,5 +86,12 @@ define('SETUP_INFO_HEADING_NEW_PROJECT_PHASES', 'New Project Phase');
 define('SETUP_INFO_HEADING_EDIT_PROJECT_PHASES', 'Edit Project Phase');
 define('SETUP_PROJECT_PHASESS_LOG','Project Phases - ');
 define('SETUP_PROJECT_PHASESS_DELETE_ERROR','Cannot delete this project phase, it is being use in a journal entry.');
+/************************** (Postcode Lookup) ***********************************************/
+define('TEXT_POSTCODE_LOOKUP',               'Postcode Lookup');
+define('ACT_POSTCODE_LOOKUP_BUTTON',         'Find Address');
+define('ACT_POSTCODE_LOOKUP_STATUS_DESC',    'Enable postcode lookup');
+define('ACT_POSTCODE_LOOKUP_PROVIDER_DESC',  'Postcode lookup provider');
+define('ACT_POSTCODE_LOOKUP_API_KEY_DESC',   'API key');
+define('ACT_POSTCODE_LOOKUP_COUNTRY_DESC',   'Default country code (e.g. GB)');
 
 ?>
