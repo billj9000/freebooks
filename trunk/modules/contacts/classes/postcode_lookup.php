@@ -19,10 +19,8 @@
 
 interface PostcodeLookupProvider {
     public function getName(): string;
-    /** Returns candidates: array of ['address1','address2','city_town','state_province','postal_code'] */
+    /** Returns candidates: array of ['primary_name','address1','address2','city_town','state_province','postal_code'] */
     public function lookup(string $postcode, string $country): array;
-    /** Returns [candidates, debug_string] */
-    public function lookupWithDebug(string $postcode, string $country): array;
 }
 
 class FetchifyProvider implements PostcodeLookupProvider {
@@ -33,10 +31,6 @@ class FetchifyProvider implements PostcodeLookupProvider {
     public function getName(): string { return 'Fetchify'; }
 
     public function lookup(string $postcode, string $country): array {
-        return $this->lookupWithDebug($postcode, $country)[0];
-    }
-
-    public function lookupWithDebug(string $postcode, string $country): array {
         $url = 'https://api.craftyclicks.co.uk/address/1.1/find'
              . '?key='     . urlencode($this->apiKey)
              . '&query='   . urlencode($postcode)
@@ -45,11 +39,10 @@ class FetchifyProvider implements PostcodeLookupProvider {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         $raw = curl_exec($ch);
-        $err = curl_error($ch);
         curl_close($ch);
-        if ($raw === false || $raw === '') return [[], 'cURL error: ' . $err];
+        if (!$raw) return [];
         $data = json_decode($raw, true);
-        if (!isset($data['results'])) return [[], 'Unexpected response: ' . substr($raw, 0, 300)];
+        if (!isset($data['results'])) return [];
         $out = [];
         foreach ($data['results'] as $r) {
             $label = $r['labels'][1] ?? '';
@@ -72,7 +65,7 @@ class FetchifyProvider implements PostcodeLookupProvider {
                 'postal_code'    => $r['labels'][0] ?? $postcode,
             ];
         }
-        return [$out, 'ok'];
+        return $out;
     }
 }
 
@@ -84,10 +77,6 @@ class VehicleDataProvider implements PostcodeLookupProvider {
     public function getName(): string { return 'Vehicle Data'; }
 
     public function lookup(string $postcode, string $country): array {
-        return $this->lookupWithDebug($postcode, $country)[0];
-    }
-
-    public function lookupWithDebug(string $postcode, string $country): array {
         $url = 'https://api.vehicledata.co.uk/v2/api/address/lookup'
              . '?postcode=' . urlencode($postcode) . '&country=' . urlencode($country);
         $ch = curl_init($url);
@@ -95,14 +84,14 @@ class VehicleDataProvider implements PostcodeLookupProvider {
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: ' . $this->apiKey]);
         $raw = curl_exec($ch);
-        $err = curl_error($ch);
         curl_close($ch);
-        if ($raw === false || $raw === '') return [[], 'cURL error: ' . $err];
+        if (!$raw) return [];
         $data = json_decode($raw, true);
-        if (!isset($data['addresses'])) return [[], 'Unexpected response: ' . substr($raw, 0, 300)];
+        if (!isset($data['addresses'])) return [];
         $out = [];
         foreach ($data['addresses'] as $a) {
             $out[] = [
+                'primary_name'   => '',
                 'address1'       => $a['line_1']  ?? '',
                 'address2'       => $a['line_2']  ?? '',
                 'city_town'      => $a['town']     ?? '',
@@ -110,7 +99,7 @@ class VehicleDataProvider implements PostcodeLookupProvider {
                 'postal_code'    => $a['postcode'] ?? $postcode,
             ];
         }
-        return [$out, 'ok'];
+        return $out;
     }
 }
 

@@ -29,15 +29,10 @@ if (!$provider || $postcode === '') {
     exit;
 }
 
-try {
-    [$candidates, $debug] = $provider->lookupWithDebug($postcode, $country);
-} catch (Exception $e) {
-    echo '<p class="text-danger small mb-0">Lookup exception: ' . htmlspecialchars($e->getMessage()) . '</p>';
-    exit;
-}
+$candidates = $provider->lookup($postcode, $country);
 
 if (empty($candidates)) {
-    echo '<p class="text-warning small mb-0">No addresses found. Debug: ' . htmlspecialchars($debug) . '</p>';
+    echo '<p class="text-warning small mb-0">No addresses found for this postcode.</p>';
     exit;
 }
 
