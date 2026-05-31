@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -25,7 +26,7 @@ echo html_hidden_field('recur_id', $cInfo->recur_id ? $cInfo->recur_id : 0) . ch
 echo html_hidden_field('recur_frequency', $cInfo->recur_frequency ? $cInfo->recur_frequency : 0) . chr(10);	// recur entry flag - how often
 if (!ENABLE_MULTI_BRANCH) echo html_hidden_field('store_id', '0') . chr(10);
 // customize the toolbar actions
-$toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, '', 'SSL') . '\'"';
+$toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=' . JOURNAL_ID . '&amp;list=1', 'SSL') . '\'"';
 $toolbar->icon_list['open']['params']   = 'onclick="OpenGLList()"';
 $toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . GL_DELETE_ALERT . '\')) submitToDo(\'delete\')"';
 if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;

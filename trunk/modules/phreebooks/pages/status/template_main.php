@@ -106,12 +106,12 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
     }
 ?>
     <tr class="<?php echo $row_class; ?>" style="cursor:pointer">
-      <td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $post_date; ?></td>
-      <td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $reference_id; ?></td>
-      <td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $primary_name; ?></td>
-      <td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $purch_order_id; ?></td>
-      <td onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $closed; ?></td>
-      <td class="text-end" onclick="window.open('<?php echo $link_page; ?>','_blank')"><?php echo $total_amount; ?></td>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $post_date; ?></td>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $reference_id; ?></td>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $primary_name; ?></td>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $purch_order_id; ?></td>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $closed; ?></td>
+      <td class="text-end" onclick="location.href='<?php echo $link_page; ?>'"><?php echo $total_amount; ?></td>
 <?php if (defined('MODULE_SHIPPING_STATUS') && in_array(JOURNAL_ID, [4, 12])) {
       $sID          = 0;
       $shipped      = false;
@@ -127,7 +127,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
       $ship_srv     = defined($temp[0].'_'.$temp[1]) ? constant($temp[0].'_'.$temp[1]) : $temp[1];
       $order_link   = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;action=edit', 'SSL');
 ?>
-      <td class="text-center" onclick="window.open('<?php echo $order_link; ?>','_blank')"><?php echo $ship_meth ? ($ship_meth . ' ' . $ship_srv) : '&nbsp;'; ?></td>
+      <td class="text-center" onclick="location.href='<?php echo $order_link; ?>'"><?php echo $ship_meth ? ($ship_meth . ' ' . $ship_srv) : '&nbsp;'; ?></td>
 <?php } ?>
       <td class="text-end text-nowrap">
 <?php
@@ -191,7 +191,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
     if ($attach_exists) {
       echo html_icon('status/mail-attachment.png', TEXT_DOWNLOAD_ATTACHMENT, 'small', 'onclick="submitSeq(' . $oID . ', \'dn_attach\', true)"') . chr(10);
     }
-    echo html_icon('actions/edit-find-replace.png', TEXT_EDIT, 'small', 'onclick="window.open(\'' . $link_page . '\',\'_blank\')"') . chr(10);
+    echo html_icon('actions/edit-find-replace.png', TEXT_EDIT, 'small', 'onclick="location.href=\'' . $link_page . '\'"') . chr(10);
 ?>
       </td>
     </tr>
