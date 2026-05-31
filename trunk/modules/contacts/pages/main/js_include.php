@@ -26,8 +26,11 @@ var default_country = '<?php echo COMPANY_COUNTRY; ?>';
 var account_type    = '<?php echo $type; ?>';
 
 function init() {
-  $(function() { $('#detailtabs').tabs(); });
   $('#contact_chart').dialog({ autoOpen:false });
+  var firstTabPane = document.querySelector('#detailtabs .tab-pane');
+  if (firstTabPane) {
+    firstTabPane.classList.add('show', 'active');
+  }
 
 <?php if ($include_template == 'template_main.php') {
  	echo '  document.getElementById("search_text").focus();'  . chr(10); 
@@ -56,6 +59,13 @@ function check_form() {
 }
 
 // Insert other page specific functions here.
+function fillAddressFromLookup(el, addType) {
+  ['primary_name', 'address1', 'address2', 'city_town', 'state_province', 'postal_code'].forEach(function(f) {
+    var input = document.querySelector('[name="address[' + addType + '][' + f + ']"]');
+    if (input) input.value = el.dataset[f] || '';
+  });
+  document.getElementById('postcode_results_' + addType).innerHTML = '';
+}
 function loadContacts() {
 //  var guess = document.getElementById('dept_rep_id').value;
   var guess = document.getElementById('dept_rep_id').value;

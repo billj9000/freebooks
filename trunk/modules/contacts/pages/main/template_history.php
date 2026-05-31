@@ -17,7 +17,7 @@
 //  Path: /modules/contacts/pages/main/template_history.php
 //
 ?>
-<div id="tab_history">
+<div id="tab_history" class="tab-pane">
 <?php // ***********************  History Section  ****************************** ?>
   <fieldset>
     <legend><?php echo ACT_ACT_HISTORY; ?></legend>
@@ -27,10 +27,10 @@
 
   <fieldset>
     <legend><?php echo ACT_ORDER_HISTORY; ?></legend>
-    <table class="ui-widget" style="border-style:none;width:100%;">
+    <table class="pkg-table">
 	  <tr><td valign="top" width="50%">
-		<table class="ui-widget" style="border-collapse:collapse;width:100%;">
-		 <thead class="ui-widget-header">
+		<table class="pkg-table">
+		 <thead>
 			<?php if($type == 'c'){ ?>
 		  <tr><th colspan="5"><?php echo sprintf(ACT_SO_HIST, LIMIT_HISTORY_RESULTS); ?></th></tr>
 			<?php }else{ ?>
@@ -44,7 +44,7 @@
 		    <th><?php echo TEXT_AMOUNT; ?></th>
 		  </tr>
 		 </thead>
-		 <tbody class="ui-widget-content">
+		 <tbody>
 		  <?php // first SO/PO
 	    $result = $cInfo->load_open_orders($cInfo->id, '10', false, LIMIT_HISTORY_RESULTS);
 		$odd = true;
@@ -68,8 +68,8 @@
 		</tbody>
 		</table>
 	  </td><td valign="top" width="50%">
-		<table class="ui-widget" style="border-collapse:collapse;width:100%;">
-		 <thead class="ui-widget-header">
+		<table class="pkg-table">
+		 <thead>
 		  <tr><th colspan="5"><?php echo sprintf(ACT_INV_HIST, LIMIT_HISTORY_RESULTS); ?></th></tr>
 		  <tr><th><?php echo ACT_INV_NUMBER; ?></th>
 		  <th><?php echo ACT_PO_NUMBER; ?></th>
@@ -77,7 +77,7 @@
 		  <th><?php echo TEXT_PAID; ?></th>
 		  <th><?php echo TEXT_AMOUNT; ?></th></tr>
 		 </thead>
-		 <tbody class="ui-widget-content">
+		 <tbody>
 		  <?php // then Sales/Purchases
 	    $result = $cInfo->load_open_orders($cInfo->id, $cInfo->journals, false, LIMIT_HISTORY_RESULTS);
 		$odd = true;

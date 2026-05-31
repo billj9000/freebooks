@@ -18,7 +18,7 @@
 //  Path: /modules/contacts/pages/main/template_b_general.php
 //
 ?>
-<div id="tab_general">
+<div id="tab_general" class="tab-pane">
   <fieldset>
     <legend><?php echo ACT_CATEGORY_CONTACT; ?></legend>
     <table>
@@ -50,7 +50,7 @@
 <?php // *********************** Mailing/Main Address (only one allowed) ****************************** ?>
   <fieldset>
     <legend><?php echo ACT_CATEGORY_M_ADDRESS; ?></legend>
-    <table id="<?php echo $type; ?>m_address_form" class="ui-widget" style="border-collapse:collapse;width:100%;">
+    <table id="<?php echo $type; ?>m_address_form" class="pkg-table">
       <?php echo draw_address_fields($cInfo, $type.'m', false, true, false); ?>
     </table>
   </fieldset>
@@ -58,28 +58,28 @@
   <div>
    <fieldset>
    <legend><?php echo TEXT_ATTACHMENTS; ?></legend>
-   <table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
-    <thead class="ui-widget-header">
+   <table class="pkg-table" style="margin-left:auto;margin-right:auto;">
+    <thead>
      <tr><th colspan="3"><?php echo TEXT_ATTACHMENTS; ?></th></tr>
-    </thead>
-    <tbody class="ui-widget-content">
-     <tr><td colspan="3"><?php echo TEXT_SELECT_FILE_TO_ATTACH . ' ' . html_file_field('file_name'); ?></td></tr>
-     <tr  class="ui-widget-header">
+     <tr>
       <th><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small'); ?></th>
       <th><?php echo TEXT_FILENAME; ?></th>
       <th><?php echo TEXT_ACTION; ?></th>
      </tr>
-<?php 
+    </thead>
+    <tbody>
+     <tr><td colspan="3"><?php echo TEXT_SELECT_FILE_TO_ATTACH . ' ' . html_file_field('file_name'); ?></td></tr>
+<?php
 if (!empty($cInfo->attachments)) {
   foreach ($cInfo->attachments as $key => $value) {
     echo '<tr>';
     echo ' <td>' . html_checkbox_field('rm_attach_'.$key, '1', false) . '</td>' . chr(10);
     echo ' <td>' . $value . '</td>' . chr(10);
-    echo ' <td>' . html_button_field('dn_attach_'.$key, TEXT_DOWNLOAD, 'onclick="submitSeq(' . $key . ', \'download\', true)"') . '</td>';
+    echo ' <td><button type="button" class="btn btn-primary btn-sm" onclick="submitSeq(' . $key . ', \'download\', true)">' . TEXT_DOWNLOAD . '</button></td>';
     echo '</tr>' . chr(10);
   }
 } else {
-  echo '<tr><td colspan="3">' . TEXT_NO_DOCUMENTS . '</td></tr>'; 
+  echo '<tr><td colspan="3">' . TEXT_NO_DOCUMENTS . '</td></tr>';
 } ?>
     </tbody>
    </table>

@@ -17,7 +17,7 @@
 //  Path: /modules/contacts/pages/main/template_contacts.php
 //
 ?>
-<div id="tab_contacts">
+<div id="tab_contacts" class="tab-pane">
 <?php 
   if (is_array($cInfo->contacts)) { 
 	$heading_array  = array(); // don't sort
@@ -26,13 +26,13 @@
 ?>
   <fieldset>
     <legend><?php echo TEXT_CONTACTS; ?></legend>
-	 <table class="ui-widget" style="border-collapse:collapse;width:100%;">
-	  <thead class="ui-widget-header"><?php echo $crm_headings['html_code']; ?></thead>
-	  <tbody class="ui-widget-content">
+	 <table class="pkg-table">
+	  <thead><?php echo $crm_headings['html_code']; ?></thead>
+	  <tbody>
 <?php
   $odd = true;
   foreach ($cInfo->contacts as $entry) {
-    $bkgnd = ($entry->inactive) ? 'class="ui-state-highlight"' : '';
+    $bkgnd = ($entry->inactive) ? 'class="table-warning"' : '';
 ?>
 	  <tr id="tr_add_<?php echo $entry->id; ?>" class="<?php echo $odd?'odd':'even'; ?>" style="cursor:pointer">
 		<td onclick="getAddress(<?php echo $entry->address['m'][0]->address_id; ?>, 'im')"<?php echo $bkgnd; ?>><?php echo $entry->contact_last; ?></td>
@@ -59,7 +59,7 @@
   <?php // *********************** Mailing/Main Address (only one allowed) ****************************** ?>
   <fieldset>
     <legend><?php echo ACT_CATEGORY_I_ADDRESS; ?></legend>
-      <table class="ui-widget" style="border-collapse:collapse;width:100%;">
+      <table class="pkg-table">
       <tr>
        <td>
 <?php // build a secondary toolbar for the contact form
@@ -79,7 +79,7 @@
 ?>
     </td></tr>
     </table>
-    <table class="ui-widget" style="border-collapse:collapse;width:100%;">
+    <table class="pkg-table">
       <tr>
        <td align="right"><?php echo ACT_SHORT_NAME . html_hidden_field('i_id', ''); ?></td>
        <td><?php echo html_input_field('i_short_name', $cInfo->i_short_name, 'size="21" maxlength="20"', true); ?></td>
@@ -99,7 +99,7 @@
         <td><?php echo html_input_field('i_gov_id_number', $cInfo->i_gov_id_number, 'size="17" maxlength="16"'); ?></td>
       </tr>
     </table>
-    <table id="im_address_form" class="ui-widget" style="border-collapse:collapse;width:100%;">
+    <table id="im_address_form" class="pkg-table">
       <?php echo draw_address_fields($cInfo->contact, 'im', false, false, false); ?>
     </table>
   </fieldset>

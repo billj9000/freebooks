@@ -30,19 +30,19 @@ $cal_c_gen = array(
 <?php echo js_calendar_init($cal_c_gen); ?>
 </script>
 
-<div id="tab_notes">
+<div id="tab_notes" class="tab-pane">
   <fieldset>
     <legend><?php echo TEXT_NOTES; ?></legend>
 	<div style="float:right;width:50%">
-	 <table class="ui-widget" style="border-collapse:collapse;width:100%">
-	  <thead  class="ui-widget-header">
+	 <table class="pkg-table">
+	  <thead >
 	   <tr>
 	    <th><?php echo TEXT_SALES_REP; ?></th>
 	    <th><?php echo TEXT_DATE; ?></th>
 	    <th><?php echo TEXT_ACTION; ?></th>
 	   </tr>
 	  </thead>
-	  <tbody class="ui-widget-content">
+	  <tbody>
 	   <tr>
 	    <td align="center"><?php echo html_pull_down_menu('crm_rep_id', $sales_rep_array, $cInfo->crm_rep_id ? $cInfo->crm_rep_id : $_SESSION['account_id']); ?></td>
 	    <td align="center"><?php echo html_calendar_field($cal_c_gen); ?></td>
@@ -53,11 +53,11 @@ $cal_c_gen = array(
 	   </tr>
 	  </tbody>
 	 </table>
-	 <table class="ui-widget" style="border-collapse:collapse;width:100%">
-	  <thead  class="ui-widget-header">
+	 <table class="pkg-table">
+	  <thead >
 	   <tr><th colspan="4"><?php echo TEXT_HISTORY; ?></th></tr>
 	  </thead>
-	  <tbody class="ui-widget-content">
+	  <tbody>
 <?php if (!empty($cInfo->crm_log)) foreach ($cInfo->crm_log as $value) { ?>
 	   <tr id="tr_crm_a_<?php echo $value->log_id; ?>" class="odd">
 	    <td><?php echo $security_level < 4 ? '&nbsp;' : html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\''.CRM_ROW_DELETE_ALERT.'\')) deleteCRM('.$value->log_id.');"'); ?></td>

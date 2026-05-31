@@ -18,16 +18,16 @@
 //
 
 ?>
-<div id="tab_payment">
+<div id="tab_payment" class="tab-pane">
   <fieldset>
     <legend><?php echo ACT_CATEGORY_P_ADDRESS; ?></legend>
-    <table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
-     <tbody id="pmt_table" class="ui-widget-content">
+    <table class="pkg-table" style="margin-left:auto;margin-right:auto;">
+     <tbody id="pmt_table">
 <?php
 	if (!empty($cInfo->payment_data)) {
 		$field  = '<tr><td colspan="2">';
-		$field .= '<table class="ui-widget" style="border-collapse:collapse;width:600px;margin-left:auto;margin-right:auto;">';
-		$field .= ' <thead class="ui-widget-header">';
+		$field .= '<table class="pkg-table" style="width:600px;margin-left:auto;margin-right:auto;">';
+		$field .= ' <thead>';
 		$field .= '<tr>' . chr(10);
 		$field .= '  <th>' . ACT_CARDHOLDER_NAME . '</th>' . chr(10);
 		$field .= '  <th>' . ACT_CARD_HINT       . '</th>' . chr(10);
@@ -35,7 +35,7 @@
 		$field .= '  <th>' . TEXT_ACTION         . '</th>' . chr(10);
 		$field .= '</tr>' . chr(10);
 		$field .= ' </thead>';
-		$field .= ' <tbody id="pmt_table" class="ui-widget-content">';
+		$field .= ' <tbody id="pmt_table">';
 		$odd = true;
 		foreach ($cInfo->payment_data as $payment) {
 			$field .= '<tr id="tr_pmt_'.$payment['id'].'" class="'.($odd?'odd':'even').'" style="cursor:pointer">';

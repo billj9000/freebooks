@@ -33,24 +33,19 @@ echo $toolbar->build_toolbar($add_search = true);
 // Build the page
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
-<div id="filter_bar">
-<table class="ui-widget" style="border-style:none;">
- <tbody class="ui-widget-content">
-  <tr>
-	<td><?php echo TEXT_FILTERS . '&nbsp;' . TEXT_SHOW_INACTIVE . '&nbsp;' . html_checkbox_field('f0', '1', $_SESSION['f0']); ?></td>
-	<td><?php echo '&nbsp;' . html_button_field('apply', TEXT_APPLY, 'onclick="document.forms[0].submit();"'); ?></td>
-  </tr>
- </tbody>
-</table>
+<div id="filter_bar" class="d-flex align-items-center gap-2 mb-2">
+  <span><?php echo TEXT_FILTERS; ?></span>
+  <label><?php echo TEXT_SHOW_INACTIVE . '&nbsp;' . html_checkbox_field('f0', '1', $_SESSION['f0']); ?></label>
+  <button type="button" class="btn btn-primary btn-sm" onclick="document.forms[0].submit()"><?php echo TEXT_APPLY; ?></button>
 </div>
 <div style="height:19px"><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . constant('ACT_' . strtoupper($type) . '_TYPE_NAME')); ?>
 <div style="float:right"><?php echo $query_split->display_links(); ?></div>
 </div>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
-  <tr><?php  echo $list_header; ?></tr>
+<table class="pkg-table">
+ <thead>
+  <tr><?php echo $list_header; ?></tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
   <?php
   $odd = true;
     while (!$query_result->EOF) {

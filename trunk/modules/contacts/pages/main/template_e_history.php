@@ -17,11 +17,11 @@
 //  Path: /modules/contacts/pages/main/template_e_history.php
 //
 ?>
-<div id="tab_history">
+<div id="tab_history" class="tab-pane">
   <fieldset>
     <legend><?php echo ACT_ACT_HISTORY; ?></legend>
-	  <table class="ui-widget" style="border-collapse:collapse;width:100%;">
-		<tbody class="ui-widget-content">
+	  <table class="pkg-table">
+		<tbody>
 	  <tr>
 	    <td width="50%"><?php echo constant('ACT_' . strtoupper($type) . '_FIRST_DATE') . ' ' . gen_locale_date($cInfo->first_date); ?></td>
 	  </tr>
