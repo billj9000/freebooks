@@ -324,4 +324,7 @@ define('TEXT_ADMIN_PASS','Enter Admim Password');
 define('TEXT_ADMIN_NOT_VALIDATED','The override username and password was not valid. Please try again.');
 define('TEXT_NULL','is Null');
 define('TEXT_NOT_NULL','is not Null');
+define('ORD_POSTCODE_COUNTRY', 'Country');
+define('ORD_POSTCODE_POSTAL',  'Post Code');
+define('ORD_POSTCODE_FIND',    'Find Address');
 ?>

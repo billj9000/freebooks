@@ -290,5 +290,7 @@ define('TEXT_CREDIT_LIMIT_DESC','Esta ordem vai exceder o limite de crédito do 
 define('TEXT_ADMIN_USER','Entre Nome Usuário do Administrador');
 define('TEXT_ADMIN_PASS','Entre Senha do Administrador');
 define('TEXT_ADMIN_NOT_VALIDATED','O nome e senha para Autorização não são válidos. Por favor, tente novamente.');
-
+define('ORD_POSTCODE_COUNTRY', 'País');
+define('ORD_POSTCODE_POSTAL',  'CEP');
+define('ORD_POSTCODE_FIND',    'Find Address');
 ?>

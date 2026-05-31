@@ -479,5 +479,7 @@ define('GENERAL_JOURNAL_21_LEDGER_DISCOUNT','Скидки на Закупки (�
 define('GENERAL_JOURNAL_21_LEDGER_FREIGHT','Purchase Freight Amount');
 define('GENERAL_JOURNAL_21_DISCOUNT_HEADING','Скидка на Закупки');
 define('GENERAL_JOURNAL_21_LEDGER_HEADING','Закупки Всего');
-
+define('ORD_POSTCODE_COUNTRY', 'Страна');
+define('ORD_POSTCODE_POSTAL',  'Индекс');
+define('ORD_POSTCODE_FIND',    'Find Address');
 ?>

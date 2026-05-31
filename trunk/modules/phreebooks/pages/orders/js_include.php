@@ -108,6 +108,14 @@ if ($template_options['terminal_date']) echo js_calendar_init($cal_terminal);
 // list the freight options
 <?php echo $shipping_methods; ?>
 
+function fillOrderAddressFromLookup(el, prefix) {
+  ['primary_name', 'address1', 'address2', 'city_town', 'state_province', 'postal_code'].forEach(function(f) {
+    var input = document.querySelector('[name="' + prefix + '_' + f + '"]');
+    if (input) input.value = el.dataset[f] || '';
+  });
+  document.getElementById('postcode_results_' + prefix).innerHTML = '';
+}
+
 function init() {
   document.getElementById('ship_to_select').style.visibility = 'hidden';
   document.getElementById('bill_to_select').style.visibility = 'hidden';

@@ -17,6 +17,8 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/pages/orders/template_main.php
 //
+$postcode_lookup = defined('POSTCODE_LOOKUP_STATUS') && POSTCODE_LOOKUP_STATUS
+                && defined('POSTCODE_LOOKUP_API_KEY') && POSTCODE_LOOKUP_API_KEY;
 echo html_form('orders', FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'post', 'enctype="multipart/form-data"', true) . chr(10);
 $hidden_fields = NULL;
 echo html_hidden_field('action',            '') . chr(10);
@@ -188,6 +190,34 @@ $tip = (in_array(JOURNAL_ID, array(6,7))) ? ORD_JS_WAITING_FOR_PAYMENT : ORD_TT_
       <tr>
         <td nowrap="nowrap" valign="top">
 <?php
+if ($postcode_lookup) {
+  echo '<div class="d-flex gap-2 align-items-end p-1 mb-1">';
+  echo '<div><div class="small">' . ORD_POSTCODE_COUNTRY . '</div>';
+  echo html_pull_down_menu('bill_country_code', gen_get_countries(), $order->bill_country_code) . '</div>';
+  echo '<div><div class="small">' . ORD_POSTCODE_POSTAL . '</div>';
+  echo html_input_field('bill_postal_code', $order->bill_postal_code,
+      'size="11" maxlength="10"'
+      . ' onkeydown="if(event.key===\'Enter\') event.preventDefault();"'
+      . ' onfocus="clearField(\'bill_postal_code\', \'' . ORD_POSTCODE_POSTAL . '\')" onblur="setField(\'bill_postal_code\', \'' . ORD_POSTCODE_POSTAL . '\')"'
+      . ' hx-get="index.php?module=phreebooks&page=ajax&op=postcode_lookup"'
+      . ' hx-trigger="keyup[key==\'Enter\']"'
+      . ' hx-include="[name=\'bill_postal_code\'],[name=\'bill_country_code\']"'
+      . ' hx-vals=\'{"prefix":"bill"}\''
+      . ' hx-target="#postcode_results_bill"'
+      . ' hx-swap="innerHTML"',
+      ADDRESS_BOOK_POSTAL_CODE_REQUIRED);
+  echo '</div>';
+  echo '<div class="align-self-end">';
+  echo '<button type="button" class="btn btn-primary btn-sm"'
+     . ' hx-get="index.php?module=phreebooks&page=ajax&op=postcode_lookup"'
+     . ' hx-include="[name=\'bill_postal_code\'],[name=\'bill_country_code\']"'
+     . ' hx-vals=\'{"prefix":"bill"}\''
+     . ' hx-target="#postcode_results_bill"'
+     . ' hx-swap="innerHTML">'
+     . ORD_POSTCODE_FIND . '</button>';
+  echo '</div></div>';
+  echo '<div id="postcode_results_bill"></div>';
+}
 echo html_input_field('bill_primary_name', $order->bill_primary_name, 'size="33" maxlength="32" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"', true) . chr(10);
 echo html_checkbox_field('bill_add_update', '1', ($order->bill_add_update) ? true : false, '', '') . ORD_ADD_UPDATE . '<br />' . chr(10);
 echo html_input_field('bill_contact', $order->bill_contact, 'size="33" maxlength="32" onfocus="clearField(\'bill_contact\', \'' . GEN_CONTACT . '\')" onblur="setField(\'bill_contact\', \'' . GEN_CONTACT . '\')"', ADDRESS_BOOK_CONTACT_REQUIRED) . chr(10);
@@ -196,14 +226,46 @@ echo html_input_field('bill_address1', $order->bill_address1, 'size="33" maxleng
 echo html_input_field('bill_address2', $order->bill_address2, 'size="33" maxlength="32" onfocus="clearField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')" onblur="setField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')"', ADDRESS_BOOK_ADDRESS2_REQUIRED) . '<br />' . chr(10);
 echo html_input_field('bill_city_town', $order->bill_city_town, 'size="25" maxlength="24" onfocus="clearField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')" onblur="setField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')"', ADDRESS_BOOK_CITY_TOWN_REQUIRED) . chr(10);
 echo html_input_field('bill_state_province', $order->bill_state_province, 'size="3" maxlength="24" onfocus="clearField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')" onblur="setField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')"', ADDRESS_BOOK_STATE_PROVINCE_REQUIRED) . chr(10);
-echo html_input_field('bill_postal_code', $order->bill_postal_code, 'size="11" maxlength="10" onfocus="clearField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '<br />' . chr(10);
-echo html_pull_down_menu('bill_country_code', gen_get_countries(), $order->bill_country_code) . '<br />' . chr(10);
+if (!$postcode_lookup) {
+  echo html_input_field('bill_postal_code', $order->bill_postal_code, 'size="11" maxlength="10" onfocus="clearField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '<br />' . chr(10);
+  echo html_pull_down_menu('bill_country_code', gen_get_countries(), $order->bill_country_code) . '<br />' . chr(10);
+} else {
+  echo '<br />' . chr(10);
+}
 echo html_input_field('bill_telephone1', $order->bill_telephone1, 'size="21" maxlength="20" onfocus="clearField(\'bill_telephone1\', \'' . GEN_TELEPHONE1 . '\')" onblur="setField(\'bill_telephone1\', \'' . GEN_TELEPHONE1 . '\')"', ADDRESS_BOOK_TELEPHONE1_REQUIRED) . chr(10);
 echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48" onfocus="clearField(\'bill_email\', \'' . GEN_EMAIL . '\')" onblur="setField(\'bill_email\', \'' . GEN_EMAIL . '\')"', ADDRESS_BOOK_EMAIL_REQUIRED) . chr(10);
 ?>
         </td>
         <td nowrap="nowrap" width="33%" valign="top">
 <?php if (defined('MODULE_SHIPPING_STATUS')) {
+  if ($postcode_lookup) {
+    echo '<div class="d-flex gap-2 align-items-end p-1 mb-1">';
+    echo '<div><div class="small">' . ORD_POSTCODE_COUNTRY . '</div>';
+    echo html_pull_down_menu('ship_country_code', gen_get_countries(), $order->ship_country_code) . '</div>';
+    echo '<div><div class="small">' . ORD_POSTCODE_POSTAL . '</div>';
+    echo html_input_field('ship_postal_code', $order->ship_postal_code,
+        'size="11" maxlength="10"'
+        . ' onkeydown="if(event.key===\'Enter\') event.preventDefault();"'
+        . ' onfocus="clearField(\'ship_postal_code\', \'' . ORD_POSTCODE_POSTAL . '\')" onblur="setField(\'ship_postal_code\', \'' . ORD_POSTCODE_POSTAL . '\')"'
+        . ' hx-get="index.php?module=phreebooks&page=ajax&op=postcode_lookup"'
+        . ' hx-trigger="keyup[key==\'Enter\']"'
+        . ' hx-include="[name=\'ship_postal_code\'],[name=\'ship_country_code\']"'
+        . ' hx-vals=\'{"prefix":"ship"}\''
+        . ' hx-target="#postcode_results_ship"'
+        . ' hx-swap="innerHTML"',
+        ADDRESS_BOOK_SHIP_POSTAL_CODE_REQ);
+    echo '</div>';
+    echo '<div class="align-self-end">';
+    echo '<button type="button" class="btn btn-primary btn-sm"'
+       . ' hx-get="index.php?module=phreebooks&page=ajax&op=postcode_lookup"'
+       . ' hx-include="[name=\'ship_postal_code\'],[name=\'ship_country_code\']"'
+       . ' hx-vals=\'{"prefix":"ship"}\''
+       . ' hx-target="#postcode_results_ship"'
+       . ' hx-swap="innerHTML">'
+       . ORD_POSTCODE_FIND . '</button>';
+    echo '</div></div>';
+    echo '<div id="postcode_results_ship"></div>';
+  }
   echo html_input_field('ship_primary_name', $order->ship_primary_name, 'size="33" maxlength="32" onfocus="clearField(\'ship_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'ship_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"', true) . chr(10);
   echo html_checkbox_field('ship_add_update', '1', ($order->ship_add_update) ? true : false, '', '') . ORD_ADD_UPDATE . '<br />' . chr(10);
   echo html_input_field('ship_contact', $order->ship_contact, 'size="33" maxlength="32" onfocus="clearField(\'ship_contact\', \'' . GEN_CONTACT . '\')" onblur="setField(\'ship_contact\', \'' . GEN_CONTACT . '\')"', ADDRESS_BOOK_SHIP_CONTACT_REQ) . chr(10);
@@ -212,8 +274,12 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
   echo html_input_field('ship_address2', $order->ship_address2, 'size="33" maxlength="32" onfocus="clearField(\'ship_address2\', \'' . GEN_ADDRESS2 . '\')" onblur="setField(\'ship_address2\', \'' . GEN_ADDRESS2 . '\')"', ADDRESS_BOOK_SHIP_ADD2_REQ) . '<br />' . chr(10);
   echo html_input_field('ship_city_town', $order->ship_city_town, 'size="25" maxlength="24" onfocus="clearField(\'ship_city_town\', \'' . GEN_CITY_TOWN . '\')" onblur="setField(\'ship_city_town\', \'' . GEN_CITY_TOWN . '\')"', ADDRESS_BOOK_SHIP_CITY_REQ) . chr(10);
   echo html_input_field('ship_state_province', $order->ship_state_province, 'size="3" maxlength="24" onfocus="clearField(\'ship_state_province\', \'' . GEN_STATE_PROVINCE . '\')" onblur="setField(\'ship_state_province\', \'' . GEN_STATE_PROVINCE . '\')"', ADDRESS_BOOK_SHIP_STATE_REQ) . chr(10);
-  echo html_input_field('ship_postal_code', $order->ship_postal_code, 'size="11" maxlength="10" onfocus="clearField(\'ship_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'ship_postal_code\', \'' . GEN_POSTAL_CODE . '\')"', ADDRESS_BOOK_SHIP_POSTAL_CODE_REQ) . '<br />' . chr(10);
-  echo html_pull_down_menu('ship_country_code', gen_get_countries(), $order->ship_country_code) . '<br />' . chr(10);
+  if (!$postcode_lookup) {
+    echo html_input_field('ship_postal_code', $order->ship_postal_code, 'size="11" maxlength="10" onfocus="clearField(\'ship_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'ship_postal_code\', \'' . GEN_POSTAL_CODE . '\')"', ADDRESS_BOOK_SHIP_POSTAL_CODE_REQ) . '<br />' . chr(10);
+    echo html_pull_down_menu('ship_country_code', gen_get_countries(), $order->ship_country_code) . '<br />' . chr(10);
+  } else {
+    echo '<br />' . chr(10);
+  }
   echo html_input_field('ship_telephone1', $order->ship_telephone1, 'size="21" maxlength="20" onfocus="clearField(\'ship_telephone1\', \'' . GEN_TELEPHONE1 . '\')" onblur="setField(\'ship_telephone1\', \'' . GEN_TELEPHONE1 . '\')"', ADDRESS_BOOK_TELEPHONE1_REQUIRED) . chr(10);
   echo html_input_field('ship_email', $order->ship_email, 'size="35" maxlength="48" onfocus="clearField(\'ship_email\', \'' . GEN_EMAIL . '\')" onblur="setField(\'ship_email\', \'' . GEN_EMAIL . '\')"', ADDRESS_BOOK_EMAIL_REQUIRED) . chr(10);
 } else {

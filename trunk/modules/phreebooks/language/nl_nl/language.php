@@ -300,4 +300,7 @@ define('ITEM_IS_ON_ORDER', 'artikel staat in bestelling');
 define('ITEM_MUST_BE_ORDERD', 'artikel moet besteld worden');
 define('TEXT_NULL','is Null');
 define('TEXT_NOT_NULL','is not Null');
+define('ORD_POSTCODE_COUNTRY', 'Land');
+define('ORD_POSTCODE_POSTAL',  'Postcode');
+define('ORD_POSTCODE_FIND',    'Find Address');
 ?>
