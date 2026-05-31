@@ -1,8 +1,9 @@
-<?php 
+<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -20,6 +21,8 @@
 function draw_address_fields($entries, $add_type, $reset_button = false, $hide_list = false, $short = false) {
 	$field = '';
 	$method = substr($add_type, 1, 1);
+	$postcode_lookup = defined('POSTCODE_LOOKUP_STATUS') && POSTCODE_LOOKUP_STATUS
+	                && defined('POSTCODE_LOOKUP_API_KEY') && POSTCODE_LOOKUP_API_KEY;
 //echo 'entries = '; print_r($entries); echo '<br>';
 	if (!$hide_list && !empty($entries->address_book[$method])) {
 		$field .= '<tr><td><table class="ui-widget" style="border-collapse:collapse;width:100%;">';
@@ -60,6 +63,36 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 		}
 		$field .= '</tbody>' . chr(10) . chr(10);
 		$field .= '</table></td></tr>';
+	}
+
+	if ($postcode_lookup) {
+		$field .= '<tr><td>';
+		$field .= '<div class="d-flex gap-2 align-items-end p-1">';
+		$field .= '<div><div class="small">' . GEN_COUNTRY . '</div>'
+		        . html_pull_down_menu("address[$add_type][country_code]", gen_get_countries(),
+		            $entries->address[$add_type]['country_code'] ?: COMPANY_COUNTRY) . '</div>';
+		$field .= '<div><div class="small">' . GEN_POSTAL_CODE . '</div>'
+		        . html_input_field("address[$add_type][postal_code]", $entries->address[$add_type]['postal_code'],
+		            'size="11" maxlength="10"'
+		            . ' onkeydown="if(event.key===\'Enter\') event.preventDefault();"'
+		            . ' hx-get="index.php?module=contacts&page=ajax&op=postcode_lookup"'
+		            . ' hx-trigger="keyup[key==\'Enter\']"'
+		            . ' hx-include="[name=\'address[' . $add_type . '][postal_code]\'],[name=\'address[' . $add_type . '][country_code]\']"'
+		            . ' hx-vals=\'{"add_type":"' . $add_type . '"}\''
+		            . ' hx-target="#postcode_results_' . $add_type . '"'
+		            . ' hx-swap="innerHTML"',
+		            ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '</div>';
+		$field .= '<div class="align-self-end">'
+		        . '<button type="button" class="btn btn-primary btn-sm"'
+		        . ' hx-get="index.php?module=contacts&page=ajax&op=postcode_lookup"'
+		        . ' hx-include="[name=\'address[' . $add_type . '][postal_code]\'],[name=\'address[' . $add_type . '][country_code]\']"'
+		        . ' hx-vals=\'{"add_type":"' . $add_type . '"}\''
+		        . ' hx-target="#postcode_results_' . $add_type . '"'
+		        . ' hx-swap="innerHTML">'
+		        . ACT_POSTCODE_LOOKUP_BUTTON . '</button></div>';
+		$field .= '</div>';
+		$field .= '<div id="postcode_results_' . $add_type . '"></div>';
+		$field .= '</td></tr>' . chr(10);
 	}
 
     $field .= '<tr><td><table class="ui-widget" style="border-collapse:collapse;width:100%;">' . chr(10);
@@ -106,12 +139,14 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 	$field .= '  <td>' . html_input_field("address[$add_type][website]", $entries->address[$add_type]['website'], 'size="51" maxlength="50"') . '</td>' . chr(10);
 	$field .= '</tr>';
 
-	$field .= '<tr>';
-	$field .= '  <td align="right">' . GEN_POSTAL_CODE . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][postal_code]", $entries->address[$add_type]['postal_code'], 'size="11" maxlength="10"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '</td>' . chr(10);
-	$field .= '  <td align="right">' . GEN_COUNTRY . '</td>' . chr(10);
-	$field .= '  <td>' . html_pull_down_menu("address[$add_type][country_code]", gen_get_countries(), $entries->address[$add_type]['country_code'] ? $entries->address[$add_type]['country_code'] : COMPANY_COUNTRY) . '</td>' . chr(10);
-	$field .= '</tr>';
+	if (!$postcode_lookup) {
+		$field .= '<tr>';
+		$field .= '  <td align="right">' . GEN_POSTAL_CODE . '</td>' . chr(10);
+		$field .= '  <td>' . html_input_field("address[$add_type][postal_code]", $entries->address[$add_type]['postal_code'], 'size="11" maxlength="10"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '</td>' . chr(10);
+		$field .= '  <td align="right">' . GEN_COUNTRY . '</td>' . chr(10);
+		$field .= '  <td>' . html_pull_down_menu("address[$add_type][country_code]", gen_get_countries(), $entries->address[$add_type]['country_code'] ? $entries->address[$add_type]['country_code'] : COMPANY_COUNTRY) . '</td>' . chr(10);
+		$field .= '</tr>';
+	}
 
 	if ($method <> 'm' || ($add_type == 'im' && substr($add_type, 0, 1) <> 'i')) {
 	  $field .= '<tr>' . chr(10);

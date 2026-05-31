@@ -30,24 +30,24 @@ if (!$provider || $postcode === '') {
 }
 
 try {
-    $candidates = $provider->lookup($postcode, $country);
+    [$candidates, $debug] = $provider->lookupWithDebug($postcode, $country);
 } catch (Exception $e) {
-    echo '<p class="text-danger small mb-0">Lookup failed. Please check your API key and try again.</p>';
+    echo '<p class="text-danger small mb-0">Lookup exception: ' . htmlspecialchars($e->getMessage()) . '</p>';
     exit;
 }
 
 if (empty($candidates)) {
-    echo '<p class="text-warning small mb-0">No addresses found for this postcode.</p>';
+    echo '<p class="text-warning small mb-0">No addresses found. Debug: ' . htmlspecialchars($debug) . '</p>';
     exit;
 }
 
 echo '<div class="list-group mt-1" style="max-height:200px;overflow-y:auto;">';
 foreach ($candidates as $c) {
     $label = implode(', ', array_filter([
-        $c['address1'], $c['address2'], $c['city_town'], $c['state_province'], $c['postal_code'],
+        $c['primary_name'], $c['address1'], $c['address2'], $c['city_town'], $c['state_province'], $c['postal_code'],
     ]));
     $attrs = '';
-    foreach (['address1', 'address2', 'city_town', 'state_province', 'postal_code'] as $f) {
+    foreach (['primary_name', 'address1', 'address2', 'city_town', 'state_province', 'postal_code'] as $f) {
         $attrs .= ' data-' . $f . '="' . htmlspecialchars($c[$f] ?? '', ENT_QUOTES) . '"';
     }
     echo '<button type="button" class="list-group-item list-group-item-action py-1 small"'
