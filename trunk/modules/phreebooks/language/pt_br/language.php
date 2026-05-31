@@ -99,7 +99,7 @@ define('GL_ERROR_CANNOT_FIND_NEXT_ID','Não foi possível ler o número da ordem
 define('GL_ERROR_CANNOT_DELETE_MAIN','Falha na remoção do registro principal do diário # ');
 define('GL_ERROR_NO_DELETE','Houve erros durante o processamento, o registro não foi removido.');
 define('GL_ERROR_NO_ITEMS','Não há itens para envio. Para que um item seja registrado, a quantidade não pode estar em branco.');
-define('GL_ERROR_INVOICE_ALL_ZERO_QTY','Esta fatura não tem quantidades — todos os itens têm quantidade zero. A fatura não foi salva.');
+define('GL_ERROR_INVOICE_ALL_ZERO_QTY','Este documento não tem quantidades — todos os itens têm quantidade zero. O registro não foi salvo.');
 define('GL_ERROR_NO_POST','Houve erros durante o processamento, o registro não foi enviado.');
 define('GL_ERROR_RECUR_DEL_ROLL_REQD','Esta é uma transação recorrente. Você quer remover lançamentos futuros também? (Tecle Cancelar para remover somente este lançamento)');
 define('GL_ERROR_RECUR_ROLL_REQD','Esta é uma transação recorrente. Você quer atualizar lançamentos futuros também? (Tecle Cancelar para alterar somente este lançamento)');

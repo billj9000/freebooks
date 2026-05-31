@@ -194,7 +194,7 @@ define('GL_ERROR_NO_REFERENCE','Voor terugkerende transacties, een beginnend ref
 define('GL_ERROR_RECUR_ROLL_REQD','Dit is een terugkerend item. Wilt u toekomstige boekingen ook bijwerken? (Druk op Annuleren om alleen dit item updaten)');
 define('GL_ERROR_RECUR_DEL_ROLL_REQD','Dit is een terugkerend item. Wilt u toekomstige boekingen ook verwijderen? (Druk op Annuleren om alleen dit bericht te wissen)');
 define('GL_ERROR_NO_ITEMS','Er zijn geen items geboekt, Om een item te boeken moet het aantal / hoeveelheid niet leeg zijn.');
-define('GL_ERROR_INVOICE_ALL_ZERO_QTY','Deze factuur heeft geen aantallen — alle regelitems hebben een hoeveelheid van nul. De factuur is niet opgeslagen.');
+define('GL_ERROR_INVOICE_ALL_ZERO_QTY','Dit document heeft geen aantallen — alle regelitems hebben een hoeveelheid van nul. De boeking is niet opgeslagen.');
 define('GL_ERROR_NO_POST','Er waren errors tijdens het verwerken, De boeking is niet opgeslagen.');
 define('GL_ERROR_NO_DELETE','Er waren errors tijdens het verwerken, De boeking is niet verwijderd.');
 define('GL_ERROR_CANNOT_FIND_NEXT_ID','Kon volgende bestelling / factuur nummer niet uit de tabel ophalen: %s');
