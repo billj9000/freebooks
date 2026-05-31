@@ -18,11 +18,6 @@
 //
 
 ?>
-<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-<link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
-<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
-<script src="ext/htmx.min.js" defer></script>
 <script type="text/javascript">
 <!--
 // pass any php variables generated during pre-process that are used in the javascript functions.

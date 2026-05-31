@@ -36,7 +36,7 @@ echo $toolbar->build_toolbar();
  <tbody class="ui-widget-content">
   <tr><td><?php echo HEADING_TITLE_CRASH_INFORMATION; ?></td></tr>
   <tr>
-	<td align="center"><?php echo html_button_field('download', HEADING_TITLE_CRASH_BUTTON, 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;action=debug', 'SSL') . '\'"'); ?></td>
+	<td class="text-center"><button type="button" class="btn btn-primary btn-sm" onclick="location.href = '<?php echo html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;action=debug', 'SSL'); ?>'"><?php echo HEADING_TITLE_CRASH_BUTTON; ?></button></td>
   </tr>
  </tbody>
 </table>

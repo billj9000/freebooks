@@ -174,9 +174,10 @@ if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go las
 }
 history_save('pb'.JOURNAL_ID);
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header    = true;
+$include_footer    = true;
+$include_template  = 'template_main.php';
+$use_bootstrap_nav = true;
 define('PAGE_TITLE', sprintf(BOX_STATUS_MGR, $page_title));
 
 ?>
