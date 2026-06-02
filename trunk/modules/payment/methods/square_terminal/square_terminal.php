@@ -34,6 +34,7 @@ class square_terminal extends payment {
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX',      'default' => 'Test',       'text' => MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND',        'default' => 'Countdown',     'text' => MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE', 'default' => 'CARD_PRESENT',  'text' => MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT',       'default' => 'Off',           'text' => MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT_DESC];
   }
 
   function configure($key) {
@@ -148,6 +149,12 @@ class square_terminal extends payment {
           ['id' => 'MANUAL_CARD_ENTRY', 'text' => MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_MANUAL],
         ];
         return html_pull_down_menu(strtolower($key), $opts, defined($key) ? constant($key) : 'CARD_PRESENT');
+      case 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT':
+        $opts = [
+          ['id' => 'Off', 'text' => 'Off'],
+          ['id' => 'On',  'text' => 'On — open invoice PDF automatically after payment'],
+        ];
+        return html_pull_down_menu(strtolower($key), $opts, defined($key) ? constant($key) : 'Off');
       default:
         return parent::configure($key);
     }
@@ -157,6 +164,7 @@ class square_terminal extends payment {
     // Pass PHP constants into JS via json_encode so they are properly escaped.
     $auto_send   = defined('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND')        ? MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND        : 'Countdown';
     $default_pmt = defined('MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE') ? MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE : 'CARD_PRESENT';
+    $auto_print  = defined('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT')       ? MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT       : 'Off';
 
     $js_vars = '<script>' . "\n"
       . 'var sqTermStatusIdle        = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_IDLE)        . ';' . "\n"
@@ -167,6 +175,7 @@ class square_terminal extends payment {
       . 'var sqTermCountdownTemplate = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_COUNTDOWN_SENDING)  . ';' . "\n"
       . 'var sqTermAutoSend          = ' . json_encode($auto_send)                                        . ';' . "\n"
       . 'var sqTermDefaultPmtType   = ' . json_encode($default_pmt)                                      . ';' . "\n"
+      . 'var sqTermAutoPrint        = ' . json_encode($auto_print)                                       . ';' . "\n"
       . 'var sqTermCheckoutId    = "";' . "\n"
       . 'var sqTermPollTimer     = null;' . "\n"
       . 'var sqTermCountdownTimer = null;' . "\n"
@@ -260,10 +269,9 @@ class square_terminal extends payment {
       . '  console.log("[SqTerm] DOMContentLoaded: pendingPrint=" + pendingPrint + " returnUrl=" + returnUrl + " url=" + window.location.search);' . "\n"
       . '  if (pendingPrint) {' . "\n"
       . '    sessionStorage.removeItem("sqTermPrintInvId");' . "\n"
-      . '    var printWin = window.open(' . "\n"
-      . '      "index.php?module=phreeform&page=popup_gen&gID=cust:inv&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + encodeURIComponent(pendingPrint),' . "\n"
-      . '      "reportFilter", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200"' . "\n"
-      . '    );' . "\n"
+      . '    var printUrl = "index.php?module=phreeform&page=popup_gen&gID=cust:inv&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + encodeURIComponent(pendingPrint);' . "\n"
+      . '    if (sqTermAutoPrint === "On") printUrl += "&autoprint=1";' . "\n"
+      . '    var printWin = window.open(printUrl, "reportFilter", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");' . "\n"
       . '    if (printWin) printWin.focus();' . "\n"
       . '  }' . "\n"
       . '  if (returnUrl) {' . "\n"

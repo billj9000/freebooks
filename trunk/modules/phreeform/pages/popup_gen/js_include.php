@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -375,6 +376,61 @@ function TableDnD() {
 		return null;
 	}
 }
+
+// Auto-open PDF when &autoprint=1 is present in the URL.
+// Auto-selects the Invoice form, fetches the PDF, and displays it in a
+// full-screen iframe so the user sees it immediately.
+document.addEventListener('DOMContentLoaded', function() {
+  if (new URLSearchParams(window.location.search).get('autoprint') !== '1') return;
+  setTimeout(function() {
+    // Auto-select rID if the form has a radio group with nothing checked.
+    // Prefer the option whose label contains "Invoice"; fall back to first.
+    var rids = document.querySelectorAll('input[name="rID"][type="radio"]');
+    if (rids.length > 0) {
+      var anyChecked = Array.prototype.some.call(rids, function(r) { return r.checked; });
+      if (!anyChecked) {
+        var target = rids[0];
+        for (var i = 0; i < rids.length; i++) {
+          if (/invoice/i.test(rids[i].parentNode ? rids[i].parentNode.textContent : '')) {
+            target = rids[i]; break;
+          }
+        }
+        target.checked = true;
+      }
+    }
+    var form = document.getElementById('popup_gen');
+    var formData = new FormData(form);
+    formData.set('action', 'exp_pdf');
+    // Build a clean fetch URL from the current location rather than form.action
+    // (form.action may contain &amp; entities or an SSL origin that differs).
+    var qp = new URLSearchParams(window.location.search);
+    var fetchUrl = window.location.pathname
+      + '?module=' + encodeURIComponent(qp.get('module') || 'phreeform')
+      + '&page='   + encodeURIComponent(qp.get('page')   || 'popup_gen');
+    fetch(fetchUrl, { method: 'POST', body: formData })
+      .then(function(r) {
+        var ct = r.headers.get('content-type') || '';
+        if (!ct.includes('pdf')) {
+          // Server returned HTML (e.g. auth redirect) — fall back to normal navigation.
+          submitToDo('exp_pdf', true);
+          return null;
+        }
+        return r.blob();
+      })
+      .then(function(blob) {
+        if (!blob) return;
+        var blobUrl = URL.createObjectURL(blob);
+        var iframe = document.createElement('iframe');
+        iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999';
+        iframe.onload = function() {
+          setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 30000);
+        };
+        iframe.src = blobUrl;
+        document.body.appendChild(iframe);
+      })
+      .catch(function() { submitToDo('exp_pdf', true); });
+  }, 500);
+});
 
 // -->
 </script>
