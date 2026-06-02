@@ -39,6 +39,10 @@ if ($raw_amount <= 0) {
   die;
 }
 
+$allowed_payment_types = ['CARD_PRESENT', 'MANUAL_CARD_ENTRY'];
+$payment_type = isset($_GET['payment_type']) ? trim($_GET['payment_type']) : 'CARD_PRESENT';
+if (!in_array($payment_type, $allowed_payment_types)) $payment_type = 'CARD_PRESENT';
+
 // Convert to smallest currency unit (cents for 2-decimal currencies).
 $decimal_places = isset($currencies->currencies[DEFAULT_CURRENCY]['decimal_places'])
   ? (int)$currencies->currencies[DEFAULT_CURRENCY]['decimal_places']
@@ -57,6 +61,7 @@ $payload = json_encode([
       'amount'   => $amount_minor,
       'currency' => DEFAULT_CURRENCY,
     ],
+    'payment_type'   => $payment_type,
     'device_options' => [
       'device_id' => $device_id,
     ],

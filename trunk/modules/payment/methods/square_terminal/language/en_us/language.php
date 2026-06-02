@@ -32,7 +32,10 @@ define('MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_WAITING',    'Waiting for payment 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_COMPLETED',  'Payment confirmed!');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_CANCELED',   'Payment canceled or failed — click Send to Terminal to retry.');
 
-define('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC',      'When arriving from the invoice Payment button: Off = do nothing (user clicks Send manually); On = send immediately; Countdown = count down 5 seconds then send, with a Cancel option.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC',         'When arriving from the invoice Payment button: Off = do nothing (user clicks Send manually); On = send immediately; Countdown = count down 5 seconds then send, with a Cancel option.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE_DESC',  'Default payment type shown on the payment screen. The cashier can change it per transaction.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_CARD_PRESENT',  'Card Present (tap / swipe / insert)');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_MANUAL',        'Manual Entry (key in card number)');
 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_BTN',            'Pair New Terminal');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_BROWSE_BTN',          'Browse Devices');

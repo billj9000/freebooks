@@ -32,7 +32,8 @@ class square_terminal extends payment {
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID',  'default' => '',           'text' => MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_DEVICE_ID',    'default' => '',           'text' => MODULE_PAYMENT_SQUARE_TERMINAL_DEVICE_ID_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX',      'default' => 'Test',       'text' => MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX_DESC];
-    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND',   'default' => 'Countdown',  'text' => MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND',        'default' => 'Countdown',     'text' => MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE', 'default' => 'CARD_PRESENT',  'text' => MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE_DESC];
   }
 
   function configure($key) {
@@ -141,6 +142,12 @@ class square_terminal extends payment {
           ['id' => 'On',        'text' => 'On — send immediately'],
         ];
         return html_pull_down_menu(strtolower($key), $opts, defined($key) ? constant($key) : 'Countdown');
+      case 'MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE':
+        $opts = [
+          ['id' => 'CARD_PRESENT',      'text' => MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_CARD_PRESENT],
+          ['id' => 'MANUAL_CARD_ENTRY', 'text' => MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_MANUAL],
+        ];
+        return html_pull_down_menu(strtolower($key), $opts, defined($key) ? constant($key) : 'CARD_PRESENT');
       default:
         return parent::configure($key);
     }
@@ -148,7 +155,8 @@ class square_terminal extends payment {
 
   function selection() {
     // Pass PHP constants into JS via json_encode so they are properly escaped.
-    $auto_send = defined('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND') ? MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND : 'Countdown';
+    $auto_send   = defined('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND')        ? MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND        : 'Countdown';
+    $default_pmt = defined('MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE') ? MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE : 'CARD_PRESENT';
 
     $js_vars = '<script>' . "\n"
       . 'var sqTermStatusIdle        = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_IDLE)        . ';' . "\n"
@@ -158,6 +166,7 @@ class square_terminal extends payment {
       . 'var sqTermStatusCanceled    = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_CANCELED)    . ';' . "\n"
       . 'var sqTermCountdownTemplate = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_COUNTDOWN_SENDING)  . ';' . "\n"
       . 'var sqTermAutoSend          = ' . json_encode($auto_send)                                        . ';' . "\n"
+      . 'var sqTermDefaultPmtType   = ' . json_encode($default_pmt)                                      . ';' . "\n"
       . 'var sqTermCheckoutId    = "";' . "\n"
       . 'var sqTermPollTimer     = null;' . "\n"
       . 'var sqTermCountdownTimer = null;' . "\n"
@@ -184,10 +193,12 @@ class square_terminal extends payment {
       . 'function sqTermSend() {' . "\n"
       . '  var raw = document.getElementById("total").value.replace(/[^0-9.\-]/g, "");' . "\n"
       . '  if (!raw || parseFloat(raw) <= 0) { alert("Please enter a valid total first."); return; }' . "\n"
+      . '  var ptypeEl = document.querySelector("input[name=\'sq_term_ptype\']:checked");' . "\n"
+      . '  var ptype = ptypeEl ? ptypeEl.value : sqTermDefaultPmtType;' . "\n"
       . '  document.getElementById("sq_term_send").disabled = true;' . "\n"
       . '  document.getElementById("square_terminal_field_0").value = "";' . "\n"
       . '  document.getElementById("sq_term_status").innerText = sqTermStatusSending;' . "\n"
-      . '  $.getJSON("index.php?module=phreebooks&page=ajax&op=sq_term_create", {amount: raw}, function(r) {' . "\n"
+      . '  $.getJSON("index.php?module=phreebooks&page=ajax&op=sq_term_create", {amount: raw, payment_type: ptype}, function(r) {' . "\n"
       . '    if (r.error) {' . "\n"
       . '      document.getElementById("sq_term_status").innerText = r.error;' . "\n"
       . '      document.getElementById("sq_term_send").disabled = false;' . "\n"
@@ -274,8 +285,20 @@ class square_terminal extends payment {
       . '});' . "\n"
       . '</script>';
 
+    $cp_checked  = ($default_pmt === 'CARD_PRESENT')      ? ' checked' : '';
+    $man_checked = ($default_pmt === 'MANUAL_CARD_ENTRY') ? ' checked' : '';
     $html = '<input type="hidden" id="square_terminal_field_0" name="square_terminal_field_0" value="">' . "\n"
-          . '<div id="sq_term_status" style="margin-bottom:6px;font-style:italic">'
+          . '<div class="mb-1">'
+          .   '<div class="form-check">'
+          .     '<input class="form-check-input" type="radio" name="sq_term_ptype" id="sq_ptype_card"   value="CARD_PRESENT"      autocomplete="off"' . $cp_checked  . '>'
+          .     '<label class="form-check-label" for="sq_ptype_card">'   . htmlspecialchars(MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_CARD_PRESENT) . '</label>'
+          .   '</div>'
+          .   '<div class="form-check">'
+          .     '<input class="form-check-input" type="radio" name="sq_term_ptype" id="sq_ptype_manual" value="MANUAL_CARD_ENTRY" autocomplete="off"' . $man_checked . '>'
+          .     '<label class="form-check-label" for="sq_ptype_manual">' . htmlspecialchars(MODULE_PAYMENT_SQUARE_TERMINAL_PMT_TYPE_MANUAL)       . '</label>'
+          .   '</div>'
+          . '</div>' . "\n"
+          . '<div id="sq_term_status" style="margin-top:8px;margin-bottom:6px;font-style:italic">'
           .   htmlspecialchars(MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_IDLE)
           . '</div>' . "\n"
           . '<button type="button" id="sq_term_send" class="btn btn-primary btn-sm" onclick="sqTermSend()">'
