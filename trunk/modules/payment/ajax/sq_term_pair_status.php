@@ -68,13 +68,51 @@ if (isset($data['errors'])) {
   die;
 }
 
-$status    = $data['device_code']['status']    ?? 'UNKNOWN';
-$device_id = $data['device_code']['device_id'] ?? '';
+$status              = $data['device_code']['status']    ?? 'UNKNOWN';
+$installation_id     = $data['device_code']['device_id'] ?? '';
 
 if ($status === 'EXPIRED') {
   echo json_encode(['error' => 'Pairing code expired. Please click Pair New Terminal to try again.']);
   die;
 }
+
+if ($status !== 'PAIRED' || !$installation_id) {
+  echo json_encode(['status' => $status, 'device_id' => '']);
+  die;
+}
+
+// The device_codes endpoint returns a DEVICE_INSTALLATION_ID:uuid value, not the
+// serial-number device ID the Terminal Checkout API requires. Look up the device
+// in the Devices API to get the correct ID.
+$device_id = '';
+$ch2 = curl_init($base_url . 'devices/' . urlencode($installation_id));
+curl_setopt_array($ch2, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_HTTPHEADER     => [
+    'Authorization: Bearer ' . $token,
+    'Content-Type: application/json',
+    'Square-Version: 2024-01-17',
+  ],
+  CURLOPT_TIMEOUT        => 10,
+]);
+$body2 = curl_exec($ch2);
+curl_close($ch2);
+
+if ($body2) {
+  $d2 = json_decode($body2, true);
+  // Devices API returns { device: { id: "device:SERIAL", serial_number: "SERIAL", ... } }
+  // Use serial_number directly — the "device:" prefix on id is not accepted by Terminal API.
+  $device_id = $d2['device']['serial_number'] ?? ($d2['device']['id'] ?? '');
+}
+
+// Fall back to the raw installation_id if the lookup failed; the admin can
+// correct it manually using the Browse Devices button if needed.
+if (!$device_id) {
+  $device_id = $installation_id;
+}
+
+// Strip any "device:" prefix that may have come through.
+if (strncmp($device_id, 'device:', 7) === 0) $device_id = substr($device_id, 7);
 
 echo json_encode(['status' => $status, 'device_id' => $device_id]);
 die;

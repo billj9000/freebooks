@@ -60,6 +60,7 @@ $payload = json_encode([
     'device_options' => [
       'device_id' => $device_id,
     ],
+    'location_id'    => $location,
   ],
 ]);
 
@@ -86,8 +87,9 @@ if ($curl_err) {
 
 $data = json_decode($body, true);
 if (isset($data['errors'])) {
-  $msg = isset($data['errors'][0]['detail']) ? $data['errors'][0]['detail'] : 'Square API error.';
-  echo json_encode(['error' => $msg]);
+  $e = $data['errors'][0];
+  $msg = ($e['category'] ?? '') . '/' . ($e['code'] ?? '') . ': ' . ($e['detail'] ?? 'Square API error.');
+  echo json_encode(['error' => $msg, 'errors' => $data['errors']]);
   die;
 }
 

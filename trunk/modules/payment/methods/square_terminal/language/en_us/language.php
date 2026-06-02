@@ -35,6 +35,9 @@ define('MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_CANCELED',   'Payment canceled or 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC',      'When arriving from the invoice Payment button: Off = do nothing (user clicks Send manually); On = send immediately; Countdown = count down 5 seconds then send, with a Cancel option.');
 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_BTN',            'Pair New Terminal');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_BROWSE_BTN',          'Browse Devices');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_BROWSE_LOADING',      'Loading devices from Square...');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_BROWSE_NONE',         'No Terminal API devices found on this Square account.');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_CREATING',       'Creating pairing code...');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_INSTRUCTIONS',   'On the terminal: <strong>Settings &rarr; Device Management &rarr; Enter pairing code</strong><br>Waiting for terminal to pair...');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_SUCCESS',        'Terminal paired — Device ID filled in above. Click Save to confirm.');
