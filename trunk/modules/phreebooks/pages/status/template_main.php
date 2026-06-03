@@ -179,6 +179,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         echo html_icon('actions/document-print.png', TEXT_PRINT, 'small', 'onclick="printOrder('. $oID . ')"') . chr(10);
         break;
       case 13:
+        if (!$closed) echo html_icon('apps/accessories-calculator.png', TEXT_PAYMENT, 'small', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;type=c&amp;jID=20&amp;oID=' . $oID . '&amp;action=pmt', 'SSL') . '\';"') . chr(10);
         echo html_icon('actions/document-print.png', TEXT_PRINT, 'small', 'onclick="printOrder('. $oID . ')"') . chr(10);
         break;
       case 18:

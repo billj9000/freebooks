@@ -79,8 +79,10 @@ if ($security_level > 1 && JOURNAL_ID == 10 && $_SESSION['admin_security'][SECUR
   $toolbar->icon_list['cvt_quote']['icon'] = 'emblems/emblem-symbolic-link.png';
   $toolbar->icon_list['cvt_quote']['text'] = ORD_CONVERT_TO_PO;
 }
-if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12)) {
+if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12 || JOURNAL_ID == 13)) {
   $toolbar->add_icon('payment', 'onclick="submitToDo(\'payment\')"', 15);
+}
+if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12)) {
   $toolbar->add_icon('ship_all', 'onclick="checkShipAll()"', 20);
   if (JOURNAL_ID == 6) $toolbar->icon_list['ship_all']['text'] = TEXT_RECEIVE_ALL;
 }

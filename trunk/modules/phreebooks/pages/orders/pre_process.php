@@ -337,8 +337,9 @@ switch ($_REQUEST['action']) {
 		  switch (JOURNAL_ID) {
 			case  6: $jID = 20; break; // payments
 			case 12: $jID = 18; break; // cash receipts
+			case 13: $jID = 20; break; // refund payment
 			default: $jID = 0; // error
-		  } 
+		  }
 		  gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;jID=' . $jID . '&amp;type=' . $account_type . '&amp;oID=' . $order->id . '&amp;action=pmt', 'SSL'));
 		} // else print or print_update, fall through and load javascript to call form_popup and clear form
 	  } else { // reset the id because the post failed (ID could have been set inside of Post)
