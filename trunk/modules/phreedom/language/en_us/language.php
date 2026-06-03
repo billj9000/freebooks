@@ -255,6 +255,7 @@ define('TEXT_SEQUENCE', 'Sequence');
 define('TEXT_SHIP','Ship');
 define('TEXT_SHIPPING','Shipping');
 define('TEXT_SHIP_ALL','Fill SO');
+define('TEXT_RETURN_ALL','Return All');
 define('TEXT_SHOW','Show');
 define('TEXT_SGL_PREC','Single Precision');
 define('TEXT_SHOW_NO_LIMIT', ' (0 for unlimited) ');

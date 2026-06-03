@@ -163,6 +163,7 @@ define('TEXT_SHOW_NO_LIMIT',' (0 para ilimitado) ');
 define('TEXT_SGL_PREC','Precisão Simples');
 define('TEXT_SHOW','Mostrar');
 define('TEXT_SHIP_ALL','Preencher SO');
+define('TEXT_RETURN_ALL','Retornar Tudo');
 define('TEXT_SHIP','Envio');
 define('TEXT_SHIPPING','Envio');
 define('TEXT_SERVICE_NAME','Nome Serviço');

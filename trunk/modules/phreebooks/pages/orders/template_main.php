@@ -79,12 +79,17 @@ if ($security_level > 1 && JOURNAL_ID == 10 && $_SESSION['admin_security'][SECUR
   $toolbar->icon_list['cvt_quote']['icon'] = 'emblems/emblem-symbolic-link.png';
   $toolbar->icon_list['cvt_quote']['text'] = ORD_CONVERT_TO_PO;
 }
+if ($security_level > 1 && JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $oID) {
+  $cm_url = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;jID=13&amp;oID=' . (int)$oID . '&amp;action=prc_so', 'SSL');
+  $toolbar->icon_list['credit_memo'] = ['show' => true, 'icon' => 'actions/edit-redo.png', 'params' => 'onclick="location.href=\'' . $cm_url . '\'"', 'text' => ORD_CREDIT_MEMO, 'order' => 14];
+}
 if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12 || JOURNAL_ID == 13)) {
   $toolbar->add_icon('payment', 'onclick="submitToDo(\'payment\')"', 15);
 }
-if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12)) {
+if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12 || JOURNAL_ID == 13)) {
   $toolbar->add_icon('ship_all', 'onclick="checkShipAll()"', 20);
-  if (JOURNAL_ID == 6) $toolbar->icon_list['ship_all']['text'] = TEXT_RECEIVE_ALL;
+  if (JOURNAL_ID == 6)  $toolbar->icon_list['ship_all']['text'] = TEXT_RECEIVE_ALL;
+  if (JOURNAL_ID == 13) $toolbar->icon_list['ship_all']['text'] = TEXT_RETURN_ALL;
 }
 if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;
 if ($security_level < 2 || JOURNAL_ID == 6 || JOURNAL_ID == 7) $toolbar->icon_list['print']['show']  = false;

@@ -103,6 +103,7 @@ define('ORD_SO_INV_MESSAGE','Leave the Number blank to let the system assign the
 define('ORD_CONVERT_TO_PO','Convert to PO ');
 define('ORD_CONVERT_TO_SO','Convert to SO ');
 define('ORD_CONVERT_TO_INV','Convert to Invoice ');
+define('ORD_CREDIT_MEMO', 'Credit Memo');
 define('ORD_PO_MESSAGE','Leave the Purchase Order number blank to let the system assign a number.');
 define('ORD_CONVERT_TO_RFQ_PO','Convert to Purchase Order');
 define('ORD_CONVERT_TO_SO_INV','Convert to Sales Order/Invoice');

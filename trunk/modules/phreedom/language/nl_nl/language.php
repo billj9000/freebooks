@@ -90,6 +90,7 @@ define('TEXT_SHOW_NO_LIMIT',' (0 voor ongelimiteerd) ');
 define('TEXT_SGL_PREC','Enkelvoudige Precisie');
 define('TEXT_SHOW','Toon');
 define('TEXT_SHIP_ALL','Vul Verkoop Order');
+define('TEXT_RETURN_ALL','Alles Retourneren');
 define('TEXT_SHIPPING','Verzending');
 define('TEXT_SHIP','Verzend');
 define('TEXT_SERVICE_NAME','Service Naam');

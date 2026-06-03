@@ -111,6 +111,7 @@ if (!empty($order->fields)) {
 	  $order->fields['cb_waiting']   = 0;
       if (JOURNAL_ID == 6)  $order->fields['purch_order_id']  = $order->fields['purchase_invoice_id'];
       if (JOURNAL_ID == 12) $order->fields['sales_order_num'] = $order->fields['purchase_invoice_id'];
+      if (JOURNAL_ID == 13) $order->fields['purch_order_id']  = $order->fields['purchase_invoice_id'];
 	  unset($order->fields['id']);
 	  unset($order->fields['purchase_invoice_id']);
 	  unset($order->fields['id']);

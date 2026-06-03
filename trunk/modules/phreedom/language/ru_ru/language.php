@@ -191,6 +191,7 @@ define('TEXT_QUANTITY','Количество');
 define('TEXT_READ_ONLY','Read Only');
 define('TEXT_RECEIVE','Receive');
 define('TEXT_RECEIVE_ALL','Receive PO');
+define('TEXT_RETURN_ALL','Return All');
 define('TEXT_RECEPIENT_NAME','Recipient Name: ');
 define('TEXT_RECEIPTS','Receipts');
 define('TEXT_RECUR','Recur');
