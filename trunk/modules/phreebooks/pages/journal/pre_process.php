@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -279,9 +280,10 @@ $cal_gl = array(
   'default'   => gen_locale_date($post_date),
 );
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header       = true;
+$include_footer       = true;
+$include_template     = 'template_main.php';
+$use_bootstrap_nav    = true;
 define('PAGE_TITLE', GL_ENTRY_TITLE);
 
 ?>

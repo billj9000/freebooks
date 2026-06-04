@@ -116,6 +116,8 @@ define('TEXT_JOURNAL_RECORD_ID','Journal Record ID');
 define('TEXT_NOT_SPECIFIED','Not Specified');
 define('GL_JOURNAL_ENTRY_COGS','Cost of Goods Sold');
 define('GL_TOTALS','Totals:');
+define('GL_JOURNAL_LINES','Journal Lines');
+define('TEXT_ATTACHMENT','Attachment');
 define('GL_ACCOUNT_INCREASED','Account will be increased');
 define('GL_ACCOUNT_DECREASED','Account will be decreased');
 define('BNK_CHECK_DATE','Check Date');
