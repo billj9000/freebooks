@@ -74,6 +74,13 @@ switch (JOURNAL_ID) {
 	define('AUDIT_LOG_DESC',ORD_TEXT_20_WINDOW_TITLE);
 	define('AUDIT_LOG_DEL_DESC',ORD_TEXT_20_WINDOW_TITLE . '-' . TEXT_DELETE);
 	$account_type = ($type == 'c') ? 'c' : 'v';
+	if ($account_type == 'c') {
+	  $payment_modules = load_all_methods('payment');
+	  foreach ($payment_modules as $pmt_class) {
+	    $class  = $pmt_class['id'];
+	    $$class = new $class;
+	  }
+	}
 	break;
   default: // this should never happen
 	$messageStack->add('No valid journal id found (module bills), Journal ID needs to be passed to this script to identify the action', 'error');
@@ -124,6 +131,7 @@ switch ($_REQUEST['action']) {
 	$order->gl_disc_acct_id     = db_prepare_input($_POST['gl_disc_acct_id']);
 	$order->payment_id          = db_prepare_input($_POST['payment_id']);
 	$order->save_payment        = isset($_POST['save_payment']) ? true : false;
+	$order->refund_payment_id   = db_prepare_input($_POST['refund_payment_id'] ?? '');
 
 	// load item row data
 	$x = 1;
@@ -154,10 +162,19 @@ switch ($_REQUEST['action']) {
 	}
 	if (!$order->item_rows) $error = $messageStack->add(GL_ERROR_NO_ITEMS, 'error');
 	// check to make sure the payment method is valid
-	if (JOURNAL_ID == 18) {	
+	if (JOURNAL_ID == 18) {
 	  $payment_module = $order->shipper_code;
 	  $processor = new $payment_module;
-	  if ($processor->pre_confirmation_check()) $error = true;	
+	  if ($processor->pre_confirmation_check()) $error = true;
+	}
+	// for J20 customer refunds with a linked payment ID, confirm the selected module supports refunds
+	if (JOURNAL_ID == 20 && $account_type == 'c' && !empty($order->refund_payment_id) && !empty($order->shipper_code)) {
+	  $r_method = load_specific_method('payment', $order->shipper_code);
+	  if (class_exists($r_method)) {
+	    $r_check = new $r_method;
+	    $base_refund = (new ReflectionMethod($r_check, 'refund'))->getDeclaringClass()->getName();
+	    if ($base_refund === 'payment') $error = $messageStack->add(GL_ERROR_REFUND_NOT_SUPPORTED, 'error');
+	  }
 	}
 
 /* This has been commented out to allow customer refunds (negative invoices)
@@ -203,9 +220,9 @@ switch ($_REQUEST['action']) {
 
   case 'pmt': // for opening a sales/invoice directly from payment (POS like)
     // fetch the journal_main information
-    $sql = "select id, shipper_code, bill_acct_id, bill_address_id, bill_primary_name, bill_contact, bill_address1, 
-		bill_address2, bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_email, 
-		post_date, terms, gl_acct_id, purchase_invoice_id, total_amount from " . TABLE_JOURNAL_MAIN . " 
+    $sql = "select id, shipper_code, bill_acct_id, bill_address_id, bill_primary_name, bill_contact, bill_address1,
+		bill_address2, bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_email,
+		post_date, terms, gl_acct_id, purchase_invoice_id, purch_order_id, total_amount from " . TABLE_JOURNAL_MAIN . "
 		where id = " . $oID;
 	$result = $db->Execute($sql);
 	$account_id = $db->Execute("select short_name from " . TABLE_CONTACTS . " where id = " . $result->fields['bill_acct_id']);
@@ -232,6 +249,7 @@ switch ($_REQUEST['action']) {
     $order->amt_1               = $currencies->format($result->fields['total_amount'] - $pre_paid);
     $order->total_1             = $currencies->format($result->fields['total_amount'] - $pre_paid);
     $order->desc_1              = '';
+	$order->purch_order_id      = $result->fields['purch_order_id'];
 	// reset some particular values
 	$order->search = $account_id->fields['short_name']; // set the customer id in the search box
 	// show the form
@@ -243,6 +261,36 @@ switch ($_REQUEST['action']) {
 	for ($i = 0; $i < count(is_array($payment_fields) ? $payment_fields : []); $i++) {
 	  $temp = $result->fields['shipper_code'] . '_field_' . $i;
 	  $order->$temp = $payment_fields[$i];
+	}
+	// For J20 customer refunds: look up original payment from J13 → J12 → J18.
+	if (JOURNAL_ID == 20 && $account_type == 'c' && $oID) {
+	  $j13r = $db->Execute("SELECT journal_id, so_po_ref_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$oID);
+	  if (!$j13r->EOF && $j13r->fields['journal_id'] == 13 && $j13r->fields['so_po_ref_id']) {
+	    $j12_id = (int)$j13r->fields['so_po_ref_id'];
+	    // J18 links to J12 via journal_item.so_po_item_ref_id = journal_main.id (not so_po_ref_id)
+	    $j18r = $db->Execute("SELECT DISTINCT jm.id, jm.shipper_code FROM " . TABLE_JOURNAL_MAIN . " jm"
+	      . " JOIN " . TABLE_JOURNAL_ITEM . " ji ON ji.ref_id = jm.id"
+	      . " WHERE jm.journal_id = 18 AND ji.so_po_item_ref_id = " . $j12_id
+	      . " ORDER BY jm.id DESC LIMIT 1");
+	    if (!$j18r->EOF && $j18r->fields['shipper_code']) {
+	      $order->shipper_code = $j18r->fields['shipper_code'];
+	      $ttlr = $db->Execute("SELECT description FROM " . TABLE_JOURNAL_ITEM
+	        . " WHERE ref_id = " . (int)$j18r->fields['id'] . " AND gl_type = 'ttl'");
+	      if (!$ttlr->EOF) {
+	        $tdesc  = $ttlr->fields['description'];
+	        $tdesc  = strpos($tdesc, ':') !== false ? substr($tdesc, strpos($tdesc, ':') + 1) : $tdesc;
+	        $tparts = explode(':', $tdesc);
+	        // New format: receipt_no:payment_id (payment_id starts with receipt_no)
+	        // Old format: payment_id:masked_card:... (no short receipt prefix)
+	        if (isset($tparts[1]) && $tparts[1] !== '' && $tparts[1] !== '********'
+	            && strpos($tparts[1], $tparts[0]) === 0) {
+	          $order->refund_payment_id = $tparts[1]; // new format
+	        } else {
+	          $order->refund_payment_id = $tparts[0]; // old format: parts[0] is the full payment_id
+	        }
+	      }
+	    }
+	  }
 	}
 	break;
   case 'edit': // handled in ajax

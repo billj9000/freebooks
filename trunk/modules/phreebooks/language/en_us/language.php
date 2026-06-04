@@ -246,6 +246,7 @@ define('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT','Zero or more than one retained e
 define('PB_ERROR_NO_PREFERRED_VENDOR','No valid vendor could be found, make sure at least one sku has a prefered vendor setup for the inventory item.');
 define('GL_ERROR_2','The %s you entered is a duplicate, please enter a new unique value!');
 define('GL_ERROR_5','There was an error incrementing the %s!');
+define('GL_ERROR_REFUND_NOT_SUPPORTED', 'The selected payment method does not support automatic refunds. Re-select the original payment method to process the refund automatically, or process the refund manually through the payment provider before saving with a different method.');
 // Javascript Messages
 define('ORD_JS_RECUR_NO_INVOICE','For a recurring transaction, a starting invoice number needs to be entered. PhreeBooks will increment it for each recurring entry.');
 define('ORD_JS_RECUR_ROLL_REQD','This is a recurring entry. Do you want to update future entries as well? (Press Cancel to update only this entry)');

@@ -28,7 +28,8 @@ if (JOURNAL_ID == 18) {
   echo html_hidden_field('acct_balance',  '0') . chr(10);
   echo html_hidden_field('end_balance',   '0') . chr(10);
 } elseif (JOURNAL_ID == 20) {
-  echo html_hidden_field('shipper_code',  '') . chr(10);
+  if ($account_type != 'c') echo html_hidden_field('shipper_code', '') . chr(10);
+  echo html_hidden_field('refund_payment_id', isset($order->refund_payment_id) ? $order->refund_payment_id : '') . chr(10);
 }
 if (!ENABLE_MULTI_BRANCH) echo html_hidden_field('store_id', '0') . chr(10);
 // customize the toolbar actions
@@ -130,18 +131,17 @@ echo '<br />' . html_input_field('bill_email', $order->bill_email, 'size="40" ma
 		 </tbody>
 		</table>
 	  </td>
-<?php if (JOURNAL_ID == 18) { ?>
+<?php if (JOURNAL_ID == 18 || (JOURNAL_ID == 20 && $account_type == 'c')) { ?>
 	  <td valign="top">
 	    <fieldset>
           <legend><?php echo TEXT_PAYMENT_METHOD; ?></legend>
 		  <div style="position: relative; height: 160px;">
-<?php 
+<?php
   echo html_pull_down_menu('shipper_code', $payment_modules, $order->shipper_code, 'onchange="activateFields()"') . chr(10);
   $count = 0;
   foreach ($payment_modules as $pmt_class) {
 	$value = $pmt_class['id'];
 	echo '          <div id="pm_' . $count . '" style="visibility:hidden; position:absolute; top:22px; left:1px">' . chr(10);
-	// fetch the html inside of module
 	$disp_fields = $$value->selection();
 	for($i = 0; $i < count(is_array($disp_fields['fields']) ? $disp_fields['fields'] : []); $i++) {
 	  echo $disp_fields['fields'][$i]['title'] . '<br />' . chr(10);
@@ -154,7 +154,7 @@ echo '<br />' . html_input_field('bill_email', $order->bill_email, 'size="40" ma
 		  </div>
 		</fieldset>
 	  </td>
-<?php 
+<?php
   } elseif (JOURNAL_ID == 20) { ?>
 	  <td align="right" valign="top">
 		<table class="ui-widget" style="border-style:none;width:100%">

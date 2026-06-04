@@ -129,6 +129,27 @@ class banking extends journal {
 				if ($new_post == 'insert') { // only increment if posting a new payment
 					if (!$this->increment_purchase_invoice_id($force = true)) return false;
 				}
+				// For customer refunds: call refund() on the payment module if supported.
+				// Must run before transCommit so a failure rolls back the J20 entry.
+				if ($new_post == 'insert' && !empty($this->refund_payment_id) && !empty($this->shipper_code)) {
+					$r_method = load_specific_method('payment', $this->shipper_code);
+					if (class_exists($r_method)) {
+						$r_proc = new $r_method;
+						if (method_exists($r_proc, 'refund')) {
+							$dp = isset($currencies->currencies[DEFAULT_CURRENCY]['decimal_places'])
+								? (int)$currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] : 2;
+							$minor = intval(round(abs($this->total_amount) * pow(10, $dp)));
+							$refund_ref = $r_proc->refund($this->refund_payment_id, $minor, DEFAULT_CURRENCY);
+							if ($refund_ref === false) {
+								$detail = !empty($r_proc->refund_error) ? ' (' . $r_proc->refund_error . ')' : '';
+								return $this->fail_message('Payment module refund failed' . $detail . ' — transaction rolled back.');
+							}
+							if (is_string($refund_ref) && $refund_ref !== '') {
+								$db->Execute("UPDATE " . TABLE_JOURNAL_MAIN . " SET purch_order_id = '" . db_input($refund_ref) . "' WHERE id = " . (int)$this->id);
+							}
+						}
+					}
+				}
 				break;
 			default:
 		}

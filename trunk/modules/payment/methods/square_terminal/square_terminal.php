@@ -348,6 +348,35 @@ class square_terminal extends payment {
     return false;
   }
 
+  function refund($payment_id, $amount_minor, $currency) {
+    $token = defined('MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN') ? trim(MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN) : '';
+    if (!$token || !$payment_id || $amount_minor <= 0) return false;
+    $payload = json_encode([
+      'idempotency_key' => bin2hex(random_bytes(16)),
+      'payment_id'      => $payment_id,
+      'amount_money'    => ['amount' => $amount_minor, 'currency' => $currency],
+    ]);
+    $ch = curl_init($this->square_base_url() . 'refunds');
+    curl_setopt_array($ch, [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_POST           => true,
+      CURLOPT_POSTFIELDS     => $payload,
+      CURLOPT_HTTPHEADER     => $this->square_headers(),
+      CURLOPT_TIMEOUT        => 20,
+    ]);
+    $body = curl_exec($ch);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    if (!$body) { $this->refund_error = $curl_error ?: 'No response from Square'; return false; }
+    $data = json_decode($body, true);
+    if (isset($data['errors'])) {
+      $e = $data['errors'][0];
+      $this->refund_error = ($e['detail'] ?? $e['code'] ?? 'Unknown Square error');
+      return false;
+    }
+    return $data['refund']['id'] ?? true;
+  }
+
   private function square_base_url() {
     $sandbox = defined('MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX') && MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX === 'Test';
     return $sandbox ? 'https://connect.squareupsandbox.com/v2/' : 'https://connect.squareup.com/v2/';

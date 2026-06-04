@@ -21,6 +21,7 @@
 gen_pull_language('payment');
 class payment {
   public $payment_fields;
+  public $refund_error = '';
   public $title;
   public $description;
   public $open_pos_drawer = false;
@@ -101,6 +102,14 @@ class payment {
 
   function before_process() {
     return false;
+  }
+
+  // Override in payment modules that support refunds.
+  // $payment_id: gateway transaction ID from the original receipt.
+  // $amount_minor: refund amount in the currency's smallest unit (e.g. cents).
+  // Returns false if the refund failed (rolls back the J20); true or a string on success.
+  function refund($payment_id, $amount_minor, $currency) {
+    return false; // not supported by default
   }
  
   function confirmation() {
