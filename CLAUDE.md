@@ -92,6 +92,23 @@ All new pages must use the **FreeBooks Bootstrap/htmx theme**. Concretely:
 
 Do not introduce new jQuery-only UI patterns or custom CSS frameworks on new pages.
 
+### Bootstrap Page Conversion Rules
+
+When converting an existing jQuery UI page to Bootstrap, follow these rules. Detailed notes are in memory file `reference_phreebooks_tab_conversion.md`.
+
+**Every converted page must:**
+- Set `$use_bootstrap_nav = true;` in `pre_process.php`
+- Use `fb-card` class on Bootstrap cards to get the FreeBooks panel look (blue gloss-wave header via `fb-widget-header`, `#a6c9e2` border, `#fcfdfd` body)
+- Use `table-dark` on `<thead>` — freebooks.css overrides this to the gloss-wave gradient
+- Use Bootstrap `form-control`/`form-select` on inputs in **form/detail cards** (transaction details, payment fields, etc.)
+
+**Address/contact blocks** (stacked name/address inputs with clearField placeholders):
+- Use **plain inputs with `size=` attributes** — no `form-control` class
+- Use plain `<select>` with `style="width:100%"` — no `form-select` class
+- This matches the orders page and makes placeholder text look like labels rather than form fields
+
+**Tab pages** — see the tab conversion checklist in the memory reference.
+
 ### Security Model
 
 ## File Header Policy

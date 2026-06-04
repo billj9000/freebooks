@@ -39,6 +39,59 @@
   --bs-link-color:        #0078ae;
   --bs-link-color-rgb:    0, 120, 174;
   --bs-table-border-color: #a6c9e2;
+  /* form controls: match FreeBooks compact input style */
+  --bs-body-font-size-sm: 11px;
+}
+
+/* ── Bootstrap form controls: compact to match FreeBooks inputs ──────── */
+.form-control, .form-control-sm,
+.form-select, .form-select-sm {
+  font-size:  11px;
+  padding:    1px 3px;
+  height:     auto;
+  min-height: 0;
+  line-height: 1.4;
+}
+.input-group-text {
+  font-size:  11px;
+  padding:    1px 4px;
+}
+
+/* ── table-dark: use FreeBooks gloss-wave gradient instead of Bootstrap black ── */
+.table-dark {
+  --bs-table-color:        #eaf5f7;
+  --bs-table-bg:           #2191c0;
+  --bs-table-border-color: #4297d7;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+}
+/* cells must be transparent so the thead background-image shows through */
+.table-dark th,
+.table-dark td {
+  background-color: transparent !important;
+}
+
+/* ── fb-card: Bootstrap card styled to look like a jQuery UI widget ─────── */
+/* Apply to <div class="card fb-card"> to get the classic FreeBooks panel look */
+.fb-card {
+  border:     1px solid #a6c9e2 !important;
+  background: #fcfdfd;
+}
+.fb-card > .card-body {
+  background: #fcfdfd;
+  padding:    6px 8px;
+}
+.fb-card > .card-header {
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-bottom:       1px solid #4297d7;
+  color:               #eaf5f7;
+  font-weight:         bold;
+  font-size:           11px;
+  padding:             4px 8px;
 }
 
 /* ── Shared glosswave header — mirrors .ui-widget-header ────────────────── */

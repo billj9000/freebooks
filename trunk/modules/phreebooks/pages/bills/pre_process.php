@@ -19,7 +19,7 @@
 
 /**************   Check user security   *****************************/
 $jID  = (int)$_GET['jID'];
-$type = isset($_GET['type']) ? $_GET['type'] : $_POST['type'];
+$type = $_GET['type'] ?? $_POST['type'] ?? '';
 
 switch ($jID) {
   case 18:	// Cash Receipts Journal
@@ -319,9 +319,12 @@ $cal_bills = array(
 $result = $db->Execute("select account_id from " . TABLE_USERS . " where admin_id = " . $_SESSION['admin_id']);
 $default_sales_rep = $result->fields['account_id'] ? $result->fields['account_id'] : '0';
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
-define('PAGE_TITLE', constant('ORD_TEXT_' . JOURNAL_ID . '_' . strtoupper($type) . '_WINDOW_TITLE'));
+$include_header      = true;
+$include_footer      = true;
+$include_template    = 'template_main.php';
+$use_bootstrap_nav   = true;
+$_pt_key = 'ORD_TEXT_' . JOURNAL_ID . '_' . strtoupper($type) . '_WINDOW_TITLE';
+if (!defined($_pt_key)) $_pt_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE';
+define('PAGE_TITLE', constant($_pt_key));
 
 ?>
