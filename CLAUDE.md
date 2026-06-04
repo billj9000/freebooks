@@ -98,7 +98,7 @@ When converting an existing jQuery UI page to Bootstrap, follow these rules. Det
 
 **Every converted page must:**
 - Set `$use_bootstrap_nav = true;` in `pre_process.php`
-- Use `fb-card` class on Bootstrap cards to get the FreeBooks panel look (blue gloss-wave header via `fb-widget-header`, `#a6c9e2` border, `#fcfdfd` body)
+- Every `fb-card` must have `<div class="card-header py-1 fb-widget-header">Title</div>` — gives the blue gloss-wave header (`#a6c9e2` border, `#fcfdfd` body)
 - Use `table-dark` on `<thead>` — freebooks.css overrides this to the gloss-wave gradient
 - Use Bootstrap `form-control`/`form-select` on inputs in **form/detail cards** (transaction details, payment fields, etc.)
 

@@ -46,11 +46,12 @@
 /* ── Bootstrap form controls: compact to match FreeBooks inputs ──────── */
 .form-control, .form-control-sm,
 .form-select, .form-select-sm {
-  font-size:  11px;
-  padding:    1px 3px;
-  height:     auto;
-  min-height: 0;
-  line-height: 1.4;
+  font-size:    11px;
+  padding:      1px 3px;
+  height:       auto;
+  min-height:   0;
+  line-height:  1.4;
+  border-color: #767676;
 }
 .input-group-text {
   font-size:  11px;

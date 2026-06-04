@@ -108,6 +108,7 @@ define('ORD_PO_MESSAGE','Leave the Purchase Order number blank to let the system
 define('ORD_CONVERT_TO_RFQ_PO','Convert to Purchase Order');
 define('ORD_CONVERT_TO_SO_INV','Convert to Sales Order/Invoice');
 define('TEXT_TRANSACTION_AMOUNT','Transaction Amount');
+define('TEXT_TRANSACTION_DETAILS','Transaction Details');
 define('TEXT_CUST_VEND_ACCT','Customer/Vendor Contact');
 define('TEXT_INVENTORY_ITEM','Inventory Item');
 define('TEXT_GENERAL_LEDGER_ACCOUNT','General Ledger Account');

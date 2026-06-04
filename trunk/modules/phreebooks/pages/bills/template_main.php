@@ -84,6 +84,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
   <!-- Transaction details card -->
   <div class="col-md-4">
     <div class="card fb-card h-100">
+      <div class="card-header py-1 fb-widget-header"><?php echo TEXT_TRANSACTION_DETAILS; ?></div>
       <div class="card-body py-2 px-2">
         <?php
         $fc  = 'class="form-control form-control-sm"';
