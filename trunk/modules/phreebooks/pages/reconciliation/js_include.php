@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,62 +17,42 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/pages/reconciliation/js_include.php
 //
-
 ?>
 <script type="text/javascript">
-<!--
-// pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
 var textShow = '<?php echo TEXT_DETAILS; ?>';
 var textHide = '<?php echo TEXT_HIDE; ?>';
 var totalCnt = <?php echo count(is_array($bank_list) ? $bank_list : []); ?>;
 
 function init() {
-	updateBalance();
+  updateBalance();
 }
 
 function check_form() {
-  var error = 0;
-  var error_message = "<?php echo JS_ERROR; ?>";
-
-  if (error == 1) {
-    alert(error_message);
-    return false;
-  }
   return true;
 }
 
-// Insert other page specific functions here.
 function showDetails(ref) {
-  if(document.all) { // IE browsers
-    if (document.getElementById('disp_'+ref).innerText == textHide) {
-      document.getElementById('detail_'+ref).style.display = 'none';
-	  document.getElementById('disp_'+ref).innerText = textShow;
-	} else {
-      document.getElementById('detail_'+ref).style.display = '';
-	  document.getElementById('disp_'+ref).innerText = textHide;
-	}
+  var disp   = document.getElementById('disp_' + ref);
+  var detail = document.getElementById('detail_' + ref);
+  if (disp.textContent == textHide) {
+    detail.style.display   = 'none';
+    disp.textContent       = textShow;
   } else {
-    if (document.getElementById('disp_'+ref).textContent == textHide) {
-      document.getElementById('detail_'+ref).style.display = 'none';
-	  document.getElementById('disp_'+ref).textContent = textShow;
-	} else {
-      document.getElementById('detail_'+ref).style.display = '';
-	  document.getElementById('disp_'+ref).textContent = textHide;
-	}
+    detail.style.display   = '';
+    disp.textContent       = textHide;
   }
 }
 
 function updateSummary(ref) {
-  var cnt = 0;
-  var rowRef = 'disp_'+ref+'_';
-  var checked = document.getElementById('sum_'+ref).checked;
-  document.getElementById('disp_'+ref).style.backgroundColor = '';
-  while(true) {
-	if (!document.getElementById(rowRef+cnt)) break;
-	document.getElementById('chk_'+ref).checked = (checked) ? true : false;
-	cnt++;
-	ref++;
+  var cnt     = 0;
+  var rowRef  = 'disp_' + ref + '_';
+  var checked = document.getElementById('sum_' + ref).checked;
+  document.getElementById('disp_' + ref).style.backgroundColor = '';
+  while (true) {
+    if (!document.getElementById(rowRef + cnt)) break;
+    document.getElementById('chk_' + ref).checked = checked;
+    cnt++;
+    ref++;
   }
   updateBalance();
 }
@@ -80,62 +60,50 @@ function updateSummary(ref) {
 function updateDetail(ref) {
   var numDetail  = 0;
   var numChecked = 0;
-  var rowRef     = 'disp_'+ref+'_';
+  var rowRef     = 'disp_' + ref + '_';
   var cnt        = 0;
   var origRef    = ref;
   while (true) {
-	if (!document.getElementById(rowRef+cnt)) break;
-	if (document.getElementById('chk_'+ref).checked) numChecked++;
-	numDetail++;
-	cnt++;
-	ref++;
+    if (!document.getElementById(rowRef + cnt)) break;
+    if (document.getElementById('chk_' + ref).checked) numChecked++;
+    numDetail++;
+    cnt++;
+    ref++;
   }
-  if (numChecked == 0) { // none checked
-  	document.getElementById('disp_'+origRef).style.backgroundColor = '';
-    document.getElementById('sum_'+origRef).checked = false;
-  } else if (numChecked == numDetail) { // all checked
-  	document.getElementById('disp_'+origRef).style.backgroundColor = '';
-    document.getElementById('sum_'+origRef).checked = true;
-  } else { // partial checked
-  	document.getElementById('disp_'+origRef).style.backgroundColor = 'yellow';
-    document.getElementById('sum_'+origRef).checked = true;
+  if (numChecked == 0) {
+    document.getElementById('disp_' + origRef).style.backgroundColor = '';
+    document.getElementById('sum_' + origRef).checked = false;
+  } else if (numChecked == numDetail) {
+    document.getElementById('disp_' + origRef).style.backgroundColor = '';
+    document.getElementById('sum_' + origRef).checked = true;
+  } else {
+    document.getElementById('disp_' + origRef).style.backgroundColor = 'yellow';
+    document.getElementById('sum_' + origRef).checked = true;
   }
   updateBalance();
 }
 
 function updateBalance() {
-  var value;
   var start_balance = parseFloat(cleanCurrency(document.getElementById('start_balance').value));
   var open_checks   = 0;
   var open_deposits = 0;
-  var gl_balance = parseFloat(cleanCurrency(document.getElementById('gl_balance').value));
-  for (var i=0; i<totalCnt; i++) {
-    if (!document.getElementById('chk_'+i).checked) {
-	  value = parseFloat(document.getElementById('pmt_'+i).value);
-	  if (value < 0) {
-	    if (!isNaN(value)) open_checks -= value;
-	  } else {
-	    if (!isNaN(value)) open_deposits += value;
-	  }
-	}
+  var gl_balance    = parseFloat(cleanCurrency(document.getElementById('gl_balance').value));
+  for (var i = 0; i < totalCnt; i++) {
+    if (!document.getElementById('chk_' + i).checked) {
+      var value = parseFloat(document.getElementById('pmt_' + i).value);
+      if (value < 0) {
+        if (!isNaN(value)) open_checks -= value;
+      } else {
+        if (!isNaN(value)) open_deposits += value;
+      }
+    }
   }
-  var sb = new String(start_balance);
-  document.getElementById('start_balance').value = formatCurrency(sb);
-  var dt = new String(open_checks);
-  document.getElementById('open_checks').value = formatCurrency(dt);
-  var ct = new String(open_deposits);
-  document.getElementById('open_deposits').value = formatCurrency(ct);
-
+  document.getElementById('start_balance').value  = formatCurrency(String(start_balance));
+  document.getElementById('open_checks').value    = formatCurrency(String(open_checks));
+  document.getElementById('open_deposits').value  = formatCurrency(String(open_deposits));
   var balance = start_balance - open_checks + open_deposits - gl_balance;
-  var tot = new String(balance);
-  document.getElementById('balance').value = formatCurrency(tot);
-  var numExpr = Math.round(eval(balance) * Math.pow(10, decimal_places));
-  if (numExpr == 0) {
-  	document.getElementById('balance').style.color = '';
-  } else {
-  	document.getElementById('balance').style.color = 'red';
-  }
+  document.getElementById('balance').value        = formatCurrency(String(balance));
+  var numExpr = Math.round(balance * Math.pow(10, decimal_places));
+  document.getElementById('balance').style.color  = (numExpr == 0) ? '' : 'red';
 }
-
-// -->
 </script>

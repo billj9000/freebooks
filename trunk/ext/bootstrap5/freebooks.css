@@ -158,6 +158,29 @@
   color:            #026890 !important;
 }
 
+/* ── pkg-table tfoot: gloss-wave section background ────────────── */
+/* Matches original <tfoot class="ui-widget-header"> — gradient spans all rows */
+.pkg-table > tfoot {
+  background-color:    #2191c0;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-repeat:   repeat-x;
+  background-position: 50% 50%;
+  border-top:          2px solid #4297d7;
+}
+.pkg-table > tfoot > tr > td {
+  background:          transparent;
+  color:               #eaf5f7;
+  font-weight:         bold;
+  font-size:           11px;
+  padding:             3px 6px;
+  vertical-align:      middle;
+}
+/* Statement-entry row: solid blue overlay to distinguish from the computed rows below */
+.pkg-table > tfoot > tr.tfoot-entry > td {
+  background-color:    rgba(0, 0, 0, 0.18);
+  border-bottom:       1px solid #4297d7;
+}
+
 /* ── Modal: match widget-header / widget-content look ──────────── */
 .pkg-modal .modal-content {
   border:        1px solid #a6c9e2;
