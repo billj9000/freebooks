@@ -49,6 +49,10 @@ define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_TIMEOUT',        'Pairing timed out 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_PAIR_ERROR_CONFIG',   'Access token and location ID must be configured and saved before pairing.');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_COUNTDOWN_SENDING',   'Sending in %ss &mdash; <a href="#" onclick="sqTermCancelCountdown();return false;">Cancel</a>');
 
+define('MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_PAID',         'Payment already processed — Send to Terminal is disabled.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_REFUND_PENDING',      'Refund will be processed automatically on save.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_REFUND_DONE',         'Refund already processed:');
+
 define('MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NOT_CONFIRMED', 'Square Terminal: payment must be confirmed on the terminal before saving.');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_VERIFY',        'Square Terminal: could not verify the completed payment with Square. Check the access token and try again.');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_TOKEN',      'Square Terminal: access token is not configured.');

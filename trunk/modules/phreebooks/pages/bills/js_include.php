@@ -40,7 +40,7 @@ var payments_installed = <?php echo count($payment_modules) ? 'true' : 'false'; 
 
 function init() {
   document.getElementById('bill_to_select').style.visibility = 'hidden';
-  if (journalID == '18') activateFields();
+  if (journalID == '18' || (journalID == '20' && account_type == 'c')) activateFields();
   // change color of the bill and ship address fields if they are the default values
   var add_id;
   for (var i=0; i<add_array.length; i++) {

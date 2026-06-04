@@ -24,7 +24,6 @@ define('JOURNAL_ID',   $_GET['jID']);
 define('ACCOUNT_TYPE', $_GET['type']);
 
 switch (JOURNAL_ID) {
-  default:
   case 18: $terms_type = 'AR'; break;
   case 20: $terms_type = 'AP'; break;
   default: die ('Bad Journal id in modules/phreebooks/popup_bills.php');

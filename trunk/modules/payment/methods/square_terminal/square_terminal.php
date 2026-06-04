@@ -161,6 +161,41 @@ class square_terminal extends payment {
   }
 
   function selection() {
+    // J20 customer refunds: don't show the terminal UI; show a status message instead.
+    if (defined('JOURNAL_ID') && JOURNAL_ID == 20) {
+      $js = '<script>' . "\n"
+          . 'document.addEventListener("DOMContentLoaded", function() {' . "\n"
+          . '  function sqRefundUpdateStatus() {' . "\n"
+          . '    var el  = document.getElementById("sq_refund_status");' . "\n"
+          . '    if (!el) return;' . "\n"
+          . '    var poi  = document.getElementById("purch_order_id");' . "\n"
+          . '    var rfid = document.getElementById("refund_payment_id");' . "\n"
+          . '    var poiVal  = poi  ? poi.value  : "";' . "\n"
+          . '    var rfidVal = rfid ? rfid.value : "";' . "\n"
+          . '    if (poiVal && /[^0-9.]/.test(poiVal)) {' . "\n"
+          . '      el.textContent = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_REFUND_DONE) . ' + " " + poiVal;' . "\n"
+          . '    } else if (rfidVal) {' . "\n"
+          . '      el.textContent = ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_REFUND_PENDING) . ';' . "\n"
+          . '    } else {' . "\n"
+          . '      el.textContent = "";' . "\n"
+          . '    }' . "\n"
+          . '  }' . "\n"
+          . '  sqRefundUpdateStatus();' . "\n"
+          // Intercept programmatic assignment to purch_order_id (fillBill after Open-list select).
+          . '  var poiEl = document.getElementById("purch_order_id");' . "\n"
+          . '  if (poiEl) {' . "\n"
+          . '    var _d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");' . "\n"
+          . '    Object.defineProperty(poiEl, "value", {' . "\n"
+          . '      get: function() { return _d.get.call(this); },' . "\n"
+          . '      set: function(v) { _d.set.call(this, v); sqRefundUpdateStatus(); }' . "\n"
+          . '    });' . "\n"
+          . '  }' . "\n"
+          . '});' . "\n"
+          . '</script>' . "\n";
+      $html = '<div id="sq_refund_status" style="font-style:italic"></div>' . "\n" . $js;
+      return ['id' => $this->code, 'page' => $this->title, 'fields' => [['title' => '', 'field' => $html]]];
+    }
+
     // Pass PHP constants into JS via json_encode so they are properly escaped.
     $auto_send   = defined('MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND')        ? MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND        : 'Countdown';
     $default_pmt = defined('MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE') ? MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE : 'CARD_PRESENT';
@@ -289,6 +324,25 @@ class square_terminal extends payment {
       . '        setTimeout(sqTermStartCountdown, 500);' . "\n"
       . '      }' . "\n"
       . '    }' . "\n"
+      . '  }' . "\n"
+      // Disable Send button when viewing an existing paid receipt.
+      // Covers both page-load (field_0 already set) and AJAX-loaded edits via Open list.
+      . '  function sqTermCheckSendState() {' . "\n"
+      . '    var btn = document.getElementById("sq_term_send");' . "\n"
+      . '    var f0  = document.getElementById("square_terminal_field_0");' . "\n"
+      . '    if (btn && f0) {' . "\n"
+      . '      btn.disabled = !!f0.value;' . "\n"
+      . '      btn.title    = f0.value ? ' . json_encode(MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_PAID) . ' : "";' . "\n"
+      . '    }' . "\n"
+      . '  }' . "\n"
+      . '  sqTermCheckSendState();' . "\n"
+      . '  var f0El = document.getElementById("square_terminal_field_0");' . "\n"
+      . '  if (f0El) {' . "\n"
+      . '    var _d2 = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");' . "\n"
+      . '    Object.defineProperty(f0El, "value", {' . "\n"
+      . '      get: function() { return _d2.get.call(this); },' . "\n"
+      . '      set: function(v) { _d2.set.call(this, v); sqTermCheckSendState(); }' . "\n"
+      . '    });' . "\n"
       . '  }' . "\n"
       . '});' . "\n"
       . '</script>';
