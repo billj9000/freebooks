@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -186,8 +187,9 @@ if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go las
 }
 history_save('pb_search');
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php'; // include display template (required)
+$include_header    = true;
+$include_footer    = true;
+$include_template  = 'template_main.php';
+$use_bootstrap_nav = true;
 define('PAGE_TITLE', HEADING_TITLE_SEARCH_INFORMATION);
 ?>
