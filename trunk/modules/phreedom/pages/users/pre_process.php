@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -32,13 +33,13 @@ if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'save':
-  case 'fill_all': 
+  case 'fill_all':
   case 'fill_role':
 	validate_security($security_level, 2);
 	$admin_id  = db_prepare_input($_POST['rowSeq']);
 	$fill_all  = db_prepare_input($_POST['fill_all']);
 	$fill_role = db_prepare_input($_POST['fill_role']);
-	if ($security_level < 3 && $admin_id) $error = $messageStack->add(GEN_ADMIN_CANNOT_CHANGE_ROLES, 'error'); 
+	if ($security_level < 3 && $admin_id) $error = $messageStack->add(GEN_ADMIN_CANNOT_CHANGE_ROLES, 'error');
 	if ($_REQUEST['action'] == 'fill_role' ) {
 	  $result = $db->Execute("select admin_prefs, admin_security from " . TABLE_USERS . " where admin_id = " . $fill_role);
 	  $admin_security = $result->fields['admin_security'];
@@ -90,7 +91,7 @@ switch ($_REQUEST['action']) {
 	  'admin_prefs'    => $admin_prefs,
 	  'admin_security' => $admin_security,
 	);
-	if ($_POST['password_new']) { 
+	if ($_POST['password_new']) {
 	  $password_new  = db_prepare_input($_POST['password_new']);
 	  $password_conf = db_prepare_input($_POST['password_conf']);
 	  if (strlen($password_new) < ENTRY_PASSWORD_MIN_LENGTH) {
@@ -190,14 +191,16 @@ switch ($_REQUEST['action']) {
 }
 
 /*****************   prepare to display templates  *************************/
-$include_header   = true;
-$include_footer   = true;
+$include_header    = true;
+$include_footer    = true;
+$use_bootstrap_nav = true;
 
 switch ($_REQUEST['action']) {
   case 'new':
   case 'edit':
   case 'fill_all':
   case 'fill_role':
+	if (!isset($uInfo)) $uInfo = new objectInfo([]);
 	$fill_all_values = array(
 	  array('id' => '-1', 'text' => GEN_HEADING_PLEASE_SELECT),
 	  array('id' => '0',  'text' => TEXT_NONE),
@@ -228,7 +231,7 @@ switch ($_REQUEST['action']) {
 	$list_header = $result['html_code'];
 	$disp_order  = $result['disp_order'];
 	// build the list for the page selected
-	if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
+	if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] != '') {
 	  $search_fields = array('admin_name', 'admin_email', 'display_name');
 	  // hook for inserting new search fields to the query criteria.
 	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
@@ -242,13 +245,13 @@ switch ($_REQUEST['action']) {
 	$query_raw    = "select " . implode(', ', $field_list) . " from " . TABLE_USERS . " where is_role = '0'" . $search . " order by $disp_order";
 	$query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
     $query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
-    if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go last was selected, now we know # pages, requery to get results
+    if ($query_split->current_page_number != $_REQUEST['list']) {
     	$_REQUEST['list'] = $query_split->current_page_number;
     	$query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
     	$query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
     }
     history_save('users');
-    
+
 	$include_template = 'template_main.php';
 	define('PAGE_TITLE', BOX_HEADING_USERS);
 }

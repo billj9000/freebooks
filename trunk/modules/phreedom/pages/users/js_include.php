@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,33 +17,22 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/pages/users/js_include.php
 //
-
 ?>
 <script type="text/javascript">
-<!--
-// pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
 var delete_pushed = false;
 
-function init() {
-	$(function() {
-		$('#accesstabs').tabs();
-	});
-}
+function init() {}
 
 function check_form() {
   return true;
 }
 
-// Insert other page specific functions here.
 function copyItem(id) {
   var adminName = prompt('<?php echo GEN_MSG_COPY_INTRO; ?>', '');
   if (adminName) {
-	location.href = 'index.php?module=phreedom&page=users&action=copy&cID='+id+'&name='+adminName;
+    location.href = 'index.php?module=phreedom&page=users&action=copy&cID=' + id + '&name=' + adminName;
   } else {
-	return false;
+    return false;
   }
 }
-
-// -->
 </script>

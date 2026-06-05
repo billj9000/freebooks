@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -16,12 +17,9 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/pages/users/template_detail.php
 //
-
 echo html_form('users', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . chr(10);
-// include hidden fields
 echo html_hidden_field('action',   '')        . chr(10);
 echo html_hidden_field('rowSeq', $admin_id) . chr(10);
-// customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL') . '\'"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['delete']['show']   = false;
@@ -33,122 +31,143 @@ if ($security_level > 2) {
 }
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('07.08.07');
-echo $toolbar->build_toolbar(); 
-// Build the page
+echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
-  <fieldset>
-  <legend><?php echo TEXT_GENERAL; ?></legend>
-  <table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
-   <tbody class="ui-widget-content">
-   <tr>
-    <td align="right"><?php echo GEN_USERNAME . ' '  . html_input_field('admin_name', $uInfo->admin_name, 'size="25"'); ?></td>
-    <td><?php echo TEXT_INACTIVE . ' ' . html_checkbox_field('inactive', '1', ($uInfo->inactive ? true : false)); ?></td>
-    <td><?php echo GEN_DISPLAY_NAME . ' ' . html_input_field('display_name', $uInfo->display_name, 'size="25"'); ?></td>
-   </tr>
-   <tr>
-    <td align="right"><?php echo TEXT_PASSWORD . ' ' . html_password_field('password_new', ''); ?></td>
-    <td><?php echo '&nbsp;'; ?></td>
-    <td><?php echo GEN_EMAIL . ' ' . html_input_field('admin_email', $uInfo->admin_email, 'size="33"'); ?></td>
-   </tr>
-   <tr>
-    <td align="right"><?php echo TEXT_CONFIRM_PASSWORD . ' ' . html_password_field('password_conf', ''); ?></td>
-    <td><?php echo '&nbsp;'; ?></td>
-    <td><?php echo GEN_ACCOUNT_LINK . ' ' . html_pull_down_menu('account_id', gen_get_contact_array_by_type('e'), $uInfo->account_id, ''); ?></td>
-   </tr>
-   <tr>
-    <td><?php echo TEXT_SELECT_ROLE . ' ' . html_pull_down_menu('fill_role', $fill_all_roles, $uInfo->role, 'onchange="submitToDo(\'fill_role\')"'); ?></td>
-   </tr>
-   </tbody>
-  </table>
-  </fieldset>
 
-  <fieldset>
-  <legend><?php echo TEXT_PROFILE; ?></legend>
-  <table>
-  <tr>
-    <td><?php echo GEN_DEFAULT_STORE . ' ' . html_pull_down_menu('def_store_id',  gen_get_store_ids(), $error ? $_POST['def_store_id'] : $uInfo->def_store_id, ''); ?></td>
-    <td><?php echo GEN_DEF_CASH_ACCT . ' ' . html_pull_down_menu('def_cash_acct', gen_coa_pull_down(), $error ? $_POST['def_cash_acct'] : $uInfo->def_cash_acct, ''); ?></td>
-    <td><?php echo '&nbsp;'; ?></td>
-  </tr>
-  <tr>
-    <td><?php echo GEN_RESTRICT_STORE . ' ' . html_checkbox_field('restrict_store', '1', (($error && $_POST['restrict_store']) || $uInfo->restrict_store) ? true : false); ?></td>
-    <td><?php echo GEN_DEF_AR_ACCT    . ' ' . html_pull_down_menu('def_ar_acct', gen_coa_pull_down(), $error ? $_POST['def_ar_acct'] : $uInfo->def_ar_acct, ''); ?></td>
-    <td><?php echo '&nbsp;'; ?></td>
-  </tr>
-  <tr>
-    <td><?php echo GEN_RESTRICT_PERIOD . ' ' . html_checkbox_field('restrict_period', '1', (($error && $_POST['restrict_period']) || $uInfo->restrict_period) ? true : false); ?></td>
-    <td><?php echo GEN_DEF_AP_ACCT     . ' ' . html_pull_down_menu('def_ap_acct', gen_coa_pull_down(), $error ? $_POST['def_ap_acct'] : $uInfo->def_ap_acct, ''); ?></td>
-    <td><?php echo '&nbsp;'; ?></td>
-  </tr>
-  </table>
-  </fieldset>
+<!-- General card -->
+<div class="card fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_GENERAL; ?></div>
+  <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-auto"><?php echo GEN_USERNAME; ?></div>
+      <div class="col-auto"><?php echo html_input_field('admin_name', $uInfo->admin_name, 'class="form-control form-control-sm" style="width:180px"'); ?></div>
+      <div class="col-auto ms-3"><?php echo TEXT_INACTIVE; ?> <?php echo html_checkbox_field('inactive', '1', ($uInfo->inactive ? true : false)); ?></div>
+      <div class="col-auto ms-3"><?php echo GEN_DISPLAY_NAME; ?></div>
+      <div class="col-auto"><?php echo html_input_field('display_name', $uInfo->display_name, 'class="form-control form-control-sm" style="width:180px"'); ?></div>
+    </div>
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-auto"><?php echo TEXT_PASSWORD; ?></div>
+      <div class="col-auto"><?php echo html_password_field('password_new', '', false, 'class="form-control form-control-sm" style="width:180px"'); ?></div>
+      <div class="col-auto ms-3"><?php echo GEN_EMAIL; ?></div>
+      <div class="col-auto"><?php echo html_input_field('admin_email', $uInfo->admin_email, 'class="form-control form-control-sm" style="width:220px"'); ?></div>
+    </div>
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-auto"><?php echo TEXT_CONFIRM_PASSWORD; ?></div>
+      <div class="col-auto"><?php echo html_password_field('password_conf', '', false, 'class="form-control form-control-sm" style="width:180px"'); ?></div>
+      <div class="col-auto ms-3"><?php echo GEN_ACCOUNT_LINK; ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('account_id', gen_get_contact_array_by_type('e'), $uInfo->account_id, 'class="form-select form-select-sm"'); ?></div>
+    </div>
+    <div class="row g-2 align-items-center">
+      <div class="col-auto"><?php echo TEXT_SELECT_ROLE; ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('fill_role', $fill_all_roles, $uInfo->role ?? 0, 'class="form-select form-select-sm" onchange="submitToDo(\'fill_role\')"'); ?></div>
+    </div>
+  </div>
+</div>
 
-  <fieldset>
-  <legend><?php echo TEXT_SECURITY_SETTINGS; ?></legend>
-    <div><?php echo TEXT_FILL_ALL_LEVELS . ' ' . html_pull_down_menu('fill_all', $fill_all_values, '-1', 'onchange="submitToDo(\'fill_all\')"'); ?></div>
-	<div id="accesstabs">
-	<ul>
-<?php foreach ($mainmenu as $key => $value) {
+<!-- Profile card -->
+<div class="card fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_PROFILE; ?></div>
+  <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-auto"><?php echo GEN_DEFAULT_STORE; ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('def_store_id', gen_get_store_ids(), $error ? $_POST['def_store_id'] : $uInfo->def_store_id, 'class="form-select form-select-sm"'); ?></div>
+      <div class="col-auto ms-4"><?php echo GEN_DEF_CASH_ACCT; ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('def_cash_acct', gen_coa_pull_down(), $error ? $_POST['def_cash_acct'] : $uInfo->def_cash_acct, 'class="form-select form-select-sm"'); ?></div>
+    </div>
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-auto"><?php echo GEN_RESTRICT_STORE; ?></div>
+      <div class="col-auto"><?php echo html_checkbox_field('restrict_store', '1', (($error && $_POST['restrict_store']) || $uInfo->restrict_store) ? true : false); ?></div>
+      <div class="col-auto ms-4"><?php echo GEN_DEF_AR_ACCT; ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('def_ar_acct', gen_coa_pull_down(), $error ? $_POST['def_ar_acct'] : $uInfo->def_ar_acct, 'class="form-select form-select-sm"'); ?></div>
+    </div>
+    <div class="row g-2 align-items-center">
+      <div class="col-auto"><?php echo GEN_RESTRICT_PERIOD; ?></div>
+      <div class="col-auto"><?php echo html_checkbox_field('restrict_period', '1', (($error && $_POST['restrict_period']) || $uInfo->restrict_period) ? true : false); ?></div>
+      <div class="col-auto ms-4"><?php echo GEN_DEF_AP_ACCT; ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('def_ap_acct', gen_coa_pull_down(), $error ? $_POST['def_ap_acct'] : $uInfo->def_ap_acct, 'class="form-select form-select-sm"'); ?></div>
+    </div>
+  </div>
+</div>
+
+<!-- Security Settings card -->
+<div class="card fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_SECURITY_SETTINGS; ?></div>
+  <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="mb-2">
+      <?php echo TEXT_FILL_ALL_LEVELS; ?>
+      <?php echo html_pull_down_menu('fill_all', $fill_all_values, '-1', 'class="form-select form-select-sm d-inline-block ms-1" style="width:auto" onchange="submitToDo(\'fill_all\')"'); ?>
+    </div>
+    <ul class="nav nav-tabs fb-tabs" id="accesstabs" role="tablist">
+<?php
+$first = true;
+foreach ($mainmenu as $key => $value) {
   if ($value['text'] == TEXT_HOME || $value['text'] == TEXT_LOGOUT) continue;
-  echo add_tab_list('tab_' . $key, $value['text']) . chr(10);
+  echo '<li class="nav-item" role="presentation">' . chr(10);
+  echo '  <button class="nav-link' . ($first ? ' active' : '') . '" id="tab_' . $key . '_btn" data-bs-toggle="tab" data-bs-target="#tab_' . $key . '" type="button" role="tab">' . $value['text'] . '</button>' . chr(10);
+  echo '</li>' . chr(10);
+  $first = false;
 }
 ?>
     </ul>
+    <div class="tab-content fb-tab-content">
 <?php
-$settings     = gen_parse_permissions($uInfo->admin_security);
-$column_break = true;
+$settings = gen_parse_permissions($uInfo->admin_security);
+$first    = true;
 foreach ($mainmenu as $key => $menu_heading) {
-  	if ($menu_heading['text'] == TEXT_HOME || $menu_heading['text'] == TEXT_LOGOUT) continue;
-  	echo '<div id="tab_' . $key . '">' . chr(10);
-	echo '<table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">' . chr(10);
-	echo '<thead class="ui-widget-header">' . chr(10);
-	echo '<tr>' . chr(10);
-	echo '<th width="50%">&nbsp;</th>' . chr(10);
-	echo '<th width="10%" nowrap="nowrap">' . TEXT_FULL      . '</th>' . chr(10);
-	echo '<th width="10%" nowrap="nowrap">' . TEXT_EDIT      . '</th>' . chr(10);
-	echo '<th width="10%" nowrap="nowrap">' . TEXT_ADD       . '</th>' . chr(10);
-	echo '<th width="10%" nowrap="nowrap">' . TEXT_READ_ONLY . '</th>' . chr(10);
-	echo '<th width="10%" nowrap="nowrap">' . TEXT_NONE      . '</th>' . chr(10);
-	echo '</tr>' . chr(10);
-	echo '</thead><tbody class="ui-widget-content">' . chr(10);
-	$odd = true;
-	foreach($menu_heading['submenu'] as $menu_item){ 
-		create_row($menu_item);
-	}
-	echo '</tbody></table></div>' . chr(10);
-	} ?>
+  if ($menu_heading['text'] == TEXT_HOME || $menu_heading['text'] == TEXT_LOGOUT) continue;
+  echo '<div class="tab-pane fade' . ($first ? ' show active' : '') . '" id="tab_' . $key . '" role="tabpanel">' . chr(10);
+  echo '<table class="pkg-table table table-borderless table-hover table-sm mb-0">' . chr(10);
+  echo '<thead class="table-dark">' . chr(10);
+  echo '<tr>' . chr(10);
+  echo '<th style="width:50%">&nbsp;</th>' . chr(10);
+  echo '<th class="text-center" style="width:10%;white-space:nowrap">' . TEXT_FULL      . '</th>' . chr(10);
+  echo '<th class="text-center" style="width:10%;white-space:nowrap">' . TEXT_EDIT      . '</th>' . chr(10);
+  echo '<th class="text-center" style="width:10%;white-space:nowrap">' . TEXT_ADD       . '</th>' . chr(10);
+  echo '<th class="text-center" style="width:10%;white-space:nowrap">' . TEXT_READ_ONLY . '</th>' . chr(10);
+  echo '<th class="text-center" style="width:10%;white-space:nowrap">' . TEXT_NONE      . '</th>' . chr(10);
+  echo '</tr>' . chr(10);
+  echo '</thead><tbody>' . chr(10);
+  $odd = true;
+  foreach ($menu_heading['submenu'] as $menu_item) {
+    create_row($menu_item);
+  }
+  echo '</tbody></table></div>' . chr(10);
+  $first = false;
+}
+?>
     </div>
-  </fieldset>
+  </div>
+</div>
 </form>
 
-<?php 
-function create_row($array){
-	global $odd, $settings;
-	if(!empty($array['submenu']) && $array['text'] <> BOX_HEADING_CONFIGURATION) foreach($array['submenu'] as $menu_item){ 
-		create_row($menu_item);
-	}else{
-		if ($array['security_id'] == '') return;// && $item['heading'] <> MENU_HEADING_TOOLS) continue;  // special case for reports listings not in Tools menu
-		$checked = array();
-		if ($array['show_in_users_settings'] === false) {
-			return; // skip if menu only item
-		} elseif (isset($settings[$array['security_id']])) {
-			$checked[0] = false;
-			$checked[$settings[$array['security_id']]] = true;
-		} elseif ($error) {
-			$checked[0] = false;
-			$checked[$_POST['sID_' . $array['security_id']]] = true;
-		} else {
-			$checked[0] = true;	// default to no access
-		}
-		echo '<tr valign="top" class="' . ($odd?'odd':'even') . '">';
-		echo '<td>' . $array['text'] . '</td>' . chr(10);
-		echo '<td align="center">' . html_radio_field('sID_' . $array['security_id'], '4', $checked[4]) . '</td>' . chr(10);
-		echo '<td align="center">' . html_radio_field('sID_' . $array['security_id'], '3', $checked[3]) . '</td>' . chr(10);
-		echo '<td align="center">' . html_radio_field('sID_' . $array['security_id'], '2', $checked[2]) . '</td>' . chr(10);
-		echo '<td align="center">' . html_radio_field('sID_' . $array['security_id'], '1', $checked[1]) . '</td>' . chr(10);
-		echo '<td align="center">' . html_radio_field('sID_' . $array['security_id'], '0', $checked[0]) . '</td></tr>' . chr(10);
-		$odd =!$odd;
-	}
+<?php
+function create_row($array) {
+  global $odd, $settings;
+  if (!empty($array['submenu']) && $array['text'] != BOX_HEADING_CONFIGURATION) foreach ($array['submenu'] as $menu_item) {
+    create_row($menu_item);
+  } else {
+    if ($array['security_id'] == '') return;
+    $checked = array();
+    if ($array['show_in_users_settings'] === false) {
+      return;
+    } elseif (isset($settings[$array['security_id']])) {
+      $checked[0] = false;
+      $checked[$settings[$array['security_id']]] = true;
+    } elseif ($error) {
+      $checked[0] = false;
+      $checked[$_POST['sID_' . $array['security_id']]] = true;
+    } else {
+      $checked[0] = true;
+    }
+    echo '<tr class="' . ($odd ? 'odd' : 'even') . '">';
+    echo '<td>' . $array['text'] . '</td>' . chr(10);
+    echo '<td class="text-center">' . html_radio_field('sID_' . $array['security_id'], '4', $checked[4]) . '</td>' . chr(10);
+    echo '<td class="text-center">' . html_radio_field('sID_' . $array['security_id'], '3', $checked[3]) . '</td>' . chr(10);
+    echo '<td class="text-center">' . html_radio_field('sID_' . $array['security_id'], '2', $checked[2]) . '</td>' . chr(10);
+    echo '<td class="text-center">' . html_radio_field('sID_' . $array['security_id'], '1', $checked[1]) . '</td>' . chr(10);
+    echo '<td class="text-center">' . html_radio_field('sID_' . $array['security_id'], '0', $checked[0]) . '</td></tr>' . chr(10);
+    $odd = !$odd;
+  }
 }
 ?>

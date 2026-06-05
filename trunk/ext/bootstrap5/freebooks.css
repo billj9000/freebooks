@@ -54,8 +54,11 @@
   border-color:  #767676;
 }
 .form-select, .form-select-sm {
-  border-radius:  6px;
-  padding-right:  20px;
+  border-radius:       6px;
+  padding-top:         0;
+  padding-bottom:      0;
+  padding-right:       20px;
+  background-color:    #efefef;
   background-position: right 4px center;
 }
 .input-group-text {
