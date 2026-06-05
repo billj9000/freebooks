@@ -58,8 +58,11 @@
   padding-top:         0;
   padding-bottom:      0;
   padding-right:       20px;
-  background-color:    #efefef;
+  background-color:    #e8e8e8;
   background-position: right 4px center;
+}
+.form-select:hover, .form-select-sm:hover {
+  background-color: #d4d4d4;
 }
 .input-group-text {
   font-size:  11px;
