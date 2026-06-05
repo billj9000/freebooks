@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,37 +18,41 @@
 //  Path: /modules/contacts/pages/admin/template_tab_stats.php
 //
 ?>
-<div id="tab_stats">
+<div class="tab-pane fade" id="tab_stats" role="tabpanel">
+<?php if (!empty($install->tables)): ?>
+  <div class="card fb-card mt-2 mb-2">
+    <div class="card-header py-1 fb-widget-header"><?php echo TEXT_TABLE_STATS; ?></div>
+    <div class="card-body p-0">
+      <table class="pkg-table table table-borderless table-hover table-sm mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th><?php echo TEXT_TABLE; ?></th>
+            <th class="text-center"><?php echo TEXT_ENGINE; ?></th>
+            <th class="text-center"><?php echo TEXT_NUM_ROWS; ?></th>
+            <th class="text-center"><?php echo TEXT_COLLATION; ?></th>
+            <th class="text-center"><?php echo TEXT_SIZE; ?></th>
+            <th class="text-center"><?php echo TEXT_NEXT_ID; ?></th>
+          </tr>
+        </thead>
+        <tbody>
 <?php
-  if (!empty($install->tables)) {
-    echo "  <fieldset><!-- db table stats -->\n";
-    echo "    <legend>" . TEXT_TABLE_STATS . "</legend>\n";
-    echo "    <table class=\"ui-widget\" style=\"border-collapse:collapse;width:100%;\">\n";
-    echo "      <thead class=\"ui-widget-header\">\n";
-    echo "        <tr>\n";
-	echo "          <th>" . TEXT_TABLE . "</th>\n";
-	echo "          <th>" . TEXT_ENGINE . "</th>\n";
-	echo "          <th>" . TEXT_NUM_ROWS . "</th>\n";
-	echo "          <th>" . TEXT_COLLATION . "</th>\n";
-	echo "          <th>" . TEXT_SIZE . "</th>\n";
-	echo "          <th>" . TEXT_NEXT_ID . "</th>\n";
-    echo "        </tr>\n";
-    echo "      </thead>\n";
-    echo "      <tbody class=\"ui-widget-content\">\n";
-    foreach ($install->tables as $tablename => $tablesql) {
-	  $result = $db->Execute("SHOW TABLE STATUS LIKE '" . $tablename ."'");
-	  echo "         <tr>\n";
-	  echo "          <td>" . $result->fields['Name'] . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Engine'] . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Rows'] . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Collation'] . "</td>\n";
-	  echo "          <td align=\"center\">" .($result->fields['Data_length'] + $result->fields['Index_length']) . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Auto_increment'] . "</td>\n";
-	  echo "        </tr>\n";
-    }
-    echo "      </tbody>\n";
-	echo "    </table>\n";
-	echo "  </fieldset>\n";
+  $odd = true;
+  foreach ($install->tables as $tablename => $tablesql) {
+    $result = $db->Execute("SHOW TABLE STATUS LIKE '" . $tablename . "'");
+    echo '<tr class="' . ($odd ? 'odd' : 'even') . '">' . chr(10);
+    echo '  <td>'                . $result->fields['Name']                                               . '</td>' . chr(10);
+    echo '  <td class="text-center">' . $result->fields['Engine']                                        . '</td>' . chr(10);
+    echo '  <td class="text-center">' . $result->fields['Rows']                                          . '</td>' . chr(10);
+    echo '  <td class="text-center">' . $result->fields['Collation']                                     . '</td>' . chr(10);
+    echo '  <td class="text-center">' . ($result->fields['Data_length'] + $result->fields['Index_length']) . '</td>' . chr(10);
+    echo '  <td class="text-center">' . $result->fields['Auto_increment']                                . '</td>' . chr(10);
+    echo '</tr>' . chr(10);
+    $odd = !$odd;
   }
 ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<?php endif; ?>
 </div>

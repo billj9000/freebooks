@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,9 +25,8 @@ $dept_types_toolbar->icon_list['delete']['show'] = false;
 $dept_types_toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) $dept_types_toolbar->add_icon('new', 'onclick="loadPopUp(\'dept_types_new\', 0)"', $order = 10);
 if ($dept_types->extra_buttons) $dept_types->customize_buttons($dept_types_toolbar);
-
 ?>
-<div id="tab_dept_types">
+<div class="tab-pane fade" id="tab_dept_types" role="tabpanel">
   <?php echo $dept_types_toolbar->build_toolbar(); ?>
   <h1><?php echo $dept_types->title; ?></h1>
   <div id="dept_types_content"><?php echo $dept_types->build_main_html(); ?></div>

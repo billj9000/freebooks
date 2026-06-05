@@ -118,6 +118,32 @@
   font-size:           11px;
 }
 
+/* ── ui-widget table fallback: basic styling when jQuery UI CSS is not loaded ── */
+table.ui-widget {
+  width:            100%;
+  border-collapse:  collapse;
+  font-size:        11px;
+  font-family:      Verdana, Arial, sans-serif;
+}
+table.ui-widget th,
+table.ui-widget td {
+  padding:  2px 6px;
+  border:   1px solid #c0c0c0;
+}
+table.ui-widget thead.ui-widget-header th,
+table.ui-widget tfoot.ui-widget-header th,
+table.ui-widget tfoot.ui-widget-header td {
+  background-color:    #2191c0 !important;
+  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png) !important;
+  background-repeat:   repeat-x !important;
+  background-position: 50% 50% !important;
+  color:               #eaf5f7 !important;
+  font-weight:         bold;
+}
+table.ui-widget tbody.ui-widget-content tr:hover td {
+  background-color: #e8f4fb;
+}
+
 /* ── pkg-table: match .ui-widget / .ui-widget-header / .ui-widget-content ── */
 .pkg-table {
   font-family:     Verdana, Arial, sans-serif;
@@ -186,7 +212,8 @@
   background-position: 50% 50%;
   border-top:          2px solid #4297d7;
 }
-.pkg-table > tfoot > tr > td {
+.pkg-table > tfoot > tr > td,
+.pkg-table > tfoot > tr > th {
   background:          transparent;
   color:               #eaf5f7;
   font-weight:         bold;

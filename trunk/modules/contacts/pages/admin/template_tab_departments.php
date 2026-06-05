@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,9 +25,8 @@ $departments_toolbar->icon_list['delete']['show'] = false;
 $departments_toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) $departments_toolbar->add_icon('new', 'onclick="loadPopUp(\'departments_new\', 0)"', $order = 10);
 if ($departments->extra_buttons) $departments->customize_buttons($departments_toolbar);
-
 ?>
-<div id="tab_departments">
+<div class="tab-pane fade" id="tab_departments" role="tabpanel">
   <?php echo $departments_toolbar->build_toolbar(); ?>
   <h1><?php echo $departments->title; ?></h1>
   <div id="departments_content"><?php echo $departments->build_main_html(); ?></div>

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -30,7 +31,7 @@ require_once(DIR_FS_WORKING . 'classes/project_phases.php');
 require_once(DIR_FS_WORKING . 'classes/contact_tabs.php');
 require_once(DIR_FS_WORKING . 'classes/contact_fields.php');
 /**************   page specific initialization  *************************/
-$error          = false; 
+$error          = false;
 $install        = new contacts_admin();
 $departments    = new departments();
 $dept_types     = new dept_types();
@@ -42,33 +43,33 @@ $fields         = new contact_fields();
 switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 3);
-  	foreach ($install->keys as $key => $default) {
+	foreach ($install->keys as $key => $default) {
 	  $field = strtolower($key);
-      if (isset($_POST[$field])) write_configure($key, $_POST[$field]);
-    }
+	  if (isset($_POST[$field])) write_configure($key, $_POST[$field]);
+	}
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
-	$messageStack->add(CONTACTS_CONFIG_SAVED,'success');
-    break;
+	$messageStack->add(CONTACTS_CONFIG_SAVED, 'success');
+	break;
   case 'delete':
 	validate_security($security_level, 4);
-    $subject = $_POST['subject'];
-    $id      = $_POST['rowSeq'];
+	$subject = $_POST['subject'];
+	$id      = $_POST['rowSeq'];
 	if (!$subject || !$id) break;
-    if ($$subject->btn_delete($id)) $close_popup = true;
+	if ($$subject->btn_delete($id)) $close_popup = true;
 	break;
   default:
 }
 
 /*****************   prepare to display templates  *************************/
-// build some general pull down arrays
 $sel_yes_no = array(
- array('id' => '0', 'text' => TEXT_NO),
- array('id' => '1', 'text' => TEXT_YES),
+  array('id' => '0', 'text' => TEXT_NO),
+  array('id' => '1', 'text' => TEXT_YES),
 );
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header    = true;
+$include_footer    = true;
+$use_bootstrap_nav = true;
+$include_template  = 'template_main.php';
 define('PAGE_TITLE', BOX_CONTACTS_ADMIN);
 
 ?>

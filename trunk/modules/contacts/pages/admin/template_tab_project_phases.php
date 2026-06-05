@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,9 +25,8 @@ $project_phases_toolbar->icon_list['delete']['show'] = false;
 $project_phases_toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) $project_phases_toolbar->add_icon('new', 'onclick="loadPopUp(\'project_phases_new\', 0)"', $order = 10);
 if ($project_phases->extra_buttons) $project_phases->customize_buttons($project_phases_toolbar);
-
 ?>
-<div id="tab_project_phases">
+<div class="tab-pane fade" id="tab_project_phases" role="tabpanel">
   <?php echo $project_phases_toolbar->build_toolbar(); ?>
   <h1><?php echo $project_phases->title; ?></h1>
   <div id="project_phases_content"><?php echo $project_phases->build_main_html(); ?></div>
