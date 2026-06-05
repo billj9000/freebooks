@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -23,10 +23,8 @@ require(DIR_FS_WORKING . 'functions/phreebooks.php');
 require(DIR_FS_WORKING . 'classes/gen_ledger.php');
 
 /**************   page specific initialization  *************************/
-// determine what button was pressed, if any
-if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search'; // if enter key pressed and search not blank
+if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search';
 
-// see what fiscal year we are looking at (assume this FY is entered for the first time)
 if ($_POST['fy']) {
   $fy = $_POST['fy'];
 } else {
@@ -43,7 +41,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 3);
-  	$i = 0;
+	$i = 0;
 	while (true) {
 	  if (!isset($_POST['budget_' . $i])) break;
 	  $budget = $currencies->clean_value($_POST['budget_' . $i]);
@@ -67,18 +65,18 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'copy_fy':
-	$result  = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . " 
+	$result  = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . "
 	  where fiscal_year = '" . $fy . "' order by period");
-	$last_fy = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . " 
+	$last_fy = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . "
 	  where fiscal_year = '" . ($fy - 1) . "' order by period");
 	while (!$result->EOF) {
-	  $accounts = $db->Execute("select account_id, debit_amount - credit_amount as balance 
-	    from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
+	  $accounts = $db->Execute("select account_id, debit_amount - credit_amount as balance
+	    from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
 		where period = '" . $last_fy->fields['period'] . "'");
 	  while(!$accounts->EOF) {
 	    $budget = $accounts->fields['balance'] ? round($accounts->fields['balance'], $currencies->currencies[DEFAULT_CURRENCY]['decimal_places']) : 0;
-	    $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
-	      set budget = " . $budget . "  
+	    $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
+	      set budget = " . $budget . "
 		  where period = '" . $result->fields['period'] . "' and account_id = '" . $accounts->fields['account_id'] . "'";
 		$db->Execute($sql);
 	    $accounts->MoveNext();
@@ -93,11 +91,11 @@ switch ($_REQUEST['action']) {
 
 /*****************   prepare to display templates  *************************/
 
-$result  = $db->Execute("select period, start_date, end_date from " . TABLE_ACCOUNTING_PERIODS . " 
+$result  = $db->Execute("select period, start_date, end_date from " . TABLE_ACCOUNTING_PERIODS . "
 	where fiscal_year = '" . $fy . "' order by period");
-$last_fy = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . " 
+$last_fy = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . "
 	where fiscal_year = '" . ($fy - 1) . "' order by period");
-$next_fy = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . " 
+$next_fy = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . "
 	where fiscal_year = '" . ($fy + 1) . "' order by period");
 $periods = array();
 $lf_per = array();
@@ -110,16 +108,16 @@ while (!$result->EOF) {
   $last_fy->MoveNext();
   $next_fy->MoveNext();
 }
-$result = $db->Execute("select id, period, budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
+$result = $db->Execute("select id, period, budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
 	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($periods)) . ")");
 if ($gl_acct && !empty($lf_per)) {
-  $last_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
+  $last_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
 	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($lf_per)) . ")");
 } else {
   $next_fy = new objectInfo();
 }
 if ($gl_acct && !empty($nf_per)) {
-  $next_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
+  $next_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
 	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($nf_per)) . ")");
 } else {
   $next_fy = new objectInfo();
@@ -127,7 +125,7 @@ if ($gl_acct && !empty($nf_per)) {
 $fy_array = array();
 while(!$result->EOF) {
   $fy_array[] = array(
-    'id'     => $result->fields['id'], 
+    'id'     => $result->fields['id'],
     'period' => $periods[$result->fields['period']],
 	'prior'  => $last_fy->fields['budget'],
 	'budget' => $result->fields['budget'],
@@ -138,9 +136,10 @@ while(!$result->EOF) {
   if (!empty($nf_per)) $next_fy->MoveNext();
 }
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header    = true;
+$include_footer    = true;
+$include_template  = 'template_main.php';
+$use_bootstrap_nav = true;
 define('PAGE_TITLE', GL_BUDGET_HEADING_TITLE);
 
 ?>
