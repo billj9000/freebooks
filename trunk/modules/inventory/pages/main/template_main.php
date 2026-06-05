@@ -35,7 +35,7 @@ echo $toolbar->build_toolbar($add_search = true);
 
 <div class="pkg-wrap">
 
-<table id="filter_table" class="table table-sm pkg-table mb-2">
+<table id="filter_table" class="table table-sm pkg-table mb-2" style="width:auto">
   <thead>
     <tr>
       <th></th>
@@ -55,7 +55,7 @@ echo $toolbar->build_toolbar($add_search = true);
     }
     ?>
   </tbody>
-  <tfoot>
+  <tfoot class="tfoot-plain">
     <tr>
       <td><?php echo html_icon('actions/list-add.png', TEXT_ADD, 'medium', 'onclick="addFilterRow()"'); ?></td>
       <td>&nbsp;</td>

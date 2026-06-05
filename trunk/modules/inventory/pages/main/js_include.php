@@ -17,11 +17,6 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/inventory/pages/main/js_include.php
 ?>
-<link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-<link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-<link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
-<script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
-<script src="ext/htmx.min.js" defer></script>
 <script type="text/javascript">
 // pass some php variables
 var image_delete_text   = '<?php echo TEXT_DELETE; ?>';

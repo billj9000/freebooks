@@ -237,7 +237,7 @@
       }
       ?>
       </tbody>
-      <tfoot>
+      <tfoot class="tfoot-plain">
         <tr>
           <td><?php echo html_icon('actions/list-add.png', TEXT_ADD, 'medium', 'onclick="addVendorRow()"'); ?></td>
           <td colspan="7"></td>

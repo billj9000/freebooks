@@ -189,6 +189,17 @@
   border-bottom:       1px solid #4297d7;
 }
 
+/* Plain white tfoot for utility rows (filter add/search, vendor add, etc.) */
+.pkg-table > tfoot.tfoot-plain {
+  background:       #ffffff;
+  background-image: none;
+  border-top:       1px solid #dee2e6;
+}
+.pkg-table > tfoot.tfoot-plain > tr > td {
+  color:       inherit;
+  font-weight: normal;
+}
+
 /* ── Modal: match widget-header / widget-content look ──────────── */
 .pkg-modal .modal-content {
   border:        1px solid #a6c9e2;

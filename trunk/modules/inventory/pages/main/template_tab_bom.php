@@ -60,7 +60,7 @@ if (count(is_array($cInfo->bom) ? $cInfo->bom : [])) {
 }
 ?>
     </tbody>
-    <tfoot>
+    <tfoot class="tfoot-plain">
       <tr>
         <td>
           <?php if ($cInfo->allow_edit_bom): ?>

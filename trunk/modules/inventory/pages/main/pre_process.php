@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -176,8 +177,9 @@ if ( in_array($_REQUEST['action'], array('create', 'edit','properties'))) {
 	// load gl accounts
 	$gl_array_list    = gen_coa_pull_down();
 }
-$include_header   = true;
-$include_footer   = true;
+$include_header    = true;
+$include_footer    = true;
+$use_bootstrap_nav = true;
 
 switch ($_REQUEST['action']) {
   case 'new':
