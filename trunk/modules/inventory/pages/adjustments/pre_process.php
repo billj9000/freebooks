@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -49,7 +50,7 @@ switch ($_REQUEST['action']) {
 	$glEntry->currencies_value    = 1;
 	$adj_reason                   = db_prepare_input($_POST['adj_reason']);
 	$adj_account                  = db_prepare_input($_POST['gl_acct']);
- 	// process the request
+	// process the request
 	$glEntry->journal_main_array  = $glEntry->build_journal_main_array();
 	// build journal entry based on adding or subtracting from inventory
 	$rowCnt    = 1;
@@ -94,9 +95,9 @@ switch ($_REQUEST['action']) {
       );
 	  // *************** START TRANSACTION *************************
 	  $db->transStart();
-	  $glEntry->override_cogs_acct = $adj_account; // force cogs account to be users specified account versus default inventory account
+	  $glEntry->override_cogs_acct = $adj_account;
 	  if ($glEntry->Post($glEntry->id ? 'edit' : 'insert')) {
-	    $db->transCommit();	// post the chart of account values
+	    $db->transCommit();
 	    gen_add_audit_log(INV_LOG_ADJ . ($_REQUEST['action']=='save' ? TEXT_SAVE : TEXT_EDIT), $sku, $qty);
 	    $messageStack->add(INV_POST_SUCCESS . $glEntry->purchase_invoice_id, 'success');
 	    if (DEBUG) $messageStack->write_debug();
@@ -111,14 +112,14 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'delete':
-	validate_security($security_level, 4); // security check
+	validate_security($security_level, 4);
 	if ($glEntry->id) {
 	  $delOrd = new journal();
-	  $delOrd->journal($glEntry->id); // load the posted record based on the id submitted
+	  $delOrd->journal($glEntry->id);
 	  // *************** START TRANSACTION *************************
 	  $db->transStart();
 	  if ($delOrd->unPost('delete')) {
-		$db->transCommit(); // if not successful rollback will already have been performed
+		$db->transCommit();
 		gen_add_audit_log(INV_LOG_ADJ . TEXT_DELETE, $delOrd->journal_rows[0]['sku'], $delOrd->journal_rows[0]['qty']);
 		if (DEBUG) $messageStack->write_debug();
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
@@ -130,7 +131,7 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'edit':
-	validate_security($security_level, 2); // security check
+	validate_security($security_level, 2);
     $oID = (int)$_GET['oID'];
 	// fall through like default
   default:
@@ -139,7 +140,7 @@ switch ($_REQUEST['action']) {
 	break;
 }
 /*****************   prepare to display templates  *************************/
-$gl_array_list = gen_coa_pull_down(); // load gl accounts
+$gl_array_list = gen_coa_pull_down();
 $cal_adj = array(
   'name'      => 'dateReference',
   'form'      => 'inv_adj',
@@ -147,9 +148,10 @@ $cal_adj = array(
   'imagename' => 'btn_date_1',
   'default'   => gen_locale_date($post_date),
 );
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header    = true;
+$include_footer    = true;
+$use_bootstrap_nav = true;
+$include_template  = 'template_main.php';
 define('PAGE_TITLE', INV_POPUP_ADJ_WINDOW_TITLE);
 
 ?>
