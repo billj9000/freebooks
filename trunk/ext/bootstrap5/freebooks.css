@@ -158,6 +158,14 @@
   color:            #026890 !important;
 }
 
+/* Payment-hold rows (vendor waiting flag) */
+.pkg-table > tbody > tr.row-hold > td {
+  background-color: #e8784d;
+  border-top:       1px solid #cd0a0a;
+  border-bottom:    1px solid #cd0a0a;
+  color:            #ffffff;
+}
+
 /* ── pkg-table tfoot: gloss-wave section background ────────────── */
 /* Matches original <tfoot class="ui-widget-header"> — gradient spans all rows */
 .pkg-table > tfoot {
