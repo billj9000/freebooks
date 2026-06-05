@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -48,17 +48,17 @@ while (!$result->EOF) {
 }
 
 // load the gl account beginning balance
-$sql = "select beginning_balance from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
+$sql = "select beginning_balance from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
 	where account_id = '" . $gl_account . "' and period = " . $period;
 $result = $db->Execute($sql);
 $beginning_balance = $result->fields['beginning_balance'];
 
 // load the payments and deposits for the current period
 $bank_list = array();
-$sql = "select i.description, m.id, m.journal_id, m.post_date, m.total_amount, m.purchase_invoice_id, m.bill_primary_name, 
+$sql = "select i.description, m.id, m.journal_id, m.post_date, m.total_amount, m.purchase_invoice_id, m.bill_primary_name,
    i.debit_amount, i.credit_amount
    from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id
-   where m.period = " . $period . " and i.gl_account = '" . $gl_account . "' 
+   where m.period = " . $period . " and i.gl_account = '" . $gl_account . "'
    order by m.post_date, m.journal_id";
 $result = $db->Execute($sql);
 while (!$result->EOF) {
@@ -83,9 +83,10 @@ while (!$result->EOF) {
   $result->MoveNext();
 }
 
-$include_header   = true;
-$include_footer   = true;
-$include_template = 'template_main.php';
+$include_header    = true;
+$include_footer    = true;
+$include_template  = 'template_main.php';
+$use_bootstrap_nav = true;
 define('PAGE_TITLE', BOX_BANKING_BANK_ACCOUNT_REGISTER);
 
 ?>
