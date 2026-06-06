@@ -118,6 +118,26 @@
   font-size:           11px;
 }
 
+/* ── fb-fieldset: div-based fieldset emulation ───────────────────────────── */
+.fb-fieldset {
+  position:   relative;
+  border:     1px solid #a6c9e2;
+  border-radius: 4px;
+  padding:    14px 8px 8px;
+  background: #fcfdfd;
+  font-size:  11px;
+}
+.fb-fieldset-legend {
+  position:    absolute;
+  top:         -8px;
+  left:        8px;
+  background:  #fcfdfd;
+  padding:     0 4px;
+  font-size:   13px;
+  font-weight: bold;
+  line-height: 16px;
+}
+
 /* ── ui-widget table fallback: basic styling when jQuery UI CSS is not loaded ── */
 table.ui-widget {
   width:            100%;

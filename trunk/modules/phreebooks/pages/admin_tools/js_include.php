@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -20,7 +20,6 @@
 
 ?>
 <script type="text/javascript">
-<!--
 // pass any php variables generated during pre-process that are used in the javascript functions.
 // Include translations here as well.
 <?php 
@@ -68,7 +67,6 @@ function updateEnd(index) {
   }
 }
 
-// -->
 </script>
 <?php
 // set up a calendar variable for each possible calendar
