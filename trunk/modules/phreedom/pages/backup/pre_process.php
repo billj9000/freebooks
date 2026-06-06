@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,6 +19,7 @@
 //
 ini_set('memory_limit','256M');  // Set this big for memory exhausted errors
 $security_level = validate_user(SECURITY_ID_BACKUP);
+$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'classes/backup.php');

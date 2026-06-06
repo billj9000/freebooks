@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -32,38 +33,37 @@ echo '<h1>' . BOX_HEADING_RESTORE . '</h1>';
 ?>
 
 <div id="restore_progress" style="display:none">
-  <fieldset>
-    <legend><?php echo GEN_RESTORE_PROGRESS; ?></legend>
-    <p id="restore_filename" style="font-weight:bold"></p>
+  <div class="fb-fieldset mb-3">
+    <div class="fb-fieldset-legend"><?php echo GEN_RESTORE_PROGRESS; ?></div>
+    <p id="restore_filename" class="fw-bold mb-2"></p>
     <div style="width:100%;background:#ddd;border:1px solid #999;height:18px;margin:6px 0">
       <div id="restore_pct_bar" style="height:18px;background:#000080;width:0%;transition:width 0.3s"></div>
     </div>
-    <table class="ui-widget" style="border:none;margin-bottom:8px">
-      <thead class="ui-widget-header">
+    <table class="pkg-table table table-borderless table-sm mb-2" style="width:auto">
+      <thead class="table-dark">
         <tr>
           <th><?php echo TEXT_QUERIES; ?></th>
           <th><?php echo TEXT_PERCENT; ?></th>
           <th><?php echo TEXT_LINES; ?></th>
         </tr>
       </thead>
-      <tbody class="ui-widget-content">
+      <tbody>
         <tr>
-          <td id="restore_queries" style="text-align:center">0</td>
-          <td id="restore_pct" style="text-align:center">0%</td>
-          <td id="restore_lines" style="text-align:center">0</td>
+          <td id="restore_queries" class="text-center">0</td>
+          <td id="restore_pct" class="text-center">0%</td>
+          <td id="restore_lines" class="text-center">0</td>
         </tr>
       </tbody>
     </table>
     <p id="restore_status"></p>
-  </fieldset>
+  </div>
 </div>
 
-<fieldset>
-  <legend><?php echo BOX_HEADING_RESTORE; ?></legend>
+<div class="fb-fieldset mb-3">
+  <div class="fb-fieldset-legend"><?php echo BOX_HEADING_RESTORE; ?></div>
 <?php
 $backups_dir = DIR_FS_MY_FILES . 'backups/';
 $files = is_dir($backups_dir) ? scandir($backups_dir) : array();
-// sort newest first
 usort($files, function($a, $b) use ($backups_dir) {
   if ($a === '.' || $a === '..') return 1;
   if ($b === '.' || $b === '..') return -1;
@@ -78,8 +78,8 @@ if (!$has_files) {
   echo '<p>' . BIGDUMP_NO_FILES . '</p>';
 } else {
 ?>
-  <table class="ui-widget" style="width:100%">
-    <thead class="ui-widget-header">
+  <table class="pkg-table table table-hover table-sm mb-0">
+    <thead class="table-dark">
       <tr>
         <th><?php echo TEXT_FILENAME; ?></th>
         <th><?php echo TEXT_SIZE; ?></th>
@@ -88,7 +88,7 @@ if (!$has_files) {
         <th colspan="2">&nbsp;</th>
       </tr>
     </thead>
-    <tbody class="ui-widget-content">
+    <tbody>
 <?php
 foreach ($files as $f) {
   if ($f === '.' || $f === '..') continue;
@@ -115,11 +115,9 @@ foreach ($files as $f) {
   echo "  <td>$fdate</td>\n";
   echo "  <td>$type</td>\n";
   if ($is_full) {
-    echo "  <td>" . html_button_field('', GEN_RESTORE_FULL_BUTTON,
-      "onclick=\"if(confirm(" . htmlspecialchars(json_encode(GEN_RESTORE_CONFIRM_FULL), ENT_QUOTES) . ")) startFullRestore($fn_js)\"") . "</td>\n";
+    echo "  <td><button type=\"button\" class=\"btn btn-primary btn-sm\" onclick=\"if(confirm(" . htmlspecialchars(json_encode(GEN_RESTORE_CONFIRM_FULL), ENT_QUOTES) . ")) startFullRestore($fn_js)\">" . GEN_RESTORE_FULL_BUTTON . "</button></td>\n";
   } else {
-    echo "  <td>" . html_button_field('', GEN_RESTORE_DB_BUTTON,
-      "onclick=\"startRestore($fn_js, 0, 0, 1)\"") . "</td>\n";
+    echo "  <td><button type=\"button\" class=\"btn btn-primary btn-sm\" onclick=\"startRestore($fn_js, 0, 0, 1)\">" . GEN_RESTORE_DB_BUTTON . "</button></td>\n";
   }
   echo "  <td><a href=\"$del_url\" onclick=\"return confirm(" .
     htmlspecialchars(json_encode(TEXT_DELETE . '?'), ENT_QUOTES) . ")\">" . BIGDUMP_DEL_FILE . "</a></td>\n";
@@ -129,10 +127,10 @@ foreach ($files as $f) {
     </tbody>
   </table>
 <?php } ?>
-</fieldset>
+</div>
 
-<fieldset>
-  <legend><?php echo GEN_RESTORE_UPLOAD_LABEL; ?></legend>
+<div class="fb-fieldset mb-3">
+  <div class="fb-fieldset-legend"><?php echo GEN_RESTORE_UPLOAD_LABEL; ?></div>
 <?php
 $tempfile = @tempnam($backups_dir, 'chk');
 if ($tempfile) {
@@ -146,10 +144,10 @@ if ($tempfile) {
   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo $max_int; ?>" />
   <p><?php echo GEN_RESTORE_UPLOAD_LABEL; ?>:
     <input type="file" name="dumpfile" accept=".sql,.gz,.bz2,.zip,.csv" size="60" />
-    &nbsp;<?php echo html_button_field('uploadbutton', 'Upload', 'onclick="document.restore.submit()"'); ?>
+    &nbsp;<button type="button" class="btn btn-primary btn-sm" onclick="document.restore.submit()">Upload</button>
   </p>
 <?php } else { ?>
   <p><?php printf(BIGDUMP_UPLOAD_A, $backups_dir); ?><?php echo BIGDUMP_UPLOAD_B . $backups_dir; ?></p>
 <?php } ?>
-</fieldset>
+</div>
 </form>
