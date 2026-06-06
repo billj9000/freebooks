@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,6 +18,7 @@
 //  Path: /modules/phreepos/pages/closing/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_POS_CLOSING);
+$use_bootstrap_nav = true;
 define('JOURNAL_ID',2);
 /**************  include page specific files    *********************/
 gen_pull_language('phreebooks');
@@ -79,6 +81,7 @@ switch ($_REQUEST['action']) {
 	  $cleared_items[]   = $_POST['id'][$i];
 	  $glrows[db_prepare_input($_POST['gl_account_' . $i])] += $currencies->clean_value($_POST['amt_'.$i]) - $currencies->clean_value($_POST['pmt_'.$i]);
 	}
+	$balance_payments = 0;
 	foreach($glrows as $key => $value){
 		$value = $value;
 		if($value == $currencies->clean_value(0)) continue;
@@ -202,8 +205,8 @@ if ($post_date){
 		'name'       => $result->fields['gl_type'] == 'pmt' ? $result->fields['gl_name'] : $result->fields['description'],
 	    'gl_account' => $result->fields['gl_account'],
 		'description'=> $result->fields['description'],
-		'dep_amount' => ($new_total < 0) ? ''          : $new_total,
-		'pmt_amount' => ($new_total < 0) ? -$new_total : '',
+		'dep_amount' => ($new_total < 0) ? 0.0        : $new_total,
+		'pmt_amount' => ($new_total < 0) ? -$new_total : 0.0,
 		'payment'    => ($new_total < 0) ? 1           : 0,
 		'cleared'    => 0,
 	  );
@@ -237,8 +240,8 @@ if ($post_date){
 			  'name'       => $result->fields['gl_type'] == 'pmt' ? $result->fields['gl_name'] : $result->fields['description'],
 			  'gl_account' => $result->fields['gl_account'],
 			  'description'=> $result->fields['description'],
-			  'dep_amount' => ($new_total < 0) ? ''          : $new_total,
-			  'pmt_amount' => ($new_total < 0) ? -$new_total : '',
+			  'dep_amount' => ($new_total < 0) ? 0.0        : $new_total,
+			  'pmt_amount' => ($new_total < 0) ? -$new_total : 0.0,
 			  'payment'    => ($new_total < 0) ? 1           : 0,
 			  'cleared'    => 1,
 			);

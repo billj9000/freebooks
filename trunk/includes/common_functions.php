@@ -1855,9 +1855,8 @@ function pw_validate_encrypt($plain) {
     $sql = "select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = 'ENCRYPTION_VALUE'";
     $result = $db->Execute($sql);
     $encrypted = $result->fields['configuration_value'];
-    $stack = explode(':', $encrypted);
-    if (count(is_array($stack) ? $stack : []) != 2) return false;
-    if (md5($stack[1] . $plain) == $stack[0]) return true;
+    if (!gen_not_null($encrypted)) return true; // no master key set; accept any non-empty key
+    return pw_validate_password($plain, $encrypted);
   }
   return false;
 }
