@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,33 +26,21 @@ if (PHREEHELP_FORCE_RELOAD == '1') { // load/reload db tables if forced to
   synchronize();
   write_configure('PHREEHELP_FORCE_RELOAD', '0');
 }
-$frame_id    = isset($_GET['fID'])          ? $_GET['fID']          : 'main';
 $context_ref = isset($_GET['idx'])          ? $_GET['idx']          : '';
-$result = false;
-$start_page = DOC_ROOT_URL;
+$search_text = isset($_GET['search_text'])  ? $_GET['search_text']  : '';
+$start_page  = DOC_ROOT_URL;
 if ($context_ref) {
   $result = $db->Execute("select doc_url from " . TABLE_PHREEHELP . " where doc_pos = '" . $context_ref . "'");
   if ($result->RecordCount() > 0) $start_page = $result->fields['doc_url'];
 }
-$frame_url = 'index.php?module=phreehelp&amp;page=main';
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/main/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
-/***************   Act on the action request   *************************/
-
 /*****************   prepare to display templates  *************************/
 $include_header   = false;
 $include_footer   = false;
 $custom_html      = true;
-
-switch ($frame_id) {
-  default:
-  case 'main': $include_template = 'template_main.php'; break;
-  case 'top':  $include_template = 'template_top.php';  break;
-  case 'left': 
-    $include_template = 'template_left.php';
-    break;
-}
+$include_template = 'template_main.php';
 define('PAGE_TITLE', HEADING_TITLE);
 
 ?>

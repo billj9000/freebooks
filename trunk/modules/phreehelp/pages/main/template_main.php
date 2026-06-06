@@ -1,29 +1,127 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
-<html>
+<!DOCTYPE html>
+<?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /modules/phreehelp/pages/main/template_main.php
+//
+?>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?php echo HEADING_TITLE; ?></title>
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery-ui.css'; ?>" />	
-  <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
-  <script type="text/javascript">
-    var icon_path        = '<?php echo DIR_WS_ICONS; ?>';
-    var combo_image_on  = '<?php echo DIR_WS_ICONS . '16x16/phreebooks/pull_down_active.gif';   ?>';
-    var combo_image_off = '<?php echo DIR_WS_ICONS . '16x16/phreebooks/pull_down_inactive.gif'; ?>';
-    var pbBrowser       = (document.all) ? 'IE' : 'FF';
+  <link rel="shortcut icon" type="image/ico" href="favicon.ico">
+  <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
+  <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+  <script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
+  <script>
+    var icon_path = '<?php echo DIR_WS_ICONS; ?>';
+    function Toggle(item) {
+      var obj = document.getElementById(item);
+      var visible = obj ? obj.style.display !== 'none' : false;
+      var key = document.getElementById('img' + item);
+      if (visible) {
+        if (obj) obj.style.display = 'none';
+        if (key) key.innerHTML = "<img src='" + icon_path + "16x16/places/folder.png' width='16' height='16' border='0'>";
+      } else {
+        if (obj) obj.style.display = 'block';
+        if (key) key.innerHTML = "<img src='" + icon_path + "16x16/actions/document-open.png' width='16' height='16' border='0'>";
+      }
+    }
+    function Expand(tab_type) {
+      document.querySelectorAll('div[id^="' + tab_type + '"]').forEach(function(div) {
+        div.style.display = 'block';
+        var key = document.getElementById('img' + div.id);
+        if (key) key.innerHTML = "<img src='" + icon_path + "16x16/actions/document-open.png' width='16' height='16' border='0'>";
+      });
+    }
+    function Collapse(tab_type) {
+      document.querySelectorAll('div[id^="' + tab_type + '"]').forEach(function(div) {
+        div.style.display = 'none';
+        var key = document.getElementById('img' + div.id);
+        if (key) key.innerHTML = "<img src='" + icon_path + "16x16/places/folder.png' width='16' height='16' border='0'>";
+      });
+    }
   </script>
-  <script type="text/javascript" src="includes/common.js"></script>
-  <script type="text/javascript" src="includes/jquery-1.6.2.min.js"></script>
-  <script type="text/javascript" src="includes/jquery-ui-1.8.16.custom.min.js"></script>
-  <?php require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php'); ?>
-  <?php require_once(DIR_FS_WORKING . 'pages/' . $page . '/js_include.php'); ?>
+  <style>
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    #help-layout { display: flex; flex-direction: column; height: 100vh; }
+    #help-body   { display: flex; flex: 1; overflow: hidden; }
+    #help-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; overflow: hidden; }
+    #helpTabContent { flex: 1; overflow-y: auto; padding: 0.5rem; }
+    #contentFrame { flex: 1; border: none; height: 100%; }
+  </style>
 </head>
+<body>
+<div id="help-layout">
 
-<frameset rows="*" cols="300,*">
-  <frameset rows="40,*" cols="*">
-    <frame name="topFrame" src="<?php echo $frame_url . '&amp;fID=top'; ?>" scrolling="NO">
-    <frame name="leftFrame" src="<?php echo $frame_url . '&amp;fID=left'; ?>">
-  </frameset>
-  <frame name="mainFrame" src="<?php echo $start_page; ?>">
-</frameset>
+  <!-- Top navigation bar -->
+  <div class="d-flex align-items-center gap-1 p-1 border-bottom bg-light flex-shrink-0">
+    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_HOME; ?>"    onclick="document.getElementById('contentFrame').contentWindow.location.href='<?php echo DOC_ROOT_URL; ?>'"><?php echo html_icon('actions/go-home.png',        TEXT_HOME,    'large'); ?></button>
+    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_BACK; ?>"    onclick="document.getElementById('contentFrame').contentWindow.history.back()"><?php echo html_icon('actions/go-previous.png',   TEXT_BACK,    'large'); ?></button>
+    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_FORWARD; ?>" onclick="document.getElementById('contentFrame').contentWindow.history.forward()"><?php echo html_icon('actions/go-next.png',       TEXT_FORWARD, 'large'); ?></button>
+    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_PRINT; ?>"   onclick="document.getElementById('contentFrame').contentWindow.print()"><?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large'); ?></button>
+    <button class="btn btn-outline-secondary btn-sm ms-auto" title="<?php echo TEXT_EXIT; ?>" onclick="window.close()"><?php echo html_icon('actions/system-log-out.png', TEXT_EXIT,    'large'); ?></button>
+  </div>
+
+  <!-- Main body -->
+  <div id="help-body">
+
+    <!-- Left sidebar -->
+    <div id="help-sidebar">
+      <ul class="nav nav-tabs fb-tabs flex-shrink-0" id="helpTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link <?php echo (!$search_text) ? 'active' : ''; ?>" data-bs-toggle="tab" data-bs-target="#tab-contents" type="button" role="tab"><?php echo HEADING_CONTENTS; ?></button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-index" type="button" role="tab"><?php echo HEADING_INDEX; ?></button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link <?php echo $search_text ? 'active' : ''; ?>" id="tab-search-btn" data-bs-toggle="tab" data-bs-target="#tab-search" type="button" role="tab"><?php echo TEXT_SEARCH; ?></button>
+        </li>
+      </ul>
+      <div class="tab-content fb-tab-content" id="helpTabContent">
+        <div class="tab-pane fade <?php echo (!$search_text) ? 'show active' : ''; ?>" id="tab-contents" role="tabpanel">
+          <?php echo retrieve_toc(); ?>
+        </div>
+        <div class="tab-pane fade" id="tab-index" role="tabpanel">
+          <?php echo retrieve_index(); ?>
+        </div>
+        <div class="tab-pane fade <?php echo $search_text ? 'show active' : ''; ?>" id="tab-search" role="tabpanel">
+          <form method="get" action="index.php" class="mb-2 pt-2 px-2">
+            <input type="hidden" name="module" value="phreehelp">
+            <input type="hidden" name="page" value="main">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control" name="search_text" value="<?php echo htmlspecialchars($search_text); ?>" placeholder="<?php echo TEXT_KEYWORD; ?>">
+              <button class="btn btn-primary btn-sm" type="submit"><?php echo TEXT_SEARCH; ?></button>
+            </div>
+          </form>
+          <?php if ($search_text): ?>
+            <div class="px-2"><strong><?php echo TEXT_SEARCH_RESULTS; ?></strong></div>
+            <div class="px-2"><?php echo search_results($search_text); ?></div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div><!-- /help-sidebar -->
+
+    <!-- Help content -->
+    <iframe id="contentFrame" name="mainFrame" src="<?php echo $start_page; ?>" title="<?php echo HEADING_TITLE; ?>"></iframe>
+
+  </div><!-- /help-body -->
+</div><!-- /help-layout -->
+</body>
 </html>
