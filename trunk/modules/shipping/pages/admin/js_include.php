@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,14 +19,10 @@
 //
 ?>
 <script type="text/javascript">
-<!--
-// pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
 function init() {
-  $(function() { $('#admintabs').tabs(); });
-  var dlg = $('#shipping_dialog').dialog({ 
-	  autoOpen: false,
-	  buttons: { "<?php echo TEXT_SUBMIT; ?>": function() { $(this).dialog('close'); document.getElementById('action').form.submit(); } }
+  var dlg = $('#shipping_dialog').dialog({
+    autoOpen: false,
+    buttons: { "<?php echo TEXT_SUBMIT; ?>": function() { $(this).dialog('close'); document.getElementById('action').form.submit(); } }
   });
   dlg.parent().appendTo($("#admin"));
 }
@@ -34,7 +31,6 @@ function check_form() {
   return true;
 }
 
-// Insert other page specific functions here.
 function toggleProperties(id) {
   if (document.getElementById(id).style.display == 'none') {
     document.getElementById(id).style.display = '';
@@ -48,11 +44,11 @@ function getDialog(method, template) {
   $.ajax({
     type: "GET",
     url: 'index.php?module=shipping&page=ajax&op=shipping&action=form&method='+method+'&template='+template,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
-	success: fillDialog
+    success: fillDialog
   });
 }
 
@@ -65,6 +61,4 @@ function fillDialog(sXml) {
   document.getElementById('shipping_dialog').innerHTML = $(xml).find("html").text();
   $('#shipping_dialog').dialog('open');
 }
-
-// -->
 </script>
