@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -36,6 +36,7 @@ if ($id == 0 || $doc_details->fields['doc_type'] == '0') { // folder
   $field_list   = array('id', 'doc_type', 'doc_title', 'security');
   $query_raw    = "select " . implode(', ', $field_list)  . " from " . TABLE_PHREEFORM . " where parent_id = '" . $id . "'";
   $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
+  $query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
   include (DIR_FS_MODULES . 'phreeform/pages/main/tab_folder.php');
 } else { // load document details
   include (DIR_FS_MODULES . 'phreeform/pages/main/tab_report.php');

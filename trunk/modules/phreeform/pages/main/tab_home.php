@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,27 +18,17 @@
 //  Path: /modules/phreeform/pages/main/tab_home.php
 //
 
-$fieldset_content = NULL;
-// build the tab contents
-$fieldset_content .= '<table class="ui-widget" style="border-style:none;width:100%">' . chr(10);
-$fieldset_content .= '<tr><td width="50%" valign="top">' . chr(10);
-// column 1
-$fieldset_content .= '  <table class="ui-widget" style="border-style:none;width:100%">' . chr(10);
-$fieldset_content .= '   <thead class="ui-widget-header">' . chr(10);
-$fieldset_content .= '    <tr><th>' . TEXT_MY_REPORTS . '</th></tr>' . chr(10);
-$fieldset_content .= '   </thead>' . chr(10);
-$fieldset_content .= '   <tbody class="ui-widget-content">' . chr(10);
-$fieldset_content .= '    <tr><td>' . load_my_reports() . '</td></tr>' . chr(10);
-$fieldset_content .= '   </tbody></table>' . chr(10);
-$fieldset_content .= '</td><td width="50%" valign="top">' . chr(10);
-// column 2
-$fieldset_content .= '  <table class="ui-widget" style="border-style:none;width:100%">' . chr(10);
-$fieldset_content .= '   <thead class="ui-widget-header">' . chr(10);
-$fieldset_content .= '    <tr><th>' . TEXT_RECENTLY_ADDED . '</th></tr>' . chr(10);
-$fieldset_content .= '   </thead>' . chr(10);
-$fieldset_content .= '   <tbody class="ui-widget-content">' . chr(10);
-$fieldset_content .= '    <tr><td>' . load_recently_added() . '</td></tr>' . chr(10);
-$fieldset_content .= '  </tbody></table>' . chr(10);
-$fieldset_content .= '</td></tr></table>' . chr(10);
-
+$fieldset_content = '';
+$fieldset_content .= '<div class="row">' . chr(10);
+$fieldset_content .= '<div class="col-md-6">' . chr(10);
+$fieldset_content .= '<div class="fb-card mb-2">' . chr(10);
+$fieldset_content .= '<div class="card-header py-1 fb-widget-header">' . TEXT_MY_REPORTS . '</div>' . chr(10);
+$fieldset_content .= '<div class="card-body p-2">' . load_my_reports() . '</div>' . chr(10);
+$fieldset_content .= '</div></div>' . chr(10);
+$fieldset_content .= '<div class="col-md-6">' . chr(10);
+$fieldset_content .= '<div class="fb-card mb-2">' . chr(10);
+$fieldset_content .= '<div class="card-header py-1 fb-widget-header">' . TEXT_RECENTLY_ADDED . '</div>' . chr(10);
+$fieldset_content .= '<div class="card-body p-2">' . load_recently_added() . '</div>' . chr(10);
+$fieldset_content .= '</div></div>' . chr(10);
+$fieldset_content .= '</div>' . chr(10);
 ?>

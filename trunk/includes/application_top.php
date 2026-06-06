@@ -99,6 +99,10 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
 	define($result->fields['configuration_key'], $result->fields['configuration_value']);
 	$result->MoveNext();
   }
+  if (!defined('DATE_FORMAT_CALENDAR')) {
+    $cal_format = defined('DATE_FORMAT') ? preg_replace(array('/m/','/d/','/Y/'), array('mm','dd','yy'), DATE_FORMAT) : 'mm-dd-yy';
+    define('DATE_FORMAT_CALENDAR', $cal_format);
+  }
   // search the list modules and load configuration files and language files
   gen_pull_language('phreedom', 'menu');
   gen_pull_language('phreebooks', 'menu');

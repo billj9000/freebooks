@@ -348,7 +348,7 @@ $cal_from = array(
   'form'      => 'popup_gen',
   'fieldname' => 'date_from',
   'imagename' => 'btn_date_1',
-  'default'   => isset($DateArray[1]) ? gen_locale_date($DateArray[1]) : date(DATE_FORMAT),
+  'default'   => ($DateArray[0] != 'z' && isset($DateArray[1])) ? gen_locale_date($DateArray[1]) : date(DATE_FORMAT),
   'params'    => array('align' => 'left'),
 );
 $cal_to = array(
@@ -356,7 +356,7 @@ $cal_to = array(
   'form'      => 'popup_gen',
   'fieldname' => 'date_to',
   'imagename' => 'btn_date_2',
-  'default'   => isset($DateArray[2]) ? gen_locale_date($DateArray[2]) : date(DATE_FORMAT),
+  'default'   => ($DateArray[0] != 'z' && isset($DateArray[2])) ? gen_locale_date($DateArray[2]) : date(DATE_FORMAT),
   'params'    => array('align' => 'left'),
 );
 
