@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,24 +18,21 @@
 //  Path: /modules/contacts/pages/main/template_addbook.php
 //
 ?>
-<div id="tab_addbook" class="tab-pane">
-<?php // *********************** SHIPPING ADDRESSES  *************************************
-  if (defined('MODULE_SHIPPING_STATUS')) { // show shipping address for customers and vendors
-    echo '  <fieldset>';
-    echo '    <legend>' . ACT_CATEGORY_S_ADDRESS . '</legend>';
-    echo '    <table id="'.$type.'s_address_form" class="ui-widget" style="border-style:none;width:100%;">';
-    echo '      <tr><td>' . ACT_SHIPPING_MESSAGE . '</td></tr>';
-    echo draw_address_fields($cInfo, $type.'s', true);
-    echo '    </table>';
-    echo '  </fieldset>';
-  }
-  // *********************** BILLING/BRANCH ADDRESSES  *********************************
-    echo '<fieldset>';
-    echo '  <legend>' . ACT_CATEGORY_B_ADDRESS . '</legend>'; 
-    echo '  <table id="'.$type.'b_address_form" class="ui-widget" style="border-collapse:collapse;width:100%;">';
-    echo '    <tr><td>' . ACT_BILLING_MESSAGE . '</td></tr>';
-    echo draw_address_fields($cInfo, $type.'b', true);
-    echo '  </table>';
-    echo '</fieldset>';
-?>
+<div id="tab_addbook" class="tab-pane fade" role="tabpanel">
+<?php if (defined('MODULE_SHIPPING_STATUS')): ?>
+<div class="fb-fieldset mt-2 mb-2">
+  <div class="fb-fieldset-legend"><?php echo ACT_CATEGORY_S_ADDRESS; ?></div>
+  <table id="<?php echo $type; ?>s_address_form" style="width:100%">
+    <tr><td><?php echo ACT_SHIPPING_MESSAGE; ?></td></tr>
+    <?php echo draw_address_fields($cInfo, $type.'s', true); ?>
+  </table>
+</div>
+<?php endif; ?>
+<div class="fb-fieldset mt-2 mb-2">
+  <div class="fb-fieldset-legend"><?php echo ACT_CATEGORY_B_ADDRESS; ?></div>
+  <table id="<?php echo $type; ?>b_address_form" style="width:100%">
+    <tr><td><?php echo ACT_BILLING_MESSAGE; ?></td></tr>
+    <?php echo draw_address_fields($cInfo, $type.'b', true); ?>
+  </table>
+</div>
 </div>
