@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -15,7 +15,7 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /modules/phreedom/pages/admin/template_currency_currency.php
+//  Path: /modules/phreedom/pages/admin/template_tab_currency.php
 //
 $currency_toolbar = new toolbar('currency');
 $currency_toolbar->icon_list['cancel']['show'] = false;
@@ -30,8 +30,8 @@ if (ENABLE_MULTI_CURRENCY) {
 }
 
 ?>
-<div id="tab_currency">
-    <?php echo $currency_toolbar->build_toolbar(); ?>
-	<h1><?php echo $currency->title; ?></h1>
-    <div id="currency_content"><?php echo $currency->build_main_html(); ?></div>
+<div class="tab-pane fade<?php echo ($active_tab === 'currency' ? ' show active' : ''); ?>" id="tab_currency" role="tabpanel">
+  <?php echo $currency_toolbar->build_toolbar(); ?>
+  <h1><?php echo $currency->title; ?></h1>
+  <div id="currency_content"><?php echo $currency->build_main_html(); ?></div>
 </div>

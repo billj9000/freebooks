@@ -107,6 +107,12 @@ When converting an existing jQuery UI page to Bootstrap, follow these rules. Det
 - Use plain `<select>` with `style="width:100%"` — no `form-select` class
 - This matches the orders page and makes placeholder text look like labels rather than form fields
 
+**Fieldset-style sections** (grouped content with a floating title in the border):
+- Use `<div class="fb-fieldset mb-2">` + `<div class="fb-fieldset-legend">Title</div>` — do **not** use native `<fieldset>`/`<legend>` elements
+- `fb-fieldset` and `fb-fieldset-legend` are defined in `trunk/ext/bootstrap5/freebooks.css`
+- This approach is CSS-only so it can be restyled per theme; native `<fieldset>` fights CSS overrides
+- Use for standalone utility/tool pages (e.g. admin_tools); use `fb-card`/`fb-widget-header` for dashboard-style panels with a filled header bar
+
 **Tab pages** — see the tab conversion checklist in the memory reference.
 
 ### Security Model
