@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,37 +18,36 @@
 //  Path: /modules/payment/pages/admin/template_tab_stats.php
 //
 ?>
-<div id="tab_stats">
-<?php 
-  if (!empty($install->tables)) {
-    echo "  <fieldset><!-- db table stats -->\n";
-    echo "    <legend>" . TEXT_TABLE_STATS . "</legend>\n";
-    echo "    <table width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\n";
-    echo "      <thead>\n";
-    echo "        <tr>\n";
-	echo "          <th>" . TEXT_TABLE . "</th>\n";
-	echo "          <th>" . TEXT_ENGINE . "</th>\n";
-	echo "          <th>" . TEXT_NUM_ROWS . "</th>\n";
-	echo "          <th>" . TEXT_COLLATION . "</th>\n";
-	echo "          <th>" . TEXT_SIZE . "</th>\n";
-	echo "          <th>" . TEXT_NEXT_ID . "</th>\n";
-    echo "        </tr>\n";
-    echo "      </thead>\n";
-    echo "      <tbody>\n";
-    foreach ($install->tables as $tablename => $tablesql) {
-	  $result = $db->Execute("SHOW TABLE STATUS LIKE '" . $tablename ."'");
-	  echo "         <tr>\n";
-	  echo "          <td>" . $result->fields['Name'] . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Engine'] . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Rows'] . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Collation'] . "</td>\n";
-	  echo "          <td align=\"center\">" .($result->fields['Data_length'] + $result->fields['Index_length']) . "</td>\n";
-	  echo "          <td align=\"center\">" . $result->fields['Auto_increment'] . "</td>\n";
-	  echo "        </tr>\n";
-    }
-    echo "      </tbody>\n";
-	echo "    </table>\n";
-	echo "  </fieldset>\n";
-  }
+<div class="tab-pane fade<?php echo ($active_tab === 'stats' ? ' show active' : ''); ?>" id="tab_stats" role="tabpanel">
+<?php if (!empty($install->tables)): ?>
+<div class="fb-fieldset mt-2 mb-2">
+  <div class="fb-fieldset-legend"><?php echo TEXT_TABLE_STATS; ?></div>
+  <table class="pkg-table table table-borderless table-hover table-sm mb-0">
+    <thead class="table-dark">
+      <tr>
+        <th><?php echo TEXT_TABLE; ?></th>
+        <th class="text-center"><?php echo TEXT_ENGINE; ?></th>
+        <th class="text-center"><?php echo TEXT_NUM_ROWS; ?></th>
+        <th class="text-center"><?php echo TEXT_COLLATION; ?></th>
+        <th class="text-center"><?php echo TEXT_SIZE; ?></th>
+        <th class="text-center"><?php echo TEXT_NEXT_ID; ?></th>
+      </tr>
+    </thead>
+    <tbody>
+<?php foreach ($install->tables as $tablename => $tablesql):
+  $result = $db->Execute("SHOW TABLE STATUS LIKE '" . $tablename . "'");
 ?>
+      <tr>
+        <td><?php echo $result->fields['Name']; ?></td>
+        <td class="text-center"><?php echo $result->fields['Engine']; ?></td>
+        <td class="text-center"><?php echo $result->fields['Rows']; ?></td>
+        <td class="text-center"><?php echo $result->fields['Collation']; ?></td>
+        <td class="text-center"><?php echo $result->fields['Data_length'] + $result->fields['Index_length']; ?></td>
+        <td class="text-center"><?php echo $result->fields['Auto_increment']; ?></td>
+      </tr>
+<?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php endif; ?>
 </div>
