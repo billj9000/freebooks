@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,6 +18,7 @@
 //  Path: /modules/phreepos/pages/pos_mgr/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_POS_MGR);
+$use_bootstrap_nav = true;
 define('JOURNAL_ID','19');
 /**************  include page specific files    *********************/
 require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
