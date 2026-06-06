@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,7 +18,8 @@
 //  Path: /modules/phreepos/pages/deposit/pre_process.php
 //
 
-$security_level = validate_user(SECURITY_ID_CUSTOMER_DEPOSITS);
+$security_level    = validate_user(SECURITY_ID_CUSTOMER_DEPOSITS);
+$use_bootstrap_nav = true;
 $type           = $_GET['type'];
 switch ($type) {
   case 'c': // customers
@@ -42,6 +44,7 @@ switch ($type) {
 /************** include page specific files *********************/
 gen_pull_language('phreebooks');
 gen_pull_language('contacts');
+require_once(DIR_FS_MODULES . 'payment/defaults.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
 require_once(DIR_FS_MODULES . 'phreebooks/classes/banking.php');
