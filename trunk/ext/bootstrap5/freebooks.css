@@ -340,7 +340,7 @@ table.ui-widget tbody.ui-widget-content tr:hover td {
   border-radius: 0;
   line-height:   1.4;
 }
-.btn-sm { font-size: 11px; padding: 0px 5px; border-radius: 6px; line-height: 1.2; }
+.btn-sm { font-size: 11px; padding: 0px 5px !important; border-radius: 6px !important; line-height: 1.2; }
 
 .btn-primary {
   background-color:    #0078ae;
