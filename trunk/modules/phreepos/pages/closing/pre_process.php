@@ -92,8 +92,8 @@ switch ($_REQUEST['action']) {
 			'qty'           => '1',
 			'gl_account'    => $key,
 			'description'   => PHREEPOS_HANDELING_CASH_DIFFERENCE,
-			'debit_amount'  => ($value > 0 ) ? $value : '',
-			'credit_amount' => ($value > 0 ) ? ''     : -$value,
+			'debit_amount'  => ($value > 0 ) ? $value : 0,
+			'credit_amount' => ($value > 0 ) ? 0      : -$value,
 			'reconciled'	=> ($security_level > 2) ? $period : 0,
 			'post_date'     => $glEntry->post_date);
 	}
@@ -103,8 +103,8 @@ switch ($_REQUEST['action']) {
 		'qty'           => '1',
 		'gl_account'    => $tills->gl_acct_id,
 		'description'   => PHREEPOS_HANDELING_CASH_DIFFERENCE,
-		'debit_amount'  => ($value > 0 ) ? $value : '',
-		'credit_amount' => ($value > 0 ) ? ''     : -$value,
+		'debit_amount'  => ($value > 0 ) ? $value : 0,
+		'credit_amount' => ($value > 0 ) ? 0      : -$value,
 		'reconciled'	=> ($security_level > 2) ? $period : 0,
 		'post_date'     => $glEntry->post_date);
 	if ($currencies->clean_value($_POST['balance'])<> 0){
@@ -113,8 +113,8 @@ switch ($_REQUEST['action']) {
 			'qty'           => '1',
 			'gl_account'    => $tills->dif_gl_acct_id,
 			'description'   => PHREEPOS_HANDELING_CASH_DIFFERENCE,
-			'debit_amount'  => ($currencies->clean_value($_POST['balance']) > 0) ? '' : -$currencies->clean_value($_POST['balance']) ,
-			'credit_amount' => ($currencies->clean_value($_POST['balance']) > 0) ? $currencies->clean_value($_POST['balance']) : '' ,
+			'debit_amount'  => ($currencies->clean_value($_POST['balance']) > 0) ? 0 : -$currencies->clean_value($_POST['balance']) ,
+			'credit_amount' => ($currencies->clean_value($_POST['balance']) > 0) ? $currencies->clean_value($_POST['balance']) : 0 ,
 			'reconciled'	=> ($security_level > 2) ? $period : 0,
 			'post_date'     => $glEntry->post_date);		
 	}

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -117,7 +118,7 @@ function refreshOrderClock() {
 	  $.ajax({
 		type: "GET",
 		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+acct+'&qty='+qty+'&upc='+upc+'&rID='+rowCnt+'&jID='+journalID,
-		dataType: ($.browser.msie) ? "text" : "xml",
+		dataType: "xml",
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 		  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 		},
@@ -241,7 +242,7 @@ function ajaxOrderData(cID, oID, jID, open_order, ship_only) {
 		$.ajax({
 	    	type: "GET",
 	    	url: 'index.php?module=phreebooks&page=ajax&op=load_order&cID='+cID+'&oID='+oID+'&jID='+jID+'&so_po=0&ship_only=0',
-	    	dataType: ($.browser.msie) ? "text" : "xml",
+	    	dataType: "xml",
 	    	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	      		alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 	    	},
@@ -251,7 +252,7 @@ function ajaxOrderData(cID, oID, jID, open_order, ship_only) {
 		$.ajax({
 			type: "GET",
 			url: 'index.php?module=phreepos&page=ajax&op=print_previous&oID='+oID,
-			dataType: ($.browser.msie) ? "text" : "xml",
+			dataType: "xml",
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 			},
@@ -427,7 +428,7 @@ function accountGuess(force) {
 	  $.ajax({
 		type: "GET",
 		url: 'index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type=c&guess='+guess,
-		dataType: ($.browser.msie) ? "text" : "xml",
+		dataType: "xml",
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 		  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 		},
@@ -696,7 +697,7 @@ function updateRowTotal(rowCnt, useAjax) {
 	    $.ajax({
 	      type: "GET",
 	      url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuPrice&cID='+cID+'&sku='+sku+'&qty='+qty+'&rID='+rowCnt+'&strict=1',
-	      dataType: ($.browser.msie) ? "text" : "xml",
+	      dataType: "xml",
 	      error: function(XMLHttpRequest, textStatus, errorThrown) {
 		    alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 	      },
@@ -962,7 +963,7 @@ function loadSkuDetails(iID, rowCnt) {
 	    type: "GET",
 	    contentType: "application/xml; charset=utf-8",
 		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&strict=1&sku='+sku+'&rID='+rowCnt+'&jID='+journalID,
-	    dataType: ($.browser.msie) ? "text" : "xml",
+	    dataType: "xml",
 	    error: function(XMLHttpRequest, textStatus, errorThrown) {
 	    	alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 	    },
@@ -1186,7 +1187,7 @@ function ajaxSave(PrintOrSave){
 	$.ajax({
 		type: "POST",
 		url: 'index.php?module=phreepos&page=ajax&op=save_main&action='+PrintOrSave,
-		dataType: ($.browser.msie) ? "text" : "xml",
+		dataType: "xml",
 		data: $("form").serialize(),
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 		      alert ("Ajax ErrorThrown: " + errorThrown + "\nTextStatus: " + textStatus + "\nError: " + XMLHttpRequest.responseText);
@@ -1288,7 +1289,7 @@ function GetPrintPreviousReceipt() {
 	$.ajax({
 	  type: "GET",
       url: 'index.php?module=phreepos&page=ajax&op=print_previous',
-      dataType: ($.browser.msie) ? "text" : "xml",
+      dataType: "xml",
       error: function(XMLHttpRequest, textStatus, errorThrown) {
       	alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
       },
@@ -1407,7 +1408,7 @@ function SaveOt(){
 	$.ajax({
 		type: "POST",
 		url: 'index.php?module=phreepos&page=ajax&op=other_transactions&action=save',
-		dataType: ($.browser.msie) ? "text" : "xml",
+		dataType: "xml",
 		data: $("form [name=popupOtherTrans]").serialize(),
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 		      alert ("Ajax ErrorThrown: " + errorThrown + "\nTextStatus: " + textStatus + "\nError: " + XMLHttpRequest.responseText);
