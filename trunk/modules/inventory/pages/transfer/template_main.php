@@ -35,8 +35,8 @@ $toolbar->add_help('07.04.02');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
-<div class="card fb-card mb-2">
-  <div class="card-header py-1 fb-widget-header"><?php echo PAGE_TITLE; ?></div>
+<div class="d-flex flex-column align-items-center">
+<div class="card border-0 mb-2" style="width:fit-content">
   <div class="card-body py-2 px-3" style="font-size:11px">
     <div class="d-flex flex-wrap gap-3">
       <div>
@@ -62,7 +62,9 @@ echo $toolbar->build_toolbar();
     </div>
   </div>
 </div>
-<table class="pkg-table table table-borderless table-hover table-sm">
+</div>
+<div style="width:fit-content; margin:0 auto">
+<table class="pkg-table table table-borderless table-hover table-sm" style="width:auto; border:1px solid #a6c9e2">
   <thead class="table-dark">
     <tr>
       <th><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small'); ?></th>
@@ -102,11 +104,11 @@ if (!$error) {
 }
 ?>
   </tbody>
-  <tfoot>
-    <tr>
-      <td><?php echo html_icon('actions/list-add.png', TEXT_ADD, 'medium', 'onclick="addInvRow()"'); ?></td>
-    </tr>
-  </tfoot>
 </table>
+<div style="padding:4px 0">
+  <?php echo html_icon('actions/list-add.png', TEXT_ADD, 'medium', 'onclick="addInvRow()"'); ?>
+</div>
+</div>
 <?php echo $hidden_fields; ?>
 </form>
+
