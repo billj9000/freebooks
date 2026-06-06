@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -16,21 +17,15 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/pages/admin/js_include.php
 //
-
 ?>
 <script type="text/javascript">
-<!--
-// pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
-
 function init() {
-  $(function() { // initialize tables
-	$('#admintabs').tabs();
-    $('#coa_table').dataTable( dataTables_i18n );
-    $('#tax_c_table').dataTable( dataTables_i18n );
-    $('#tax_v_table').dataTable( dataTables_i18n );
-    $('#tax_auth_c_table').dataTable( dataTables_i18n );
-    $('#tax_auth_v_table').dataTable( dataTables_i18n );
+  $(function() {
+    $('#coa_table').dataTable(dataTables_i18n);
+    $('#tax_c_table').dataTable(dataTables_i18n);
+    $('#tax_v_table').dataTable(dataTables_i18n);
+    $('#tax_auth_c_table').dataTable(dataTables_i18n);
+    $('#tax_auth_v_table').dataTable(dataTables_i18n);
   });
 }
 
@@ -38,7 +33,6 @@ function check_form() {
   return true;
 }
 
-// Insert other page specific functions here.
 function loadPopUp(action, id) {
   switch(action) {
     case 'chart_of_accounts_new':    action = 'new';    subject = 'chart_of_accounts'; break;
@@ -64,6 +58,4 @@ function subjectDelete(subject, id) {
   document.getElementById('subject').value = subject;
   submitSeq(id, 'delete');
 }
-
-// -->
 </script>

@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -25,14 +25,14 @@ $chart_of_accounts_toolbar->icon_list['delete']['show'] = false;
 $chart_of_accounts_toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) $chart_of_accounts_toolbar->add_icon('new', 'onclick="loadPopUp(\'chart_of_accounts_new\', 0)"', $order = 10);
 ?>
-<div id="tab_chart_of_accounts">
+<div class="tab-pane fade<?php echo ($active_tab === 'chart_of_accounts' ? ' show active' : ''); ?>" id="tab_chart_of_accounts" role="tabpanel">
   <?php echo $chart_of_accounts_toolbar->build_toolbar(); ?>
   <h1><?php echo $chart_of_accounts->title; ?></h1>
-  <div align="center">
+  <div class="text-center">
     <?php echo GL_SELECT_STD_CHART . html_pull_down_menu('std_chart', $sel_chart); ?>
     <?php echo GL_CHART_IMPORT_DESC . html_file_field('file_name') . '<br />'; ?>
     <?php echo html_checkbox_field('delete_chart', '1', false) . GL_CHART_REPLACE; ?>
-    <?php echo html_button_field('import', TEXT_IMPORT, 'onclick="submitToDo(\'import\')"'); ?>
+    <button type="button" class="btn btn-primary btn-sm" onclick="submitToDo('import')"><?php echo TEXT_IMPORT; ?></button>
     <?php echo '<br />' . GL_CHART_DELETE_WARNING; ?>
   </div>
   <div id="chart_of_accounts_content"><?php echo $chart_of_accounts->build_main_html(); ?></div>
