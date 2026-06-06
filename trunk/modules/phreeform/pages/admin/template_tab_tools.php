@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,10 +18,10 @@
 //  Path: /modules/phreeform/pages/admin/template_tab_tools.php
 //
 ?>
-<div id="tab_tools">
-<fieldset>
-  <legend><?php echo PHREEFORM_TOOLS_REBUILD_TITLE; ?></legend>
-  <p><?php echo PHREEFORM_TOOLS_REBUILD_DESC; ?></p>
-  <p align="center"><?php echo PHREEFORM_TOOLS_REBUILD_SUBMIT . ' ' . html_button_field('fix', TEXT_SUBMIT, 'onclick="submitToDo(\'fix\')"'); ?>
-</fieldset>
+<div class="tab-pane fade<?php echo ($active_tab === 'tools' ? ' show active' : ''); ?>" id="tab_tools" role="tabpanel">
+  <div class="fb-fieldset mb-3">
+    <div class="fb-fieldset-legend"><?php echo PHREEFORM_TOOLS_REBUILD_TITLE; ?></div>
+    <p><?php echo PHREEFORM_TOOLS_REBUILD_DESC; ?></p>
+    <p class="text-center"><?php echo PHREEFORM_TOOLS_REBUILD_SUBMIT; ?> <button type="button" class="btn btn-primary btn-sm" onclick="submitToDo('fix')"><?php echo TEXT_SUBMIT; ?></button></p>
+  </div>
 </div>
