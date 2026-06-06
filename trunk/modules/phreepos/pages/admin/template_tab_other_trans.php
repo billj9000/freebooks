@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,7 +15,7 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /modules/phreepos/pages/admin/template_other_trans.php
+//  Path: /modules/phreepos/pages/admin/template_tab_other_trans.php
 //
 $trans_toolbar = new toolbar();
 $trans_toolbar->icon_list['cancel']['show'] = false;
@@ -24,7 +25,7 @@ $trans_toolbar->icon_list['save']['show']   = false;
 $trans_toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) $trans_toolbar->add_icon('new', 'onclick="loadPopUp(\'other_transactions_new\', 0)"', $order = 10);
 ?>
-<div id="tab_other_trans">
+<div class="tab-pane fade" id="tab_other_trans" role="tabpanel">
   <?php echo $trans_toolbar->build_toolbar(); ?>
   <h1><?php echo $trans->title; ?></h1>
   <div id="other_trans_content"><?php echo $trans->build_main_html(); ?></div>
