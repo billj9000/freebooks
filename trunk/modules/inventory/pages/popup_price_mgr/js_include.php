@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -27,7 +28,6 @@ var num_price_sheets = <?php echo $price_sheets->RecordCount(); ?>;
 var num_price_levels = <?php echo MAX_NUM_PRICE_LEVELS; ?>;
 
 function init() {
-  $(function() { $('#pricetabs').tabs(); });
   <?php if ($_REQUEST['action'] == 'save'){
   	echo 'window.opener.location.reload();' . chr(10);
 	echo 'self.close();' . chr(10);
