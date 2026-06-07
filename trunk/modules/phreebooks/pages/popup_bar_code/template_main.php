@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,9 +18,7 @@
 //  Path: /modules/phreebooks/pages/popup_bar_code/template_main.php
 //
 echo html_form('bar_code', FILENAME_DEFAULT) . chr(10);
-// include hidden fields
 echo html_hidden_field('action', '') . chr(10);
-// customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
@@ -28,26 +26,25 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('');
-echo $toolbar->build_toolbar(); 
-// Build the page
+echo $toolbar->build_toolbar();
 ?>
-<h1><?php echo POPUP_BAR_CODE_TITLE; ?></h1>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
-  <tr><th colspan="2"><?php echo ORD_BAR_CODE_INTRO; ?></th></tr>
- </thead>
- <tbody class="ui-widget-content">
-  <tr>
-	<td align="right"><?php echo TEXT_QUANTITY; ?></td>
-	<td><?php echo html_input_field('qty', '1', 'size="6"'); ?></td>
-  </tr>
-  <tr>
-	<td align="right"><?php echo TEXT_UPC_CODE; ?></td>
-	<td>
-	  <?php echo html_input_field('upc', '', 'size="16"'); ?>
-	  <?php echo html_icon('devices/media-floppy.png', TEXT_SAVE, 'small', 'onclick="setReturnItem(true)"'); ?>
-	</td>
-  </tr>
- </tbody>
-</table>
+<div class="d-flex justify-content-center mt-3">
+<div class="d-inline-flex flex-column gap-2">
+<div class="card fb-card">
+  <div class="card-header py-1 fb-widget-header"><?php echo POPUP_BAR_CODE_TITLE; ?></div>
+  <div class="card-body py-2">
+    <p class="mb-2"><?php echo ORD_BAR_CODE_INTRO; ?></p>
+    <div style="display:grid; grid-template-columns:max-content 1fr; align-items:center; gap:0.25rem 0.5rem;">
+      <label class="fw-normal"><?php echo TEXT_QUANTITY; ?></label>
+      <?php echo html_input_field('qty', '1', 'class="form-control form-control-sm" style="width:80px"'); ?>
+      <label class="fw-normal"><?php echo TEXT_UPC_CODE; ?></label>
+      <div class="d-flex gap-1 align-items-center">
+        <?php echo html_input_field('upc', '', 'class="form-control form-control-sm" style="width:160px"'); ?>
+        <button type="button" class="btn btn-primary btn-sm" onclick="setReturnItem(true)"><?php echo TEXT_SAVE; ?></button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
 </form>

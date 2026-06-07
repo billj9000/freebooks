@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,6 +18,7 @@
 //  Path: /modules/phreebooks/pages/popup_bar_code/pre_process.php
 //
 $security_level = validate_user(0, true);
+$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $jID = isset($_GET['jID']) ? $_GET['jID'] : '12'; // set default to Sales Journal
@@ -37,5 +38,4 @@ $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';
 define('PAGE_TITLE', POPUP_BAR_CODE_TITLE);
-
 ?>
