@@ -26,13 +26,13 @@ $dim_unit = defined('SHIPPING_DEFAULT_PKG_DIM_UNIT')
 
 <!-- ── Package Dimensions ─────────────────────────────────────────── -->
 <div class="card mb-2">
-  <div class="card-header py-1">
-    <strong><?php echo INV_SHIPPING_DIMENSIONS; ?></strong>
+  <div class="card-header py-1 fb-widget-header text-center">
+    <?php echo INV_SHIPPING_DIMENSIONS; ?>
     <?php if ($dim_unit): ?>
-    <small class="text-muted ms-2">(<?php echo htmlspecialchars($dim_unit); ?>)</small>
+    <small class="ms-2">(<?php echo htmlspecialchars($dim_unit); ?>)</small>
     <?php endif; ?>
     <?php if (INV_SHIPPING_EXT_DIMS_HELP): ?>
-    <small class="text-muted ms-2"><?php echo INV_SHIPPING_EXT_DIMS_HELP; ?></small>
+    <small class="ms-2"><?php echo INV_SHIPPING_EXT_DIMS_HELP; ?></small>
     <?php endif; ?>
   </div>
   <div class="card-body py-2">
@@ -85,7 +85,7 @@ $dim_unit = defined('SHIPPING_DEFAULT_PKG_DIM_UNIT')
 <!-- ── Customs / Export ───────────────────────────────────────────── -->
 <?php if (isset($cInfo->country_of_origin) || isset($cInfo->hs_code) || isset($cInfo->customs_description)): ?>
 <div class="card mb-2">
-  <div class="card-header py-1"><strong><?php echo INV_SHIPPING_CUSTOMS; ?></strong></div>
+  <div class="card-header py-1 fb-widget-header text-center"><?php echo INV_SHIPPING_CUSTOMS; ?></div>
   <div class="card-body py-2">
     <div class="row g-3">
 

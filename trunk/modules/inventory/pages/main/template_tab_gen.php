@@ -30,20 +30,62 @@
   </div>
 </div>
 
+<div class="d-flex gap-3 align-items-start">
+<div class="flex-grow-1">
 <!-- ── Basic Info ─────────────────────────────────────────────────── -->
 <div class="card mb-2">
   <div class="card-body py-2">
-    <div class="row g-2 align-items-center">
-
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo TEXT_SKU; ?></label>
-        <?php echo html_input_field('sku', $cInfo->sku, 'readonly="readonly" class="form-control form-control-sm d-inline-block" style="width:auto" size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" maxlength="' . MAX_INVENTORY_SKU_LENGTH . '"', false); ?>
+    <div class="row g-2 mt-1 align-items-start">
+      <!-- Left: SKU + Short Description + reorder fields stacked -->
+      <div class="col-md-6">
+        <div style="display:grid; grid-template-columns:max-content 1fr; align-items:center; gap:0.25rem 0.5rem;">
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo TEXT_SKU; ?></label>
+          <div class="d-flex align-items-center gap-3">
+            <?php echo html_input_field('sku', $cInfo->sku, 'readonly="readonly" class="form-control form-control-sm" style="width:110px" maxlength="' . MAX_INVENTORY_SKU_LENGTH . '"', false); ?>
+            <div class="form-check mb-0">
+              <?php echo html_checkbox_field('inactive', '1', $cInfo->inactive, '', 'class="form-check-input"'); ?>
+              <label class="form-check-label fw-normal"><?php echo TEXT_INACTIVE; ?></label>
+            </div>
+          </div>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_INVENTORY_DESC_SHORT; ?></label>
+          <div class="input-group input-group-sm" style="max-width:200px">
+            <?php echo html_input_field('description_short', $cInfo->description_short, 'class="form-control form-control-sm" maxlength="32"', false); ?>
+            <?php if ($cInfo->id) echo html_icon('categories/preferences-system.png', TEXT_WHERE_USED, 'small', 'onclick="ajaxWhereUsed()" style="cursor:pointer;align-self:center;margin-left:4px"') . chr(10); ?>
+          </div>
+          <?php if (isset($cInfo->minimum_stock_level)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_ITEM_MINIMUM_STOCK; ?></label>
+          <?php echo html_input_field('minimum_stock_level', $currencies->precise($cInfo->minimum_stock_level), 'class="form-control form-control-sm text-end" style="width:80px" maxlength="5"', false); ?>
+          <?php endif; ?>
+          <?php if (isset($cInfo->reorder_quantity)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_ITEM_REORDER_QUANTITY; ?></label>
+          <?php echo html_input_field('reorder_quantity', $currencies->precise($cInfo->reorder_quantity), 'class="form-control form-control-sm text-end" style="width:80px" maxlength="5"', false); ?>
+          <?php endif; ?>
+          <?php if (isset($cInfo->lead_time)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_HEADING_LEAD_TIME; ?></label>
+          <?php echo html_input_field('lead_time', $cInfo->lead_time, 'class="form-control form-control-sm text-end" style="width:80px" maxlength="5"', false); ?>
+          <?php endif; ?>
+        </div>
       </div>
 
-      <div class="col-auto d-flex align-items-center gap-2 mt-3">
-        <div class="form-check mb-0">
-          <?php echo html_checkbox_field('inactive', '1', $cInfo->inactive, '', 'class="form-check-input"'); ?>
-          <label class="form-check-label"><?php echo TEXT_INACTIVE; ?></label>
+      <!-- Right: Qty on Hand + order/allocation/sales qtys stacked -->
+      <div class="col-auto">
+        <div style="display:grid; grid-template-columns:max-content auto; align-items:center; gap:0.25rem 0.5rem;">
+          <?php if (isset($cInfo->quantity_on_hand)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_QTY_ON_HAND; ?></label>
+          <?php echo html_input_field('quantity_on_hand', $currencies->precise($cInfo->quantity_on_hand), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
+          <?php endif; ?>
+          <?php if (isset($cInfo->quantity_on_order)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_QTY_ON_ORDER; ?></label>
+          <?php echo html_input_field('quantity_on_order', $currencies->precise($cInfo->quantity_on_order), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
+          <?php endif; ?>
+          <?php if (isset($cInfo->quantity_on_allocation)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_QTY_ON_ALLOCATION; ?></label>
+          <?php echo html_input_field('quantity_on_allocation', $currencies->precise($cInfo->quantity_on_allocation), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
+          <?php endif; ?>
+          <?php if (isset($cInfo->quantity_on_sales_order)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_QTY_ON_SALES_ORDER; ?></label>
+          <?php echo html_input_field('quantity_on_sales_order', $currencies->precise($cInfo->quantity_on_sales_order), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
+          <?php endif; ?>
         </div>
       </div>
 
@@ -55,141 +97,82 @@
 
     </div><!-- /row -->
 
-    <div class="row g-2 mt-1">
-      <div class="col-md-6">
-        <label class="form-label mb-0"><?php echo INV_ENTRY_INVENTORY_DESC_SHORT; ?></label>
-        <div class="input-group input-group-sm">
-          <?php echo html_input_field('description_short', $cInfo->description_short, 'class="form-control form-control-sm" maxlength="32"', false); ?>
-          <?php if ($cInfo->id) echo html_icon('categories/preferences-system.png', TEXT_WHERE_USED, 'small', 'onclick="ajaxWhereUsed()" style="cursor:pointer;align-self:center;margin-left:4px"') . chr(10); ?>
-        </div>
-      </div>
-
-      <?php if (isset($cInfo->quantity_on_hand)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_QTY_ON_HAND; ?></label>
-        <?php echo html_input_field('quantity_on_hand', $currencies->precise($cInfo->quantity_on_hand), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
-      </div>
-      <?php endif; ?>
-
-      <?php if (isset($cInfo->quantity_on_order)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_QTY_ON_ORDER; ?></label>
-        <?php echo html_input_field('quantity_on_order', $currencies->precise($cInfo->quantity_on_order), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
-      </div>
-      <?php endif; ?>
-
-      <?php if (isset($cInfo->quantity_on_allocation)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_QTY_ON_ALLOCATION; ?></label>
-        <?php echo html_input_field('quantity_on_allocation', $currencies->precise($cInfo->quantity_on_allocation), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
-      </div>
-      <?php endif; ?>
-
-      <?php if (isset($cInfo->quantity_on_sales_order)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_QTY_ON_SALES_ORDER; ?></label>
-        <?php echo html_input_field('quantity_on_sales_order', $currencies->precise($cInfo->quantity_on_sales_order), 'disabled="disabled" class="form-control form-control-sm text-end" style="width:80px"', false); ?>
-      </div>
-      <?php endif; ?>
-    </div><!-- /row -->
-
-    <div class="row g-2 mt-1">
-      <?php if (isset($cInfo->minimum_stock_level)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_ENTRY_ITEM_MINIMUM_STOCK; ?></label>
-        <?php echo html_input_field('minimum_stock_level', $currencies->precise($cInfo->minimum_stock_level), 'class="form-control form-control-sm text-end" style="width:80px" maxlength="5"', false); ?>
-      </div>
-      <?php endif; ?>
-
-      <?php if (isset($cInfo->reorder_quantity)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_ENTRY_ITEM_REORDER_QUANTITY; ?></label>
-        <?php echo html_input_field('reorder_quantity', $currencies->precise($cInfo->reorder_quantity), 'class="form-control form-control-sm text-end" style="width:80px" maxlength="5"', false); ?>
-      </div>
-      <?php endif; ?>
-
-      <?php if (isset($cInfo->lead_time)): ?>
-      <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_HEADING_LEAD_TIME; ?></label>
-        <?php echo html_input_field('lead_time', $cInfo->lead_time, 'class="form-control form-control-sm text-end" style="width:80px" maxlength="5"', false); ?>
-      </div>
-      <?php endif; ?>
-    </div><!-- /row -->
-
   </div>
 </div>
 
 <?php if (in_array('sell', $cInfo->posible_transactions)): ?>
 <!-- ── Customer Details ───────────────────────────────────────────── -->
 <div class="card mb-2">
-  <div class="card-header py-1"><strong><?php echo TEXT_CUSTOMER_DETAILS; ?></strong></div>
-  <div class="card-body py-2">
+  <div class="card-header py-1 fb-widget-header text-center"><?php echo TEXT_CUSTOMER_DETAILS; ?></div>
+  <div class="card-body py-2 px-5">
 
     <?php if (isset($cInfo->description_sales)): ?>
-    <div class="mb-2">
-      <label class="form-label mb-0"><?php echo INV_ENTRY_INVENTORY_DESC_SALES; ?></label>
-      <?php echo html_textarea_field('description_sales', 75, 2, $cInfo->description_sales, 'class="form-control form-control-sm"', true); ?>
+    <div class="d-flex align-items-start gap-2 mb-3">
+      <label class="fw-normal text-nowrap text-end mb-0 pt-1"><?php echo INV_ENTRY_INVENTORY_DESC_SALES; ?></label>
+      <?php echo html_textarea_field('description_sales', 75, 2, $cInfo->description_sales, 'class="form-control form-control-sm" style="max-width:50%"', true); ?>
     </div>
     <?php endif; ?>
 
     <div class="row g-3 align-items-start">
 
       <!-- Column 1: Full Price / Margin -->
-      <div class="col-auto">
-        <?php if (isset($cInfo->full_price)): ?>
-        <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_FULL_PRICE; ?><?php if (ENABLE_MULTI_CURRENCY) echo ' (' . DEFAULT_CURRENCY . ')'; ?></label>
-          <div class="input-group input-group-sm">
-            <?php echo html_input_field('full_price', $currencies->precise($cInfo->full_price), 'onchange="update_full_price_incl_tax(true, true, false);" class="form-control form-control-sm text-end" style="width:120px" maxlength="20"', false); ?>
-            <?php if (isset($cInfo->price_sheet)) echo html_icon('mimetypes/x-office-spreadsheet.png', BOX_SALES_PRICE_SHEETS, 'small', 'onclick="priceMgr(' . $cInfo->id . ', 0, 0, \'c\', \'\')" style="cursor:pointer;align-self:center;margin-left:4px"') . chr(10); ?>
+      <div class="col">
+        <div style="display:grid; grid-template-columns:max-content auto; align-items:center; gap:0.25rem 0.5rem;">
+          <?php if (isset($cInfo->full_price)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_FULL_PRICE; ?><?php if (ENABLE_MULTI_CURRENCY) echo ' (' . DEFAULT_CURRENCY . ')'; ?></label>
+          <div>
+            <div class="input-group input-group-sm" style="width:fit-content">
+              <?php echo html_input_field('full_price', $currencies->precise($cInfo->full_price), 'onchange="update_full_price_incl_tax(true, true, false);" class="form-control form-control-sm text-end" style="width:100px" maxlength="20"', false); ?>
+              <?php if (isset($cInfo->price_sheet)) echo html_icon('mimetypes/x-office-spreadsheet.png', BOX_SALES_PRICE_SHEETS, 'small', 'onclick="priceMgr(' . $cInfo->id . ', 0, 0, \'c\', \'\')" style="cursor:pointer;align-self:center;margin-left:4px"') . chr(10); ?>
+            </div>
+            <small class="text-muted"><?php echo $currencies->precise($cInfo->full_price); ?></small>
           </div>
-          <small class="text-muted"><?php echo $currencies->precise($cInfo->full_price); ?></small>
-        </div>
-        <?php endif; ?>
-        <?php if (isset($cInfo->product_margin)): ?>
-        <div>
-          <label class="form-label mb-0"><?php echo INV_MARGIN; ?></label>
-          <div class="input-group input-group-sm" style="width:140px">
-            <?php echo html_input_field('product_margin', $currencies->precise($cInfo->product_margin), 'onchange="product_margin_change();" class="form-control form-control-sm text-end" maxlength="5"', false); ?>
-            <span class="input-group-text">%</span>
+          <?php endif; ?>
+          <?php if (isset($cInfo->product_margin)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_MARGIN; ?></label>
+          <div>
+            <div class="input-group input-group-sm" style="width:140px">
+              <?php echo html_input_field('product_margin', $currencies->precise($cInfo->product_margin), 'onchange="product_margin_change();" class="form-control form-control-sm text-end" maxlength="5"', false); ?>
+              <span class="input-group-text">%</span>
+            </div>
+            <small class="text-muted"><?php echo $currencies->precise($cInfo->product_margin); ?>%</small>
           </div>
-          <small class="text-muted"><?php echo $currencies->precise($cInfo->product_margin); ?>%</small>
+          <?php endif; ?>
         </div>
-        <?php endif; ?>
       </div>
 
       <!-- Column 2: Full Price with Tax / Retail Markup -->
-      <div class="col-auto">
-        <?php if (isset($cInfo->full_price_with_tax)): ?>
-        <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_FULL_PRICE_WT; ?><?php if (ENABLE_MULTI_CURRENCY) echo ' (' . DEFAULT_CURRENCY . ')'; ?></label>
-          <?php echo html_input_field('full_price_with_tax', $currencies->precise($cInfo->full_price_with_tax), 'onchange="update_full_price_incl_tax(true, false, true);" class="form-control form-control-sm text-end" style="width:120px" maxlength="20"', false); ?>
-          <small class="text-muted"><?php echo $cInfo->full_price_with_tax; ?></small>
+      <div class="col">
+        <div style="display:grid; grid-template-columns:max-content auto; align-items:center; gap:0.25rem 0.5rem;">
+          <?php if (isset($cInfo->full_price_with_tax)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_FULL_PRICE_WT; ?><?php if (ENABLE_MULTI_CURRENCY) echo ' (' . DEFAULT_CURRENCY . ')'; ?></label>
+          <div>
+            <?php echo html_input_field('full_price_with_tax', $currencies->precise($cInfo->full_price_with_tax), 'onchange="update_full_price_incl_tax(true, false, true);" class="form-control form-control-sm text-end" style="width:100px" maxlength="20"', false); ?>
+            <small class="text-muted"><?php echo $cInfo->full_price_with_tax; ?></small>
+          </div>
+          <?php endif; ?>
+          <?php if (isset($cInfo->product_markup)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo TEXT_RETAIL_MARKUP; ?></label>
+          <div>
+            <?php echo html_input_field('product_markup', $currencies->precise($cInfo->product_markup), 'onchange="product_markup_change();" class="form-control form-control-sm text-end" style="width:100px" maxlength="5"', false); ?>
+            <small class="text-muted"><?php echo $currencies->precise($cInfo->product_markup); ?></small>
+          </div>
+          <?php endif; ?>
         </div>
-        <?php endif; ?>
-        <?php if (isset($cInfo->product_markup)): ?>
-        <div>
-          <label class="form-label mb-0"><?php echo TEXT_RETAIL_MARKUP; ?></label>
-          <?php echo html_input_field('product_markup', $currencies->precise($cInfo->product_markup), 'onchange="product_markup_change();" class="form-control form-control-sm text-end" style="width:120px" maxlength="5"', false); ?>
-          <small class="text-muted"><?php echo $currencies->precise($cInfo->product_markup); ?></small>
-        </div>
-        <?php endif; ?>
       </div>
 
       <!-- Column 3: Default Sales Tax / Default Price Sheet -->
-      <div class="col-auto">
-        <?php if (isset($cInfo->item_taxable)): ?>
-        <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_ITEM_TAXABLE; ?></label>
-          <?php echo html_pull_down_menu('item_taxable', $tax_rates, $cInfo->item_taxable, 'onchange="update_full_price_incl_tax(true, true, false);" class="form-select form-select-sm"'); ?>
+      <div class="col">
+        <div style="display:grid; grid-template-columns:max-content auto; align-items:center; gap:0.25rem 0.5rem;">
+          <?php if (isset($cInfo->item_taxable)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_ITEM_TAXABLE; ?></label>
+          <?php echo html_pull_down_menu('item_taxable', $tax_rates, $cInfo->item_taxable, 'onchange="update_full_price_incl_tax(true, true, false);" class="form-select form-select-sm" style="width:fit-content"'); ?>
+          <?php endif; ?>
+          <?php if (isset($cInfo->price_sheet)): ?>
+          <label class="fw-normal text-nowrap text-end mb-0"><?php echo TEXT_DEFAULT_PRICE_SHEET; ?></label>
+          <?php echo html_pull_down_menu('price_sheet', get_price_sheet_data('c'), $cInfo->price_sheet, 'class="form-select form-select-sm" style="width:fit-content"'); ?>
+          <?php endif; ?>
         </div>
-        <?php endif; ?>
-        <?php if (isset($cInfo->price_sheet)): ?>
-        <div>
-          <label class="form-label mb-0"><?php echo TEXT_DEFAULT_PRICE_SHEET; ?></label>
-          <?php echo html_pull_down_menu('price_sheet', get_price_sheet_data('c'), $cInfo->price_sheet, 'class="form-select form-select-sm"'); ?>
-        </div>
-        <?php endif; ?>
       </div>
 
     </div>
@@ -201,7 +184,7 @@
 <?php if ($_SESSION['admin_security'][SECURITY_ID_PURCHASE_INVENTORY] > 0 && in_array('purchase', $cInfo->posible_transactions)): ?>
 <!-- ── Vendor Details ─────────────────────────────────────────────── -->
 <div class="card mb-2">
-  <div class="card-header py-1"><strong><?php echo TEXT_VENDOR_DETAILS; ?></strong></div>
+  <div class="card-header py-1 fb-widget-header text-center"><?php echo TEXT_VENDOR_DETAILS; ?></div>
   <div class="card-body py-2 p-0">
     <table class="table table-sm pkg-table mb-0">
       <thead>
@@ -250,12 +233,12 @@
 
 <!-- ── Item Details ───────────────────────────────────────────────── -->
 <div class="card mb-2">
-  <div class="card-header py-1"><strong><?php echo TEXT_ITEM_DETAILS; ?></strong></div>
+  <div class="card-header py-1 fb-widget-header text-center"><?php echo TEXT_ITEM_DETAILS; ?></div>
   <div class="card-body py-2">
     <div class="row g-2">
 
       <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_ENTRY_INVENTORY_TYPE; ?></label>
+        <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_INVENTORY_TYPE; ?></label>
         <?php
         echo html_hidden_field('inventory_type', $cInfo->inventory_type);
         echo html_input_field('inv_type_desc', $cInfo->title, 'readonly="readonly" class="form-control form-control-sm"', false);
@@ -264,14 +247,14 @@
 
       <?php if (isset($cInfo->upc_code)): ?>
       <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_HEADING_UPC_CODE; ?></label>
+        <label class="form-label mb-0 fw-normal"><?php echo INV_HEADING_UPC_CODE; ?></label>
         <?php echo html_input_field('upc_code', $cInfo->upc_code, 'class="form-control form-control-sm text-end" style="width:140px" maxlength="13"', false); ?>
       </div>
       <?php endif; ?>
 
       <?php if (!empty($cInfo->posible_cost_methodes)): ?>
       <div class="col-auto">
-        <label class="form-label mb-0"><?php echo INV_ENTRY_INVENTORY_COST_METHOD; ?></label>
+        <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_INVENTORY_COST_METHOD; ?></label>
         <?php
         $cost_pulldown_array = [];
         foreach ($cost_methods as $key => $value) {
@@ -291,20 +274,20 @@
       <div class="col-md-6">
         <?php if (isset($cInfo->account_sales_income)): ?>
         <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_ACCT_SALES; ?></label>
-          <?php echo html_pull_down_menu('account_sales_income', $gl_array_list, $cInfo->account_sales_income, 'class="form-select form-select-sm"'); ?>
+          <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_ACCT_SALES; ?></label>
+          <?php echo html_pull_down_menu('account_sales_income', $gl_array_list, $cInfo->account_sales_income, 'class="form-select form-select-sm" style="width:fit-content"'); ?>
         </div>
         <?php endif; ?>
         <?php if (isset($cInfo->account_inventory_wage)): ?>
         <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_ACCT_INV; ?></label>
-          <?php echo html_pull_down_menu('account_inventory_wage', $gl_array_list, $cInfo->account_inventory_wage, 'class="form-select form-select-sm"'); ?>
+          <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_ACCT_INV; ?></label>
+          <?php echo html_pull_down_menu('account_inventory_wage', $gl_array_list, $cInfo->account_inventory_wage, 'class="form-select form-select-sm" style="width:fit-content"'); ?>
         </div>
         <?php endif; ?>
         <?php if (isset($cInfo->account_cost_of_sales)): ?>
         <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_ACCT_COS; ?></label>
-          <?php echo html_pull_down_menu('account_cost_of_sales', $gl_array_list, $cInfo->account_cost_of_sales, 'class="form-select form-select-sm"'); ?>
+          <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_ACCT_COS; ?></label>
+          <?php echo html_pull_down_menu('account_cost_of_sales', $gl_array_list, $cInfo->account_cost_of_sales, 'class="form-select form-select-sm" style="width:fit-content"'); ?>
         </div>
         <?php endif; ?>
       </div>
@@ -314,11 +297,11 @@
         <?php if (isset($cInfo->image_with_path)): ?>
         <div class="mb-2">
           <?php echo html_hidden_field('image_with_path', $cInfo->image_with_path); ?>
-          <label class="form-label mb-0"><?php echo INV_ENTRY_IMAGE_PATH; ?></label>
+          <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_IMAGE_PATH; ?></label>
           <?php echo html_input_field('inventory_path', substr($cInfo->image_with_path, 0, strrpos($cInfo->image_with_path, '/')), 'class="form-control form-control-sm"'); ?>
         </div>
         <div class="mb-2">
-          <label class="form-label mb-0"><?php echo INV_ENTRY_SELECT_IMAGE; ?></label>
+          <label class="form-label mb-0 fw-normal"><?php echo INV_ENTRY_SELECT_IMAGE; ?></label>
           <?php echo html_file_field('inventory_image'); ?>
           <?php if ($cInfo->image_with_path) echo '&nbsp;' . html_checkbox_field('remove_image', '1', $cInfo->remove_image, '', 'class="form-check-input"') . ' ' . TEXT_REMOVE . ': ' . htmlspecialchars($cInfo->image_with_path); ?>
         </div>
@@ -355,9 +338,10 @@
       </div>
     </div><!-- /row -->
 
-    <?php if ($cInfo->qty_table): ?>
-    <div class="mt-2"><?php echo $cInfo->qty_table; ?></div>
-    <?php endif; ?>
-
   </div>
-</div>
+</div><!-- /Item Details card -->
+</div><!-- /flex-grow-1 -->
+<?php if ($cInfo->qty_table): ?>
+<div class="flex-shrink-0"><?php echo $cInfo->qty_table; ?></div>
+<?php endif; ?>
+</div><!-- /d-flex -->

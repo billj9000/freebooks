@@ -19,7 +19,7 @@
 ?>
 <!-- SKU History -->
 <div class="card mb-2">
-  <div class="card-header py-1"><strong><?php echo INV_SKU_HISTORY; ?></strong></div>
+  <div class="card-header py-1 fb-widget-header text-center"><?php echo INV_SKU_HISTORY; ?></div>
   <div class="card-body py-2">
     <div class="row g-2">
       <div class="col-auto">
@@ -40,7 +40,7 @@
 
 <!-- SKU Activity -->
 <div class="card mb-2">
-  <div class="card-header py-1"><strong><?php echo INV_SKU_ACTIVITY; ?></strong></div>
+  <div class="card-header py-1 fb-widget-header text-center"><?php echo INV_SKU_ACTIVITY; ?></div>
   <div class="card-body py-2">
     <div class="row g-3">
 
