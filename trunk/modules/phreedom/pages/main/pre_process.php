@@ -25,6 +25,7 @@ require_once(DIR_FS_WORKING . 'functions/phreedom.php');
 /**************   page specific initialization  *************************/
 $error        = false; 
 $menu_id      = isset($_GET['mID']) ? $_GET['mID'] : 'index'; // default to index unless heading is passed
+if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_req') $_REQUEST['action'] = 'pw_lost_req';
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_sub') $_REQUEST['action'] = 'pw_lost_sub';
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
@@ -261,7 +262,8 @@ switch ($_REQUEST['action']) {
 	define('PAGE_TITLE', TITLE);
     break;
   case 'crash':
-	$include_template = 'template_crash.php';
+	$use_bootstrap_nav = true;
+	$include_template  = 'template_crash.php';
 	define('PAGE_TITLE', TITLE);
 	break;
   default: // prepare to display templates

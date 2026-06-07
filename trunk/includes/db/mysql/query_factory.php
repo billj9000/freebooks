@@ -82,7 +82,31 @@ class queryFactory {
     }
 
     function show_error() {
-        echo $this->error_number . ' ' . $this->error_text;
+        $num  = htmlspecialchars($this->error_number);
+        $text = htmlspecialchars($this->error_text);
+        echo <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Database Error</title>
+<style>
+  body{font-family:sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+  .card{background:#fff;border:1px solid #dee2e6;border-radius:.375rem;max-width:480px;width:100%;overflow:hidden}
+  .card-header{background:#dc3545;color:#fff;padding:.5rem 1rem;font-weight:600}
+  .card-body{padding:1rem}
+  .code{color:#6c757d;font-size:.85em}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">FreeBooks &mdash; Database Error</div>
+  <div class="card-body">
+    <p>A database connection error occurred. Please check that the database server is running and the credentials in your configuration are correct.</p>
+    <p class="code">Error {$num}: {$text}</p>
+  </div>
+</div>
+</body></html>
+HTML;
     }
 
     function Execute($zf_sql, $zf_limit = false, $zf_cache = false, $zf_cachetime = 0) {

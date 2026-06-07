@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -15,27 +15,27 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /modules/phreedom/pages/pw_lost/template_main.php
+//  Path: /modules/phreedom/pages/main/template_pw_lost.php
 //
 echo html_form('pw_lost', FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;action=lost_pw&amp;req=pw_lost_sub') . chr(10);
 ?>
-<div style="margin-left:25%;margin-right:25%;margin-top:50px;">
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
-   <tr height="70"><th colspan="2" align="right"><img src="modules/phreedom/images/freebooks_logo.png" alt="FreeBooks ERP" height="40" style="width:auto" /></th></tr>
- </thead>
- <tbody class="ui-widget-content">
-  <tr><td colspan="2"><h2><?php echo TEXT_PASSWORD_FORGOTTEN; ?></h2></td></tr>
-  <tr>
-   <td nowrap="nowrap">&nbsp;&nbsp;<?php echo TEXT_ADMIN_EMAIL; ?></td>
-   <td><?php echo html_input_field('admin_email', $_POST['admin_email'], 'size="60"'); ?></td>
-  </tr>
-  <tr>
-   <td nowrap="nowrap">&nbsp;&nbsp;<?php echo TEXT_LOGIN_COMPANY; ?></td>
-   <td><?php echo html_pull_down_menu('company', load_company_dropdown(), $admin_company); ?></td>
-  </tr>
-  <tr><td colspan="2" align="right"><?php echo html_submit_field('submit', TEXT_PASSWORD_FORGOTTEN) . '&nbsp;&nbsp;'; ?></td></tr>
- </tbody>
-</table>
+<div class="d-flex justify-content-center mt-5">
+<div class="card fb-card" style="max-width:420px;width:100%">
+  <div class="card-header py-2 fb-widget-header text-end">
+    <img src="modules/phreedom/images/freebooks_logo.png" alt="FreeBooks ERP" height="40" style="width:auto">
+  </div>
+  <div class="card-body py-3">
+    <h5 class="mb-3"><?php echo TEXT_PASSWORD_FORGOTTEN; ?></h5>
+    <div style="display:grid; grid-template-columns:max-content 1fr; align-items:center; gap:0.4rem 0.75rem;">
+      <label><?php echo TEXT_ADMIN_EMAIL; ?></label>
+      <?php echo html_input_field('admin_email', $_POST['admin_email'] ?? '', 'class="form-control form-control-sm"'); ?>
+      <label><?php echo TEXT_LOGIN_COMPANY; ?></label>
+      <?php echo html_pull_down_menu('company', load_company_dropdown(), $admin_company, 'class="form-select form-select-sm"'); ?>
+    </div>
+    <div class="text-end mt-3">
+      <?php echo html_submit_field('submit', TEXT_PASSWORD_FORGOTTEN, 'class="btn btn-primary btn-sm"'); ?>
+    </div>
+  </div>
+</div>
 </div>
 </form>
