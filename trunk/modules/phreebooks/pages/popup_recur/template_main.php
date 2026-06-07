@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,37 +18,38 @@
 //  Path: /modules/phreebooks/pages/popup_recur/template_main.php
 //
 echo html_form('recur', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . chr(10);
-// include hidden fields
 echo html_hidden_field('action', '') . chr(10);
-// customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
-$toolbar->icon_list['open']['show'] = false;
-$toolbar->icon_list['save']['params'] = 'onclick="setReturnRecur()"';
-$toolbar->icon_list['delete']['show'] = false;
-$toolbar->icon_list['print']['show'] = false;
+$toolbar->icon_list['open']['show']     = false;
+$toolbar->icon_list['save']['params']   = 'onclick="setReturnRecur()"';
+$toolbar->icon_list['delete']['show']   = false;
+$toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('07');
-echo $toolbar->build_toolbar(); 
-// Build the page
+echo $toolbar->build_toolbar();
 ?>
-<h1><?php echo PAGE_TITLE; ?></h1>
-<table class="ui-widget" style="border-style:none;width:100%">
- <tbody class="ui-widget-content">
-  <tr><td><?php echo ORD_RECUR_INTRO; ?></td></tr>
-  <tr><th><?php echo ORD_RECUR_ENTRIES; ?></th></tr>
-  <tr><td><?php echo html_input_field('recur_id', '1', 'size="3"'); ?></td></tr>
-  <tr><th><?php echo ORD_RECUR_FREQUENCY; ?></th></tr>
-  <tr>
-	<td>
-		<?php
-		echo html_radio_field('recur_frequency', 1, false) . ORD_TEXT_WEEKLY . '<br />' . chr(10);
-		echo html_radio_field('recur_frequency', 2, false) . ORD_TEXT_BIWEEKLY . '<br />' . chr(10);
-		echo html_radio_field('recur_frequency', 3, true) . ORD_TEXT_MONTHLY . '<br />' . chr(10);
-		echo html_radio_field('recur_frequency', 4, false) . ORD_TEXT_QUARTERLY . '<br />' . chr(10);
-		echo html_radio_field('recur_frequency', 5, false) . ORD_TEXT_YEARLY . chr(10);
-		?>
-	</td>
-  </tr>
- </tbody>
-</table>
+<div class="d-flex justify-content-center mt-3">
+<div class="d-inline-flex flex-column gap-2">
+<div class="card fb-card">
+  <div class="card-header py-1 fb-widget-header"><?php echo PAGE_TITLE; ?></div>
+  <div class="card-body py-2">
+    <p class="mb-2"><?php echo ORD_RECUR_INTRO; ?></p>
+    <div class="mb-2">
+      <label class="fw-bold mb-1"><?php echo ORD_RECUR_ENTRIES; ?></label><br>
+      <?php echo html_input_field('recur_id', '1', 'class="form-control form-control-sm" style="width:60px"'); ?>
+    </div>
+    <div>
+      <div class="fw-bold mb-1"><?php echo ORD_RECUR_FREQUENCY; ?></div>
+      <div class="d-flex flex-column gap-1">
+        <label><?php echo html_radio_field('recur_frequency', 1, false); ?> <?php echo ORD_TEXT_WEEKLY; ?></label>
+        <label><?php echo html_radio_field('recur_frequency', 2, false); ?> <?php echo ORD_TEXT_BIWEEKLY; ?></label>
+        <label><?php echo html_radio_field('recur_frequency', 3, true);  ?> <?php echo ORD_TEXT_MONTHLY; ?></label>
+        <label><?php echo html_radio_field('recur_frequency', 4, false); ?> <?php echo ORD_TEXT_QUARTERLY; ?></label>
+        <label><?php echo html_radio_field('recur_frequency', 5, false); ?> <?php echo ORD_TEXT_YEARLY; ?></label>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
 </form>
