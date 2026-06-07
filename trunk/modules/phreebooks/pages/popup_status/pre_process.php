@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,6 +18,7 @@
 //  Path: /modules/phreebooks/pages/popup_status/pre_process.php
 //
 $security_level = validate_user(0, true);
+$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language('contacts');
 require_once(DIR_FS_WORKING . 'functions/phreebooks.php');
@@ -33,17 +34,17 @@ $type     = $customer->fields['type'] == 'v' ? 'AP' : 'AR';
 $new_data = calculate_aging($id, $customer->fields['type'], $customer->fields['special_terms']);
 // set the customer/vendor status in order of importance
 if ($customer->fields['inactive']) {
-  $inactive_flag = 'class="ui-state-error"';
-  $status_text = TEXT_INACTIVE;
+  $status_class = 'alert-danger';
+  $status_text  = TEXT_INACTIVE;
 } elseif ($new_data['past_due'] > 0) {
-  $inactive_flag = 'class="ui-state-highlight"';
-  $status_text = ACT_HAS_PAST_DUE_AMOUNT;
+  $status_class = 'alert-warning';
+  $status_text  = ACT_HAS_PAST_DUE_AMOUNT;
 } elseif ($new_data['total'] > $new_data['credit_limit']) {
-  $inactive_flag = 'class="ui-state-highlight"';
-  $status_text = ACT_OVER_CREDIT_LIMIT;
+  $status_class = 'alert-warning';
+  $status_text  = ACT_OVER_CREDIT_LIMIT;
 } else {
-  $inactive_flag = 'class="ui-state-active"';
-  $status_text = ACT_GOOD_STANDING;
+  $status_class = 'alert-success';
+  $status_text  = ACT_GOOD_STANDING;
 }
 /*****************   prepare to display templates  *************************/
 $include_header   = false;
