@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,6 +18,7 @@
 //  Path: /modules/contacts/pages/popup_accts/pre_process.php
 //
 $security_level = validate_user(0, true);
+$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 require(DIR_FS_WORKING . 'functions/contacts.php');
 require(DIR_FS_WORKING . 'classes/contacts.php');
@@ -69,7 +71,7 @@ $list_header = $result['html_code'];
 $disp_order  = $result['disp_order'];
 // build the list for the page selected
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
-  $search_fields = array('c.short_name', 'a.primary_name', 'a.contact', 'a.telephone1', 'a.telephone2', 
+  $search_fields = array('c.short_name', 'a.primary_name', 'a.contact', 'a.telephone1', 'a.telephone2',
   	'a.address1', 'a.address2', 'a.city_town', 'a.postal_code', 'c.account_number');
   // hook for inserting new search fields to the query criteria.
   if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
@@ -78,16 +80,16 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search = '';
 }
 
-$field_list = array('a.address_id', 'c.id', 'a.ref_id', 'a.type', 'a.primary_name', 'a.contact', 'a.address1', 
-	'a.address2', 'a.city_town', 'a.state_province', 'a.postal_code', 'a.country_code', 'c.short_name', 
-	'a.telephone1', 'a.email', 'c.first_date', 'c.last_update', 'c.gl_type_account', 'c.special_terms', 
+$field_list = array('a.address_id', 'c.id', 'a.ref_id', 'a.type', 'a.primary_name', 'a.contact', 'a.address1',
+	'a.address2', 'a.city_town', 'a.state_province', 'a.postal_code', 'a.country_code', 'c.short_name',
+	'a.telephone1', 'a.email', 'c.first_date', 'c.last_update', 'c.gl_type_account', 'c.special_terms',
 	'c.last_date_1', 'c.last_date_2', 'c.inactive');
-		
+
 // hook to add new fields to the query return results
 if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
 
-$query_raw = "select " . implode(', ', $field_list)  . " 
-	from " . TABLE_CONTACTS . " c left join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id 
+$query_raw = "select " . implode(', ', $field_list)  . "
+	from " . TABLE_CONTACTS . " c left join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id
 	where a.type = '" . $account_type . "m'" . $search . " order by $disp_order";
 
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
