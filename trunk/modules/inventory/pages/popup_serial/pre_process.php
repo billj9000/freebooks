@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,6 +18,7 @@
 //  Path: /modules/inventory/pages/popup_serial/pre_process.php
 //
 $security_level = validate_user(0, true);
+$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $snDef = db_prepare_input($_GET['def']);
@@ -32,7 +34,7 @@ $result = $db->Execute($sql);
 $snValues = array();
 while (!$result->EOF) {
 	$snValues[] = array('id'=>$result->fields['serialize_number'], 'text'=>$result->fields['serialize_number']);
-	$result->MoveNext();	
+	$result->MoveNext();
 }
 /***************   Act on the action request  *************************/
 /***************   hook for custom actions  ***************************/
