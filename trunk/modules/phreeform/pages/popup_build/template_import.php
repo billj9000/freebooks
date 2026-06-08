@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,64 +18,63 @@
 //  Path: /modules/phreeform/pages/popup_build/template_import.php
 //
 echo html_form('popup_build', FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'post', 'enctype="multipart/form-data"') . chr(10);
-// include hidden fields
-echo html_hidden_field('action',        '') . chr(10);
-echo html_hidden_field('id',          $id) . chr(10);
+echo html_hidden_field('action',      '')         . chr(10);
+echo html_hidden_field('id',          $id)        . chr(10);
 echo html_hidden_field('parent_id',   $parent_id) . chr(10);
-echo html_hidden_field('doc_title',   '') . chr(10); // placeholder
+echo html_hidden_field('doc_title',   '')         . chr(10);
 echo html_hidden_field('folder_path', '/');
-// customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="self.close();"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['print']['show']    = false;
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->add_help('11.01.01');
-echo $toolbar->build_toolbar(); 
-// Build the page
+echo $toolbar->build_toolbar();
 ?>
-<h1><?php echo PAGE_TITLE; ?></h1>
-<table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
- <tbody class="ui-widget-content">
-    <tr>
-      <td colspan="2">
-	    <?php echo TEXT_ENTER_SEARCH_PARAMS_A; ?>
-		<?php echo html_pull_down_menu('mod',  $sel_modules,  $def_module); ?>
-	    <?php echo TEXT_ENTER_SEARCH_PARAMS_B; ?>
-		<?php echo html_pull_down_menu('lang', $sel_language, $def_lang); ?>
-	    <?php echo TEXT_ENTER_SEARCH_PARAMS_C; ?>
-		<?php echo html_button_field('refresh_dir', TEXT_SEARCH, 'onclick="submitToDo(\'refresh_dir\')"'); ?>
-	  </td>
-    </tr>
-	<tr  class="ui-widget-header">
-      <th colspan="2"><?php echo PHREEFORM_DEFIMP; ?></th>
-    </tr>
-    <tr>
-      <td><?php echo ReadDefReports('RptFileName', $import_path); ?></td>
-    </tr>
-    <tr>
-      <td>
-	    <?php echo PHREEFORM_RPTBROWSE . ' ' . html_file_field('reportfile'); ?>
-	  </td>
-    </tr>
-    <tr>
-      <td>
-	    <?php echo PHREEFORM_RPTENTER . '<br />' . PHREEFORM_RPTNOENTER; ?>
-	    <?php echo html_input_field('reportname', $reportname, 'size="32" maxlength="30"'); ?>
-	  </td>
-	  <td align="right">
-		<?php echo html_button_field('import_one', TEXT_IMPORT_ONE, 'onclick="submitToDo(\'import_one\')"') . chr(10); ?>
-	  </td>
-	</tr>
-    <tr class="ui-widget-header">
-      <th colspan="2"><?php echo '&nbsp;'; ?></th>
-    </tr>
-	<tr>
-	  <td><?php echo TEXT_IMPORT_ALL_DESC . ' ' ; ?></td>
-	  <td align="right">
-		<?php echo html_button_field('import_all', TEXT_IMPORT_ALL, 'onclick="submitToDo(\'import_all\')"') . chr(10); ?>
-	  </td>
-    </tr>
-  </tbody>
-</table>
+<div class="d-flex justify-content-center mt-3">
+<div class="d-inline-flex flex-column gap-2" style="min-width:480px;max-width:640px;width:100%">
+
+  <div class="card fb-card">
+    <div class="card-header py-1 fb-widget-header"><?php echo PAGE_TITLE; ?></div>
+    <div class="card-body py-2">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span><?php echo TEXT_ENTER_SEARCH_PARAMS_A; ?></span>
+        <?php echo html_pull_down_menu('mod',  $sel_modules,  $def_module,  'class="form-select form-select-sm" style="width:auto"'); ?>
+        <span><?php echo TEXT_ENTER_SEARCH_PARAMS_B; ?></span>
+        <?php echo html_pull_down_menu('lang', $sel_language, $def_lang,    'class="form-select form-select-sm" style="width:auto"'); ?>
+        <span><?php echo TEXT_ENTER_SEARCH_PARAMS_C; ?></span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitToDo('refresh_dir')"><?php echo TEXT_SEARCH; ?></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fb-card">
+    <div class="card-header py-1 fb-widget-header"><?php echo PHREEFORM_DEFIMP; ?></div>
+    <div class="card-body py-2">
+      <div class="mb-2"><?php echo ReadDefReports('RptFileName', $import_path); ?></div>
+      <div class="mb-2">
+        <label class="form-label small mb-1"><?php echo PHREEFORM_RPTBROWSE; ?></label>
+        <?php echo html_file_field('reportfile', 'class="form-control form-control-sm"'); ?>
+      </div>
+      <div class="mb-2">
+        <label class="form-label small mb-1"><?php echo PHREEFORM_RPTENTER; ?> <span class="text-muted"><?php echo PHREEFORM_RPTNOENTER; ?></span></label>
+        <?php echo html_input_field('reportname', $reportname ?? '', 'class="form-control form-control-sm" maxlength="30"'); ?>
+      </div>
+      <div class="text-end">
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitToDo('import_one')"><?php echo TEXT_IMPORT_ONE; ?></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fb-card">
+    <div class="card-body py-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <span><?php echo TEXT_IMPORT_ALL_DESC; ?></span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitToDo('import_all')"><?php echo TEXT_IMPORT_ALL; ?></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
 </form>

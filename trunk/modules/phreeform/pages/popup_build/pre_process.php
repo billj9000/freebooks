@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -351,6 +351,7 @@ switch ($_REQUEST['action']) {
   case 'import_one':
   case 'import_all':
   case 'refresh_dir':
+    $use_bootstrap_nav = true;
     $sel_modules = array();
 	foreach ($loaded_modules as $mod) $sel_modules[] = array('id' => $mod, 'text' => $mod);
 	$sel_language = load_language_dropdown();

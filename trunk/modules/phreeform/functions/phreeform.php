@@ -197,7 +197,7 @@ function ReadDefReports($name, $path) {
 			$RptName = substr($OneLine, $RptPos, strpos($OneLine, "',", $RptPos) - $RptPos);
 			$ReportList[$GrpName][$i]['RptName']  = $RptName;
 			$ReportList[$GrpName][$i]['RptNarr']  = $ReportNarr;
-			$ReportList[$GrpName][$i]['FileName'] = $pinfo[basename];
+			$ReportList[$GrpName][$i]['FileName'] = $pinfo['basename'];
 			$i++;
 		  }
 		}
@@ -208,7 +208,7 @@ function ReadDefReports($name, $path) {
 		if (is_object($report->PhreeformReport)) $report = $report->PhreeformReport; // remove container tag
 		$ReportList[$report->groupname][$i]['RptName']  = $report->title;
 		$ReportList[$report->groupname][$i]['RptNarr']  = $report->description;
-		$ReportList[$report->groupname][$i]['FileName'] = $pinfo[basename];
+		$ReportList[$report->groupname][$i]['FileName'] = $pinfo['basename'];
 		$i++;
 	    break;
 	  default: break; // not a report
