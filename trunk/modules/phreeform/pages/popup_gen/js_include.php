@@ -39,9 +39,8 @@ var tableCount    = 0;
 <?php echo $jsArray; ?>
 
 function init() {
-  $(function() {
-	$('#gentabs').tabs();
-  });
+  var firstTabPane = document.querySelector('#gentabs .tab-pane');
+  if (firstTabPane) firstTabPane.classList.add('show', 'active');
   for (var tables in tableInit) {
     var table = document.getElementById(tableInit[tables]);
     var tableDnD = new TableDnD();
