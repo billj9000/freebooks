@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,6 +19,26 @@
 //
 ?>
 <h1><?php echo HEADING_CVV; ?></h1>
-<?php echo sprintf(TEXT_CVV_HELP1, html_image(DIR_WS_IMAGES . 'cvv2visa.gif')); ?>
-<?php echo sprintf(TEXT_CVV_HELP2, html_image(DIR_WS_IMAGES . 'cvv2amex.gif')); ?>
-<?php echo '<center><a href="javascript:window.close()">' . TEXT_CLOSE . '</a></center>'; ?>
+<div class="d-flex justify-content-center">
+  <div class="d-inline-flex flex-column gap-2" style="max-width:500px">
+
+    <div class="card fb-card">
+      <div class="card-header py-1 fb-widget-header">Visa / Mastercard / Discover</div>
+      <div class="card-body py-2">
+        <?php echo sprintf(TEXT_CVV_HELP1, '<div class="mt-2">' . html_image(DIR_WS_IMAGES . 'cvv2visa.gif') . '</div>'); ?>
+      </div>
+    </div>
+
+    <div class="card fb-card">
+      <div class="card-header py-1 fb-widget-header">American Express</div>
+      <div class="card-body py-2">
+        <?php echo sprintf(TEXT_CVV_HELP2, '<div class="mt-2">' . html_image(DIR_WS_IMAGES . 'cvv2amex.gif') . '</div>'); ?>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button type="button" class="btn btn-primary btn-sm" onclick="window.close()">Close</button>
+    </div>
+
+  </div>
+</div>
