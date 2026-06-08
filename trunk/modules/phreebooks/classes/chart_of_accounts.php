@@ -150,13 +150,13 @@ class chart_of_accounts {
         foreach ($result->fields as $key => $value) $this->$key = $value;
     }
     $output  = ($action == 'new' ? html_hidden_field('new', 1 ) :'')  . chr(10);
-	$output .= '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . "\n";
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output .= '<table class="table table-sm table-bordered w-auto mx-auto">' . "\n";
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . "\n";
 	$output .= '    <th colspan="2">' . ($action == 'new' ? GL_INFO_NEW_ACCOUNT : GL_INFO_EDIT_ACCOUNT) . '</th>' . "\n";
     $output .= '  </tr>' . "\n";
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody >' . "\n";
 	$output .= '  <tr>' . "\n";
 	$output .= '    <td colspan="2">' . ($action == 'new' ? GL_INFO_INSERT_INTRO : GL_EDIT_INTRO) . '</td>' . "\n";
     $output .= '  </tr>' . "\n";

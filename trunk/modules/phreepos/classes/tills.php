@@ -127,13 +127,13 @@ class tills {
         foreach ($result->fields as $key => $value) $this->$key = $value;
 	}
 	$tax_rates = inv_calculate_tax_drop_down('c');
-	$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output  = '<table class="table table-sm table-bordered w-auto mx-auto">' . chr(10);
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? TEXT_ENTER_NEW_TILL : TEXT_EDIT_TILL) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody >' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <td>' . TEXT_DESCRIPTION . '</td>' . chr(10);
 	$output .= '    <td>' . html_input_field('description', $this->description, 'size="16" maxlength="15"') . '</td>' . chr(10);

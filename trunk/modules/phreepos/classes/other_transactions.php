@@ -123,13 +123,13 @@ class other_transactions {
 							}
 						}
 					</script>";
-		$output .= '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-		$output .= '  <thead class="ui-widget-header">' . "\n";
+		$output .= '<table class="table table-sm table-bordered w-auto mx-auto">' . chr(10);
+		$output .= '  <thead class="table-dark">' . "\n";
 		$output .= '  <tr>' . chr(10);
 		$output .= '    <th colspan="2">' . ($action=='new' ? TEXT_ENTER_NEW_OTHER_TRANSACTION : TEXT_EDIT_OTHER_TRANSACTION) . '</th>' . chr(10);
     	$output .= '  </tr>' . chr(10);
 		$output .= '  </thead>' . "\n";
-		$output .= '  <tbody class="ui-widget-content">' . "\n";
+		$output .= '  <tbody >' . "\n";
 		$output .= '  <tr>' . chr(10);
 		$output .= '    <td>' . TEXT_DESCRIPTION . '</td>' . chr(10);
 		$output .= '    <td>' . html_input_field('description', $this->description, 'size="16" maxlength="15"') . '</td>' . chr(10);
