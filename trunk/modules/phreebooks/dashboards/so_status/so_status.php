@@ -64,20 +64,19 @@ class so_status extends ctl_panel {
 		if ($result->RecordCount() < 1) {
 			$contents = ACT_NO_RESULTS;
 		} else {
+			$contents .= '<div style="display:grid;grid-template-columns:1fr auto auto;gap:2px 4px;align-items:center">';
 			while (!$result->EOF) {
-			  	$contents .= '<div style="float:right">' ;
-			  	$contents .= html_button_field('invoice_' . $result->fields['id'], TEXT_INVOICE, 'onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $result->fields['id'] . '&amp;jID=12&amp;action=prc_so', 'SSL') . '\',\'_blank\')"') . "  ";
-				$contents .= $currencies->format_full($result->fields['total_amount'], true, $result->fields['currencies_code'], $result->fields['currencies_value']); 
-				$contents .= '</div>';
-				$contents .= '<div>';
-				$contents .= '<a href="' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $result->fields['id'] . '&amp;jID=10&amp;action=edit', 'SSL') . '">';
+				$contents .= '<div><a href="' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $result->fields['id'] . '&amp;jID=10&amp;action=edit', 'SSL') . '">';
 				$contents .= $result->fields['purchase_invoice_id'] . ' - ';
 				$contents .= gen_locale_date($result->fields['post_date']);
 				$name      = gen_trim_string($result->fields['bill_primary_name'], 20, true);
 				$contents .= ' ' . htmlspecialchars($name);
-				$contents .= '</a></div>' . chr(10);
+				$contents .= '</a></div>';
+				$contents .= '<div>' . html_button_field('invoice_' . $result->fields['id'], TEXT_INVOICE, 'onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $result->fields['id'] . '&amp;jID=12&amp;action=prc_so', 'SSL') . '\',\'_blank\')"') . '</div>';
+				$contents .= '<div class="text-end text-nowrap">' . $currencies->format_full($result->fields['total_amount'], true, $result->fields['currencies_code'], $result->fields['currencies_value']) . '</div>';
 				$result->MoveNext();
 			}
+			$contents .= '</div>';
 	  	}
 		return $this->build_div('', $contents, $control);
 	}
