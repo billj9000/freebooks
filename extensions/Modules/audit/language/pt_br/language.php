@@ -10,7 +10,7 @@
 
 define('TEXT_EXCLUDE','excluir');
 define('GL_ERROR_BALANCE','As contas CG não batem');
-define('TEXT_ALL_OR_ACTIVE','Você quer exportar todas ou todas excluindo as ordens, cotações e itens aguardando faturamento');
+define('TEXT_ALL_OR_ACTIVE','Você quer exportar todas ou todas excluindo as ordens, cotações e itens aguardando faturamento?');
 define('TEXT_BALANCE_SHEET','Balancete');
 define('TEXT_INCOME_STATEMENT','Demonstrativo Resultados');
 define('HEADING_MODULE_AUDIT','exportar arquivo de auditoria');

@@ -2,7 +2,8 @@
 // +-----------------------------------------------------------------+
 // |                   PhreeBooks Open Source ERP                    |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -72,6 +73,7 @@ switch ($_REQUEST['action']) {
 /*****************   prepare to display templates  *************************/
 $cash_chart = gen_coa_pull_down(2, false, true, false, $restrict_types = array(0));    // cash types only
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

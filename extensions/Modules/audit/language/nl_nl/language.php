@@ -8,7 +8,7 @@
 define('HEADING_MODULE_AUDIT','exporteer audit bestand');
 define('TEXT_INCOME_STATEMENT','WinstVerlies');
 define('TEXT_BALANCE_SHEET','Balans');
-define('TEXT_ALL_OR_ACTIVE','Wilt u alles exporteren of alles exclusief de offertes, orders en items die wachten op een factuur.');
+define('TEXT_ALL_OR_ACTIVE','Wilt u alles exporteren of alles exclusief de offertes, orders en items die wachten op een factuur?');
 define('GL_ERROR_BALANCE','De grootboek rekeningen zijn niet in balans');
 define('TEXT_EXCLUDE','exclusief');
 
