@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -41,9 +42,6 @@ var textPortrait  = '<?php echo TEXT_PORTRAIT; ?>';
 var textLandscape = '<?php echo TEXT_LANDSCAPE; ?>';
 
 function init() {
-  $(function() {
-	$('#buildtabs').tabs();
-  });
   if (action == 'preview') {
     var rID = document.getElementById('rID').value;
     var popupWin = window.open("index.php?module=phreeform&page=popup_gen&rID="+rID+"&action=open&preview=1","popup_gen","width=900,height=650,resizable=1,scrollbars=1,top=150,left=200");
