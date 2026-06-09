@@ -48,7 +48,7 @@ if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 ?>
-<div class="d-flex align-items-center ui-state-hover" style="border:0">
+<div class="d-flex align-items-center" style="border:0">
   <div class="flex-shrink-0"><?php echo $toolbar->build_toolbar(); ?></div>
   <h1 class="mb-0 ms-3" style="font-size:2.5em"><?php echo PAGE_TITLE; ?></h1>
 </div>

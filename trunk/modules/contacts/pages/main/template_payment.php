@@ -54,7 +54,7 @@
 		echo $field;
 	}
     if (!$_SESSION['admin_encrypt']) { ?>
-      <tr><td colspan="2" class="ui-state-highlight"><?php echo ACT_NO_ENCRYPT_KEY_ENTERED; ?></td></tr>
+      <tr><td colspan="2" class="table-warning"><?php echo ACT_NO_ENCRYPT_KEY_ENTERED; ?></td></tr>
 <?php } ?>
       <tr><td colspan="2"><?php echo '&nbsp;'; ?></td></tr>
       <tr><th colspan="2"><?php echo ACT_PAYMENT_MESSAGE; ?></th></tr>
