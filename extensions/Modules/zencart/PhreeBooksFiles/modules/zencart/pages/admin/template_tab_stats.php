@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,14 +18,9 @@
 //  Path: /modules/zencart/pages/admin/template_tab_stats.php
 //
 ?>
-<div id="tab_stats" class="tabset_content">
-  <h2 class="tabset_label"><?php echo TEXT_STATISTICS; ?></h2>
-  <fieldset class="formAreaTitle">
-    <legend><?php echo TEXT_MODULE_STATS; ?></legend>
-    <table border="0" width="100%" cellspacing="1" cellpadding="1">
-	  <tr>
-	    <td><?php echo 'Coming Soon'; ?></td>
-	  </tr>
-	</table>
-  </fieldset>
+<div class="tab-pane" id="tab_stats">
+  <div class="card fb-card mt-2">
+    <div class="card-header py-1 fb-widget-header"><?php echo TEXT_MODULE_STATS; ?></div>
+    <div class="card-body py-2">Coming Soon</div>
+  </div>
 </div>

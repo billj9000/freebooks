@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,11 +18,9 @@
 //  Path: /modules/assets/pages/admin/template_main.php
 //
 echo html_form('admin', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . chr(10);
-// include hidden fields
-echo html_hidden_field('action',   '') . chr(10);
-echo html_hidden_field('subject','') . chr(10);
-echo html_hidden_field('rowSeq', '') . chr(10);
-// customize the toolbar actions
+echo html_hidden_field('action',  '') . chr(10);
+echo html_hidden_field('subject', '') . chr(10);
+echo html_hidden_field('rowSeq',  '') . chr(10);
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=admin', 'SSL') . '\'"';
 $toolbar->icon_list['open']['show']     = false;
 if ($security_level > 1) $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
@@ -32,17 +31,13 @@ $toolbar->add_help($assets->help_path);
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
-<div id="admintabs">
-<ul>
-<?php
-  echo add_tab_list('tab_tabs',    TEXT_EXTRA_TABS);
-  echo add_tab_list('tab_fields',  TEXT_EXTRA_FIELDS);
-  if (file_exists(DIR_FS_MODULES . $module . '/custom/pages/admin/template_tab_custom.php')) {
-    echo add_tab_list('tab_custom',TEXT_CUSTOM_TAB);    
-  }
-  echo add_tab_list('tab_stats',   TEXT_STATISTICS);
-?>
+<ul class="nav nav-tabs fb-tabs" id="admintabs">
+  <?php echo add_tab_list('tab_tabs',   TEXT_EXTRA_TABS,   true); ?>
+  <?php echo add_tab_list('tab_fields', TEXT_EXTRA_FIELDS); ?>
+  <?php if (file_exists(DIR_FS_MODULES . $module . '/custom/pages/admin/template_tab_custom.php')) echo add_tab_list('tab_custom', TEXT_CUSTOM_TAB); ?>
+  <?php echo add_tab_list('tab_stats',  TEXT_STATISTICS); ?>
 </ul>
+<div class="tab-content fb-tab-content">
 <?php
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_tabs.php');
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_fields.php');

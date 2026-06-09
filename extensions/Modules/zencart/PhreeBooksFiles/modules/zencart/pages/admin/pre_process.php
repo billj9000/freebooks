@@ -61,6 +61,7 @@ $sel_yes_no = array(
  array('id' => '1', 'text' => TEXT_YES),
 );
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

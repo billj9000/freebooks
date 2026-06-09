@@ -1355,7 +1355,8 @@ function gen_db_date($raw_date = '', $separator = '/') {
   }
 
   function add_tab_list($name, $text, $active = false) {
-	return '<li><a href="#' . $name . '">' . $text . '</a></li>' . chr(10);
+    $cls = 'nav-link' . ($active ? ' active' : '');
+    return '<li class="nav-item"><a class="' . $cls . '" data-bs-toggle="tab" href="#' . $name . '">' . $text . '</a></li>' . chr(10);
   }
 
   function build_dir_html($name, $full_array) {

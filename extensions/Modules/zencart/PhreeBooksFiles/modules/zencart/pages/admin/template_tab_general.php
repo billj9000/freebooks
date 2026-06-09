@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -16,70 +17,39 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/zencart/pages/admin/template_tab_general.php
 //
-
 ?>
-<div id="tab_general">
-<fieldset>
-  <legend></legend>
-<table class="ui-widget" style="border-style:none;width:100%">
- <thead class="ui-widget-header">
-  <tr><th colspan="2"><?php echo MODULE_ZENCART_CONFIG_INFO; ?></th></tr>
- </thead>
- <tbody class="ui-widget-content">
-	  
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_ADMIN_URL; ?></td>
-	    <td><?php echo html_input_field('zencart_url', $_POST['zencart_url'] ? $_POST['zencart_url'] : ZENCART_URL, 'size="64"'); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_ADMIN_API_KEY; ?></td>
-	    <td><?php echo html_input_field('zencart_api_key', $_POST['zencart_api_key'] ? $_POST['zencart_api_key'] : ZENCART_API_KEY, 'size="64"'); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_TAX_CLASS; ?></td>
-	    <td><?php echo html_input_field('zencart_product_tax_class', $_POST['zencart_product_tax_class'] ? $_POST['zencart_product_tax_class'] : ZENCART_PRODUCT_TAX_CLASS, ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_USE_PRICES; ?></td>
-	    <td><?php echo html_pull_down_menu('zencart_use_price_sheets', $sel_yes_no, $_POST['zencart_use_price_sheets'] ? $_POST['zencart_use_price_sheets'] : ZENCART_USE_PRICE_SHEETS, 'onclick="togglePriceSheets()"'); ?></td>
-	  </tr>
-  	  <tr id="price_sheet_row">
-	    <td colspan="4"><?php echo ZENCART_TEXT_PRICE_SHEET; ?></td>
-        <td><?php echo html_pull_down_menu('zencart_price_sheet', pull_down_price_sheet_list(), $_POST['zencart_price_sheet'] ? $_POST['zencart_price_sheet'] : ZENCART_PRICE_SHEET, ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_SHIP_ID; ?></td>
-	    <td><?php echo html_input_field('zencart_status_confirm_id', $_POST['zencart_status_confirm_id'] ? $_POST['zencart_status_confirm_id'] : ZENCART_STATUS_CONFIRM_ID, ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_PARTIAL_ID; ?></td>
-	    <td><?php echo html_input_field('zencart_status_partial_id', $_POST['zencart_status_partial_id'] ? $_POST['zencart_status_partial_id'] : ZENCART_STATUS_PARTIAL_ID, ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_LBL_CATCH_ALL_ACCT; ?></td>
-	    <td><?php echo html_input_field('zencart_customer_account_id', $_POST['zencart_customer_account_id'] ? $_POST['zencart_customer_account_id'] : ZENCART_CUSTOMER_ACCOUNT_ID, 'size="10"'); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_LBL_DEFAULT_TAX; ?></td>
-	    <td><?php echo html_input_field('zencart_default_tax_rate_id', $_POST['zencart_default_tax_rate_id'] ? $_POST['zencart_default_tax_rate_id'] : ZENCART_DEFAULT_TAX_RATE_ID, 'size="10"'); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_LBL_CREATE_INVOICE; ?></td>
-	    <td><?php echo html_pull_down_menu('zencart_create_invoice', $sel_yes_no, $_POST['zencart_create_invoice'] ? $_POST['zencart_create_invoice'] : ZENCART_CREATE_INVOICE, ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_LBL_DEFAULT_REP; ?></td>
-	    <td><?php echo html_pull_down_menu('zencart_default_rep_id', gen_get_rep_ids('c'), isset($_POST['zencart_default_rep_id']) ? $_POST['zencart_default_rep_id'] : (defined('ZENCART_DEFAULT_REP_ID') ? ZENCART_DEFAULT_REP_ID : '0'), ''); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_LBL_LAST_ORDER; ?></td>
-	    <td><?php echo html_input_field('zencart_last_order', $_POST['zencart_last_order'] ? $_POST['zencart_last_order'] : (defined('ZENCART_LAST_ORDER') ? ZENCART_LAST_ORDER : '0'), 'size="10"'); ?></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4"><?php echo ZENCART_LBL_PAYMENT_MAP; ?></td>
-	    <td><?php echo html_input_field('zencart_payment_map', isset($_POST['zencart_payment_map']) ? $_POST['zencart_payment_map'] : (defined('ZENCART_PAYMENT_MAP') ? ZENCART_PAYMENT_MAP : ''), 'size="64"'); ?></td>
-	  </tr>
-	</tbody>
-</table>
-</fieldset>
+<div class="tab-pane show active" id="tab_general">
+  <div class="card fb-card mt-2">
+    <div class="card-header py-1 fb-widget-header"><?php echo MODULE_ZENCART_CONFIG_INFO; ?></div>
+    <div class="card-body py-2">
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:4px 8px;align-items:center;font-weight:normal">
+        <div><?php echo ZENCART_ADMIN_URL; ?></div>
+        <div><?php echo html_input_field('zencart_url', $_POST['zencart_url'] ? $_POST['zencart_url'] : ZENCART_URL, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_ADMIN_API_KEY; ?></div>
+        <div><?php echo html_input_field('zencart_api_key', $_POST['zencart_api_key'] ? $_POST['zencart_api_key'] : ZENCART_API_KEY, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_TAX_CLASS; ?></div>
+        <div><?php echo html_input_field('zencart_product_tax_class', $_POST['zencart_product_tax_class'] ? $_POST['zencart_product_tax_class'] : ZENCART_PRODUCT_TAX_CLASS, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_USE_PRICES; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_use_price_sheets', $sel_yes_no, $_POST['zencart_use_price_sheets'] ? $_POST['zencart_use_price_sheets'] : ZENCART_USE_PRICE_SHEETS, 'class="form-select form-select-sm w-auto" onclick="togglePriceSheets()"'); ?></div>
+        <div id="price_sheet_label"><?php echo ZENCART_TEXT_PRICE_SHEET; ?></div>
+        <div id="price_sheet_row"><?php echo html_pull_down_menu('zencart_price_sheet', pull_down_price_sheet_list(), $_POST['zencart_price_sheet'] ? $_POST['zencart_price_sheet'] : ZENCART_PRICE_SHEET, 'class="form-select form-select-sm w-auto"'); ?></div>
+        <div><?php echo ZENCART_SHIP_ID; ?></div>
+        <div><?php echo html_input_field('zencart_status_confirm_id', $_POST['zencart_status_confirm_id'] ? $_POST['zencart_status_confirm_id'] : ZENCART_STATUS_CONFIRM_ID, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_PARTIAL_ID; ?></div>
+        <div><?php echo html_input_field('zencart_status_partial_id', $_POST['zencart_status_partial_id'] ? $_POST['zencart_status_partial_id'] : ZENCART_STATUS_PARTIAL_ID, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_CATCH_ALL_ACCT; ?></div>
+        <div><?php echo html_input_field('zencart_customer_account_id', $_POST['zencart_customer_account_id'] ? $_POST['zencart_customer_account_id'] : ZENCART_CUSTOMER_ACCOUNT_ID, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_DEFAULT_TAX; ?></div>
+        <div><?php echo html_input_field('zencart_default_tax_rate_id', $_POST['zencart_default_tax_rate_id'] ? $_POST['zencart_default_tax_rate_id'] : ZENCART_DEFAULT_TAX_RATE_ID, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_CREATE_INVOICE; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_create_invoice', $sel_yes_no, $_POST['zencart_create_invoice'] ? $_POST['zencart_create_invoice'] : ZENCART_CREATE_INVOICE, 'class="form-select form-select-sm w-auto"'); ?></div>
+        <div><?php echo ZENCART_LBL_DEFAULT_REP; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_default_rep_id', gen_get_rep_ids('c'), isset($_POST['zencart_default_rep_id']) ? $_POST['zencart_default_rep_id'] : (defined('ZENCART_DEFAULT_REP_ID') ? ZENCART_DEFAULT_REP_ID : '0'), 'class="form-select form-select-sm w-auto"'); ?></div>
+        <div><?php echo ZENCART_LBL_LAST_ORDER; ?></div>
+        <div><?php echo html_input_field('zencart_last_order', $_POST['zencart_last_order'] ? $_POST['zencart_last_order'] : (defined('ZENCART_LAST_ORDER') ? ZENCART_LAST_ORDER : '0'), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_PAYMENT_MAP; ?></div>
+        <div><?php echo html_input_field('zencart_payment_map', isset($_POST['zencart_payment_map']) ? $_POST['zencart_payment_map'] : (defined('ZENCART_PAYMENT_MAP') ? ZENCART_PAYMENT_MAP : ''), 'class="form-control form-control-sm"'); ?></div>
+      </div>
+    </div>
+  </div>
 </div>

@@ -56,6 +56,7 @@ switch ($_REQUEST['action']) {
 /*****************   prepare to display templates  *************************/
 // build some general pull down arrays
     
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

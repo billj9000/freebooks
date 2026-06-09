@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -13,24 +14,18 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/audit/pages/admin/template_tab_general.php
 //
-
 ?>
-<div id="tab_general">
-  <h2 class="tabset_label"><?php echo TEXT_AUDIT_SETTINGS; ?></h2>
-  <fieldset class="formAreaTitle">
-    <table border="0" width="100%" cellspacing="1" cellpadding="1">
-	  <tr><th colspan="5"><?php echo MODULE_AUDIT_CONFIG_INFO; ?></th></tr>
-	  <tr>
-	    <td colspan="4"><?php echo TEXT_AUDIT_DEBIT_NUMBER; ?></td>
-	    <td><?php echo html_input_field('audit_debit_number', $_POST['audit_debit_number'] ? $_POST['audit_debit_number'] : AUDIT_DEBIT_NUMBER, 'size="64"'); ?></td>
-	  </tr>
-	</table>
-  </fieldset>
+<div class="tab-pane show active" id="tab_general">
+  <div class="card fb-card mt-2">
+    <div class="card-header py-1 fb-widget-header"><?php echo MODULE_AUDIT_CONFIG_INFO; ?></div>
+    <div class="card-body py-2">
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:4px 8px;align-items:center">
+        <label><?php echo TEXT_AUDIT_DEBIT_NUMBER; ?></label>
+        <div><?php echo html_input_field('audit_debit_number', $_POST['audit_debit_number'] ? $_POST['audit_debit_number'] : AUDIT_DEBIT_NUMBER, 'class="form-control form-control-sm"'); ?></div>
+      </div>
+    </div>
+  </div>
 </div>

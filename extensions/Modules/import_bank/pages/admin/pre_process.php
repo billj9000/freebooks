@@ -84,6 +84,7 @@ switch ($_REQUEST['action']) {
 /*****************   prepare to display templates  *************************/
 // build some general pull down arrays
 $all_chart = gen_coa_pull_down(2, false, true, false);    
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';
