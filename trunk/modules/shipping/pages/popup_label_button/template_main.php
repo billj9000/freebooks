@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,19 +17,22 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/pages/popup_label_button/template_main.php
 //
-
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
+  <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
+  <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
 </head>
-
-<body>
-  <form>
-     <p><input type="button" name="<?php echo 'close_' . $index; ?>" value="<?php echo TEXT_CLOSE; ?>" onclick="<?php echo 'parent.opener.location.reload(); parent.close()'; ?>" /></p>
-<!-- <p><input type="button" name="<?php echo 'prn_'   . $index; ?>" value="<?php echo TEXT_PRINT; ?>" onclick="<?php echo 'parent.content_' . $index . '.focus(); parent.content_' . $index . '.print()'; ?>" /></p> -->
-  </form>
+<body class="p-3">
+  <div class="text-center">
+    <button type="button" class="btn btn-primary btn-sm"
+            onclick="parent.opener.location.reload(); parent.close()">
+      <?php echo TEXT_CLOSE; ?>
+    </button>
+  </div>
 </body>
 </html>

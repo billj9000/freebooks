@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,25 +18,27 @@
 //  Path: /modules/shipping/pages/popup_label_image/template_main.php
 //
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
+  <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
+  <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
 </head>
-<body>
-<div id="image">
-<?php 
-if ($image) {
-	echo '<h2>' . $image . '</h2>';
-} else {
-	echo html_form('download', FILENAME_DEFAULT, gen_get_all_get_params(array('action')) . '&action=download') . chr(10);
-	echo html_submit_field('action', SHIPPING_TEXT_DOWNLOAD, '') . chr(10);
-	echo SHIPPING_THERMAL_INST;
-	echo '</form>';
-}
-?>
-</form>
-</div>
+<body class="p-3">
+  <div class="d-flex justify-content-center">
+    <?php if ($image): ?>
+      <div class="alert alert-warning"><?php echo $image; ?></div>
+    <?php else: ?>
+      <?php echo html_form('download', FILENAME_DEFAULT, gen_get_all_get_params(array('action')) . '&action=download'); ?>
+      <div class="d-flex flex-column align-items-center gap-2">
+        <button type="submit" class="btn btn-primary btn-sm"><?php echo SHIPPING_TEXT_DOWNLOAD; ?></button>
+        <div class="text-muted small"><?php echo SHIPPING_THERMAL_INST; ?></div>
+      </div>
+      </form>
+    <?php endif; ?>
+  </div>
 </body>
 </html>
