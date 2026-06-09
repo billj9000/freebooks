@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,15 +19,15 @@
 //
 ?>
 <h1><?php echo constant('MODULE_SHIPPING_' . strtoupper($method_id) . '_TEXT_TITLE'); ?></h1>
-<table class="ui-widget" style="border-style:none;width:100%">
- <tbody class="ui-widget-content">
+<table class="table table-sm table-borderless mb-2 w-100">
+ <tbody>
   <tr>
 	<td colspan="8"><?php echo SHIPPING_BUTTON_CREATE_LOG_ENTRY . ' => ' . html_button_field('close', SHIPPING_BUTTON_CREATE_LOG_ENTRY, 'onclick="window.open(\'index.php?module=shipping&amp;page=popup_tracking&amp;method=usps&amp;action=new\',\'popup_tracking\',\'width=550,height=350,resizable=1,scrollbars=1,top=150,left=200\')"') . chr(10); ?></td>
   </tr>
  </tbody>
 </table>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
+<table class="table table-sm table-hover table-borderless mb-2 w-100">
+ <thead class="table-dark">
   <tr>
     <th colspan="8"><?php echo SHIPPING_USPS_SHIPMENTS_ON . gen_locale_date($date); ?></th>
   </tr>
@@ -42,7 +42,7 @@
 	<th><?php echo TEXT_ACTION; ?></th>
   </tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
   <?php 
 	$result = $db->Execute("select id, shipment_id, ref_id, method, deliver_date, tracking_id, cost 
 		from " . TABLE_SHIPPING_LOG . " 

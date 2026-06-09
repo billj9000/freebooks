@@ -1130,7 +1130,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
   }
 
   function html_button_field($name, $value, $parameters = '') {
-  	return '<a href="#" id="'.$name.'" class="ui-state-default ui-corner-all" '.$parameters.'>'.$value.'</a>';
+    return '<button type="button" id="' . $name . '" class="btn btn-sm btn-outline-secondary me-1" ' . $parameters . '>' . $value . '</button>';
   }
 
   function html_selection_field($name, $type, $value = '', $checked = false, $compare = '', $parameters = '') {

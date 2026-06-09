@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,31 +17,26 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/pages/ship_mgr/js_include.php
 //
-
 ?>
 <script type="text/javascript">
-<!--
-// pass any php variables generated during pre-process that are used in the javascript functions.
-// Include translations here as well.
 <?php echo js_calendar_init($cal_ship); ?>
 
+var _modalInstance = null;
+var _modalAction   = '';
+var _modalMethod   = '';
+
 function init() {
-  $(function() { $('#shippingtabs').tabs(); });
-  var dlg = $('#shipping_dialog').dialog({ 
-	autoOpen: false,
-	buttons: { "<?php echo TEXT_SUBMIT; ?>": function() { $(this).dialog('close'); document.getElementById('action').form.submit(); } }
-  });
-  dlg.parent().appendTo($("#ship_mgr"));
-  document.getElementById('search_date').onchange = calendarPage;
+  var firstPane = document.querySelector('#shippingtabsContent .tab-pane');
+  if (firstPane) firstPane.classList.add('show', 'active');
 }
 
 function check_form() {
   return true;
 }
 
-// Insert other page specific functions here.
 function loadPopUp(method, action, id) {
-  window.open("index.php?module=shipping&page=popup_tracking&method="+method+"&action="+action+"&sID="+id,"popup_tracking","width=500,height=350,resizable=1,scrollbars=1,top=150,left=200");
+  window.open('index.php?module=shipping&page=popup_tracking&method=' + method + '&action=' + action + '&sID=' + id,
+    'popup_tracking', 'width=500,height=350,resizable=1,scrollbars=1,top=150,left=200');
 }
 
 function submitAction(module_id, action) {
@@ -55,53 +50,40 @@ function submitShipSequence(module_id, rowSeq, todo) {
 }
 
 function calendarPage() {
-  location.href = 'index.php?module=shipping&page=ship_mgr&search_date='+document.ship_mgr.search_date.value;
+  location.href = 'index.php?module=shipping&page=ship_mgr&search_date=' + document.ship_mgr.search_date.value;
 }
 
 function getDialog(method, template) {
   if (!method || !template) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=shipping&page=ajax&op=shipping&action=form&method='+method+'&template='+template,
-    dataType: ($.browser.msie) ? "text" : "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillDialog
-  });
+  fetch('index.php?module=shipping&page=ajax&op=shipping&action=form&method=' + method + '&template=' + template)
+    .then(function(r) { return r.text(); })
+    .then(fillDialog)
+    .catch(function(e) { alert('Ajax Error: ' + e); });
 }
 
-function fillDialog(sXml) {
-  var xml = parseXml(sXml);
-  if (!xml) return;
-  if ($(xml).find("message").text()) alert ($(xml).find("message").text());
-  if ($(xml).find("width").text()) {
-	  $("#shipping_dialog").dialog("option", "width", parseInt($(xml).find("width").text()));
-  }
-  document.getElementById('action').value = $(xml).find("action").text();
-  document.getElementById('module_id').value = $(xml).find("method").text();
-  document.getElementById('shipping_dialog').innerHTML = $(xml).find("html").text();
-  $('#shipping_dialog').dialog('open');
+function fillDialog(xmlText) {
+  var parser = new DOMParser();
+  var xml    = parser.parseFromString(xmlText, 'text/xml');
+  var getText = function(tag) {
+    var el = xml.getElementsByTagName(tag)[0];
+    return el ? el.textContent : '';
+  };
+  var msg = getText('message');
+  if (msg) alert(msg);
+  _modalAction = getText('action');
+  _modalMethod = getText('method');
+  document.getElementById('shipping_dialog').innerHTML = getText('html');
+  var modalEl = document.getElementById('shipping_modal');
+  var width = getText('width');
+  if (width) modalEl.querySelector('.modal-dialog').style.maxWidth = parseInt(width) + 'px';
+  _modalInstance = new bootstrap.Modal(modalEl);
+  _modalInstance.show();
 }
 
-function trackPackage(method, tID) {
-  if (!method || !tID) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=shipping&page=ajax&op=shipping&action=tracking&method='+method+'&tID='+tID,
-    dataType: ($.browser.msie) ? "text" : "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: "+XMLHttpRequest.responseText+"\nTextStatus: "+textStatus+"\nErrorThrown: "+errorThrown);
-    },
-	success: fillTracking
-  });
+function submitModalAction() {
+  document.getElementById('action').value    = _modalAction;
+  document.getElementById('module_id').value = _modalMethod;
+  if (_modalInstance) _modalInstance.hide();
+  document.getElementById('ship_mgr').submit();
 }
-
-function fillTracking(sXml) {
-  var xml = parseXml(sXml);
-  if (!xml) return;
-  if ($(xml).find("message").text()) alert ($(xml).find("message").text());
-}
-
-// -->
 </script>

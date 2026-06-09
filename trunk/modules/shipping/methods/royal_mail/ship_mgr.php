@@ -20,7 +20,7 @@ load_method_language(DIR_FS_MODULES . 'shipping/methods/', 'royal_mail');
 define('RM_TRACKING_URL', 'https://www.royalmail.com/track-your-item#/tracking-results/');
 ?>
 <h1><?php echo MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE; ?></h1>
-<table class="ui-widget" style="border-style:none;width:100%">
+<table class="table table-sm table-borderless mb-2 w-100">
   <tr>
     <td><?php echo html_button_field('ship_royal_mail', SHIPPING_SHIP_PACKAGE,
       'onclick="window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=royal_mail\',\'popup_label_mgr\',\'width=820,height=720,resizable=1,scrollbars=1,top=50,left=50\')"'); ?>
@@ -30,8 +30,8 @@ define('RM_TRACKING_URL', 'https://www.royalmail.com/track-your-item#/tracking-r
     </td>
   </tr>
 </table>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
-  <thead class="ui-widget-header">
+<table class="table table-sm table-hover table-borderless mb-2 w-100">
+  <thead class="table-dark">
     <tr>
       <th colspan="7"><?php echo MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE . ' &mdash; ' . gen_locale_date($date); ?></th>
     </tr>
@@ -45,7 +45,7 @@ define('RM_TRACKING_URL', 'https://www.royalmail.com/track-your-item#/tracking-r
       <th><?php echo TEXT_ACTION;               ?></th>
     </tr>
   </thead>
-  <tbody class="ui-widget-content">
+  <tbody>
 <?php
 $rows = $db->Execute("SELECT * FROM " . TABLE_SHIPPING_LOG
   . " WHERE carrier = 'royal_mail' AND ship_date LIKE '" . db_input($date) . "%'"

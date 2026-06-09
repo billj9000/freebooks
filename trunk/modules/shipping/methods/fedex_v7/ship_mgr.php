@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,7 +19,7 @@
 //
 ?>
 <h1><?php echo constant('MODULE_SHIPPING_' . strtoupper($method_id) . '_TEXT_TITLE'); ?></h1>
-<table class="ui-widget" style="border-style:none;width:100%">
+<table class="table table-sm table-borderless mb-2 w-100">
   <tr>
 	<td><?php echo html_button_field('ship_'     . $method_id, SHIPPING_SHIP_PACKAGE, 'onclick="window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=' . $method_id . '\',\'popup_label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\')"'); ?></td>
 	<td><?php echo html_button_field('ship_log_' . $method_id, SHIPPING_CREATE_ENTRY, 'onclick="window.open(\'index.php?module=shipping&amp;page=popup_tracking&amp;method='  . $method_id . '&amp;action=new\',\'popup_tracking\',\'width=550,height=350,resizable=1,scrollbars=1,top=150,left=200\')"'); ?></td>
@@ -30,8 +30,8 @@
 	</td>
   </tr>
 </table>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
+<table class="table table-sm table-hover table-borderless mb-2 w-100">
+ <thead class="table-dark">
   <tr>
     <th colspan="8"><?php echo SHIPPING_FEDEX_V7_SHIPMENTS_ON . gen_locale_date($date); ?></th>
   </tr>
@@ -46,7 +46,7 @@
 	<th><?php echo TEXT_ACTION;                 ?></th>
   </tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
 	<?php 
 	$start_date = date('Y-m-d', strtotime("-1 day"));
 	$end_date   = date('Y-m-d', strtotime("+1 day"));

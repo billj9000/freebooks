@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,8 +19,8 @@
 //
 ?>
 <h1><?php echo constant('MODULE_SHIPPING_' . strtoupper($method_id) . '_TEXT_TITLE'); ?></h1>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
+<table class="table table-sm table-hover table-borderless mb-2 w-100">
+ <thead class="table-dark">
   <tr>
     <th colspan="8"><?php echo SHIPPING_FREESHIPPER_SHIPMENTS_ON . gen_locale_date($date); ?></th>
   </tr>
@@ -35,7 +35,7 @@
 	<th><?php echo TEXT_ACTION; ?></th>
   </tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
   <?php 
 	$result = $db->Execute("select id, shipment_id, ref_id, method, deliver_date, tracking_id, cost 
 		from " . TABLE_SHIPPING_LOG . " 
