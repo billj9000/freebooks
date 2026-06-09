@@ -19,7 +19,6 @@
 
 ?>
 <script type="text/javascript">
-<!--
 // pass some php variables
 var securityLevel = <?php echo $security_level; ?>;
 
@@ -65,7 +64,7 @@ function editTask(id) { // request funtion
   $.ajax({
     type: "GET",
     url: 'index.php?module=work_orders&page=ajax&op=load_task&id='+id,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -94,5 +93,4 @@ function fillTask(sXml) { // call back function
 }
 // end ajax pair
 
-// -->
 </script>

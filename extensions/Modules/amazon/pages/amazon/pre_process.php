@@ -214,6 +214,7 @@ $query_raw = "SELECT ".implode(', ', $field_list)." from ".TABLE_JOURNAL_MAIN."
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);
 $query_split  = new splitPageResults($_REQUEST['list'], $query_raw);
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

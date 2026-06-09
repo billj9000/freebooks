@@ -158,6 +158,7 @@ if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go las
 }
 history_save('wo_tasks');
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

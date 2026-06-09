@@ -328,6 +328,7 @@ $purch_cond_array = array(
 	array('id' => 'n', 'text' => TEXT_NEW),
 	array('id' => 'u', 'text' => TEXT_USED),
 );
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 switch ($_REQUEST['action']) {

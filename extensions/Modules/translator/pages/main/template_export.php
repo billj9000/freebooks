@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -27,22 +28,17 @@ echo $toolbar->build_toolbar();
 array_shift($sel_language); // remove 'all' option
 ?>
 <h1><?php echo TEXT_EXPORT_TRANSLATION; ?></h1>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
-  <tr><th colspan="2"><?php echo TEXT_EXPORT_TRANSLATION; ?></th></tr>
- </thead>
- <tbody class="ui-widget-content">
-  <tr><td colspan="2"><?php echo TRANSLATOR_EXPORT_DESC; ?></td></tr>
-  <tr>
-	<td><?php echo TRANSLATOR_ISO_EXPORT . '&nbsp;'; ?></td>
-	<td><?php echo html_pull_down_menu('lang', $sel_language, DEFAULT_LANGUAGE); ?></td>
-  </tr>
-  <tr>
-	<td colspan="2"><?php echo '&nbsp;'; ?></td>
-  </tr>
-  <tr>
-	<td colspan="2" align="right"><?php echo html_button_field('export', TEXT_EXPORT, 'onclick="submitToDo(\'export_all_go\', true)"'); ?></td>
-  </tr>
- </tbody>
-</table>
+<div class="card fb-card mb-2">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_EXPORT_TRANSLATION; ?></div>
+  <div class="card-body py-2">
+    <p><?php echo TRANSLATOR_EXPORT_DESC; ?></p>
+    <div class="mb-1">
+      <?php echo TRANSLATOR_ISO_EXPORT; ?>
+      <?php echo html_pull_down_menu('lang', $sel_language, DEFAULT_LANGUAGE); ?>
+    </div>
+    <div class="text-end mt-2">
+      <?php echo html_button_field('export', TEXT_EXPORT, 'onclick="submitToDo(\'export_all_go\', true)"'); ?>
+    </div>
+  </div>
+</div>
 </form>

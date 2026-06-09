@@ -243,6 +243,7 @@ $sel_version      = build_ver_list();
 $sel_language     = build_lang_list();
 $sel_translated   = build_trans_list();
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = false;
 $include_template = 'template_main.php';

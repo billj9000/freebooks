@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,37 +27,29 @@ $toolbar->icon_list['print']['show']    = false;
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo TEXT_NEW_TRANSLATION; ?></h1>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
-	<tr><th colspan="2"><?php echo TEXT_NEW_TRANSLATION; ?></th></tr>
- </thead>
- <tbody class="ui-widget-content">
-	<tr><td colspan="2"><?php echo TRANSLATOR_NEW_DESC; ?></td></tr>
-	<tr>
-	  <td colspan="2">
-	    <?php echo TRANSLATOR_ISO_CREATE; ?>
-	    <?php echo html_input_field('lang', DEFAULT_LANGUAGE); ?>
-	  </td>
-	</tr>
-	<tr>
-	  <td>
-	    <?php echo TRANSLATOR_NEW_SOURCE . html_pull_down_menu('mod', $sel_modules);  ?>
-	  </td>
-	  <td>
-	    <?php echo TEXT_SOURCE_LANGUAGE . ' ' . html_input_field('source_lang', 'en_us'); ?>
-	  </td>
-	</tr>
-	<tr><th colspan="2"><?php echo TEXT_OPTIONS; ?></th></tr>
-	<tr>
-	  <td>
-	  	<?php echo html_checkbox_field('replace', '1', false); ?>
-		<?php echo TRANSLATOR_NEW_OVERRIDE . '&nbsp;'; ?>
-	  </td>
-	  <td><?php echo html_input_field('history_lang', DEFAULT_LANGUAGE); ?></td>
-	</tr>
-	<tr>
-	  <td colspan="2" align="right"><?php echo html_button_field('new', TEXT_CREATE_NEW_TRANSLATION, 'onclick="submitToDo(\'create_new\')"'); ?></td>
-	</tr>
- </tbody>
-</table>
+<div class="card fb-card mb-2">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_NEW_TRANSLATION; ?></div>
+  <div class="card-body py-2">
+    <p><?php echo TRANSLATOR_NEW_DESC; ?></p>
+    <div class="mb-1">
+      <?php echo TRANSLATOR_ISO_CREATE; ?>
+      <?php echo html_input_field('lang', DEFAULT_LANGUAGE); ?>
+    </div>
+    <div class="mb-1">
+      <?php echo TRANSLATOR_NEW_SOURCE . html_pull_down_menu('mod', $sel_modules); ?>
+      &nbsp;&nbsp;
+      <?php echo TEXT_SOURCE_LANGUAGE . ' ' . html_input_field('source_lang', 'en_us'); ?>
+    </div>
+    <p class="mt-2 mb-1"><strong><?php echo TEXT_OPTIONS; ?></strong></p>
+    <div class="mb-1">
+      <?php echo html_checkbox_field('replace', '1', false); ?>
+      <?php echo TRANSLATOR_NEW_OVERRIDE; ?>
+      &nbsp;&nbsp;
+      <?php echo html_input_field('history_lang', DEFAULT_LANGUAGE); ?>
+    </div>
+    <div class="text-end mt-2">
+      <?php echo html_button_field('new', TEXT_CREATE_NEW_TRANSLATION, 'onclick="submitToDo(\'create_new\')"'); ?>
+    </div>
+  </div>
+</div>
 </form>

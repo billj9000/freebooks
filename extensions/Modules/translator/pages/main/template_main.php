@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -32,7 +33,7 @@ if ($security_level > 1) {
   $toolbar->icon_list['import']['text'] = TEXT_IMPORT_CURRENT_LANGUAGE;
   $toolbar->icon_list['export']['text'] = TEXT_EXPORT_CURRENT_LANGUAGE;
   $toolbar->icon_list['upload'] = array(
-    'show'   => true, 
+    'show'   => true,
     'icon'   => 'actions/document-save.png',
     'params' => 'onclick="submitToDo(\'upload\')"',
     'text'   => TEXT_UPLOAD_LANGUAGE_FILE,
@@ -42,49 +43,45 @@ if ($security_level > 1) {
 echo $toolbar->build_toolbar(true);
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
-<div id="filter_bar">
-<div style="height:19px"><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_TRANSLATIONS); ?>
-<div style="float:right"><?php echo $query_split->display_links(); ?></div>
+<div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+  <span><?php echo TEXT_FILTERS; ?></span>
+  <span><?php echo TEXT_MODULE; ?></span><?php echo html_pull_down_menu('f0', $sel_modules, $mod); ?>
+  <span><?php echo TEXT_LANGUAGE; ?></span><?php echo html_pull_down_menu('f1', $sel_language, $lang); ?>
+  <span><?php echo TEXT_VERSION; ?></span><?php echo html_pull_down_menu('f2', $sel_version, $ver); ?>
+  <?php echo html_button_field('apply', TEXT_APPLY, 'onclick="submitToDo(\'filter_main\')"'); ?>
 </div>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <tbody class="ui-widget-content">
-  <tr>
-	<td><?php echo TEXT_FILTERS . '&nbsp;' . TEXT_MODULE . html_pull_down_menu('f0', $sel_modules,  $mod); ?></td>
-	<td><?php echo '&nbsp;' . TEXT_LANGUAGE .   '&nbsp;' . html_pull_down_menu('f1', $sel_language, $lang); ?></td>
-	<td><?php echo '&nbsp;' . TEXT_VERSION  .   '&nbsp;' . html_pull_down_menu('f2', $sel_version,  $ver); ?></td>
-	<td><?php echo '&nbsp;' . html_button_field('apply', TEXT_APPLY, 'onclick="submitToDo(\'filter_main\')"'); ?></td>
-  </tr>
- </tbody>
-</table>
+<div class="d-flex justify-content-between align-items-center mb-1">
+  <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_TRANSLATIONS); ?></div>
+  <div><?php echo $query_split->display_links(); ?></div>
 </div>
-<table class="ui-widget" style="border-collapse:collapse;width:100%">
- <thead class="ui-widget-header">
+<table class="table table-sm table-hover table-borderless w-100">
+ <thead class="table-dark">
   <tr><?php echo $list_header; ?></tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
 <?php
   $odd = true;
-  while (!$query_result->EOF) { 
+  while (!$query_result->EOF) {
     $mod   = $query_result->fields['module'];
     $lang  = $query_result->fields['language'];
     $ver   = $query_result->fields['version'];
     $id    = $mod . ':' . $lang . ':' . $ver;
-	$t     = $translator->fetch_stats($mod, $lang, $ver);
-	$pct   = number_format(100*$t['trans']/$t['total'], 0);
+    $t     = $translator->fetch_stats($mod, $lang, $ver);
+    $pct   = number_format(100*$t['trans']/$t['total'], 0);
 ?>
   <tr class="<?php echo $odd?'odd':'even'; ?>" style="cursor:pointer">
-	<td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo $mod; ?></td>
-	<td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo $query_result->fields['language']; ?></td>
-	<td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo $query_result->fields['version']; ?></td>
-	<td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo sprintf(TEXT_STATS_VALUES, $t['trans'], $t['total'], $pct); ?></td>
-	<td align="right" >
-<?php 
-	  if ($mod <> 'all' && $security_level > 2) echo html_icon('actions/edit-find-replace.png',    TEXT_EDIT,   'small', 'onclick="submitSeq(\'' . $id . '\', \'edit\')"') . chr(10);
-	  if ($mod <> 'all' && $security_level > 2) echo html_icon('emblems/emblem-symbolic-link.png', TEXT_EXPORT, 'small', 'onclick="submitSeq(\'' . $id . '\', \'export\', true)"') . chr(10);
-	  if ($security_level > 3) echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . MESSAGE_DELETE_TRANSLATION . '\')) submitSeq(\'' . $id . '\', \'delete\')"') . chr(10);
+    <td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo $mod; ?></td>
+    <td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo $query_result->fields['language']; ?></td>
+    <td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo $query_result->fields['version']; ?></td>
+    <td align="center" onclick="submitSeq('<?php echo $id; ?>', 'edit')"><?php echo sprintf(TEXT_STATS_VALUES, $t['trans'], $t['total'], $pct); ?></td>
+    <td align="right">
+<?php
+      if ($mod <> 'all' && $security_level > 2) echo html_icon('actions/edit-find-replace.png',    TEXT_EDIT,   'small', 'onclick="submitSeq(\'' . $id . '\', \'edit\')"') . chr(10);
+      if ($mod <> 'all' && $security_level > 2) echo html_icon('emblems/emblem-symbolic-link.png', TEXT_EXPORT, 'small', 'onclick="submitSeq(\'' . $id . '\', \'export\', true)"') . chr(10);
+      if ($security_level > 3) echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . MESSAGE_DELETE_TRANSLATION . '\')) submitSeq(\'' . $id . '\', \'delete\')"') . chr(10);
 ?>
-	</td>
-  </tr> 
+    </td>
+  </tr>
 <?php
       $query_result->MoveNext();
       $odd = !$odd;
@@ -92,6 +89,8 @@ echo $toolbar->build_toolbar(true);
 ?>
  </tbody>
 </table>
-<div style="float:right"><?php echo $query_split->display_links(); ?></div>
-<div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_TRANSLATIONS); ?></div>
+<div class="d-flex justify-content-between align-items-center mt-1">
+  <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_TRANSLATIONS); ?></div>
+  <div><?php echo $query_split->display_links(); ?></div>
+</div>
 </form>
