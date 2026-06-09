@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -43,6 +43,7 @@ $cal_exp = array(
   'params'    => array('align' => 'left'),
 );
 
+$use_bootstrap_nav = true;
 load_method_language(DIR_FS_MODULES . 'shipping/methods/', $method);
 include_once (DIR_FS_MODULES . 'shipping/methods/' . $method . '/label_mgr/pre_process.php');
 
