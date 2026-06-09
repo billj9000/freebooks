@@ -28,9 +28,9 @@ $output = array(
 );
 
 $html  = '<h1>' . ENDICIA_CHANGE_PASSPHRASE . '</h1>' . "\n";
-$html .= '<table class="ui-widget" style="margin-left:auto;margin-right:auto">' . "\n";
-$html .= ' <thead class="ui-widget-header"><tr><th colspan="2">' . '&nbsp;' . '</th></tr></thead>' . "\n";
-$html .= ' <tbody class="ui-widget-content">' . "\n";
+$html .= '<table class="table table-sm table-bordered" style="margin:auto">' . "\n";
+$html .= ' <thead class="table-dark"><tr><th colspan="2">' . '&nbsp;' . '</th></tr></thead>' . "\n";
+$html .= ' <tbody class="">' . "\n";
 $html .= '  <tr>' . "\n";
 $html .= '   <td colspan="2">' . SHIPPING_ENDICIA_PASSPHRASE_CHANGE_DESC . '</td>' . "\n";
 $html .= '  </tr>' . "\n";

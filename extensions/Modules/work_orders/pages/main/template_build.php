@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -34,138 +35,134 @@ if (!$hide_save && ((!$id && $security_level > 1) || ($id && $security_level > 2
 }
 $toolbar->icon_list['print']['show']    = false;
 $toolbar->add_help('07.04.WO.04');
-echo $toolbar->build_toolbar(); 
+echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo HEADING_WORK_ORDER_MODULE_BUILD . (!$id ? '' : ' - ' . $id); ?></h1>
-  <div id="inv_image" title="<?php echo $sku; ?>">
-    <?php if ($image) echo html_image(DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $image, '', 600) . chr(10);
-			else echo TEXT_NO_IMAGE; ?>
-    <div>
-	  <h2><?php echo TEXT_SKU . ': ' . $sku; ?></h2>
-	  <p><?php echo '<br />' . $wo_title; ?></p>
-    </div>
-  </div>
-
-<table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto">
- <tbody class="ui-widget-content">
-  <tr>
-	<td align="right"><?php echo TEXT_SKU; ?> </td>
-    <td><?php echo html_input_field('sku', $sku, ($id ? 'readonly="readonly" ' : '') . 'size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" maxlength="' . MAX_INVENTORY_SKU_LENGTH . '"') . '&nbsp;';
-	  if (!$id) echo html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'align="top" style="cursor:pointer" onclick="WOList()"'); ?></td>
-	<td align="right"><?php echo TEXT_QUANTITY; ?></td>
-	<td><?php echo html_input_field('qty', $qty, ($id ? 'readonly="readonly" ' : '') . 'size="5" style="text-align:right"'); ?></td>
-    <td align="right"><?php echo TEXT_POST_DATE; ?></td>
-	<td><?php echo html_input_field('post_date', gen_locale_date($post_date), 'readonly="readonly" size="12"'); ?></td>
+<div class="card fb-card mb-2">
+  <div class="card-header py-1 fb-widget-header"><?php echo HEADING_WORK_ORDER_MODULE_BUILD; ?></div>
+  <div class="card-body py-2">
+    <table style="margin-left:auto;margin-right:auto">
+     <tbody>
+      <tr>
+        <td align="right"><?php echo TEXT_SKU; ?> </td>
+        <td><?php echo html_input_field('sku', $sku, ($id ? 'readonly="readonly" ' : '') . 'size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" maxlength="' . MAX_INVENTORY_SKU_LENGTH . '"') . '&nbsp;';
+          if (!$id) echo html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'align="top" style="cursor:pointer" onclick="WOList()"'); ?></td>
+        <td align="right"><?php echo TEXT_QUANTITY; ?></td>
+        <td><?php echo html_input_field('qty', $qty, ($id ? 'readonly="readonly" ' : '') . 'size="5" style="text-align:right"'); ?></td>
+        <td align="right"><?php echo TEXT_POST_DATE; ?></td>
+        <td><?php echo html_input_field('post_date', gen_locale_date($post_date), 'readonly="readonly" size="12"'); ?></td>
 <?php if ($image) {
-		echo '<td rowspan="4">';
-		echo html_image(DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $image, $image, '', '100', 'rel="#photo1"');
-		echo '</td>';
+        echo '<td rowspan="4">';
+        echo html_image(DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $image, $image, '', '100', 'rel="#photo1"');
+        echo '</td>';
 } ?>
-  </tr>
+      </tr>
+      <tr>
+        <td align="right"><?php echo TEXT_WO_TITLE; ?> </td>
+        <td><?php echo html_input_field('wo_title', $wo_title, 'readonly="readonly" size="33"') . '&nbsp;'; ?></td>
+        <td align="right"><?php echo TEXT_PRIORITY; ?></td>
+        <td><?php echo html_input_field('priority', $priority, 'readonly="readonly" size="5" style="text-align:right"'); ?></td>
+        <td align="right"><?php echo TEXT_CLOSE; ?></td>
+        <td><?php echo html_checkbox_field('closed', '1', $closed ? true : false, '', 'disabled="disabled"') . ($closed ? (' ' . gen_locale_date($close_date)) : ''); ?></td>
+      </tr>
+      <tr>
+        <td colspan="6"><?php echo TEXT_SPECIAL_NOTES; ?></td>
+      </tr>
+      <tr>
+        <td colspan="6"><?php echo html_textarea_field('notes', 80, 3, $notes, $params = ''); ?></td>
+      </tr>
+     </tbody>
+    </table>
+  </div>
+</div>
+<table class="table table-sm table-bordered" style="margin-left:auto;margin-right:auto">
+ <thead class="table-dark">
   <tr>
-	<td align="right"><?php echo TEXT_WO_TITLE; ?> </td>
-    <td><?php echo html_input_field('wo_title', $wo_title, 'readonly="readonly" size="33"') . '&nbsp;'; ?></td>
-	<td align="right"><?php echo TEXT_PRIORITY; ?></td>
-	<td><?php echo html_input_field('priority', $priority, 'readonly="readonly" size="5" style="text-align:right"'); ?></td>
-	<td align="right"><?php echo TEXT_CLOSE; ?></td>
-	<td><?php echo html_checkbox_field('closed', '1', $closed ? true : false, '', 'disabled="disabled"') . ($closed ? (' ' . gen_locale_date($close_date)) : ''); ?></td>
+    <th><?php echo TEXT_STEP; ?></th>
+    <th><?php echo TEXT_TASK_NAME; ?></th>
+    <th><?php echo TEXT_TASK_DESC; ?></th>
+    <th><?php echo TEXT_MFG_INIT; ?></th>
+    <th><?php echo TEXT_QA_INIT; ?></th>
+    <th><?php echo TEXT_ACTION; ?></th>
   </tr>
-  <tr>
-    <td colspan="6"><?php echo TEXT_SPECIAL_NOTES; ?></td>
-  </tr>
-  <tr>
-	<td colspan="6"><?php echo html_textarea_field('notes', 80, 3, $notes, $params = ''); ?></td>
-  </tr>
- </tbody>
-</table>
-<table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto">
- <thead class="ui-widget-header">
-	<tr>
-	  <th><?php echo TEXT_STEP; ?></th>
-	  <th><?php echo TEXT_TASK_NAME; ?></th>
-	  <th><?php echo TEXT_TASK_DESC; ?></th>
-	  <th><?php echo TEXT_MFG_INIT; ?></th>
-	  <th><?php echo TEXT_QA_INIT; ?></th>
-	  <th><?php echo TEXT_ACTION; ?></th>
-	</tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
 <?php
-	$last_complete = 0;
-	$working_step  = 0;
-	$odd = true;
-    foreach ($step_list as $value) {
-	  if ($value['complete'] == '1') $last_complete = $value['step'];
-	  if ($value['step'] == $last_complete + 1) $working_step = $value['step'];
-	  $mfg_id = ($value['mfg'] == '1') ? get_user_name($value['mfg_id']) : '-';
-	  $qa_id  = ($value['qa'] == '1')  ? get_user_name($value['qa_id'])  : '-';
-	  $mfg_approved = $value['mfg_id'] <> 0 ? true : false;
-	  $qa_approved  = $value['qa_id'] <> 0  ? true : false;
-	  if ($value['step'] == $working_step) {
-	    echo '  <tr class="' . ($odd?'odd':'even') . '">' . chr(10);
-	    echo '    <th align="center">' . $value['step'] . '</th>' . chr(10);
-	    echo '    <td>' . $value['task_name'] . '</td>' . chr(10);
-	    echo '    <td colspan="4">' . $value['description'] . '</td>' . chr(10);
-	    echo '  </tr>' . chr(10);
-		if ($value['data_entry'] == '1') {
-	      echo '  <tr>' . chr(10);
-	      echo '    <th colspan="2">' . TEXT_ENTRY_VALUE . '</th>' . chr(10);
-	      echo '    <td colspan="4">' . html_input_field('data_value', $data_value ? $data_value : $value['data_value'], 'size="65" maxlength="64"') . '</td>' . chr(10);
-	      echo '  </tr>' . chr(10);
-		}
-	    echo '  <tr>' . chr(10);
-	    echo '    <th colspan="3" class="ui-state-highlight">' . TEXT_APPROVALS . '</th>' . chr(10);
-	    if ($value['mfg'] == '1') {
-		  if (!$mfg_approved) {
-	        echo '    <td align="center">' . TEXT_MFG . '&nbsp;' . html_pull_down_menu('user_mfg', $user_list, $user_mfg) . '&nbsp;' . html_password_field('pw_mfg', '') . '</td>' . chr(10);
-	      } else {
-	        echo '    <td align="center">' . TEXT_MFG . ' - ' . get_user_name($value['mfg_id']) . '</td>' . chr(10);
-		  }
-		} else {
-	      echo '    <td align="center">' . TEXT_MFG . ' - ' . TEXT_NA . '</td>' . chr(10);
-	    }
-	    if ($value['qa'] == '1') {
-		  if (!$qa_approved) {
-	        echo '    <td align="center">' . TEXT_QA . '&nbsp;' . html_pull_down_menu('user_qa', $user_list, $user_qa) . '&nbsp;' . html_password_field('pw_qa', '') . '</td>' . chr(10);
-	      } else {
-	        echo '    <td align="center">' . TEXT_QA . ' - ' . get_user_name($value['qa_id']) . '</td>' . chr(10);
-		  }
-	    } else {
-	      echo '    <td align="center">' . TEXT_QA . ' - ' . TEXT_NA . '</td>' . chr(10);
-	    }
-	    echo '    <td align="center">' . html_button_field('complete', TEXT_UPDATE, 'onclick="submitSeq(' . $value['step'] . ', \'save_step\')"') . '</td>' . chr(10);
-	    echo '  </tr>' . chr(10);
-	  } else {
-	    echo '  <tr class="' . ($odd?'odd':'even') . '">' . chr(10);
-	    echo '    <td align="center">' . $value['step'] . '</td>' . chr(10);
-	    echo '    <td>' . $value['task_name']    . '</td>' . chr(10);
-		if ($value['data_entry'] == '1') {
-	      echo '    <td>' . $value['description'] . '<br />' . TEXT_ENTRY_VALUE . ' ';
-	      echo html_input_field('data_temp', $data_value ? $data_value : $value['data_value'], 'readonly="readonly" size="65" maxlength="64"');
-	      echo '    </td>' . chr(10);
-		} else {
-	      echo '    <td>' . $value['description']  . '</td>' . chr(10);
-		}
-	    if ($value['mfg'] == '1' && $value['complete'] == '1') {
-	      echo '    <td align="center">' . get_user_name($value['mfg_id']) . '</td>' . chr(10);
-	    } else {
-	      echo '    <td align="center">&nbsp;</td>' . chr(10);
-	    }
-	    if ($value['qa'] == '1' && $value['complete'] == '1') {
-	      echo '    <td align="center">' . get_user_name($value['qa_id']) . '</td>' . chr(10);
-	    } else {
-	      echo '    <td align="center">&nbsp;</td>' . chr(10);
-	    }
-	    echo '    <td>' . '&nbsp;' . '</td>' . chr(10);
-	    echo '  </tr>' . chr(10);
-	  }
-	  $odd = !$odd;
-	}
+  $last_complete = 0;
+  $working_step  = 0;
+  $odd = true;
+  foreach ($step_list as $value) {
+    if ($value['complete'] == '1') $last_complete = $value['step'];
+    if ($value['step'] == $last_complete + 1) $working_step = $value['step'];
+    $mfg_id = ($value['mfg'] == '1') ? get_user_name($value['mfg_id']) : '-';
+    $qa_id  = ($value['qa'] == '1')  ? get_user_name($value['qa_id'])  : '-';
+    $mfg_approved = $value['mfg_id'] <> 0 ? true : false;
+    $qa_approved  = $value['qa_id'] <> 0  ? true : false;
+    if ($value['step'] == $working_step) {
+      echo '  <tr class="' . ($odd?'odd':'even') . '">' . chr(10);
+      echo '    <th align="center">' . $value['step'] . '</th>' . chr(10);
+      echo '    <td>' . $value['task_name'] . '</td>' . chr(10);
+      echo '    <td colspan="4">' . $value['description'] . '</td>' . chr(10);
+      echo '  </tr>' . chr(10);
+      if ($value['data_entry'] == '1') {
+        echo '  <tr>' . chr(10);
+        echo '    <th colspan="2">' . TEXT_ENTRY_VALUE . '</th>' . chr(10);
+        echo '    <td colspan="4">' . html_input_field('data_value', $data_value ? $data_value : $value['data_value'], 'size="65" maxlength="64"') . '</td>' . chr(10);
+        echo '  </tr>' . chr(10);
+      }
+      echo '  <tr>' . chr(10);
+      echo '    <th colspan="3" class="table-warning">' . TEXT_APPROVALS . '</th>' . chr(10);
+      if ($value['mfg'] == '1') {
+        if (!$mfg_approved) {
+          echo '    <td align="center">' . TEXT_MFG . '&nbsp;' . html_pull_down_menu('user_mfg', $user_list, $user_mfg) . '&nbsp;' . html_password_field('pw_mfg', '') . '</td>' . chr(10);
+        } else {
+          echo '    <td align="center">' . TEXT_MFG . ' - ' . get_user_name($value['mfg_id']) . '</td>' . chr(10);
+        }
+      } else {
+        echo '    <td align="center">' . TEXT_MFG . ' - ' . TEXT_NA . '</td>' . chr(10);
+      }
+      if ($value['qa'] == '1') {
+        if (!$qa_approved) {
+          echo '    <td align="center">' . TEXT_QA . '&nbsp;' . html_pull_down_menu('user_qa', $user_list, $user_qa) . '&nbsp;' . html_password_field('pw_qa', '') . '</td>' . chr(10);
+        } else {
+          echo '    <td align="center">' . TEXT_QA . ' - ' . get_user_name($value['qa_id']) . '</td>' . chr(10);
+        }
+      } else {
+        echo '    <td align="center">' . TEXT_QA . ' - ' . TEXT_NA . '</td>' . chr(10);
+      }
+      echo '    <td align="center">' . html_button_field('complete', TEXT_UPDATE, 'onclick="submitSeq(' . $value['step'] . ', \'save_step\')"') . '</td>' . chr(10);
+      echo '  </tr>' . chr(10);
+    } else {
+      echo '  <tr class="' . ($odd?'odd':'even') . '">' . chr(10);
+      echo '    <td align="center">' . $value['step'] . '</td>' . chr(10);
+      echo '    <td>' . $value['task_name']    . '</td>' . chr(10);
+      if ($value['data_entry'] == '1') {
+        echo '    <td>' . $value['description'] . '<br />' . TEXT_ENTRY_VALUE . ' ';
+        echo html_input_field('data_temp', $data_value ? $data_value : $value['data_value'], 'readonly="readonly" size="65" maxlength="64"');
+        echo '    </td>' . chr(10);
+      } else {
+        echo '    <td>' . $value['description']  . '</td>' . chr(10);
+      }
+      if ($value['mfg'] == '1' && $value['complete'] == '1') {
+        echo '    <td align="center">' . get_user_name($value['mfg_id']) . '</td>' . chr(10);
+      } else {
+        echo '    <td align="center">&nbsp;</td>' . chr(10);
+      }
+      if ($value['qa'] == '1' && $value['complete'] == '1') {
+        echo '    <td align="center">' . get_user_name($value['qa_id']) . '</td>' . chr(10);
+      } else {
+        echo '    <td align="center">&nbsp;</td>' . chr(10);
+      }
+      echo '    <td>&nbsp;</td>' . chr(10);
+      echo '  </tr>' . chr(10);
+    }
+    $odd = !$odd;
+  }
 ?>
  </tbody>
 </table>
 <?php if ($all_steps_complete && !$closed && $security_level > 1): ?>
-<div style="text-align:center;margin-top:12px">
+<div class="text-center mt-3">
   <?php echo html_button_field('close_wo', TEXT_CLOSE . ' ' . TEXT_WORK_ORDER, 'onclick="submitToDo(\'close_wo\')"'); ?>
 </div>
 <?php endif; ?>

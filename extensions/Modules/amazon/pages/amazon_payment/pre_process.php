@@ -116,6 +116,7 @@ switch ($_REQUEST['action']) {
 
 /*****************   prepare to display templates  *************************/
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_tabs     = false;

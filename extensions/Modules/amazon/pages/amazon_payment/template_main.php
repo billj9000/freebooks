@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -29,15 +30,13 @@ if ($security_level > 1) {
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
 echo $toolbar->build_toolbar();
-// Build the page
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
- <table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
-  <thead class="ui-widget-header">
-   <tr><td><?php echo AMAZON_IMPORT_PAYMENT; ?></td></tr>
-   </thead>
-   <tbody class="ui-widget-content">
-   <tr><td align="center"><?php echo html_file_field($upload_name) . '<br /><br />'; ?></td></tr>
-  </tbody>
- </table>
+<div class="card fb-card mb-2">
+  <div class="card-header py-1 fb-widget-header"><?php echo PAGE_TITLE; ?></div>
+  <div class="card-body py-2 text-center">
+    <p><?php echo AMAZON_IMPORT_PAYMENT; ?></p>
+    <?php echo html_file_field($upload_name); ?>
+  </div>
+</div>
 </form>

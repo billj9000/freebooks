@@ -81,7 +81,7 @@ $extra_stuff = NULL;
 		  <th><?php echo TEXT_ACTION;       ?></th>
 		</tr>
 		</thead>
-		<tbody id="group_setup" class="ui-widget-content">
+		<tbody id="group_setup">
 		<?php for ($i = 0; $i < count(is_array($report->grouplist) ? $report->grouplist : []); $i++) { ?>
 		  <tr>
 			<td><?php echo html_pull_down_menu('grp_fld[]', $kFields, $report->grouplist[$i]->fieldname, 'onclick="updateFieldList(this)"'); ?></td>
@@ -115,7 +115,7 @@ $extra_stuff = NULL;
 		  <th><?php echo TEXT_ACTION;        ?></th>
 		</tr>
 		</thead>
-		<tbody id="sort_setup" class="ui-widget-content">
+		<tbody id="sort_setup" >
 		<?php for ($i = 0; $i < count(is_array($report->sortlist) ? $report->sortlist : []); $i++) { ?>
 		  <tr>
 			<td><?php echo html_pull_down_menu('sort_fld[]', $kFields, $report->sortlist[$i]->fieldname, 'onclick="updateFieldList(this)"'); ?></td>
@@ -149,7 +149,7 @@ $extra_stuff = NULL;
 		  <th><?php echo TEXT_ACTION;       ?></th>
 		</tr>
 		</thead>
-		<tbody id="crit_setup" class="ui-widget-content">
+		<tbody id="crit_setup" >
 		<?php for ($i = 0; $i < count(is_array($report->filterlist) ? $report->filterlist : []); $i++) { ?>
 		  <tr>
 			<td><?php echo html_pull_down_menu('crit_fld[]',  $kFields,  $report->filterlist[$i]->fieldname, 'onclick="updateFieldList(this)"'); ?></td>

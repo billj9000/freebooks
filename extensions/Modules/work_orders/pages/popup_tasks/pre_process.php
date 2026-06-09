@@ -72,6 +72,7 @@ if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go las
 }
 history_save('wo_poptask');
 
+$use_bootstrap_nav = true;
 $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';

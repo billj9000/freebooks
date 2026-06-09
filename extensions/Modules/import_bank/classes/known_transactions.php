@@ -99,12 +99,12 @@ class known_transactions {
         foreach ($result->fields as $key => $value) $this->$key = $value;
 	}
 	$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? TEXT_ENTER_TRANSACTION : TEXT_EDIT_TRANSACTION) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody class="">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <td>' . TEXT_BANK_ACCOUNT . '</td>' . chr(10);
 	$output .= '    <td>' . html_input_field('bank_account', $this->bank_account) . '</td>' . chr(10);
