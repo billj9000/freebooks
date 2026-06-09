@@ -18,11 +18,11 @@
 //
 require_once(DIR_FS_WORKING . 'pages/popup_build/box_html.php'); // box templates
 ?>
-<div id="tab_field">
-<table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
+<div class="tab-pane" id="tab_field">
+<table style="border-style:none;margin-left:auto;margin-right:auto;">
 <tr><td>
-  <table id="field_setup_frm" class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
-  <thead class="ui-widget-header">
+  <table id="field_setup_frm" class="table table-sm table-bordered" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
+  <thead class="table-dark">
     <tr><th id="fieldListHeading" colspan="8"><?php echo PHREEFORM_FLDLIST; ?></th></tr>
     <tr>
       <th width="25%"><?php echo PHREEFORM_DISPNAME; ?></th>
@@ -39,7 +39,7 @@ require_once(DIR_FS_WORKING . 'pages/popup_build/box_html.php'); // box template
       <th width="10%"><?php echo TEXT_ACTION;   ?></th>
     </tr>
 	</thead>
-	<tbody class="ui-widget-content">
+	<tbody>
 <?php for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) { ?>
     <tr>
 	  <td colspan="8" nowrap="nowrap">

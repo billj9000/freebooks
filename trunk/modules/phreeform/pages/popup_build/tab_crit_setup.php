@@ -20,14 +20,14 @@
 $notes       = NULL;
 $extra_stuff = NULL;
 ?>
-<div id="tab_crit">
-<table class="ui-widget" style="border-style:none;width:100%">
- <tbody class="ui-widget-content">
+<div class="tab-pane" id="tab_crit">
+<table style="border-style:none;width:100%">
+ <tbody>
 	<tr>
 	  <td>
-		<table class="ui-widget" style="border-collapse:collapse;width:100%">
-		<thead class="ui-widget-header"><tr><th colspan="3"><?php echo PHREEFORM_DATEINFO; ?></th></tr></thead>
-		<tbody class="ui-widget-content">
+		<table class="table table-sm table-bordered" style="border-collapse:collapse;width:100%">
+		<thead class="table-dark"><tr><th colspan="3"><?php echo PHREEFORM_DATEINFO; ?></th></tr></thead>
+		<tbody>
 		<tr>
 		  <td width="33%" valign="top"><?php
 			echo PHREEFORM_DATELIST . '<br /><br />';
@@ -69,8 +69,8 @@ $extra_stuff = NULL;
 	<?php if ($report->reporttype == 'rpt') { ?>
 	<tr>
 	  <td>
-		<table class="ui-widget" style="border-collapse:collapse;width:100%">
-		<thead class="ui-widget-header">
+		<table class="table table-sm table-bordered" style="border-collapse:collapse;width:100%">
+		<thead class="table-dark">
 		<tr><th colspan="20"><?php echo PHREEFORM_GRPLIST; ?></th></tr>
 		<tr>
 		  <th><?php echo PHREEFORM_TBLFNAME;   ?></th>
@@ -105,8 +105,8 @@ $extra_stuff = NULL;
 	<?php } ?>
 	<tr>
 	  <td>
-		<table class="ui-widget" style="border-collapse:collapse;width:100%">
-		<thead class="ui-widget-header">
+		<table class="table table-sm table-bordered" style="border-collapse:collapse;width:100%">
+		<thead class="table-dark">
 		<tr><th colspan="20"><?php echo PHREEFORM_SORTLIST; ?></th></tr>
 		<tr>
 		  <th><?php echo PHREEFORM_TBLFNAME; ?></th>
@@ -136,8 +136,8 @@ $extra_stuff = NULL;
 	</tr>
 	<tr>
 	  <td>
-		<table class="ui-widget" style="border-collapse:collapse;width:100%">
-		<thead class="ui-widget-header">
+		<table class="table table-sm table-bordered" style="border-collapse:collapse;width:100%">
+		<thead class="table-dark">
 		<tr><th colspan="20"><?php echo TEXT_CRITERIA; ?></th></tr>
 		<tr>
 		  <th><?php echo PHREEFORM_TBLFNAME;   ?></th>

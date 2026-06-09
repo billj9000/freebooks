@@ -1,55 +1,63 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /modules/phreehelp/pages/main/template_left.php
+//
+?>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo TITLE_TOP_FRAME; ?></title>
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery-ui.css'; ?>" />	
+  <link rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>ext/bootstrap5/bootstrap.min.css">
+  <link rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>ext/bootstrap5/freebooks.css">
   <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
-  <script type="text/javascript">
-    var icon_path        = '<?php echo DIR_WS_ICONS; ?>';
-    var combo_image_on  = '<?php echo DIR_WS_ICONS . '16x16/phreebooks/pull_down_active.gif';   ?>';
-    var combo_image_off = '<?php echo DIR_WS_ICONS . '16x16/phreebooks/pull_down_inactive.gif'; ?>';
-    var pbBrowser       = (document.all) ? 'IE' : 'FF';
+  <script>
+    var icon_path = '<?php echo DIR_WS_ICONS; ?>';
   </script>
-  <script type="text/javascript" src="includes/common.js"></script>
-  <script type="text/javascript" src="includes/jquery-1.6.2.min.js"></script>
-  <script type="text/javascript" src="includes/jquery-ui-1.8.16.custom.min.js"></script>
-  <?php require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php'); ?>
+  <script src="<?php echo DIR_WS_ADMIN; ?>ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
   <?php require_once(DIR_FS_WORKING . 'pages/' . $page . '/js_include.php'); ?>
-  <script type="text/javascript">$(function() { $('#helptabs').tabs(); });</script>
-
 </head>
 
 <body>
-<div id="helptabs">
-<ul>
-<?php 
-  echo add_tab_list('tab_contents', HEADING_CONTENTS);
-  echo add_tab_list('tab_index',    HEADING_INDEX);
-  echo add_tab_list('tab_search',   TEXT_SEARCH);
-?>
+<ul class="nav nav-tabs fb-tabs" id="helptabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab_contents"><?php echo HEADING_CONTENTS; ?></a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab_index"><?php echo HEADING_INDEX; ?></a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab_search"><?php echo TEXT_SEARCH; ?></a></li>
 </ul>
-<div id="tab_contents">
-	<fieldset><?php echo retrieve_toc(); ?></fieldset>
-</div>
-<div id="tab_index">
-    <fieldset><?php echo retrieve_index(); ?></fieldset>
-</div>
-<div id="tab_search">
-    <?php echo TEXT_KEYWORD; ?><br />
+<div class="tab-content fb-tab-content">
+  <div class="tab-pane show active" id="tab_contents">
+    <?php echo retrieve_toc(); ?>
+  </div>
+  <div class="tab-pane" id="tab_index">
+    <?php echo retrieve_index(); ?>
+  </div>
+  <div class="tab-pane" id="tab_search">
+    <p class="mb-1"><?php echo TEXT_KEYWORD; ?></p>
     <?php echo html_form('search_form', FILENAME_DEFAULT, 'module=phreehelp&amp;page=main&amp;fID=left'); ?>
-      <?php echo html_input_field('search_text', $search_text); ?>
-      <?php echo html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'style="cursor:pointer;" onclick="javascript:document.search_form.submit()"') . "\n"; ?>
+      <?php echo html_input_field('search_text', $search_text, 'class="form-control form-control-sm mb-1"'); ?>
+      <?php echo html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'style="cursor:pointer;" onclick="document.search_form.submit()"') . "\n"; ?>
     </form>
-    <br />
-    <?php if ($search_text) {
-      echo TEXT_SEARCH_RESULTS . '<br />' . chr(10);
-      echo '<fieldset>' . chr(10);
-	  echo search_results($search_text) . chr(10);
-      echo '</fieldset>' . chr(10);
-    } ?>
-</div>
+    <?php if ($search_text) { ?>
+      <p class="mt-2 mb-1"><?php echo TEXT_SEARCH_RESULTS; ?></p>
+      <?php echo search_results($search_text); ?>
+    <?php } ?>
+  </div>
 </div>
 </body>
 </html>

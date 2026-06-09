@@ -18,13 +18,13 @@
 //
 
 ?>
-<div id="tab_db">
-  <table class="ui-widget" style="border-style:none;width:100%">
-  <tbody class="ui-widget-content">
+<div class="tab-pane" id="tab_db">
+  <table style="border-style:none;width:100%">
+  <tbody>
 	<tr>
 	  <td>
-		<table id="table_setup" class="ui-widget" style="border-collapse:collapse;width:100%">
-		<thead class="ui-widget-header">
+		<table id="table_setup" class="table table-sm table-bordered" style="border-collapse:collapse;width:100%">
+		<thead class="table-dark">
 		<tr>
 		  <th colspan="20"><?php echo TEXT_DATABASE_TABLES; ?></th>
 		</tr>
@@ -35,7 +35,7 @@
 		  <th><?php echo TEXT_ACTION;         ?></th>
 		</tr>
 		</thead>
-		<tbody class="ui-widget-content">
+		<tbody>
 		<tr>
 		  <td><?php echo '&nbsp;'; ?></td>
 		  <td><?php 

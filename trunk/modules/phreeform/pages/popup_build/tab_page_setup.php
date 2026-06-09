@@ -19,16 +19,16 @@
 //
 
 ?>
-<div id="tab_page">
-  <table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
-   <thead class="ui-widget-header">
+<div class="tab-pane show active" id="tab_page">
+  <table style="border-style:none;margin-left:auto;margin-right:auto;">
+   <thead class="table-dark">
     <tr><th colspan="3"><?php echo TEXT_TITLE; ?></th></tr>
    </thead>
-   <tbody class="ui-widget-content">
+   <tbody>
     <tr>
 	  <td colspan="3" align="center"><?php echo html_input_field('title', $report->title, 'size="60"'); ?></td>
     </tr>
-    <tr class="ui-widget-header">
+    <tr class="table-secondary">
       <th><?php echo TEXT_DETAIL_DESCRIPTION; ?></th>
       <th colspan="2"><?php echo PHREEFORM_PGLAYOUT; ?></th>
     </tr>
@@ -44,7 +44,7 @@
 	  	<?php echo html_radio_field('paperorientation', 'L', ($report->page->orientation == 'L') ? true : false) . ' ' . TEXT_LANDSCAPE; ?>
 	  </td>
     </tr>
-    <tr class="ui-widget-header">
+    <tr class="table-secondary">
       <th><?php echo TEXT_EMAIL_MSG_DETAIL; ?></th>
       <th colspan="2"><?php echo PHREEFORM_PGMARGIN; ?></th>
     </tr>
@@ -68,8 +68,8 @@
     </tbody>
   </table>
 <?php if ($report->reporttype == 'rpt') { ?>
-  <table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
-   <thead class="ui-widget-header">
+  <table style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
+   <thead class="table-dark">
     <tr><th colspan="8"><?php echo PHREEFORM_PGHEADER; ?></th></tr>
     <tr>
       <th>&nbsp;</th>
@@ -80,7 +80,7 @@
       <th><?php echo TEXT_ALIGN; ?></th>
     </tr>
    </thead>
-   <tbody class="ui-widget-content">
+   <tbody>
     <tr>
       <td><?php echo TEXT_PGCOYNM; ?></td>
 	  <td align="center"><?php echo html_checkbox_field('headingshow', '1', ($report->page->heading->show == '1') ? true : false); ?></td>

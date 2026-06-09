@@ -18,12 +18,12 @@
 //  Path: /modules/phreeform/pages/popup_phreefrom/tab_security_setup.php
 //
 ?>
-<div id="tab_prop">
-<table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
- <thead class="ui-widget-header">
+<div class="tab-pane" id="tab_prop">
+<table style="border-style:none;margin-left:auto;margin-right:auto;">
+ <thead class="table-dark">
     <tr><th colspan="2"><?php echo TEXT_REPORT_PROPERTIES; ?></th></tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
 <?php if ($report->reporttype == 'rpt') { ?>
 	<tr>
 	  <td><?php echo TEXT_TRUNC; ?></td>
@@ -67,12 +67,12 @@
     </tr>
   </tbody>
 </table>
-<table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
- <thead class="ui-widget-header">
+<table style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
+ <thead class="table-dark">
     <tr><th colspan="2"><?php echo TEXT_SECURITY;  ?></th></tr>
     <tr><th><?php echo TEXT_USERS;  ?></th><th><?php echo TEXT_GROUPS; ?></th></tr>
  </thead>
- <tbody class="ui-widget-content">
+ <tbody>
     <tr>
 	  <td align="center"><?php echo html_checkbox_field('user_all',  '1', (in_array('0', $security['u'], true) ? true : false)) . ' ' . TEXT_ALL_USERS; ?></td>
 	  <td align="center"><?php echo html_checkbox_field('group_all', '1', (in_array('0', $security['g'], true) ? true : false)) . ' ' . TEXT_ALL_GROUPS; ?></td>

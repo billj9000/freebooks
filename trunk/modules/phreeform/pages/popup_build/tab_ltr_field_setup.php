@@ -18,11 +18,11 @@
 //
 
 ?>
-<div id="tab_field">
-<table class="ui-widget" style="border-style:none;margin-left:auto;margin-right:auto;">
+<div class="tab-pane" id="tab_field">
+<table style="border-style:none;margin-left:auto;margin-right:auto;">
 <tr><td>
-  <table id="field_setup_ltr" class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
-    <thead class="ui-widget-header">
+  <table id="field_setup_ltr" class="table table-sm table-bordered" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">
+    <thead class="table-dark">
 	<tr><th id="fieldListHeading" colspan="10"><?php echo TEXT_FIELD_LIST; ?></th></tr>
     <tr>
       <th><?php echo PHREEFORM_TBLFNAME; ?></th>
@@ -31,7 +31,7 @@
       <th><?php echo TEXT_ACTION; ?></th>
     </tr>
 	</thead>
-	<tbody class="ui-widget-content">
+	<tbody>
 <?php for ($i = 0; $i < count(is_array($report->fieldlist) ? $report->fieldlist : []); $i++) { ?>
     <tr>
 	  <td><?php echo html_combo_box('fld_fld[]', CreateSpecialDropDown($report), $report->fieldlist[$i]->fieldname, 'onclick="updateFieldList(this)"', '220px', '', 'fld_combo_' . $i); ?></td>
