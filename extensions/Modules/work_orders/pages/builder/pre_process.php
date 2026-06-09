@@ -252,6 +252,7 @@ $yes_no_array = array(
   array('id' => '1', 'text' => TEXT_YES),
 );
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -28,38 +29,34 @@ $toolbar->icon_list['cancel']['params']   = 'onclick="location.href = \'' . html
 $toolbar->icon_list['open']['show']       = false;
 $toolbar->icon_list['delete']['show']     = false;
 if ($security_level > 1) {
-	$toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
+  $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
 } else {
-	$toolbar->icon_list['save']['show']   = false;
+  $toolbar->icon_list['save']['show']   = false;
 }
 $toolbar->icon_list['print']['show']      = false;
 $toolbar->add_help('');
-echo $toolbar->build_toolbar(); 
+echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo ($_REQUEST['action'] == 'new') ? MENU_HEADING_NEW_RMA : (BOX_RMA_MODULE . ' - ' . TEXT_RMA_ID . '# ' . $cInfo->rma_num); ?></h1>
 
-<div id="detailtabs">
-<ul>
-<?php 
-  echo add_tab_list('tab_general', TEXT_GENERAL);
-  echo add_tab_list('tab_receiving', TEXT_RECEIVING);
-  // pull in additional custom tabs
-  if (isset($extra_rma_tabs) && is_array($extra_rma_tabs)) {
-    foreach ($extra_rma_tabs as $tabs) echo add_tab_list($tabs['tab_id'], $tabs['tab_title']);
+<ul class="nav nav-tabs fb-tabs" id="detailtabs">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab_general" type="button"><?php echo TEXT_GENERAL; ?></button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab_receiving" type="button"><?php echo TEXT_RECEIVING; ?></button></li>
+<?php if (isset($extra_rma_tabs) && is_array($extra_rma_tabs)) {
+  foreach ($extra_rma_tabs as $tabs) {
+    echo '<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#' . $tabs['tab_id'] . '" type="button">' . $tabs['tab_title'] . '</button></li>' . chr(10);
   }
-  echo add_tab_list('tab_disposition', TEXT_DISPOSITION);
-  ?>
+} ?>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab_disposition" type="button"><?php echo TEXT_DISPOSITION; ?></button></li>
 </ul>
+<div class="tab-content fb-tab-content">
 <?php
 require (DIR_FS_WORKING . 'pages/main/tab_general.php');
 require (DIR_FS_WORKING . 'pages/main/tab_receiving.php');
-// pull in additional custom tabs
 if (isset($extra_rma_tabs) && is_array($extra_rma_tabs)) {
   foreach ($extra_rma_tabs as $tabs) {
-	$file_path = DIR_FS_WORKING . 'custom/pages/main/' . $tabs['tab_filename'] . '.php';
-	if (file_exists($file_path)) {
-	  require($file_path);
-	}
+    $file_path = DIR_FS_WORKING . 'custom/pages/main/' . $tabs['tab_filename'] . '.php';
+    if (file_exists($file_path)) { require($file_path); }
   }
 }
 require (DIR_FS_WORKING . 'pages/main/tab_disposition.php');

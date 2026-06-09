@@ -261,6 +261,7 @@ $cal_invoice = array(
   'params'    => array('align' => 'left'),
 );
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 

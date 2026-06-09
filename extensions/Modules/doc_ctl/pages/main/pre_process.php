@@ -140,6 +140,7 @@ switch ($_REQUEST['action']) { // figure which detail page to load
 	$div_template = DIR_FS_WORKING . 'pages/main/tab_home.php';
 }
 
+$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php'; // include display template (required)

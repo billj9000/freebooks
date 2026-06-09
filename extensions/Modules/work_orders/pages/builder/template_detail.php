@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -32,19 +33,19 @@ if (!$hide_save && ((!$id && $security_level > 1) || ($id && $security_level > 2
 }
 $toolbar->icon_list['print']['show']    = false;
 $toolbar->add_help('07.04.WO.03');
-echo $toolbar->build_toolbar(); 
+echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo BOX_WORK_ORDERS_BUILDER . ' - ' . $wo_title; ?></h1>
-<div id="buildertabs">
-<ul>
-<?php 
-  echo add_tab_list('tab_general', TEXT_GENERAL);
-  echo add_tab_list('tab_history', TEXT_HISTORY);
-  if (isset($extra_wo_tabs) && is_array($extra_wo_tabs)) {
-	foreach ($extra_wo_tabs as $tabs) echo add_tab_list('tab_'.$tabs['tab_id'], $tabs['tab_title']);
+<ul class="nav nav-tabs fb-tabs" id="buildertabs">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab_general" type="button"><?php echo TEXT_GENERAL; ?></button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab_history" type="button"><?php echo TEXT_HISTORY; ?></button></li>
+<?php if (isset($extra_wo_tabs) && is_array($extra_wo_tabs)) {
+  foreach ($extra_wo_tabs as $tabs) {
+    echo '<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab_' . $tabs['tab_id'] . '" type="button">' . $tabs['tab_title'] . '</button></li>' . chr(10);
   }
-?>
+} ?>
 </ul>
+<div class="tab-content fb-tab-content">
 <?php
   require (DIR_FS_WORKING . 'pages/builder/template_tab_gen.php');
   require (DIR_FS_WORKING . 'pages/builder/template_tab_hist.php');

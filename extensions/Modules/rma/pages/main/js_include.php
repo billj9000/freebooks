@@ -18,7 +18,6 @@
 //
 ?>
 <script type="text/javascript">
-<!--
 // pass some php variables
 var sender            = 'rcv_';
 var text_search       = '<?php echo TEXT_SEARCH; ?>';
@@ -38,7 +37,6 @@ addLoadEvent(function() { $('[id^="rcv_wrnty_"]').datepicker(); });
 
 // required function called with every page load
 function init() {
-	$(function() { $('#detailtabs').tabs(); });
   <?php if ($_REQUEST['action'] <> 'new' && $_REQUEST['action'] <> 'edit') { // set focus for main window
 	echo "  $('#search_text').focus();";
 	echo "  $('#search_text').select();";
@@ -83,7 +81,7 @@ function loadSkuDetails(iID, rID) {
   $.ajax({
     type: "GET",
     url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+cID+'&iID='+iID+'&sku='+sku+'&rID='+rID+'&jID='+jID + strict,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -173,5 +171,4 @@ function addRcvRow() {
   return rowCnt;
 }
 
-// -->
 </script>

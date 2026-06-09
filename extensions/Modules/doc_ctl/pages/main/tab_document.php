@@ -1,6 +1,6 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                   FreeBooks ERP                    |
 // +-----------------------------------------------------------------+
 // | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
 // +-----------------------------------------------------------------+
@@ -93,13 +93,13 @@ $fieldset_content .= '<tr><td colspan="2">' . html_textarea_field('description',
 $fieldset_content .= '<tr><td colspan="2">' . TEXT_UPLOAD_FILE . ' ' . html_file_field('docfile') . '</td></tr>' . chr(10);
 // column 1
 $fieldset_content .= '<tr><td width="50%" valign="top">' . chr(10);
-$fieldset_content .= '  <table class="ui-widget" style="border-collapse:collapse;width:100%">';
-$fieldset_content .= '  <thead class="ui-widget-header">' . chr(10);
+$fieldset_content .= '  <table class="table table-sm table-bordered w-100">';
+$fieldset_content .= '  <thead class="table-dark">' . chr(10);
 $fieldset_content .= '  <tr>' . chr(10);
 $fieldset_content .= '    <th colspan="2">' . TEXT_PROPERTIES . '</th>' . chr(10);
 $fieldset_content .= '  </tr>' . chr(10);
 $fieldset_content .= '  </thead>' . chr(10);
-$fieldset_content .= '  <tbody class="ui-widget-content">' . chr(10);
+$fieldset_content .= '  <tbody class="">' . chr(10);
 $fieldset_content .= '  <tr>' . chr(10);
 $fieldset_content .= '    <td>' . TEXT_FILENAME . '</td>' . chr(10);
 $fieldset_content .= '    <td>' . $doc_details->fields['file_name'] . '</td>' . chr(10);
@@ -150,11 +150,11 @@ if ($security_level > 3) {
 	$fieldset_content .= '  </tr></tbody></table>' . chr(10);
 
 	$fieldset_content .= '<div id="doc_security" style="display:none">' . chr(10); // security table
-	$fieldset_content .= '<table class="ui-widget" style="border-collapse:collapse;margin-left:auto;margin-right:auto;">' . chr(10);
-	$fieldset_content .= ' <thead class="ui-widget-header">' . chr(10);
+	$fieldset_content .= '<table class="table table-sm table-bordered" style="margin:auto">' . chr(10);
+	$fieldset_content .= ' <thead class="table-dark">' . chr(10);
 	$fieldset_content .= '  <tr><th>' . TEXT_USERS . '</th><th>' . TEXT_GROUPS . '</th></tr>' . chr(10);
 	$fieldset_content .= ' </thead>' . chr(10);
-	$fieldset_content .= ' <tbody class="ui-widget-content">' . chr(10);
+	$fieldset_content .= ' <tbody class="">' . chr(10);
 	$fieldset_content .= '  <tr>' . chr(10);
 	$fieldset_content .= '   <td align="center">' . html_checkbox_field('user_all',  '1', (in_array('0', $security['u'], true) ? true : false)) . ' ' . TEXT_ALL_USERS . '</td>' . chr(10);
 	$fieldset_content .= '   <td align="center">' . html_checkbox_field('group_all', '1', (in_array('0', $security['g'], true) ? true : false)) . ' ' . TEXT_ALL_GROUPS .'</td>' . chr(10);
@@ -172,8 +172,8 @@ if ($security_level > 3) {
 $fieldset_content .= '</td>' . chr(10);
 // column 2
 $fieldset_content .= '<td width="50%" valign="top">' . chr(10);
-$fieldset_content .= '  <table class="ui-widget" style="border-collapse:collapse;width:100%">' . chr(10);
-$fieldset_content .= '  <thead class="ui-widget-header">' . chr(10);
+$fieldset_content .= '  <table class="table table-sm table-bordered w-100">' . chr(10);
+$fieldset_content .= '  <thead class="table-dark">' . chr(10);
 $fieldset_content .= '    <tr><th colspan="4">' . TEXT_HISTORY . '</th></tr>' . chr(10);
 
 if (!empty($doc_history)) {
@@ -184,7 +184,7 @@ if (!empty($doc_history)) {
   $fieldset_content .= '    <th>' . TEXT_LAST_VIEW  . '</th>' . chr(10);
   $fieldset_content .= '  </tr>' . chr(10); 
   $fieldset_content .= '  </thead>' . chr(10);
-  $fieldset_content .= '  <tbody class="ui-widget-content">' . chr(10);
+  $fieldset_content .= '  <tbody class="">' . chr(10);
   for ($i = 0; $i < count(is_array($doc_history) ? $doc_history : []); $i++) {
     $fieldset_content .= '  <tr>' . chr(10);
     $fieldset_content .= '    <td align="center">' . $i . '</td>' . chr(10);
@@ -195,7 +195,7 @@ if (!empty($doc_history)) {
   }
 } else {
   $fieldset_content .= '  </thead>' . chr(10);
-  $fieldset_content .= '  <tbody class="ui-widget-content">' . chr(10);
+  $fieldset_content .= '  <tbody class="">' . chr(10);
 }
 $fieldset_content .= '    <tr><th colspan="4">' . TEXT_THUMBNAIL . '</th></tr>' . chr(10);
 $fieldset_content .= '    <tr><td colspan="4" align="center">' . TEXT_IMG_NOT_AVAILABLE . '</th></tr>' . chr(10);

@@ -25,10 +25,9 @@
 <link type="text/css" rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_docs/!style.css"/>
 <script type="text/javascript" src="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_docs/syntax/!script.js"></script>
 <script type="text/javascript">
-<!--
 // required function called with every page load
 function init() {
-<!-- JavaScript necessary for the tree -->
+// JavaScript necessary for the tree
   $(function () {
     $("#demo")
 	  .bind("before.jstree", function (e, data) {
@@ -231,7 +230,7 @@ function fetch_doc(id) {
     type: "GET",
     contentType: "application/json; charset=utf-8",
 	url: 'index.php?module=doc_ctl&page=ajax&op=load_doc_details&id='+id,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -254,7 +253,7 @@ function docAction(action) {
     type: "GET",
     contentType: "application/json; charset=utf-8",
 	url: 'index.php?module=doc_ctl&page=ajax&op=doc_operation&action='+action+'&id='+id,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -275,7 +274,7 @@ function deleteBookmark(id) {
     type: "GET",
     contentType: "application/json; charset=utf-8",
     url: 'index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel&action=del_bookmark&id='+id,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -290,5 +289,4 @@ function respDelBookmark(sXml) {
   location.reload(true);
 }
 
-// -->
 </script>
