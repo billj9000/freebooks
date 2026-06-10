@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -44,12 +45,10 @@ class inventory_fields extends fields{
   }
   public function build_form_html($action, $id = '') {
   	$output  = parent::build_form_html($action, $id = '');
-  	$output .= '<table style="border-collapse:collapse;width:100%;">' . chr(10);
-  	$output .= '  <thead class="table-dark"><tr><th>'.TEXT_OPTIONS."</th></tr></thead>\n";
-  	$output .= '  <tbody><tr><td>'."\n";
-  	$output .= html_checkbox_field('use_in_inventory_filter', true,  $this->use_in_inventory_filter, '').'&nbsp;'.TEXT_USE_IN_FILTER."<br />\n";
-  	$output .= '  </td></tr></tbody>'."\n";
-  	$output .= "</table>\n";
+  	$output .= '<div class="fb-fieldset mb-2">' . "\n";
+  	$output .= '  <div class="fb-fieldset-legend">' . TEXT_OPTIONS . '</div>' . "\n";
+  	$output .= '  ' . html_checkbox_field('use_in_inventory_filter', true, $this->use_in_inventory_filter, '') . '&nbsp;' . TEXT_USE_IN_FILTER . "<br />\n";
+  	$output .= '</div>' . "\n";
   	return $output;
   }
 }
