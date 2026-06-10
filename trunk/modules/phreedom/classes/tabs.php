@@ -113,12 +113,12 @@ class tabs {
 	       foreach ($result->fields as $key => $value) $this->$key = $value;
        }
 	   $output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	   $output .= '  <thead class="ui-widget-header">' . "\n";
+	   $output .= '  <thead class="table-dark">' . "\n";
 	   $output .= '  <tr>' . chr(10);
 	   $output .= '    <th colspan="2">' . ($action=='new' ? INV_INFO_HEADING_NEW_CATEGORY : INV_INFO_HEADING_EDIT_CATEGORY) . '</th>' . chr(10);
 	   $output .= '  </tr>' . chr(10);
 	   $output .= '  </thead>' . "\n";
-	   $output .= '  <tbody class="ui-widget-content">' . "\n";
+	   $output .= '  <tbody>' . "\n";
 	   $output .= '  <tr>' . chr(10);
 	   $output .= '    <td colspan="2">' . ($action=='new' ? EXTRA_TABS_INSERT_INTRO : SETUP_CURR_EDIT_INTRO) . '</td>' . chr(10);
 	   $output .= '  </tr>' . chr(10);

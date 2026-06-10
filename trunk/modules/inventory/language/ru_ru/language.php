@@ -193,5 +193,6 @@ define('TEXT_EXPIRATION_DATE','Expiration Date');
 define('TEXT_BULK_EDIT','Загрузить цены');
 define('TEXT_SPECIAL_PRICING','Спец цены');
 define('PRICE_SHEET_MSG_DELETE','Точно хотите удалить этот прайс?');
+define('TEXT_INVOICE_NUM',      'Счёт №');
 
 ?>

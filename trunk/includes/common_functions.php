@@ -1335,9 +1335,9 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	$head_bar  = '   <tr>'."\n";
 	foreach ($content['thead']['value'] as $heading) $head_bar .= '    <th nowrap="nowrap">'.htmlspecialchars($heading).'</th>'."\n";
 	$head_bar .= '   </tr>'."\n";
-	$output    = '<table class="ui-widget" id="'.$id.'" '.$content['thead']['params'].'>'."\n";
-	$output   .= '  <thead class="ui-widget-header">'."\n".$head_bar.'  </thead>'."\n";
-	$output   .= '  <tbody class="ui-widget-content">'."\n";
+	$output    = '<table id="'.$id.'" '.$content['thead']['params'].'>'."\n";
+	$output   .= '  <thead class="table-dark">'."\n".$head_bar.'  </thead>'."\n";
+	$output   .= '  <tbody>'."\n";
     if (is_array($content['tbody'])) {
 	  foreach ($content['tbody'] as $row) {
 	    $output .= '  <tr>'."\n";
@@ -1351,7 +1351,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	  $output .= '  </tr>'."\n";
 	}
  	$output .= '  </tbody>'."\n";
- 	$output .= '  <tfoot class="ui-widget-header">'."\n".$head_bar.'  </tfoot>'."\n";
+ 	$output .= '  <tfoot class="table-dark">'."\n".$head_bar.'  </tfoot>'."\n";
  	$output .= '</table>'."\n";
     return $output;
   }

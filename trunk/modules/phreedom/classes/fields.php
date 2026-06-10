@@ -314,12 +314,12 @@ class fields {
 		$disabled = ($this->tab_id !== '0') ? '' : 'disabled="disabled" ';
 		$readonly = ($this->tab_id !== '0') ? '' : 'readonly="readonly" ';
 		$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-		$output .= '  <thead class="ui-widget-header">' . "\n";
+		$output .= '  <thead class="table-dark">' . "\n";
 		$output .= '  <tr>' . chr(10);
 		$output .= '    <th colspan="2">' . ($action=='new' ? TEXT_NEW_FIELD : TEXT_SETTINGS) . '</th>' . chr(10);
     	$output .= '  </tr>' . chr(10);
 		$output .= '  </thead>' . "\n";
-		$output .= '  <tbody class="ui-widget-content">' . "\n";
+		$output .= '  <tbody>' . "\n";
 		$output .= '  <tr>' . chr(10);
 		$output .= '	<td>' . INV_FIELD_NAME . '</td>' . chr(10);
 		$output .= '	<td>' . html_input_field('field_name', $this->field_name, $readonly . 'size="33" maxlength="32"') . '</td>' . chr(10);
@@ -363,7 +363,7 @@ class fields {
 		$output .= '	<td>' . INV_CATEGORY_MEMBER . '</td>' . chr(10);
 		$output .= '	<td>' . html_pull_down_menu('tab_id', $tab_list, $this->tab_id, $disabled) . '</td>' . chr(10);
 		$output .= '  </tr>' . chr(10);
-		$output .= '  <tr class="ui-widget-header">' . chr(10);
+		$output .= '  <tr class="table-secondary">' . chr(10);
 		$output .= '	<th colspan="2">' . TEXT_PROPERTIES . '</th>' . chr(10);
 		$output .= '  </tr>' . chr(10);
 		$output .= '  <tr>' . chr(10);
@@ -376,7 +376,7 @@ class fields {
 		$output .= '<br />' . html_textarea_field('text_default', 35, 6, $this->text_default, $readonly);
 		$output .= '	</td>' . chr(10);
 		$output .= '  </tr>' . chr(10);
-		$output .= '  <tr class="ui-widget-content">' . chr(10);
+		$output .= '  <tr>' . chr(10);
 		$output .= '	<td>';
 		$output .= html_radio_field('entry_type', 'hyperlink',      ($this->entry_type=='hyperlink'      ? true : false), '', $disabled) . '&nbsp;' . INV_LABEL_HYPERLINK  . '<br />';
 		$output .= html_radio_field('entry_type', 'image_link',     ($this->entry_type=='image_link'     ? true : false), '', $disabled) . '&nbsp;' . INV_LABEL_IMAGE_LINK . '<br />';
@@ -394,7 +394,7 @@ class fields {
 		$output .= '<br />' . INV_LABEL_DEFAULT_TEXT_VALUE . html_input_field('integer_default', $this->integer_default, $readonly . 'size="16"');
 		$output .= '	</td>' . chr(10);
 		$output .= '  </tr>' . chr(10);
-		$output .= '  <tr class="ui-widget-content">' . chr(10);
+		$output .= '  <tr>' . chr(10);
 		$output .= '	<td>' . html_radio_field('entry_type', 'decimal', ($this->entry_type=='decimal' ? true : false), '', $disabled) . '&nbsp;' . INV_LABEL_DECIMAL_FIELD . '</td>' . chr(10);
 		$output .= '	<td>' . INV_LABEL_DECIMAL_RANGE;
 		$output .= html_pull_down_menu('decimal_range', gen_build_pull_down($decimal_lengths), $this->decimal_range, $disabled);
@@ -412,7 +412,7 @@ class fields {
 		$output .= '	<td>' . INV_LABEL_CHOICES . '<br />' . html_textarea_field('radio_default', 35, 6, $this->radio_default, $readonly) . '<br />'; 
 		$output .= INV_LABEL_RADIO_EXPLANATION . '<br />' . TEXT_DATA_LIST_EXPLANATION . '</td>' . chr(10);
 		$output .= '  </tr>' . chr(10);
-		$output .= '  <tr class="ui-widget-content">' . chr(10);
+		$output .= '  <tr>' . chr(10);
 		$output .= '	<td>' . html_radio_field('entry_type', 'check_box', ($this->entry_type=='check_box' ? true : false), '', $disabled) . '&nbsp;' . INV_LABEL_CHECK_BOX_FIELD . '</td>' . chr(10);
 		$output .= '	<td>' . INV_LABEL_DEFAULT_TEXT_VALUE . html_pull_down_menu('check_box_range', gen_build_pull_down($check_box_choices), $this->check_box_range, $disabled) . '</td>' . chr(10);
 		$output .= '  </tr>' . chr(10);
@@ -485,7 +485,7 @@ class fields {
   				$this->extra_tab_html .= "<div id='tab_{$tab_id}'>" . chr(10);
 	  			$this->extra_tab_html .= '  <table>' . chr(10);
   			}else if($previous_group <> $result->fields['group_by']){
-  				$this->extra_tab_html .= '<tr class="ui-widget-header" height="5px"><td colspan="2"></td></tr>' . chr(10);
+  				$this->extra_tab_html .= '<tr class="table-secondary" style="height:5px"><td colspan="2"></td></tr>' . chr(10);
   			}
 		    $xtra_params = unserialize($result->fields['params']);
 		    if($this->type_params && !$type == null ){

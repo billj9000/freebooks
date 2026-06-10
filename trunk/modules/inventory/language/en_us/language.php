@@ -263,4 +263,5 @@ define('INV_ENTRY_HS_CODE',             'HS Code');
 define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
 define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
 define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('TEXT_INVOICE_NUM',              'Invoice #');
 ?>

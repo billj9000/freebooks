@@ -25,8 +25,8 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 	                && defined('POSTCODE_LOOKUP_API_KEY') && POSTCODE_LOOKUP_API_KEY;
 //echo 'entries = '; print_r($entries); echo '<br>';
 	if (!$hide_list && !empty($entries->address_book[$method])) {
-		$field .= '<tr><td><table class="ui-widget" style="border-collapse:collapse;width:100%;">';
-		$field .= '<thead class="ui-widget-header">' . chr(10);
+		$field .= '<tr><td><table class="table table-borderless table-hover table-sm">';
+		$field .= '<thead class="table-dark">' . chr(10);
 		$field .= '<tr>' . chr(10);
 		$field .= '  <th>' . GEN_PRIMARY_NAME .   '</th>' . chr(10);
 		$field .= '  <th>' . GEN_CONTACT .        '</th>' . chr(10);
@@ -40,7 +40,7 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 		$field .= '  <th align="center">' . TEXT_ACTION . '</th>' . chr(10);
 		$field .= '</tr>' . chr(10) . chr(10);
 		$field .= '</thead>' . chr(10) . chr(10);
-		$field .= '<tbody class="ui-widget-content">' . chr(10);
+		$field .= '<tbody>' . chr(10);
 		
 		$odd = true;
 		foreach ($entries->address_book[$method] as $address) {
@@ -95,7 +95,7 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 		$field .= '</td></tr>' . chr(10);
 	}
 
-    $field .= '<tr><td><table class="ui-widget" style="border-collapse:collapse;width:100%;">' . chr(10);
+    $field .= '<tr><td><table class="table table-borderless table-sm">' . chr(10);
 	if (!$short) {
 		$field .= '<tr>';
 		$field .= '  <td align="right">' . GEN_PRIMARY_NAME . '</td>' . chr(10);

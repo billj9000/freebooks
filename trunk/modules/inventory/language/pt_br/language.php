@@ -215,5 +215,6 @@ define('INV_TYPES_SI','Item Estoque');
 define('INV_WHAT_TO_CALCULATE','Digite 1 para recalcular a margem \n Digite 2 para recalcular o preço de venda \n Digite 3 ?');
 define('INV_CHEAPER_ELSEWHERE','SKU %s é mais barato em outro lugar.');
 define('INV_IMAGE_DUPLICATE_NAME','O nome da imagem já foi utilizado na base de dados. Altere o nome para continuar. ');
+define('TEXT_INVOICE_NUM',        'Nº Fatura');
 
 ?>

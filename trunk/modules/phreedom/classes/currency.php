@@ -205,13 +205,13 @@ class currency {
 	} else {
       $cInfo = new objectInfo($result->fields);
 	}
-	$output  = '<table class="ui-widget" style="border-style:none;width:100%">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output  = '<table class="table table-borderless table-hover table-sm" style="width:100%">' . chr(10);
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? SETUP_INFO_HEADING_NEW_CURRENCY : SETUP_INFO_HEADING_EDIT_CURRENCY) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody>' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <td colspan="2">' . ($action=='new' ? SETUP_CURR_INSERT_INTRO : SETUP_CURR_EDIT_INTRO) . '</td>' . chr(10);
     $output .= '  </tr>' . chr(10);

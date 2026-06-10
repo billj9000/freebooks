@@ -209,6 +209,10 @@ table.ui-widget tbody.ui-widget-content tr:hover td {
 /* Even rows: white */
 .pkg-table > tbody > tr.even > td { background-color: #ffffff; }
 
+/* DataTables row highlights (work without a parent .table class) */
+tr.row-danger > td { background-color: #f8d7da !important; }
+tr.row-info    > td { background-color: #cff4fc !important; }
+
 /* Hover — lighter than .ui-state-hover #79c9ec */
 .pkg-table > tbody > tr:hover > td {
   background-color: #b8e2f5 !important;

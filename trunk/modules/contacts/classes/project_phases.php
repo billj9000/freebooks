@@ -131,12 +131,12 @@ class project_phases {
         foreach ($result->fields as $key => $value) $this->$key = $value;
     }
 	$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? SETUP_INFO_HEADING_NEW_PROJECT_PHASES : SETUP_INFO_HEADING_EDIT_PROJECT_PHASES) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody>' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <td colspan="2">' . ($action=='new' ? SETUP_PROJECT_PHASES_INSERT_INTRO : HR_EDIT_INTRO) . '</td>' . chr(10);
     $output .= '  </tr>' . chr(10);

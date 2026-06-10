@@ -116,12 +116,12 @@ class departments {
         foreach ($result->fields as $key => $value) $this->$key = $value;
     }
 	$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? HR_INFO_NEW_ACCOUNT : HR_INFO_EDIT_ACCOUNT) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody>' . "\n";
     $output .= '  <tr>' . chr(10);
 	$output .= '    <td colspan="2">' . ($action=='new' ? HR_INFO_INSERT_INTRO : HR_EDIT_INTRO) . '</td>' . chr(10);
     $output .= '  </tr>' . chr(10);

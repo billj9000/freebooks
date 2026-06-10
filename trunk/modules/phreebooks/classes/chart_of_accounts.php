@@ -115,26 +115,28 @@ class chart_of_accounts {
     $result = $db->Execute("select id, description, heading_only, primary_acct_id, account_type, account_inactive from " . $this->db_table);
     $rowCnt = 0;
 	while (!$result->EOF) {
-	  $bkgnd = ($result->fields['account_inactive']) ? 'class="ui-state-error" ' : '';
+	  $row_class = $result->fields['account_inactive'] ? 'row-danger' : '';
 	  $account_type_desc = constant('COA_' . str_pad($result->fields['account_type'], 2, "0", STR_PAD_LEFT) . '_DESC');
       if ($result->fields['heading_only']) {
 	    $account_type_desc = TEXT_HEADING;
-		$bkgnd = 'class="ui-state-active" ';
+		$row_class = 'row-info';
 	  }
+	  // Hidden span carries the row class; createdRow callback in admin/js_include.php applies it to <tr>
+	  $rc_span = $row_class ? '<span class="d-none" data-rc="' . $row_class . '"></span>' : '';
 	  $actions = '';
 	  if ($this->security_id > 1) $actions .= html_icon('actions/edit-find-replace.png', TEXT_EDIT, 'small', 'onclick="loadPopUp(\'chart_of_accounts_edit\', \'' . $result->fields['id'] . '\')"') . "\n";
 	  if ($this->security_id > 3) $actions .= html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . GL_INFO_DELETE_INTRO . '\')) subjectDelete(\'chart_of_accounts\', ' . $result->fields['id'] . ')"') . "\n";
 	  $content['tbody'][$rowCnt] = array(
-	    array('value' => htmlspecialchars($result->fields['id']),
-			  'params'=> $bkgnd.'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
-		array('value' => htmlspecialchars($result->fields['description']), 
-			  'params'=> $bkgnd.'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
+	    array('value' => $rc_span . htmlspecialchars($result->fields['id']),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
+		array('value' => htmlspecialchars($result->fields['description']),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
 		array('value' => htmlspecialchars($account_type_desc),
-			  'params'=> $bkgnd.'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
 		array('value' => $result->fields['primary_acct_id'] ? TEXT_YES . ' - ' . htmlspecialchars($result->fields['primary_acct_id']) : TEXT_NO,
-			  'params'=> $bkgnd.'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
+			  'params'=> 'style="cursor:pointer" onclick="loadPopUp(\'chart_of_accounts_edit\',\''.$result->fields['id'].'\')"'),
 		array('value' => $actions,
-			  'params'=> $bkgnd.'align="right"'),
+			  'params'=> 'align="right"'),
 	  );
       $result->MoveNext();
 	  $rowCnt++;

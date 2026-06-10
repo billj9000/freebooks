@@ -130,14 +130,14 @@ class inventory {
 	  	$this->qty_per_store[0] = $qty;
 	  	$this->quantity_on_hand = $qty;
 	  	if(ENABLE_MULTI_BRANCH){
-	  		$this->qty_table ='<table class="ui-widget" style="border-collapse:collapse;width:100%">'. chr(10);
-			$this->qty_table .='  <thead class="ui-widget-header">'. chr(10);
+	  		$this->qty_table ='<table class="table table-borderless table-hover table-sm" style="width:100%">'. chr(10);
+			$this->qty_table .='  <thead class="table-dark">'. chr(10);
 		  	$this->qty_table .='	  <tr>';
 		    $this->qty_table .='		<th>'. GEN_STORE_ID.'</th>';
 		    $this->qty_table .='		<th>'. INV_HEADING_QTY_IN_STOCK .'</th>';
 		  	$this->qty_table .='    </tr>'. chr(10);
 		 	$this->qty_table .='  </thead>'. chr(10);
-		 	$this->qty_table .='  <tbody class="ui-widget-content">'. chr(10);
+		 	$this->qty_table .='  <tbody>'. chr(10);
 		  	$this->qty_table .='    <tr>';
 			$this->qty_table .='      <td>' . COMPANY_ID . '</td>';
 			$this->qty_table .='      <td align="center">' . $qty . '</td>';

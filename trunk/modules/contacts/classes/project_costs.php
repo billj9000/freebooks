@@ -127,12 +127,12 @@ class project_costs {
     }
 
 	$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? SETUP_INFO_HEADING_NEW_PROJECT_COSTS : SETUP_INFO_HEADING_EDIT_PROJECT_COSTS) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody>' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <td colspan="2">' . ($action=='new' ? SETUP_PROJECT_COSTS_INSERT_INTRO : HR_EDIT_INTRO) . '</td>' . chr(10);
     $output .= '  </tr>' . chr(10);

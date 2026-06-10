@@ -21,7 +21,14 @@
 <script type="text/javascript">
 function init() {
   $(function() {
-    $('#coa_table').dataTable(dataTables_i18n);
+    $('#coa_table').dataTable($.extend({}, dataTables_i18n, {
+      fnDrawCallback: function() {
+        $('#coa_table tbody tr').each(function() {
+          var rc = $(this).find('[data-rc]').attr('data-rc');
+          if (rc) $(this).addClass(rc);
+        });
+      }
+    }));
     $('#tax_c_table').dataTable(dataTables_i18n);
     $('#tax_v_table').dataTable(dataTables_i18n);
     $('#tax_auth_c_table').dataTable(dataTables_i18n);

@@ -217,4 +217,5 @@ define('INV_CHEAPER_ELSEWHERE','artikel %s is goedkoper ergens anders.');
 define('INV_IMAGE_DUPLICATE_NAME','De naam van de afbeelding staat al in de database, verander de bestands naam om verder te kunnen gaan. ');
 define('ITEM_IS_OUT_OF_STOCK', 'voorraad is op');
 define('TEXT_SAVE_AND_COPY_TO_NEW', 'Bewaren en Kopieren naar Nieuw ');
+define('TEXT_INVOICE_NUM',          'Factuur #');
 ?>

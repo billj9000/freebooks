@@ -198,7 +198,7 @@ function fillBill(xml) {
 		document.getElementById('desc_'  + jIndex).readOnly = true;
 		document.getElementById('dscnt_' + jIndex).readOnly = true;
 		document.getElementById('total_' + jIndex).readOnly = true;
-		document.getElementById('item_table').rows[rowCnt-1].className = 'ui-state-error';
+		document.getElementById('item_table').rows[rowCnt-1].className = 'table-warning';
 		document.getElementById('item_table').rows[rowCnt-1].cells[6].innerHTML = '&nbsp;'; // remove checkbox
 	} else if ($(this).find("amount_paid").text()) {
 		document.getElementById('pay_' + jIndex).checked    = true;

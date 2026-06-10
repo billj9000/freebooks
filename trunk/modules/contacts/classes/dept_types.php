@@ -103,12 +103,12 @@ class dept_types {
         foreach ($result->fields as $key => $value) $this->$key = $value;
     }
 	$output  = '<table style="border-collapse:collapse;margin-left:auto; margin-right:auto;">' . chr(10);
-	$output .= '  <thead class="ui-widget-header">' . "\n";
+	$output .= '  <thead class="table-dark">' . "\n";
 	$output .= '  <tr>' . chr(10);
 	$output .= '    <th colspan="2">' . ($action=='new' ? SETUP_INFO_HEADING_NEW_DEPT_TYPES : SETUP_INFO_HEADING_EDIT_DEPT_TYPES) . '</th>' . chr(10);
     $output .= '  </tr>' . chr(10);
 	$output .= '  </thead>' . "\n";
-	$output .= '  <tbody class="ui-widget-content">' . "\n";
+	$output .= '  <tbody>' . "\n";
     $output .= '  <tr>' . chr(10);
 	$output .= '    <td colspan="2">' . ($action=='new' ? SETUP_DEPT_TYPES_INSERT_INTRO : HR_EDIT_INTRO) . '</td>' . chr(10);
     $output .= '  </tr>' . chr(10);

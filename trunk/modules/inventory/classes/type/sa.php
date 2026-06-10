@@ -37,15 +37,15 @@ class sa extends inventory {//Serialized Assembly
 		$this->quantity_on_hand = 0;
 		$result = $db->Execute("select store_id, qty, serialize_number from " . TABLE_INVENTORY_HISTORY . " 
 	  		where sku = '" . $this->sku . "' and remaining > 0 order by store_id");
-  		$this->qty_table ='<table class="ui-widget" style="border-collapse:collapse;width:100%">'. chr(10);
-		$this->qty_table .='  <thead class="ui-widget-header">'. chr(10);
+  		$this->qty_table ='<table class="table table-borderless table-hover table-sm" style="width:100%">'. chr(10);
+		$this->qty_table .='  <thead class="table-dark">'. chr(10);
 	  	$this->qty_table .='	  <tr>';
 	    $this->qty_table .='		<th>'. GEN_STORE_ID.'</th>';
 	    $this->qty_table .='		<th>'. TEXT_QUANTITY.'</th>';
 	    $this->qty_table .='		<th>'. INV_HEADING_SERIAL_NUMBER .'</th>';
 	  	$this->qty_table .='    </tr>'. chr(10);
 	 	$this->qty_table .='  </thead>'. chr(10);
-	 	$this->qty_table .='  <tbody class="ui-widget-content">'. chr(10);
+	 	$this->qty_table .='  <tbody>'. chr(10);
 	    while (!$result->EOF) {
 	  		$this->quantity_on_hand += $result->fields['qty'];
 	  		$this->qty_table .= '<tr>';
