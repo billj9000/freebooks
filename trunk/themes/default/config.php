@@ -21,24 +21,6 @@ $theme_menu_options = array( // available menu location options
   'top' => TEXT_TOP,
   'left'=> TEXT_LEFT,
 );
-if ($include_header) { ?>
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/ddsmoothmenu.css'; ?>" />
-  <script type="text/javascript" src="themes/default/ddsmoothmenu.js">
-  /***********************************************
-  * Smooth Navigational Menu- (c) Dynamic Drive DHTML code library (www.dynamicdrive.com)
-  * This notice MUST stay intact for legal use
-  * Visit Dynamic Drive at http://www.dynamicdrive.com/ for full source code
-  ***********************************************/
-  </script>
-  <script type="text/javascript">
-    ddsmoothmenu.init({
-	  mainmenuid: "smoothmenu",
-	  orientation: '<?php echo MY_MENU=='left'?'v':'h';?>',
-	  classname: '<?php echo MY_MENU=='left'?'ddsmoothmenu-v':'ddsmoothmenu';?>',
-	  contentsource: "markup"
-    })
-  </script>
-<?php } // end include_header
 
 // js_calendar_init is a no-op — jQuery UI datepicker removed; date fields are plain text inputs
 if (!function_exists('js_calendar_init')) {

@@ -433,7 +433,7 @@ h1 {
 }
 
 /* ── Protect FreeBooks toolbar/nav from Bootstrap Reboot ─────────── */
-.ddsmoothmenu img, .ui-state-hover img, .imgIcon img, #please_wait img {
+.imgIcon img, #please_wait img {
   max-width: none !important;
   width:     auto !important;
   height:    auto !important;
@@ -507,7 +507,7 @@ h1 {
   padding:          8px;
 }
 
-/* ── Bootstrap navbar: matches ddsmoothmenu "start" theme ────────── */
+/* ── Bootstrap navbar ────────────────────────────────────────────── */
 .fb-navbar {
   background-color: #2191c0;
   background-image: url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);

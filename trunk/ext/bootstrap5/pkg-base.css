@@ -20,7 +20,7 @@
  */
 
 /* Protect FreeBooks toolbar/nav images from Bootstrap Reboot max-width reset */
-.ddsmoothmenu img, .ui-state-hover img, .imgIcon img, #please_wait img {
+.imgIcon img, #please_wait img {
   max-width: none !important;
   width:     auto !important;
   height:    auto !important;
