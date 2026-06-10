@@ -189,7 +189,6 @@ foreach ($shipping_defaults['service_levels'] as $key => $value) {
   if (defined($shipping_module . '_' . $key)) $shipping_methods[$key] = constant($shipping_module . '_' . $key);
 }
 
-$use_bootstrap_nav = true;
 $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';

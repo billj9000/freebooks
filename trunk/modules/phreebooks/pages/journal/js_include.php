@@ -115,7 +115,7 @@ function processEditJournal(sXml) {
   document.getElementById('auto_complete').checked = false;
   document.getElementById('id').value        = $(xml).find("id").first().text();
   if ($(xml).find("purchase_invoice_id").text()) document.getElementById('purchase_invoice_id').value = $(xml).find("purchase_invoice_id").text();
-  document.getElementById('post_date').value = formatDate($(xml).find("post_date").first().text());
+  document.getElementById('post_date').value = $(xml).find("post_date").first().text();
   document.getElementById('recur_id').value  = $(xml).find("recur_id").text();
   document.getElementById('store_id').value  = $(xml).find("store_id").text();
   if ($(xml).find("attach_exist").text() == 1) {

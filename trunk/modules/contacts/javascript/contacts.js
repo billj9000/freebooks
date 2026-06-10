@@ -29,7 +29,7 @@ function getAddress(id, type) {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=contacts&page=ajax&op=contacts&action=get_address&type='+type+'&aID='+id,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
 	},
@@ -98,7 +98,7 @@ function deleteAddress(id) {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=contacts&page=ajax&op=contacts&action=rm_address&aID='+id,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
 	},
@@ -125,7 +125,7 @@ function getPayment(id) {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=contacts&page=ajax&op=contacts&action=get_payment&pID='+id,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
 	},
@@ -161,7 +161,7 @@ function deletePayment(id) {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=contacts&page=ajax&op=contacts&action=rm_payment&pID='+id,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
 	},
@@ -182,7 +182,7 @@ function deleteCRM(id) {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=contacts&page=ajax&op=contacts&action=rm_crm&nID='+id,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
 	},
@@ -207,7 +207,7 @@ function downloadAttachment(filename) {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=phreedom&page=ajax&op=phreedom&action=download&file='+file_name,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },

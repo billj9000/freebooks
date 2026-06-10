@@ -256,13 +256,11 @@ switch ($_REQUEST['action']) {
 	  }
 	}
 	$include_template  = $_REQUEST['action'] == 'pw_lost_req' ? 'template_pw_lost.php' : 'template_login.php';
-	$use_bootstrap_nav = true;
   	$include_header    = false;
 	$include_footer    = false;
 	define('PAGE_TITLE', TITLE);
     break;
   case 'crash':
-	$use_bootstrap_nav = true;
 	$include_template  = 'template_crash.php';
 	define('PAGE_TITLE', TITLE);
 	break;
@@ -274,7 +272,6 @@ switch ($_REQUEST['action']) {
 	$cp_boxes = $db->Execute("select * from ".TABLE_USERS_PROFILES." 
 		where user_id = '".$_SESSION['admin_id']."' and menu_id = '$menu_id' order by column_id, row_id");
 	$include_template  = 'template_main.php';
-	$use_bootstrap_nav = true;
 	define('PAGE_TITLE', COMPANY_NAME);
 	break;
 }

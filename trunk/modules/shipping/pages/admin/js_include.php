@@ -19,12 +19,13 @@
 //
 ?>
 <script type="text/javascript">
+var _shippingModal = null;
 function init() {
-  var dlg = $('#shipping_dialog').dialog({
-    autoOpen: false,
-    buttons: { "<?php echo TEXT_SUBMIT; ?>": function() { $(this).dialog('close'); document.getElementById('action').form.submit(); } }
+  _shippingModal = new bootstrap.Modal(document.getElementById('shipping_dialog_modal'));
+  document.getElementById('shipping_dialog_submit').addEventListener('click', function() {
+    _shippingModal.hide();
+    document.getElementById('action').form.submit();
   });
-  dlg.parent().appendTo($("#admin"));
 }
 
 function check_form() {
@@ -56,9 +57,8 @@ function fillDialog(sXml) {
   var xml = parseXml(sXml);
   if (!xml) return;
   if ($(xml).find("message").text()) alert ($(xml).find("message").text());
-  if ($(xml).find("width").text()) $("#shipping_dialog").dialog("option", "width", parseInt($(xml).find("width").text()));
   document.getElementById('action').value = $(xml).find("action").text();
   document.getElementById('shipping_dialog').innerHTML = $(xml).find("html").text();
-  $('#shipping_dialog').dialog('open');
+  _shippingModal.show();
 }
 </script>

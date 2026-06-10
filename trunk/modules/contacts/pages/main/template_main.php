@@ -84,6 +84,18 @@ echo $toolbar->build_toolbar($add_search = true);
 <div style="float:right"><?php echo $query_split->display_links(); ?></div>
 <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . constant('ACT_' . strtoupper($type) . '_TYPE_NAME')); ?></div>
 
-<div id="contact_chart" title="">&nbsp;</div>
+<div class="modal fade" id="contact_chart_modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="contact_chart_modal_title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2">
+        <div id="contact_chart"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 </form>

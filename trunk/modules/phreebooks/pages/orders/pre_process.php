@@ -524,7 +524,6 @@ default:
 $include_header    = true;
 $include_footer    = true;
 $include_template  = 'template_main.php';
-$use_bootstrap_nav = true;
 define('PAGE_TITLE', constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'));
 
 ?>

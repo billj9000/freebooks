@@ -72,8 +72,8 @@ var cannot_convert_quote = '<?php echo ORD_JS_CANNOT_CONVERT_QUOTE; ?>';
 var cannot_convert_so    = '<?php echo ORD_JS_CANNOT_CONVERT_SO; ?>';
 var sku_not_unique       = '<?php echo ORD_JS_SKU_NOT_UNIQUE; ?>';
 var no_contact_id        = '<?php echo ORD_JS_NO_CID; ?>';
-var defaultPostDate      = '<?php echo date(DATE_FORMAT, time()); ?>';
-var defaultTerminalDate  = '<?php echo $req_date; ?>';
+var defaultPostDate      = '<?php echo date('Y-m-d', time()); ?>';
+var defaultTerminalDate  = '<?php echo gen_db_date($req_date); ?>';
 var defaultCurrency      = '<?php echo DEFAULT_CURRENCY; ?>';
 var tax_freight          = '<?php echo ($account_type == "c") ? AR_ADD_SALES_TAX_TO_SHIPPING : AP_ADD_SALES_TAX_TO_SHIPPING; ?>';
 var tax_before_discount  = '<?php echo ($account_type == "c") ? AR_TAX_BEFORE_DISCOUNT : AP_TAX_BEFORE_DISCOUNT; ?>';
@@ -120,7 +120,6 @@ function init() {
   document.getElementById('ship_to_select').style.visibility = 'hidden';
   document.getElementById('bill_to_select').style.visibility = 'hidden';
   document.getElementById('ship_to_search').innerHTML = '&nbsp;'; // turn off ship to id search
-  $('#override_order').dialog({ autoOpen:false, width:600 });
 <?php 
   if ($error && isset($order->shipper_code)) {
     $values = explode(':', $order->shipper_code);
@@ -290,7 +289,7 @@ function refreshOrderClock() {
 	  $.ajax({
 		type: "GET",
 		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+acct+'&qty='+qty+'&upc='+upc+'&rID='+setId+'&jID='+journalID,
-		dataType: ($.browser.msie) ? "text" : "xml",
+		dataType: "xml",
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 		  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 		},

@@ -106,7 +106,7 @@ function validateDB() {
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreeform&page=ajax&op=validate_db'+fields,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -134,7 +134,7 @@ function fieldLoad() {
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreeform&page=ajax&op=field_load'+params,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -166,7 +166,7 @@ function boxLoad(type, rowID) {
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreeform&page=ajax&op=box_load&type='+type+'&rID='+rID+'&rowID='+rowID,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -504,25 +504,20 @@ for (whl_i = 0; whl_i < 6; whl_i++) {
 }
 
 function moved(e, idWheel, idTD, idField) {
-  if (pbBrowser == 'IE') {
-    y = 4 * event.offsetX;
-    x = 4 * event.offsetY;
-  } else {
-    var posX = 0;
-    var posY = 0;
-    layobj = document.getElementById(idWheel);
-    while (layobj != null){
-      posX  += layobj.offsetLeft;
-      posY  += layobj.offsetTop;
-      layobj = layobj.offsetParent;
-    }
-    if (e.pageX || e.pageY) {
-      var mX = e.pageX;
-	  var mY = e.pageY;
-    }
-    y = 4 * (mX - posX);
-    x = 4 * (mY - posY);
+  var posX = 0;
+  var posY = 0;
+  layobj = document.getElementById(idWheel);
+  while (layobj != null){
+    posX  += layobj.offsetLeft;
+    posY  += layobj.offsetTop;
+    layobj = layobj.offsetParent;
   }
+  if (e.pageX || e.pageY) {
+    var mX = e.pageX;
+    var mY = e.pageY;
+  }
+  y = 4 * (mX - posX);
+  x = 4 * (mY - posY);
   sx = x - 512;
   sy = y - 512;
   qx = (sx < 0) ? 0 : 1;

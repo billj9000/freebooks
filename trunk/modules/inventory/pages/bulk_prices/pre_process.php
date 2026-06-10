@@ -18,7 +18,6 @@
 //  Path: /modules/inventory/pages/bulk_prices/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_PRICE_SHEET_MANAGER);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 history_filter('inv_bulk');

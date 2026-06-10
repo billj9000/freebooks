@@ -617,3 +617,10 @@ h1 {
   padding:     4px 10px;
   border-radius: 0;
 }
+
+/* Toolbar section panels — replaces ui-state-hover from jQuery UI */
+.fb-toolbar-section {
+  border:     1px solid #448dae;
+  background: #79c9ec url('../../themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png') 50% 50% repeat-x;
+  color:      #026890;
+}

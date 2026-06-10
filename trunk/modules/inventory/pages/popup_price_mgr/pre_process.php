@@ -18,7 +18,6 @@
 //  Path: /modules/inventory/pages/popup_price_mgr/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_PRICE_SHEET_MANAGER);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 require_once(DIR_FS_MODULES . 'inventory/defaults.php');

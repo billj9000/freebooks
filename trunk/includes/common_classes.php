@@ -90,7 +90,7 @@ class toolbar {
 	if ($add_search) $output .= $this->add_search();
 	if ($add_period) $output .= $this->add_period();
 	if ($cal_props)  $output .= $this->add_date($cal_props);
-	$output .= '<div id="tb_main_' . $this->id . '" class="ui-state-hover" style="border:0px;">' . "\n";
+	$output .= '<div id="tb_main_' . $this->id . '" class="fb-toolbar-section">' . "\n";
 	// Sort the icons by designated order
 	$sort_arr = array();
     foreach($this->icon_list as $uniqid => $row) foreach($row as $key => $value) $sort_arr[$key][$uniqid] = $value;
@@ -106,7 +106,7 @@ class toolbar {
 
   function add_search() {
   	if($this->search_text == '') $this->search_text = $_REQUEST['search_text'];
-	$output = '<div id="tb_search_' . $this->id . '" class="ui-state-hover" style="float:right; border:0px;">' . "\n";
+	$output = '<div id="tb_search_' . $this->id . '" class="fb-toolbar-section" style="float:right;">' . "\n";
 	$output .= HEADING_TITLE_SEARCH_DETAIL . '<br />';
 	$output .= html_input_field('search_text', $this->search_text, $params = 'onkeypress="checkEnter(event);"');
 	if ($this->search_text) $output .= '&nbsp;' . html_icon('actions/view-refresh.png', TEXT_RESET, 'small', 'onclick="location.href = \'index.php?' . gen_get_all_get_params(array('search_text', 'search_period', 'search_date', 'so', 'sf', 'list', 'action')) . '&reset=1\';" style="cursor:pointer;"');
@@ -116,7 +116,7 @@ class toolbar {
   }
 
   function add_period() {
-	$output = '<div id="tb_period_' . $this->id . '" class="ui-state-hover" style="float:right; border:0px;">' . "\n";
+	$output = '<div id="tb_period_' . $this->id . '" class="fb-toolbar-section" style="float:right;">' . "\n";
 	$output .= TEXT_INFO_SEARCH_PERIOD_FILTER . '<br />' . "\n";
 	$output .= html_pull_down_menu('search_period', gen_get_period_pull_down($this->period_strict), $this->search_period, 'onchange="periodPage(\'' . gen_get_all_get_params(array('action', 'list')) . '\')"');
 	$output .= '</div>' . "\n";
@@ -124,7 +124,7 @@ class toolbar {
   }
 
   function add_date($cal_props) {
-	$output = '<div id="tb_date_' . $this->id . '" class="ui-state-hover" style="float:right; border:0px;">' . "\n";
+	$output = '<div id="tb_date_' . $this->id . '" class="fb-toolbar-section" style="float:right;">' . "\n";
 	$output .= TEXT_DATE . '<br />' . "\n";
 	$output .= html_calendar_field($cal_props) . "\n";
 	$output .= '</div>' . "\n";
@@ -260,13 +260,13 @@ class objectInfo {
 
     function add($message, $type = 'error') {
       	if ($type == 'error') {
-        	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-error"', 'text' => html_icon('emblems/emblem-unreadable.png', TEXT_ERROR) . '&nbsp;' . $message);
+        	$_SESSION['messageToStack'][] = array('type' => $type, 'bs_class' => 'alert-danger',   'text' => html_icon('emblems/emblem-unreadable.png', TEXT_ERROR)   . '&nbsp;' . $message);
       	} elseif ($type == 'success') {
-	    	if (!HIDE_SUCCESS_MESSAGES) $_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-active"', 'text' => html_icon('emotes/face-smile.png', TEXT_SUCCESS) . '&nbsp;' . $message);
+	    	if (!HIDE_SUCCESS_MESSAGES) $_SESSION['messageToStack'][] = array('type' => $type, 'bs_class' => 'alert-success', 'text' => html_icon('emotes/face-smile.png', TEXT_SUCCESS)           . '&nbsp;' . $message);
       	} elseif ($type == 'caution' || $type == 'warning') {
-        	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-highlight"', 'text' => html_icon('emblems/emblem-important.png', TEXT_CAUTION) . '&nbsp;' . $message);
+        	$_SESSION['messageToStack'][] = array('type' => $type, 'bs_class' => 'alert-warning',  'text' => html_icon('emblems/emblem-important.png', TEXT_CAUTION) . '&nbsp;' . $message);
       	} else {
-        	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-error"', 'text' => $message);
+        	$_SESSION['messageToStack'][] = array('type' => $type, 'bs_class' => 'alert-danger',   'text' => $message);
       	}
       	$this->debug("\n On screen displaying '$type' message = $message");
 	  	return true;
@@ -283,26 +283,16 @@ class objectInfo {
 
     function add_session($message, $type = 'error') {
     	trigger_error('messageStack->add_session will be removed', E_USER_DEPRECATED);
-      	if ($type == 'error') {
-        	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-error"', 'text' => html_icon('emblems/emblem-unreadable.png', TEXT_ERROR) . '&nbsp;' . $message);
-      	} elseif ($type == 'success') {
-	    	if (!HIDE_SUCCESS_MESSAGES) $_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-active"', 'text' => html_icon('emotes/face-smile.png', TEXT_SUCCESS) . '&nbsp;' . $message);
-      	} elseif ($type == 'caution' || $type == 'warning') {
-        	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-highlight"', 'text' => html_icon('emblems/emblem-important.png', TEXT_CAUTION) . '&nbsp;' . $message);
-      	} else {
-        	$_SESSION['messageToStack'][] = array('type' => $type, 'params' => 'class="ui-state-error"', 'text' => $message);
-      	}
-      	$this->debug("\n On screen displaying '$type' message = $message");
+        $this->add($message, $type);
     }
 
     function output() {
-		$output = NULL;
+		$output = '';
 	  	if (! isset($_SESSION['messageToStack'])) return '';
-	  	$output .= '<table style="border-collapse:collapse;width:100%">' . chr(10);
 		foreach ($_SESSION['messageToStack'] as $value) {
-			$output .= '<tr><td ' . $value['params'] . ' style="width:100%">' . $value['text'] . '</td></tr>' . chr(10);
+			$cls = $value['bs_class'] ?? 'alert-danger';
+			$output .= '<div class="alert ' . $cls . ' py-1 px-2 mb-1">' . $value['text'] . '</div>' . chr(10);
 	  	}
-	  	$output .= '</table>' . chr(10);
 	  	$this->reset();
       	return $output;
     }

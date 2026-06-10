@@ -177,7 +177,6 @@ history_save('pb'.JOURNAL_ID);
 $include_header    = true;
 $include_footer    = true;
 $include_template  = 'template_main.php';
-$use_bootstrap_nav = true;
 define('PAGE_TITLE', sprintf(BOX_STATUS_MGR, $page_title));
 
 ?>

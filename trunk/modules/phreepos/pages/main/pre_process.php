@@ -18,7 +18,6 @@
 //  Path: /modules/phreepos/pages/main/pre_process.php
 //
 $security_level    = validate_user(SECURITY_ID_PHREEPOS);
-$use_bootstrap_nav = true;
 define('JOURNAL_ID',19);
 /**************  include page specific files    *********************/
 gen_pull_language('contacts');

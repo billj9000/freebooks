@@ -351,7 +351,6 @@ switch ($_REQUEST['action']) {
   case 'import_one':
   case 'import_all':
   case 'refresh_dir':
-    $use_bootstrap_nav = true;
     $sel_modules = array();
 	foreach ($loaded_modules as $mod) $sel_modules[] = array('id' => $mod, 'text' => $mod);
 	$sel_language = load_language_dropdown();
@@ -362,7 +361,6 @@ switch ($_REQUEST['action']) {
   case 'new_rpt':
   case 'new_frm':
   case 'new_ltr':
-    $use_bootstrap_nav = true;
   	$report = default_report();
 	if ($_REQUEST['action'] == 'new_rpt') $report->reporttype = 'rpt';
 	if ($_REQUEST['action'] == 'new_frm') $report->reporttype = 'frm';
@@ -370,7 +368,6 @@ switch ($_REQUEST['action']) {
 	case 'save':
   case 'preview':
   case 'design':
-    $use_bootstrap_nav = true;
 	if ($rID) $report = get_report_details($rID);
 	// extract the security settings
 	$temp = explode(';', $report->security);

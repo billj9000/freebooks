@@ -90,7 +90,7 @@ function ClearForm() {
   document.getElementById('bill_telephone1').value        = '';
   document.getElementById('search').value                 = text_search;
   document.getElementById('purchase_invoice_id').value    = '<?php echo $next_inv_ref; ?>';
-  document.getElementById('post_date').value              = '<?php echo date(DATE_FORMAT); ?>';
+  document.getElementById('post_date').value              = '<?php echo date('Y-m-d'); ?>';
   document.getElementById('purch_order_id').value         = '';
   document.getElementById('gl_acct_id').value             = '<?php echo $gl_acct_id; ?>';
   document.getElementById('gl_disc_acct_id').value        = '';

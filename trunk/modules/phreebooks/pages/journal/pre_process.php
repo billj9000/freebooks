@@ -283,7 +283,6 @@ $cal_gl = array(
 $include_header       = true;
 $include_footer       = true;
 $include_template     = 'template_main.php';
-$use_bootstrap_nav    = true;
 define('PAGE_TITLE', GL_ENTRY_TITLE);
 
 ?>

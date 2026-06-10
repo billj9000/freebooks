@@ -246,7 +246,6 @@ $gl_balance = $currencies->format($result->fields['gl_balance']);
 $include_header    = true;
 $include_footer    = true;
 $include_template  = 'template_main.php';
-$use_bootstrap_nav = true;
 define('PAGE_TITLE', BOX_BANKING_ACCOUNT_RECONCILIATION);
 
 ?>

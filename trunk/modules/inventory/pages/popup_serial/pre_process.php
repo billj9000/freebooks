@@ -18,7 +18,6 @@
 //  Path: /modules/inventory/pages/popup_serial/pre_process.php
 //
 $security_level = validate_user(0, true);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $snDef = db_prepare_input($_GET['def']);

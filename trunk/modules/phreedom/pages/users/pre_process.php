@@ -193,7 +193,6 @@ switch ($_REQUEST['action']) {
 /*****************   prepare to display templates  *************************/
 $include_header    = true;
 $include_footer    = true;
-$use_bootstrap_nav = true;
 
 switch ($_REQUEST['action']) {
   case 'new':

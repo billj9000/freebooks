@@ -32,7 +32,6 @@ switch ($_REQUEST['action']) {
 
 /*****************   prepare to display templates  *************************/
 
-$use_bootstrap_nav = true;
 $include_header = false; // include header flag
 $include_footer = false; // include footer flag
 $include_template = 'template_main.php'; // include display template (required)

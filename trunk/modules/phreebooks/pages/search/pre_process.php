@@ -190,6 +190,5 @@ history_save('pb_search');
 $include_header    = true;
 $include_footer    = true;
 $include_template  = 'template_main.php';
-$use_bootstrap_nav = true;
 define('PAGE_TITLE', HEADING_TITLE_SEARCH_INFORMATION);
 ?>

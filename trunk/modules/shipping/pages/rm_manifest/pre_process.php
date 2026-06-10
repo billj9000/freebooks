@@ -51,7 +51,6 @@ while (!$sql_result->EOF) {
   $sql_result->MoveNext();
 }
 
-$use_bootstrap_nav = true;
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

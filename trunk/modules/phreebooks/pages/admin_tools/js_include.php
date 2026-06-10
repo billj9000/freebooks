@@ -47,8 +47,7 @@ function fetchPeriod() {
 
 function updateEnd(index) {
   if (index != 11) {
-	var tmp = document.getElementById('end_'+index).value;
-	var temp = cleanDate(tmp);
+	var temp = document.getElementById('end_'+index).value;
 	var thisDay = parseFloat(temp.substr(8,2));
 	var thisMonth = parseFloat(temp.substr(5,2)) - 1;
 	var thisYear = temp.substr(0,4);
@@ -63,7 +62,7 @@ function updateEnd(index) {
 	if (thisMonth < 10) thisMonth = '0' + thisMonth;
 	thisYear = nextDay.getFullYear();
 	temp = thisYear + '-' + thisMonth + '-' + thisDay;
-	document.getElementById('start_'+(index+1)).value = formatDate(temp);
+	document.getElementById('start_'+(index+1)).value = temp;
   }
 }
 

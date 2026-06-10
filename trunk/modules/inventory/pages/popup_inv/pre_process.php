@@ -18,7 +18,6 @@
 //  Path: /modules/inventory/pages/popup_inv/pre_process.php
 //
 $security_level = validate_user(0, true);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 require(DIR_FS_WORKING . 'defaults.php');
 require(DIR_FS_WORKING . 'functions/inventory.php');

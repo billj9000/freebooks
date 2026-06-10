@@ -50,7 +50,7 @@ function clearForm() {
   document.getElementById('source_store_id').value     = <?php echo $_SESSION['admin_prefs']['def_store_id'] ? $_SESSION['admin_prefs']['def_store_id'] : 0; ?>;
   document.getElementById('dest_store_id').value       = <?php echo $_SESSION['admin_prefs']['def_store_id'] ? $_SESSION['admin_prefs']['def_store_id'] : 0; ?>;
   document.getElementById('purchase_invoice_id').value = '';
-  document.getElementById('post_date').value           = '<?php echo date(DATE_FORMAT); ?>';
+  document.getElementById('post_date').value           = '<?php echo date('Y-m-d'); ?>';
   document.getElementById('adj_reason').value          = '';
   while (document.getElementById('item_table').rows.length > 0) removeInvRow(1);
   addInvRow();
@@ -85,7 +85,7 @@ function loadSkuDetails(iID, rowCnt) {
   $.ajax({
     type: "GET",
     url: 'index.php?module=inventory&page=ajax&op=inv_details&iID='+iID+'&sku='+sku+'&bID='+bID+'&rID='+rowCnt,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -197,7 +197,7 @@ function EditAdjustment(rID) {
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreebooks&page=ajax&op=load_record&rID='+rID,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -215,7 +215,7 @@ function processEditTransfer(sXml) {
   document.getElementById('source_store_id').value     = $(xml).find("store_id").text();
   document.getElementById('dest_store_id').value       = $(xml).find("bill_acct_id").text();
   document.getElementById('purchase_invoice_id').value = $(xml).find("purchase_invoice_id").text();
-  document.getElementById('post_date').value           = formatDate($(xml).find("post_date").first().text());
+  document.getElementById('post_date').value           = $(xml).find("post_date").first().text();
   if (id && securityLevel < 3) removeElement('tb_main_0', 'tb_icon_save');
   var rowCnt = 1;
   $(xml).find("items").each(function() {

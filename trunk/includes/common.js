@@ -243,7 +243,7 @@ function phreedomChart() {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=phreedom&page=ajax&op=phreedom&action=chart&modID='+modID+'&fID='+func+'&d0='+d0,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
 	},
@@ -257,8 +257,9 @@ function phreedomChartResp(sXml) {
   var error = $(xml).find("error").text();
   if (error) { alert (error); }
   else { // activate the chart response
-	$('#'+chartProps.divID).dialog("option", "title", $(xml).find("title").text());
-	$('#'+chartProps.divID).dialog("option", "width", parseInt($(xml).find("width").text())+40);
+    var title = $(xml).find("title").text();
+    var modalEl = document.getElementById(chartProps.divID + '_modal');
+    if (modalEl) document.getElementById(chartProps.divID + '_modal_title').textContent = title;
     var data = new google.visualization.DataTable();
     data.addColumn('string', $(xml).find("label_text").text());
     data.addColumn('number', $(xml).find("value_text").text());
@@ -271,7 +272,7 @@ function phreedomChartResp(sXml) {
       data.setCell(rowCnt, 1, parseFloat($(this).find("number").text()));
       rowCnt++;
     });
-    var options = {'title':$(xml).find("title").text(), 'width':$(xml).find("width").text(), 'height':$(xml).find("height").text()};
+    var options = {'title':title, 'width':$(xml).find("width").text(), 'height':$(xml).find("height").text()};
     switch ($(xml).find("type").text()) {
       default:
       case 'pie':    var chart = new google.visualization.PieChart(divID);    break;
@@ -279,10 +280,9 @@ function phreedomChartResp(sXml) {
       case 'column': var chart = new google.visualization.ColumnChart(divID); break;
       case 'guage':  var chart = new google.visualization.Guage(divID);       break;
       case 'line':   var chart = new google.visualization.LineChart(divID);   break;
-//    case 'map':    var chart = new google.visualization.Map(divID);         break;
     }
     chart.draw(data, options);
-	$('#'+chartProps.divID).dialog('open');
+    if (modalEl) new bootstrap.Modal(modalEl).show();
   }
 }
 
@@ -297,7 +297,7 @@ if (document.images) { //pre-load images
  img_off.src = combo_image_off; 
 }
 
-if (pbBrowser != 'IE') document.onmouseup = mouseSelect(0); // turns off the combo box if not hovering over
+document.onmouseup = mouseSelect(0); // turns off the combo box if not hovering over
 
 function mouseSelect(e) {
 	if (fActiveMenu) {
@@ -460,12 +460,7 @@ function checkEnter(e) {
 }
 
 // ajax wrappers
-function parseXml(xml) {   
-  if (jQuery.browser.msie) {
-    var xmlDoc = new ActiveXObject("Microsoft.XMLDOM"); 
-    xmlDoc.loadXML(xml);
-    xml = xmlDoc;
-  }
+function parseXml(xml) {
   if ($(xml).find("debug").text()) alert($(xml).find("debug").text());
   if ($(xml).find("error").text()) {
     alert($(xml).find("error").text());
@@ -480,7 +475,7 @@ function tabPage(subject, action, rID) {
     $.ajax({
       type: "GET",
 	  url: 'index.php?module=phreedom&page=ajax&op=tab_details&mod='+module+'&subject='+subject+'&action='+action+'&rID='+rID,
-      dataType: ($.browser.msie) ? "text" : "xml",
+      dataType: "xml",
       error: function(XMLHttpRequest, textStatus, errorThrown) {
         alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
       },

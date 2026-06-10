@@ -65,7 +65,7 @@ function updateLineTotal(rowCnt) {
 }
 
 function bbUpdatePayValues(rowCnt) {
-  var postDate = cleanDate(document.getElementById('post_date').value);
+  var postDate = document.getElementById('post_date').value;
   var discDate = document.getElementById('discdate_' + rowCnt).value;
   if (document.getElementById('pay_' + rowCnt).checked) {
     var amount   = parseFloat(document.getElementById('amt_'      + rowCnt).value);

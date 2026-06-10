@@ -18,7 +18,6 @@
 //  Path: /modules/payment/pages/admin/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_CONFIGURATION);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'classes/install.php');

@@ -26,7 +26,6 @@ var default_country = '<?php echo COMPANY_COUNTRY; ?>';
 var account_type    = '<?php echo $type; ?>';
 
 function init() {
-  $('#contact_chart').dialog({ autoOpen:false });
   var firstTabPane = document.querySelector('#detailtabs .tab-pane');
   if (firstTabPane) {
     firstTabPane.classList.add('show', 'active');
@@ -74,7 +73,7 @@ function loadContacts() {
   $.ajax({
     type: "GET",
     url: 'index.php?module=contacts&page=ajax&op=load_contact_info&guess='+guess,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },

@@ -33,18 +33,14 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
   <style>body{display:flex;flex-direction:column;min-height:100vh}#content-wrap{flex:1 0 auto}</style>
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery_datatables.css'; ?>" />
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery-ui.css'; ?>" />
-<?php if (!empty($use_bootstrap_nav)): ?>
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
   <link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
   <script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
   <script src="ext/htmx.min.js" defer></script>
-<?php endif; ?>
   <link rel="stylesheet" type="text/css" href="jodit/jodit.min.css" />
   <script type="text/javascript">
   var module              = '<?php echo $module; ?>';
-  var pbBrowser           = (document.all) ? 'IE' : 'FF';
   var text_search         = '<?php echo TEXT_SEARCH; ?>';
   var date_format         = '<?php echo defined('DATE_FORMAT')    ? DATE_FORMAT    : 'Y-m-d'; ?>';
   var date_delimiter      = '<?php echo defined('DATE_DELIMITER') ? DATE_DELIMITER : '-';    ?>';
@@ -63,7 +59,6 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
 <?php } ?>
   </script>
   <script type="text/javascript" src="includes/jquery-1.6.2.min.js"></script>
-  <script type="text/javascript" src="includes/jquery-ui-1.8.16.custom.min.js"></script>
   <script type="text/javascript" src="includes/jquery.dataTables.min.js"></script>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="includes/common.js"></script>
@@ -99,10 +94,7 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
   <div id="please_wait"><p><?php echo html_icon('phreebooks/please_wait.gif', TEXT_PLEASE_WAIT, 'large'); ?></p></div>
   <!-- Menu -->
   <?php if ($include_header) {
-    $menu_file = !empty($use_bootstrap_nav)
-      ? DIR_FS_ADMIN . DIR_WS_THEMES . '/menu_bs.php'
-      : DIR_FS_ADMIN . DIR_WS_THEMES . '/menu.php';
-    require_once($menu_file);
+    require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/menu_bs.php');
   } else echo "<div id=\"content-wrap\">\n"; ?>
   <!-- Template -->
   <?php if (is_file($template_path)) { require($template_path); } else trigger_error('No template file: ' . $template_path, E_USER_ERROR); ?>

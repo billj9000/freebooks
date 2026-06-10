@@ -134,7 +134,7 @@ function ajaxOrderData(cID, oID, jID, open_order, ship_only) {
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreebooks&page=ajax&op=load_order&cID='+cID+'&oID='+oID+'&jID='+jID+'&so_po='+open_so_po+'&ship_only='+only_ship,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -366,7 +366,7 @@ function AccountList(override) {
     $.ajax({
 	  type: "GET",
 	  url: 'index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type='+account_type+'&guess='+guess,
-	  dataType: ($.browser.msie) ? "text" : "xml",
+	  dataType: "xml",
 	  error: function(XMLHttpRequest, textStatus, errorThrown) {
 	    alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 	  },
@@ -842,7 +842,7 @@ function updateRowTotal(rowCnt, useAjax) {
 		    $.ajax({
 			  type: "GET",
 			  url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuPrice&cID='+bill_acct_id+'&sku='+sku+'&qty='+qty+'&rID='+rowCnt,
-			  dataType: ($.browser.msie) ? "text" : "xml",
+			  dataType: "xml",
 			  error: function(XMLHttpRequest, textStatus, errorThrown) {
 			    alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 			  },
@@ -1023,7 +1023,7 @@ function showOverride() {
 		if (document.getElementById('tb_icon_print'))         document.getElementById('tb_icon_print').style.visibility         = "hidden";
 		if (document.getElementById('tb_icon_post_previous')) document.getElementById('tb_icon_post_previous').style.visibility = "hidden";
 		if (document.getElementById('tb_icon_post_next'))     document.getElementById('tb_icon_post_next').style.visibility     = "hidden";
-		$('#override_order').dialog('open');
+		new bootstrap.Modal(document.getElementById('override_order')).show();
 	}
 }
 
@@ -1033,7 +1033,7 @@ function checkOverride () {
   $.ajax({
 	type: "GET",
 	url: 'index.php?module=phreedom&page=ajax&op=validate&u='+user+'&p='+pass+'&level=4',
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 	},
@@ -1046,7 +1046,7 @@ function clearOverride(sXml) {
   if (!xml) return;
   var result = $(xml).find("result").text();
   if (result == 'validated') {
-	$('#override_order').dialog('close');
+	bootstrap.Modal.getInstance(document.getElementById('override_order')).hide();
     if (document.getElementById('tb_icon_save'))          document.getElementById('tb_icon_save').style.visibility          = "";
     if (document.getElementById('tb_icon_print'))         document.getElementById('tb_icon_print').style.visibility         = "";
     if (document.getElementById('tb_icon_post_previous')) document.getElementById('tb_icon_post_previous').style.visibility = "";
@@ -1225,7 +1225,7 @@ function loadSkuDetails(iID, rowCnt) {
 	$.ajax({
 		type: "GET",
 		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rowCnt+'&jID='+journalID,
-		dataType: ($.browser.msie) ? "text" : "xml",
+		dataType: "xml",
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 			alert ("Ajax ErrorThrown: " + errorThrown + "\nTextStatus: " + textStatus + "\nError: " + XMLHttpRequest.responseText);
     	},
@@ -1429,7 +1429,7 @@ function PreProcessLowStock() {
  $.ajax({
 	type: "GET",
 	url: 'index.php?module=phreebooks&page=ajax&op=low_stock&cID='+acct+'&sID='+store+'&rID='+rowCnt,
-	dataType: ($.browser.msie) ? "text" : "xml",
+	dataType: "xml",
 	error: function(XMLHttpRequest, textStatus, errorThrown) {
 	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
 	},

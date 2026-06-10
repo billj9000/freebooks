@@ -322,7 +322,6 @@ $default_sales_rep = $result->fields['account_id'] ? $result->fields['account_id
 $include_header      = true;
 $include_footer      = true;
 $include_template    = 'template_main.php';
-$use_bootstrap_nav   = true;
 $_pt_key = 'ORD_TEXT_' . JOURNAL_ID . '_' . strtoupper($type) . '_WINDOW_TITLE';
 if (!defined($_pt_key)) $_pt_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE';
 define('PAGE_TITLE', constant($_pt_key));

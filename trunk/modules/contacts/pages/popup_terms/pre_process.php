@@ -19,7 +19,6 @@
 //
 
 $security_level = validate_user(0, true);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $account_type = (isset($_GET['type']) ? $_GET['type'] : 'c');	// current types are c (customer) and v (vendor)

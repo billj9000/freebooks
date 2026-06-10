@@ -18,7 +18,6 @@
 //  Path: /modules/phreepos/pages/closing/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_POS_CLOSING);
-$use_bootstrap_nav = true;
 define('JOURNAL_ID',2);
 /**************  include page specific files    *********************/
 gen_pull_language('phreebooks');

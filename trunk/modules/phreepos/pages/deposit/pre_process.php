@@ -19,7 +19,6 @@
 //
 
 $security_level    = validate_user(SECURITY_ID_CUSTOMER_DEPOSITS);
-$use_bootstrap_nav = true;
 $type           = $_GET['type'];
 switch ($type) {
   case 'c': // customers

@@ -68,7 +68,6 @@ $sel_yes_no = array(
 
 $include_header    = true;
 $include_footer    = true;
-$use_bootstrap_nav = true;
 $include_template  = 'template_main.php';
 define('PAGE_TITLE', BOX_CONTACTS_ADMIN);
 

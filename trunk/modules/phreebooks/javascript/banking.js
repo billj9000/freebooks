@@ -60,7 +60,7 @@ function AccountList() {
     $.ajax({
       type: "GET",
 	  url: 'index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type='+account_type+'&guess='+guess,
-      dataType: ($.browser.msie) ? "text" : "xml",
+      dataType: "xml",
       error: function(XMLHttpRequest, textStatus, errorThrown) {
         alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
       },
@@ -95,7 +95,7 @@ function ajaxBillData(cID, bID, jID) {
   $.ajax({
     type: "GET",
 	url: 'index.php?module=phreebooks&page=ajax&op=load_bill&cID='+cID+'&bID='+bID+'&jID='+jID,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },
@@ -247,7 +247,7 @@ function loadNewBalance() { // request funtion
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreebooks&page=ajax&op=acct_balance&gl_acct_id='+gl_acct+'&post_date='+post_date,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },

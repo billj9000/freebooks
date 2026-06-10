@@ -64,7 +64,7 @@ function setReturnItem(override) { // request funtion
   $.ajax({
     type: "GET",
     url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=upcDetails&cID='+id+'&qty='+qty+'&upc='+upc,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },

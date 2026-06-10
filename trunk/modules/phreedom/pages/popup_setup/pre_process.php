@@ -45,7 +45,6 @@ switch ($_REQUEST['action']) {
   default:
 }
 /*****************   prepare to display templates  *************************/
-$use_bootstrap_nav = true;
 $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';

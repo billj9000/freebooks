@@ -58,7 +58,6 @@ function costToCompany(cost, currCode) {
 
 function init() {
   // Bootstrap 5 tabs are data-attribute driven — no explicit init needed.
-  $('#inv_image').dialog({ autoOpen:false, width:800 });
   <?php
   $action_array = array('edit','properties','create');
   if (in_array($_REQUEST['action'] ?? '', $action_array) && empty($cInfo->purchase_array)) {
@@ -104,7 +103,7 @@ function deleteItem(id, type) {
 }
 
 function showImage() {
-  $('#inv_image').dialog('open');
+  new bootstrap.Modal(document.getElementById('inv_image_modal')).show();
 }
 
 function copyItem(id, type) {

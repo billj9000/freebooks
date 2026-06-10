@@ -66,7 +66,7 @@ function validateAddress() {
   $.ajax({
     type: "GET",
     url: 'index.php?module=shipping&page=ajax&op=shipping&action=validate&method='+method+address,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: "+XMLHttpRequest.responseText+"\nTextStatus: "+textStatus+"\nErrorThrown: "+errorThrown);
     },

@@ -62,7 +62,7 @@ if ($terms[0] == '0' || $terms[0] == '1' || $terms[0] == '2' || $terms[0] == '3'
   $field_value = '';
 }
 echo ACT_TERMS_NET . html_input_field('standard_days', $field_value, 'size="3"') . ACT_TERMS_STANDARD_DAYS . '<br />' . chr(10);
-echo '<br /><br />' . html_calendar_field($cal_terms);
+echo '<br /><br />' . html_input_field('due_date', '', 'size="3"');
 if ($terms[0] == '4' || $terms[0] == '5') {
   echo '<script type="text/javascript">';
   echo "document.popup_terms.elements['due_date'].value = '" . $terms[3] . "';";

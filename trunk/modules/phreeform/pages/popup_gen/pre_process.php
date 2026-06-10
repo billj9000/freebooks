@@ -361,7 +361,6 @@ $cal_to = array(
   'params'    => array('align' => 'left'),
 );
 
-$use_bootstrap_nav = true;
 $include_header   = false;
 $include_footer   = false;
 $include_template = $IncludePage;

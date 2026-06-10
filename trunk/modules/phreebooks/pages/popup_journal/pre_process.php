@@ -18,7 +18,6 @@
 //  Path: /modules/phreebooks/pages/popup_journal/pre_process.php
 //
 $security_level = validate_user(0, true);
-$use_bootstrap_nav = true;
 /**************  include page specific files  *********************/
 require(DIR_FS_WORKING . 'functions/phreebooks.php');
 /**************   page specific initialization  *************************/

@@ -51,7 +51,7 @@ function clearForm() {
   document.getElementById('id').value                  = 0;
   document.getElementById('store_id').value            = 0;
   document.getElementById('purchase_invoice_id').value = '';
-  document.getElementById('post_date').value           = '<?php echo date(DATE_FORMAT); ?>';
+  document.getElementById('post_date').value           = '<?php echo date('Y-m-d'); ?>';
   document.getElementById('sku_1').value               = '';
   document.getElementById('serial_1').value            = '';
   document.getElementById('desc_1').value              = '';
@@ -91,7 +91,7 @@ function processEditAssembly(sXml) {
   document.getElementById('id').value                  = id;
   document.getElementById('store_id').value            = $(xml).find('store_id').text();
   document.getElementById('purchase_invoice_id').value = $(xml).find('purchase_invoice_id').text();
-  document.getElementById('post_date').value           = formatDate($(xml).find('post_date').first().text());
+  document.getElementById('post_date').value           = $(xml).find('post_date').first().text();
   if (id && securityLevel < 3) removeElement('tb_main_0', 'tb_icon_save');
   var sku = '';
   $(xml).find('items').each(function() {

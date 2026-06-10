@@ -704,6 +704,8 @@ function saveUploadZip($file_field, $dest_dir, $dest_name) {
 function gen_db_date($raw_date = '', $separator = '/') {
   global $messageStack;
   if (!$raw_date) return '';
+  // ISO pass-through: YYYY-MM-DD already in DB format
+  if (preg_match('/^\d{4}-\d{2}-\d{2}/', $raw_date)) return substr($raw_date, 0, 10);
   // handles periods (.), dashes (-), and slashes (/) as date separators
   $error = false;
   $second_separator = $separator;

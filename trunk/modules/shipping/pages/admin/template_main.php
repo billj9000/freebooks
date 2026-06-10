@@ -60,5 +60,19 @@ $tab_list['stats'] = TEXT_STATISTICS;
   require(DIR_FS_MODULES . $module . '/pages/admin/template_tab_stats.php');
 ?>
 </div>
-<div id="shipping_dialog"></div>
+<div class="modal fade" id="shipping_dialog_modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title"><?php echo TEXT_SETTINGS; ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="shipping_dialog"></div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-primary btn-sm" id="shipping_dialog_submit"><?php echo TEXT_SUBMIT; ?></button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><?php echo TEXT_CANCEL; ?></button>
+      </div>
+    </div>
+  </div>
+</div>
 </form>

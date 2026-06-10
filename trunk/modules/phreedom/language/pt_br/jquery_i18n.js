@@ -23,26 +23,6 @@
 // This (English) is a sample file for translation and is loaded by default.
 // Translated versions for other languages can be found at: 
 // http://jquery-ui.googlecode.com/svn/trunk/ui/i18n/
-jQuery(function($){
-	$.datepicker.regional['en'] = {
-		closeText: 'Close',
-		prevText: 'Prev',
-		nextText: 'Next',
-		currentText: 'Today',
-		monthNames: ['January','February','March','April','May','June','July','August','September','October','November','December'],
-		monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',	'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-		dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-		dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-		dayNamesMin: ['Su','Mo','Tu','We','Th','Fr','Sa'],
-		weekHeader: 'Wk',
-		dateFormat: js_cal_date_format ? js_cal_date_format : 'mm/dd/yy',
-		firstDay: 1,
-		isRTL: false,
-		showMonthAfterYear: false,
-		yearSuffix: ''
-	};
-	$.datepicker.setDefaults($.datepicker.regional['en']);
-});
 
 // jquery DataTables translation 
 // More translations can be found at http://datatables.net/plug-ins/i18n

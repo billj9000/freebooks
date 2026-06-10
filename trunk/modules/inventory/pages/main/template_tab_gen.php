@@ -17,16 +17,22 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/inventory/pages/main/template_tab_gen.php
 ?>
-<!-- jQuery UI image dialog (still uses jQuery UI dialog alongside Bootstrap) -->
-<div id="inv_image" title="<?php echo htmlspecialchars($cInfo->sku); ?>" style="display:none">
-  <?php if (isset($cInfo->image_with_path) && $cInfo->image_with_path): ?>
-    <?php echo html_image(DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $cInfo->image_with_path, '', 600) . chr(10); ?>
-  <?php else: ?>
-    <?php echo TEXT_NO_IMAGE; ?>
-  <?php endif; ?>
-  <div>
-    <h2><?php echo TEXT_SKU . ': ' . $cInfo->sku; ?></h2>
-    <p><?php echo $cInfo->description_sales; ?></p>
+<div class="modal fade" id="inv_image_modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title"><?php echo htmlspecialchars($cInfo->sku); ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center" id="inv_image">
+        <?php if (isset($cInfo->image_with_path) && $cInfo->image_with_path): ?>
+          <?php echo html_image(DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' . $cInfo->image_with_path, '', 600) . chr(10); ?>
+        <?php else: ?>
+          <?php echo TEXT_NO_IMAGE; ?>
+        <?php endif; ?>
+        <p class="mt-2"><?php echo $cInfo->description_sales; ?></p>
+      </div>
+    </div>
   </div>
 </div>
 

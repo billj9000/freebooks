@@ -18,7 +18,6 @@
 //  Path: /modules/phreebooks/pages/popup_bar_code/pre_process.php
 //
 $security_level = validate_user(0, true);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $jID = isset($_GET['jID']) ? $_GET['jID'] : '12'; // set default to Sales Journal

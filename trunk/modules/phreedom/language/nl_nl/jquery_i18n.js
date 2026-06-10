@@ -23,25 +23,6 @@
 // Translated versions for other languages can be found at: 
 // http://jquery-ui.googlecode.com/svn/trunk/ui/i18n/
 
-jQuery(function($){
-	$.datepicker.regional['nl'] = {
-		closeText: 'Sluiten',
-		prevText: 'Vorige',
-		nextText: 'Volgende',
-		currentText: 'Vandaag',
-		monthNames: ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'],
-		monthNamesShort: ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-		dayNames: ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'],
-		dayNamesShort: ['Zon', 'Maa', 'Din', 'Woe', 'Don', 'Vri', 'Zat'],
-		dayNamesMin: ['Zo','Ma','Di','Wo','Do','Vr','Za'],
-		weekHeader: 'Wk',
-		dateFormat: js_cal_date_format ? js_cal_date_format : 'dd/mm/yy',
-		firstDay: 1,
-		isRTL: false,
-		showMonthAfterYear: false,
-		yearSuffix: ''};
-	$.datepicker.setDefaults($.datepicker.regional['nl']);
-});
 // jquery DataTables translation 
 // More translations can be found at http://datatables.net/plug-ins/i18n
 var dataTables_i18n = { "oLanguage": 

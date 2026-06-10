@@ -18,7 +18,6 @@
 //  Path: /modules/inventory/pages/transfer/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_TRANSFER_INVENTORY);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language('phreebooks');
 require_once(DIR_FS_WORKING . 'defaults.php');

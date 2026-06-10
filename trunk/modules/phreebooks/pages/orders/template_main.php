@@ -124,13 +124,25 @@ switch(JOURNAL_ID) {
 }
 echo $toolbar->build_toolbar();
 ?>
-<div id="override_order" title="<?php echo TEXT_CREDIT_LIMIT_TITLE; ?>">
-  <p><?php echo TEXT_CREDIT_LIMIT_DESC; ?></p>
-  <p>
-    <?php echo TEXT_ADMIN_USER . '&nbsp;' . html_input_field('override_user', '', 'onblur="document.getElementById(\'override_user\').value = this.value;"', true); ?><br />
-    <?php echo TEXT_ADMIN_PASS . '&nbsp;' . html_password_field('override_pass', '', true, 'onblur="document.getElementById(\'override_pass\').value = this.value;"'); ?>
-  </p>
-  <p align="right"><?php echo html_icon('actions/go-next.png', TEXT_CONTINUE, 'small', 'onclick="checkOverride();"'); ?></p>
+<div class="modal fade" id="override_order" tabindex="-1" aria-labelledby="override_order_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="override_order_title"><?php echo TEXT_CREDIT_LIMIT_TITLE; ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><?php echo TEXT_CREDIT_LIMIT_DESC; ?></p>
+        <p>
+          <?php echo TEXT_ADMIN_USER . '&nbsp;' . html_input_field('override_user', '', 'onblur="document.getElementById(\'override_user\').value = this.value;"', true); ?><br />
+          <?php echo TEXT_ADMIN_PASS . '&nbsp;' . html_password_field('override_pass', '', true, 'onblur="document.getElementById(\'override_pass\').value = this.value;"'); ?>
+        </p>
+      </div>
+      <div class="modal-footer py-1">
+        <?php echo html_icon('actions/go-next.png', TEXT_CONTINUE, 'small', 'onclick="checkOverride();"'); ?>
+      </div>
+    </div>
+  </div>
 </div>
 <h1><?php echo constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'); ?></h1>
 

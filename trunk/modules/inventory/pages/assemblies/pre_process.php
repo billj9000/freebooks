@@ -123,7 +123,6 @@ $cal_assy = array(
 );
 $include_header    = true;
 $include_footer    = true;
-$use_bootstrap_nav = true;
 $include_template  = 'template_main.php';
 define('PAGE_TITLE', INV_ASSY_HEADING_TITLE);
 

@@ -18,7 +18,6 @@
 //  Path: /modules/phreebooks/pages/admin_tools/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_GEN_ADMIN_TOOLS);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
 require(DIR_FS_WORKING . 'functions/phreebooks.php');

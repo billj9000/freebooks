@@ -19,7 +19,6 @@
 //
 ini_set('memory_limit','256M');  // Set this big for memory exhausted errors
 $security_level = validate_user(SECURITY_ID_BACKUP);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'classes/backup.php');

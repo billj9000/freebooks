@@ -18,7 +18,6 @@
 //  Path: /modules/phreebooks/pages/popup_recur/pre_process.php
 //
 $security_level = validate_user(0, true);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 define('JOURNAL_ID',$_GET['jID']);

@@ -27,7 +27,7 @@ var add_array          = new Array("<?php echo implode('", "', $js_arrays['field
 //var company_array    = new Array("<?php echo implode('", "', $js_arrays['company']); ?>");
 var securityLevel      = <?php echo $security_level; ?>;
 var default_array      = new Array("<?php echo implode('", "', $js_arrays['text']); ?>");
-var defaultPostDate    = '<?php echo date(DATE_FORMAT, time()); ?>';
+var defaultPostDate    = '<?php echo date('Y-m-d', time()); ?>';
 var defaultGlAcct      = '<?php echo JOURNAL_ID == 18 ? AR_SALES_RECEIPTS_ACCOUNT : AP_PURCHASE_INVOICE_ACCOUNT; ?>';
 var defaultDiscAcct    = '<?php echo JOURNAL_ID == 18 ? AR_DISCOUNT_SALES_ACCOUNT : AP_DISCOUNT_PURCHASE_ACCOUNT; ?>';
 var journalID          = '<?php echo JOURNAL_ID; ?>';
@@ -102,7 +102,7 @@ function loadNewPayment() { // request funtion
   $.ajax({
     type: "GET",
     url: 'index.php?module=phreebooks&page=ajax&op=stored_payments&contact_id='+contact_id,
-    dataType: ($.browser.msie) ? "text" : "xml",
+    dataType: "xml",
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
     },

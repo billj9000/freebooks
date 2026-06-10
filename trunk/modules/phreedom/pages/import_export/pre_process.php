@@ -18,7 +18,6 @@
 //  Path: /modules/phreedom/pages/import_export/pre_process.php
 //
 $security_level = validate_user(SECURITY_ID_IMPORT_EXPORT);
-$use_bootstrap_nav = true;
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
 gen_pull_language('phreebooks');

@@ -19,6 +19,7 @@
 //
 $security_level = validate_user(SECURITY_ID_SELECT_PAYMENT);
 /**************  include page specific files    *********************/
+gen_pull_language('contacts'); // banking class constructor uses GEN_CONTACT, GEN_ADDRESS1, etc.
 require_once(DIR_FS_WORKING . 'functions/phreebooks.php');
 require_once(DIR_FS_WORKING . 'classes/gen_ledger.php');
 require_once(DIR_FS_WORKING . 'classes/banking.php');
@@ -217,7 +218,6 @@ $cal_bills2 = array(
 $include_header    = true;
 $include_footer    = true;
 $include_template  = 'template_main.php';
-$use_bootstrap_nav = true;
 define('PAGE_TITLE', ORD_TEXT_20_V_WINDOW_TITLE);
 
 ?>

@@ -40,23 +40,14 @@ if ($include_header) { ?>
   </script>
 <?php } // end include_header
 
-// set up to use jquery UI calendar format
-$cal_format = defined('DATE_FORMAT') ? preg_replace(array('/m/','/d/','/Y/'), array('mm', 'dd', 'yy'), DATE_FORMAT) : 'mm-dd-yy';
-define('DATE_FORMAT_CALENDAR', $cal_format);
-// wrappers to initialize jquery UI calendar, both javascript and html
+// js_calendar_init is a no-op — jQuery UI datepicker removed; date fields are plain text inputs
 if (!function_exists('js_calendar_init')) {
-  function js_calendar_init($properties = NULL) {
-  	$options = array();
-  	if (isset($properties['params']['onchange'])) $options[] = "onSelect: function(date) { ".$properties['params']['onchange']." }";
-  	$opt = empty($options) ? '' : "{ ".implode(', ',$options)." }";
-    return 'addLoadEvent(function() { $("#'.$properties['fieldname'].'").datepicker('.$opt.'); });';
-  }
+  function js_calendar_init($properties = NULL) { return ''; }
 }
 if (!function_exists('html_calendar_field')) {
   function html_calendar_field($properties = NULL) {
-    return html_input_field($properties['fieldname'], $properties['default']);
+    $val = gen_db_date($properties['default'] ?? '');
+    return html_input_field($properties['fieldname'], $val, '', false, 'date');
   }
 }
-?>
-<script type="text/javascript">var js_cal_date_format = '<?php echo DATE_FORMAT_CALENDAR; ?>';</script>
   
