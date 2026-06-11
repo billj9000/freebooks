@@ -126,7 +126,6 @@ foreach ($_REQUEST as $key => $val)
   var combo_image_on  = '<?php echo DIR_WS_ICONS . '16x16/phreebooks/pull_down_active.gif'; ?>';
   var combo_image_off = '<?php echo DIR_WS_ICONS . '16x16/phreebooks/pull_down_inactive.gif'; ?>';
   </script>
-  <script type="text/javascript" src="includes/jquery-1.6.2.min.js"></script>
   <script type="text/javascript" src="includes/common.js"></script>
   <?php 
   if (!$_SESSION['admin_prefs']['theme']) $_SESSION['admin_prefs']['theme'] = 'default';

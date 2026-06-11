@@ -1,7 +1,8 @@
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -49,7 +50,7 @@ function ClearForm() {
 	document.getElementById('payment_id').remove(0);
   }
   while (document.getElementById("item_table").rows.length > 0) {
-	document.getElementById("item_table").deleteRow(-1); 
+	document.getElementById("item_table").deleteRow(-1);
   }
   loadNewBalance(defaultGlAcct);
 }
@@ -57,25 +58,17 @@ function ClearForm() {
 function AccountList() {
   var guess = document.getElementById('search').value;
   if (guess != text_search && guess != '') {
-    $.ajax({
-      type: "GET",
-	  url: 'index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type='+account_type+'&guess='+guess,
-      dataType: "xml",
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-        alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-      },
-	  success: AccountListResp
-    });
+    fetchXml('index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type='+account_type+'&guess='+guess, AccountListResp);
   } else { // force the popup
 	  AccountListResp();
   }
 }
 
-function AccountListResp(sXml) {
-  var xml = parseXml(sXml);
+function AccountListResp(xml) {
+  if (xml) xml = parseXml(xml);
 //  if (!xml) return;
-  if ($(xml).find("result").text() == 'success') {
-    var cID = $(xml).find("cID").text();
+  if (xml && xmlText(xml, "result") == 'success') {
+    var cID = xmlText(xml, "cID");
     ajaxBillData(cID, 0, journalID);
   } else { // search result <> 1
 	var search_text = document.getElementById('search').value;
@@ -92,49 +85,41 @@ function popupWindowCvv() {
 }
 
 function ajaxBillData(cID, bID, jID) {
-  $.ajax({
-    type: "GET",
-	url: 'index.php?module=phreebooks&page=ajax&op=load_bill&cID='+cID+'&bID='+bID+'&jID='+jID,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillBillData
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=load_bill&cID='+cID+'&bID='+bID+'&jID='+jID, fillBillData);
 }
 
-function fillBillData(sXml) { // edit response form fill 
-  var xml = parseXml(sXml);
+function fillBillData(xml) { // edit response form fill
+  xml = parseXml(xml);
   if (!xml) return;
   ClearForm();
   billFillAddress(xml);
-  if ($(xml).find("BillData").length) fillBill(xml);
+  if (xml.getElementsByTagName("BillData").length) fillBill(xml);
   loadNewPayment();
 }
 
 function billFillAddress(xml) {
   var newOpt;
   while (document.getElementById('bill_to_select').options.length) document.getElementById('bill_to_select').remove(0);
-  $(xml).find("BillContact").each(function() {
-    var id = $(this).find("id").text();
+  Array.from(xml.getElementsByTagName("BillContact")).forEach(function(contact) {
+    var id = xmlText(contact, "id");
 	if (!id) return;
-    mainType = $(this).find("type").first().text() + 'm';
+    mainType = xmlText(contact, "type") + 'm';
     insertValue('bill_acct_id', id);
-    insertValue('search',       $(this).find("short_name").text());
-	bill_add = this;
+    insertValue('search',       xmlText(contact, "short_name"));
+	bill_add = contact;
 	//now fill the addresses
     var iIndex = 0;
-    $(this).find("Address").each(function() {
+    Array.from(contact.getElementsByTagName("Address")).forEach(function(addr) {
       newOpt = document.createElement("option");
-	  newOpt.text = $(this).find("primary_name").text() + ', ' + $(this).find("city_town").text() + ', ' + $(this).find("postal_code").text();
+	  newOpt.text = xmlText(addr, "primary_name") + ', ' + xmlText(addr, "city_town") + ', ' + xmlText(addr, "postal_code");
 	  document.getElementById('bill_to_select').options.add(newOpt);
-	  document.getElementById('bill_to_select').options[iIndex].value = $(this).find("address_id").text();
-      if ($(this).find("type").text() == mainType) { // also fill the fields
-	    insertValue('bill_address_id', $(this).find("address_id").text());
-	    $(this).children().each (function() {
-		  var tagName = this.tagName;
+	  document.getElementById('bill_to_select').options[iIndex].value = xmlText(addr, "address_id");
+      if (xmlText(addr, "type") == mainType) { // also fill the fields
+	    insertValue('bill_address_id', xmlText(addr, "address_id"));
+	    Array.from(addr.children).forEach(function(child) {
+		  var tagName = child.tagName;
 		  if (document.getElementById('bill_'+tagName)) {
-		    document.getElementById('bill_'+tagName).value = $(this).text();
+		    document.getElementById('bill_'+tagName).value = child.textContent || '';
 		    document.getElementById('bill_'+tagName).style.color = '';
 		  }
 	    });
@@ -144,7 +129,7 @@ function billFillAddress(xml) {
     // add a option for creating a new address
     newOpt = document.createElement("option");
     newOpt.text = text_enter_new;
-    document.getElementById('bill_to_select').options.add(newOpt);	
+    document.getElementById('bill_to_select').options.add(newOpt);
     document.getElementById('bill_to_select').options[iIndex].value = '0';
     document.getElementById('bill_to_select').style.visibility      = 'visible';
     document.getElementById('bill_to_select').disabled              = false;
@@ -152,23 +137,23 @@ function billFillAddress(xml) {
 }
 
 function fillBill(xml) {
-  $(xml).find("BillData").each(function() {
-	$(this).children().each (function() {
-	  var tagName = this.tagName;
+  Array.from(xml.getElementsByTagName("BillData")).forEach(function(bill) {
+	Array.from(bill.children).forEach(function(child) {
+	  var tagName = child.tagName;
 	  if (document.getElementById(tagName)) {
-	    document.getElementById(tagName).value = $(this).first().text();
+	    document.getElementById(tagName).value = child.textContent || '';
 	    document.getElementById(tagName).style.color = '';
 	  }
 	});
     // fix some special cases, checkboxes, and active fields
-	if ($(this).find("shipper_code").text() && journalID == '18') { // holds payment method for receipts
-	  var shipper_code = $(this).find("shipper_code").text();
+	var shipper_code = xmlText(bill, "shipper_code");
+	if (shipper_code && journalID == '18') { // holds payment method for receipts
 	  document.getElementById('shipper_code').value = shipper_code;
 	  activateFields();
-	  if ($(this).find("payment_fields").text()) {
-		var temp = $(this).find("payment_fields").text();
-		var fieldArray = temp.split(':');
-	    for (i=0, j=1; i<fieldArray.length; i++, j++) {
+	  var payFields = xmlText(bill, "payment_fields");
+	  if (payFields) {
+		var fieldArray = payFields.split(':');
+	    for (var i=0, j=1; i<fieldArray.length; i++, j++) {
 		  if (document.getElementById(shipper_code+'_field_'+i))
 		    document.getElementById(shipper_code+'_field_'+i).value = fieldArray[j];
 	    }
@@ -182,25 +167,25 @@ function fillBill(xml) {
   });
   // fill invoice rows
   var jIndex = 1;
-  $(xml).find("Item").each(function() {
+  Array.from(xml.getElementsByTagName("Item")).forEach(function(item) {
 	var rowCnt = addInvRow();
-	insertValue('id_'    + jIndex, $(this).find("id").text());
-	insertValue('inv_'   + jIndex, $(this).find("purchase_invoice_id").text());
-	insertValue('prcnt_' + jIndex, $(this).find("percent").text());
-	insertValue('early_' + jIndex, $(this).find("early_date").text());
-	insertValue('due_'   + jIndex, $(this).find("net_date").text());
-	insertValue('amt_'   + jIndex, $(this).find("total_amount").text());
-	insertValue('acct_'  + jIndex, $(this).find("gl_acct_id").text());
-	insertValue('desc_'  + jIndex, $(this).find("description").text());
-	insertValue('dscnt_' + jIndex, $(this).find("discount").text());
-	insertValue('total_' + jIndex, $(this).find("amount_paid").text());
-	if ($(this).find("waiting").text() == '1') { // waiting for invoice (no invoice number)
+	insertValue('id_'    + jIndex, xmlText(item, "id"));
+	insertValue('inv_'   + jIndex, xmlText(item, "purchase_invoice_id"));
+	insertValue('prcnt_' + jIndex, xmlText(item, "percent"));
+	insertValue('early_' + jIndex, xmlText(item, "early_date"));
+	insertValue('due_'   + jIndex, xmlText(item, "net_date"));
+	insertValue('amt_'   + jIndex, xmlText(item, "total_amount"));
+	insertValue('acct_'  + jIndex, xmlText(item, "gl_acct_id"));
+	insertValue('desc_'  + jIndex, xmlText(item, "description"));
+	insertValue('dscnt_' + jIndex, xmlText(item, "discount"));
+	insertValue('total_' + jIndex, xmlText(item, "amount_paid"));
+	if (xmlText(item, "waiting") == '1') { // waiting for invoice (no invoice number)
 		document.getElementById('desc_'  + jIndex).readOnly = true;
 		document.getElementById('dscnt_' + jIndex).readOnly = true;
 		document.getElementById('total_' + jIndex).readOnly = true;
 		document.getElementById('item_table').rows[rowCnt-1].className = 'table-warning';
 		document.getElementById('item_table').rows[rowCnt-1].cells[6].innerHTML = '&nbsp;'; // remove checkbox
-	} else if ($(this).find("amount_paid").text()) {
+	} else if (xmlText(item, "amount_paid")) {
 		document.getElementById('pay_' + jIndex).checked    = true;
 	}
 	jIndex++;
@@ -221,16 +206,16 @@ function fillAddress(type) {
     }
     return;
   }
-  $(address).find("Address").each(function() {
-    if ($(this).find("address_id").text() == index) {
-      document.getElementById(type+'_acct_id').value    = $(this).find("ref_id").text();
-      document.getElementById(type+'_address_id').value = (index == 'new') ? '0' : $(this).find("address_id").text();
+  Array.from(address.getElementsByTagName("Address")).forEach(function(addr) {
+    if (xmlText(addr, "address_id") == index) {
+      document.getElementById(type+'_acct_id').value    = xmlText(addr, "ref_id");
+      document.getElementById(type+'_address_id').value = (index == 'new') ? '0' : xmlText(addr, "address_id");
       var add_id;
       for (var i=0; i<add_array.length; i++) {
 	    add_id = add_array[i];
-	    if (index != '0' && $(this).find(add_id).text()) {
+	    if (index != '0' && xmlText(addr, add_id)) {
 	      document.getElementById(type+'_'+add_id).style.color = '';
-	      document.getElementById(type+'_'+add_id).value = $(this).find(add_id).text();
+	      document.getElementById(type+'_'+add_id).value = xmlText(addr, add_id);
 	    } else {
 	      if (add_id != 'country_code') document.getElementById(type+'_'+add_id).style.color = inactive_text_color;
 	      document.getElementById(type+'_'+add_id).value = default_array[i];
@@ -244,21 +229,13 @@ function fillAddress(type) {
 function loadNewBalance() { // request funtion
   var gl_acct   = document.getElementById('gl_acct_id').value;
   var post_date = document.getElementById('post_date').value;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreebooks&page=ajax&op=acct_balance&gl_acct_id='+gl_acct+'&post_date='+post_date,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: showNewBalance
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=acct_balance&gl_acct_id='+gl_acct+'&post_date='+post_date, showNewBalance);
 }
 
-function showNewBalance(sXml) { // call back function
-  var xml = parseXml(sXml);
+function showNewBalance(xml) { // call back function
+  xml = parseXml(xml);
   if (!xml) return;
-  var value = $(xml).find("value").text();
+  var value = xmlText(xml, "value");
   if (isNaN(value) || !value) value = '0';
   var start_balance = parseFloat(value);
   var total_checks  = cleanCurrency(document.getElementById('total').value);

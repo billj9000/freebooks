@@ -1,7 +1,8 @@
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -16,39 +17,36 @@
 //  Path: /includes/common.js
 //
 /******************************* General Functions ****************************************/
-function addLoadEvent(func) { 
-  var oldonload = window.onload; 
-  if (typeof window.onload != 'function') { 
-    window.onload = func; 
-  } else { 
-    window.onload = function() { 
-	  if (oldonload) { oldonload(); } 
-	  func(); 
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+	  if (oldonload) { oldonload(); }
+	  func();
 	};
-  } 
-} 
+  }
+}
 
-function addUnloadEvent(func) { 
-  var oldonunload = window.onunload; 
-  if (typeof window.onunload != 'function') { 
-    window.onunload = func; 
-  } else { 
-	window.onunload = function() { 
-	  if (oldonunload) { oldonunload(); } 
-	  func(); 
+function addUnloadEvent(func) {
+  var oldonunload = window.onunload;
+  if (typeof window.onunload != 'function') {
+    window.onunload = func;
+  } else {
+	window.onunload = function() {
+	  if (oldonunload) { oldonunload(); }
+	  func();
 	};
-  } 
-} 
+  }
+}
 
 // BOS - set up ajax session refresh timer to stay logged in if the browser is active
 var sessionClockID = 0; // start a session clock to stay logged in
 function refreshSessionClock() {
   if (sessionClockID) {
     window.clearTimeout(sessionClockID);
-    $.ajax({
-      type: "GET",
-	  url: 'index.php?module=phreedom&page=ajax&op=refresh_session'
-    });
+    fetch('index.php?module=phreedom&page=ajax&op=refresh_session');
   }
   sessionClockID = window.setTimeout("refreshSessionClock()", 300000); // set to 5 minutes
 }
@@ -101,7 +99,7 @@ function inactiveField(field, text_value) {
 function removeElement(parentDiv, childDiv) {
   if (childDiv == parentDiv) {
     return false;
-  } else if (document.getElementById(childDiv)) {     
+  } else if (document.getElementById(childDiv)) {
     var child  = document.getElementById(childDiv);
     var parent = document.getElementById(parentDiv);
     parent.removeChild(child);
@@ -185,13 +183,13 @@ function cleanCurrency(amount) {
 }
 
 function formatCurrency(amount) { // convert to expected currency format
-  // amount needs to be a string type with thousands separator ',' and decimal point dot '.' 
+  // amount needs to be a string type with thousands separator ',' and decimal point dot '.'
   var factor  = Math.pow(10, decimal_places);
   var adj     = Math.pow(10, (decimal_places+2)); // to fix rounding (i.e. .1499999999 rounding to 0.14 s/b 0.15)
   var numExpr = parseFloat(amount);
   if (isNaN(numExpr)) return amount;
   numExpr     = Math.round((numExpr * factor) + (1/adj));
-  var minus   = (numExpr < 0) ? '-' : ''; 
+  var minus   = (numExpr < 0) ? '-' : '';
   numExpr     = Math.abs(numExpr);
   var decimal = (numExpr % factor).toString();
   while (decimal.length < decimal_places) decimal = '0' + decimal;
@@ -206,12 +204,12 @@ function formatCurrency(amount) { // convert to expected currency format
 }
 
 function formatPrecise(amount) { // convert to expected currency format with the additional precision
-  // amount needs to be a string type with thousands separator ',' and decimal point dot '.' 
+  // amount needs to be a string type with thousands separator ',' and decimal point dot '.'
   var factor = Math.pow(10, decimal_precise);
   var numExpr = parseFloat(amount);
   if (isNaN(numExpr)) return amount;
   numExpr = Math.round(numExpr * factor);
-  var minus = (numExpr < 0) ? '-' : ''; 
+  var minus = (numExpr < 0) ? '-' : '';
   numExpr = Math.abs(numExpr);
   var decimal = (numExpr % factor).toString();
   while (decimal.length < decimal_precise) decimal = '0' + decimal;
@@ -240,50 +238,39 @@ function phreedomChart() {
   var modID = chartProps.modID;
   var func  = chartProps.func;
   var d0    = chartProps.d0;
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=phreedom&page=ajax&op=phreedom&action=chart&modID='+modID+'&fID='+func+'&d0='+d0,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
-	},
-	success: phreedomChartResp
-  });
+  fetchXml('index.php?module=phreedom&page=ajax&op=phreedom&action=chart&modID='+modID+'&fID='+func+'&d0='+d0, phreedomChartResp);
 }
 
-function phreedomChartResp(sXml) {
-  var xml = parseXml(sXml);
+function phreedomChartResp(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var error = $(xml).find("error").text();
-  if (error) { alert (error); }
-  else { // activate the chart response
-    var title = $(xml).find("title").text();
-    var modalEl = document.getElementById(chartProps.divID + '_modal');
-    if (modalEl) document.getElementById(chartProps.divID + '_modal_title').textContent = title;
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', $(xml).find("label_text").text());
-    data.addColumn('number', $(xml).find("value_text").text());
-    var rowCnt = parseInt($(xml).find("rowCnt").text());
-    var divID  = document.getElementById(chartProps.divID);
-    data.addRows(rowCnt);
-    rowCnt = 0;
-    $(xml).find("chartData").each(function() {
-      data.setCell(rowCnt, 0, $(this).find("string").text());
-      data.setCell(rowCnt, 1, parseFloat($(this).find("number").text()));
-      rowCnt++;
-    });
-    var options = {'title':title, 'width':$(xml).find("width").text(), 'height':$(xml).find("height").text()};
-    switch ($(xml).find("type").text()) {
-      default:
-      case 'pie':    var chart = new google.visualization.PieChart(divID);    break;
-      case 'bar':    var chart = new google.visualization.BarChart(divID);    break;
-      case 'column': var chart = new google.visualization.ColumnChart(divID); break;
-      case 'guage':  var chart = new google.visualization.Guage(divID);       break;
-      case 'line':   var chart = new google.visualization.LineChart(divID);   break;
-    }
-    chart.draw(data, options);
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+  var title   = xmlText(xml, "title");
+  var modalEl = document.getElementById(chartProps.divID + '_modal');
+  if (modalEl) document.getElementById(chartProps.divID + '_modal_title').textContent = title;
+  var data = new google.visualization.DataTable();
+  data.addColumn('string', xmlText(xml, "label_text"));
+  data.addColumn('number', xmlText(xml, "value_text"));
+  var rowCnt = parseInt(xmlText(xml, "rowCnt"));
+  var divID  = document.getElementById(chartProps.divID);
+  data.addRows(rowCnt);
+  rowCnt = 0;
+  Array.from(xml.getElementsByTagName("chartData")).forEach(function(item) {
+    data.setCell(rowCnt, 0, xmlText(item, "string"));
+    data.setCell(rowCnt, 1, parseFloat(xmlText(item, "number")));
+    rowCnt++;
+  });
+  var options = {'title':title, 'width':xmlText(xml, "width"), 'height':xmlText(xml, "height")};
+  var chart;
+  switch (xmlText(xml, "type")) {
+    default:
+    case 'pie':    chart = new google.visualization.PieChart(divID);    break;
+    case 'bar':    chart = new google.visualization.BarChart(divID);    break;
+    case 'column': chart = new google.visualization.ColumnChart(divID); break;
+    case 'guage':  chart = new google.visualization.Guage(divID);       break;
+    case 'line':   chart = new google.visualization.LineChart(divID);   break;
   }
+  chart.draw(data, options);
+  if (modalEl) new bootstrap.Modal(modalEl).show();
 }
 
 // ******************** functions used for combo box scripting ***********************************
@@ -292,9 +279,9 @@ var oOverMenu   = false;
 
 if (document.images) { //pre-load images
  img_on      = new Image();
- img_on.src  = combo_image_on; 
+ img_on.src  = combo_image_on;
  img_off     = new Image();
- img_off.src = combo_image_off; 
+ img_off.src = combo_image_off;
 }
 
 document.onmouseup = mouseSelect(0); // turns off the combo box if not hovering over
@@ -383,7 +370,7 @@ function comboKey(idEdit, idSel, e) {
   }
 }
 
-function handleOver(idImg) { 
+function handleOver(idImg) {
  if (document.images) document.getElementById(idImg).src=img_on.src;
 }
 
@@ -399,27 +386,27 @@ function buildIcon(imagePath, alt, params) {
 
 // ***************** START function to set button pressed ******************************************
 function showLoading() {
-  $("#please_wait").show();
+  document.getElementById('please_wait').style.display = 'block';
 }
 
 function hideLoading() {
-  $("#please_wait").hide();
+  document.getElementById('please_wait').style.display = 'none';
 }
 
 function submitToDo(action, multi_submit) {
-  if (!multi_submit) multi_submit = false;  
+  if (!multi_submit) multi_submit = false;
   document.getElementById('action').value = action;
   if (!form_submitted && check_form() && !multi_submit) {
 	showLoading();
 	form_submitted = true;
 	document.getElementById('action').form.submit();
   } else if (multi_submit) {
-	document.getElementById('action').form.submit();						 
+	document.getElementById('action').form.submit();
   }
 }
 
 function submitSeq(rowSeq, action, multi_submit) {
-  if (!multi_submit) multi_submit = false;  
+  if (!multi_submit) multi_submit = false;
   document.getElementById('rowSeq').value = rowSeq;
   submitToDo(action, multi_submit);
 }
@@ -459,40 +446,45 @@ function checkEnter(e) {
   }
 }
 
+// XML helper: returns text content of the first matching tag within xml/element
+function xmlText(xml, tag) {
+  var el = xml.getElementsByTagName ? xml.getElementsByTagName(tag)[0] : null;
+  return el ? (el.textContent || '') : '';
+}
+
+// Fetch an XML endpoint and call callback(parsedDocument) on success
+function fetchXml(url, callback) {
+  fetch(url)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function(t) { callback(new DOMParser().parseFromString(t, 'text/xml')); })
+    .catch(function(e) { alert('Ajax Error: ' + e.message); });
+}
+
 // ajax wrappers
 function parseXml(xml) {
-  if ($(xml).find("debug").text()) alert($(xml).find("debug").text());
-  if ($(xml).find("error").text()) {
-    alert($(xml).find("error").text());
-	return false;
-  }
+  var debug = xmlText(xml, "debug");
+  if (debug) alert(debug);
+  var error = xmlText(xml, "error");
+  if (error) { alert(error); return false; }
   return xml;
 }
 
 // ajax pair to reload tab on pages
 function tabPage(subject, action, rID) {
   if (subject) {
-    $.ajax({
-      type: "GET",
-	  url: 'index.php?module=phreedom&page=ajax&op=tab_details&mod='+module+'&subject='+subject+'&action='+action+'&rID='+rID,
-      dataType: "xml",
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-        alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-      },
-	  success: processTabPage
-    });
+    fetchXml('index.php?module=phreedom&page=ajax&op=tab_details&mod='+module+'&subject='+subject+'&action='+action+'&rID='+rID, processTabPage);
   }
 }
 
-function processTabPage(sXml) {
-  var text = '';
-  var xml = parseXml(sXml);
+function processTabPage(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  subject = $(xml).find("subject").text();
+  var subject = xmlText(xml, "subject");
   if (!subject) alert('no subject returned');
-  obj = document.getElementById(subject+'_content');
-  obj.innerHTML = $(xml).find("htmlContents").text();
-  if ($(xml).find("message").text()) alert($(xml).find("message").text());
+  var obj = document.getElementById(subject+'_content');
+  obj.innerHTML = xmlText(xml, "htmlContents");
+  var message = xmlText(xml, "message");
+  if (message) alert(message);
 }
 
 /************************ Folder Navigation Functions **********************************/

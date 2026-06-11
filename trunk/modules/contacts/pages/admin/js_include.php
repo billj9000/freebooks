@@ -20,12 +20,12 @@
 ?>
 <script type="text/javascript">
 function init() {
-  $('#dept_table').dataTable(dataTables_i18n);
-  $('#dept_type_table').dataTable(dataTables_i18n);
-  $('#proj_cost_table').dataTable(dataTables_i18n);
-  $('#proj_phase_table').dataTable(dataTables_i18n);
-  $('#tab_table').dataTable(dataTables_i18n);
-  $('#field_table').dataTable(dataTables_i18n);
+  new DataTable('#dept_table',       dataTables_i18n);
+  new DataTable('#dept_type_table',  dataTables_i18n);
+  new DataTable('#proj_cost_table',  dataTables_i18n);
+  new DataTable('#proj_phase_table', dataTables_i18n);
+  new DataTable('#tab_table',        dataTables_i18n);
+  new DataTable('#field_table',      dataTables_i18n);
 }
 
 function check_form() {

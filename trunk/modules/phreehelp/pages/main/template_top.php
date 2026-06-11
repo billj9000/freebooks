@@ -13,7 +13,6 @@
     var pbBrowser       = (document.all) ? 'IE' : 'FF';
   </script>
   <script type="text/javascript" src="includes/common.js"></script>
-  <script type="text/javascript" src="includes/jquery-1.6.2.min.js"></script>
   <?php require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php'); ?>
   <?php require_once(DIR_FS_WORKING . 'pages/' . $page . '/js_include.php'); ?>
 </head>

@@ -166,7 +166,7 @@ function init() {
   if ($_REQUEST['action'] == 'prc_so') echo '  ajaxOrderData(0, ' . $oID . ', ' . JOURNAL_ID . ', true, false);' . "\n";
   if (ORD_ENABLE_LINE_ITEM_BAR_CODE) echo 'refreshOrderClock();'; 
 ?>
-  $("#search").change(function(){
+  document.getElementById('search').addEventListener('change', function(){
 	if(document.getElementById('search').value != ''){ AccountList(false); }
   });
 }
@@ -286,15 +286,7 @@ function refreshOrderClock() {
 		  break;
 	    default:
       }
-	  $.ajax({
-		type: "GET",
-		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+acct+'&qty='+qty+'&upc='+upc+'&rID='+setId+'&jID='+journalID,
-		dataType: "xml",
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-		  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-		},
-		success: fillInventory
-	  });
+	  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+acct+'&qty='+qty+'&upc='+upc+'&rID='+setId+'&jID='+journalID, fillInventory);
       setId = 0;
 	}
   }

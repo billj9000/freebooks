@@ -20,20 +20,18 @@
 ?>
 <script type="text/javascript">
 function init() {
-  $(function() {
-    $('#coa_table').dataTable($.extend({}, dataTables_i18n, {
-      fnDrawCallback: function() {
-        $('#coa_table tbody tr').each(function() {
-          var rc = $(this).find('[data-rc]').attr('data-rc');
-          if (rc) $(this).addClass(rc);
-        });
-      }
-    }));
-    $('#tax_c_table').dataTable(dataTables_i18n);
-    $('#tax_v_table').dataTable(dataTables_i18n);
-    $('#tax_auth_c_table').dataTable(dataTables_i18n);
-    $('#tax_auth_v_table').dataTable(dataTables_i18n);
-  });
+  new DataTable('#coa_table', Object.assign({}, dataTables_i18n, {
+    drawCallback: function() {
+      document.querySelectorAll('#coa_table tbody tr').forEach(function(tr) {
+        var rcEl = tr.querySelector('[data-rc]');
+        if (rcEl) tr.classList.add(rcEl.getAttribute('data-rc'));
+      });
+    }
+  }));
+  new DataTable('#tax_c_table',      dataTables_i18n);
+  new DataTable('#tax_v_table',      dataTables_i18n);
+  new DataTable('#tax_auth_c_table', dataTables_i18n);
+  new DataTable('#tax_auth_v_table', dataTables_i18n);
 }
 
 function check_form() {

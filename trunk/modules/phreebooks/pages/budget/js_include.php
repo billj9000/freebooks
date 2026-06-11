@@ -76,23 +76,15 @@ function fetchAcct() {
   var fy      = document.getElementById('fy').value;
   if (!gl_acct) return;
   copyBudget('clear');
-  $.ajax({
-    type: 'GET',
-    url: 'index.php?module=phreebooks&page=ajax&op=load_gl_data&glAcct=' + gl_acct + '&fy=' + fy,
-    dataType: 'xml',
-    error: function(xhr, textStatus, errorThrown) {
-      alert('Ajax Error: ' + xhr.responseText + '\nTextStatus: ' + textStatus + '\nErrorThrown: ' + errorThrown);
-    },
-    success: processLoadAccount
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=load_gl_data&glAcct=' + gl_acct + '&fy=' + fy, processLoadAccount);
 }
 
-function processLoadAccount(sXml) {
-  var xml = parseXml(sXml);
+function processLoadAccount(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
   var iIndex = 0;
-  $(xml).find('items').each(function() {
-    document.getElementById('budget_' + iIndex).value = $(this).find('balance').text();
+  Array.from(xml.getElementsByTagName('items')).forEach(function(item) {
+    document.getElementById('budget_' + iIndex).value = xmlText(item, 'balance');
     iIndex++;
   });
   calculateTotal();

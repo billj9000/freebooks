@@ -32,7 +32,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
   <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
   <style>body{display:flex;flex-direction:column;min-height:100vh}#content-wrap{flex:1 0 auto}</style>
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/jquery_datatables.css'; ?>" />
+  <link rel="stylesheet" href="ext/bootstrap5/datatables.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
   <link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
@@ -58,8 +58,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   var formatted_zero      = "<?php echo $currencies->format(0); ?>";
 <?php } ?>
   </script>
-  <script type="text/javascript" src="includes/jquery-1.6.2.min.js"></script>
-  <script type="text/javascript" src="includes/jquery.dataTables.min.js"></script>
+  <script src="includes/datatables.min.js"></script>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="includes/common.js"></script>
   <script type="text/javascript" src="jodit/jodit.min.js"></script>
@@ -72,7 +71,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   </script>
 <?php 
 require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php');
-// load the jquery and javascript translations
+// load the javascript translations (DataTables i18n + misc)
 if      (file_exists($js_i18n = 'modules/phreedom/custom/language/'.$_SESSION['language'].'/jquery_i18n.js')) {
 } elseif(file_exists($js_i18n = 'modules/phreedom/language/'       .$_SESSION['language'].'/jquery_i18n.js')) {
 } else               $js_i18n = 'modules/phreedom/language/en_us/jquery_i18n.js';

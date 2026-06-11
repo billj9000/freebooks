@@ -1,7 +1,8 @@
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -61,7 +62,7 @@ function ClearForm() {
   document.getElementById('closed').checked           = false;
   document.getElementById('bill_add_update').checked  = false;
   document.getElementById('ship_add_update').checked  = false;
-  $("#closed_text").hide();
+  document.getElementById('closed_text').style.display = 'none';
 
   document.getElementById('ship_to_search').innerHTML = '&nbsp;'; // turn off ship to id search
   document.getElementById('purchase_invoice_id').readOnly = false;
@@ -131,28 +132,20 @@ function clearAddress(type) {
 function ajaxOrderData(cID, oID, jID, open_order, ship_only) {
   var open_so_po = (open_order) ? '1' : '0';
   var only_ship  = (ship_only)  ? '1' : '0';
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreebooks&page=ajax&op=load_order&cID='+cID+'&oID='+oID+'&jID='+jID+'&so_po='+open_so_po+'&ship_only='+only_ship,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillOrderData
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=load_order&cID='+cID+'&oID='+oID+'&jID='+jID+'&so_po='+open_so_po+'&ship_only='+only_ship, fillOrderData);
 }
 
-function fillOrderData(sXml) { // edit response form fill
-  var xml = parseXml(sXml);
+function fillOrderData(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  if ($(xml).find("OrderData").length) {
+  if (xml.getElementsByTagName("OrderData").length) {
 	orderFillAddress(xml, 'bill', false);
 	orderFillAddress(xml, 'ship', false);
 	fillOrder(xml);
-  } else if ($(xml).find("BillContact").length) {
+  } else if (xml.getElementsByTagName("BillContact").length) {
     orderFillAddress(xml, 'bill', true);
 	orderFillAddress(xml, 'ship', false);
-  } else if ($(xml).find("ShipContact").length) {
+  } else if (xml.getElementsByTagName("ShipContact").length) {
     orderFillAddress(xml, 'ship', true);
   }
 }
@@ -161,28 +154,29 @@ function orderFillAddress(xml, type, fill_address) {
   var newOpt, mainType;
   while (document.getElementById(type+'_to_select').options.length) document.getElementById(type+'_to_select').remove(0);
   var cTag = (type == 'ship' ? 'ShipContact' : 'BillContact');
-  $(xml).find(cTag).each(function() {
-    var id = $(this).find("id").text();
+  Array.from(xml.getElementsByTagName(cTag)).forEach(function(contact) {
+    var id = xmlText(contact, "id");
 	if (!id) return;
-    mainType = $(this).find("type").first().text() + 'm';
+    mainType = xmlText(contact, "type") + 'm';
     switch (type) {
 	  default:
       case 'bill':
-		bill_add          = this;
-		default_sales_tax = $(this).find("tax_id").text();
-		default_inv_acct  = ($(this).find("gl_type_account").text()) ? $(this).find("gl_type_account").text() : default_inv_acct;
+		bill_add          = contact;
+		default_sales_tax = xmlText(contact, "tax_id");
+		var glTypeAcct    = xmlText(contact, "gl_type_account");
+		default_inv_acct  = glTypeAcct ? glTypeAcct : default_inv_acct;
 		insertValue('bill_acct_id',    id);
-		insertValue('terms',           $(this).find("special_terms").text());
-		insertValue('terms_text',      $(this).find("terms_text").text());
-		insertValue('search',          $(this).find("short_name").text());
+		insertValue('terms',           xmlText(contact, "special_terms"));
+		insertValue('terms_text',      xmlText(contact, "terms_text"));
+		insertValue('search',          xmlText(contact, "short_name"));
 		insertValue('acct_1',          default_inv_acct);
-		if($(this).find("dept_rep_id").text() != '')     insertValue('rep_id',          $(this).find("dept_rep_id").text());
-		if($(this).find("ship_gl_acct_id").text() != '') insertValue('ship_gl_acct_id', $(this).find("ship_gl_acct_id").text());
-		custCreditLimit              = $(this).find("credit_remaining").text();
+		if (xmlText(contact, "dept_rep_id") != '')     insertValue('rep_id',          xmlText(contact, "dept_rep_id"));
+		if (xmlText(contact, "ship_gl_acct_id") != '') insertValue('ship_gl_acct_id', xmlText(contact, "ship_gl_acct_id"));
+		custCreditLimit = xmlText(contact, "credit_remaining");
 		var rowCnt = 1;
-		while(true) {
+		while (true) {
 		  if (!document.getElementById('tax_'+rowCnt)) break;
-		  document.getElementById('tax_'+rowCnt).value = $(this).find("tax_id").text();
+		  document.getElementById('tax_'+rowCnt).value = xmlText(contact, "tax_id");
 		  rowCnt++;
 		}
 		if (show_status == '1') {
@@ -190,24 +184,24 @@ function orderFillAddress(xml, type, fill_address) {
 		}
 		break;
 	  case 'ship':
-	    ship_add = this;
+	    ship_add = contact;
 		insertValue('ship_acct_id', id);
-	    insertValue('ship_search',  $(this).find("short_name").text());
+	    insertValue('ship_search',  xmlText(contact, "short_name"));
 	    break;
     }
 	//now fill the addresses
     var iIndex = 0;
-    $(this).find("Address").each(function() {
+    Array.from(contact.getElementsByTagName("Address")).forEach(function(addr) {
       newOpt = document.createElement("option");
-	  newOpt.text = $(this).find("primary_name").text() + ', ' + $(this).find("city_town").text() + ', ' + $(this).find("postal_code").text();
+	  newOpt.text = xmlText(addr, "primary_name") + ', ' + xmlText(addr, "city_town") + ', ' + xmlText(addr, "postal_code");
 	  document.getElementById(type+'_to_select').options.add(newOpt);
-	  document.getElementById(type+'_to_select').options[iIndex].value = $(this).find("address_id").text();
-      if (fill_address && $(this).find("type").text() == mainType) { // also fill the fields
-	    insertValue(type+'_address_id', $(this).find("address_id").text());
-	    $(this).children().each (function() {
-		  var tagName = this.tagName;
+	  document.getElementById(type+'_to_select').options[iIndex].value = xmlText(addr, "address_id");
+      if (fill_address && xmlText(addr, "type") == mainType) {
+	    insertValue(type+'_address_id', xmlText(addr, "address_id"));
+	    Array.from(addr.children).forEach(function(child) {
+		  var tagName = child.tagName;
 		  if (document.getElementById(type+'_'+tagName)) {
-		    document.getElementById(type+'_'+tagName).value = $(this).text();
+		    document.getElementById(type+'_'+tagName).value = child.textContent || '';
 		    document.getElementById(type+'_'+tagName).style.color = '';
 		  }
 	    });
@@ -217,7 +211,7 @@ function orderFillAddress(xml, type, fill_address) {
     // add a option for creating a new address
     newOpt = document.createElement("option");
     newOpt.text = text_enter_new;
-    document.getElementById(type+'_to_select').options.add(newOpt);	
+    document.getElementById(type+'_to_select').options.add(newOpt);
     document.getElementById(type+'_to_select').options[iIndex].value = '0';
     document.getElementById(type+'_to_select').style.visibility      = 'visible';
     document.getElementById(type+'_to_select').disabled              = false;
@@ -225,49 +219,49 @@ function orderFillAddress(xml, type, fill_address) {
 }
 
 function fillOrder(xml) {
-  $(xml).find("OrderData").each(function() {
-	$(this).children().each (function() {
-	  var tagName = this.tagName;
+  Array.from(xml.getElementsByTagName("OrderData")).forEach(function(orderData) {
+	Array.from(orderData.children).forEach(function(child) {
+	  var tagName = child.tagName;
 	  if (document.getElementById(tagName)) {
-	    document.getElementById(tagName).value = $(this).first().text();
+	    document.getElementById(tagName).value = child.textContent || '';
 	    document.getElementById(tagName).style.color = '';
 	  }
 	});
     // fix some special cases, checkboxes, and active fields
-    insertValue('bill_to_select', $(this).find("bill_address_id").text());
-    insertValue('ship_to_select', $(this).find("ship_address_id").text());
-    document.getElementById('display_currency').value = $(this).find("currencies_code").text();
-    document.getElementById('closed').checked         = $(this).find("cb_closed").text()    == '1' ? true : false;
-    document.getElementById('waiting').checked        = $(this).find("cb_waiting").text()   == '1' ? true : false;
-    document.getElementById('drop_ship').checked      = $(this).find("cb_drop_ship").text() == '1' ? true : false;
-	if ($(this).find("cb_waiting").text() == '1') document.getElementById('waiting').value = '1'; // if hidden set value
+    insertValue('bill_to_select', xmlText(orderData, "bill_address_id"));
+    insertValue('ship_to_select', xmlText(orderData, "ship_address_id"));
+    document.getElementById('display_currency').value = xmlText(orderData, "currencies_code");
+    document.getElementById('closed').checked         = xmlText(orderData, "cb_closed")    == '1' ? true : false;
+    document.getElementById('waiting').checked        = xmlText(orderData, "cb_waiting")   == '1' ? true : false;
+    document.getElementById('drop_ship').checked      = xmlText(orderData, "cb_drop_ship") == '1' ? true : false;
+	if (xmlText(orderData, "cb_waiting") == '1') document.getElementById('waiting').value = '1';
 //
 // Uncomment to set Sales Invoice number = Sales Order number when invoicing a Sales Order
-//  if (journalID=='12' && $(this).find("purch_order_num").text()) document.getElementById('purchase_invoice_id').value = $(this).find("purch_order_num").text();
+//  if (journalID=='12' && xmlText(orderData,"purch_order_num")) document.getElementById('purchase_invoice_id').value = xmlText(orderData,"purch_order_num");
 //
-    if ($(this).find("id").first().text() && journalID != '6' && journalID != '7') document.getElementById('purchase_invoice_id').readOnly = true;
+    if (xmlText(orderData, "id") && journalID != '6' && journalID != '7') document.getElementById('purchase_invoice_id').readOnly = true;
     buildFreightDropdown();
-    insertValue('ship_service', $(this).find("ship_service").text());
-    if ($(this).find("cb_closed").text() == '1') {
+    insertValue('ship_service', xmlText(orderData, "ship_service"));
+    if (xmlText(orderData, "cb_closed") == '1') {
 	  switch (journalID) {
 	    case  '6':
 	    case  '7':
 	    case '12':
 	    case '13':
-	      $("#closed_text").show();
+	      document.getElementById('closed_text').style.display = '';
 		  removeElement('tb_main_0', 'tb_icon_payment');
 		  break;
 	    default:
 	  }
     }
     // disable the purchase_invoice_id field since it cannot change, except purchase/receive
-    if ($(this).find("id").first().text() && journalID != '6' && journalID != '7' && journalID != '21') {
+    if (xmlText(orderData, "id") && journalID != '6' && journalID != '7' && journalID != '21') {
 	  document.getElementById('purchase_invoice_id').readOnly = true;
     }
-    if ($(this).find("id").first().text() && $(this).find("attach_exist").text() == 1) {
+    if (xmlText(orderData, "id") && xmlText(orderData, "attach_exist") == 1) {
 	  document.getElementById('show_attach').style.display = ''; // show attachment button and delete checkbox if it exists
     }
-    if ($(this).find("id").first().text() && securityLevel < 3) { // turn off some icons
+    if (xmlText(orderData, "id") && securityLevel < 3) { // turn off some icons
 	  removeElement('tb_main_0', 'tb_icon_print');
 	  removeElement('tb_main_0', 'tb_icon_save');
 	  removeElement('tb_main_0', 'tb_icon_payment');
@@ -278,66 +272,68 @@ function fillOrder(xml) {
     // fill inventory rows and add a new blank one
     var order_discount = formatted_zero;
     var jIndex = 1;
-    $(this).find("Item").each(function() {
-	  var gl_type = $(this).find("gl_type").text();
+    Array.from(orderData.getElementsByTagName("Item")).forEach(function(item) {
+	  var gl_type = xmlText(item, "gl_type");
       switch (gl_type) {
 	    case 'ttl':
 	    case 'tax': // the total and tax will be recalculated when the form is loaded
 	      break;
 	    case 'dsc':
-	      order_discount =                            $(this).find("total").text();
-		  if ($(this).find("gl_account").text()) insertValue('disc_gl_acct_id', $(this).find("gl_account").text());
+	      order_discount = xmlText(item, "total");
+		  if (xmlText(item, "gl_account")) insertValue('disc_gl_acct_id', xmlText(item, "gl_account"));
 		  break;
 	    case 'frt':
-		  insertValue('freight',                      $(this).find("total").text());
-		  if ($(this).find("gl_account").text()) insertValue('ship_gl_acct_id', $(this).find("gl_account").text());
-		  if (document.getElementById('freight_tax_id') && $(this).find("taxable").text()) {
-		    document.getElementById('freight_tax_id').value = $(this).find("taxable").text();
+		  insertValue('freight',                      xmlText(item, "total"));
+		  if (xmlText(item, "gl_account")) insertValue('ship_gl_acct_id', xmlText(item, "gl_account"));
+		  if (document.getElementById('freight_tax_id') && xmlText(item, "taxable")) {
+		    document.getElementById('freight_tax_id').value = xmlText(item, "taxable");
 		  }
 		  break;
 	    case 'soo':
 	    case 'sos':
 	    case 'poo':
 	    case 'por':
-	      if (action == 'prc_so' && parseFloat($(this).find("purch_package_quantity").text()) > 0 ){
-	    	quantity  = $(this).find("qty").text() * $(this).find("purch_package_quantity").text();
-	    	unitPrice = formatCurrency(cleanCurrency($(this).find("unit_price").text()) / $(this).find("purch_package_quantity").text());
-	      }else{
-	        quantity  = $(this).find("qty").text();
-	    	unitPrice = $(this).find("unit_price").text();
+	      var quantity, unitPrice;
+	      var purch_pkg_qty = parseFloat(xmlText(item, "purch_package_quantity"));
+	      if (action == 'prc_so' && purch_pkg_qty > 0) {
+	    	quantity  = parseFloat(xmlText(item, "qty")) * purch_pkg_qty;
+	    	unitPrice = formatCurrency(cleanCurrency(xmlText(item, "unit_price")) / purch_pkg_qty);
+	      } else {
+	        quantity  = xmlText(item, "qty");
+	    	unitPrice = xmlText(item, "unit_price");
 	      }
-		  insertValue('id_' + jIndex,                $(this).find("id").text());
-		  insertValue('item_cnt_' + jIndex,          $(this).find("item_cnt").text());
-		  insertValue('so_po_item_ref_id_' + jIndex, $(this).find("so_po_item_ref_id").text());
+		  insertValue('id_' + jIndex,                xmlText(item, "id"));
+		  insertValue('item_cnt_' + jIndex,          xmlText(item, "item_cnt"));
+		  insertValue('so_po_item_ref_id_' + jIndex, xmlText(item, "so_po_item_ref_id"));
 		  insertValue('qty_' + jIndex,               quantity);
-		  insertValue('pstd_' + jIndex,              $(this).find("pstd").text());
-		  insertValue('sku_'  + jIndex,              $(this).find("sku").text());
-		  insertValue('desc_'  + jIndex,             $(this).find("description").text());
-		  insertValue('proj_'  + jIndex,             $(this).find("proj_id").text());
-		  insertValue('date_1_'  + jIndex,           $(this).find("date_1").text());
-		  insertValue('acct_'  + jIndex,             $(this).find("gl_account").text());
-		  insertValue('tax_'  + jIndex,              $(this).find("taxable").text());
-		  insertValue('full_'  + jIndex,             $(this).find("full_price").text());
-		  insertValue('weight_'  + jIndex,           $(this).find("weight").text());
-		  insertValue('serial_'  + jIndex,           $(this).find("serialize").text());
-		  insertValue('stock_'  + jIndex,            $(this).find("stock").text());
-		  insertValue('inactive_'  + jIndex,         $(this).find("inactive").text());
-		  insertValue('lead_' + jIndex,              $(this).find("lead").text());
+		  insertValue('pstd_' + jIndex,              xmlText(item, "pstd"));
+		  insertValue('sku_'  + jIndex,              xmlText(item, "sku"));
+		  insertValue('desc_'  + jIndex,             xmlText(item, "description"));
+		  insertValue('proj_'  + jIndex,             xmlText(item, "proj_id"));
+		  insertValue('date_1_'  + jIndex,           xmlText(item, "date_1"));
+		  insertValue('acct_'  + jIndex,             xmlText(item, "gl_account"));
+		  insertValue('tax_'  + jIndex,              xmlText(item, "taxable"));
+		  insertValue('full_'  + jIndex,             xmlText(item, "full_price"));
+		  insertValue('weight_'  + jIndex,           xmlText(item, "weight"));
+		  insertValue('serial_'  + jIndex,           xmlText(item, "serialize"));
+		  insertValue('stock_'  + jIndex,            xmlText(item, "stock"));
+		  insertValue('inactive_'  + jIndex,         xmlText(item, "inactive"));
+		  insertValue('lead_' + jIndex,              xmlText(item, "lead"));
 		  insertValue('price_' + jIndex,             unitPrice);
-		  insertValue('total_' + jIndex,             $(this).find("total").text());
-		  if(journalID == 4){
-			  if(parseFloat($(this).find("purch_package_quantity").text()) > 0 ){
-				  insertValue('purch_package_quantity_' + jIndex, $(this).find("purch_package_quantity").text());
-			  }else{
+		  insertValue('total_' + jIndex,             xmlText(item, "total"));
+		  if (journalID == 4) {
+			  if (purch_pkg_qty > 0) {
+				  insertValue('purch_package_quantity_' + jIndex, xmlText(item, "purch_package_quantity"));
+			  } else {
 				  insertValue('purch_package_quantity_' + jIndex, 1);
 			  }
 		  }
 		  var imgSerial = document.getElementById('imgSerial_'+jIndex);
-		  if (imgSerial != null && $(xml).find("inventory_type").text() == 'sr') {
+		  if (imgSerial != null && xmlText(xml, "inventory_type") == 'sr') {
 			  document.getElementById('imgSerial_'+jIndex).style.display = '';
 		  }
 		  document.getElementById('sku_prop_'+jIndex).style.display = '';
-	      if ($(this).find("so_po_item_ref_id").text() || ((journalID == 4 || journalID == 10) && $(this).find("pstd").text())) {
+	      if (xmlText(item, "so_po_item_ref_id") || ((journalID == 4 || journalID == 10) && xmlText(item, "pstd"))) {
 	        // don't allow sku to change, hide the sku search icon
 	        document.getElementById('sku_' + jIndex).readOnly = true;
 	        document.getElementById('sku_open_' + jIndex).style.display = 'none';
@@ -345,9 +341,11 @@ function fillOrder(xml) {
 	        rowOffset = (single_line_list == '1') ? jIndex-1 : (jIndex*2)-2;
 	        document.getElementById("item_table").rows[rowOffset].cells[0].innerHTML = '&nbsp;';
 	      }
-	      
-	      $('#qty_'+jIndex).change("change", function(){ var rIdx=$(this).closest('tr').prevAll().length+1; updateRowTotal(rIdx, true);});
-	      $('#pstd_'+jIndex).change("change",function(){ var rIdx=$(this).closest('tr').prevAll().length+1; updateRowTotal(rIdx, true);});
+
+	      (function(idx) {
+	        document.getElementById('qty_'+idx).addEventListener('change', function(){ updateRowTotal(idx, true); });
+	        document.getElementById('pstd_'+idx).addEventListener('change', function(){ updateRowTotal(idx, true); });
+	      })(jIndex);
 		  updateRowTotal(jIndex, false);
 		  addInvRow();
 		  jIndex++;
@@ -363,25 +361,17 @@ function fillOrder(xml) {
 function AccountList(override) {
   var guess = document.getElementById('search').value;
   if (guess != text_search && guess != '' && !override) {
-    $.ajax({
-	  type: "GET",
-	  url: 'index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type='+account_type+'&guess='+guess,
-	  dataType: "xml",
-	  error: function(XMLHttpRequest, textStatus, errorThrown) {
-	    alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-	  },
-	  success: AccountListResp
-    });
+    fetchXml('index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type='+account_type+'&guess='+guess, AccountListResp);
   } else { // force the popup
 	AccountListResp();
   }
 }
 
-function AccountListResp(sXml) {
-  var xml = parseXml(sXml);
+function AccountListResp(xml) {
+  if (xml) xml = parseXml(xml);
 //  if (!xml) return;
-  if ($(xml).find("result").text() == 'success') {
-	var cID = $(xml).find("cID").text();
+  if (xml && xmlText(xml, "result") == 'success') {
+	var cID = xmlText(xml, "cID");
 	ajaxOrderData(cID, 0, journalID, false, false);
   } else {
     var fill = '';
@@ -465,17 +455,17 @@ function convertSO() {
 function serialList(id) {
 	switch (journalID) {
 		default: // for purchases
-			var newChoice = prompt(serial_num_prompt, $('#'+id).val());
-			$('#'+id).val(newChoice);
+			var newChoice = prompt(serial_num_prompt, document.getElementById(id).value);
+			document.getElementById(id).value = newChoice;
 			break;
 		case  '7':
 		case  '9':
 		case '10':
 		case '12':
-			var curDef  = $("#"+id).val();
+			var curDef  = document.getElementById(id).value;
 			var rowID   = id.replace("serial_", "");
-			var sku     = $("#sku_"+rowID).val();
-			var storeID = $("#store_id").val();
+			var sku     = document.getElementById("sku_"+rowID).value;
+			var storeID = document.getElementById("store_id").value;
 			window.open("index.php?module=inventory&page=popup_serial&def="+curDef+"&sku="+sku+"&rowID="+rowID+"&storeID="+storeID,"serialize","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
 			break;
 	}
@@ -554,16 +544,16 @@ function fillAddress(type) {
     }
     return;
   }
-  $(address).find("Address").each(function() {
-    if ($(this).find("address_id").text() == index) {
-      document.getElementById(type+'_acct_id').value    = $(this).find("ref_id").text();
-      document.getElementById(type+'_address_id').value = (index == 'new') ? '0' : $(this).find("address_id").text();
+  Array.from(address.getElementsByTagName("Address")).forEach(function(addr) {
+    if (xmlText(addr, "address_id") == index) {
+      document.getElementById(type+'_acct_id').value    = xmlText(addr, "ref_id");
+      document.getElementById(type+'_address_id').value = (index == 'new') ? '0' : xmlText(addr, "address_id");
       var add_id;
       for (var i=0; i<add_array.length; i++) {
 	    add_id = add_array[i];
-	    if (index != '0' && $(this).find(add_id).text()) {
+	    if (index != '0' && xmlText(addr, add_id)) {
 	      document.getElementById(type+'_'+add_id).style.color = '';
-	      document.getElementById(type+'_'+add_id).value = $(this).find(add_id).text();
+	      document.getElementById(type+'_'+add_id).value = xmlText(addr, add_id);
 	    } else {
 	      if (add_id != 'country_code') document.getElementById(type+'_'+add_id).style.color = inactive_text_color;
 	      document.getElementById(type+'_'+add_id).value = default_array[i];
@@ -623,7 +613,7 @@ function addInvRow() {
   newCell = newRow.insertCell(-1);
   newCell.innerHTML = cell;
   newCell.align  = 'center';
-  newCell.style.whiteSpace = 'nowrap'; 
+  newCell.style.whiteSpace = 'nowrap';
   cell    = '<input type="text" name="pstd_'+rowCnt+'" id="pstd_'+rowCnt+'"'+(item_col_2_enable == '1' ? " " : " readonly=\"readonly\"")+' size="7" maxlength="6" style="text-align:right" />';
   switch (journalID) {
     case  '6':
@@ -638,14 +628,14 @@ function addInvRow() {
   newCell = newRow.insertCell(-1);
   newCell.innerHTML = cell;
   newCell.align  = 'center';
-  newCell.style.whiteSpace = 'nowrap'; 
+  newCell.style.whiteSpace = 'nowrap';
   cell    = '<input type="text" name="sku_'+rowCnt+'" id="sku_'+rowCnt+'" size="'+(max_sku_len+1)+'" maxlength="'+max_sku_len+'" onfocus="clearField(\'sku_'+rowCnt+'\', \''+text_search+'\')" onkeydown="checkEnterEvent(event, '+rowCnt+');" onblur="setField(\'sku_'+rowCnt+'\', \''+text_search+'\'); loadSkuDetails(0, '+rowCnt+')" />&nbsp;';
   cell   += buildIcon(icon_path+'16x16/actions/system-search.png', text_search, 'id="sku_open_'+rowCnt+'" align="top" style="cursor:pointer" onclick="InventoryList('+rowCnt+')"');
   cell   += buildIcon(icon_path+'16x16/actions/document-properties.png', text_properties, 'id="sku_prop_'+rowCnt+'" align="top" style="cursor:pointer; display:none;" onclick="InventoryProp('+rowCnt+')"');
   newCell = newRow.insertCell(-1);
   newCell.innerHTML = cell;
   newCell.align  = 'center';
-  newCell.style.whiteSpace = 'nowrap'; 
+  newCell.style.whiteSpace = 'nowrap';
   // for textarea uncomment below, (No control over input length, truncated to 255 by db) or ...
 //  cell = '<textarea name="desc_'+rowCnt+'" id="desc_'+rowCnt+'" cols="'+((single_line_list=='1')?50:110)+'" rows="1" maxlength="255"></textarea>';
   // for standard controlled input, uncomment below
@@ -660,7 +650,7 @@ function addInvRow() {
     newCell.innerHTML = cell;
     newCell.colSpan = 2;
     newCell.align   = 'center';
-    newCell.style.whiteSpace  = 'nowrap'; 
+    newCell.style.whiteSpace  = 'nowrap';
   }
   // second row ( or continued first row if option selected)
   if (single_line_list != '1') {
@@ -674,19 +664,19 @@ function addInvRow() {
     newCell = newRow.insertCell(-1);  }
     newCell.innerHTML = cell;
     newCell.align  = 'center';
-    newCell.style.whiteSpace = 'nowrap'; 
+    newCell.style.whiteSpace = 'nowrap';
     if (single_line_list != '1') newCell.colSpan = 3;
     if (single_line_list != '1') {
     cell  = '<input type="text" name="full_'+rowCnt+'" id="full_'+rowCnt+'" readonly="readonly" size="11" maxlength="10" style="text-align:right" />';
     newCell = newRow2.insertCell(-1);
     newCell.innerHTML = cell;
     newCell.align  = 'center';
-    newCell.style.whiteSpace = 'nowrap'; 
+    newCell.style.whiteSpace = 'nowrap';
     cell  = '<input type="text" name="disc_'+rowCnt+'" id="disc_'+rowCnt+'" readonly="readonly" size="11" maxlength="10" style="text-align:right" />';
     newCell = newRow2.insertCell(-1);
     newCell.innerHTML = cell;
     newCell.align  = 'center';
-    newCell.style.whiteSpace = 'nowrap'; 
+    newCell.style.whiteSpace = 'nowrap';
   }
   cell  = '<input type="text" name="price_'+rowCnt+'" id="price_'+rowCnt+'" size="10" maxlength="15" onchange="updateRowTotal('+rowCnt+', false)" style="text-align:right" />&nbsp;';
   cell += buildIcon(icon_path+'16x16/mimetypes/x-office-spreadsheet.png', text_price_manager, 'align="top" style="cursor:pointer" onclick="PriceManagerList('+rowCnt+')"');
@@ -697,7 +687,7 @@ function addInvRow() {
   }
   newCell.innerHTML = cell;
   newCell.align  = 'center';
-  newCell.style.whiteSpace = 'nowrap'; 
+  newCell.style.whiteSpace = 'nowrap';
   cell  = '<select name="tax_'+rowCnt+'" id="tax_'+rowCnt+'" onchange="updateRowTotal('+rowCnt+', false)"></select>';
   if (single_line_list != '1') {
     newCell = newRow2.insertCell(-1);
@@ -706,7 +696,7 @@ function addInvRow() {
   }
   newCell.innerHTML = cell;
   newCell.align  = 'center';
-  newCell.style.whiteSpace = 'nowrap'; 
+  newCell.style.whiteSpace = 'nowrap';
 // Hidden fields
   cell  = '<input type="hidden" name="id_'+rowCnt+'" id="id_'+rowCnt+'" value="" />';
   cell += '<input type="hidden" name="so_po_item_ref_id_'+rowCnt+'" id="so_po_item_ref_id_'+rowCnt+'" value="" />';
@@ -731,7 +721,7 @@ function addInvRow() {
   }
   newCell.innerHTML = cell;
   newCell.align  = 'center';
-  newCell.style.whiteSpace = 'nowrap'; 
+  newCell.style.whiteSpace = 'nowrap';
 
   // populate the drop downs
   var selElement = (single_line_list == '1') ? ('comboselacct_'+rowCnt) : ('acct_'+rowCnt);
@@ -791,7 +781,7 @@ function removeInvRow(index) {
   document.getElementById('item_table').deleteRow(-1);
   if (single_line_list != '1') document.getElementById('item_table').deleteRow(-1);
   updateTotalPrices();
-} 
+}
 
 function updateRowTotal(rowCnt, useAjax) {
 	var qty = 0;
@@ -801,9 +791,9 @@ function updateRowTotal(rowCnt, useAjax) {
 		case  '3':
 		case  '4':
 		case  '9':
-		case '10': 
+		case '10':
 		  qty = parseFloat(document.getElementById('qty_'+rowCnt).value);
-		  if (isNaN(qty)) qty = 0; // if blank or a non-numeric value is in the qty field, assume zero
+		  if (isNaN(qty)) qty = 0;
 		  break;
 		case  '6':
 		case  '7':
@@ -812,9 +802,9 @@ function updateRowTotal(rowCnt, useAjax) {
 		case '18':
 		case '19':
 		case '21':
-		case '20': 
+		case '20':
 		  qty = parseFloat(document.getElementById('pstd_'+rowCnt).value);
-		  if (isNaN(qty)) qty = 0; // if blank or a non-numeric value is in the pstd field, assume zero
+		  if (isNaN(qty)) qty = 0;
 		  break;
 		default:
 	}
@@ -839,15 +829,7 @@ function updateRowTotal(rowCnt, useAjax) {
 		  var bill_acct_id = document.getElementById('bill_acct_id').value;
 		  so_exists        = document.getElementById('so_po_item_ref_id_'+rowCnt).value;
 		  if (!so_exists && auto_load_sku) {
-		    $.ajax({
-			  type: "GET",
-			  url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuPrice&cID='+bill_acct_id+'&sku='+sku+'&qty='+qty+'&rID='+rowCnt,
-			  dataType: "xml",
-			  error: function(XMLHttpRequest, textStatus, errorThrown) {
-			    alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-			  },
-			  success: processSkuPrice
-		    });
+		    fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuPrice&cID='+bill_acct_id+'&sku='+sku+'&qty='+qty+'&rID='+rowCnt, processSkuPrice);
 		  }
 		  break;
 		default: // no AJAX
@@ -856,12 +838,12 @@ function updateRowTotal(rowCnt, useAjax) {
 }
 
 // ajax response to price sheet request
-function processSkuPrice(sXml) { // call back function
-  var xml = parseXml(sXml);
+function processSkuPrice(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var rowCnt = $(xml).find("rID").text();
+  var rowCnt = xmlText(xml, "rID");
   if (!rowCnt) return;
-  document.getElementById('price_'+rowCnt).value = formatPrecise($(xml).find("sales_price").text());
+  document.getElementById('price_'+rowCnt).value = formatPrecise(xmlText(xml, "sales_price"));
   updateRowTotal(rowCnt, false);
 }
 
@@ -950,7 +932,7 @@ function updateTotalPrices() {
 	  }
 	  if (tax_before_discount == '0') { // tax after discount
         taxable_subtotal += lineTotal * (1-(discountPercent/100)) * (tax_rates[tax_index].rate / 100);
-	  } else { 
+	  } else {
         taxable_subtotal += lineTotal * (tax_rates[tax_index].rate / 100);
 	  }
 	  freight_def_tax = tax_index;
@@ -1016,8 +998,8 @@ function calculateDiscount() {
 }
 
 function showOverride() {
-	var total = parseFloat(cleanCurrency($('#total').val()));
-	var limit = parseFloat(custCreditLimit); // both strings
+	var total = parseFloat(cleanCurrency(document.getElementById('total').value));
+	var limit = parseFloat(custCreditLimit);
 	if (total > limit) {
 		if (document.getElementById('tb_icon_save'))          document.getElementById('tb_icon_save').style.visibility          = "hidden";
 		if (document.getElementById('tb_icon_print'))         document.getElementById('tb_icon_print').style.visibility         = "hidden";
@@ -1030,21 +1012,13 @@ function showOverride() {
 function checkOverride () {
   var user = document.getElementById('override_user').value;
   var pass = document.getElementById('override_pass').value;
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=phreedom&page=ajax&op=validate&u='+user+'&p='+pass+'&level=4',
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-	},
-	success: clearOverride
-  });
+  fetchXml('index.php?module=phreedom&page=ajax&op=validate&u='+user+'&p='+pass+'&level=4', clearOverride);
 }
 
-function clearOverride(sXml) {
-  var xml = parseXml(sXml);
+function clearOverride(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var result = $(xml).find("result").text();
+  var result = xmlText(xml, "result");
   if (result == 'validated') {
 	bootstrap.Modal.getInstance(document.getElementById('override_order')).hide();
     if (document.getElementById('tb_icon_save'))          document.getElementById('tb_icon_save').style.visibility          = "";
@@ -1102,7 +1076,7 @@ function buildFreightDropdown() {
 	  m++;
 	}
   }
-  // set the default choice 
+  // set the default choice
   document.getElementById('ship_service').value = selectedMethod;
 }
 
@@ -1188,7 +1162,7 @@ function loadSkuDetails(iID, rowCnt) {
 	if (so_exists != '') return;
 	// check to see if there is a sku present
 	if (!iID) {
-		sku = document.getElementById('sku_'+rowCnt).value; // read the search field as the real value	  
+		sku = document.getElementById('sku_'+rowCnt).value; // read the search field as the real value
 	}
 	if (sku == text_search) return;
 	// add new row
@@ -1222,64 +1196,54 @@ function loadSkuDetails(iID, rowCnt) {
 		case '21': qty = document.getElementById('pstd_'+rowCnt).value; break;
 		default:
 	}
-	$.ajax({
-		type: "GET",
-		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rowCnt+'&jID='+journalID,
-		dataType: "xml",
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			alert ("Ajax ErrorThrown: " + errorThrown + "\nTextStatus: " + textStatus + "\nError: " + XMLHttpRequest.responseText);
-    	},
-    	success: fillInventory
-	});
+	fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rowCnt+'&jID='+journalID, fillInventory);
 }
 
-function fillInventory(sXml) {
+function fillInventory(xml) {
   var qty_pstd = 0;
   var qty = 0;
   var text = '';
   var exchange_rate = document.getElementById('currencies_value').value;
-  var xml = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
-  var rowCnt = $(xml).find("rID").text();
-  var sku    = $(xml).find("sku").first().text(); // only the first find, avoids bom add-ons
+  var rowCnt = xmlText(xml, "rID");
+  var sku    = xmlText(xml, "sku"); // only the first find, avoids bom add-ons
   if (!sku) return;
   document.getElementById('sku_'     +rowCnt).value       = sku;
   document.getElementById('sku_'     +rowCnt).style.color = '';
   document.getElementById('sku_'     +rowCnt).style.backgroundColor = '';
   document.getElementById('sku_'     +rowCnt).removeAttribute("title");
   var imgSerial = document.getElementById('imgSerial_'+rowCnt);
-  if (imgSerial != null && ($(xml).find("inventory_type").text() == 'sr' || $(xml).find("inventory_type").text() == 'sa')){
+  var inv_type  = xmlText(xml, "inventory_type");
+  if (imgSerial != null && (inv_type == 'sr' || inv_type == 'sa')) {
     document.getElementById('imgSerial_'+rowCnt).style.display = '';
   }
   document.getElementById('sku_prop_'+rowCnt).style.display = '';
-  document.getElementById('weight_'  +rowCnt).value       = $(xml).find("item_weight").text();
-  document.getElementById('stock_'   +rowCnt).value       = $(xml).find("branch_qty_in_stock").text(); // stock at this branch
-//document.getElementById('stock_'   +rowCnt).value       = $(xml).find("quantity_on_hand").text(); // to insert total stock available
-  document.getElementById('lead_'    +rowCnt).value       = $(xml).find("lead_time").text();
-  document.getElementById('inactive_'+rowCnt).value       = $(xml).find("inactive").text();
+  document.getElementById('weight_'  +rowCnt).value = xmlText(xml, "item_weight");
+  document.getElementById('stock_'   +rowCnt).value = xmlText(xml, "branch_qty_in_stock");
+  document.getElementById('lead_'    +rowCnt).value = xmlText(xml, "lead_time");
+  document.getElementById('inactive_'+rowCnt).value = xmlText(xml, "inactive");
+  var currency_code = xmlText(xml, "currency_code") || defaultCurrency;
   switch (journalID) {
 	case  '3':
 	case  '4':
-	  document.getElementById('purch_package_quantity_'+rowCnt).value= $(xml).find("purch_package_quantity").text();
+	  document.getElementById('purch_package_quantity_'+rowCnt).value = xmlText(xml, "purch_package_quantity");
 	  qty_pstd = 'qty_';
-	  document.getElementById('qty_'   +rowCnt).value     = formatPrecise($(xml).find("qty").first().text());
-	  document.getElementById('acct_'  +rowCnt).value     = $(xml).find("account_inventory_wage").text();
-	  document.getElementById('price_' +rowCnt).value     = formatPrecise(convertCost(parseFloat($(xml).find("sales_price").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
-	  document.getElementById('full_'  +rowCnt).value     = formatCurrency(convertCost(parseFloat($(xml).find("item_cost").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
-	  if(default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = $(xml).find("purch_taxable").text();
-	  if ($(xml).find("description_purchase").text()) {
-	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_purchase").text();
-	  } else {
-	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_short").text();
-	  }
-	  if(journalID == 4){
-		  if ($(xml).find("quantity_on_order").text() >= 0) {
+	  document.getElementById('qty_'   +rowCnt).value = formatPrecise(xmlText(xml, "qty"));
+	  document.getElementById('acct_'  +rowCnt).value = xmlText(xml, "account_inventory_wage");
+	  document.getElementById('price_' +rowCnt).value = formatPrecise(convertCost(parseFloat(xmlText(xml, "sales_price")), currency_code, parseFloat(exchange_rate)));
+	  document.getElementById('full_'  +rowCnt).value = formatCurrency(convertCost(parseFloat(xmlText(xml, "item_cost")), currency_code, parseFloat(exchange_rate)));
+	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = xmlText(xml, "purch_taxable");
+	  var descPurch = xmlText(xml, "description_purchase");
+	  document.getElementById('desc_'  +rowCnt).value = descPurch ? descPurch : xmlText(xml, "description_short");
+	  if (journalID == 4) {
+		  if (xmlText(xml, "quantity_on_order") >= 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'Yellow';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsAlreadyOnOrder;
-		  }else if($(xml).find("branch_qty_in_stock").text() <= 0){
+		  } else if (xmlText(xml, "branch_qty_in_stock") <= 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'Green';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsOnHand;
-		  }else if($(xml).find("inactive").text() == 1) {
+		  } else if (xmlText(xml, "inactive") == 1) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'pink';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsInactive;
 		  }
@@ -1289,22 +1253,18 @@ function fillInventory(sXml) {
 	case  '7':
     case '21':
 	  qty_pstd = 'pstd_';
-	  document.getElementById('pstd_'  +rowCnt).value     = formatPrecise($(xml).find("qty").first().text());
-	  document.getElementById('acct_'  +rowCnt).value     = $(xml).find("account_inventory_wage").text();
-
-	  document.getElementById('price_' +rowCnt).value     = formatPrecise(convertCost(parseFloat($(xml).find("sales_price").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
-	  document.getElementById('full_'    +rowCnt).value   = formatCurrency(convertCost(parseFloat($(xml).find("item_cost").text()), $(xml).find("currency_code").text() || defaultCurrency, parseFloat(exchange_rate)));
-	  if(default_sales_tax == -1) document.getElementById('tax_'   +rowCnt).value     = $(xml).find("purch_taxable").text();
-	  if ($(xml).find("description_purchase").text()) {
-	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_purchase").text();
-	  } else {
-	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_short").text();
-	  }
-	  if(journalID == 6){
-		  if($(xml).find("quantity_on_sales_order").text() >= 0){
+	  document.getElementById('pstd_'  +rowCnt).value = formatPrecise(xmlText(xml, "qty"));
+	  document.getElementById('acct_'  +rowCnt).value = xmlText(xml, "account_inventory_wage");
+	  document.getElementById('price_' +rowCnt).value = formatPrecise(convertCost(parseFloat(xmlText(xml, "sales_price")), currency_code, parseFloat(exchange_rate)));
+	  document.getElementById('full_'    +rowCnt).value = formatCurrency(convertCost(parseFloat(xmlText(xml, "item_cost")), currency_code, parseFloat(exchange_rate)));
+	  if (default_sales_tax == -1) document.getElementById('tax_'   +rowCnt).value = xmlText(xml, "purch_taxable");
+	  var descPurch6 = xmlText(xml, "description_purchase");
+	  document.getElementById('desc_'  +rowCnt).value = descPurch6 ? descPurch6 : xmlText(xml, "description_short");
+	  if (journalID == 6) {
+		  if (xmlText(xml, "quantity_on_sales_order") >= 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'Aquamarine';
 			  document.getElementById('sku_'+rowCnt).title = SalesOrderForItem;
-		  }else if($(xml).find("inactive").text() == 1) {
+		  } else if (xmlText(xml, "inactive") == 1) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'pink';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsInactive;
 		  }
@@ -1313,29 +1273,26 @@ function fillInventory(sXml) {
 	case  '9':
 	case '10':
 	  qty_pstd = 'qty_';
-	  document.getElementById('qty_'  +rowCnt).value = formatPrecise($(xml).find("qty").first().text());
-	  document.getElementById('acct_' +rowCnt).value = $(xml).find("account_sales_income").text();
-	  document.getElementById('price_'+rowCnt).value = formatPrecise($(xml).find("sales_price").text() * exchange_rate);
-	  document.getElementById('full_' +rowCnt).value = formatCurrency($(xml).find("full_price").text() * exchange_rate);
-	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = $(xml).find("item_taxable").text();
-	  if ($(xml).find("description_sales").text()) {
-	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_sales").text();
-	  } else {
-	    document.getElementById('desc_'  +rowCnt).value   = $(xml).find("description_short").text();
-	  }
+	  document.getElementById('qty_'  +rowCnt).value = formatPrecise(xmlText(xml, "qty"));
+	  document.getElementById('acct_' +rowCnt).value = xmlText(xml, "account_sales_income");
+	  document.getElementById('price_'+rowCnt).value = formatPrecise(xmlText(xml, "sales_price") * exchange_rate);
+	  document.getElementById('full_' +rowCnt).value = formatCurrency(xmlText(xml, "full_price") * exchange_rate);
+	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = xmlText(xml, "item_taxable");
+	  var descSales = xmlText(xml, "description_sales");
+	  document.getElementById('desc_'  +rowCnt).value = descSales ? descSales : xmlText(xml, "description_short");
 	  if (journalID == 10) {
-		  if($(xml).find("inactive").text() == 1 && $(xml).find("branch_qty_in_stock").text() == 0) {
+		  if (xmlText(xml, "inactive") == 1 && xmlText(xml, "branch_qty_in_stock") == 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'pink';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsOutOfStockAndInactive;
-		  }else if($(xml).find("branch_qty_in_stock").text() == 0 && $(xml).find("quantity_on_order").text() >= 0) {
+		  } else if (xmlText(xml, "branch_qty_in_stock") == 0 && xmlText(xml, "quantity_on_order") >= 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'Yellow';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsOnOrder;
-		  }else if($(xml).find("branch_qty_in_stock").text() == 0) {
+		  } else if (xmlText(xml, "branch_qty_in_stock") == 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'FF6633';
 			  document.getElementById('sku_'+rowCnt).title = ItemMustBeOrderd;
 		  }
 	  } else {
-		  if($(xml).find("inactive").text() == 1 && $(xml).find("branch_qty_in_stock").text() == 0) {
+		  if (xmlText(xml, "inactive") == 1 && xmlText(xml, "branch_qty_in_stock") == 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'pink';
 			  document.getElementById('sku_'+rowCnt).title = ItemIsOutOfStockAndInactive;
 		  }
@@ -1345,17 +1302,14 @@ function fillInventory(sXml) {
 	case '13':
 	case '19':
 	  qty_pstd = 'pstd_';
-	  document.getElementById('pstd_' +rowCnt).value = formatPrecise($(xml).find("qty").first().text());
-	  document.getElementById('acct_' +rowCnt).value = $(xml).find("account_sales_income").text();
-	  document.getElementById('price_'+rowCnt).value = formatPrecise($(xml).find("sales_price").text() * exchange_rate);
-	  document.getElementById('full_' +rowCnt).value = formatCurrency($(xml).find("full_price").text() * exchange_rate);
-	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = $(xml).find("item_taxable").text();
-	  if ($(xml).find("description_sales").text()) {
-	    document.getElementById('desc_'  +rowCnt).value = $(xml).find("description_sales").text();
-	  } else {
-	    document.getElementById('desc_'  +rowCnt).value = $(xml).find("description_short").text();
-	  }
-	  if(journalID == 12 && $(xml).find("inactive").text() == 1 && $(xml).find("branch_qty_in_stock").text() == 0) {
+	  document.getElementById('pstd_' +rowCnt).value = formatPrecise(xmlText(xml, "qty"));
+	  document.getElementById('acct_' +rowCnt).value = xmlText(xml, "account_sales_income");
+	  document.getElementById('price_'+rowCnt).value = formatPrecise(xmlText(xml, "sales_price") * exchange_rate);
+	  document.getElementById('full_' +rowCnt).value = formatCurrency(xmlText(xml, "full_price") * exchange_rate);
+	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = xmlText(xml, "item_taxable");
+	  var descSales12 = xmlText(xml, "description_sales");
+	  document.getElementById('desc_'  +rowCnt).value = descSales12 ? descSales12 : xmlText(xml, "description_short");
+	  if (journalID == 12 && xmlText(xml, "inactive") == 1 && xmlText(xml, "branch_qty_in_stock") == 0) {
 		  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'pink';
 		  document.getElementById('sku_'+rowCnt).title = ItemIsOutOfStockAndInactive;
 	  }
@@ -1363,8 +1317,8 @@ function fillInventory(sXml) {
 	default:
   }
   updateRowTotal(rowCnt, false);
-  $(xml).find("stock_note").each(function() {
-	text += $(this).find("text_line").text() + "\n";
+  Array.from(xml.getElementsByTagName("stock_note")).forEach(function(note) {
+	text += xmlText(note, "text_line") + "\n";
   });
   if (text) alert(text);
   document.getElementById('qty_'  +rowCnt).addEventListener("change", function(){ updateRowTotal(rowCnt, true);});
@@ -1426,43 +1380,32 @@ function PreProcessLowStock() {
   }
   if (rowCnt<=1)    rowCnt = 1;
   if (isNaN(store)) store  = 0;
- $.ajax({
-	type: "GET",
-	url: 'index.php?module=phreebooks&page=ajax&op=low_stock&cID='+acct+'&sID='+store+'&rID='+rowCnt,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-	},
-	success: PostProcessLowStock
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=low_stock&cID='+acct+'&sID='+store+'&rID='+rowCnt, PostProcessLowStock);
 }
 
-function PostProcessLowStock(sXml) {
-	var xml = parseXml(sXml);
-	var exchange_rate = document.getElementById('currencies_value').value;
+function PostProcessLowStock(xml) {
+	xml = parseXml(xml);
 	if (!xml) return;
+	var exchange_rate = document.getElementById('currencies_value').value;
 	var i = 0;
-	$(xml).find("LowStock").each(function() {
+	Array.from(xml.getElementsByTagName("LowStock")).forEach(function(stock) {
 		addInvRow();
-		var rowCnt = $(this).find("rID").text();
-		document.getElementById('sku_'     +rowCnt).value       = $(this).find("sku").text();
+		var rowCnt = xmlText(stock, "rID");
+		document.getElementById('sku_'     +rowCnt).value       = xmlText(stock, "sku");
 		document.getElementById('sku_'     +rowCnt).style.color = '';
-		document.getElementById('full_'    +rowCnt).value       = formatCurrency($(xml).find("full_price").text() * exchange_rate);
-		document.getElementById('weight_'  +rowCnt).value       = $(this).find("item_weight").text();
-		document.getElementById('stock_'   +rowCnt).value       = $(this).find("quantity").text(); 
-		document.getElementById('lead_'    +rowCnt).value       = $(this).find("lead_time").text();
-		document.getElementById('inactive_'+rowCnt).value       = $(this).find("inactive").text();
-		document.getElementById('qty_'     +rowCnt).value     	= $(this).find("reorder_quantity").text();
-		document.getElementById('acct_'    +rowCnt).value     	= $(this).find("account_inventory_wage").text();
-		document.getElementById('price_'   +rowCnt).value     	= formatPrecise($(this).find("item_cost").text() * exchange_rate);
-		document.getElementById('tax_'     +rowCnt).value		= $(this).find("purch_taxable").text();
+		document.getElementById('full_'    +rowCnt).value       = formatCurrency(xmlText(xml, "full_price") * exchange_rate);
+		document.getElementById('weight_'  +rowCnt).value       = xmlText(stock, "item_weight");
+		document.getElementById('stock_'   +rowCnt).value       = xmlText(stock, "quantity");
+		document.getElementById('lead_'    +rowCnt).value       = xmlText(stock, "lead_time");
+		document.getElementById('inactive_'+rowCnt).value       = xmlText(stock, "inactive");
+		document.getElementById('qty_'     +rowCnt).value       = xmlText(stock, "reorder_quantity");
+		document.getElementById('acct_'    +rowCnt).value       = xmlText(stock, "account_inventory_wage");
+		document.getElementById('price_'   +rowCnt).value       = formatPrecise(xmlText(stock, "item_cost") * exchange_rate);
+		document.getElementById('tax_'     +rowCnt).value       = xmlText(stock, "purch_taxable");
 		document.getElementById('sku_prop_'+rowCnt).style.display = '';
-		document.getElementById('purch_package_quantity_'+rowCnt).value	 = $(this).find("purch_package_quantity").text();
-		if ($(this).find("description_purchase").text()) {
-			document.getElementById('desc_'+rowCnt).value   	= $(this).find("description_purchase").text();
-		} else {
-			document.getElementById('desc_'+rowCnt).value   	= $(this).find("description_short").text();
-		}
+		document.getElementById('purch_package_quantity_'+rowCnt).value = xmlText(stock, "purch_package_quantity");
+		var descPurch = xmlText(stock, "description_purchase");
+		document.getElementById('desc_'+rowCnt).value = descPurch ? descPurch : xmlText(stock, "description_short");
 		i++;
 		updateRowTotal(rowCnt, false);
 	});

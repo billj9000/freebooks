@@ -24,10 +24,8 @@
 <?php echo js_calendar_init($cal_clean); ?>
 
 function init() {
-	$(function() {
-		$('#currency_table').dataTable( dataTables_i18n );
-		updateEmailTransport();
-	});
+  new DataTable('#currency_table', dataTables_i18n);
+  updateEmailTransport();
 }
 
 function updateEmailTransport() {
@@ -175,13 +173,12 @@ function testSmtpConnection() {
     self_signed: document.getElementById('email_smtp_allow_self_signed').value
   };
 
-  $.ajax({
-    url:  'index.php?module=phreedom&page=ajax&op=test_smtp',
-    type: 'POST',
-    data: data,
-    dataType: 'json',
-    success: function(resp) {
-      result.style.display = 'block';
+  var params = new URLSearchParams(data);
+  params.append('csrf_token', (document.querySelector('meta[name="csrf-token"]') || {}).getAttribute ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '');
+  fetch('index.php?module=phreedom&page=ajax&op=test_smtp', { method: 'POST', body: params })
+    .then(function(r) { clearInterval(timer); btn.disabled = false; btn.textContent = 'Test SMTP Connection'; return r.json(); })
+    .then(function(resp) {
+      result.style.display    = 'block';
       result.style.background = resp.ok ? '#dff0d8' : '#f2dede';
       result.style.color      = resp.ok ? '#3c763d' : '#a94442';
       result.style.border     = '1px solid ' + (resp.ok ? '#d6e9c6' : '#ebccd1');
@@ -190,20 +187,17 @@ function testSmtpConnection() {
         html += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.85em">Connection log</summary><pre style="margin:4px 0 0;font-size:0.8em;white-space:pre-wrap">' + resp.log.join('\n') + '</pre></details>';
       }
       result.innerHTML = html;
-    },
-    error: function(xhr) {
+    })
+    .catch(function(err) {
+      clearInterval(timer);
+      btn.disabled    = false;
+      btn.textContent = 'Test SMTP Connection';
       result.style.display    = 'block';
       result.style.background = '#f2dede';
       result.style.color      = '#a94442';
       result.style.border     = '1px solid #ebccd1';
-      result.textContent = 'Request failed (' + xhr.status + '). Check server logs.';
-    },
-    complete: function() {
-      clearInterval(timer);
-      btn.disabled    = false;
-      btn.textContent = 'Test SMTP Connection';
-    }
-  });
+      result.textContent = 'Request failed. Check server logs.';
+    });
 }
 
 function subjectDelete(subject, id) {

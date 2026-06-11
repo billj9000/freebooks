@@ -65,7 +65,7 @@ function init() {
   var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE; ?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=<?php echo $print_record_id; ?>","reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
   printWin.focus();
 <?php } ?>
-  $("#search").change(function(){
+  document.getElementById('search').addEventListener('change', function(){
 	if(document.getElementById('search').value != ''){ AccountList(); }
   });
 }
@@ -99,26 +99,18 @@ function check_form() {
 function loadNewPayment() { // request funtion
   var contact_id = document.getElementById('bill_acct_id').value;
   if (!contact_id) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreebooks&page=ajax&op=stored_payments&contact_id='+contact_id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: showNewPayment
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=stored_payments&contact_id='+contact_id, showNewPayment);
 }
 
-function showNewPayment(sXml) { // call back function
+function showNewPayment(xml) { // call back function
   var show = false;
-  var xml  = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
   while (document.getElementById('payment_id').options.length) document.getElementById('payment_id').remove(0);
   // build the dropdown
   newOpt = document.createElement("option");
   newOpt.text = '<?php echo TEXT_ENTER_NEW; ?>';
-  document.getElementById('payment_id').options.add(newOpt);	
+  document.getElementById('payment_id').options.add(newOpt);
   document.getElementById('payment_id').options[0].value = '';
   pmt_array[0] = new Object();
   pmt_array[0].field_0 = '';
@@ -129,21 +121,21 @@ function showNewPayment(sXml) { // call back function
   pmt_array[0].field_5 = '';
   pmt_array[0].field_6 = '';
   var jIndex = 1;
-  $(xml).find("Payment").each(function() {
-	show        = true;
-	newOpt      = document.createElement("option");
-	newOpt.text = $(this).find("name").text();
-	if ($(this).find("hint").text()) newOpt.text += ', ' + $(this).find("hint").text();
+  Array.from(xml.getElementsByTagName("Payment")).forEach(function(pmt) {
+	show = true;
+	newOpt = document.createElement("option");
+	newOpt.text = xmlText(pmt, "name");
+	if (xmlText(pmt, "hint")) newOpt.text += ', ' + xmlText(pmt, "hint");
 	document.getElementById('payment_id').options.add(newOpt);
-	document.getElementById('payment_id').options[jIndex].value = $(this).find("id").text();
+	document.getElementById('payment_id').options[jIndex].value = xmlText(pmt, "id");
 	pmt_array[jIndex] = new Object();
-	if ($(this).find("field_0").text()) pmt_array[jIndex].field_0 = $(this).find("field_0").text();
-	if ($(this).find("field_1").text()) pmt_array[jIndex].field_1 = $(this).find("field_1").text();
-	if ($(this).find("field_2").text()) pmt_array[jIndex].field_2 = $(this).find("field_2").text();
-	if ($(this).find("field_3").text()) pmt_array[jIndex].field_3 = $(this).find("field_3").text();
-	if ($(this).find("field_4").text()) pmt_array[jIndex].field_4 = $(this).find("field_4").text();
-	if ($(this).find("field_5").text()) pmt_array[jIndex].field_5 = $(this).find("field_5").text();
-	if ($(this).find("field_6").text()) pmt_array[jIndex].field_6 = $(this).find("field_6").text();
+	if (xmlText(pmt, "field_0")) pmt_array[jIndex].field_0 = xmlText(pmt, "field_0");
+	if (xmlText(pmt, "field_1")) pmt_array[jIndex].field_1 = xmlText(pmt, "field_1");
+	if (xmlText(pmt, "field_2")) pmt_array[jIndex].field_2 = xmlText(pmt, "field_2");
+	if (xmlText(pmt, "field_3")) pmt_array[jIndex].field_3 = xmlText(pmt, "field_3");
+	if (xmlText(pmt, "field_4")) pmt_array[jIndex].field_4 = xmlText(pmt, "field_4");
+	if (xmlText(pmt, "field_5")) pmt_array[jIndex].field_5 = xmlText(pmt, "field_5");
+	if (xmlText(pmt, "field_6")) pmt_array[jIndex].field_6 = xmlText(pmt, "field_6");
 	jIndex++;
   });
   document.getElementById('payment_id').style.visibility = show ? '' : 'hidden';

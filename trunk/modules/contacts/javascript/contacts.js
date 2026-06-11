@@ -1,7 +1,8 @@
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,38 +27,30 @@ function contactChart(func, d0) {
 }
 
 function getAddress(id, type) {
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=contacts&page=ajax&op=contacts&action=get_address&type='+type+'&aID='+id,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
-	},
-	success: fillAddress
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=get_address&type='+type+'&aID='+id, fillAddress);
 }
 
-function fillAddress(sXml) {
-  var xml = parseXml(sXml);
+function fillAddress(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var message = $(xml).find("message").text();
-  if (message) { alert (message); }
+  var message = xmlText(xml, "message");
+  if (message) { alert(message); }
   else {
-	var type = $(xml).find("type").first().text();
-	$(xml).find("Address").each(function() {
-  	  $(this).children().each(function() {
-  		var tagName = this.tagName;
-  		if (document.getElementById('address_'+type+'_'+tagName)) insertValue('address_'+type+'_'+tagName, $(this).text());
-  	  });
-    });
+	var type = xmlText(xml, "type");
+	Array.from(xml.getElementsByTagName("Address")).forEach(function(addr) {
+	  Array.from(addr.children).forEach(function(child) {
+		var tagName = child.tagName;
+		if (document.getElementById('address_'+type+'_'+tagName)) insertValue('address_'+type+'_'+tagName, child.textContent || '');
+	  });
+	});
 	if (type == 'im') {
-		insertValue('i_id',            $(xml).find("contact_id").text());
-		insertValue('i_short_name',    $(xml).find("short_name").text());
-		insertValue('i_contact_first', $(xml).find("contact_first").text());
-		insertValue('i_contact_middle',$(xml).find("contact_middle").text());
-		insertValue('i_contact_last',  $(xml).find("contact_last").text());
-		insertValue('i_account_number',$(xml).find("account_number").text());
-		insertValue('i_gov_id_number', $(xml).find("gov_id_number").text());
+		insertValue('i_id',            xmlText(xml, "contact_id"));
+		insertValue('i_short_name',    xmlText(xml, "short_name"));
+		insertValue('i_contact_first', xmlText(xml, "contact_first"));
+		insertValue('i_contact_middle',xmlText(xml, "contact_middle"));
+		insertValue('i_contact_last',  xmlText(xml, "contact_last"));
+		insertValue('i_account_number',xmlText(xml, "account_number"));
+		insertValue('i_gov_id_number', xmlText(xml, "gov_id_number"));
 	}
   }
 }
@@ -80,7 +73,7 @@ function copyContactAddress(type) {
 }
 
 function clearAddress(type) {
-	$("#"+type+"_address_form input").val(function( i, val ) { return ''; });
+	document.querySelectorAll('#'+type+'_address_form input').forEach(function(el) { el.value = ''; });
 	document.getElementById('address_'+type+'_address_id').value   = 0;
 	document.getElementById('address_'+type+'_country_code').value = default_country;
 	if (type == 'im') {
@@ -95,25 +88,16 @@ function clearAddress(type) {
 }
 
 function deleteAddress(id) {
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=contacts&page=ajax&op=contacts&action=rm_address&aID='+id,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
-	},
-	success: deleteAddressResp
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_address&aID='+id, deleteAddressResp);
 }
 
-function deleteAddressResp(sXml) {
-  var xml = parseXml(sXml);
+function deleteAddressResp(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var rowID = $(xml).find("address_id").text();
-  if (rowID) $('#tr_add_'+rowID).remove();
-  var message = $(xml).find("message").text();
-  if (message) { alert (message); }
-  // TBD need to remove the row here
+  var rowID = xmlText(xml, "address_id");
+  if (rowID) { var row = document.getElementById('tr_add_'+rowID); if (row) row.remove(); }
+  var message = xmlText(xml, "message");
+  if (message) alert(message);
 }
 
 function TermsList() {
@@ -122,29 +106,21 @@ function TermsList() {
 }
 
 function getPayment(id) {
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=contacts&page=ajax&op=contacts&action=get_payment&pID='+id,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
-	},
-	success: fillPayment
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=get_payment&pID='+id, fillPayment);
 }
 
-function fillPayment(sXml) {
-  var xml = parseXml(sXml);
+function fillPayment(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var message = $(xml).find("message").text();
-  if (message) { alert (message); }
+  var message = xmlText(xml, "message");
+  if (message) { alert(message); }
   else {
-	document.getElementById('payment_id').value        = $(xml).find("payment_id").text();
-	document.getElementById('payment_cc_name').value   = $(xml).find("field_0").text();
-	document.getElementById('payment_cc_number').value = $(xml).find("field_1").text();
-	document.getElementById('payment_exp_month').value = $(xml).find("field_2").text();
-	document.getElementById('payment_exp_year').value  = $(xml).find("field_3").text();
-	document.getElementById('payment_cc_cvv2').value   = $(xml).find("field_4").text();
+	document.getElementById('payment_id').value        = xmlText(xml, "payment_id");
+	document.getElementById('payment_cc_name').value   = xmlText(xml, "field_0");
+	document.getElementById('payment_cc_number').value = xmlText(xml, "field_1");
+	document.getElementById('payment_exp_month').value = xmlText(xml, "field_2");
+	document.getElementById('payment_exp_year').value  = xmlText(xml, "field_3");
+	document.getElementById('payment_cc_cvv2').value   = xmlText(xml, "field_4");
   }
 }
 
@@ -158,65 +134,40 @@ function clearPayment() {
 }
 
 function deletePayment(id) {
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=contacts&page=ajax&op=contacts&action=rm_payment&pID='+id,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
-	},
-	success: deletePaymentResp
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_payment&pID='+id, deletePaymentResp);
 }
 
-function deletePaymentResp(sXml) {
-  var xml = parseXml(sXml);
+function deletePaymentResp(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var rowID = $(xml).find("payment_id").text();
-  if (rowID) $('#tr_pmt_'+rowID).remove();
-  var message = $(xml).find("message").text();
-  if (message) { alert (message); }
+  var rowID = xmlText(xml, "payment_id");
+  if (rowID) { var row = document.getElementById('tr_pmt_'+rowID); if (row) row.remove(); }
+  var message = xmlText(xml, "message");
+  if (message) alert(message);
 }
 
 function deleteCRM(id) {
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=contacts&page=ajax&op=contacts&action=rm_crm&nID='+id,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + errorThrown + '-' + XMLHttpRequest.responseText + "\nStatus: " + textStatus);
-	},
-	success: deleteCRMResp
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_crm&nID='+id, deleteCRMResp);
 }
 
-function deleteCRMResp(sXml) {
-  var xml = parseXml(sXml);
+function deleteCRMResp(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var rowID = $(xml).find("crm_id").text();
+  var rowID = xmlText(xml, "crm_id");
   if (rowID) {
-	  $('#tr_crm_a_'+rowID).remove();
-	  $('#tr_crm_b_'+rowID).remove();
+	  var rowA = document.getElementById('tr_crm_a_'+rowID); if (rowA) rowA.remove();
+	  var rowB = document.getElementById('tr_crm_b_'+rowID); if (rowB) rowB.remove();
   }
-  var message = $(xml).find("message").text();
-  if (message) { alert (message); }
+  var message = xmlText(xml, "message");
+  if (message) alert(message);
 }
 
 function downloadAttachment(filename) {
   var file_name = attachment_path+filename;
-  $.ajax({
-	type: "GET",
-	url: 'index.php?module=phreedom&page=ajax&op=phreedom&action=download&file='+file_name,
-	dataType: "xml",
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: downloadResponse
-  });
+  fetchXml('index.php?module=phreedom&page=ajax&op=phreedom&action=download&file='+file_name, downloadResponse);
 }
 
-function downloadResponse(sXML) {
-	var xml = parseXml(sXml);
-	if (!xml) return; 
+function downloadResponse(xml) {
+  xml = parseXml(xml);
+  if (!xml) return;
 }
-

@@ -97,48 +97,40 @@ function verifyCopy() {
 }
 
 function EditJournal(rID) {
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreebooks&page=ajax&op=load_record&rID='+rID,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: processEditJournal
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=load_record&rID='+rID, processEditJournal);
 }
 
-function processEditJournal(sXml) {
+function processEditJournal(xml) {
   var DebitOrCredit;
-  var xml = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
   document.getElementById('auto_complete').checked = false;
-  document.getElementById('id').value        = $(xml).find("id").first().text();
-  if ($(xml).find("purchase_invoice_id").text()) document.getElementById('purchase_invoice_id').value = $(xml).find("purchase_invoice_id").text();
-  document.getElementById('post_date').value = $(xml).find("post_date").first().text();
-  document.getElementById('recur_id').value  = $(xml).find("recur_id").text();
-  document.getElementById('store_id').value  = $(xml).find("store_id").text();
-  if ($(xml).find("attach_exist").text() == 1) {
+  document.getElementById('id').value        = xmlText(xml, "id");
+  if (xmlText(xml, "purchase_invoice_id")) document.getElementById('purchase_invoice_id').value = xmlText(xml, "purchase_invoice_id");
+  document.getElementById('post_date').value = xmlText(xml, "post_date");
+  document.getElementById('recur_id').value  = xmlText(xml, "recur_id");
+  document.getElementById('store_id').value  = xmlText(xml, "store_id");
+  if (xmlText(xml, "attach_exist") == 1) {
     document.getElementById('show_attach').style.display = '';
   }
   while (document.getElementById("item_table").rows.length > 0) document.getElementById("item_table").deleteRow(-1);
-  var id = $(xml).find("id").first().text();
+  var id = xmlText(xml, "id");
   if (id && securityLevel < 3) removeElement('tb_main_0', 'tb_icon_save');
   removeElement('tb_main_0', 'tb_icon_recur');
   var jIndex = 1;
-  $(xml).find("items").each(function() {
+  Array.from(xml.getElementsByTagName("items")).forEach(function(item) {
     var rowCnt = addGLRow();
-    document.getElementById('id_'+jIndex).value     = $(this).find("id").text();
-    document.getElementById('acct_'+jIndex).value   = $(this).find("gl_account").text();
-    if ($(this).find("description").text()) document.getElementById('desc_'+jIndex).value = $(this).find("description").text();
-    document.getElementById('debit_'+jIndex).value  = formatCurrency($(this).find("debit_amount").text());
-    document.getElementById('credit_'+jIndex).value = formatCurrency($(this).find("credit_amount").text());
-    DebitOrCredit = ($(this).find("debit_amount").text() != 0) ? 'd' : 'c';
+    document.getElementById('id_'+jIndex).value     = xmlText(item, "id");
+    document.getElementById('acct_'+jIndex).value   = xmlText(item, "gl_account");
+    if (xmlText(item, "description")) document.getElementById('desc_'+jIndex).value = xmlText(item, "description");
+    document.getElementById('debit_'+jIndex).value  = formatCurrency(xmlText(item, "debit_amount"));
+    document.getElementById('credit_'+jIndex).value = formatCurrency(xmlText(item, "credit_amount"));
+    DebitOrCredit = (xmlText(item, "debit_amount") != 0) ? 'd' : 'c';
     formatRow(jIndex, DebitOrCredit);
     jIndex++;
   });
   updateBalance();
-  if ($(xml).find("closed").text() == '1') alert('<?php echo WARNING_ENTRY_RECONCILED; ?>');
+  if (xmlText(xml, "closed") == '1') alert('<?php echo WARNING_ENTRY_RECONCILED; ?>');
 }
 
 function downloadAttachment() {

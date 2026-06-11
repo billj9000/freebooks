@@ -61,22 +61,14 @@ function setReturnItem(override) { // request funtion
     alert('The quantity cannot be less than or equal to zero!');
     return;
   }
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=upcDetails&cID='+id+'&qty='+qty+'&upc='+upc,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: processUpcDetails
-  });
+  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=upcDetails&cID='+id+'&qty='+qty+'&upc='+upc, processUpcDetails);
   document.getElementById('upc').focus();
 }
 
-function processUpcDetails(sXml) { // call back function
+function processUpcDetails(xml) { // call back function
   var rowID = 1;
   var i     = 1;
-  var xml   = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
   // retrieve the current empty row
   while (true) {
@@ -96,22 +88,22 @@ function processUpcDetails(sXml) { // call back function
     case  '4':
 	case  '9':
 	case '10':
-      window.opener.document.getElementById('qty_'+rowID).value  = $(xml).find("qty").text();
+      window.opener.document.getElementById('qty_'+rowID).value  = xmlText(xml, "qty");
 	  break;
 	default:
-      window.opener.document.getElementById('pstd_'+rowID).value = $(xml).find("qty").text();
+      window.opener.document.getElementById('pstd_'+rowID).value = xmlText(xml, "qty");
   }
-  window.opener.document.getElementById('sku_'+rowID).value       = $(xml).find("sku").text();
+  window.opener.document.getElementById('sku_'+rowID).value       = xmlText(xml, "sku");
   window.opener.document.getElementById('sku_'+rowID).style.color = '';
-  window.opener.document.getElementById('desc_'+rowID).value      = $(xml).find("description_sales").text();
-  window.opener.document.getElementById('full_'+rowID).value      = formatCurrency($(xml).find("full_price").text()  * exchange_rate);
-  window.opener.document.getElementById('price_'+rowID).value     = formatCurrency($(xml).find("sales_price").text() * exchange_rate);
-  window.opener.document.getElementById('acct_'+rowID).value      = $(xml).find("account_sales_income").text();
-  window.opener.document.getElementById('weight_'+rowID).value    = $(xml).find("item_weight").text();
-  window.opener.document.getElementById('stock_'+rowID).value     = $(xml).find("quantity_on_hand").text();
-  window.opener.document.getElementById('tax_'+rowID).value       = $(xml).find("item_taxable").text();
-  window.opener.document.getElementById('lead_'+rowID).value      = $(xml).find("lead_time").text();
-  window.opener.document.getElementById('inactive_'+rowID).value  = $(xml).find("inactive").text();
+  window.opener.document.getElementById('desc_'+rowID).value      = xmlText(xml, "description_sales");
+  window.opener.document.getElementById('full_'+rowID).value      = formatCurrency(xmlText(xml, "full_price")  * exchange_rate);
+  window.opener.document.getElementById('price_'+rowID).value     = formatCurrency(xmlText(xml, "sales_price") * exchange_rate);
+  window.opener.document.getElementById('acct_'+rowID).value      = xmlText(xml, "account_sales_income");
+  window.opener.document.getElementById('weight_'+rowID).value    = xmlText(xml, "item_weight");
+  window.opener.document.getElementById('stock_'+rowID).value     = xmlText(xml, "quantity_on_hand");
+  window.opener.document.getElementById('tax_'+rowID).value       = xmlText(xml, "item_taxable");
+  window.opener.document.getElementById('lead_'+rowID).value      = xmlText(xml, "lead_time");
+  window.opener.document.getElementById('inactive_'+rowID).value  = xmlText(xml, "inactive");
   window.opener.updateRowTotal(rowID, true);
   window.opener.addInvRow();
 }
