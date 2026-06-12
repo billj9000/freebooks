@@ -16,8 +16,7 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/contacts/pages/main/template_i_general.php
 //
-// some setup
-$acct_def = (!$cInfo->dept_rep_id) ? array() : array(array('id'=>$cInfo->dept_rep_id, 'text'=>gen_get_contact_name($cInfo->dept_rep_id)));
+$dept_rep_display = $cInfo->dept_rep_id ? gen_get_contact_name($cInfo->dept_rep_id) . ' [' . (int)$cInfo->dept_rep_id . ']' : '';
 // *********************** Display account information ****************************** ?>
 <div id="tab_general" class="tab-pane">
   <fieldset>
@@ -47,7 +46,13 @@ $acct_def = (!$cInfo->dept_rep_id) ? array() : array(array('id'=>$cInfo->dept_re
       </tr>
       <tr>
         <td align="right"><?php echo TEXT_LINK_TO . ' '; ?></td>
-        <td><?php echo html_combo_box('dept_rep_id', $acct_def, $cInfo->dept_rep_id, 'onkeyup="loadContacts()"'); ?></td>
+        <td>
+          <input type="text" id="dept_rep_search" list="dept_rep_list" autocomplete="off"
+                 value="<?php echo htmlspecialchars($dept_rep_display); ?>"
+                 onkeyup="loadContacts()" onchange="selectContact(this)">
+          <input type="hidden" name="dept_rep_id" id="dept_rep_id" value="<?php echo (int)$cInfo->dept_rep_id; ?>">
+          <datalist id="dept_rep_list"></datalist>
+        </td>
         <td>&nbsp;</td>
         <td>&nbsp;</td>
       </tr>

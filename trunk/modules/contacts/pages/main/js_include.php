@@ -66,26 +66,30 @@ function fillAddressFromLookup(el, addType) {
   document.getElementById('postcode_results_' + addType).innerHTML = '';
 }
 function loadContacts() {
-  var guess = document.getElementById('dept_rep_id').value;
+  var guess = document.getElementById('dept_rep_search').value;
   if (guess.length < 3) return;
-  fetchXml('index.php?module=contacts&page=ajax&op=load_contact_info&guess='+guess, fillContacts);
+  fetchXml('index.php?module=contacts&page=ajax&op=load_contact_info&guess=' + encodeURIComponent(guess), fillContacts);
 }
 
 function fillContacts(xml) {
   xml = parseXml(xml);
   if (!xml) return;
-  while (document.getElementById('comboseldept_rep_id').options.length) document.getElementById('comboseldept_rep_id').remove(0);
-  var iIndex = 0;
+  var dl = document.getElementById('dept_rep_list');
+  if (!dl) return;
+  dl.innerHTML = '';
   Array.from(xml.getElementsByTagName("guesses")).forEach(function(guess) {
     var text = xmlText(guess, "guess");
-    var newOpt = document.createElement("option");
-    newOpt.text = text ? text : '<?php echo TEXT_FIND; ?>';
-    document.getElementById('comboseldept_rep_id').options.add(newOpt);
-    document.getElementById('comboseldept_rep_id').options[iIndex].value = xmlText(guess, "id");
-    if (!fActiveMenu) cbMmenuActivate('dept_rep_id', 'combodivdept_rep_id', 'comboseldept_rep_id', 'imgNamedept_rep_id');
-    document.getElementById('dept_rep_id').focus();
-    iIndex++;
+    var id   = xmlText(guess, "id");
+    var opt  = document.createElement("option");
+    opt.value = (text || '<?php echo TEXT_FIND; ?>') + ' [' + id + ']';
+    dl.appendChild(opt);
   });
+}
+
+function selectContact(input) {
+  var match = input.value.match(/\[(\d+)\]$/);
+  var hidden = document.getElementById('dept_rep_id');
+  if (hidden) hidden.value = match ? match[1] : '';
 }
 
 // -->
