@@ -141,6 +141,24 @@ function get_doc_history($id, $revision_level = 0) {
   return $output;
 }
 
+function dc_remove_node($id) {
+  global $db;
+  $id = (int)$id;
+  if ($id <= 1) return false;
+  $node = $db->Execute("SELECT `left`, `right`, parent_id, position FROM " . TABLE_DC_DOCUMENT . " WHERE id = $id");
+  if ($node->EOF) return false;
+  $lft = (int)$node->fields['left'];
+  $rgt = (int)$node->fields['right'];
+  $pid = (int)$node->fields['parent_id'];
+  $pos = (int)$node->fields['position'];
+  $dif = $rgt - $lft + 1;
+  $db->Execute("DELETE FROM " . TABLE_DC_DOCUMENT . " WHERE `left` >= $lft AND `right` <= $rgt");
+  $db->Execute("UPDATE " . TABLE_DC_DOCUMENT . " SET `left` = `left` - $dif WHERE `left` > $rgt");
+  $db->Execute("UPDATE " . TABLE_DC_DOCUMENT . " SET `right` = `right` - $dif WHERE `right` > $lft");
+  $db->Execute("UPDATE " . TABLE_DC_DOCUMENT . " SET position = position - 1 WHERE parent_id = $pid AND position > $pos");
+  return true;
+}
+
 function security_check($tokens) {
 	$categories = explode(';', $tokens);
 	$user_str = ':' . $_SESSION['admin_id'] . ':';

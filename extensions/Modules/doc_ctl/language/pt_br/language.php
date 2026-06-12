@@ -29,6 +29,7 @@ define('TEXT_MY_BOOKMARKS','Minhas Marcações');
 define('TEXT_MY_CHECKED_OUT','Arquivos Verificados');
 define('TEXT_NEW_FOLDER','Nova Pasta');
 define('TEXT_NEW_DOCUMENT','Novo Documento');
+define('TEXT_SELECT_FOLDER','Por favor, selecione uma pasta primeiro.');
 define('TEXT_NO_BOOKMARKS','Não foram feitas marcações');
 define('TEXT_NO_CHECKED_OUT','Não foram encontrados arquivos verificados');
 if (!defined('TEXT_NO_DOCUMENTS')) define('TEXT_NO_DOCUMENTS','Não forma encontrados documentos');

@@ -38,6 +38,7 @@ define('TEXT_MY_BOOKMARKS','My Bookmarks');
 define('TEXT_MY_CHECKED_OUT','Checked Out Files');
 define('TEXT_NEW_FOLDER','New Folder');
 define('TEXT_NEW_DOCUMENT','New Document');
+define('TEXT_SELECT_FOLDER','Please select a folder first.');
 define('TEXT_NO_BOOKMARKS','No Bookmarks Have Been Set.');
 define('TEXT_NO_CHECKED_OUT','No Checked Out Files Have Been Found.');
 if (!defined('TEXT_NO_DOCUMENTS')) define('TEXT_NO_DOCUMENTS','No Documents Have Been Found.');

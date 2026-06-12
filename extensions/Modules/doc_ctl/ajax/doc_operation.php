@@ -21,7 +21,7 @@ $security_level = validate_ajax_user(SECURITY_ID_DOC_CONTROL);
 require_once(DIR_FS_MODULES . 'doc_ctl/defaults.php');
 require_once(DIR_FS_MODULES . 'doc_ctl/functions/doc_ctl.php');
 /**************   page specific initialization  *************************/
-$xml       = NULL;
+$xml       = '';
 $ajax_text = '';
 $id        = (int)$_GET['id'];
 
@@ -50,26 +50,11 @@ switch ($_REQUEST['action']) {
 	$db->Execute("update " . TABLE_DC_DOCUMENT . " set lock_id = 0 where  id = " . $id);
     break;
   case 'delete':
-	// jstree initialization
-	$db_config = array(
-	  "servername" => DB_SERVER_HOST,
-	  "username"   => DB_SERVER_USERNAME,
-	  "password"   => DB_SERVER_PASSWORD,
-	  "database"   => DB_DATABASE,
-	);
-	if (extension_loaded("mysqli")) { require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class._database_i.php"); }
-	  else { require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class._database.php"); }
-	// Tree class
-	require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class.tree.php");
-	$jstree = new json_tree();
-
 	$file_name = str_pad($id, 8, '0', STR_PAD_LEFT) . '_*.dc'; // delete all revisions
-	if (sizeof(glob(DOC_CTL_DIR_MY_DOCS . $file_name) > 0)) foreach (glob(DOC_CTL_DIR_MY_DOCS . $file_name) as $filename) unlink($filename);
-	// deleted from database tree
-	$_POST['operation'] = $_REQUEST['operation'] = 'remove_node';
-	$_POST['id']        = $_REQUEST['id']        = $id;
-	$jstree->{'remove_node'}($_REQUEST);
-	$id = $doc_details->fields['parent_id']; // set the id to the parent to display refreshed page
+	$files = glob(DOC_CTL_DIR_MY_DOCS . $file_name);
+	if (is_array($files)) foreach ($files as $filename) unlink($filename);
+	dc_remove_node($id);
+	$id = $doc_details->fields['parent_id'];
 	$xml .= "\t" . xmlEntry("action", 'reload_tree');
 	break;
   case 'delete_dir':
@@ -79,23 +64,8 @@ switch ($_REQUEST['action']) {
 	  $ajax_text = DOC_CTL_JS_DIR_DELETED_ERROR;
 	  break;
 	}
-	// jstree initialization
-	$db_config = array(
-	  "servername" => DB_SERVER_HOST,
-	  "username"   => DB_SERVER_USERNAME,
-	  "password"   => DB_SERVER_PASSWORD,
-	  "database"   => DB_DATABASE,
-	);
-	if (extension_loaded("mysqli")) { require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class._database_i.php"); }
-	  else { require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class._database.php"); }
-	// Tree class
-	require_once(DIR_FS_MODULES . "doc_ctl/includes/jstree/_lib/class.tree.php");
-	$jstree = new json_tree();
-	// deleted from database tree
-	$_POST['operation'] = $_REQUEST['operation'] = 'remove_node';
-	$_POST['id']        = $_REQUEST['id']        = $id;
-	$jstree->{'remove_node'}($_REQUEST);
-	$id = $doc_details->fields['parent_id']; // set the id to the parent to display refreshed page
+	dc_remove_node($id);
+	$id = $doc_details->fields['parent_id'];
 	$ajax_text = '';
 	$xml .= "\t" . xmlEntry("action", 'reload_tree');
 	break;
@@ -104,6 +74,7 @@ switch ($_REQUEST['action']) {
 // put the output together
 $xml .= "\t" . xmlEntry("docID", $id);
 $xml .= "\t" . xmlEntry("msg",   $ajax_text);
+ob_clean();
 echo createXmlHeader() . $xml . createXmlFooter();
 die;
 ?>

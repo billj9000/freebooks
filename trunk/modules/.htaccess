@@ -37,7 +37,7 @@
 </FilesMatch>
 
 # but now allow just *certain* necessary files:
-<FilesMatch ".*\.(jpe?g|JPE?G|gif|GIF|png|PNG|svg|SVG|swf|SWF|js|JS|html|HTML|CSS|css|JAR|jar)$" >
+<FilesMatch ".*\.(jpe?g|JPE?G|gif|GIF|png|PNG|svg|SVG|swf|SWF|js|JS|html|HTML|CSS|css|JAR|jar|woff2|woff|ttf|eot)$" >
   Order Allow,Deny
   Allow from all
 </FilesMatch>

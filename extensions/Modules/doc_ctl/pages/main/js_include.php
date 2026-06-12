@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -16,217 +17,120 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/doc_ctl/pages/main/js_include.php
 //
-
 ?>
-<script type="text/javascript" src="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_lib/jquery.cookie.js"></script>
-<script type="text/javascript" src="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_lib/jquery.hotkeys.js"></script>
-<script type="text/javascript" src="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/jquery.jstree.js"></script>
-<link type="text/css" rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_docs/syntax/!style.css"/>
-<link type="text/css" rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_docs/!style.css"/>
-<script type="text/javascript" src="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/jstree/_docs/syntax/!script.js"></script>
+<link rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/bootstrap-icons/bootstrap-icons.min.css"/>
+<link rel="stylesheet" href="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/wunderbaum/wunderbaum.min.css"/>
+<script src="<?php echo DIR_WS_ADMIN; ?>modules/doc_ctl/includes/wunderbaum/wunderbaum.umd.min.js"></script>
 <script type="text/javascript">
-// required function called with every page load
+var docTree = null;
+var WB_TREE_URL = "index.php?module=doc_ctl&page=ajax&op=wb_operation&sub=wb_tree";
+
+function wbPost(url, params) {
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) params['csrf_token'] = meta.getAttribute('content');
+  return fetch(url, { method: 'POST', body: new URLSearchParams(params) });
+}
+
 function init() {
-// JavaScript necessary for the tree
-  $(function () {
-    $("#demo")
-	  .bind("before.jstree", function (e, data) {
-		$("#alog").append(data.func + "<br />");
-	  })
-	  .jstree({ // List of active plugins
-		"plugins" : [ 
-			"themes","json_data","ui","crrm","cookies","dnd","search","types","hotkeys","contextmenu" 
-		],
-		"json_data" : { 
-			"ajax" : {
-				"url" : "index.php?module=doc_ctl&page=ajax&op=jstree_operation",
-				"data" : function (n) { 
-					return { 
-						"operation" : "get_children", 
-						"id" : n.attr ? n.attr("id").replace("node_","") : 1 
-					}; 
-				}
-			}
-		},
-		"search" : {
-			"ajax" : {
-				"url" : "index.php?module=doc_ctl&page=ajax&op=jstree_operation",
-				"data" : function (str) {
-					return { 
-						"operation" : "search", 
-						"search_str" : str 
-					}; 
-				}
-			}
-		},
-		"types" : {
-			"max_depth" : -2,
-			"max_children" : -2,
-			"valid_children" : [ "drive" ],
-			"types" : {
-				"default" : {
-					"valid_children" : "none",
-					"icon" : {
-						"image" : "<?php echo DIR_WS_ICONS; ?>16x16/actions/format-justify-fill.png"
-					}
-				},
-				"folder" : {
-					"valid_children" : [ "default", "folder" ],
-					"icon" : {
-						"image" : "<?php echo DIR_WS_ICONS; ?>16x16/status/folder-open.png"
-					}
-				},
-				"drive" : {
-					"valid_children" : [ "default", "folder" ],
-					"icon" : {
-						"image" : "<?php echo DIR_WS_ICONS; ?>16x16/devices/drive-harddisk.png"
-					},
-					"start_drag" : false,
-					"move_node" : false,
-					"delete_node" : false,
-					"remove" : false
-				}
-			}
-		},
-		"ui" : {
-			"initially_select" : [ "node_4" ]
-		},
-		"core" : { 
-			"initially_open" : [ "node_2" , "node_3" ] 
-		}
-	})
-	.bind("create.jstree", function (e, data) {
-		$.post(
-			"index.php?module=doc_ctl&page=ajax&op=jstree_operation", 
-			{ 
-				"operation" : "create_node", 
-				"id" : data.rslt.parent.attr("id").replace("node_",""), 
-				"position" : data.rslt.position,
-				"title" : data.rslt.name,
-				"type" : data.rslt.obj.attr("rel")
-			}, 
-			function (r) {
-				if(r.status) {
-					$(data.rslt.obj).attr("id", "node_" + r.id);
-				}
-				else {
-					$.jstree.rollback(data.rlbk);
-				}
-			}
-		);
-	})
-	.bind("remove.jstree", function (e, data) {
-		data.rslt.obj.each(function () {
-			$.ajax({
-				async : false,
-				type: 'POST',
-				url: "index.php?module=doc_ctl&page=ajax&op=jstree_operation",
-				data : { 
-					"operation" : "remove_node", 
-					"id" : this.id.replace("node_","")
-				}, 
-				success : function (r) {
-					if(!r.status) {
-						data.inst.refresh();
-					}
-				}
-			});
-		});
-	})
-	.bind("rename.jstree", function (e, data) {
-		$.post(
-			"index.php?module=doc_ctl&page=ajax&op=jstree_operation", 
-			{ 
-				"operation" : "rename_node", 
-				"id" : data.rslt.obj.attr("id").replace("node_",""),
-				"title" : data.rslt.new_name
-			}, 
-			function (r) {
-				if(!r.status) {
-					$.jstree.rollback(data.rlbk);
-				}
-			}
-		);
-	})
-    .bind("select_node.jstree", function (event, data) {
-       fetch_doc(data.rslt.obj.attr("id").replace("node_",""));
-    })
-	.bind("move_node.jstree", function (e, data) {
-		data.rslt.o.each(function (i) {
-			$.ajax({
-				async : false,
-				type: 'POST',
-				url: "index.php?module=doc_ctl&page=ajax&op=jstree_operation",
-				data : { 
-					"operation" : "move_node", 
-					"id" : $(this).attr("id").replace("node_",""), 
-					"ref" : data.rslt.cr === -1 ? 1 : data.rslt.np.attr("id").replace("node_",""), 
-					"position" : data.rslt.cp + i,
-					"title" : data.rslt.name,
-					"copy" : data.rslt.cy ? 1 : 0
-				},
-				success : function (r) {
-					if(!r.status) {
-						$.jstree.rollback(data.rlbk);
-					}
-					else {
-						$(data.rslt.oc).attr("id", "node_" + r.id);
-						if(data.rslt.cy && $(data.rslt.oc).children("UL").length) {
-							data.inst.refresh(data.inst._get_parent(data.rslt.oc));
-						}
-					}
-					$("#analyze").click();
-				}
-			});
-		});
-	});
+  docTree = new mar10.Wunderbaum({
+    element: document.getElementById("demo"),
+    debugLevel: 0,
+    source: WB_TREE_URL,
+    iconMap: "bootstrap",
+    types: {
+      drive:   { icon: icon_path + "16x16/devices/drive-harddisk.png" },
+      folder:  { icon: icon_path + "16x16/places/folder.png" },
+      default: { icon: icon_path + "16x16/mimetypes/text-x-generic.png" }
+    },
+    filter: {
+      autoExpand: true,
+      mode: "hide"
+    },
+    edit: {
+      trigger: ["F2"],
+      apply: function(e) {
+        if (!e.newValue) return false;
+        return wbPost("index.php?module=doc_ctl&page=ajax&op=wb_operation",
+          { sub: "wb_rename", id: e.node.key, title: e.newValue }
+        ).then(function(r) { return r.json(); }).then(function(r) {
+          if (!r.status) return false;
+          fetch_doc(e.node.key);
+        });
+      }
+    },
+    dnd: {
+      dragStart: function(e) {
+        return e.node.type !== "drive";
+      },
+      dragEnter: function(e) {
+        if (e.node.type === "folder" || e.node.type === "drive") return "over";
+        return ["before", "after"];
+      },
+      drop: function(e) {
+        e.sourceNode.moveTo(e.node, e.suggestedDropMode);
+        var parent   = e.sourceNode.parent;
+        var parentKey = (parent && parent.key) ? parent.key : "1";
+        var position  = parent && parent.children ? parent.children.indexOf(e.sourceNode) : 0;
+        if (position < 0) position = 0;
+        wbPost("index.php?module=doc_ctl&page=ajax&op=wb_operation",
+          { sub: "wb_move", id: e.sourceNode.key, ref: parentKey, position: position }
+        ).catch(function() { docTree.load(WB_TREE_URL); });
+      }
+    },
+    activate: function(e) {
+      if (e.node) fetch_doc(e.node.key);
+    }
   });
-  // Code for the menu buttons
-  $(function () { 
-	$("#mmenu img").click(function () {
-		switch(this.id) {
-			case "add_default":
-			case "add_folder":
-				$("#demo").jstree("create", null, "last", { "attr" : { "rel" : this.id.toString().replace("add_", "") } });
-				break;
-			case "search":
-				$("#demo").jstree("search", document.getElementById("text").value);
-				break;
-			case "text": break;
-			default:
-				$("#demo").jstree(this.id);
-				break;
-		}
-	});
+
+  document.getElementById("add_folder").addEventListener("click", function() { docAddNode("folder"); });
+  document.getElementById("add_default").addEventListener("click", function() { docAddNode("default"); });
+  document.getElementById("rename").addEventListener("click", function() {
+    var node = docTree.getActiveNode();
+    if (node && node.type !== "drive") node.startEditTitle();
+  });
+  document.getElementById("search").addEventListener("click", function() {
+    var q = document.querySelector("#mmenu input[name='text']").value;
+    if (q) docTree.filterNodes(q, { mode: "hide", autoExpand: true });
+  });
+  document.getElementById("clear_search").addEventListener("click", function() {
+    docTree.clearFilter();
+    document.querySelector("#mmenu input[name='text']").value = "";
   });
 }
 
-// required function called with every form submit. return true on success
 function check_form() {
-	return true;
+  return true;
 }
 
-function boxShow(id) {
-	document.getElementById(id).style.display = '';
-	document.getElementById('up_arrow').style.display = '';
-	document.getElementById('down_arrow').style.display = 'none';
+function docAddNode(type) {
+  var node = docTree ? docTree.getActiveNode() : null;
+  if (!node || (node.type !== "folder" && node.type !== "drive")) {
+    alert("<?php echo addslashes(TEXT_SELECT_FOLDER); ?>");
+    return;
+  }
+  var prompt_msg = (type === "folder") ? "<?php echo addslashes(TEXT_NEW_FOLDER); ?>" : "<?php echo addslashes(TEXT_NEW_DOCUMENT); ?>";
+  var title = prompt(prompt_msg + ":");
+  if (!title || !title.trim()) return;
+  title = title.trim();
+  wbPost("index.php?module=doc_ctl&page=ajax&op=wb_operation",
+    { sub: "wb_create", parent_id: node.key, title: title, type: type }
+  ).then(function(r) { return r.json(); }).then(function(r) {
+    if (r.status && r.id) {
+      var newNode = { title: title, key: String(r.id), type: type, folder: (type === "folder") };
+      if (type === "folder") newNode.children = [];
+      node.addNode(newNode, "appendChild");
+      node.setExpanded(true);
+    }
+  });
 }
 
-function boxHide(id) {
-	document.getElementById(id).style.display = 'none';
-	document.getElementById('up_arrow').style.display = 'none';
-	document.getElementById('down_arrow').style.display = '';
-}
-
-// ajax call to get center column details
 function fetch_home() {
   fetch_doc(-1);
 }
 
 function fetch_doc(id) {
-//  document.getElementById("id").value = id;
   if (!id) return;
-  fetchXml('index.php?module=doc_ctl&page=ajax&op=load_doc_details&id='+id, fillDocDetails);
+  fetchXml("index.php?module=doc_ctl&page=ajax&op=load_doc_details&id=" + id, fillDocDetails);
 }
 
 function fillDocDetails(xml) {
@@ -234,22 +138,22 @@ function fillDocDetails(xml) {
   document.getElementById("rightColumn").innerHTML = xmlText(xml, "htmlContents");
 }
 
-// misc functions for action processing
 function docAction(action) {
-  var id = document.getElementById("id").value;
+  var idEl = document.getElementById("id");
+  var id = idEl ? idEl.value : "";
   if (!id) return;
-  fetchXml('index.php?module=doc_ctl&page=ajax&op=doc_operation&action='+action+'&id='+id, docActionResp);
+  fetchXml("index.php?module=doc_ctl&page=ajax&op=doc_operation&action=" + action + "&id=" + id, docActionResp);
 }
 
 function docActionResp(xml) {
   if (!xml) return;
   if (xmlText(xml, "msg")) alert(xmlText(xml, "msg"));
   fetch_doc(xmlText(xml, "docID"));
-  if (xmlText(xml, "action") == 'reload_tree') $('#demo').jstree('refresh',-1);
+  if (xmlText(xml, "action") === "reload_tree" && docTree) docTree.load(WB_TREE_URL);
 }
 
 function deleteBookmark(id) {
-  fetchXml('index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel&action=del_bookmark&id='+id, respDelBookmark);
+  fetchXml("index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel&action=del_bookmark&id=" + id, respDelBookmark);
 }
 
 function respDelBookmark(xml) {
@@ -257,5 +161,4 @@ function respDelBookmark(xml) {
   if (xmlText(xml, "msg")) alert(xmlText(xml, "msg"));
   location.reload(true);
 }
-
 </script>

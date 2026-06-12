@@ -45,12 +45,12 @@ echo $toolbar->build_toolbar();
         <div id="mmenu" style="height:50px;overflow:auto">
           <?php echo html_icon('actions/folder-new.png', TEXT_NEW_FOLDER, 'medium', '', NULL, NULL, 'add_folder') . chr(10); ?>
           <?php echo html_icon('actions/document-new.png', TEXT_NEW_DOCUMENT, 'medium', '', NULL, NULL, 'add_default') . chr(10); ?>
-          <?php echo html_icon('apps/accessories-text-editor.php', TEXT_RENAME, 'medium', '', NULL, NULL, 'rename') . chr(10); ?>
+          <?php echo html_icon('apps/accessories-text-editor.png', TEXT_RENAME, 'medium', '', NULL, NULL, 'rename') . chr(10); ?>
           <?php echo html_input_field('text', '', '') . chr(10); ?>
           <?php echo html_icon('actions/system-search.png', TEXT_SEARCH, 'medium', '', NULL, NULL, 'search') . chr(10); ?>
           <?php echo html_icon('actions/view-refresh.png', TEXT_CLEAR, 'medium', '', NULL, NULL, 'clear_search') . chr(10); ?>
         </div>
-        <div id="demo" class="demo"></div>
+        <div id="demo" style="height:460px;overflow:auto;"></div>
       </div>
       <div class="mt-1"><small>NOTE: To add a document or folder, select a folder to insert into and press the icon.</small></div>
     </div>
