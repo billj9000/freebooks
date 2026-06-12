@@ -56,9 +56,9 @@ foreach ($gl_rows as $row):
 ?>
           <tr class="<?php echo $odd ? 'odd' : 'even'; ?>">
             <td><?php echo $row['label']; ?></td>
-            <td><?php echo html_combo_box($p.'_default_sales',      $inc_chart, $_POST[$p.'_default_sales']      ?: (defined($const_sales) ? constant($const_sales) : ''), ''); ?></td>
-            <td><?php echo html_combo_box($p.'_default_inventory',  $inv_chart, $_POST[$p.'_default_inventory']  ?: (defined($const_inv)   ? constant($const_inv)   : ''), ''); ?></td>
-            <td><?php echo $row['has_cogs'] ? html_combo_box($p.'_default_cos', $cog_chart, $_POST[$p.'_default_cos'] ?: (defined($const_cogs) ? constant($const_cogs) : ''), '') : '&nbsp;'; ?></td>
+            <td><?php echo html_pull_down_menu($p.'_default_sales',      $inc_chart, $_POST[$p.'_default_sales']      ?: (defined($const_sales) ? constant($const_sales) : ''), ''); ?></td>
+            <td><?php echo html_pull_down_menu($p.'_default_inventory',  $inv_chart, $_POST[$p.'_default_inventory']  ?: (defined($const_inv)   ? constant($const_inv)   : ''), ''); ?></td>
+            <td><?php echo $row['has_cogs'] ? html_pull_down_menu($p.'_default_cos', $cog_chart, $_POST[$p.'_default_cos'] ?: (defined($const_cogs) ? constant($const_cogs) : ''), '') : '&nbsp;'; ?></td>
             <td><?php echo $row['has_cost'] ? html_pull_down_menu($p.'_default_costing', $cost_methods, $_POST[$p.'_default_costing'] ?: (defined($const_cost) ? constant($const_cost) : ''), '') : '&nbsp;'; ?></td>
           </tr>
 <?php $odd = !$odd; endforeach; ?>
