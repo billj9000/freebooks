@@ -20,12 +20,12 @@
 ?>
 <script type="text/javascript">
 function init() {
-  new DataTable('#dept_table',       dataTables_i18n);
-  new DataTable('#dept_type_table',  dataTables_i18n);
-  new DataTable('#proj_cost_table',  dataTables_i18n);
-  new DataTable('#proj_phase_table', dataTables_i18n);
-  new DataTable('#tab_table',        dataTables_i18n);
-  new DataTable('#field_table',      dataTables_i18n);
+  new simpleDatatables.DataTable('#dept_table',       dataTables_i18n);
+  new simpleDatatables.DataTable('#dept_type_table',  dataTables_i18n);
+  new simpleDatatables.DataTable('#proj_cost_table',  dataTables_i18n);
+  new simpleDatatables.DataTable('#proj_phase_table', dataTables_i18n);
+  new simpleDatatables.DataTable('#tab_table',        dataTables_i18n);
+  new simpleDatatables.DataTable('#field_table',      dataTables_i18n);
 }
 
 function check_form() {

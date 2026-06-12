@@ -26,20 +26,16 @@
 // jquery DataTables translation 
 // More translations can be found at http://datatables.net/plug-ins/i18n
 var dataTables_i18n = {
-  "language": {
-    "processing":   "Verwerken...",
-    "lengthMenu":   "Toon _MENU_ regels",
-    "zeroRecords":  "Geen passende resultaten gevonden",
-    "info":         "Toon _START_ tot _END_ van _TOTAL_ regels",
-    "infoEmpty":    "Toon 0 tot 0 van 0 regels",
-    "infoFiltered": "(gefiltereerd van _MAX_ totaal regels)",
-    "search":       "Zoek:",
-    "paginate": {
-      "first":    "Eerste",
-      "previous": "Vorige",
-      "next":     "Volgende",
-      "last":     "Laatste"
-    }
-  }
+  labels: {
+    placeholder: "Zoeken...",
+    perPage:     "regels per pagina",
+    noRows:      "Geen regels gevonden",
+    noResults:   "Geen passende resultaten gevonden",
+    info:        "Toon {start} tot {end} van {rows} regels"
+  },
+  firstText: "Eerste",
+  prevText:  "Vorige",
+  nextText:  "Volgende",
+  lastText:  "Laatste"
 };
 

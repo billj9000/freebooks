@@ -58,7 +58,6 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   var formatted_zero      = "<?php echo $currencies->format(0); ?>";
 <?php } ?>
   </script>
-  <script src="includes/jquery.slim.min.js"></script>
   <script src="includes/datatables.min.js"></script>
   <script type="text/javascript" src="includes/common.js"></script>
   <script type="text/javascript" src="jodit/jodit.min.js"></script>

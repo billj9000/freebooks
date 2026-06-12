@@ -24,7 +24,7 @@
 <?php echo js_calendar_init($cal_clean); ?>
 
 function init() {
-  new DataTable('#currency_table', dataTables_i18n);
+  new simpleDatatables.DataTable('#currency_table', dataTables_i18n);
   updateEmailTransport();
 }
 

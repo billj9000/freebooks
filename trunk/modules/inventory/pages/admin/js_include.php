@@ -20,8 +20,8 @@
 ?>
 <script type="text/javascript">
 function init() {
-  new DataTable('#tab_table',   dataTables_i18n);
-  new DataTable('#field_table', dataTables_i18n);
+  new simpleDatatables.DataTable('#tab_table',   dataTables_i18n);
+  new simpleDatatables.DataTable('#field_table', dataTables_i18n);
 }
 
 function check_form() {

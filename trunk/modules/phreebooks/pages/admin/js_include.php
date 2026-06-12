@@ -20,18 +20,21 @@
 ?>
 <script type="text/javascript">
 function init() {
-  new DataTable('#coa_table', Object.assign({}, dataTables_i18n, {
-    drawCallback: function() {
-      document.querySelectorAll('#coa_table tbody tr').forEach(function(tr) {
-        var rcEl = tr.querySelector('[data-rc]');
-        if (rcEl) tr.classList.add(rcEl.getAttribute('data-rc'));
-      });
-    }
-  }));
-  new DataTable('#tax_c_table',      dataTables_i18n);
-  new DataTable('#tax_v_table',      dataTables_i18n);
-  new DataTable('#tax_auth_c_table', dataTables_i18n);
-  new DataTable('#tax_auth_v_table', dataTables_i18n);
+  var coaTable = new simpleDatatables.DataTable('#coa_table', dataTables_i18n);
+  var applyCoaRowClasses = function() {
+    document.querySelectorAll('#coa_table tbody tr').forEach(function(tr) {
+      var rcEl = tr.querySelector('[data-rc]');
+      if (rcEl) tr.classList.add(rcEl.getAttribute('data-rc'));
+    });
+  };
+  coaTable.on('datatable.init',   applyCoaRowClasses);
+  coaTable.on('datatable.page',   applyCoaRowClasses);
+  coaTable.on('datatable.sort',   applyCoaRowClasses);
+  coaTable.on('datatable.search', applyCoaRowClasses);
+  new simpleDatatables.DataTable('#tax_c_table',      dataTables_i18n);
+  new simpleDatatables.DataTable('#tax_v_table',      dataTables_i18n);
+  new simpleDatatables.DataTable('#tax_auth_c_table', dataTables_i18n);
+  new simpleDatatables.DataTable('#tax_auth_v_table', dataTables_i18n);
 }
 
 function check_form() {

@@ -27,20 +27,16 @@
 // jquery DataTables translation 
 // More translations can be found at http://datatables.net/plug-ins/i18n
 var dataTables_i18n = {
-  "language": {
-    "processing":   "Processing...",
-    "lengthMenu":   "Show _MENU_ entries",
-    "zeroRecords":  "No matching records found",
-    "info":         "Showing _START_ to _END_ of _TOTAL_ entries",
-    "infoEmpty":    "Showing 0 to 0 of 0 entries",
-    "infoFiltered": "(filtered from _MAX_ total entries)",
-    "search":       "Search:",
-    "paginate": {
-      "first":    "First",
-      "previous": "Previous",
-      "next":     "Next",
-      "last":     "Last"
-    }
-  }
+  labels: {
+    placeholder: "Search...",
+    perPage:     "entries per page",
+    noRows:      "No entries found",
+    noResults:   "No matching records found",
+    info:        "Showing {start} to {end} of {rows} entries"
+  },
+  firstText: "First",
+  prevText:  "Previous",
+  nextText:  "Next",
+  lastText:  "Last"
 };
 
