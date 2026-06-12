@@ -106,8 +106,8 @@ class HTML {
 
   function ReportTable($Data) {
 	global $report, $Seq;
-	$this->output .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' . chr(10);
-	$this->output .= '<html xmlns="http://www.w3.org/1999/xhtml" ' . HTML_PARAMS . '>' . chr(10);
+	$this->output .= '<!DOCTYPE html>' . chr(10);
+	$this->output .= '<html ' . HTML_PARAMS . '>' . chr(10);
  	$this->output .= '<head>' . chr(10);
   	$this->output .= '<meta http-equiv="Content-Type" content="text/html; charset=' . CHARSET . '" />' . chr(10);
   	$this->output .= '<title>' . $this->title . '</title>' . chr(10);

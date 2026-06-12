@@ -52,14 +52,14 @@ function InventoryList(rowCnt) {
 
 function serialList(id) {
   var rowID = id.replace('serial_', '');
-  var qty   = $('#qty_' + rowID).val();
+  var qty   = document.getElementById('qty_' + rowID).value;
   if (qty == 1) {
-    var newChoice = prompt(serial_num_prompt, $('#' + id).val());
-    $('#' + id).val(newChoice);
+    var newChoice = prompt(serial_num_prompt, document.getElementById(id).value);
+    document.getElementById(id).value = newChoice;
   } else if (qty == -1) {
-    var sku     = $('#sku_' + rowID).val();
-    var storeID = $('#store_id').val() || '0';
-    window.open('index.php?module=inventory&page=popup_serial&def=' + $('#' + id).val() + '&sku=' + sku + '&rowID=' + rowID + '&storeID=' + storeID, 'serialize', 'width=700,height=550,resizable=1,scrollbars=1,top=150,left=200');
+    var sku     = document.getElementById('sku_' + rowID).value;
+    var storeID = document.getElementById('store_id').value || '0';
+    window.open('index.php?module=inventory&page=popup_serial&def=' + document.getElementById(id).value + '&sku=' + sku + '&rowID=' + rowID + '&storeID=' + storeID, 'serialize', 'width=700,height=550,resizable=1,scrollbars=1,top=150,left=200');
   } else {
     alert('<?php echo addslashes('Quantity must be 1 or -1 for serialized items!'); ?>');
   }
@@ -74,54 +74,41 @@ function loadSkuDetails(iID, rowCnt, strict) {
     document.getElementById('sku_' + value).focus();
   }
   if (sku == text_search) return;
-  $.ajax({
-    type: 'GET',
-    url: 'index.php?module=inventory&page=ajax&op=inv_details&iID=' + iID + '&sku=' + sku + '&bID=' + bID + '&rID=' + rowCnt + '&strict=' + strict,
-    dataType: 'xml',
-    error: function(xhr, textStatus, errorThrown) {
-      alert('Ajax Error: ' + xhr.responseText + '\nTextStatus: ' + textStatus + '\nErrorThrown: ' + errorThrown);
-    },
-    success: processSkuStock
-  });
+  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&iID=' + iID + '&sku=' + sku + '&bID=' + bID + '&rID=' + rowCnt + '&strict=' + strict, processSkuStock);
 }
 
-function processSkuStock(sXml) {
-  var xml = parseXml(sXml);
+function processSkuStock(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  if (!$(xml).find('rID').text()) return;
-  var rCnt = $(xml).find('rID').text();
-  var sku  = $(xml).find('sku').first().text();
-  if (!sku || $(xml).find('inventory_type').text() == 'ms' || $(xml).find('inventory_type').text() == 'mb') {
-    InventoryList(rCnt);
-    return;
-  }
+  var rCnt = xmlText(xml, 'rID');
+  if (!rCnt) return;
+  var sku  = xmlText(xml, 'sku');
+  var type = xmlText(xml, 'inventory_type');
+  if (!sku || type == 'ms' || type == 'mb') { InventoryList(rCnt); return; }
   var rQty = parseFloat(document.getElementById('qty_' + rCnt).value);
-  if (isNaN(rQty)) {
-    rQty = 1;
-    document.getElementById('qty_' + rCnt).value = rQty;
-  }
+  if (isNaN(rQty)) { rQty = 1; document.getElementById('qty_' + rCnt).value = rQty; }
   var id = document.getElementById('id').value;
   if (!id) {
     document.getElementById('sku_' + rCnt).value = sku;
     document.getElementById('sku_' + rCnt).style.color = '';
-    if ($(xml).find('inactive').text() == 1) {
+    if (xmlText(xml, 'inactive') == 1) {
       document.getElementById('sku_' + rCnt).style.backgroundColor = 'pink';
       document.getElementById('sku_' + rCnt).title = ItemIsInactive;
     } else {
       document.getElementById('sku_' + rCnt).style.backgroundColor = '';
       document.getElementById('sku_' + rCnt).removeAttribute('title');
     }
-    document.getElementById('stock_' + rCnt).value  = parseFloat($(xml).find('branch_qty_in_stock').text());
-    document.getElementById('price_' + rCnt).value  = formatCurrency($(xml).find('item_cost').text());
+    document.getElementById('stock_' + rCnt).value  = parseFloat(xmlText(xml, 'branch_qty_in_stock'));
+    document.getElementById('price_' + rCnt).value  = formatCurrency(xmlText(xml, 'item_cost'));
     document.getElementById('serial_' + rCnt).value = '';
-    document.getElementById('desc_' + rCnt).value   = $(xml).find('description_short').text();
+    document.getElementById('desc_' + rCnt).value   = xmlText(xml, 'description_short');
   } else {
     var qty = document.getElementById('qty_' + rCnt).value;
-    document.getElementById('stock_' + rCnt).value  = parseFloat($(xml).find('branch_qty_in_stock').text()) - qty;
+    document.getElementById('stock_' + rCnt).value  = parseFloat(xmlText(xml, 'branch_qty_in_stock')) - qty;
   }
-  document.getElementById('acct_' + rCnt).value     = $(xml).find('account_inventory_wage').text();
-  document.getElementById('def_cost_' + rCnt).value = formatCurrency($(xml).find('item_cost').text());
-  if ($(xml).find('inventory_type').text() == 'sr' || $(xml).find('inventory_type').text() == 'sa') {
+  document.getElementById('acct_' + rCnt).value     = xmlText(xml, 'account_inventory_wage');
+  document.getElementById('def_cost_' + rCnt).value = formatCurrency(xmlText(xml, 'item_cost'));
+  if (type == 'sr' || type == 'sa') {
     document.getElementById('imgSerial_' + rCnt).style.display = '';
   } else {
     document.getElementById('imgSerial_' + rCnt).style.display = 'none';
@@ -201,43 +188,35 @@ function OpenAdjList() {
 }
 
 function EditAdjustment(rID) {
-  $.ajax({
-    type: 'GET',
-    url: 'index.php?module=phreebooks&page=ajax&op=load_record&rID=' + rID,
-    dataType: 'xml',
-    error: function(xhr, textStatus, errorThrown) {
-      alert('Ajax Error: ' + xhr.responseText + '\nTextStatus: ' + textStatus + '\nErrorThrown: ' + errorThrown);
-    },
-    success: processEditAdjustment
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=load_record&rID=' + rID, processEditAdjustment);
 }
 
-function processEditAdjustment(sXml) {
-  var xml = parseXml(sXml);
+function processEditAdjustment(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var id = $(xml).find('id').first().text();
+  var id = xmlText(xml, 'id');
   document.getElementById('id').value                  = id;
-  document.getElementById('store_id').value            = $(xml).find('store_id').text();
-  document.getElementById('purchase_invoice_id').value = $(xml).find('purchase_invoice_id').text();
-  document.getElementById('post_date').value           = $(xml).find('post_date').first().text();
+  document.getElementById('store_id').value            = xmlText(xml, 'store_id');
+  document.getElementById('purchase_invoice_id').value = xmlText(xml, 'purchase_invoice_id');
+  document.getElementById('post_date').value           = xmlText(xml, 'post_date');
   if (id && securityLevel < 3) removeElement('tb_main_0', 'tb_icon_save');
   var rowCnt = 1;
-  $(xml).find('items').each(function() {
-    var type = $(this).find('gl_type').text();
+  Array.from(xml.getElementsByTagName('items')).forEach(function(item) {
+    var type = xmlText(item, 'gl_type');
     switch (type) {
       case 'ttl':
-        document.getElementById('adj_reason').value = $(this).find('description').text();
-        document.getElementById('gl_acct').value    = $(this).find('gl_account').text();
+        document.getElementById('adj_reason').value = xmlText(item, 'description');
+        document.getElementById('gl_acct').value    = xmlText(item, 'gl_account');
         break;
       case 'adj':
-        var sku = $(this).find('sku').text();
-        var qty = $(this).find('qty').text();
-        document.getElementById('sku_' + rowCnt).value      = sku;
-        document.getElementById('sku_' + rowCnt).style.color= (sku == text_search) ? inactive_text_color : '';
-        document.getElementById('serial_' + rowCnt).value   = $(this).find('serialize_number').text();
-        document.getElementById('qty_' + rowCnt).value      = qty;
-        document.getElementById('price_' + rowCnt).value    = formatCurrency($(this).find('debit_amount').text() / qty);
-        document.getElementById('desc_' + rowCnt).value     = $(this).find('description').text();
+        var sku = xmlText(item, 'sku');
+        var qty = xmlText(item, 'qty');
+        document.getElementById('sku_' + rowCnt).value       = sku;
+        document.getElementById('sku_' + rowCnt).style.color = (sku == text_search) ? inactive_text_color : '';
+        document.getElementById('serial_' + rowCnt).value    = xmlText(item, 'serialize_number');
+        document.getElementById('qty_' + rowCnt).value       = qty;
+        document.getElementById('price_' + rowCnt).value     = formatCurrency(xmlText(item, 'debit_amount') / qty);
+        document.getElementById('desc_' + rowCnt).value      = xmlText(item, 'description');
         loadSkuDetails(0, rowCnt, 1);
         rowCnt = addInvRow() - 1;
     }

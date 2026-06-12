@@ -124,21 +124,13 @@ function billsAcctList() {
 function loadNewBalance() {
   var gl_acct   = document.getElementById('gl_acct_id').value;
   var post_date = document.getElementById('post_date').value;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreebooks&page=ajax&op=acct_balance&gl_acct_id=' + gl_acct + '&post_date=' + post_date,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: showNewBalance
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=acct_balance&gl_acct_id=' + gl_acct + '&post_date=' + post_date, showNewBalance);
 }
 
-function showNewBalance(sXml) {
-  var xml = parseXml(sXml);
+function showNewBalance(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  var value = $(xml).find("value").text();
+  var value = xmlText(xml, "value");
   if (isNaN(value) || !value) value = '0';
   var start_balance = parseFloat(value);
   var total_checks  = cleanCurrency(document.getElementById('total').value);
@@ -149,41 +141,33 @@ function showNewBalance(sXml) {
 }
 
 function ajaxOrderData(cID, oID, jID, open_order, ship_only) {
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=contacts&page=ajax&op=load_contact&cID=' + cID,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: fillOrderData
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=load_contact&cID=' + cID, fillOrderData);
 }
 
-function fillOrderData(sXml) {
+function fillOrderData(xml) {
   var newOpt;
   var type = 'bill';
-  var xml = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
   while (document.getElementById(type + '_to_select').options.length) document.getElementById(type + '_to_select').remove(0);
-  var id = $(xml).find("id").first().text();
+  var id = xmlText(xml, "id");
   if (!id) return;
-  var mainType = $(xml).find("type").first().text() + 'm';
+  var mainType = xmlText(xml, "type") + 'm';
   bill_add = xml;
   insertValue('bill_acct_id', id);
-  insertValue('search', $(xml).find("short_name").text());
+  insertValue('search', xmlText(xml, "short_name"));
   var iIndex = 0;
-  $(xml).find("BillAddress").each(function() {
+  Array.from(xml.getElementsByTagName("BillAddress")).forEach(function(addr) {
     newOpt = document.createElement("option");
-    newOpt.text = $(this).find("primary_name").text() + ', ' + $(this).find("city_town").text() + ', ' + $(this).find("postal_code").text();
+    newOpt.text = xmlText(addr, "primary_name") + ', ' + xmlText(addr, "city_town") + ', ' + xmlText(addr, "postal_code");
     document.getElementById(type + '_to_select').options.add(newOpt);
-    document.getElementById(type + '_to_select').options[iIndex].value = $(this).find("address_id").text();
-    if ($(this).find("type").text() == mainType) {
-      insertValue(type + '_address_id', $(this).find("address_id").text());
-      $(this).children().each(function() {
-        var tagName = this.tagName;
+    document.getElementById(type + '_to_select').options[iIndex].value = xmlText(addr, "address_id");
+    if (xmlText(addr, "type") == mainType) {
+      insertValue(type + '_address_id', xmlText(addr, "address_id"));
+      Array.from(addr.children).forEach(function(child) {
+        var tagName = child.tagName;
         if (document.getElementById(type + '_' + tagName)) {
-          document.getElementById(type + '_' + tagName).value = $(this).text();
+          document.getElementById(type + '_' + tagName).value = child.textContent;
           document.getElementById(type + '_' + tagName).style.color = '';
         }
       });
@@ -201,24 +185,16 @@ function fillOrderData(sXml) {
 function loadNewPayment() {
   var contact_id = document.getElementById('bill_acct_id').value;
   if (!contact_id) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreebooks&page=ajax&op=stored_payments&contact_id=' + contact_id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: showNewPayment
-  });
+  fetchXml('index.php?module=phreebooks&page=ajax&op=stored_payments&contact_id=' + contact_id, showNewPayment);
 }
 
-function showNewPayment(sXml) {
+function showNewPayment(xml) {
   var show = false;
-  var xml  = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
   while (document.getElementById('payment_id').options.length) document.getElementById('payment_id').remove(0);
-  if ($(xml).find("payments").length) {
-    newOpt = document.createElement("option");
+  if (xml.getElementsByTagName("payments").length) {
+    var newOpt = document.createElement("option");
     newOpt.text = '<?php echo TEXT_ENTER_NEW; ?>';
     document.getElementById('payment_id').options.add(newOpt);
     document.getElementById('payment_id').options[0].value = '';
@@ -229,19 +205,19 @@ function showNewPayment(sXml) {
     pmt_array[0].field_3 = '';
     pmt_array[0].field_4 = '';
     var j = 1;
-    $(xml).find("payments").each(function() {
+    Array.from(xml.getElementsByTagName("payments")).forEach(function(pmt) {
       show = true;
       newOpt = document.createElement("option");
-      newOpt.text = $(this).find("name").text();
-      if ($(this).find("hint").text()) newOpt.text += ', ' + $(this).find("hint").text();
+      newOpt.text = xmlText(pmt, "name");
+      if (xmlText(pmt, "hint")) newOpt.text += ', ' + xmlText(pmt, "hint");
       document.getElementById('payment_id').options.add(newOpt);
-      document.getElementById('payment_id').options[j].value = $(this).find("id").text();
+      document.getElementById('payment_id').options[j].value = xmlText(pmt, "id");
       pmt_array[j] = new Object();
-      if ($(this).find("field_0").text()) pmt_array[j].field_0 = $(this).find("field_0").text();
-      if ($(this).find("field_1").text()) pmt_array[j].field_1 = $(this).find("field_1").text();
-      if ($(this).find("field_2").text()) pmt_array[j].field_2 = $(this).find("field_2").text();
-      if ($(this).find("field_3").text()) pmt_array[j].field_3 = $(this).find("field_3").text();
-      if ($(this).find("field_4").text()) pmt_array[j].field_4 = $(this).find("field_4").text();
+      if (xmlText(pmt, "field_0")) pmt_array[j].field_0 = xmlText(pmt, "field_0");
+      if (xmlText(pmt, "field_1")) pmt_array[j].field_1 = xmlText(pmt, "field_1");
+      if (xmlText(pmt, "field_2")) pmt_array[j].field_2 = xmlText(pmt, "field_2");
+      if (xmlText(pmt, "field_3")) pmt_array[j].field_3 = xmlText(pmt, "field_3");
+      if (xmlText(pmt, "field_4")) pmt_array[j].field_4 = xmlText(pmt, "field_4");
       j++;
     });
   }

@@ -38,7 +38,7 @@ if (count(is_array($cInfo->bom) ? $cInfo->bom : [])) {
     echo '      <td class="text-center">';
     if ($cInfo->allow_edit_bom) {
       echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small',
-        'onclick="if (confirm(\'' . TEXT_DELETE_ENTRY . '\')) $(this).closest(\'tr\').remove();bomTotalValues();"');
+        'onclick="if (confirm(\'' . TEXT_DELETE_ENTRY . '\')) this.closest(\'tr\').remove();bomTotalValues();"');
     } else {
       echo '&nbsp;';
       $readonly = 'readonly="readonly" ';

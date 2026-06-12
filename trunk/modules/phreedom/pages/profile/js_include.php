@@ -24,24 +24,19 @@ function check_form() { return true; }
 
 function updateColors() {
   var theme = document.getElementById('theme').value;
-  $.ajax({
-    type: 'GET',
-    url: 'index.php?module=phreedom&page=ajax&op=phreedom&action=pull_colors&theme=' + encodeURIComponent(theme),
-    dataType: 'xml',
-    success: function(xml) {
-      var menuSel   = document.getElementById('menu');
-      var colorsSel = document.getElementById('colors');
-      while (menuSel.options.length)   menuSel.remove(0);
-      while (colorsSel.options.length) colorsSel.remove(0);
-      $(xml).find('menu').each(function(i) {
-        var opt = new Option($(this).find('text').text(), $(this).find('id').text());
-        menuSel.options.add(opt);
-      });
-      $(xml).find('color').each(function(i) {
-        var opt = new Option($(this).find('text').text(), $(this).find('id').text());
-        colorsSel.options.add(opt);
-      });
-    }
+  fetchXml('index.php?module=phreedom&page=ajax&op=phreedom&action=pull_colors&theme=' + encodeURIComponent(theme), function(xml) {
+    xml = parseXml(xml);
+    if (!xml) return;
+    var menuSel   = document.getElementById('menu');
+    var colorsSel = document.getElementById('colors');
+    while (menuSel.options.length)   menuSel.remove(0);
+    while (colorsSel.options.length) colorsSel.remove(0);
+    Array.from(xml.getElementsByTagName('menu')).forEach(function(el) {
+      menuSel.options.add(new Option(xmlText(el, 'text'), xmlText(el, 'id')));
+    });
+    Array.from(xml.getElementsByTagName('color')).forEach(function(el) {
+      colorsSel.options.add(new Option(xmlText(el, 'text'), xmlText(el, 'id')));
+    });
   });
 }
 </script>

@@ -162,6 +162,7 @@ function what_to_update() {
 function update_full_price_incl_tax(margin, inclTax, fullprice) {
   var highest = 0;
   if (margin) {
+    if (!document.getElementById('full_price')) return;
     var costEls = document.getElementsByName("item_cost_array[]");
     var currEls = document.getElementsByName("item_cost_currency_array[]");
     for (var i = 0; i < costEls.length; i++) {
@@ -297,7 +298,7 @@ function addBOMRow() {
   var newRow = body.insertRow(-1);
   var rowCnt = newRow.rowIndex;
   var cells = [
-    '<td class="text-center"><?php echo str_replace("'", "\'", html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\''.TEXT_DELETE_ENTRY.'\')) $(this).closest(\'tr\').remove();bomTotalValues();"')); ?></td>',
+    '<td class="text-center"><?php echo str_replace("'", "\'", html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\''.TEXT_DELETE_ENTRY.'\')) this.closest(\'tr\').remove();bomTotalValues();"')); ?></td>',
     '<td><input type="hidden" name="id_'+rowCnt+'" id="id_'+rowCnt+'" value="">' +
     '<input type="text" class="form-control form-control-sm d-inline-block" style="width:auto" name="assy_sku[]" id="sku_'+rowCnt+'" value="" size="<?php echo (MAX_INVENTORY_SKU_LENGTH + 1); ?>" onchange="bom_guess('+rowCnt+')" maxlength="<?php echo MAX_INVENTORY_SKU_LENGTH; ?>">&nbsp;' +
     buildIcon(icon_path+"16x16/actions/system-search.png", text_sku, 'align="top" style="cursor:pointer" onclick="InventoryList('+rowCnt+')"') + '&nbsp;</td>',
@@ -311,19 +312,19 @@ function addBOMRow() {
 }
 
 function loadSkuDetails(iID, rID) {
-  $.ajax({ type:"GET", url:'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&iID='+iID+'&rID='+rID,
-    dataType:"xml", error:function(x,t,e){ alert("Ajax Error: "+x.responseText); }, success:processSkuDetails });
+  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&iID='+iID+'&rID='+rID, processSkuDetails);
 }
 
-function processSkuDetails(sXml) {
-  var xml = parseXml(sXml); if (!xml) return;
-  var rowID = $(xml).find("rID").text(), sku = $(xml).find("sku").text();
-  if (!sku || $(xml).find("inventory_type").text()=='ms' || $(xml).find("inventory_type").text()=='mb') { InventoryList(rowID); return; }
-  document.getElementById('sku_'+rowID).value   = sku;
-  document.getElementById('desc_'+rowID).value  = $(xml).find("description_short").text();
+function processSkuDetails(xml) {
+  xml = parseXml(xml); if (!xml) return;
+  var rowID = xmlText(xml, "rID"), sku = xmlText(xml, "sku");
+  var type  = xmlText(xml, "inventory_type");
+  if (!sku || type == 'ms' || type == 'mb') { InventoryList(rowID); return; }
+  document.getElementById('sku_'+rowID).value          = sku;
+  document.getElementById('desc_'+rowID).value         = xmlText(xml, "description_short");
   if (document.getElementById('qty_'+rowID).value == 0) document.getElementById('qty_'+rowID).value = 1;
-  document.getElementById('item_cost_'+rowID).value   = formatCurrency($(xml).find("item_cost").text());
-  document.getElementById('sales_price_'+rowID).value = formatCurrency($(xml).find("sales_price").text());
+  document.getElementById('item_cost_'+rowID).value    = formatCurrency(xmlText(xml, "item_cost"));
+  document.getElementById('sales_price_'+rowID).value  = formatCurrency(xmlText(xml, "sales_price"));
   bomTotalValues();
 }
 
@@ -334,19 +335,18 @@ function InventoryProp(rID) {
 
 function ajaxAssyCost() {
   var id = document.getElementById('rowSeq') ? document.getElementById('rowSeq').value : '';
-  if (id) $.ajax({ type:"GET", url:'index.php?module=inventory&page=ajax&op=inv_details&fID=bomCost&iID='+id,
-    dataType:"xml", error:function(x,t,e){ alert("Ajax Error: "+x.responseText); }, success:showBOMCost });
+  if (id) fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=bomCost&iID='+id, showBOMCost);
 }
 
-function showBOMCost(sXml) {
-  var xml = parseXml(sXml); if (!xml) return;
-  if ($(xml).find("assy_cost").text()) alert('<?php echo addslashes(JS_INV_TEXT_ASSY_COST); ?>'+formatPrecise($(xml).find("assy_cost").text()));
+function showBOMCost(xml) {
+  xml = parseXml(xml); if (!xml) return;
+  var cost = xmlText(xml, "assy_cost");
+  if (cost) alert('<?php echo addslashes(JS_INV_TEXT_ASSY_COST); ?>'+formatPrecise(cost));
 }
 
 function bom_guess(rID) {
   var sku = document.getElementById('sku_'+rID) ? document.getElementById('sku_'+rID).value : '';
-  if (sku) $.ajax({ type:"GET", url:'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&sku='+sku+'&strict=1&rID='+rID,
-    dataType:"xml", error:function(x,t,e){ alert("Ajax Error: "+x.responseText); }, success:processSkuDetails });
+  if (sku) fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&sku='+sku+'&strict=1&rID='+rID, processSkuDetails);
 }
 
 function bomTotalValues() {
@@ -367,13 +367,13 @@ function bomTotalValues() {
 
 function ajaxWhereUsed() {
   var id = document.getElementById('rowSeq') ? document.getElementById('rowSeq').value : '';
-  if (id) $.ajax({ type:"GET", url:'index.php?module=inventory&page=ajax&op=inv_details&fID=whereUsed&iID='+id,
-    dataType:"xml", error:function(x,t,e){ alert("Ajax Error: "+x.responseText); }, success:showWhereUsed });
+  if (id) fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=whereUsed&iID='+id, showWhereUsed);
 }
 
-function showWhereUsed(sXml) {
-  var xml = parseXml(sXml), text = ''; if (!xml) return;
-  $(xml).find("sku_usage").each(function() { text += $(this).find("text_line").text() + "\n"; });
+function showWhereUsed(xml) {
+  xml = parseXml(xml); if (!xml) return;
+  var text = '';
+  Array.from(xml.getElementsByTagName("sku_usage")).forEach(function(el) { text += xmlText(el, "text_line") + "\n"; });
   if (text) alert(text);
 }
 
@@ -411,15 +411,13 @@ function removeVendorRow(index) {
   if (row) row.parentNode.removeChild(row);
 }
 
-$(document).ready(function() {
-  var descEl = document.getElementById('description_short');
-  if (descEl) {
-    descEl.addEventListener('change', function() {
-      var h = document.getElementById('heading_title');
-      if (h) h.textContent = '<?php echo addslashes(MENU_HEADING_INVENTORY . ' - ' . TEXT_SKU . '# ' . (isset($cInfo->sku) ? $cInfo->sku : '')); ?> (' + this.value + ')';
-    });
-  }
-});
+var descEl = document.getElementById('description_short');
+if (descEl) {
+  descEl.addEventListener('change', function() {
+    var h = document.getElementById('heading_title');
+    if (h) h.textContent = '<?php echo addslashes(MENU_HEADING_INVENTORY . ' - ' . TEXT_SKU . '# ' . (isset($cInfo->sku) ? $cInfo->sku : '')); ?> (' + this.value + ')';
+  });
+}
 
 // ── Filter functions ─────────────────────────────────────────────────
 
@@ -494,7 +492,7 @@ function TableStartValues(field, criteria, value) {
 }
 
 <?php if (($include_template ?? '') == 'template_main.php') { ?>
-$(document).keydown(function(e) {
+document.addEventListener('keydown', function(e) {
   if (e.keyCode == 13) submitToDo('filter');
 });
 <?php } ?>

@@ -21,7 +21,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   if (is_file($template_path)) { require($template_path); } else die('No template file. Looking for: ' . $template_path);
 } else {
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html <?php echo HTML_PARAMS; ?>>
  <head>
   <!-- module: <?php echo $module; ?> - page: <?php echo $page; ?> -->
@@ -58,8 +58,8 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   var formatted_zero      = "<?php echo $currencies->format(0); ?>";
 <?php } ?>
   </script>
+  <script src="includes/jquery.slim.min.js"></script>
   <script src="includes/datatables.min.js"></script>
-  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="includes/common.js"></script>
   <script type="text/javascript" src="jodit/jodit.min.js"></script>
   <script type="text/javascript">

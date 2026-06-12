@@ -56,7 +56,7 @@ if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
 ?>
-<div class="d-flex align-items-center" style="border:0">
+<div class="d-flex align-items-center fb-toolbar-section" style="border:0">
   <div class="flex-shrink-0"><?php echo $toolbar->build_toolbar(); ?></div>
   <h1 class="mb-0 ms-3 flex-grow-1" style="font-size:2.5em"><?php echo PAGE_TITLE; ?></h1>
   <h3 id='open_other_options' class="btn btn-primary ms-2 flex-shrink-0" style="font-size:1.6em; padding:6px 18px; white-space:nowrap"><?php echo OTHER_OPTIONS; ?></h3>

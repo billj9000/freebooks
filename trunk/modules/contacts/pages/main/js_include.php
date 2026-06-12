@@ -66,35 +66,25 @@ function fillAddressFromLookup(el, addType) {
   document.getElementById('postcode_results_' + addType).innerHTML = '';
 }
 function loadContacts() {
-//  var guess = document.getElementById('dept_rep_id').value;
   var guess = document.getElementById('dept_rep_id').value;
-//  document.getElementById('dept_rep_id').options[0].text = guess;
   if (guess.length < 3) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=contacts&page=ajax&op=load_contact_info&guess='+guess,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillContacts
-  });
+  fetchXml('index.php?module=contacts&page=ajax&op=load_contact_info&guess='+guess, fillContacts);
 }
 
-// ajax response handler call back function
-function fillContacts(sXml) {
-  var xml = parseXml(sXml);
+function fillContacts(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
   while (document.getElementById('comboseldept_rep_id').options.length) document.getElementById('comboseldept_rep_id').remove(0);
   var iIndex = 0;
-  $(xml).find("guesses").each(function() {
-	newOpt = document.createElement("option");
-	newOpt.text = $(this).find("guess").text() ? $(this).find("guess").text() : '<?php echo TEXT_FIND; ?>';
-	document.getElementById('comboseldept_rep_id').options.add(newOpt);
-	document.getElementById('comboseldept_rep_id').options[iIndex].value = $(this).find("id").text();
-	if (!fActiveMenu) cbMmenuActivate('dept_rep_id', 'combodivdept_rep_id', 'comboseldept_rep_id', 'imgNamedept_rep_id');
-	document.getElementById('dept_rep_id').focus();
-	iIndex++;
+  Array.from(xml.getElementsByTagName("guesses")).forEach(function(guess) {
+    var text = xmlText(guess, "guess");
+    var newOpt = document.createElement("option");
+    newOpt.text = text ? text : '<?php echo TEXT_FIND; ?>';
+    document.getElementById('comboseldept_rep_id').options.add(newOpt);
+    document.getElementById('comboseldept_rep_id').options[iIndex].value = xmlText(guess, "id");
+    if (!fActiveMenu) cbMmenuActivate('dept_rep_id', 'combodivdept_rep_id', 'comboseldept_rep_id', 'imgNamedept_rep_id');
+    document.getElementById('dept_rep_id').focus();
+    iIndex++;
   });
 }
 

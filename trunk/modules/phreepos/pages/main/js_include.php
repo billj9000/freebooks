@@ -77,9 +77,14 @@ function init() {
   contact_sales_tax    = -1;
   clearAddress('bill');
   setImage('');
-  refreshOrderClock(); 
+  refreshOrderClock();
   changeOfTill();
   disablePopup();
+  document.getElementById('backgroundPopup').addEventListener('click', function() { disablePopup(); });
+  document.getElementById('disc_percent').addEventListener('keydown', function() { document.getElementById('discount').value = ''; });
+  document.getElementById('discount').addEventListener('keydown', function() { document.getElementById('disc_percent').value = ''; });
+  document.getElementById('amount').addEventListener('keydown', function(event) { if (event.keyCode == 13) SavePayment('save'); });
+  document.getElementById('open_other_options').addEventListener('click', function() { open_other_options(); });
   document.getElementById('sku').focus();
 }
 
@@ -115,15 +120,7 @@ function refreshOrderClock() {
 		  rowCnt = i;
 		}
 	  }
-	  $.ajax({
-		type: "GET",
-		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+acct+'&qty='+qty+'&upc='+upc+'&rID='+rowCnt+'&jID='+journalID,
-		dataType: "xml",
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-		  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-		},
-		success: fillInventory
-	  });
+	  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+acct+'&qty='+qty+'&upc='+upc+'&rID='+rowCnt+'&jID='+journalID, fillInventory);
 	  document.getElementById('sku').value = '';
 	}
   }
@@ -238,36 +235,20 @@ function clearAddress(type) {
 }
 
 function ajaxOrderData(cID, oID, jID, open_order, ship_only) {
-	if(cID){
-		$.ajax({
-	    	type: "GET",
-	    	url: 'index.php?module=phreebooks&page=ajax&op=load_order&cID='+cID+'&oID='+oID+'&jID='+jID+'&so_po=0&ship_only=0',
-	    	dataType: "xml",
-	    	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	      		alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-	    	},
-			success: fillOrderData
-	  	});
-	}else if(oID){
-		$.ajax({
-			type: "GET",
-			url: 'index.php?module=phreepos&page=ajax&op=print_previous&oID='+oID,
-			dataType: "xml",
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-			},
-			success: PrintPreviousReceipt
-		});
-	}
+  if (cID) {
+    fetchXml('index.php?module=phreebooks&page=ajax&op=load_order&cID='+cID+'&oID='+oID+'&jID='+jID+'&so_po=0&ship_only=0', fillOrderData);
+  } else if (oID) {
+    fetchXml('index.php?module=phreepos&page=ajax&op=print_previous&oID='+oID, PrintPreviousReceipt);
+  }
 }
 
-function fillOrderData(sXml) { // edit response form fill
-  var xml = parseXml(sXml);
+function fillOrderData(xml) {
+  xml = parseXml(xml);
   if (!xml) return;
-  if ($(xml).find("OrderData").length) {
-	orderFillAddress(xml, 'bill', false);
-	fillOrder(xml);
-  } else if ($(xml).find("BillContact").length) {
+  if (xml.getElementsByTagName("OrderData").length) {
+    orderFillAddress(xml, 'bill', false);
+    fillOrder(xml);
+  } else if (xml.getElementsByTagName("BillContact").length) {
     orderFillAddress(xml, 'bill', true);
   }
 }
@@ -275,131 +256,117 @@ function fillOrderData(sXml) { // edit response form fill
 function orderFillAddress(xml, type, fill_address) {
   var newOpt, mainType;
   while (document.getElementById(type+'_to_select').options.length) document.getElementById(type+'_to_select').remove(0);
-  var cTag = 'BillContact';
-  $(xml).find(cTag).each(function() {
-    var id = $(this).find("id").text();
-	if (!id) return;
-    mainType = $(this).find("type").first().text() + 'm';
+  Array.from(xml.getElementsByTagName('BillContact')).forEach(function(contact) {
+    var id = xmlText(contact, "id");
+    if (!id) return;
+    mainType = xmlText(contact, "type") + 'm';
     switch (type) {
-	  default:
+      default:
       case 'bill':
-		bill_add          = this;
-		default_sales_tax = $(this).find("tax_id").text();
-		contact_sales_tax = $(this).find("tax_id").text();
-		default_inv_acct  = ($(this).find("gl_type_account").text()) ? $(this).find("gl_type_account").text() : '';
-		insertValue('bill_acct_id',    id);
-		insertValue('search',          $(this).find("short_name").text());
-		insertValue('copy_search',     $(this).find("short_name").text());
-		insertValue('acct_1',          default_inv_acct);
-	//	insertValue('rep_id',          $(this).find("dept_rep_id").text());
-		var rowCnt = 1;
-		while(true) {
-		  if (!document.getElementById('tax_'+rowCnt)) break;
-		  document.getElementById('tax_'+rowCnt).value = $(this).find("tax_id").text();
-		  rowCnt++;
-		}
-		if (show_status == 1) {
-		  window.open("index.php?module=phreebooks&page=popup_status&id="+id,"contact_status","width=500px,height=300px,resizable=0,scrollbars=1,top=150,left=200");
-		}
-		break;
+        bill_add          = contact;
+        default_sales_tax = xmlText(contact, "tax_id");
+        contact_sales_tax = xmlText(contact, "tax_id");
+        default_inv_acct  = xmlText(contact, "gl_type_account") || '';
+        insertValue('bill_acct_id', id);
+        insertValue('search',       xmlText(contact, "short_name"));
+        insertValue('copy_search',  xmlText(contact, "short_name"));
+        insertValue('acct_1',       default_inv_acct);
+        var rowCnt = 1;
+        while (true) {
+          if (!document.getElementById('tax_'+rowCnt)) break;
+          document.getElementById('tax_'+rowCnt).value = xmlText(contact, "tax_id");
+          rowCnt++;
+        }
+        if (show_status == 1) {
+          window.open("index.php?module=phreebooks&page=popup_status&id="+id,"contact_status","width=500px,height=300px,resizable=0,scrollbars=1,top=150,left=200");
+        }
+        break;
     }
-	//now fill the addresses
     var iIndex = 0;
-    $(this).find("Address").each(function() {
+    Array.from(contact.getElementsByTagName("Address")).forEach(function(addr) {
       newOpt = document.createElement("option");
-	  newOpt.text = $(this).find("primary_name").text() + ', ' + $(this).find("city_town").text() + ', ' + $(this).find("postal_code").text();
-	  document.getElementById(type+'_to_select').options.add(newOpt);
-	  document.getElementById(type+'_to_select').options[iIndex].value = $(this).find("address_id").text();
-      if (fill_address && $(this).find("type").text() == mainType) { // also fill the fields
-	    insertValue(type+'_address_id', $(this).find("address_id").text());
-	    $(this).children().each (function() {
-		  var tagName = this.tagName;
-		  if (document.getElementById(type+'_'+tagName)) {
-		      document.getElementById(type+'_'+tagName).value = $(this).text();
-		      document.getElementById(type+'_'+tagName).style.color = '';
-		  }
-		  if (document.getElementById('copy_'+type+'_'+tagName)) {
-			  document.getElementById('copy_'+type+'_'+tagName).value = $(this).text();
-			  document.getElementById('copy_'+type+'_'+tagName).style.color = '';
-		  }
-	    });
-	  }
-	  iIndex++;
+      newOpt.text = xmlText(addr, "primary_name") + ', ' + xmlText(addr, "city_town") + ', ' + xmlText(addr, "postal_code");
+      document.getElementById(type+'_to_select').options.add(newOpt);
+      document.getElementById(type+'_to_select').options[iIndex].value = xmlText(addr, "address_id");
+      if (fill_address && xmlText(addr, "type") == mainType) {
+        insertValue(type+'_address_id', xmlText(addr, "address_id"));
+        Array.from(addr.children).forEach(function(child) {
+          var tagName = child.tagName;
+          if (document.getElementById(type+'_'+tagName)) {
+            document.getElementById(type+'_'+tagName).value = child.textContent;
+            document.getElementById(type+'_'+tagName).style.color = '';
+          }
+          if (document.getElementById('copy_'+type+'_'+tagName)) {
+            document.getElementById('copy_'+type+'_'+tagName).value = child.textContent;
+            document.getElementById('copy_'+type+'_'+tagName).style.color = '';
+          }
+        });
+      }
+      iIndex++;
     });
-    // add a option for creating a new address
     newOpt = document.createElement("option");
     newOpt.text = text_enter_new;
-    document.getElementById(type+'_to_select').options.add(newOpt);	
+    document.getElementById(type+'_to_select').options.add(newOpt);
     document.getElementById(type+'_to_select').options[iIndex].value = '0';
     document.getElementById(type+'_to_select').style.visibility      = 'visible';
     document.getElementById(type+'_to_select').disabled              = false;
   });
-  	numRows = document.getElementById('item_table_body').rows.length;
-  	for (rowCnt=1; rowCnt<=numRows; rowCnt++) {
-		if(document.getElementById('sku_'+rowCnt).value !=''){
-		  	if(default_sales_tax == -1){
-				document.getElementById('tax_'   +rowCnt).value     = document.getElementById('product_tax_'+rowCnt).value;
-		  	}else{
-				document.getElementById('tax_'   +rowCnt).value     = default_sales_tax;
-		  	}
-  	  		updateRowTotal(rowCnt, true);
-		}
-  	}
-  	document.getElementById('sku').focus();
+  var numRows = document.getElementById('item_table_body').rows.length;
+  for (var rowCnt = 1; rowCnt <= numRows; rowCnt++) {
+    if (document.getElementById('sku_'+rowCnt).value != '') {
+      document.getElementById('tax_'+rowCnt).value = (default_sales_tax == -1)
+        ? document.getElementById('product_tax_'+rowCnt).value : default_sales_tax;
+      updateRowTotal(rowCnt, true);
+    }
+  }
+  document.getElementById('sku').focus();
 }
 
 function fillOrder(xml) {
-  $(xml).find("OrderData").each(function() {
-	$(this).children().each (function() {
-	  var tagName = this.tagName;
-	  if (document.getElementById(tagName)) {
-	    document.getElementById(tagName).value = $(this).first().text();
-	    document.getElementById(tagName).style.color = '';
-	  }
-	});
-    // fix some special cases, checkboxes, and active fields
-    document.getElementById('display_currency').value = $(this).find("currencies_code").text();
-    // disable the purchase_invoice_id field since it cannot change, except purchase/receive
-    if ($(this).find("id").first().text() && journalID != 6 && journalID != 7 && journalID != 21) {
-	  document.getElementById('purchase_invoice_id').readOnly = true;
-    }
-    if ($(this).find("id").first().text() && securityLevel < 3) { // turn off some icons
-//	  removeElement('tb_main_0', 'tb_icon_print');
-//	  removeElement('tb_main_0', 'tb_icon_save');
+  Array.from(xml.getElementsByTagName("OrderData")).forEach(function(od) {
+    Array.from(od.children).forEach(function(child) {
+      var tagName = child.tagName;
+      if (document.getElementById(tagName)) {
+        document.getElementById(tagName).value = child.textContent;
+        document.getElementById(tagName).style.color = '';
+      }
+    });
+    document.getElementById('display_currency').value = xmlText(od, "currencies_code");
+    if (xmlText(od, "id") && journalID != 6 && journalID != 7 && journalID != 21) {
+      document.getElementById('purchase_invoice_id').readOnly = true;
     }
     addInvRow();
-    // fill inventory rows and add a new blank one
     var order_discount = formatted_zero;
     var jIndex = 1;
-    $(this).find("Item").each(function() {
-	  var gl_type = $(this).find("gl_type").text();
+    Array.from(od.getElementsByTagName("Item")).forEach(function(item) {
+      var gl_type = xmlText(item, "gl_type");
       switch (gl_type) {
-	    case 'ttl':
-	    case 'tax': // the total and tax will be recalculated when the form is loaded
-	      break;
-	    case 'dsc':
-	      order_discount =                   $(this).find("total").text();
-		  if ($(this).find("gl_account").text()) insertValue('disc_gl_acct_id', $(this).find("gl_account").text());
-		  break;
-	    case 'soo':
-	    case 'sos':
-	    case 'poo':
-	    case 'por':
-		  insertValue('id_'  + jIndex,       $(this).find("id").text());
-		  insertValue('pstd_' + jIndex,      $(this).find("pstd").text());
-		  insertValue('sku_'  + jIndex,      $(this).find("sku").text());
-		  insertValue('desc_'  + jIndex,     $(this).find("description").text());
-		  insertValue('acct_'  + jIndex,     $(this).find("gl_account").text());
-		  insertValue('tax_'  + jIndex,      $(this).find("taxable").text());
-		  insertValue('full_'  + jIndex,     $(this).find("full_price").text());
-		  insertValue('serial_'  + jIndex,   $(this).find("serialize").text());
-		  insertValue('inactive_'  + jIndex, $(this).find("inactive").text());
-		  insertValue('price_' + jIndex,     $(this).find("unit_price").text());
-		  insertValue('total_' + jIndex,     $(this).find("total").text());
-		  updateRowTotal(jIndex, false);
-		  jIndex++;
-	    default: // do nothing
-	  }
+        case 'ttl':
+        case 'tax':
+          break;
+        case 'dsc':
+          order_discount = xmlText(item, "total");
+          if (xmlText(item, "gl_account")) insertValue('disc_gl_acct_id', xmlText(item, "gl_account"));
+          break;
+        case 'soo':
+        case 'sos':
+        case 'poo':
+        case 'por':
+          insertValue('id_'       + jIndex, xmlText(item, "id"));
+          insertValue('pstd_'     + jIndex, xmlText(item, "pstd"));
+          insertValue('sku_'      + jIndex, xmlText(item, "sku"));
+          insertValue('desc_'     + jIndex, xmlText(item, "description"));
+          insertValue('acct_'     + jIndex, xmlText(item, "gl_account"));
+          insertValue('tax_'      + jIndex, xmlText(item, "taxable"));
+          insertValue('full_'     + jIndex, xmlText(item, "full_price"));
+          insertValue('serial_'   + jIndex, xmlText(item, "serialize"));
+          insertValue('inactive_' + jIndex, xmlText(item, "inactive"));
+          insertValue('price_'    + jIndex, xmlText(item, "unit_price"));
+          insertValue('total_'    + jIndex, xmlText(item, "total"));
+          updateRowTotal(jIndex, false);
+          jIndex++;
+        default:
+      }
     });
     insertValue('discount', order_discount);
     calculateDiscountPercent();
@@ -425,28 +392,19 @@ function accountGuess(force) {
           warn = confirm(warn_form_modified);
 	}
 	if (warn) {
-	  $.ajax({
-		type: "GET",
-		url: 'index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type=c&guess='+guess,
-		dataType: "xml",
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-		  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-		},
-		success: processAccountGuess
-	  });
+      fetchXml('index.php?module=phreebooks&page=ajax&op=load_searches&jID='+journalID+'&type=c&guess='+guess, processAccountGuess);
     }
   }
 }
 
-function processAccountGuess(sXml) {
-	var xml = parseXml(sXml);
-	if (!xml) return;
-	var result = $(xml).find("result").text();
-	if (result == 'success') {
-		fillOrderData(xml);
-	} else {
-		AccountList();
-	}
+function processAccountGuess(xml) {
+  xml = parseXml(xml);
+  if (!xml) return;
+  if (xmlText(xml, "result") == 'success') {
+    fillOrderData(xml);
+  } else {
+    AccountList();
+  }
 }
 
 function AccountList(currObj) {
@@ -461,11 +419,14 @@ function AccountList(currObj) {
 }
 
 function InventoryList(rowCnt) {
-	var url     = "index.php?module=inventory&page=popup_inv&type="+account_type+"&rowID="+rowCnt;
-	if ($("#bill_acct_id").val()) url += "&cID="+$("#bill_acct_id").val();
-	if ($("#sku").val())          url += "&search_text="+$("#sku").val();
-	if ($("#store_id").val())     url += "&storeID="+$("#store_id").val();
-	window.open(url, "inventory", "width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  var url = "index.php?module=inventory&page=popup_inv&type="+account_type+"&rowID="+rowCnt;
+  var cid = document.getElementById('bill_acct_id').value;
+  var sku = document.getElementById('sku').value;
+  var sid = document.getElementById('store_id').value;
+  if (cid) url += "&cID="+cid;
+  if (sku) url += "&search_text="+sku;
+  if (sid) url += "&storeID="+sid;
+  window.open(url, "inventory", "width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function serialList(rowID) {
@@ -489,22 +450,23 @@ function fillAddress(type) {
     }
     return;
   }
-  $(address).find("Address").each(function() {
-    if ($(this).find("address_id").text() == index) {
-      document.getElementById(type+'_acct_id').value    = $(this).find("ref_id").text();
-      document.getElementById(type+'_address_id').value = (index == 'new') ? '0' : $(this).find("address_id").text();
+  Array.from(address.getElementsByTagName("Address")).forEach(function(addr) {
+    if (xmlText(addr, "address_id") == index) {
+      document.getElementById(type+'_acct_id').value    = xmlText(addr, "ref_id");
+      document.getElementById(type+'_address_id').value = (index == 'new') ? '0' : xmlText(addr, "address_id");
       var add_id;
-      for (var i=0; i<add_array.length; i++) {
-	    add_id = add_array[i];
-	    if (index != '0' && $(this).find(add_id).text()) {
-	      document.getElementById(type+'_'+add_id).style.color = '';
-	      document.getElementById(type+'_'+add_id).value = $(this).find(add_id).text();
-	    } else {
-	      if (add_id != 'country_code') document.getElementById(type+'_'+add_id).style.color = inactive_text_color;
-	      document.getElementById(type+'_'+add_id).value = default_array[i];
-	    }
+      for (var i = 0; i < add_array.length; i++) {
+        add_id = add_array[i];
+        var val = xmlText(addr, add_id);
+        if (index != '0' && val) {
+          document.getElementById(type+'_'+add_id).style.color = '';
+          document.getElementById(type+'_'+add_id).value = val;
+        } else {
+          if (add_id != 'country_code') document.getElementById(type+'_'+add_id).style.color = inactive_text_color;
+          document.getElementById(type+'_'+add_id).value = default_array[i];
+        }
       }
-	}
+    }
   });
 }
 
@@ -538,7 +500,7 @@ function addInvRow() {
   }
   newCell = newRow.insertCell(-1);
   newCell.innerHTML = cell;
-  $('#serial_' +rowCnt).hide();
+  document.getElementById('serial_'+rowCnt).style.display = 'none';
   cell  = '<td align="center">';
 // Hidden fields
   cell += '<input type="hidden" name="id_'+rowCnt+'" id="id_'+rowCnt+'" value="" />';
@@ -571,12 +533,6 @@ function removeInvRow(index) {
   	var numRows = document.getElementById('item_table_body').rows.length;
   	// remove row from display by reindexing and then deleting last row
   	for (i=index; i<numRows; i++) {
-		// move the delete icon from the previous row
-		offset    = i+1;
-		newOffset = i;
-		$('#delete_'+i).unbind('click').click(function(){
-			if (confirm(image_delete_msg)) removeInvRow(i);
-		});
 		document.getElementById('pstd_'+i).value     	= document.getElementById('pstd_'+(i+1)).value;
 		document.getElementById('sku_'+i).value      	= document.getElementById('sku_'+(i+1)).value;
 		document.getElementById('desc_'+i).value     	= document.getElementById('desc_'+(i+1)).value;
@@ -596,11 +552,11 @@ function removeInvRow(index) {
 		document.getElementById('total_'+i).value    	= document.getElementById('total_'+(i+1)).value;
 		document.getElementById('wttotal_'+i).value  	= document.getElementById('wttotal_'+(i+1)).value;
 		document.getElementById('wtprice_'+i).value  	= document.getElementById('wtprice_'+(i+1)).value;
-		if(document.getElementById('sku_'+i).value != ''){
-			$('#pstd_' + i).prop('disabled', false);
-			$('#sku_prop_'+i).show();
-			$('#sku_'+i).show();
-		} 
+		if (document.getElementById('sku_'+i).value != '') {
+			document.getElementById('pstd_'+i).disabled = false;
+			document.getElementById('sku_prop_'+i).style.display = '';
+			document.getElementById('sku_'+i).style.display = '';
+		}
   	}
   	document.getElementById('item_table_body').deleteRow(-1);
   	updateTotalPrices();
@@ -694,31 +650,23 @@ function updateRowTotal(rowCnt, useAjax) {
 	  var sku = document.getElementById('sku_'+rowCnt).value;
 	  var cID = document.getElementById('bill_acct_id').value;
 	  if (auto_load_sku) {
-	    $.ajax({
-	      type: "GET",
-	      url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuPrice&cID='+cID+'&sku='+sku+'&qty='+qty+'&rID='+rowCnt+'&strict=1',
-	      dataType: "xml",
-	      error: function(XMLHttpRequest, textStatus, errorThrown) {
-		    alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-	      },
-	      success: processSkuPrice
-	    });
+	    fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuPrice&cID='+cID+'&sku='+sku+'&qty='+qty+'&rID='+rowCnt+'&strict=1', processSkuPrice);
 	  }
 	}
 }
 
-//ajax response to price sheet request
-function processSkuPrice(sXml) { // call back function
-	var xml = parseXml(sXml);
-  	if (!xml) return;
-  	var exchange_rate = document.getElementById('currencies_value').value;
-  	var rowCnt = $(xml).find("rID").text();
-  	if(formatPrecise($(xml).find("sales_price").text()) != formatted_zero ){ 
-		document.getElementById('fixed_price_'  +rowCnt).value = formatPrecise($(xml).find("sales_price").text()  * exchange_rate);
-  		document.getElementById('price_'   		+rowCnt).value = formatPrecise($(xml).find("sales_price").text()  * exchange_rate);
-    	document.getElementById('full_'    		+rowCnt).value = formatCurrency($(xml).find("full_price").text()  * exchange_rate);
-    	updateRowTotal(rowCnt, false);
-  	}
+function processSkuPrice(xml) {
+  xml = parseXml(xml);
+  if (!xml) return;
+  var exchange_rate = document.getElementById('currencies_value').value;
+  var rowCnt = xmlText(xml, "rID");
+  var sales_price = xmlText(xml, "sales_price");
+  if (formatPrecise(sales_price) != formatted_zero) {
+    document.getElementById('fixed_price_'+rowCnt).value = formatPrecise(sales_price * exchange_rate);
+    document.getElementById('price_'+rowCnt).value       = formatPrecise(sales_price * exchange_rate);
+    document.getElementById('full_'+rowCnt).value        = formatCurrency(xmlText(xml, "full_price") * exchange_rate);
+    updateRowTotal(rowCnt, false);
+  }
 }
 
 function updateUnitPrice(rowCnt) {
@@ -959,86 +907,61 @@ function loadSkuDetails(iID, rowCnt) {
   	}
   	var cID = document.getElementById('bill_acct_id').value;
   	var bID = document.getElementById('store_id').value;
-	$.ajax({
-	    type: "GET",
-	    contentType: "application/xml; charset=utf-8",
-		url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&strict=1&sku='+sku+'&rID='+rowCnt+'&jID='+journalID,
-	    dataType: "xml",
-	    error: function(XMLHttpRequest, textStatus, errorThrown) {
-	    	alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-	    },
-	    success: fillInventory
-	});
+	fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&strict=1&sku='+sku+'&rID='+rowCnt+'&jID='+journalID, fillInventory);
 }
 
-function fillInventory(sXml) {
-  var image   = '';
+function fillInventory(xml) {
+  var image = '';
   var exchange_rate = document.getElementById('currencies_value').value;
-  var xml    = parseXml(sXml);
+  xml = parseXml(xml);
   if (!xml) return;
-  var sku    = $(xml).find("sku").first().text(); // only the first find, avoids bom add-ons
-  if (!sku || $(xml).find("inventory_type").text() == 'ms' || $(xml).find("inventory_type").text() == 'mb') {
-	  InventoryList(0);
-	  return;
-  }
-  var qty    = parseFloat($(xml).find("qty").first().text());
+  var sku     = xmlText(xml, "sku");
+  var invType = xmlText(xml, "inventory_type");
+  if (!sku || invType == 'ms' || invType == 'mb') { InventoryList(0); return; }
+  var qty    = parseFloat(xmlText(xml, "qty"));
   var negate = <?php echo $_REQUEST['action']=='pos_return' ? 'true' : 'false'; ?>;
   if (negate) qty = -qty;
-  var rowCnt = $(xml).find("rID").text();
+  var rowCnt = xmlText(xml, "rID");
   if (!rowCnt) {
-	  addInvRow();
-	  rowCnt = document.getElementById('item_table_body').rows.length;
+    addInvRow();
+    rowCnt = document.getElementById('item_table_body').rows.length;
   }
-  document.getElementById('sku_'     +rowCnt).value       = sku;
+  var taxable      = xmlText(xml, "item_taxable");
+  var sales_price  = xmlText(xml, "sales_price");
+  document.getElementById('sku_'     +rowCnt).value = sku;
   document.getElementById('sku_'     +rowCnt).style.color = '';
-  document.getElementById('full_'    +rowCnt).value       = formatCurrency($(xml).find("full_price").text() * exchange_rate);
-  document.getElementById('inactive_'+rowCnt).value       = $(xml).find("inactive").text();
-  document.getElementById('pstd_'    +rowCnt).value       = qty;
-  document.getElementById('acct_'    +rowCnt).value       = $(xml).find("account_sales_income").text();
-  document.getElementById('price_'   +rowCnt).value       = formatPrecise($(xml).find("sales_price").text() * exchange_rate);
-  document.getElementById('fixed_price_'   +rowCnt).value = formatPrecise($(xml).find("sales_price").text() * exchange_rate);
-  document.getElementById('wtprice_' +rowCnt).value       = formatCurrency(($(xml).find("sales_price").text() * exchange_rate)* (1+(tax_rates[$(xml).find("item_taxable").text()].rate / 100)));
-  if($(xml).find("inventory_type").text() == 'sr' || $(xml).find("inventory_type").text() == 'sa') {
-  		$('#serial_' +rowCnt).show();
+  document.getElementById('full_'    +rowCnt).value = formatCurrency(xmlText(xml, "full_price") * exchange_rate);
+  document.getElementById('inactive_'+rowCnt).value = xmlText(xml, "inactive");
+  document.getElementById('pstd_'    +rowCnt).value = qty;
+  document.getElementById('acct_'    +rowCnt).value = xmlText(xml, "account_sales_income");
+  document.getElementById('price_'   +rowCnt).value = formatPrecise(sales_price * exchange_rate);
+  document.getElementById('fixed_price_'+rowCnt).value = formatPrecise(sales_price * exchange_rate);
+  document.getElementById('wtprice_' +rowCnt).value = formatCurrency((sales_price * exchange_rate) * (1 + (tax_rates[taxable].rate / 100)));
+  if (invType == 'sr' || invType == 'sa') {
+    document.getElementById('serial_'+rowCnt).style.display = '';
   }
-  document.getElementById('product_tax_'+rowCnt).value    = $(xml).find("item_taxable").text();
-  if(default_sales_tax == -1){
-	document.getElementById('tax_'   +rowCnt).value       = $(xml).find("item_taxable").text();
-  }else{
-	document.getElementById('tax_'   +rowCnt).value       = default_sales_tax;
-  }
-  if ($(xml).find("description_sales").text()) {
-    document.getElementById('desc_'  +rowCnt).value       = $(xml).find("description_sales").text();
-  } else {
-    document.getElementById('desc_'  +rowCnt).value       = $(xml).find("description_short").text();
-  }
+  document.getElementById('product_tax_'+rowCnt).value = taxable;
+  document.getElementById('tax_'+rowCnt).value = (default_sales_tax == -1) ? taxable : default_sales_tax;
+  var desc = xmlText(xml, "description_sales") || xmlText(xml, "description_short");
+  document.getElementById('desc_'+rowCnt).value = desc;
   updateRowTotal(rowCnt, false);
   document.getElementById('sku').focus();
   document.getElementById('sku').value = '';
-//Image handler
-  if($(xml).find('image_with_path').text() != ''){
-	  image = "<?php echo DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' ?>"+ $(xml).find('image_with_path').text();
-  }
+  var imgPath = xmlText(xml, 'image_with_path');
+  if (imgPath) image = "<?php echo DIR_WS_MY_FILES . $_SESSION['company'] . '/inventory/images/' ?>" + imgPath;
   setImage(image);
 }
 
 function changeOfTill(){
 	var tillId = document.getElementById('till_id').value;
 	var qz = document.getElementById('qz');
-	if( tills[tillId].restrictCurrency == 1){
-		$('#display_currency').attr("disabled", true);
-	}else{
-		$('#display_currency').attr("disabled", false);
-	}
+	document.getElementById('display_currency').disabled = (tills[tillId].restrictCurrency == 1);
 	<?php if (ENABLE_MULTI_CURRENCY) {
 	echo "document.getElementById('display_currency').value = tills[tillId].currenciesCode;";
 	echo "recalculateCurrencies();";
 	} ?>
-	if(tills[tillId].openDrawer == ''){
-		$('#tb_icon_open_drawer').hide();
-	}else{
-		$('#tb_icon_open_drawer').show();
-	}
+	var drawerIcon = document.getElementById('tb_icon_open_drawer');
+	if (drawerIcon) drawerIcon.style.display = tills[tillId].openDrawer == '' ? 'none' : '';
 	var old_tax = default_sales_tax;
 	default_sales_tax = tills[tillId].defaultTax;
 	if(contact_sales_tax == -1){
@@ -1058,7 +981,7 @@ function changeOfTill(){
 	//if (qz.getVersion() <= '1.4.9' ) alert('update jzebra');
 	set_ot_options();
 	document.getElementById('ot_till_id').value = tillId ;
-	$("#store_id").val(tills[tillId].storeID);
+	document.getElementById('store_id').value = tills[tillId].storeID;
 }
 
 function monitorPrinting() {
@@ -1119,7 +1042,7 @@ function parseCard() {
   var index    = document.getElementById('payment_method').selectedIndex;
   var method   = document.getElementById('payment_method').options[index].value;
   var entry    = document.getElementById(method+'_field_0').value;
-  jQuery.trim(entry);
+  entry = entry.trim();
   // now trim the start if characters were present when scanned
   var bof      = entry.search(/\%B/);
   entry        = entry.substr(bof);
@@ -1131,7 +1054,7 @@ function parseCard() {
   entry        = entry.substr(caret+1);
   var cardYear = entry.substr(0,2);
   var cardMon  = entry.substr(2,2);
-  document.getElementById(method+'_field_0').value = jQuery.trim(cardName);
+  document.getElementById(method+'_field_0').value = cardName.trim();
   document.getElementById(method+'_field_1').value = cardNum;
   document.getElementById(method+'_field_2').value = cardMon;
   document.getElementById(method+'_field_3').value = cardYear;
@@ -1179,63 +1102,50 @@ function SavePayment(PrintOrSave) { // request function
   }
 }
 
-function ajaxSave(PrintOrSave){
-	refreshOrderClock();
-	if (!save_allowed) return;
-	save_allowed = false;
-	showLoading();
-	$.ajax({
-		type: "POST",
-		url: 'index.php?module=phreepos&page=ajax&op=save_main&action='+PrintOrSave,
-		dataType: "xml",
-		data: $("form").serialize(),
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-		      alert ("Ajax ErrorThrown: " + errorThrown + "\nTextStatus: " + textStatus + "\nError: " + XMLHttpRequest.responseText);
-		      save_allowed = true;
-			},
-		success: ajaxPrintAndClean
-	  });
-	hideLoading();
+function ajaxSave(PrintOrSave) {
+  refreshOrderClock();
+  if (!save_allowed) return;
+  save_allowed = false;
+  showLoading();
+  fetch('index.php?module=phreepos&page=ajax&op=save_main&action='+PrintOrSave, {
+    method: 'POST',
+    body: new FormData(document.querySelector('form'))
+  })
+  .then(function(r) { if (!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+  .then(function(t) { ajaxPrintAndClean(new DOMParser().parseFromString(t, 'text/xml')); })
+  .catch(function(e) { alert('Ajax Error: '+e.message); save_allowed = true; });
+  hideLoading();
 }
 
-//java label printing
-function ajaxPrintAndClean(sXml) { // call back function
-	save_allowed = true;
-    var xml = parseXml(sXml);
-    var qz = document.getElementById('qz');
-    if (!xml) return;
-  	var massage 	= $(xml).find("massage").text();
-  	if ( massage ) 	  alert( massage );
-  	resetForm();
-  	var action 		= $(xml).find("action").text();
-  	var print 		= action.substring(0,5) == 'print';
-  	var tillId 		= document.getElementById('till_id').value;
-  	if ( print && qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {	
-  	  	//print receipt and open drawer.
-  	  	//qz.setEncoding(tills[tillId].printerEncoding);
-		for(var i in tills[tillId].startingLine){
-			qz.append(tills[tillId].startingLine[i]);
-		}
-	    $(xml).find("receipt_data").each(function() {
-	    	qz.append(stripslashes($(this).find("line").text()) + "\n");
-	    });
-		if ($(xml).find("open_cash_drawer").text() == 1){
-			for(var i in tills[tillId].openDrawer){
-				qz.append(tills[tillId].openDrawer[i]);
-			}
-		}
-        for(var i in tills[tillId].closingLine){
-			qz.append(tills[tillId].closingLine[i]);
-		}
-        qz.setEndOfDocument("\n");
-        jzebraDoneAppending();
-	}else if($(xml).find("open_cash_drawer").text() == 1 ){
-  		OpenDrawer();
-    }else if( print ){
-		var order_id = $(xml).find("order_id").text();
-		var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE;?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + order_id ,"popup_gen","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
-		printWin.focus();	
-	}
+function ajaxPrintAndClean(xml) {
+  save_allowed = true;
+  xml = parseXml(xml);
+  var qz = document.getElementById('qz');
+  if (!xml) return;
+  var massage = xmlText(xml, "massage");
+  if (massage) alert(massage);
+  resetForm();
+  var action = xmlText(xml, "action");
+  var print  = action.substring(0, 5) == 'print';
+  var tillId = document.getElementById('till_id').value;
+  if (print && qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {
+    for (var i in tills[tillId].startingLine) qz.append(tills[tillId].startingLine[i]);
+    Array.from(xml.getElementsByTagName("receipt_data")).forEach(function(rd) {
+      qz.append(stripslashes(xmlText(rd, "line")) + "\n");
+    });
+    if (xmlText(xml, "open_cash_drawer") == 1) {
+      for (var i in tills[tillId].openDrawer) qz.append(tills[tillId].openDrawer[i]);
+    }
+    for (var i in tills[tillId].closingLine) qz.append(tills[tillId].closingLine[i]);
+    qz.setEndOfDocument("\n");
+    jzebraDoneAppending();
+  } else if (xmlText(xml, "open_cash_drawer") == 1) {
+    OpenDrawer();
+  } else if (print) {
+    var order_id = xmlText(xml, "order_id");
+    var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE;?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + order_id, "popup_gen", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+    printWin.focus();
+  }
 }
 
 function jzebraReady(){
@@ -1286,43 +1196,30 @@ function jzebraDonePrinting() {
  *
  */
 function GetPrintPreviousReceipt() {
-	$.ajax({
-	  type: "GET",
-      url: 'index.php?module=phreepos&page=ajax&op=print_previous',
-      dataType: "xml",
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-      	alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-      },
-      success: PrintPreviousReceipt
-     });
+  fetchXml('index.php?module=phreepos&page=ajax&op=print_previous', PrintPreviousReceipt);
 }
 
-function PrintPreviousReceipt(sXml) { // call back function
-	  var xml = parseXml(sXml);
-	  var qz = document.getElementById('qz');
-	  if (!xml) return;
-	  var massage = $(xml).find("massage").text();
-	  if ( massage ) alert( massage );
-	  var tillId = document.getElementById('till_id').value;
-	  if (qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {
-		  //qz.setEncoding(tills[tillId].printerEncoding);
-			for(var i in tills[tillId].startingLine){
-				qz.append(tills[tillId].startingLine[i]);
-			}
-	        $(xml).find("receipt_data").each(function() {
-	        	qz.append(stripslashes($(this).find("line").text()) + "\n");
-	        });
-	        for(var i in tills[tillId].closingLine){
-				qz.append(tills[tillId].closingLine[i]);
-			}
-	        qz.setEndOfDocument("\n");
-	        jzebraDoneAppending();
-	  } else {
-	        var order_id = $(xml).find("order_id").text();
-	        var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE;?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + order_id ,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
-	        printWin.focus();   
-	  }
-	  document.getElementById('sku').focus();
+function PrintPreviousReceipt(xml) {
+  xml = parseXml(xml);
+  var qz = document.getElementById('qz');
+  if (!xml) return;
+  var massage = xmlText(xml, "massage");
+  if (massage) alert(massage);
+  var tillId = document.getElementById('till_id').value;
+  if (qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {
+    for (var i in tills[tillId].startingLine) qz.append(tills[tillId].startingLine[i]);
+    Array.from(xml.getElementsByTagName("receipt_data")).forEach(function(rd) {
+      qz.append(stripslashes(xmlText(rd, "line")) + "\n");
+    });
+    for (var i in tills[tillId].closingLine) qz.append(tills[tillId].closingLine[i]);
+    qz.setEndOfDocument("\n");
+    jzebraDoneAppending();
+  } else {
+    var order_id = xmlText(xml, "order_id");
+    var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE;?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + order_id, "reportFilter", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+    printWin.focus();
+  }
+  document.getElementById('sku').focus();
 }
 
 function OpenDrawer(){
@@ -1354,24 +1251,25 @@ function changeOfType(){
 	var elt = document.getElementById('Other_trans_type');
 	for (i = 0; i < ot_options.length; i++) {
 		if(elt.options[elt.selectedIndex].value == ot_options[i].id){
-			if(ot_options[i].type == 'expenses'){
-				//show description amount and tax if aplicable.
-				$('.ot_desc').show();
-				$('.ot_amount').show();
-				if(ot_options[i].use_tax == 1){
-					$('.ot_rate').show();
-					$('.ot_tax').show();
+			var showHide = function(sel, show) {
+				document.querySelectorAll(sel).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+			};
+			if (ot_options[i].type == 'expenses') {
+				showHide('.ot_desc', true);
+				showHide('.ot_amount', true);
+				if (ot_options[i].use_tax == 1) {
+					showHide('.ot_rate', true);
+					showHide('.ot_tax', true);
 					document.getElementById('ot_rate').value = ot_options[i].taxable;
-				}else{
-					$('.ot_rate').hide();
-					$('.ot_tax').hide();
+				} else {
+					showHide('.ot_rate', false);
+					showHide('.ot_tax', false);
 				}
-			}else{
-				//only show amount
-			 	$('.ot_desc').hide();
-				$('.ot_amount').show();
-				$('.ot_rate').hide();
-				$('.ot_tax').hide();
+			} else {
+				showHide('.ot_desc', false);
+				showHide('.ot_amount', true);
+				showHide('.ot_rate', false);
+				showHide('.ot_tax', false);
 			}
 		}
 	}
@@ -1389,11 +1287,7 @@ function set_ot_options() {
 			document.getElementById('Other_trans_type').options.add(newOpt);
 		}
 	}
-	if(document.getElementById('Other_trans_type').options.length == 0) {
-		$("#other_trans").hide();
-	}else{
-		$("#other_trans").show();
-	}
+	document.getElementById('other_trans').style.display = document.getElementById('Other_trans_type').options.length == 0 ? 'none' : '';
 	changeOfType();
 }
 
@@ -1404,17 +1298,14 @@ function updateOt(){
 	document.getElementById('ot_tax').value       = formatPrecise(tax_amount);
 }
 
-function SaveOt(){
-	$.ajax({
-		type: "POST",
-		url: 'index.php?module=phreepos&page=ajax&op=other_transactions&action=save',
-		dataType: "xml",
-		data: $("form [name=popupOtherTrans]").serialize(),
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-		      alert ("Ajax ErrorThrown: " + errorThrown + "\nTextStatus: " + textStatus + "\nError: " + XMLHttpRequest.responseText);
-			},
-		success: cleanOt
-	  });
+function SaveOt() {
+  fetch('index.php?module=phreepos&page=ajax&op=other_transactions&action=save', {
+    method: 'POST',
+    body: new FormData(document.querySelector('form'))
+  })
+  .then(function(r) { if (!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+  .then(function() { cleanOt(); })
+  .catch(function(e) { alert('Ajax Error: '+e.message); });
 }
 
 function cleanOt(){
@@ -1430,259 +1321,107 @@ function cleanOt(){
 var popupStatus = 0;  //0 means disabled; 1 means enabled; 
 var optionsStatus = 0;//0 means disabled; 1 means enabled;
 
-//loading popup with jQuery magic!  
-function popupContact(){ 
-	if (document.getElementById('bill_acct_id').value == ''){
-		accountGuess(false);
-		return;
-	}
-	//loads popup only if it is disabled
-	if(popupStatus==0){  
-		$("#backgroundPopup").fadeIn("slow");  
-		$("#customer_div").fadeIn("slow");  
-		popupStatus = 1;
-	}
-	var windowWidth = document.documentElement.clientWidth;  
-	var windowHeight = document.documentElement.clientHeight;  
-	var popupHeight = $("#customer_div").height();  
-	var popupWidth = $("#customer_div").width();  
-	//centering  
-	$("#customer_div").css({  
-		"position": "absolute",
-		"top": windowHeight/2-popupHeight/2,  
-		"left": windowWidth/2-popupWidth/2  
-	});  
-	$("#backgroundPopup").css({
-		"position": "absolute",
-		"opacity": "0.7",
-		"background":"#000000",  
-		"top": "0px",  
-		"left": "0px",
-		"height": windowHeight,  
-		"width":  windowWidth	  
-	});
-}  
-
-//loading popup with jQuery magic!  
-function popupPayment(){  
-	//loads popup only if it is disabled
-	if(popupStatus==0){  
-		$("#backgroundPopup").fadeIn("slow");  
-		$("#popupPayment").fadeIn("slow");  
-		popupStatus = 1;
-		document.getElementById('amount').value = document.getElementById('bal_due').value;
-		activateFields();
-		document.getElementById('amount').select();
-	}
-	//request data for centering  
-	var windowWidth = document.documentElement.clientWidth;  
-	var windowHeight = document.documentElement.clientHeight;  
-	var popupHeight = $("#popupPayment").height();  
-	var popupWidth = $("#popupPayment").width();  
-	//centering  
-	$("#popupPayment").css({  
-		"position": "absolute",
-		"top": windowHeight/2-popupHeight/2,  
-		"left": windowWidth/2-popupWidth/2  
-	});  
-	$("#backgroundPopup").css({
-		"position": "absolute",
-		"opacity": "0.7",
-		"background":"#000000",  
-		"top": "0px",  
-		"left": "0px",
-		"height": windowHeight,  
-		"width":windowWidth	  
-	});
-	
-}  
-
-function open_other_options(){
-	//loads popup only if it is disabled
-	if(optionsStatus==0){  
-		$("#other_options").fadeIn("slow");    
-		optionsStatus = 1;
-	}else{
-		$("#other_options").fadeOut("slow"); 
-		optionsStatus = 0;
-		document.getElementById('sku').focus();
-	}
+function _centerPopup(id) {
+  var el = document.getElementById(id);
+  var ww = document.documentElement.clientWidth, wh = document.documentElement.clientHeight;
+  el.style.position = 'absolute';
+  el.style.top  = (wh / 2 - el.offsetHeight / 2) + 'px';
+  el.style.left = (ww / 2 - el.offsetWidth  / 2) + 'px';
+  var bg = document.getElementById('backgroundPopup');
+  Object.assign(bg.style, { position:'absolute', opacity:'0.7', background:'#000000', top:'0px', left:'0px', height:wh+'px', width:ww+'px' });
 }
 
-function ShowOtherTrans(){
-	// start by fadinng out the other options menu bar then show background and 
-	$("#other_options").fadeOut("slow"); 
-	$("#backgroundPopup").fadeIn("slow");  
-	$("#popupOtherTrans").fadeIn("slow");  
-	popupStatus = 1;
-	//request data for centering  
-	var windowWidth = document.documentElement.clientWidth;  
-	var windowHeight = document.documentElement.clientHeight;  
-	var popupHeight = $("#popupOtherTrans").height();  
-	var popupWidth = $("#popupOtherTrans").width();  
-	//centering  
-	$("#popupOtherTrans").css({  
-		"position": "absolute",
-		"top": windowHeight/2-popupHeight/2,  
-		"left": windowWidth/2-popupWidth/2  
-	});  
-	$("#backgroundPopup").css({
-		"position": "absolute",
-		"opacity": "0.7",
-		"background":"#000000",  
-		"top": "0px",  
-		"left": "0px",
-		"height": windowHeight,  
-		"width":windowWidth	  
-	});
+function popupContact() {
+  if (document.getElementById('bill_acct_id').value == '') { accountGuess(false); return; }
+  if (popupStatus == 0) {
+    document.getElementById('backgroundPopup').style.display = 'block';
+    document.getElementById('customer_div').style.display    = 'block';
+    popupStatus = 1;
+  }
+  _centerPopup('customer_div');
 }
 
-//disabling popup with jQuery magic!  
-function disablePopup(){  
-	//disables popup only if it is enabled  
-	if(popupStatus==1){  
-		$("#popupOtherTrans").fadeOut("slow");
-		$("#backgroundPopup").fadeOut("slow");  
-		$("#popupPayment").fadeOut("slow"); 
-		$("#customer_div").fadeOut("slow");
-		popupStatus = 0;  
-		document.getElementById('sku').focus();
-	}  
-}  
-
-// image functions
-
-function setImage(src){
-	if (src == ''){
-		$('#curr_image').hide();
-		$('#curr_image').attr('src', '');
-	}else{
-		$('#curr_image').show();
-		$('#curr_image').attr('src', src);
-	}
-	
+function popupPayment() {
+  if (popupStatus == 0) {
+    document.getElementById('backgroundPopup').style.display = 'block';
+    document.getElementById('popupPayment').style.display    = 'block';
+    popupStatus = 1;
+    document.getElementById('amount').value = document.getElementById('bal_due').value;
+    activateFields();
+    document.getElementById('amount').select();
+  }
+  _centerPopup('popupPayment');
 }
 
-$(document).ready(function(){ 
-	$("#backgroundPopup").click(function(){
-		disablePopup();  
-	});
+function open_other_options() {
+  if (optionsStatus == 0) {
+    document.getElementById('other_options').style.display = 'block';
+    optionsStatus = 1;
+  } else {
+    document.getElementById('other_options').style.display = 'none';
+    optionsStatus = 0;
+    document.getElementById('sku').focus();
+  }
+}
 
-	$("#disc_percent").keydown(function(event) {
-		$("#discount").val('');
-	});
+function ShowOtherTrans() {
+  document.getElementById('other_options').style.display   = 'none';
+  document.getElementById('backgroundPopup').style.display = 'block';
+  document.getElementById('popupOtherTrans').style.display = 'block';
+  popupStatus = 1;
+  _centerPopup('popupOtherTrans');
+}
 
-	$("#discount").keydown(function(event) {
-		$("#disc_percent").val('');
-	});
-	
-	$("#amount").keydown(function(event) {
-		if (event.keyCode == 13) SavePayment('save');
-	});
+function disablePopup() {
+  if (popupStatus == 1) {
+    document.getElementById('popupOtherTrans').style.display = 'none';
+    document.getElementById('backgroundPopup').style.display = 'none';
+    document.getElementById('popupPayment').style.display    = 'none';
+    document.getElementById('customer_div').style.display    = 'none';
+    popupStatus = 0;
+    document.getElementById('sku').focus();
+  }
+}
 
-	$("#open_other_options").click(function(){
-		open_other_options();  
-	});
-	  
+function setImage(src) {
+  var img = document.getElementById('curr_image');
+  if (src == '') {
+    img.style.display = 'none';
+    img.src = '';
+  } else {
+    img.style.display = '';
+    img.src = src;
+  }
+}
+
+document.addEventListener('keydown', function(event) {
+  if (event.altKey && event.keyCode == 82) {
+    event.preventDefault();
+    window.location.assign(location.search === '?module=phreepos&page=main' ? '?module=phreepos&page=main&action=pos_return' : '?module=phreepos&page=main');
+  }
+  if (event.keyCode == 27) {
+    event.preventDefault();
+    if (optionsStatus == 1) open_other_options();
+    if (popupStatus == 1) { disablePopup(); } else { resetForm(); }
+  }
+  if (event.keyCode == 38 && popupStatus == 1) { // arrow up
+    event.preventDefault();
+    var sel = document.getElementById('payment_method');
+    sel.selectedIndex = (sel.selectedIndex === 0) ? sel.options.length - 1 : sel.selectedIndex - 1;
+    activateFields();
+  }
+  if (event.keyCode == 40 && popupStatus == 1) { // arrow down
+    event.preventDefault();
+    var sel = document.getElementById('payment_method');
+    sel.selectedIndex = (sel.selectedIndex === sel.options.length - 1) ? 0 : sel.selectedIndex + 1;
+    activateFields();
+  }
+  if (event.keyCode == 118 && popupStatus == 0) { event.preventDefault(); InventoryList(0); }  // F7
+  if (event.keyCode == 119 && popupStatus == 0) { event.preventDefault(); popupContact(); }    // F8
+  if (event.keyCode == 120 && popupStatus == 0) { event.preventDefault(); popupPayment(); }    // F9
+  if (event.keyCode == 122) { event.preventDefault(); if (popupStatus == 1) { SavePayment('save');  } else { popupPayment(); } }  // F11
+  if (event.keyCode == 123) { event.preventDefault(); if (popupStatus == 1) { SavePayment('print'); } else { popupPayment(); } }  // F12
 });
-
-//Press Escape event!  
-$(document).keydown(function(event){
-	
-	if (event.altKey && event.keyCode == 82) {
-		event.preventDefault();
-		// if alt + r then redirect to template return
-		if (location.search === '?module=phreepos&page=main'){
-			window.location.assign('?module=phreepos&page=main&action=pos_return');
-		}else{
-			window.location.assign('?module=phreepos&page=main');
-		}
-		event.originalEvent.keyCode = 0;  
-	}
-		
-	if(event.keyCode==27){
-		event.preventDefault();
-		if(optionsStatus==1) open_other_options();  //close other options menu
-		if(popupStatus==1){
-			// 	if esc is pressed and the payment popup is shown it will close the payment popup  
-			disablePopup();
-		}else{
-			// 	if esc is pressed and the payment popup is NOT shown the form will be emptyed.
-			resetForm();
-		} 
-		event.originalEvent.keyCode = 0; 
-	} 
-	 
-	if(event.keyCode==38){ //arrow up
-		if(popupStatus==1){
-			event.preventDefault();
-			// 	if arrow up is pressed and the payment popup is shown it select the previous payment methode
-			if($('#payment_method option:first').is(":selected")){
-				$('#payment_method option:last-child').attr("selected", "selected");
-			}else{  
-				$('#payment_method option:selected').prev().prop("selected", true);
-			}  
-			event.originalEvent.keyCode = 0;
-			activateFields();
-		} 
-	}
-	  
-	if(event.keyCode==40){ //arrow down
-		if(popupStatus==1){
-			event.preventDefault();
-			// 	if arrow down is pressed and the payment popup is shown it select the next payment methode
-			if($('#payment_method option:last').is(":selected")){
-				$('#payment_method option:first-child').attr("selected", "selected");
-			}else{  
-				$('#payment_method option:selected').next().prop("selected", true);
-			}
-			event.originalEvent.keyCode = 0;
-			activateFields();
-		} 
-	}
-	
-	if(event.keyCode==118 && popupStatus==0){
-		event.preventDefault();
-		// if F7 is pressed the inventory search popup will be shown
-		InventoryList(0);
-		event.originalEvent.keyCode = 0;
-	}
-	if(event.keyCode==119 && popupStatus==0){
-		event.preventDefault();
-		// if F8 is pressed the customer search popup will be shown
-		popupContact();
-		event.originalEvent.keyCode = 0;
-	}
-	if(event.keyCode==120 && popupStatus==0){
-		event.preventDefault();
-		// if F9 is pressed the payment popup will be shown
-		popupPayment();
-		event.originalEvent.keyCode = 0;
-	}
-	
-	if(event.keyCode==122){
-		event.preventDefault();
-		if (popupStatus==1){
-			// if F11 is pressed and the payment popup is shown the transaction will be saved not printed
-			SavePayment('save');
-		}else{
-			// if F11 is pressed and the payment popup is not shown the payment popup will be shown
-			popupPayment();
-		}	
-		event.originalEvent.keyCode = 0;
-	}
-	if(event.keyCode==123){
-		event.preventDefault();
-		if (popupStatus==1){
-			// if F12 is pressed and the payment popup is shown the transaction will be saved and printed
-			SavePayment('print');
-		}else{
-			//if F12 is pressed and the payment popup is not shown the payment popup will be shown
-			popupPayment();
-		}	
-		event.originalEvent.keyCode = 0;
-	}
-});  
 
 
 </script>

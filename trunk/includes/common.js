@@ -230,8 +230,10 @@ function AlertError(MethodName,e)  {
 
 // Chart functions
 chartProps = new Object();
-google.load('visualization', '1.0', {'packages':['corechart']});
-google.setOnLoadCallback(drawChart);
+if (typeof google !== 'undefined') {
+  google.load('visualization', '1.0', {'packages':['corechart']});
+  google.setOnLoadCallback(drawChart);
+}
 function drawChart() {}
 
 function phreedomChart() {
