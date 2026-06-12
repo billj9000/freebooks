@@ -36,7 +36,7 @@ $toolbar->add_help('');
 echo $toolbar->build_toolbar();
 $fields->set_fields_to_display($asset_type);
 
-// Convert extra_tab_li (jQuery UI format) to Bootstrap nav buttons
+// Convert extra_tab_li (legacy tab format) to Bootstrap nav buttons
 $extra_nav_items = '';
 if (!empty($fields->extra_tab_li)) {
   preg_match_all("/<li><a href='#(tab_\d+)'>(.*?)<\/a><\/li>/i", $fields->extra_tab_li, $matches, PREG_SET_ORDER);
@@ -47,7 +47,7 @@ if (!empty($fields->extra_tab_li)) {
   }
 }
 
-// Add tab-pane class to extra_tab_html divs (jQuery UI format uses plain <div id='tab_X'>)
+// Add tab-pane class to extra_tab_html divs (legacy tab format uses plain <div id='tab_X'>)
 $extra_tab_panes = '';
 if (!empty($fields->extra_tab_html)) {
   $extra_tab_panes = preg_replace("/<div id='(tab_\d+)'>/", "<div id='$1' class='tab-pane'>", $fields->extra_tab_html);
