@@ -70,11 +70,6 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   </script>
 <?php 
 require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php');
-// load the javascript translations (DataTables i18n + misc)
-if      (file_exists($js_i18n = 'modules/phreedom/custom/language/'.$_SESSION['language'].'/jquery_i18n.js')) {
-} elseif(file_exists($js_i18n = 'modules/phreedom/language/'       .$_SESSION['language'].'/jquery_i18n.js')) {
-} else               $js_i18n = 'modules/phreedom/language/en_us/jquery_i18n.js';
-echo '  <script type="text/javascript" src="'.$js_i18n.'"></script>'."\n";
 // load the javascript specific, required
 $js_include_path = DIR_FS_WORKING . 'pages/' . $page . '/js_include.php';
 if (file_exists($js_include_path)) { require_once($js_include_path); } 

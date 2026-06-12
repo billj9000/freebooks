@@ -75,7 +75,7 @@
     <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_BACK; ?>"    onclick="document.getElementById('contentFrame').contentWindow.history.back()"><?php echo html_icon('actions/go-previous.png',   TEXT_BACK,    'large'); ?></button>
     <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_FORWARD; ?>" onclick="document.getElementById('contentFrame').contentWindow.history.forward()"><?php echo html_icon('actions/go-next.png',       TEXT_FORWARD, 'large'); ?></button>
     <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_PRINT; ?>"   onclick="document.getElementById('contentFrame').contentWindow.print()"><?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large'); ?></button>
-    <button class="btn btn-outline-secondary btn-sm ms-auto" title="<?php echo TEXT_EXIT; ?>" onclick="window.close()"><?php echo html_icon('actions/system-log-out.png', TEXT_EXIT,    'large'); ?></button>
+    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_EXIT; ?>" onclick="window.close()"><?php echo html_icon('actions/system-log-out.png', TEXT_EXIT,    'large'); ?></button>
   </div>
 
   <!-- Main body -->
