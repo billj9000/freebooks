@@ -63,28 +63,19 @@ function validateAddress() {
   address += '&state_province='+document.getElementById('ship_state_province').value;
   address += '&postal_code='   +document.getElementById('ship_postal_code').value;
   address += '&country_code='  +document.getElementById('ship_country_code').value;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=shipping&page=ajax&op=shipping&action=validate&method='+method+address,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: "+XMLHttpRequest.responseText+"\nTextStatus: "+textStatus+"\nErrorThrown: "+errorThrown);
-    },
-	success: fillValidate
-  });
+  fetchXml('index.php?module=shipping&page=ajax&op=shipping&action=validate&method='+method+address, fillValidate);
 }
 
-function fillValidate(sXml) {
-  var xml = parseXml(sXml);
+function fillValidate(xml) {
   if (!xml) return;
-  if ($(xml).find("message").text()) alert ($(xml).find("message").text());
-  if ($(xml).find("address").text()) {
-    document.getElementById('ship_contact').value        = $(xml).find("ship_contact").text();
-    document.getElementById('ship_address1').value       = $(xml).find("ship_address1").text();
-    document.getElementById('ship_address2').value       = $(xml).find("ship_address2").text();
-    document.getElementById('ship_city_town').value      = $(xml).find("ship_city_town").text();
-    document.getElementById('ship_state_province').value = $(xml).find("ship_state_province").text();
-    document.getElementById('ship_postal_code').value    = $(xml).find("ship_postal_code").text();
+  if (xmlText(xml, "message")) alert(xmlText(xml, "message"));
+  if (xmlText(xml, "address")) {
+    document.getElementById('ship_contact').value        = xmlText(xml, "ship_contact");
+    document.getElementById('ship_address1').value       = xmlText(xml, "ship_address1");
+    document.getElementById('ship_address2').value       = xmlText(xml, "ship_address2");
+    document.getElementById('ship_city_town').value      = xmlText(xml, "ship_city_town");
+    document.getElementById('ship_state_province').value = xmlText(xml, "ship_state_province");
+    document.getElementById('ship_postal_code').value    = xmlText(xml, "ship_postal_code");
   }
 }
 

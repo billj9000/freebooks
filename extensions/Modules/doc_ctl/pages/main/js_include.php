@@ -226,66 +226,35 @@ function fetch_home() {
 function fetch_doc(id) {
 //  document.getElementById("id").value = id;
   if (!id) return;
-  $.ajax({
-    type: "GET",
-    contentType: "application/json; charset=utf-8",
-	url: 'index.php?module=doc_ctl&page=ajax&op=load_doc_details&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillDocDetails
-  });
+  fetchXml('index.php?module=doc_ctl&page=ajax&op=load_doc_details&id='+id, fillDocDetails);
 }
 
-function fillDocDetails(sXml) {
-  var xml = parseXml(sXml);
+function fillDocDetails(xml) {
   if (!xml) return;
-  obj = document.getElementById("rightColumn");
-  obj.innerHTML = $(xml).find("htmlContents").text();
+  document.getElementById("rightColumn").innerHTML = xmlText(xml, "htmlContents");
 }
 
 // misc functions for action processing
 function docAction(action) {
   var id = document.getElementById("id").value;
   if (!id) return;
-  $.ajax({
-    type: "GET",
-    contentType: "application/json; charset=utf-8",
-	url: 'index.php?module=doc_ctl&page=ajax&op=doc_operation&action='+action+'&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: docActionResp
-  });
+  fetchXml('index.php?module=doc_ctl&page=ajax&op=doc_operation&action='+action+'&id='+id, docActionResp);
 }
 
-function docActionResp(sXml) {
-  var xml = parseXml(sXml);
+function docActionResp(xml) {
   if (!xml) return;
-  if ($(xml).find("msg").text()) alert($(xml).find("msg").text());
-  fetch_doc($(xml).find("docID").text());
-  if ($(xml).find("action").text() == 'reload_tree') $('#demo').jstree('refresh',-1);
+  if (xmlText(xml, "msg")) alert(xmlText(xml, "msg"));
+  fetch_doc(xmlText(xml, "docID"));
+  if (xmlText(xml, "action") == 'reload_tree') $('#demo').jstree('refresh',-1);
 }
 
 function deleteBookmark(id) {
-  $.ajax({
-    type: "GET",
-    contentType: "application/json; charset=utf-8",
-    url: 'index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel&action=del_bookmark&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-	  alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: respDelBookmark
-  });
+  fetchXml('index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel&action=del_bookmark&id='+id, respDelBookmark);
 }
 
-function respDelBookmark(sXml) {
-  var xml = parseXml(sXml);
+function respDelBookmark(xml) {
   if (!xml) return;
-  if ($(xml).find("msg").text()) alert($(xml).find("msg").text());
+  if (xmlText(xml, "msg")) alert(xmlText(xml, "msg"));
   location.reload(true);
 }
 

@@ -61,33 +61,24 @@ function clearTask() {
 
 // ajax pair to fetch item info
 function editTask(id) { // request funtion
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=work_orders&page=ajax&op=load_task&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillTask
-  });
+  fetchXml('index.php?module=work_orders&page=ajax&op=load_task&id='+id, fillTask);
 }
 
-function fillTask(sXml) { // call back function
-  var xml = parseXml(sXml);
+function fillTask(xml) { // call back function
   if (!xml) return;
-  var id = $(xml).find("id").first().text();
+  var id = xmlText(xml, "id");
   document.getElementById('id').value          = id;
-  document.getElementById('task_name').value   = $(xml).find("task_name").text();
-  document.getElementById('description').value = $(xml).find("description").text();
-  document.getElementById('ref_doc').value     = ($(xml).find("ref_doc").text())  ? $(xml).find("ref_doc").text()  : '';
-  document.getElementById('ref_spec').value    = ($(xml).find("ref_spec").text()) ? $(xml).find("ref_spec").text() : '';
-  document.getElementById('dept_id').value     = ($(xml).find("dept_id").text())  ? $(xml).find("dept_id").text()  : '';
-  document.getElementById('job_time').value    = $(xml).find("job_time").text();
-  document.getElementById('job_unit').value    = $(xml).find("job_unit").text();
-  document.getElementById('mfg').value         = $(xml).find("mfg").text();
-  document.getElementById('qa').value          = $(xml).find("qa").text();
-  document.getElementById('data_entry').value  = $(xml).find("data_entry").text();
-  document.getElementById('erp_entry').value  = $(xml).find("erp_entry").text();
+  document.getElementById('task_name').value   = xmlText(xml, "task_name");
+  document.getElementById('description').value = xmlText(xml, "description");
+  document.getElementById('ref_doc').value     = xmlText(xml, "ref_doc")  || '';
+  document.getElementById('ref_spec').value    = xmlText(xml, "ref_spec") || '';
+  document.getElementById('dept_id').value     = xmlText(xml, "dept_id")  || '';
+  document.getElementById('job_time').value    = xmlText(xml, "job_time");
+  document.getElementById('job_unit').value    = xmlText(xml, "job_unit");
+  document.getElementById('mfg').value         = xmlText(xml, "mfg");
+  document.getElementById('qa').value          = xmlText(xml, "qa");
+  document.getElementById('data_entry').value  = xmlText(xml, "data_entry");
+  document.getElementById('erp_entry').value   = xmlText(xml, "erp_entry");
   // turn off some icons
   if (id && securityLevel < 3) removeElement('tb_main_0', 'tb_icon_save');
 }

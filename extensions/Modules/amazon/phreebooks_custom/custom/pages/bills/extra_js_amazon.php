@@ -28,33 +28,24 @@
 function amazonFillRequest() {
   var fn = prompt('Enter the Filename to fill receipt window with.', '');
   if (!fn) return;
-    $.ajax({
-      type: "GET",
-	  url: 'index.php?module=pps&page=ajax&op=amazon_receipt&fn=' + fn,
-      dataType: ($.browser.msie) ? "text" : "xml",
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-        alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-      },
-	  success: amazonFillResponse
-    });
+  fetchXml('index.php?module=pps&page=ajax&op=amazon_receipt&fn=' + fn, amazonFillResponse);
 }
 
-function amazonFillResponse(sXml) {
+function amazonFillResponse(xml) {
   var msg = '';
-  var xml = parseXml(sXml);
   if (!xml) return;
-  $(xml).find("Order").each(function() {
-	var orderID = $(this).find("Number").text();
-	found = false;
-	for (var r=1; r<document.getElementById('item_table').rows.length; r++) {
-	  if (document.getElementById('desc_'+r).value == orderID) {
-		document.getElementById('dscnt_'+r).value = parseFloat($(this).find("Discount").text());
-		updateRowTotal(r);
-		found = true;
-		break;
-	  }
-	}
-	if (!found) msg += 'could not find order # '+orderID+'\n';
+  Array.from(xml.getElementsByTagName("Order")).forEach(function(order) {
+    var orderID = xmlText(order, "Number");
+    var found = false;
+    for (var r=1; r<document.getElementById('item_table').rows.length; r++) {
+      if (document.getElementById('desc_'+r).value == orderID) {
+        document.getElementById('dscnt_'+r).value = parseFloat(xmlText(order, "Discount"));
+        updateRowTotal(r);
+        found = true;
+        break;
+      }
+    }
+    if (!found) msg += 'could not find order # '+orderID+'\n';
   });
   alert(msg+'Finished Processing! Any listed orders could not be found.');
 }

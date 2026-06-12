@@ -64,22 +64,12 @@ function ReportGenPopup(rID, type) {
 
 function fetch_doc(id) {
   document.getElementById("id").value = id;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreeform&page=ajax&op=load_doc_details&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: fillDocDetails
-  });
+  fetchXml('index.php?module=phreeform&page=ajax&op=load_doc_details&id='+id, fillDocDetails);
 }
 
-function fillDocDetails(sXml) {
-  var xml = parseXml(sXml);
+function fillDocDetails(xml) {
   if (!xml) return;
-  obj = document.getElementById("rightColumn");
-  obj.innerHTML = $(xml).find("htmlContents").text();
+  document.getElementById("rightColumn").innerHTML = xmlText(xml, "htmlContents");
 }
 
 function docAction(action) {
@@ -88,42 +78,24 @@ function docAction(action) {
   if (action == 'edit' || action == 'check_in') {
     window.open("index.php?module=phreeform&page=popup_new_doc&id="+id,"new_doc","width=850px,height=550px,resizable=1,scrollbars=1,top=150,left=100");
   }
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreeform&page=ajax&op=doc_operation&action='+action+'&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: docActionResp
-  });
+  fetchXml('index.php?module=phreeform&page=ajax&op=doc_operation&action='+action+'&id='+id, docActionResp);
 }
 
-function docActionResp(sXml) {
-  var xml = parseXml(sXml);
+function docActionResp(xml) {
   if (!xml) return;
-  if ($(xml).find("msg").text()) alert($(xml).find("msg").text());
-  fetch_doc($(xml).find("docID").text());
+  if (xmlText(xml, "msg")) alert(xmlText(xml, "msg"));
+  fetch_doc(xmlText(xml, "docID"));
 }
 
 function dirAction(action) {
   var id = document.getElementById("id").value;
   if (!id) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreeform&page=ajax&op=dir_operation&action='+action+'&id='+id,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: dirActionResp
-  });
+  fetchXml('index.php?module=phreeform&page=ajax&op=dir_operation&action='+action+'&id='+id, dirActionResp);
 }
 
-function dirActionResp(sXml) {
-  var xml = parseXml(sXml);
+function dirActionResp(xml) {
   if (!xml) return;
-  if ($(xml).find("message").text()) alert($(xml).find("message").text());
-  fetch_doc($(xml).find("docID").text());
+  if (xmlText(xml, "message")) alert(xmlText(xml, "message"));
+  fetch_doc(xmlText(xml, "docID"));
 }
 </script>

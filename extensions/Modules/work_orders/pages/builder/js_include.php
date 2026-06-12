@@ -60,24 +60,15 @@ function loadSkuDetails(iID) {
   var sku = '';
   sku = document.getElementById('sku').value;
 //  if (!sku) sku = text_search;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rID+'&jID='+jID,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: processSkuDetails
-  });
+  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID='+cID+'&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rID+'&jID='+jID, processSkuDetails);
 }
 
-function processSkuDetails(sXml) { // call back function
-  var xml = parseXml(sXml);
+function processSkuDetails(xml) { // call back function
   if (!xml) return;
-  document.getElementById('sku_id').value      = $(xml).find("id").text();
-  document.getElementById('sku').value         = $(xml).find("sku").text();
+  document.getElementById('sku_id').value      = xmlText(xml, "id");
+  document.getElementById('sku').value         = xmlText(xml, "sku");
   document.getElementById('sku').style.color   = '';
-  document.getElementById('description').value = $(xml).find("description_short").text();
+  document.getElementById('description').value = xmlText(xml, "description_short");
 }
 
 function deleteItem(id) {

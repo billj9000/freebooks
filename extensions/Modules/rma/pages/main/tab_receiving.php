@@ -55,7 +55,7 @@
 if (!empty($receive_details)) {
   for ($i=0; $i<count($receive_details); $i++) { ?>
       <tr>
-        <td align="center"><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick = "if (confirm(image_delete_msg)) $(this).parent().parent().remove();"'); ?></td>
+        <td align="center"><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick = "if (confirm(image_delete_msg)) this.closest(\'tr\').remove();"'); ?></td>
         <td align="center"><?php echo html_input_field("rcv_qty[".($i+1)."]", $receive_details[$i]['qty'], 'size="7" maxlength="6" style="text-align:right"'); ?></td>
         <td nowrap="nowrap" align="center"><?php echo html_input_field("rcv_sku[".($i+1)."]", $receive_details[$i]['sku'], 'size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" onfocus="activeField(this, \''.TEXT_SEARCH.'\')" onblur="inactiveField(this, \''.TEXT_SEARCH.'\')"'); ?>
         <?php echo '&nbsp;' . html_icon('status/folder-open.png', TEXT_SEARCH, 'small', 'align="top" style="cursor:pointer" onclick="ItemList(\'rcv_\','.($i+1).')"'); ?>

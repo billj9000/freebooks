@@ -44,7 +44,7 @@ function startFullRestore(fn) {
 
   var url = 'index.php?module=<?php echo $module; ?>&page=ajax&op=restore_extract'
           + '&fn=' + encodeURIComponent(fn);
-  $.getJSON(url, function(r) {
+  fetch(url).then(function(r) { return r.json(); }).then(function(r) {
     if (r.status !== 'ok') {
       restoreFailed('<?php echo addslashes(GEN_RESTORE_ERROR); ?>' + (r.message || ''));
       return;
@@ -52,7 +52,7 @@ function startFullRestore(fn) {
     document.getElementById('restore_filename').innerHTML =
       '<?php echo addslashes(TEXT_PROCESSING_FILE); ?>' + r.sql_file;
     doChunk(r.sql_file, 0, 0, 1);
-  }).fail(function() {
+  }).catch(function() {
     restoreFailed('<?php echo addslashes(GEN_RESTORE_ERROR); ?>Network error during extraction.');
   });
 }
@@ -65,7 +65,7 @@ function doChunk(fn, foffset, totalqueries, linenumber) {
           + '&totalqueries=' + totalqueries
           + '&start='        + linenumber;
 
-  $.getJSON(url, function(r) {
+  fetch(url).then(function(r) { return r.json(); }).then(function(r) {
     if (r.status === 'error') {
       restoreFailed('<?php echo addslashes(GEN_RESTORE_ERROR); ?>' + (r.message || ''));
       return;
@@ -83,7 +83,7 @@ function doChunk(fn, foffset, totalqueries, linenumber) {
         doChunk(fn, r.foffset, r.totalqueries, r.linenumber);
       }, 100);
     }
-  }).fail(function() {
+  }).catch(function() {
     restoreFailed('<?php echo addslashes(GEN_RESTORE_ERROR); ?>Network error during import.');
   });
 }

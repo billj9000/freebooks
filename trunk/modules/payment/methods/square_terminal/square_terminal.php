@@ -68,7 +68,7 @@ class square_terminal extends payment {
           .   'document.getElementById("sq_browse_list").innerHTML="";'
           .   'document.getElementById("sq_pair_status").innerHTML=' . $creating . ';'
           .   'document.getElementById("sq_pair_code").style.display="none";'
-          .   '$.getJSON("index.php?module=payment&page=ajax&op=sq_term_pair_start",function(r){'
+          .   'fetch("index.php?module=payment&page=ajax&op=sq_term_pair_start").then(function(r){return r.json();}).then(function(r){'
           .     'if(r.error){document.getElementById("sq_pair_status").innerHTML=r.error;return;}'
           .     'sqPairCodeId=r.code_id;'
           .     'document.getElementById("sq_pair_code").innerText=r.code;'
@@ -80,10 +80,10 @@ class square_terminal extends payment {
           .       'document.getElementById("sq_pair_code").style.display="none";'
           .       'document.getElementById("sq_pair_status").innerHTML=' . $timeout . ';'
           .     '},360000);'
-          .   '}).fail(function(){document.getElementById("sq_pair_status").innerHTML="Request failed.";});'
+          .   '}).catch(function(){document.getElementById("sq_pair_status").innerHTML="Request failed.";});'
           . '}'
           . 'function sqPairPoll(){'
-          .   '$.getJSON("index.php?module=payment&page=ajax&op=sq_term_pair_status",{code_id:sqPairCodeId},function(r){'
+          .   'fetch("index.php?module=payment&page=ajax&op=sq_term_pair_status&code_id="+encodeURIComponent(sqPairCodeId)).then(function(r){return r.json();}).then(function(r){'
           .     'if(r.error){clearInterval(sqPairPollTimer);clearTimeout(sqPairTimeoutTimer);document.getElementById("sq_pair_code").style.display="none";document.getElementById("sq_pair_status").innerHTML=r.error;return;}'
           .     'if(r.status==="PAIRED"){'
           .       'clearInterval(sqPairPollTimer);clearTimeout(sqPairTimeoutTimer);'
@@ -97,7 +97,7 @@ class square_terminal extends payment {
           .   'if(!confirm("Unpair the terminal? It will return to the pairing screen."))return;'
           .   'var bl=document.getElementById("sq_pair_status");'
           .   'bl.innerHTML="Unpairing...";'
-          .   '$.getJSON("index.php?module=payment&page=ajax&op=sq_term_unpair",function(r){'
+          .   'fetch("index.php?module=payment&page=ajax&op=sq_term_unpair").then(function(r){return r.json();}).then(function(r){'
           .     'if(r.error){bl.innerHTML="<span style=\'color:red\'>"+r.error+"</span>";return;}'
           .     'if(r.deleted>0){'
           .       'bl.innerHTML="Terminal unpaired. You can now pair a new terminal.";'
@@ -105,12 +105,12 @@ class square_terminal extends payment {
           .     '}else{'
           .       'bl.innerHTML="No paired terminals found.";'
           .     '}'
-          .   '}).fail(function(xhr){bl.innerHTML="<span style=\'color:red\'>Request failed: "+xhr.responseText+"</span>";});'
+          .   '}).catch(function(){bl.innerHTML="<span style=\'color:red\'>Request failed.</span>";});'
           . '}'
           . 'function sqBrowseDevices(){'
           .   'var bl=document.getElementById("sq_browse_list");'
           .   'bl.innerHTML=' . $browseLoad . ';'
-          .   '$.getJSON("index.php?module=payment&page=ajax&op=sq_term_list_devices",function(r){'
+          .   'fetch("index.php?module=payment&page=ajax&op=sq_term_list_devices").then(function(r){return r.json();}).then(function(r){'
           .     'if(r.error){bl.innerHTML="<span style=\'color:red\'>"+r.error+"</span>";return;}'
           .     'if(!r.devices||!r.devices.length){bl.innerHTML=' . $browseNone . ';return;}'
           .     'var h="<table class=\'table table-sm table-borderless\' style=\'margin-top:4px\'>";'
@@ -126,7 +126,7 @@ class square_terminal extends payment {
           .     '});'
           .     'h+="</table>";'
           .     'bl.innerHTML=h;'
-          .   '}).fail(function(xhr){bl.innerHTML="<span style=\'color:red\'>Request failed: "+xhr.responseText+"</span>";});'
+          .   '}).catch(function(){bl.innerHTML="<span style=\'color:red\'>Request failed.</span>";});'
           . '}'
           . 'function sqSelectDevice(id){'
           .   'document.getElementById("module_payment_square_terminal_device_id").value=id;'
@@ -242,7 +242,7 @@ class square_terminal extends payment {
       . '  document.getElementById("sq_term_send").disabled = true;' . "\n"
       . '  document.getElementById("square_terminal_field_0").value = "";' . "\n"
       . '  document.getElementById("sq_term_status").innerText = sqTermStatusSending;' . "\n"
-      . '  $.getJSON("index.php?module=phreebooks&page=ajax&op=sq_term_create", {amount: raw, payment_type: ptype}, function(r) {' . "\n"
+      . '  fetch("index.php?module=phreebooks&page=ajax&op=sq_term_create&"+new URLSearchParams({amount:raw,payment_type:ptype})).then(function(r){return r.json();}).then(function(r) {' . "\n"
       . '    if (r.error) {' . "\n"
       . '      document.getElementById("sq_term_status").innerText = r.error;' . "\n"
       . '      document.getElementById("sq_term_send").disabled = false;' . "\n"
@@ -251,8 +251,8 @@ class square_terminal extends payment {
       . '    sqTermCheckoutId = r.checkout_id;' . "\n"
       . '    document.getElementById("sq_term_status").innerText = sqTermStatusWaiting;' . "\n"
       . '    sqTermPollTimer = setInterval(sqTermPoll, 3000);' . "\n"
-      . '  }).fail(function(xhr) {' . "\n"
-      . '    document.getElementById("sq_term_status").innerText = "Error: " + xhr.responseText;' . "\n"
+      . '  }).catch(function() {' . "\n"
+      . '    document.getElementById("sq_term_status").innerText = "Error: request failed";' . "\n"
       . '    document.getElementById("sq_term_send").disabled = false;' . "\n"
       . '  });' . "\n"
       . '}' . "\n"
@@ -263,7 +263,7 @@ class square_terminal extends payment {
       // The print popup opens on the subsequent page load (see DOMContentLoaded below)
       // because window.open from a setInterval callback is blocked by popup blockers.
       . 'function sqTermPoll() {' . "\n"
-      . '  $.getJSON("index.php?module=phreebooks&page=ajax&op=sq_term_status", {checkout_id: sqTermCheckoutId}, function(r) {' . "\n"
+      . '  fetch("index.php?module=phreebooks&page=ajax&op=sq_term_status&checkout_id="+encodeURIComponent(sqTermCheckoutId)).then(function(r){return r.json();}).then(function(r) {' . "\n"
       . '    if (r.error) {' . "\n"
       . '      clearInterval(sqTermPollTimer);' . "\n"
       . '      document.getElementById("sq_term_status").innerText = r.error;' . "\n"

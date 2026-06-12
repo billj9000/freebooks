@@ -76,23 +76,14 @@ function fetchEmailMsg() {
 	if (document.popup_gen.rID.value) rID = document.popup_gen.rID.value; // for single form entries
   }
   if (rID) {
-    $.ajax({
-      type: "GET",
-	  url: 'index.php?module=phreeform&page=ajax&op=load_email_msg&rID='+rID,
-      dataType: "xml",
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-        alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-      },
-	  success: fillEmailMsg
-    });
+    fetchXml('index.php?module=phreeform&page=ajax&op=load_email_msg&rID='+rID, fillEmailMsg);
   }
 }
 
-function fillEmailMsg(sXml) {
-  var xml = parseXml(sXml);
+function fillEmailMsg(xml) {
   if (!xml) return;
-  if ($(xml).find("subject").text()) document.getElementById('message_subject').value = $(xml).find("subject").text();
-  if ($(xml).find("text").text())    document.getElementById('message_body').value    = $(xml).find("text").text();
+  if (xmlText(xml, "subject")) document.getElementById('message_subject').value = xmlText(xml, "subject");
+  if (xmlText(xml, "text"))    document.getElementById('message_body').value    = xmlText(xml, "text");
 }
 
 function querySaveAs() {

@@ -25,7 +25,6 @@ var fetchDetails  = false;
 
 // required function called with every page load
 function init() {
-  $('#inv_image').dialog({ autoOpen:false, width:800 });
   <?php $__action = $_REQUEST['action'] ?? ''; if ($__action <> 'new' && $__action <> 'edit' && $__action <> 'build') { // set focus for main window
 	echo "  document.getElementById('search_text').focus();";
 	echo "  document.getElementById('search_text').select();";
@@ -65,97 +64,65 @@ function loadSkuDetails(iID, rowCnt) {
   if (sku == text_search) return;
   bID = document.getElementById('store_id').value;
   qty = document.getElementById('qty').value;
-  $.ajax({
-    type: "GET",
-	url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID=0&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rowCnt,
-    dataType: ($.browser.msie) ? "text" : "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillInventory
-  });
+  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&bID='+bID+'&cID=0&qty='+qty+'&iID='+iID+'&sku='+sku+'&rID='+rowCnt, fillInventory);
 }
 
-function fillInventory(sXml) {
-  var xml = parseXml(sXml);
+function fillInventory(xml) {
   if (!xml) return;
-  var iID = $(xml).find("id").first().text();
-  var sku = $(xml).find("sku").first().text();
+  var iID = xmlText(xml, "id");
+  var sku = xmlText(xml, "sku");
   if (!iID) return;
   document.getElementById('sku_id').value = iID;
   document.getElementById('sku').value    = sku;
-  // Fetch wo details
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=work_orders&page=ajax&op=load_task_list&iID='+iID,
-    dataType: ($.browser.msie) ? "text" : "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillTaskList
-  });
+  fetchXml('index.php?module=work_orders&page=ajax&op=load_task_list&iID='+iID, fillTaskList);
   fetchBOMList();
 }
 
-function fillTaskList(sXml) { // call back function
-  var tbody, row, td;
-  var xml = parseXml(sXml);
+function fillTaskList(xml) { // call back function
   if (!xml) return;
-  document.getElementById('wo_id').value    = $(xml).find("WOid").text();
-  document.getElementById('wo_title').value = $(xml).find("WOTitle").text();
-  if ($(xml).find("ImageURL").text()) {
-    var imgURL = $(xml).find("ImageURL").text();
-	var temp = '<img src="'+imgURL+'" alt="ALT" title="TITLE" height="64" />';
-    document.getElementById("image_here").innerHTML = temp;
+  document.getElementById('wo_id').value    = xmlText(xml, "WOid");
+  document.getElementById('wo_title').value = xmlText(xml, "WOTitle");
+  var imgURL = xmlText(xml, "ImageURL");
+  if (imgURL) {
+    document.getElementById("image_here").innerHTML = '<img src="'+imgURL+'" alt="ALT" title="TITLE" height="64" />';
   } else {
     document.getElementById("image_here").innerHTML = '&nbsp;';
   }
   while (document.getElementById('table_tasks').rows.length) document.getElementById("table_tasks").deleteRow(-1);
-  if ($(xml).find("Message").text()) {
-    alert($(xml).find("Message").text());
-	return;
-  }
+  var msg = xmlText(xml, "Message");
+  if (msg) { alert(msg); return; }
   var odd = true;
-  tbody = document.getElementById('table_tasks');
-  $(xml).find("Task").each(function() {
-	row = document.createElement("TR");
-    row.setAttribute('class', odd?'odd':'even'); 
-	td = document.createElement("TD");
-    td.setAttribute('align', 'center'); 
-	td.innerHTML = $(this).find("Step").text();
-	row.appendChild(td);
-	td = document.createElement("TD");
-	td.innerHTML = $(this).find("Task_name").text();
-	row.appendChild(td);
-	td = document.createElement("TD");
-	td.innerHTML = $(this).find("Description").text();
-	row.appendChild(td);
-	tbody.appendChild(row);
-	odd = !odd;
+  var tbody = document.getElementById('table_tasks');
+  Array.from(xml.getElementsByTagName("Task")).forEach(function(task) {
+    var row = document.createElement("TR");
+    row.setAttribute('class', odd ? 'odd' : 'even');
+    var td = document.createElement("TD");
+    td.setAttribute('align', 'center');
+    td.innerHTML = xmlText(task, "Step");
+    row.appendChild(td);
+    td = document.createElement("TD");
+    td.innerHTML = xmlText(task, "Task_name");
+    row.appendChild(td);
+    td = document.createElement("TD");
+    td.innerHTML = xmlText(task, "Description");
+    row.appendChild(td);
+    tbody.appendChild(row);
+    odd = !odd;
   });
 }
 
 function printWOrder(id) { // request funtion
-  $.ajax({
-    type: "GET",
-	url: 'index.php?module=work_orders&page=ajax&op=load_wo_detail&id='+id,
-    dataType: ($.browser.msie) ? "text" : "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fillwoDetail
-  });
+  fetchXml('index.php?module=work_orders&page=ajax&op=load_wo_detail&id='+id, fillwoDetail);
 }
 
-function fillwoDetail(sXml) { // call back function
-  var xml = parseXml(sXml);
+function fillwoDetail(xml) { // call back function
   if (!xml) return;
-  var id = $(xml).find("id").text();
+  var id = xmlText(xml, "id");
   var details = "&gID=inv:wo&date=a&xfld=wo_journal_main.id&xcr=EQUAL&xmin="+id;
-  if ($(xml).find("sEmail").text()) details += "&sEmail="+$(xml).find("sEmail").text();
-  if ($(xml).find("sName").text())  details += "&sName=" +$(xml).find("sName").text();
-  if ($(xml).find("rEmail").text()) details += "&rEmail="+$(xml).find("rEmail").text();
-  if ($(xml).find("rName").text())  details += "&rName=" +$(xml).find("rName").text();
+  if (xmlText(xml, "sEmail")) details += "&sEmail="+xmlText(xml, "sEmail");
+  if (xmlText(xml, "sName"))  details += "&sName=" +xmlText(xml, "sName");
+  if (xmlText(xml, "rEmail")) details += "&rEmail="+xmlText(xml, "rEmail");
+  if (xmlText(xml, "rName"))  details += "&rName=" +xmlText(xml, "rName");
   var printWin = window.open("index.php?module=phreeform&page=popup_gen"+details,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
   printWin.focus();
 }
@@ -165,22 +132,13 @@ function fetchBOMList() { // request funtion
   var skuID = document.getElementById('sku_id').value;
   var qty   = document.getElementById('qty').value;
   if (skuID && qty) {
-    $.ajax({
-      type: "GET",
-	  url: 'index.php?module=work_orders&page=ajax&op=load_bom_list&skuID='+skuID+'&qty='+qty,
-      dataType: ($.browser.msie) ? "text" : "xml",
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-        alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-      },
-	  success: fillBOMList
-    });
+    fetchXml('index.php?module=work_orders&page=ajax&op=load_bom_list&skuID='+skuID+'&qty='+qty, fillBOMList);
   }
 }
 
-function fillBOMList(sXml) {
-  var xml = parseXml(sXml);
+function fillBOMList(xml) {
   if (!xml) return;
-  var shortage = $(xml).find("shortage").text();
+  var shortage = xmlText(xml, "shortage");
   if (shortage != 'none') {
     alert('<?php echo WO_INSUFFICIENT_INVENTORY; ?>'+"\n"+shortage);
   }

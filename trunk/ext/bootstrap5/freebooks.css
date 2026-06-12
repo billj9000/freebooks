@@ -203,10 +203,10 @@ table.ui-widget tbody.ui-widget-content tr:hover td {
   vertical-align:  middle;
 }
 
-/* Odd rows: soft lavender — lighter than the DataTables default #E2E4FF */
+/* Odd/even row colouring — used by legacy module tables and DataTables */
+tr.odd  > td, tr.odd  > th { background-color: #E2E4FF; }
+tr.even > td, tr.even > th { background-color: #ffffff; }
 .pkg-table > tbody > tr.odd > td  { background-color: #E2E4FF; }
-
-/* Even rows: white */
 .pkg-table > tbody > tr.even > td { background-color: #ffffff; }
 
 /* DataTables row highlights (work without a parent .table class) */

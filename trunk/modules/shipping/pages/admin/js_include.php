@@ -42,23 +42,14 @@ function toggleProperties(id) {
 
 function getDialog(method, template) {
   if (!method || !template) return;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=shipping&page=ajax&op=shipping&action=form&method='+method+'&template='+template,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-    success: fillDialog
-  });
+  fetchXml('index.php?module=shipping&page=ajax&op=shipping&action=form&method='+method+'&template='+template, fillDialog);
 }
 
-function fillDialog(sXml) {
-  var xml = parseXml(sXml);
+function fillDialog(xml) {
   if (!xml) return;
-  if ($(xml).find("message").text()) alert ($(xml).find("message").text());
-  document.getElementById('action').value = $(xml).find("action").text();
-  document.getElementById('shipping_dialog').innerHTML = $(xml).find("html").text();
+  if (xmlText(xml, "message")) alert(xmlText(xml, "message"));
+  document.getElementById('action').value = xmlText(xml, "action");
+  document.getElementById('shipping_dialog').innerHTML = xmlText(xml, "html");
   _shippingModal.show();
 }
 </script>

@@ -103,21 +103,12 @@ function validateDB() {
     alert('<?php echo PHREEFORM_JS_TABLE_CHECK_ERROR; ?>');
     return;
   }
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreeform&page=ajax&op=validate_db'+fields,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: validateDbResp
-  });
+  fetchXml('index.php?module=phreeform&page=ajax&op=validate_db'+fields, validateDbResp);
 }
 
-function validateDbResp(sXml) {
-  var xml = parseXml(sXml);
+function validateDbResp(xml) {
   if (!xml) return;
-  if ($(xml).find("message").text()) alert($(xml).find("message").text());
+  if (xmlText(xml, "message")) alert(xmlText(xml, "message"));
 }
 /**************************************************************************************/
 // ajax call to load form field list after a table change
@@ -131,30 +122,21 @@ function fieldLoad() {
     }
   }
   if (document.getElementById('special_class').value) params += '&sp=' + document.getElementById('special_class').value;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreeform&page=ajax&op=field_load'+params,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: fieldLoadResp
-  });
+  fetchXml('index.php?module=phreeform&page=ajax&op=field_load'+params, fieldLoadResp);
 }
 
-function fieldLoadResp(sXml) {
-  var temp    = new Object();
-  var dFields = new Array();
+function fieldLoadResp(xml) {
+  var temp    = {};
+  var dFields = [];
   var iIndex  = 0;
-  var xml     = parseXml(sXml);
   if (!xml) return;
-  if ($(xml).find("message").text()) {
-	dFields = new Array();
-    $(xml).find("option").each(function() {
-	  temp.id   = $(this).find("id").text();
-	  temp.text = $(this).find("text").text();
-	  dFields[iIndex] = temp;
-	  iIndex++;
+  if (xmlText(xml, "message")) {
+    Array.from(xml.getElementsByTagName("option")).forEach(function(opt) {
+      temp       = {};
+      temp.id   = xmlText(opt, "id");
+      temp.text = xmlText(opt, "text");
+      dFields[iIndex] = temp;
+      iIndex++;
     });
   }
 }
@@ -163,25 +145,15 @@ function fieldLoadResp(sXml) {
 // ajax call to load form properties
 function boxLoad(type, rowID) {
   var rID = document.getElementById('rID').value;
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=phreeform&page=ajax&op=box_load&type='+type+'&rID='+rID+'&rowID='+rowID,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: boxLoadResp
-  });
+  fetchXml('index.php?module=phreeform&page=ajax&op=box_load&type='+type+'&rID='+rID+'&rowID='+rowID, boxLoadResp);
 }
 
-function boxLoadResp(sXml) {
-  var xml = parseXml(sXml);
+function boxLoadResp(xml) {
   if (!xml) return;
-  if ($(xml).find("message").text()) {
-    var rowID = $(xml).find("rowID").text();
+  if (xmlText(xml, "message")) {
+    var rowID  = xmlText(xml, "rowID");
     var boxRow = document.getElementById('fld_box_'+rowID);
-	boxRow.innerHTML = $(xml).find("html").text();
-//	boxRow.style.display = 'none';
+    boxRow.innerHTML = xmlText(xml, "html");
   }
 }
 

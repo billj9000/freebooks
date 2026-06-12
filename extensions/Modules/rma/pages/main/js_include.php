@@ -28,7 +28,6 @@ var delete_icon_HTML  = '<?php echo substr(html_icon("emblems/emblem-unreadable.
 <?php echo js_calendar_init($cal_rcv); ?>
 <?php echo js_calendar_init($cal_close); ?>
 <?php echo js_calendar_init($cal_invoice); ?>
-addLoadEvent(function() { $('[id^="rcv_wrnty_"]').datepicker(); });
 
 <?php
   echo $js_disp_code . chr(10);
@@ -38,8 +37,8 @@ addLoadEvent(function() { $('[id^="rcv_wrnty_"]').datepicker(); });
 // required function called with every page load
 function init() {
   <?php if ($_REQUEST['action'] <> 'new' && $_REQUEST['action'] <> 'edit') { // set focus for main window
-	echo "  $('#search_text').focus();";
-	echo "  $('#search_text').select();";
+	echo "  document.getElementById('search_text').focus();";
+	echo "  document.getElementById('search_text').select();";
   } ?>
 }
 
@@ -78,34 +77,24 @@ function loadSkuDetails(iID, rID) {
 		    strict = '&strict=1';
 	  }
   }
-  $.ajax({
-    type: "GET",
-    url: 'index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+cID+'&iID='+iID+'&sku='+sku+'&rID='+rID+'&jID='+jID + strict,
-    dataType: "xml",
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-      alert ("Ajax Error: " + XMLHttpRequest.responseText + "\nTextStatus: " + textStatus + "\nErrorThrown: " + errorThrown);
-    },
-	success: processSkuDetails
-  });
+  fetchXml('index.php?module=inventory&page=ajax&op=inv_details&fID=skuDetails&cID='+cID+'&iID='+iID+'&sku='+sku+'&rID='+rID+'&jID='+jID + strict, processSkuDetails);
 }
 
-function processSkuDetails(sXml) { // call back function
-  var xml = parseXml(sXml);
+function processSkuDetails(xml) { // call back function
   if (!xml) return;
-  var rID = $(xml).find("rID").text();
-  if (!rID) return;  
+  var rID = xmlText(xml, "rID");
+  if (!rID) return;
   //switch between receiving and disposition
-  if (sender == 'dis_'){
-	document.getElementById(sender+'qty_'   +rID).value			 = $(xml).find("qty").text();
-	document.getElementById(sender+'sku_'   +rID).value       = $(xml).find("sku").text();
-  	document.getElementById(sender+'sku_'   +rID).style.color = '';
-  	document.getElementById(sender+'notes_' +rID).value       = $(xml).find("description_short").text();
+  if (sender == 'dis_') {
+    document.getElementById(sender+'qty_'   +rID).value       = xmlText(xml, "qty");
+    document.getElementById(sender+'sku_'   +rID).value       = xmlText(xml, "sku");
+    document.getElementById(sender+'sku_'   +rID).style.color = '';
+    document.getElementById(sender+'notes_' +rID).value       = xmlText(xml, "description_short");
   } else { // sender == 'rcv_'
-	document.getElementById(sender+'qty_'   +rID).value		  = $(xml).find("qty").text();
-	document.getElementById(sender+'sku_'   +rID).value       = $(xml).find("sku").text();
-	document.getElementById(sender+'sku_'   +rID).style.color = '';
-	document.getElementById(sender+'desc_'  +rID).value       = $(xml).find("description_short").text();
-		  
+    document.getElementById(sender+'qty_'   +rID).value       = xmlText(xml, "qty");
+    document.getElementById(sender+'sku_'   +rID).value       = xmlText(xml, "sku");
+    document.getElementById(sender+'sku_'   +rID).style.color = '';
+    document.getElementById(sender+'desc_'  +rID).value       = xmlText(xml, "description_short");
   }
 }
 
@@ -131,7 +120,7 @@ function addItemRow() {
 	newCell.innerHTML = cell[i];
   }
   newRow.getElementsByTagName('img')[0].onclick = function() {
-	  if (confirm(image_delete_msg)) $(this).parent().parent().remove();
+	  if (confirm(image_delete_msg)) this.closest('tr').remove();
   };
   // fill in the select list
   for (var i=0; i<js_disp_code.length; i++) {
@@ -164,10 +153,9 @@ function addRcvRow() {
 	newCell.innerHTML = cell[i];
   }
   newRow.getElementsByTagName('img')[0].onclick = function() {
-	  if (confirm(image_delete_msg)) $(this).parent().parent().remove();
+	  if (confirm(image_delete_msg)) this.closest('tr').remove();
   };
   newRow.getElementsByTagName('input')[1].style.color = inactive_text_color;
-  $('#rcv_wrnty_'+rowCnt).datepicker();
   return rowCnt;
 }
 
