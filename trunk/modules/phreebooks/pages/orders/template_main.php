@@ -421,7 +421,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
           echo '</td>' . chr(10);
           echo '  <td colspan="' . ((SINGLE_LINE_ORDER_SCREEN) ? 1 : 3) . '">' . html_input_field('desc_' . $i, $order->item_rows[$j]['desc'], 'size="'.((SINGLE_LINE_ORDER_SCREEN)?50:75).'" maxlength="255"') . '</td>' . chr(10);
           if (SINGLE_LINE_ORDER_SCREEN) {
-            echo '  <td>' . html_combo_box('acct_' . $i, $gl_array_list, $order->item_rows[$j]['acct'], 'size="10"') . '</td>' . chr(10);
+            echo '  <td>' . html_pull_down_menu('acct_' . $i, $gl_array_list, $order->item_rows[$j]['acct']) . '</td>' . chr(10);
           } else {
             echo '  <td colspan="2">' . html_pull_down_menu('proj_' . $i, $proj_list, $order->item_rows[$j]['proj']) . '</td>' . chr(10);
             echo '</tr>' . chr(10) .  '<tr class="'.($odd?'odd':'even').'">' . chr(10);

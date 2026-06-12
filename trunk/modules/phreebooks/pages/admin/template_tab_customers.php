@@ -26,31 +26,31 @@
         <tbody>
           <tr>
             <td><?php echo CD_02_01_DESC; ?></td>
-            <td nowrap="nowrap"><?php echo html_combo_box('ar_default_gl_acct', $ar_chart, $_POST['ar_default_gl_acct'] ? $_POST['ar_default_gl_acct'] : AR_DEFAULT_GL_ACCT, ''); ?></td>
+            <td nowrap="nowrap"><?php echo html_pull_down_menu('ar_default_gl_acct', $ar_chart, $_POST['ar_default_gl_acct'] ? $_POST['ar_default_gl_acct'] : AR_DEFAULT_GL_ACCT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_02_02_DESC; ?></td>
-            <td><?php echo html_combo_box('ar_def_gl_sales_acct', $inc_chart, $_POST['ar_def_gl_sales_acct'] ? $_POST['ar_def_gl_sales_acct'] : AR_DEF_GL_SALES_ACCT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ar_def_gl_sales_acct', $inc_chart, $_POST['ar_def_gl_sales_acct'] ? $_POST['ar_def_gl_sales_acct'] : AR_DEF_GL_SALES_ACCT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_02_03_DESC; ?></td>
-            <td><?php echo html_combo_box('ar_sales_receipts_account', $cash_chart, $_POST['ar_sales_receipts_account'] ? $_POST['ar_sales_receipts_account'] : AR_SALES_RECEIPTS_ACCOUNT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ar_sales_receipts_account', $cash_chart, $_POST['ar_sales_receipts_account'] ? $_POST['ar_sales_receipts_account'] : AR_SALES_RECEIPTS_ACCOUNT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_02_04_DESC; ?></td>
-            <td><?php echo html_combo_box('ar_discount_sales_account', $inc_chart, $_POST['ar_discount_sales_account'] ? $_POST['ar_discount_sales_account'] : AR_DISCOUNT_SALES_ACCOUNT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ar_discount_sales_account', $inc_chart, $_POST['ar_discount_sales_account'] ? $_POST['ar_discount_sales_account'] : AR_DISCOUNT_SALES_ACCOUNT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_02_05_DESC; ?></td>
-            <td><?php echo html_combo_box('ar_def_freight_acct', $inc_chart, $_POST['ar_def_freight_acct'] ? $_POST['ar_def_freight_acct'] : AR_DEF_FREIGHT_ACCT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ar_def_freight_acct', $inc_chart, $_POST['ar_def_freight_acct'] ? $_POST['ar_def_freight_acct'] : AR_DEF_FREIGHT_ACCT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_02_06_DESC; ?></td>
-            <td><?php echo html_combo_box('ar_def_deposit_acct', $cash_chart, $_POST['ar_def_deposit_acct'] ? $_POST['ar_def_deposit_acct'] : AR_DEF_DEPOSIT_ACCT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ar_def_deposit_acct', $cash_chart, $_POST['ar_def_deposit_acct'] ? $_POST['ar_def_deposit_acct'] : AR_DEF_DEPOSIT_ACCT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_02_07_DESC; ?></td>
-            <td><?php echo html_combo_box('ar_def_dep_liab_acct', $ocl_chart, $_POST['ar_def_dep_liab_acct'] ? $_POST['ar_def_dep_liab_acct'] : AR_DEF_DEP_LIAB_ACCT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ar_def_dep_liab_acct', $ocl_chart, $_POST['ar_def_dep_liab_acct'] ? $_POST['ar_def_dep_liab_acct'] : AR_DEF_DEP_LIAB_ACCT, ''); ?></td>
           </tr>
         </tbody>
       </table>
