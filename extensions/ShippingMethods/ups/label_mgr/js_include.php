@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008-2014 PhreeSoft                               |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -109,33 +109,20 @@ function updateWeight() {
   document.getElementById('total_value').value = formatCurrency(vt);
 }
 
-// java label printing
 function labelPrint() {
-  var applet = document.qz;
-  if (applet != null) {
-	applet.append("<?php echo $label_data; ?>");
-	applet.print();
-  }
-  monitorPrinting();
-}
-
-function monitorPrinting() {
-  var applet = document.qz;
-  if (applet != null) {
-    if (!applet.isDonePrinting()) {
-      window.setTimeout('monitorPrinting()', 1000);
-    } else {
-      var e = applet.getException();
-      if (e != null) {
-	    alert("Exception occured: " + e.getLocalizedMessage());
-	  } else {
-	    window.opener.location.reload();
-	    self.close();
-	  }
-    }
-  } else {
-	alert("Error: Java label printing applet not loaded!");
-  }
+  var printerName = '<?php echo MODULE_SHIPPING_UPS_PRINTER_NAME; ?>';
+  var labelData   = <?php echo json_encode($label_data); ?>;
+  qz.security.setCertificatePromise(function(resolve) { resolve(''); });
+  qz.security.setSignatureAlgorithm('SHA512');
+  qz.security.setSignaturePromise(function(toSign) { return function(resolve) { resolve(''); }; });
+  qz.websocket.connect().then(function() {
+    return qz.printers.find(printerName);
+  }).then(function(printer) {
+    return qz.print(qz.configs.create(printer), [{type:'raw', format:'plain', data:labelData}]);
+  }).then(function() {
+    window.opener.location.reload();
+    window.close();
+  }).catch(function(e) { alert('Print error: ' + e); });
 }
 
 // -->

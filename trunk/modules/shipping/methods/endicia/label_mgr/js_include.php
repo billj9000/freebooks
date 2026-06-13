@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -83,35 +84,20 @@ function paperPrint() {
   window.location = "<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&page=popup_label_viewer&method='.$shipping_module.'&date='.$date.'&labels='.implode(':',$pdf_list), 'SSL'); ?>";
 }
 
-// java label printing
-var therm_label = '<?php echo $label_data; ?>';
+var therm_label = <?php echo json_encode($label_data); ?>;
 function labelPrint() {
-	var tmp = '';
-	alert('looking for printer');
-	qz.findPrinter('<?php echo MODULE_SHIPPING_FEDEX_V7_PRINTER_NAME; ?>');
-	alert('found printer');
-	qz.append64(therm_label);
-	alert('finished appending');
-	qz.print();
-	alert('finished printing');
-	tmp += qz.getQueueInfo();
-	jzebraDonePrinting(qz);
-<?php
-	if (!empty($pdf_list)) {
-		echo "	paperPrint();\n";
-	} else {
-		echo "	window.opener.location.reload();\n";
-		echo "	window.close();\n";
-	} 
-?>
-}
-
-function jzebraDonePrinting(qz) {
-	if (!qz.getException()) {
-		if (!qz.getPrinter()) alert('Please detect a printer first!');
-	} else {
-		alert('Applet returned error: '+qz.getException().getLocalizedMessage());
-	}
+  var printerName = '<?php echo MODULE_SHIPPING_ENDICIA_PRINTER_NAME; ?>';
+  qz.security.setCertificatePromise(function(resolve) { resolve(''); });
+  qz.security.setSignatureAlgorithm('SHA512');
+  qz.security.setSignaturePromise(function(toSign) { return function(resolve) { resolve(''); }; });
+  qz.websocket.connect().then(function() {
+    return qz.printers.find(printerName);
+  }).then(function(printer) {
+    return qz.print(qz.configs.create(printer), [{type:'raw', format:'base64', data:therm_label}]);
+  }).then(function() {
+<?php if (!empty($pdf_list)) echo "    paperPrint();\n";
+      else { echo "    window.opener.location.reload();\n    window.close();\n"; } ?>
+  }).catch(function(e) { alert('Print error: ' + e); });
 }
 
 // -->

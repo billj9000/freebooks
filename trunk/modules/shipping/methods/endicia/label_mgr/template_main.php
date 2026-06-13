@@ -32,7 +32,7 @@ echo $toolbar->build_toolbar();
 <h1 class="px-2 mb-2"><?php echo PAGE_TITLE; ?></h1>
 <?php if ($auto_print) { ?>
   <div class="px-2">
-    <applet id="qz" name="QZ Print Plugin" code="qz.PrintApplet.class" archive="<?php echo DIR_WS_ADMIN . 'modules/phreedom/includes/jzebra/bz-print.jar'; ?>" width="16px" height="16px"></applet>
+    <script src="<?php echo DIR_WS_ADMIN; ?>modules/phreedom/includes/qz-tray/qz-tray.js"></script>
     <button type="button" class="btn btn-primary btn-sm" onclick="labelPrint()"><?php echo TEXT_PRINT; ?></button>
   </div>
 <?php } else { ?>

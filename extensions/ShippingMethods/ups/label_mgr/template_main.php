@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008-2014 PhreeSoft                               |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -45,10 +45,7 @@ echo $toolbar->build_toolbar();
 <div class="pageHeading"><?php echo MODULE_SHIPPING_UPS_TEXT_TITLE; ?></div>
 
 <?php if ($auto_print) { ?>
-  <applet id="qz" name="QZ Print Plugin" code="qz.PrintApplet.class" archive="<?php echo DIR_WS_ADMIN . 'modules/phreedom/includes/jzebra/qz-print.jar'; ?>" width="16px" height="16px">
-	<param name="permissions" value="all-permissions" />
-	<param name="printer" value="<?php echo MODULE_SHIPPING_FEDEX_V7_PRINTER_NAME; ?>">
-  </applet>
+  <script src="<?php echo DIR_WS_ADMIN; ?>modules/phreedom/includes/qz-tray/qz-tray.js"></script>
   <?php 
     echo html_button_field('print_label', TEXT_PRINT, 'onclick="labelPrint()"');
   ?>
