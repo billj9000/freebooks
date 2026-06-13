@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -72,6 +73,8 @@
        <td><?php echo html_input_field('vat_number', $cInfo->vat_number ?? '', 'size="21" maxlength="20"'); ?></td>
        <td align="right"><?php echo ACT_EORI_NUMBER; ?></td>
        <td><?php echo html_input_field('eori_number', $cInfo->eori_number ?? '', 'size="21" maxlength="20"'); ?></td>
+       <td align="right"><?php echo ACT_DEFAULT_CURRENCY; ?></td>
+       <td><?php echo html_pull_down_menu('currency_code', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), $cInfo->currency_code ?: DEFAULT_CURRENCY); ?></td>
       </tr>
     </table>
   </fieldset>

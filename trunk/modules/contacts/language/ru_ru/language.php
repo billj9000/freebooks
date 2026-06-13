@@ -1,10 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// Phreedom Language Translation File
-// Generated: 2014-11-23 10:04:29
-// Module/Method: contacts
-// ISO Language: ru_ru
-// Version: 3.7
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // Path: //modules/contacts/language/ru_ru/language.php
 
@@ -93,6 +92,7 @@ define('ACT_V_LAST_DATE2','Дата последнего платежа: ');
 define('ACT_V_PAGE_TITLE_EDIT','Редактировать поставщика');
 define('ACT_VAT_NUMBER','Номер НДС');
 define('ACT_EORI_NUMBER','Номер EORI');
+define('ACT_DEFAULT_CURRENCY','Валюта по умолчанию');
 define('ACT_CATEGORY_CONTACT','Контактная информация');
 define('ACT_CATEGORY_M_ADDRESS','Почтовый адрес');
 define('ACT_CATEGORY_S_ADDRESS','Адреса доставки');

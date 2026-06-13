@@ -379,6 +379,18 @@ function showWhereUsed(xml) {
 
 // ── Vendor rows ───────────────────────────────────────────────────────
 
+function fetchVendorCurrency(sel) {
+  var cID = sel.value;
+  if (!cID) return;
+  var row = sel.closest('tr');
+  var currSel = row.querySelector('select[name="item_cost_currency_array[]"]');
+  if (!currSel) return;
+  fetchXml('index.php?module=contacts&page=ajax&op=load_contact&cID=' + encodeURIComponent(cID), function(xml) {
+    var code = xmlText(xml, 'currency_code');
+    if (code) currSel.value = code;
+  });
+}
+
 function addVendorRow() {
   var tbody = document.getElementById('vendor_table_tbody');
   var newRow = tbody.insertRow(-1);
@@ -392,7 +404,7 @@ function addVendorRow() {
 
   <?php
   $cells = [
-    isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $cInfo->vendor_id ?? '')) : '',
+    isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $cInfo->vendor_id ?? '', 'class="form-select form-select-sm" onchange="fetchVendorCurrency(this)"')) : '',
     isset($cInfo->description_purchase) ? str_replace("'", "\'", html_textarea_field('description_purchase_array[]', 40, 2, $cInfo->description_purchase ?? '', '', true)) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), DEFAULT_CURRENCY, 'class="form-select form-select-sm"')) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_input_field('item_cost_array[]', $cInfo->item_cost ?? 0, 'onchange="what_to_update();" size="12" maxlength="20" class="text-end"', false)) : '',

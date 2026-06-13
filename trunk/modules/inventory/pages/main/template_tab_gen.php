@@ -213,7 +213,7 @@
         echo '<tr class="' . ($odd ? 'odd' : 'even') . '" id="row_id_' . $i . '">';
         echo '<td>' . html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . INV_MSG_DELETE_VENDOR_ROW . '\')) removeVendorRow(' . $i . ');"') . '</td>';
         echo html_hidden_field('row_id_array[]', $purchaseRow['id']);
-        echo '<td>' . (isset($cInfo->vendor_id) ? html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $purchaseRow['vendor_id'], 'class="form-select form-select-sm"') : '') . '</td>';
+        echo '<td>' . (isset($cInfo->vendor_id) ? html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $purchaseRow['vendor_id'], 'class="form-select form-select-sm" onchange="fetchVendorCurrency(this)"') : '') . '</td>';
         echo '<td>' . (isset($cInfo->description_purchase) ? html_textarea_field('description_purchase_array[]', 40, 2, $purchaseRow['description_purchase'], 'class="form-control form-control-sm"', true) : '') . '</td>';
         echo '<td>' . (isset($cInfo->item_cost) ? html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), $purchaseRow['currency_code'] ?: DEFAULT_CURRENCY, 'class="form-select form-select-sm"') : '') . '</td>';
         echo '<td>' . (isset($cInfo->item_cost) ? html_input_field('item_cost_array[]', $currencies->precise($purchaseRow['item_cost'], false, $purchaseRow['currency_code'] ?: DEFAULT_CURRENCY), 'onchange="what_to_update();" class="form-control form-control-sm text-end" style="width:100px" maxlength="20"', false) : '') . '</td>';

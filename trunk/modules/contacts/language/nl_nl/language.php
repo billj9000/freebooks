@@ -1,10 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// Phreedom Language Translation File
-// Generated: 2011-11-27 05:02:30
-// Module/Method: contacts
-// ISO Language: nl_nl
-// Version: 3.5
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // Path: /modules/contacts/language/nl_nl/language.php
 
@@ -97,6 +96,7 @@ define('ACT_V_LAST_DATE2','Laatste Betaal Datum: ');
 define('ACT_V_PAGE_TITLE_EDIT','Bewerk Leverancier');
 define('ACT_VAT_NUMBER','BTW-nummer');
 define('ACT_EORI_NUMBER','EORI-nummer');
+define('ACT_DEFAULT_CURRENCY','Standaard Valuta');
 define('ACT_CATEGORY_CONTACT','Contact Informatie');
 define('ACT_CATEGORY_M_ADDRESS','Post Adres');
 define('ACT_CATEGORY_S_ADDRESS','Verzend Adres');

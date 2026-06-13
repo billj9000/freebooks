@@ -1,10 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// Arquivo Tradução Idioma  Phreedom 
-// Generated: 2013-10-22 05:28:45
-// Module/Method: contacts
-// ISO Language: pt_br
-// Version: 3.6
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // Path: /modules/contacts/language/pt_br/language.php
 
@@ -47,6 +46,7 @@ define('ACT_CATEGORY_S_ADDRESS','Endereço Entrega');
 define('ACT_CATEGORY_M_ADDRESS','Endereço Principal Correio');
 define('ACT_VAT_NUMBER','Número IVA');
 define('ACT_EORI_NUMBER','Número EORI');
+define('ACT_DEFAULT_CURRENCY','Moeda Padrão');
 define('ACT_CATEGORY_CONTACT','Informação Contato');
 define('ACT_V_PAGE_TITLE_EDIT','Editar Fornecedor');
 define('ACT_V_LAST_DATE2','Data Último Pagamento: ');

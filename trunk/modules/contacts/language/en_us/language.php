@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -125,6 +126,7 @@ define('ACT_V_PAGE_TITLE_EDIT','Edit Vendor');
 // Category headings
 define('ACT_VAT_NUMBER','VAT Number');
 define('ACT_EORI_NUMBER','EORI Number');
+define('ACT_DEFAULT_CURRENCY','Default Currency');
 define('ACT_CATEGORY_CONTACT','Contact Information');
 define('ACT_CATEGORY_M_ADDRESS','Main Mailing Address');
 define('ACT_CATEGORY_S_ADDRESS','Shipping Addresses');

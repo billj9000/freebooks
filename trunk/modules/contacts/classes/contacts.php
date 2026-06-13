@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -238,6 +239,7 @@ class contacts {
     $sql_data_array['account_number']  = $this->account_number;
     $sql_data_array['special_terms']   = $this->special_terms;
     $sql_data_array['price_sheet']     = $this->price_sheet;
+    $sql_data_array['currency_code']   = $this->currency_code ?? '';
     $sql_data_array['tax_id']          = $this->tax_id;
     $sql_data_array['last_update']     = 'now()';
     if ($this->id == '') { //create record

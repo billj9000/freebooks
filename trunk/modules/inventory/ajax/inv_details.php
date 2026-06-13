@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -104,9 +105,14 @@ if($vendor) {
 	$purchase  = $db->Execute("select vendor_id, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' and vendor_id = '$cID'" );
 	if($purchase->RecordCount() == 1 ) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 	else {
-		// cID unknown or no vendor-specific row — fall back to cheapest purchase row for cost/currency
+		// no vendor-specific purchase row — fall back to cheapest row for cost/description
 		$purchase = $db->Execute("select vendor_id, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $inventory_array['sku'] . "' order by item_cost asc limit 1");
 		if($purchase->RecordCount() == 1) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
+		// if vendor is known, override fallback currency with the vendor's stored currency
+		if ($cID) {
+			$vend = $db->Execute("select currency_code from " . TABLE_CONTACTS . " where id = '$cID'");
+			if (!$vend->EOF && $vend->fields['currency_code'] != '') $inventory_array['currency_code'] = $vend->fields['currency_code'];
+		}
 	}
 	$purchase  = $db->Execute("select MIN(item_cost) as cheapest from " . TABLE_INVENTORY_PURCHASE . " where sku = '{$inventory_array['sku']}' and item_cost <> '0'" );
 	if( $jID == 4 && $inventory_array['price_sheet_v'] == '' && $inventory_array['item_cost'] >= $purchase->fields['cheapest'] &&
