@@ -182,10 +182,7 @@ if (!empty($extra_toolbar_buttons)) {
 
 <footer><?php echo "<b><u>" . TEXT_NOTES . "</u></b><br>" . PHREEPOS_ITEM_NOTES; ?></footer>
 <?php echo $hidden_fields; ?>
-<applet id="qz" name="QZ Print Plugin" code="qz.PrintApplet.class" archive="<?php echo DIR_WS_ADMIN . 'modules/phreedom/includes/jzebra/qz-print.jar'; ?>" width="16px" height="16px">
-  <param name="permissions" value="all-permissions" />
-  <param name="cache_option" value="yes"/>
-</applet>
+<script src="<?php echo DIR_WS_ADMIN; ?>modules/phreedom/includes/qz-tray/qz-tray.js"></script>
 
 <div id="popupPayment">
 <?php

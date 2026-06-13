@@ -954,7 +954,6 @@ function fillInventory(xml) {
 
 function changeOfTill(){
 	var tillId = document.getElementById('till_id').value;
-	var qz = document.getElementById('qz');
 	document.getElementById('display_currency').disabled = (tills[tillId].restrictCurrency == 1);
 	<?php if (ENABLE_MULTI_CURRENCY) {
 	echo "document.getElementById('display_currency').value = tills[tillId].currenciesCode;";
@@ -977,26 +976,11 @@ function changeOfTill(){
 	  		rowCnt++;
 		}
 	}
-	if (qz.tagName.toLowerCase() == "applet") qz.findPrinter(tills[tillId].printer);
-	//if (qz.getVersion() <= '1.4.9' ) alert('update jzebra');
 	set_ot_options();
 	document.getElementById('ot_till_id').value = tillId ;
 	document.getElementById('store_id').value = tills[tillId].storeID;
 }
 
-function monitorPrinting() {
-  var qz = document.getElementById('qz');
-  if (qz.tagName.toLowerCase() == "applet") {
-    if (!qz.isDonePrinting()) {
-      window.setTimeout('monitorPrinting()', 1000);
-    } else {
-      var e = qz.getException();
-      if (e != null) {
-	    alert("printing exception occured: " + e.getLocalizedMessage());
-	  }
-    }
-  } 
-}
 
 function InventoryProp(elementID) {
   var sku = document.getElementById('sku_'+elementID).value;
@@ -1120,7 +1104,6 @@ function ajaxSave(PrintOrSave) {
 function ajaxPrintAndClean(xml) {
   save_allowed = true;
   xml = parseXml(xml);
-  var qz = document.getElementById('qz');
   if (!xml) return;
   var massage = xmlText(xml, "massage");
   if (massage) alert(massage);
@@ -1128,17 +1111,25 @@ function ajaxPrintAndClean(xml) {
   var action = xmlText(xml, "action");
   var print  = action.substring(0, 5) == 'print';
   var tillId = document.getElementById('till_id').value;
-  if (print && qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {
-    for (var i in tills[tillId].startingLine) qz.append(tills[tillId].startingLine[i]);
+  if (print && typeof qz !== 'undefined' && tills[tillId].printer != '') {
+    var lines = [];
+    for (var i in tills[tillId].startingLine) lines.push({type:'raw', format:'plain', data:tills[tillId].startingLine[i]});
     Array.from(xml.getElementsByTagName("receipt_data")).forEach(function(rd) {
-      qz.append(stripslashes(xmlText(rd, "line")) + "\n");
+      lines.push({type:'raw', format:'plain', data:stripslashes(xmlText(rd, "line")) + "\n"});
     });
     if (xmlText(xml, "open_cash_drawer") == 1) {
-      for (var i in tills[tillId].openDrawer) qz.append(tills[tillId].openDrawer[i]);
+      for (var i in tills[tillId].openDrawer) lines.push({type:'raw', format:'plain', data:tills[tillId].openDrawer[i]});
     }
-    for (var i in tills[tillId].closingLine) qz.append(tills[tillId].closingLine[i]);
-    qz.setEndOfDocument("\n");
-    jzebraDoneAppending();
+    for (var i in tills[tillId].closingLine) lines.push({type:'raw', format:'plain', data:tills[tillId].closingLine[i]});
+    lines.push({type:'raw', format:'plain', data:"\n"});
+    qz.security.setCertificatePromise(function(resolve) { resolve(''); });
+    qz.security.setSignatureAlgorithm('SHA512');
+    qz.security.setSignaturePromise(function(toSign) { return function(resolve) { resolve(''); }; });
+    qz.websocket.connect().then(function() {
+      return qz.printers.find(tills[tillId].printer);
+    }).then(function(printer) {
+      return qz.print(qz.configs.create(printer), lines);
+    }).catch(function(e) { alert('Print error: ' + e); });
   } else if (xmlText(xml, "open_cash_drawer") == 1) {
     OpenDrawer();
   } else if (print) {
@@ -1146,48 +1137,6 @@ function ajaxPrintAndClean(xml) {
     var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE;?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + order_id, "popup_gen", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
     printWin.focus();
   }
-}
-
-function jzebraReady(){
-	changeOfTill();
-}
-
-//Automatically gets called when applet is done appending a file
-function jzebraDoneAppending(){
-	var qz = document.getElementById('qz');
-	if (qz.tagName.toLowerCase() == "applet")  {
-	   if (!qz.isDoneAppending()) {
-	      window.setTimeout('jzebraDoneAppending()', 50);
-	   } else {
-	      qz.print(); 
-	      // Don't print until all of the data has been appended
-          // *Note:  monitorPrinting() still works but is too complicated and
-              // outdated.  Instead create a JavaScript  function called 
-              // "jzebraDonePrinting()" and handle your next steps there.
-          monitorPrinting();
-	   }
-	}
-}
-
-//Automatically gets called when applet is done finding
-function jzebraDoneFindingPrinters() {
-	var tillId = document.getElementById('till_id').value;
-	var qz = document.getElementById('qz');
-	if (qz.tagName.toLowerCase() == "applet") {
-		if (qz.getPrinter() == null) {
-    		return alert('Error: Can not find Printer ' + tills[tillId].printer);
-		} 
-   	}
-}
-
-// Automatically gets called when the applet is done printing
-function jzebraDonePrinting() {
-	var qz = document.getElementById('qz');
-	if (qz.tagName.toLowerCase() == "applet") {
-   		if (qz.getException() != null) {
-    		return alert('printing error:' + qz.getExceptionMessage());
-   		}
-   	}
 }
 
 
@@ -1201,19 +1150,26 @@ function GetPrintPreviousReceipt() {
 
 function PrintPreviousReceipt(xml) {
   xml = parseXml(xml);
-  var qz = document.getElementById('qz');
   if (!xml) return;
   var massage = xmlText(xml, "massage");
   if (massage) alert(massage);
   var tillId = document.getElementById('till_id').value;
-  if (qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {
-    for (var i in tills[tillId].startingLine) qz.append(tills[tillId].startingLine[i]);
+  if (typeof qz !== 'undefined' && tills[tillId].printer != '') {
+    var lines = [];
+    for (var i in tills[tillId].startingLine) lines.push({type:'raw', format:'plain', data:tills[tillId].startingLine[i]});
     Array.from(xml.getElementsByTagName("receipt_data")).forEach(function(rd) {
-      qz.append(stripslashes(xmlText(rd, "line")) + "\n");
+      lines.push({type:'raw', format:'plain', data:stripslashes(xmlText(rd, "line")) + "\n"});
     });
-    for (var i in tills[tillId].closingLine) qz.append(tills[tillId].closingLine[i]);
-    qz.setEndOfDocument("\n");
-    jzebraDoneAppending();
+    for (var i in tills[tillId].closingLine) lines.push({type:'raw', format:'plain', data:tills[tillId].closingLine[i]});
+    lines.push({type:'raw', format:'plain', data:"\n"});
+    qz.security.setCertificatePromise(function(resolve) { resolve(''); });
+    qz.security.setSignatureAlgorithm('SHA512');
+    qz.security.setSignaturePromise(function(toSign) { return function(resolve) { resolve(''); }; });
+    qz.websocket.connect().then(function() {
+      return qz.printers.find(tills[tillId].printer);
+    }).then(function(printer) {
+      return qz.print(qz.configs.create(printer), lines);
+    }).catch(function(e) { alert('Print error: ' + e); });
   } else {
     var order_id = xmlText(xml, "order_id");
     var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE;?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + order_id, "reportFilter", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
@@ -1223,21 +1179,21 @@ function PrintPreviousReceipt(xml) {
 }
 
 function OpenDrawer(){
-	var tillId = document.getElementById('till_id').value;
-	var qz = document.getElementById('qz');
-	if (qz.tagName.toLowerCase() == "applet" && tills[tillId].printer != '') {
-		if (!qz.isDonePrinting()) {
-			window.setTimeout('OpenDrawer()', 50);
-		} else {
-			//qz.setEncoding("UTF-8");
-			for(var i in tills[tillId].openDrawer){
-				qz.append(tills[tillId].openDrawer[i] + "\n");
-			}
-			qz.setEndOfDocument("\n");
-			jzebraDoneAppending();
-		}
-	}
-	document.getElementById('sku').focus();
+  var tillId = document.getElementById('till_id').value;
+  if (typeof qz !== 'undefined' && tills[tillId].printer != '') {
+    var lines = [];
+    for (var i in tills[tillId].openDrawer) lines.push({type:'raw', format:'plain', data:tills[tillId].openDrawer[i] + "\n"});
+    lines.push({type:'raw', format:'plain', data:"\n"});
+    qz.security.setCertificatePromise(function(resolve) { resolve(''); });
+    qz.security.setSignatureAlgorithm('SHA512');
+    qz.security.setSignaturePromise(function(toSign) { return function(resolve) { resolve(''); }; });
+    qz.websocket.connect().then(function() {
+      return qz.printers.find(tills[tillId].printer);
+    }).then(function(printer) {
+      return qz.print(qz.configs.create(printer), lines);
+    }).catch(function(e) { alert('Print error: ' + e); });
+  }
+  document.getElementById('sku').focus();
 }
 
 function OpenOrdrList(currObj) {
