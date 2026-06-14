@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="09.01.10">
+<meta name="doc_index_1" content="Shipping Modules.Royal Mail Click &amp; Drop">
+<meta name="doc_index_2" content="Royal Mail Click &amp; Drop.Setup">
+<meta name="doc_title" content="Shipping Modules - Royal Mail Click &amp; Drop">
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+<title>Shipping Modules - Royal Mail Click &amp; Drop</title>
+</head>
+<body>
+
+<h1 align="center">Shipping Modules - Royal Mail Click &amp; Drop</h1>
+
+<p>FreeBooks includes a shipping module for Royal Mail using the Click &amp; Drop REST API. The
+module supports domestic and international label generation across all standard Royal Mail tracked
+and signed service levels, customs export declarations, optional returns labels, an end-of-day
+manifest, and shipment cancellation.</p>
+
+<p>A Royal Mail Online Business Account (OBA) linked to Click &amp; Drop is required. The API key
+is obtained from within Click &amp; Drop under <strong>Settings &rarr; API</strong>.</p>
+
+<h4>Features</h4>
+<ul>
+  <li>Label generation for all supported Royal Mail service levels (domestic and international)</li>
+  <li>Package format selection (Letter, Large Letter, Small Parcel, Medium Parcel, Large Parcel, Parcel, Documents)</li>
+  <li>Optional returns label printed alongside the outbound label</li>
+  <li>Automatic customs / export declaration for international destinations</li>
+  <li>Line-item customs table with HS code, country of origin, and declared value per SKU</li>
+  <li>Save customs descriptions back to inventory records from the label form</li>
+  <li>Shipment cancellation from the Shipment Details popup</li>
+  <li>End-of-day manifest (Click &amp; Drop collection closure)</li>
+  <li>Tracking links via the Royal Mail website</li>
+</ul>
+
+<p><strong>Note:</strong> Royal Mail Click &amp; Drop does not provide a live rates API. The
+Shipping Estimator lists all available service levels with no price; enter the freight cost
+manually on the order.</p>
+
+<h4>Supported Services</h4>
+<p><em>Domestic (UK to UK)</em></p>
+<ul>
+  <li>RM Tracked 24 (RM24)</li>
+  <li>RM Tracked 48 (RM48)</li>
+  <li>RM Special Delivery 9am (RMSD9)</li>
+  <li>RM Special Delivery 1pm (RMSD1)</li>
+  <li>RM Signed For 1st Class (RM1CL)</li>
+  <li>RM Signed For 2nd Class (RM2CL)</li>
+</ul>
+<p><em>International</em></p>
+<ul>
+  <li>RM International Business Mail Tracked (RMIT)</li>
+  <li>RM International Business Mail Signed (RMIS)</li>
+  <li>RM International Business Mail Tracked &amp; Signed (RMITS)</li>
+  <li>RM International Business Parcel Standard (RMIE)</li>
+</ul>
+<p>The service codes above map to Click &amp; Drop API service codes. If your OBA contract uses
+different codes, verify them in Click &amp; Drop under <strong>Settings &rarr; Services</strong>
+and contact support to update the module's service map.</p>
+
+<h4>Prerequisites</h4>
+<ol>
+  <li>A Royal Mail Online Business Account (OBA).</li>
+  <li>A Click &amp; Drop account linked to your OBA.</li>
+  <li>A Click &amp; Drop API key. Obtain this from <strong>Settings &rarr; API</strong> within
+      your Click &amp; Drop account.</li>
+  <li>Company address fields completed in <strong>Admin &rarr; Company Information</strong>
+      (name, address, city, postal code, and country are used as the sender / billing address
+      on every label).</li>
+</ol>
+
+<h4>Installation</h4>
+<ol>
+  <li>Go to <strong>Setup &rarr; Shipping Settings</strong>.</li>
+  <li>Locate the <em>Royal Mail Click &amp; Drop</em> row and click <strong>Install</strong>.</li>
+  <li>Click the Royal Mail row again and click <strong>Edit</strong>.</li>
+  <li>Enter your Click &amp; Drop <strong>API Key</strong>.</li>
+  <li>Click <strong>Update</strong>.</li>
+</ol>
+
+<h4>International Compliance Settings (IOSS)</h4>
+<p>The shipper IOSS number is configured in
+<strong>Setup &rarr; Shipping Settings &rarr; General &rarr; International Compliance</strong>.</p>
+<ul>
+  <li><strong>Shipper IOSS Number</strong> &mdash; included automatically on international labels
+      for shipments to EU destinations where goods are valued below &euro;150. Royal Mail applies
+      the IOSS number to the CN22/CN23 customs form.</li>
+</ul>
+<p>Recipient EORI and VAT numbers can be entered per-shipment on the label form. They are
+pre-filled from the customer contact record if available.</p>
+
+<h4>Getting a Rate Quote</h4>
+<ol>
+  <li>Open a sales invoice or order.</li>
+  <li>Click the <strong>Shipping Estimator</strong> button next to the freight method field.</li>
+  <li>Verify or update the destination address, then click <strong>Next</strong>.</li>
+  <li>The available Royal Mail service levels are listed with no price. Click the desired service
+      to populate the carrier and service on the order.</li>
+  <li>Enter the freight cost manually in the freight amount field on the order.</li>
+</ol>
+
+<h4>Printing a Label</h4>
+<ol>
+  <li>Post (save) the invoice first. The invoice must be in posted state before a label can
+      be generated.</li>
+  <li>In <strong>Customers &rarr; Invoice Manager</strong>, locate the invoice and click the
+      <strong>Ship</strong> (truck) icon on its row.</li>
+  <li>A label manager popup opens with the recipient address and shipment details pre-filled
+      from the invoice.</li>
+  <li>Review and adjust the following fields as needed:
+    <ul>
+      <li><strong>Despatch Date</strong> &mdash; defaults to today.</li>
+      <li><strong>Service Type</strong> &mdash; select the Royal Mail service level.</li>
+      <li><strong>Package Details</strong> &mdash; enter the weight for each package and select
+          the package format (Letter, Large Letter, Small Parcel, etc.). Click <strong>Add</strong>
+          to include additional packages in the same shipment.</li>
+      <li><strong>Include Returns Label</strong> &mdash; tick to request a returns label be
+          included in the same PDF alongside the outbound label.</li>
+      <li><strong>Customs / Export Information</strong> &mdash; shown automatically for
+          international destinations. Select the declaration category and verify the line-item
+          table showing SKU, description, HS code, country of origin, quantity, weight, and
+          unit value. Edit fields directly in the table as required.</li>
+    </ul>
+  </li>
+  <li>Click <strong>Print Label</strong>. FreeBooks submits the order to Click &amp; Drop and
+      retrieves the label PDF; the label viewer opens automatically.</li>
+  <li>Print the label from the viewer. Close the popup when done.</li>
+</ol>
+
+<h4>Saving Customs Descriptions to Inventory</h4>
+<p>On international shipments, the <strong>Save descriptions to inventory</strong> button in the
+Shipment Contents table writes the customs description, HS code, and country of origin back to
+the corresponding inventory records. This saves time when reprinting labels for the same SKUs
+in future shipments.</p>
+
+<h4>Reprinting a Label</h4>
+<ol>
+  <li>In Invoice Manager, click the <strong>View Shipment</strong> (log) icon on the invoice row.
+      The Shipment Details popup opens.</li>
+  <li>Click <strong>Reprint Label</strong> in the toolbar. The stored PDF is displayed without
+      contacting Click &amp; Drop again.</li>
+</ol>
+
+<h4>Cancelling a Shipment</h4>
+<ol>
+  <li>In Invoice Manager, click the <strong>View Shipment</strong> icon on the invoice row.
+      The Shipment Details popup opens.</li>
+  <li>Click the <strong>Delete</strong> (bin) icon in the toolbar.</li>
+  <li>A confirmation dialog warns that the shipment will be cancelled. Confirm to proceed.</li>
+  <li>FreeBooks sends a DELETE request to Click &amp; Drop, removes the stored label file, and
+      removes the shipment log entry. The invoice row reverts to the <em>Ship</em> state and
+      can be re-shipped if required.</li>
+</ol>
+<p><strong>Note:</strong> Cancellation is only possible before Royal Mail has manifested the
+order for collection. If the daily manifest has already been submitted, the order cannot be
+cancelled via the API.</p>
+
+<h4>End-of-Day Manifest</h4>
+<p>Royal Mail requires a manifest to be submitted at the end of each shipping day to confirm
+which orders are ready for collection. Failure to manifest means the labels may not be
+processed for that day's collection.</p>
+<ol>
+  <li>In <strong>Shipping Manager</strong>, open the Royal Mail panel for today's date.</li>
+  <li>Click the <strong>RM Manifest</strong> button. The manifest popup opens and lists
+      today's shipments.</li>
+  <li>Click <strong>Manifest Now</strong> and confirm the prompt.</li>
+  <li>FreeBooks posts a manifest request to Click &amp; Drop. A confirmation message with the
+      manifest ID is displayed on success.</li>
+</ol>
+<p>Run the manifest once at the end of each shipping day, after all labels for that day have
+been printed. Once manifested, orders cannot be cancelled.</p>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="../../ShippingHome.html">Shipping Manager</a><br>
+  <a href="../ModulesHome.html">Shipping Modules Overview</a><br>
+  <a href="../../../../ch07-UsersManual/03-Customers/05-Invoices/04-InvoiceManager.html">Invoice Manager</a>
+</p>
+
+</body>
+</html>
