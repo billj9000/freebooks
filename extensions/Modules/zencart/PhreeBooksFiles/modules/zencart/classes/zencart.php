@@ -1,4 +1,20 @@
 <?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
 // Path: /modules/zencart/classes/zencart.php
 
 class zencart {
@@ -31,7 +47,11 @@ class zencart {
             'productFreeShipping' => 0,
             'productHidePrice'    => 0,
             'productSortOrder'    => (int)$inv['id'],
-            'productWeight'       => (float)($inv['item_weight'] ?? 0),
+            'productWeight'           => (float)($inv['item_weight'] ?? 0),
+            'productZencartLength'    => (float)($inv['item_length'] ?? 0),
+            'productZencartWidth'     => (float)($inv['item_width'] ?? 0),
+            'productZencartHeight'    => (float)($inv['item_height'] ?? 0),
+            'productZencartReadyToShip' => !empty($inv['ships_in_own_box']) ? 1 : 0,
             'quantity'            => (float)($inv['quantity_on_hand'] ?? 0),
             'dateAvailable'       => $inv['creation_date'] ?? date('Y-m-d'),
             'dateUpdated'         => (($inv['last_update'] ?? '') >= ($inv['last_journal_date'] ?? ''))
