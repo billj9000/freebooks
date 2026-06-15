@@ -43,6 +43,10 @@ echo $toolbar->build_toolbar();
         <div class="d-flex align-items-center gap-2">
           <label><?php echo ZENCART_BULK_UPLOAD_TEXT; ?></label>
           <?php echo html_button_field('bulkupload', ZENCART_BULK_UPLOAD_BTN, 'onclick="submitToDo(\'bulkupload\')"'); ?>
+          <div class="form-check ms-2 mb-0">
+            <?php echo html_checkbox_field('include_images', '1', false, 'class="form-check-input"', false); ?>
+            <label class="form-check-label"><?php echo ZENCART_INCLUDE_IMAGES; ?></label>
+          </div>
         </div>
       </div>
     </div>

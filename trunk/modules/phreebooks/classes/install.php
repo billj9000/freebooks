@@ -372,6 +372,9 @@ class phreebooks_admin {
 	if (MODULE_PHREEBOOKS_STATUS < 3.76) {
 		include_once(DIR_FS_MODULES . 'phreebooks/updates/R36toR37.php');
 	}
+	if (MODULE_PHREEBOOKS_STATUS < 3.77) {
+		include_once(DIR_FS_MODULES . 'phreebooks/updates/R37toR38.php');
+	}
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));
    	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_'.strtoupper($module).'_VERSION')), 'success');

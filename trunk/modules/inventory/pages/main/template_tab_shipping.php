@@ -78,6 +78,15 @@ $dim_unit = defined('SHIPPING_DEFAULT_PKG_DIM_UNIT')
       </div>
       <?php endif; ?>
 
+      <?php if (isset($cInfo->ships_in_own_box)): ?>
+      <div class="col-auto d-flex align-items-end pb-1">
+        <div class="form-check">
+          <?php echo html_checkbox_field('ships_in_own_box', '1', !empty($cInfo->ships_in_own_box), 'class="form-check-input"', false); ?>
+          <label class="form-check-label"><?php echo INV_ENTRY_SHIPS_IN_OWN_BOX; ?></label>
+        </div>
+      </div>
+      <?php endif; ?>
+
     </div>
   </div>
 </div>

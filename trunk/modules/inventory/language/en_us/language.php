@@ -257,6 +257,7 @@ define('INV_SHIPPING_EXT_DIMS_HELP',    'External dimensions of the item as pack
 define('INV_ENTRY_ITEM_LENGTH',         'Length');
 define('INV_ENTRY_ITEM_WIDTH',          'Width');
 define('INV_ENTRY_ITEM_HEIGHT',         'Height');
+define('INV_ENTRY_SHIPS_IN_OWN_BOX',   'Ships in its own box');
 define('INV_SHIPPING_CUSTOMS',          'Customs / Export');
 define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Country of Origin');
 define('INV_ENTRY_HS_CODE',             'HS Code');
