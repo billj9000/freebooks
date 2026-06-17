@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -15,7 +16,6 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /modules/zencart/pages/admin/pre_process.php
-//
 $security_level = validate_user(SECURITY_ID_CONFIGURATION);
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
@@ -41,6 +41,39 @@ switch ($_REQUEST['action']) {
 	  $field = strtolower($key);
       if (isset($_POST[$field])) write_configure($key, $_POST[$field]);
     }
+	// Validate payment map: comma-separated, each entry must be zcmodule=fbmodule:glacct
+	if (!empty($_POST['zencart_payment_map'])) {
+	  foreach (explode(',', $_POST['zencart_payment_map']) as $i => $entry) {
+	    $entry = trim($entry);
+	    if ($entry === '') continue;
+	    if (strpos($entry, '=') === false) {
+	      $messageStack->add_session(sprintf(ZENCART_WARN_PAYMENT_MAP_FMT, $i + 1, htmlspecialchars($entry)), 'caution');
+	      continue;
+	    }
+	    $zc_mod = trim(explode('=', $entry, 2)[0]);
+	    if ($zc_mod === '') $messageStack->add_session(sprintf(ZENCART_WARN_PAYMENT_MAP_EMPTY, $i + 1), 'caution');
+	  }
+	}
+	// Validate shipping map: pipe-separated, each entry must be zc_module:keyword=fb_module:fb_service
+	if (!empty($_POST['zencart_shipping_map'])) {
+	  foreach (explode('|', $_POST['zencart_shipping_map']) as $i => $entry) {
+	    $entry = trim($entry);
+	    if ($entry === '') continue;
+	    if (strpos($entry, '=') === false) {
+	      $messageStack->add_session(sprintf(ZENCART_WARN_SHIPPING_MAP_FMT, $i + 1, htmlspecialchars($entry)), 'caution');
+	      continue;
+	    }
+	    [$zc_side, $fb_side] = explode('=', $entry, 2);
+	    $zc_mod    = trim(explode(':', trim($zc_side), 2)[0]);
+	    $fb_module = trim(explode(':', trim($fb_side), 2)[0]);
+	    if ($zc_mod === '') {
+	      $messageStack->add_session(sprintf(ZENCART_WARN_SHIPPING_MAP_EMPTY, $i + 1), 'caution');
+	    }
+	    if ($fb_module !== '' && !is_dir(DIR_FS_MODULES . 'shipping/methods/' . $fb_module)) {
+	      $messageStack->add_session(sprintf(ZENCART_WARN_SHIPPING_MAP_MODULE, $i + 1, htmlspecialchars($fb_module)), 'caution');
+	    }
+	  }
+	}
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	$messageStack->add(ZENCART_CONFIG_SAVED, 'success');
     break;

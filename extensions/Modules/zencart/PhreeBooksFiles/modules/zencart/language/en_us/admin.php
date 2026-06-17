@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -15,7 +16,6 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /modules/zencart/language/en_us/admin.php
-//
 
 // Module information
 define('MODULE_ZENCART_TITLE','ZenCart Module');
@@ -38,6 +38,13 @@ define('ZENCART_LBL_CREATE_INVOICE','Also create a Sales Invoice (journal 12) fo
 define('ZENCART_LBL_DEFAULT_REP','Default sales rep for imported orders (0 = none)');
 define('ZENCART_LBL_LAST_ORDER','Last imported ZenCart order ID — edit to re-import orders from a given point');
 define('ZENCART_LBL_PAYMENT_MAP','Payment module map — comma-separated entries of the form zcmodule=fbmodule:glacct (e.g. paypalexpress=paypal_nvp:1020,stripe=freecharger:1030). fbmodule and glacct are each optional.');
+define('ZENCART_LBL_SHIPPING_MAP','Shipping method map — pipe-separated entries of the form zc_module:keyword=fb_module:fb_service. keyword is matched as a case-insensitive substring of the ZenCart shipping description (may contain colons); longest match wins. Leave keyword blank for a catch-all entry for that module. Example: royalmail:RM Tracked 24=royal_mail:RM24|royalmail:=royal_mail:RM48|dhl:DHL Express: Domestic=dhl_express:DHL_D');
+// Validation warnings for config maps
+define('ZENCART_WARN_PAYMENT_MAP_FMT',      'Payment map entry #%d ("%s"): missing "=" separator — expected format zcmodule=fbmodule:glacct.');
+define('ZENCART_WARN_PAYMENT_MAP_EMPTY',    'Payment map entry #%d: ZenCart module name is empty.');
+define('ZENCART_WARN_SHIPPING_MAP_FMT',     'Shipping map entry #%d ("%s"): missing "=" separator — expected format zc_module:keyword=fb_module:fb_service.');
+define('ZENCART_WARN_SHIPPING_MAP_EMPTY',   'Shipping map entry #%d: ZenCart module name is empty.');
+define('ZENCART_WARN_SHIPPING_MAP_MODULE',  'Shipping map entry #%d: FreeBooks shipping module "%s" not found under modules/shipping/methods/.');
 // audit log messages
 define('ZENCART_LOG_TABS','Zencart Inventory Add Tab');
 define('ZENCART_LOG_FIELDS','Zencart Inventory Add Field');

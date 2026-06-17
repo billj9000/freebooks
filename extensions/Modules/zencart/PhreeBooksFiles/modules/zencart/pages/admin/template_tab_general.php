@@ -49,6 +49,8 @@
         <div><?php echo html_input_field('zencart_last_order', $_POST['zencart_last_order'] ? $_POST['zencart_last_order'] : (defined('ZENCART_LAST_ORDER') ? ZENCART_LAST_ORDER : '0'), 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_LBL_PAYMENT_MAP; ?></div>
         <div><?php echo html_input_field('zencart_payment_map', isset($_POST['zencart_payment_map']) ? $_POST['zencart_payment_map'] : (defined('ZENCART_PAYMENT_MAP') ? ZENCART_PAYMENT_MAP : ''), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_SHIPPING_MAP; ?></div>
+        <div><?php echo html_input_field('zencart_shipping_map', isset($_POST['zencart_shipping_map']) ? $_POST['zencart_shipping_map'] : (defined('ZENCART_SHIPPING_MAP') ? ZENCART_SHIPPING_MAP : ''), 'class="form-control form-control-sm"'); ?></div>
       </div>
     </div>
   </div>

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -15,7 +16,6 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /modules/zencart/classes/install.php
-//
 
 class zencart_admin {
 	public $notes 		  = array(); // placeholder for any operational notes
@@ -48,6 +48,7 @@ class zencart_admin {
 	  'ZENCART_CREATE_INVOICE'        => '0',
 	  'ZENCART_DEFAULT_REP_ID'        => '0',
 	  'ZENCART_PAYMENT_MAP'           => '',
+	  'ZENCART_SHIPPING_MAP'          => '',
 	);
   }
 
