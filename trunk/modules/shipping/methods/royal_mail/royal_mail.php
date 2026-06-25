@@ -25,37 +25,59 @@ define('RM_CD_BASE', 'https://api.parcel.royalmail.com/api/v1');
 
 // Service display names — keyed as royal_mail_{internal_code}.
 // pre_process.php filters service_levels to only show codes with a defined constant here.
-// Domestic
-define('royal_mail_RM24',  'RM Tracked 24');
-define('royal_mail_RM48',  'RM Tracked 48');
-define('royal_mail_RMSD9', 'RM Special Delivery 9am');
-define('royal_mail_RMSD1', 'RM Special Delivery 1pm');
-define('royal_mail_RM1CL', 'RM Signed For 1st Class');
-define('royal_mail_RM2CL', 'RM Signed For 2nd Class');
-// International
-define('royal_mail_RMIT',  'RM International Business Mail Tracked');
-define('royal_mail_RMIS',  'RM International Business Mail Signed');
-define('royal_mail_RMITS', 'RM International Business Mail Tracked & Signed');
-define('royal_mail_RMIE',  'RM International Business Parcel Standard');
+// Royal Mail domestic — untracked
+define('royal_mail_CRL24', 'Royal Mail 24');
+define('royal_mail_CRL48', 'Royal Mail 48');
+// Royal Mail domestic — tracked
+define('royal_mail_RM24',  'Tracked 24');
+define('royal_mail_RM48',  'Tracked 48');
+define('royal_mail_RMSD9', 'Special Delivery 9am');
+define('royal_mail_RMSD1', 'Special Delivery 1pm');
+define('royal_mail_RM1CL', 'Signed For 1st Class');
+define('royal_mail_RM2CL', 'Signed For 2nd Class');
+// Parcelforce domestic (via Click & Drop)
+define('royal_mail_NDA',   'Parcelforce Express 24');
+define('royal_mail_FE0',   'Parcelforce Express 48');
+define('royal_mail_FEM',   'Parcelforce Express 48 Large');
+// Royal Mail international
+define('royal_mail_RMIT',  'International Business Mail Tracked');
+define('royal_mail_RMIS',  'International Business Mail Signed');
+define('royal_mail_RMITS', 'International Business Mail Tracked & Signed');
+define('royal_mail_RMIE',  'International Business Parcel Standard');
+// Parcelforce international (via Click & Drop)
+define('royal_mail_ER1',   'Parcelforce Europriority');
+define('royal_mail_ECA',   'Parcelforce GlobalPriority');
 
 class royal_mail {
 
   // Internal code → Click & Drop API serviceCode.
   // Actual values depend on your OBA account — verify in Click & Drop Settings → Services.
   var $CDServiceMap = array(
+    // Royal Mail domestic — untracked
+    'CRL24' => 'CRL24',
+    'CRL48' => 'CRL48',
+    // Royal Mail domestic — tracked
     'RM24'  => 'TPN24',
     'RM48'  => 'TPS48',
     'RMSD9' => 'SD4',
     'RMSD1' => 'SD1',
     'RM1CL' => 'STL1',
     'RM2CL' => 'STL2',
+    // Parcelforce domestic
+    'NDA'   => 'NDA',
+    'FE0'   => 'FE0',
+    'FEM'   => 'FEM',
+    // Royal Mail international
     'RMIT'  => 'MTK',
     'RMIS'  => 'MTM',
     'RMITS' => 'MTG',
     'RMIE'  => 'MP9',
+    // Parcelforce international
+    'ER1'   => 'ER1',
+    'ECA'   => 'ECA',
   );
 
-  var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE');
+  var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE', 'ER1', 'ECA');
 
   function __construct() {
     $this->code = 'royal_mail';
