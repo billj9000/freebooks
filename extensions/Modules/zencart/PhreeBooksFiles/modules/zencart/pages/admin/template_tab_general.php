@@ -57,6 +57,8 @@
         <div><?php echo html_input_field('zencart_payment_map', isset($_POST['zencart_payment_map']) ? $_POST['zencart_payment_map'] : (defined('ZENCART_PAYMENT_MAP') ? ZENCART_PAYMENT_MAP : ''), 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_LBL_SHIPPING_MAP; ?></div>
         <div><?php echo html_input_field('zencart_shipping_map', isset($_POST['zencart_shipping_map']) ? $_POST['zencart_shipping_map'] : (defined('ZENCART_SHIPPING_MAP') ? ZENCART_SHIPPING_MAP : ''), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_NON_SHIP_SKUS; ?></div>
+        <div><?php echo html_input_field('zencart_non_ship_skus', isset($_POST['zencart_non_ship_skus']) ? $_POST['zencart_non_ship_skus'] : (defined('ZENCART_NON_SHIP_SKUS') ? ZENCART_NON_SHIP_SKUS : ''), 'class="form-control form-control-sm"'); ?></div>
       </div>
     </div>
   </div>

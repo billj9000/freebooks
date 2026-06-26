@@ -52,6 +52,7 @@ class zencart_admin {
 	  'ZENCART_DEFAULT_REP_ID'        => '0',
 	  'ZENCART_PAYMENT_MAP'           => '',
 	  'ZENCART_SHIPPING_MAP'          => '',
+	  'ZENCART_NON_SHIP_SKUS'         => '',
 	);
   }
 

@@ -362,6 +362,17 @@ if (empty($zc_orders)) {
 echo ts() . " Fetched " . count($zc_orders) . " order(s) from ZenCart.\n";
 
 // ─── Import each order ────────────────────────────────────────────────────────
+// SKUs that represent fee charges (IOSS, duty, etc.): included in the order for
+// accounting but imported without a SKU so they're excluded from customs line
+// items and declared goods value in the label manager.
+$non_ship_skus = [];
+if (defined('ZENCART_NON_SHIP_SKUS') && ZENCART_NON_SHIP_SKUS !== '') {
+    foreach (explode(',', ZENCART_NON_SHIP_SKUS) as $s) {
+        $s = trim($s);
+        if ($s !== '') $non_ship_skus[$s] = true;
+    }
+}
+
 $default_tax_id = (int)(defined('ZENCART_DEFAULT_TAX_RATE_ID') ? ZENCART_DEFAULT_TAX_RATE_ID : 0);
 $catchall_acct  = (int)(defined('ZENCART_CUSTOMER_ACCOUNT_ID') ? ZENCART_CUSTOMER_ACCOUNT_ID : 0);
 
@@ -467,7 +478,7 @@ foreach ($zc_orders as $zc) {
         echo ts() . " Created customer contact $acct_id for '$email'\n";
     }
 
-    // Separate items: products / coupon discount
+    // Separate items: products / coupon discount / non-shipping fee charges
     $discount = 0.0;
     $items    = [];
     foreach ($zc['items'] ?? [] as $item) {
@@ -475,6 +486,10 @@ foreach ($zc_orders as $zc) {
         if ($sku === 'Discount') {
             $discount += abs((float)($item['unitPrice'] ?? 0));
         } else {
+            // Fee-only items (IOSS, duty, etc.) are kept for accounting but imported
+            // without a SKU so the label manager excludes them from customs line items
+            // and the declared goods value.
+            if (isset($non_ship_skus[$sku])) $item['sku'] = '';
             $items[] = $item;
         }
     }
@@ -674,6 +689,9 @@ foreach ($zc_orders as $zc) {
     $order->currencies_value = $zc_conv_rate;
     $order->rep_id           = (int)(defined('ZENCART_DEFAULT_REP_ID') ? ZENCART_DEFAULT_REP_ID : 0);
     $order->item_rows        = $item_rows;
+    $_ship = zencart_resolve_shipping((string)($zc['shippingModule'] ?? ''), (string)($zc['shippingMethod'] ?? ''));
+    $order->shipper_code     = $_ship['module'] . ':' . $_ship['service'];
+    unset($_ship);
 
     if (!$order->post_ordr('insert')) {
         $errs = zc_drain_messages();
@@ -753,6 +771,7 @@ foreach ($zc_orders as $zc) {
         $invoice->currencies_value   = $order->currencies_value;
         $invoice->rep_id             = $order->rep_id;
         $invoice->so_po_ref_id       = $so_id;
+        $invoice->shipper_code       = $order->shipper_code;
         $invoice->item_rows          = $inv_rows;
 
         if (!$invoice->post_ordr('insert')) {
