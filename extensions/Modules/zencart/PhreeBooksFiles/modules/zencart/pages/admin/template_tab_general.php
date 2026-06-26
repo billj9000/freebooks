@@ -37,6 +37,12 @@
         <div><?php echo html_input_field('zencart_status_confirm_id', $_POST['zencart_status_confirm_id'] ? $_POST['zencart_status_confirm_id'] : ZENCART_STATUS_CONFIRM_ID, 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_PARTIAL_ID; ?></div>
         <div><?php echo html_input_field('zencart_status_partial_id', $_POST['zencart_status_partial_id'] ? $_POST['zencart_status_partial_id'] : ZENCART_STATUS_PARTIAL_ID, 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_NOTIFY_SHIPMENTS; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_notify_shipments', $sel_yes_no, $_POST['zencart_notify_shipments'] ? $_POST['zencart_notify_shipments'] : (defined('ZENCART_NOTIFY_SHIPMENTS') ? ZENCART_NOTIFY_SHIPMENTS : '0'), 'class="form-select form-select-sm w-auto"'); ?></div>
+        <div><?php echo ZENCART_LBL_NOTIFY_MESSAGE; ?></div>
+        <div><?php echo html_input_field('zencart_notify_message', isset($_POST['zencart_notify_message']) ? $_POST['zencart_notify_message'] : (defined('ZENCART_NOTIFY_MESSAGE') ? ZENCART_NOTIFY_MESSAGE : ZENCART_CONFIRM_MESSAGE), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_UPDATED_BY; ?></div>
+        <div><?php echo html_input_field('zencart_updated_by', isset($_POST['zencart_updated_by']) ? $_POST['zencart_updated_by'] : (defined('ZENCART_UPDATED_BY') ? ZENCART_UPDATED_BY : 'FreeBooks'), 'class="form-control form-control-sm w-auto"'); ?></div>
         <div><?php echo ZENCART_LBL_CATCH_ALL_ACCT; ?></div>
         <div><?php echo html_input_field('zencart_customer_account_id', $_POST['zencart_customer_account_id'] ? $_POST['zencart_customer_account_id'] : ZENCART_CUSTOMER_ACCOUNT_ID, 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_LBL_DEFAULT_TAX; ?></div>

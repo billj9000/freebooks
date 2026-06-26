@@ -245,8 +245,11 @@ class zencart {
         global $db, $messageStack;
 
         $shipments = $db->Execute(
-            "SELECT ref_id, carrier, method, tracking_id FROM " . TABLE_SHIPPING_LOG
-            . " WHERE ship_date LIKE '" . db_prepare_input($post_date) . " %'"
+            "SELECT sl.id, sl.ref_id, sl.carrier, sl.method, sl.tracking_id"
+            . " FROM " . TABLE_SHIPPING_LOG . " sl"
+            . " LEFT JOIN " . TABLE_ZC_SHIP_NOTIFY . " zn ON zn.shipping_log_id = sl.id"
+            . " WHERE sl.ship_date LIKE '" . db_prepare_input($post_date) . " %'"
+            . " AND zn.shipping_log_id IS NULL"
         );
         if ($shipments->RecordCount() == 0) {
             $messageStack->add(ZENCART_ERROR_CONFRIM_NO_DATA, 'caution');
@@ -268,29 +271,44 @@ class zencart {
             );
             if (!$main->EOF && !empty($main->fields['so_po_ref_id'])) {
                 $so = $db->Execute(
-                    "SELECT closed, purchase_invoice_id FROM " . TABLE_JOURNAL_MAIN
+                    "SELECT closed, purchase_invoice_id, purch_order_id FROM " . TABLE_JOURNAL_MAIN
                     . " WHERE id = " . (int)$main->fields['so_po_ref_id']
                 );
                 if (!$so->EOF) {
+                    // ZenCart order ID is stored as 'ZC-{id}' in purch_order_id
+                    $zc_order_id = (strpos($so->fields['purch_order_id'], 'ZC-') === 0)
+                        ? (int)substr($so->fields['purch_order_id'], 3)
+                        : (int)$so->fields['purchase_invoice_id'];
                     $carrier       = $shipments->fields['carrier'];
                     $method        = $shipments->fields['method'];
-                    $carrier_title = $methods[$carrier]['title'] ?? $carrier;
-                    $method_title  = $methods[$carrier][$method] ?? $method;
-                    $message       = sprintf(
-                        ZENCART_CONFIRM_MESSAGE,
-                        $post_date,
-                        $carrier_title,
-                        $method_title,
-                        $shipments->fields['tracking_id']
+                    $carrier_title = $methods[$carrier]['title'] ?: $carrier;
+                    $method_title  = $methods[$carrier][$method] ?: $method;
+                    $fmt         = (defined('ZENCART_NOTIFY_MESSAGE') && ZENCART_NOTIFY_MESSAGE !== '')
+                        ? ZENCART_NOTIFY_MESSAGE
+                        : ZENCART_CONFIRM_MESSAGE;
+                    $tracking_raw = $shipments->fields['tracking_id'];
+                    $url_const    = $carrier . '_TRACKING_URL';
+                    $tracking_val = (defined($url_const) && $tracking_raw !== '')
+                        ? "<a href='" . constant($url_const) . rawurlencode($tracking_raw) . "'>" . htmlspecialchars($tracking_raw, ENT_COMPAT, 'UTF-8') . '</a>'
+                        : htmlspecialchars($tracking_raw, ENT_COMPAT, 'UTF-8');
+                    $message = str_replace(
+                        ['{date}', '{carrier}', '{service}', '{tracking}'],
+                        [$post_date, $carrier_title, $method_title, $tracking_val],
+                        $fmt
                     );
                     $status = $so->fields['closed']
                         ? (int)ZENCART_STATUS_CONFIRM_ID
                         : (int)ZENCART_STATUS_PARTIAL_ID;
                     zencart_api_call('updateOrderComments', [
-                        'orderId' => (int)$so->fields['purchase_invoice_id'],
-                        'comment' => $message,
-                        'status'  => $status,
+                        'orderId'   => $zc_order_id,
+                        'comment'   => $message,
+                        'status'    => $status,
+                        'updatedBy' => (defined('ZENCART_UPDATED_BY') && ZENCART_UPDATED_BY !== '') ? ZENCART_UPDATED_BY : 'FreeBooks',
                     ]);
+                    $db->Execute(
+                        "INSERT INTO " . TABLE_ZC_SHIP_NOTIFY . " (shipping_log_id, notified_at)"
+                        . " VALUES (" . (int)$shipments->fields['id'] . ", NOW())"
+                    );
                     $sent++;
                 }
             }
@@ -309,14 +327,22 @@ class zencart {
         global $shipping_defaults;
         $method_array = [];
         foreach (scandir(DIR_FS_MODULES . 'shipping/methods/') as $m) {
-            if ($m !== '.' && $m !== '..' && defined('MODULE_SHIPPING_' . strtoupper($m) . '_STATUS')) {
+            if ($m === '.' || $m === '..') continue;
+            // In CLI (cron) context the module _STATUS constants are never loaded; fall back to
+            // checking whether the module's main PHP file exists so all installed modules are found.
+            if (defined('MODULE_SHIPPING_' . strtoupper($m) . '_STATUS')
+                || file_exists(DIR_FS_MODULES . 'shipping/methods/' . $m . '/' . $m . '.php')) {
                 $method_array[] = $m;
             }
         }
         $output  = [];
         $choices = array_keys($shipping_defaults['service_levels']);
         foreach ($method_array as $m) {
+            // Language must load before the main module file — the main file aliases
+            // service codes using language constants (e.g. royal_mail_CRL24 = MODULE_SHIPPING_ROYAL_MAIL_CRL24).
             load_method_language(DIR_FS_MODULES . 'shipping/methods/', $m);
+            $main = DIR_FS_MODULES . 'shipping/methods/' . $m . '/' . $m . '.php';
+            if (file_exists($main)) require_once($main);
             $output[$m]['title'] = constant('MODULE_SHIPPING_' . strtoupper($m) . '_TEXT_TITLE');
             foreach ($choices as $svc) {
                 $output[$m][$svc] = defined($m . '_' . $svc) ? constant($m . '_' . $svc) : '';

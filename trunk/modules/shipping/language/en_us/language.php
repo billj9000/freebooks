@@ -193,30 +193,40 @@ define('SHIPPING_DHL_Q', 'DHL Medical Express');
 define('SHIPPING_DHL_C', 'DHL Medical Express (Domestic)');
 define('SHIPPING_DHL_H', 'DHL Economy Select');
 define('SHIPPING_DHL_8', 'DHL Express Easy');
-// Royal Mail domestic
-define('SHIPPING_RM24',  'RM Tracked 24');
-define('SHIPPING_RM48',  'RM Tracked 48');
-define('SHIPPING_RMSD9', 'RM Special Delivery 9am');
-define('SHIPPING_RMSD1', 'RM Special Delivery 1pm');
-define('SHIPPING_RM1CL', 'RM 1st Class');
-define('SHIPPING_RM2CL', 'RM 2nd Class');
+// Royal Mail domestic — untracked (Click & Drop)
+define('SHIPPING_CRL24', 'Royal Mail 24');
+define('SHIPPING_CRL48', 'Royal Mail 48');
+// Royal Mail domestic — tracked
+define('SHIPPING_RM24',  'Tracked 24');
+define('SHIPPING_RM48',  'Tracked 48');
+define('SHIPPING_RMSD9', 'Special Delivery 9am');
+define('SHIPPING_RMSD1', 'Special Delivery 1pm');
+define('SHIPPING_RM1CL', 'Signed For 1st Class');
+define('SHIPPING_RM2CL', 'Signed For 2nd Class');
 // Royal Mail international
-define('SHIPPING_RMIT',  'RM International Tracked');
-define('SHIPPING_RMIS',  'RM International Signed');
-define('SHIPPING_RMITS', 'RM International Tracked & Signed');
-define('SHIPPING_RMIE',  'RM International Economy');
-// Parcelforce domestic
+define('SHIPPING_RMIT',  'International Business Mail Tracked');
+define('SHIPPING_RMIS',  'International Business Mail Signed');
+define('SHIPPING_RMITS', 'International Business Mail Tracked & Signed');
+define('SHIPPING_RMIE',  'International Business Parcel Standard');
+// Parcelforce domestic (legacy module codes)
 define('SHIPPING_PFX9',  'Parcelforce Express 9');
 define('SHIPPING_PFX10', 'Parcelforce Express 10');
 define('SHIPPING_PFXAM', 'Parcelforce Express AM');
 define('SHIPPING_PFX24', 'Parcelforce Express 24');
 define('SHIPPING_PFX48', 'Parcelforce Express 48');
 define('SHIPPING_PFX4L', 'Parcelforce Express 48 Large');
-// Parcelforce international
+// Parcelforce domestic (Click & Drop)
+define('SHIPPING_NDA',   'Parcelforce Express 24');
+define('SHIPPING_FE0',   'Parcelforce Express 48');
+define('SHIPPING_FEM',   'Parcelforce Express 48 Large');
+// Parcelforce international (legacy module codes)
 define('SHIPPING_PFGX',  'Parcelforce Global Express');
 define('SHIPPING_PFGP',  'Parcelforce Global Priority');
 define('SHIPPING_PFGV',  'Parcelforce Global Value');
 define('SHIPPING_PFGE',  'Parcelforce Global Economy');
+// Parcelforce international (Click & Drop)
+define('SHIPPING_ER1',   'Parcelforce Europriority');
+define('SHIPPING_ECA',   'Parcelforce GlobalPriority');
 define('SHIPPING_SHIP_PACKAGE','Ship a Package');
 define('SHIPPING_CREATE_ENTRY','Create a Shipment Entry');
 define('SHIPPING_RECON_BILL','Reconcile Bill');

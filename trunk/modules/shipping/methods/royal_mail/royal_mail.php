@@ -23,6 +23,9 @@ define('MODULE_SHIPPING_ROYAL_MAIL_VERSION', '1.0');
 // Auth: Authorization: Bearer {API key} (obtain from Click & Drop → Settings → API)
 define('RM_CD_BASE', 'https://api.parcel.royalmail.com/api/v1');
 
+// Tracking URL — append tracking number to build a full tracking link
+define('royal_mail_TRACKING_URL', 'https://www.royalmail.com/track-your-item#/tracking-results/');
+
 // Service display names — keyed as royal_mail_{internal_code}.
 // pre_process.php filters service_levels to only show codes with a defined constant here.
 // Royal Mail domestic — untracked

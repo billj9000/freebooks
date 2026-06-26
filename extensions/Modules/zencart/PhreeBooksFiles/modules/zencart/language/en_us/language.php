@@ -20,7 +20,7 @@
 // Headings 
 define('BOX_ZENCART_ADMIN','Zencart Configuration');
 // General Defines
-define('ZENCART_CONFIRM_MESSAGE','Your order shipped %s via %s %s, tracking number: %s');
+define('ZENCART_CONFIRM_MESSAGE','Your order shipped {date} via {carrier} {service}, tracking number: {tracking}');
 define('ZENCART_BULK_UPLOAD_SUCCESS','Successfully uploaded %s item(s) to the ZenCart e-store.');
 define('ZENCART_TEXT_ERROR','Error # ');
 define('ZENCART_IVENTORY_UPLOAD','ZenCart Upload');

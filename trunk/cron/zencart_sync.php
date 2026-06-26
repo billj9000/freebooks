@@ -140,6 +140,10 @@ define('TABLE_PRICE_SHEETS',              DB_PREFIX . 'price_sheets');
 // inventory
 define('TABLE_INVENTORY',                 DB_PREFIX . 'inventory');
 define('TABLE_INVENTORY_SPECIAL_PRICES',  DB_PREFIX . 'inventory_special_prices');
+// shipping
+define('TABLE_SHIPPING_LOG',              DB_PREFIX . 'shipping_log');
+// zencart extension
+define('TABLE_ZC_SHIP_NOTIFY',            DB_PREFIX . 'zc_ship_notify');
 
 // ─── Core objects ────────────────────────────────────────────────────────────
 $messageStack = new messageStack;
@@ -153,6 +157,14 @@ gen_pull_language('phreebooks', 'menu'); // ORD_TEXT_10_WINDOW_TITLE
 error_reporting($_prev_er); unset($_prev_er);
 if (file_exists(DIR_FS_MODULES . 'zencart/language/' . $_SESSION['language'] . '/language.php')) {
     require_once(DIR_FS_MODULES . 'zencart/language/' . $_SESSION['language'] . '/language.php');
+}
+
+// Shipping language + defaults — needed by confirmShipments() / loadShippingMethods()
+if (file_exists(DIR_FS_MODULES . 'shipping/language/en_us/language.php')) {
+    require_once(DIR_FS_MODULES . 'shipping/language/en_us/language.php');
+}
+if (file_exists(DIR_FS_MODULES . 'shipping/defaults.php')) {
+    require_once(DIR_FS_MODULES . 'shipping/defaults.php');
 }
 
 // Inventory helpers (inv_calculate_prices used by zencart::syncQuantities/uploadProduct)
@@ -344,6 +356,7 @@ $zc_orders = $response['orders'] ?? [];
 if (empty($zc_orders)) {
     echo ts() . " No new orders (last_order=$last_order).\n";
     zc_sync_stock();
+    zc_confirm_shipments();
     exit(0);
 }
 echo ts() . " Fetched " . count($zc_orders) . " order(s) from ZenCart.\n";
@@ -820,6 +833,7 @@ foreach ($zc_orders as $zc) {
 
 echo ts() . " Done. Imported $imported order(s). Highest ZC order ID: $highest_id\n";
 zc_sync_stock();
+zc_confirm_shipments();
 exit(0);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -833,6 +847,23 @@ function zc_sync_stock(): void
         echo ts() . " Stock sync complete." . ($sync_msgs ? " ($sync_msgs)" : '') . "\n";
     } else {
         fwrite(STDERR, ts() . " Stock sync failed" . ($sync_msgs ? ": $sync_msgs" : '') . "\n");
+    }
+}
+
+function zc_confirm_shipments(): void
+{
+    global $db;
+    if (!defined('ZENCART_NOTIFY_SHIPMENTS') || ZENCART_NOTIFY_SHIPMENTS !== '1') return;
+    $db->Execute("DELETE FROM " . TABLE_ZC_SHIP_NOTIFY . " WHERE notified_at < DATE_SUB(NOW(), INTERVAL 30 DAY)");
+    $post_date = date('Y-m-d');
+    echo ts() . " Sending shipping notifications for $post_date...\n";
+    $zc   = new zencart();
+    $ok   = $zc->confirmShipments($post_date);
+    $msgs = zc_drain_messages();
+    if ($ok) {
+        echo ts() . " Shipping notifications sent." . ($msgs ? " ($msgs)" : '') . "\n";
+    } else {
+        echo ts() . " " . ($msgs ?: 'No shipments found for today.') . "\n";
     }
 }
 

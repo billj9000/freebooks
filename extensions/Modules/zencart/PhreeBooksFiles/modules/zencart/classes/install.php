@@ -42,6 +42,9 @@ class zencart_admin {
 	  'ZENCART_PRICE_SHEET'       => '',
 	  'ZENCART_STATUS_CONFIRM_ID'     => '',
 	  'ZENCART_STATUS_PARTIAL_ID'     => '',
+	  'ZENCART_NOTIFY_SHIPMENTS'      => '0',
+	  'ZENCART_NOTIFY_MESSAGE'        => 'Your order shipped {date} via {carrier} {service}, tracking number: {tracking}',
+	  'ZENCART_UPDATED_BY'            => 'FreeBooks',
 	  'ZENCART_LAST_ORDER'            => '0',
 	  'ZENCART_CUSTOMER_ACCOUNT_ID'   => '0',
 	  'ZENCART_DEFAULT_TAX_RATE_ID'   => '0',
@@ -205,6 +208,10 @@ class zencart_admin {
 	  $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN
 	    . " ADD COLUMN freight_tax_id SMALLINT NOT NULL DEFAULT 0 AFTER freight");
 	}
+	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SHIP_NOTIFY . " ("
+	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
+	    . "notified_at DATETIME NOT NULL"
+	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));

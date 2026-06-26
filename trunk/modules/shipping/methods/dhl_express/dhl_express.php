@@ -23,6 +23,9 @@ define('MODULE_SHIPPING_DHL_EXPRESS_VERSION', '1.0');
 define('DHL_API_BASE_LIVE', 'https://express.api.dhl.com/mydhlapi');
 define('DHL_API_BASE_TEST', 'https://express.api.dhl.com/mydhlapi/test');
 
+// Tracking URL — append tracking number (AWB) to build a full tracking link
+define('dhl_express_TRACKING_URL', 'https://www.dhl.com/en/express/tracking.html?AWB=');
+
 // Pre-define display names for DHL product codes (keyed as dhl_express_DHL_{code}).
 // These are used by build_js_methods() at page-load time and by template_detail.php.
 // quote() will override these with live names from the API if they differ.

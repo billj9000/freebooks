@@ -18,9 +18,11 @@
 //  Path: /modules/shipping/defaults.php
 //
 
-define('DEFAULT_MOD_DIR', DIR_FS_WORKING . 'methods/');
-define('SHIPPING_DEFAULT_LABEL_DIR', DIR_FS_MY_FILES . $_SESSION['company'] . '/shipping/labels/');
-define('SHIPPING_DEFAULT_LABEL_WS',  DIR_WS_MY_FILES . $_SESSION['company'] . '/shipping/labels/');
+if (defined('DIR_FS_WORKING')) define('DEFAULT_MOD_DIR', DIR_FS_WORKING . 'methods/');
+if (!empty($_SESSION['company'])) {
+    define('SHIPPING_DEFAULT_LABEL_DIR', DIR_FS_MY_FILES . $_SESSION['company'] . '/shipping/labels/');
+    define('SHIPPING_DEFAULT_LABEL_WS',  DIR_WS_MY_FILES . $_SESSION['company'] . '/shipping/labels/');
+}
 define('SHIPPING_DEFAULT_LTL_CLASS','125');
 
 // Set up choices for dropdown menus for general shipping methods, not all are used for each method
@@ -61,7 +63,10 @@ $shipping_defaults['service_levels'] = array( // order determines sequence in pu
   'DHL_C' => SHIPPING_DHL_C,
   'DHL_H' => SHIPPING_DHL_H,
   'DHL_8' => SHIPPING_DHL_8,
-  // Royal Mail domestic
+  // Royal Mail domestic — untracked (Click & Drop)
+  'CRL24' => SHIPPING_CRL24,
+  'CRL48' => SHIPPING_CRL48,
+  // Royal Mail domestic — tracked
   'RM24'  => SHIPPING_RM24,
   'RM48'  => SHIPPING_RM48,
   'RMSD9' => SHIPPING_RMSD9,
@@ -73,18 +78,25 @@ $shipping_defaults['service_levels'] = array( // order determines sequence in pu
   'RMIS'  => SHIPPING_RMIS,
   'RMITS' => SHIPPING_RMITS,
   'RMIE'  => SHIPPING_RMIE,
-  // Parcelforce domestic
+  // Parcelforce domestic (legacy module codes)
   'PFX9'  => SHIPPING_PFX9,
   'PFX10' => SHIPPING_PFX10,
   'PFXAM' => SHIPPING_PFXAM,
   'PFX24' => SHIPPING_PFX24,
   'PFX48' => SHIPPING_PFX48,
   'PFX4L' => SHIPPING_PFX4L,
-  // Parcelforce international
+  // Parcelforce domestic (Click & Drop)
+  'NDA'   => SHIPPING_NDA,
+  'FE0'   => SHIPPING_FE0,
+  'FEM'   => SHIPPING_FEM,
+  // Parcelforce international (legacy module codes)
   'PFGX'  => SHIPPING_PFGX,
   'PFGP'  => SHIPPING_PFGP,
   'PFGV'  => SHIPPING_PFGV,
   'PFGE'  => SHIPPING_PFGE,
+  // Parcelforce international (Click & Drop)
+  'ER1'   => SHIPPING_ER1,
+  'ECA'   => SHIPPING_ECA,
 );
 // Pickup Type Code - conforms to UPS standards per the XML specification
 $shipping_defaults['pickup_service'] = array(

@@ -17,7 +17,7 @@
 //  Path: /modules/shipping/methods/royal_mail/ship_mgr.php
 //
 load_method_language(DIR_FS_MODULES . 'shipping/methods/', 'royal_mail');
-define('RM_TRACKING_URL', 'https://www.royalmail.com/track-your-item#/tracking-results/');
+require_once(DIR_FS_MODULES . 'shipping/methods/royal_mail/royal_mail.php');
 ?>
 <h1><?php echo MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE; ?></h1>
 <table class="table table-sm table-borderless mb-2 w-100">
@@ -60,7 +60,7 @@ if ($rows->RecordCount() > 0) {
     echo '    <td align="center">' . $f['shipment_id'] . '</td>' . chr(10);
     echo '    <td align="center">' . htmlspecialchars($f['ref_id']) . '</td>' . chr(10);
     echo '    <td align="center">' . htmlspecialchars($svcName) . '</td>' . chr(10);
-    echo '    <td align="center"><a target="_blank" href="' . RM_TRACKING_URL . urlencode($f['tracking_id']) . '">'
+    echo '    <td align="center"><a target="_blank" href="' . royal_mail_TRACKING_URL . urlencode($f['tracking_id']) . '">'
        . htmlspecialchars($f['tracking_id']) . '</a></td>' . chr(10);
     echo '    <td>' . htmlspecialchars($f['recipient_name']) . '</td>' . chr(10);
     echo '    <td align="right">' . ($f['cost'] ? $currencies->format_full($f['cost']) : '&nbsp;') . '</td>' . chr(10);
