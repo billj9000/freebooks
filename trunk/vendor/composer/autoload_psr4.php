@@ -6,7 +6,11 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Twig\\' => array($vendorDir . '/twig/twig/src'),
+    'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
+    'Symfony\\Polyfill\\Ctype\\' => array($vendorDir . '/symfony/polyfill-ctype'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/src'),
+    'Picqer\\Barcode\\' => array($vendorDir . '/picqer/php-barcode-generator/src'),
     'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
     'DVDoug\\BoxPacker\\' => array($vendorDir . '/dvdoug/boxpacker/src', $vendorDir . '/dvdoug/boxpacker/tests'),
 );

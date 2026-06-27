@@ -5,7 +5,9 @@
     "require": {
         "php": ">=8.0",
         "phpmailer/phpmailer": "^7.0",
-        "dvdoug/boxpacker": "^4.0"
+        "dvdoug/boxpacker": "^4.0",
+        "twig/twig": "^3.27",
+        "picqer/php-barcode-generator": "^3.2"
     },
     "config": {
         "optimize-autoloader": true

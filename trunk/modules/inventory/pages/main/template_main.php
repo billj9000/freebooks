@@ -108,6 +108,9 @@ echo $toolbar->build_toolbar($add_search = true);
       <td class="text-center" onclick="event.stopPropagation()">
         <?php
         if (function_exists('add_extra_action_bar_buttons')) echo add_extra_action_bar_buttons($query_result->fields);
+        if (defined('MODULE_LABELS_STATUS') && $security_level > 0)
+          echo html_icon('devices/printer.png', TEXT_PRINT_LABELS, 'small',
+            "onclick=\"lblOpenModal('" . htmlspecialchars(addslashes($query_result->fields['sku']), ENT_QUOTES, 'UTF-8') . "')\"") . chr(10);
         if ($security_level > 1) echo html_icon('actions/edit-find-replace.png', TEXT_EDIT, 'small',
           'onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=inventory&amp;page=main&amp;cID=' . $query_result->fields['id'] . '&amp;action=edit&amp;inventory_type=' . $query_result->fields['inventory_type'], 'SSL') . "','_blank')\"") . chr(10);
         if ($security_level > 3 && $query_result->fields['inventory_type'] != 'mi' && $query_result->fields['inventory_type'] != 'ia')
@@ -136,3 +139,90 @@ echo $toolbar->build_toolbar($add_search = true);
 
 </div><!-- /pkg-wrap -->
 </form>
+
+<?php if (defined('MODULE_LABELS_STATUS')): gen_pull_language('labels'); ?>
+<!-- Print Labels Modal -->
+<div class="modal fade" id="lblModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" id="lblModalContent">
+      <div class="modal-body"><div class="text-center py-3">Loading...</div></div>
+    </div>
+  </div>
+</div>
+<script src="<?php echo DIR_WS_ADMIN; ?>modules/phreedom/includes/qz-tray/qz-tray.js"></script>
+<script>
+var lblModalUrl  = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=label_modal', 'SSL')); ?>;
+var lblRenderUrl = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=render', 'SSL')); ?>;
+var lblNoItems   = <?php echo json_encode(TEXT_LABEL_NO_ITEMS); ?>;
+
+function lblOpenModal(sku) {
+  var content = document.getElementById('lblModalContent');
+  content.innerHTML = '<div class="modal-body"><div class="text-center py-3">Loading...</div></div>';
+  var modal = new bootstrap.Modal(document.getElementById('lblModal'));
+  modal.show();
+  fetch(lblModalUrl + '&sku=' + encodeURIComponent(sku))
+    .then(function(r){ return r.text(); })
+    .then(function(html){ content.innerHTML = html; })
+    .catch(function(e){ content.innerHTML = '<div class="modal-body text-danger">Error loading modal</div>'; });
+}
+
+function lblPrint(preselectSku) {
+  var templateId = document.getElementById('lbl_template_id').value;
+  var qty        = parseInt(document.getElementById('lbl_qty').value, 10) || 1;
+  var errDiv     = document.getElementById('lbl_error');
+  errDiv.style.display = 'none';
+
+  var skus = preselectSku ? [{sku: preselectSku, qty: qty}] : [];
+  if (!skus.length) {
+    document.querySelectorAll('input[name="selected_sku"]:checked').forEach(function(cb) {
+      skus.push({sku: cb.value, qty: qty});
+    });
+  }
+  if (!skus.length) { errDiv.textContent = lblNoItems; errDiv.style.display = ''; return; }
+
+  // Open the window NOW while still inside the click handler (user gesture).
+  // Browsers block window.open() called from async callbacks.
+  var printWin = window.open('', '_blank');
+  if (!printWin) { errDiv.textContent = 'Pop-up blocked - please allow pop-ups for this site.'; errDiv.style.display = ''; return; }
+  printWin.document.write('<html><body><p>Preparing labels...</p></body></html>');
+
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  var formData = new FormData();
+  formData.append('csrf_token',  meta ? meta.getAttribute('content') : '');
+  formData.append('template_id', templateId);
+  formData.append('skus', JSON.stringify(skus));
+
+  fetch(lblRenderUrl, {method: 'POST', body: formData})
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        printWin.close();
+        errDiv.textContent = data.error; errDiv.style.display = ''; return;
+      }
+      if (data.type === 'html') {
+        printWin.document.open(); printWin.document.write(data.html); printWin.document.close();
+      } else if (data.type === 'zpl') {
+        printWin.close();
+        lblPrintZpl(data.labels, errDiv);
+      }
+    })
+    .catch(function(e){ printWin.close(); errDiv.textContent = 'Error: ' + e; errDiv.style.display = ''; });
+}
+
+function lblPrintZpl(labels, errDiv) {
+  if (typeof qz === 'undefined') {
+    errDiv.textContent = 'QZ Tray is not available. Please install QZ Tray for ZPL printing.';
+    errDiv.style.display = '';
+    return;
+  }
+  var lines = labels.map(function(zpl){ return {type:'raw', format:'plain', data:zpl}; });
+  qz.security.setCertificatePromise(function(resolve){ resolve(''); });
+  qz.security.setSignatureAlgorithm('SHA512');
+  qz.security.setSignaturePromise(function(toSign){ return function(resolve){ resolve(''); }; });
+  qz.websocket.connect()
+    .then(function(){ return qz.printers.getDefault(); })
+    .then(function(printer){ return qz.print(qz.configs.create(printer), lines); })
+    .catch(function(e){ errDiv.textContent = 'Print error: ' + e; errDiv.style.display = ''; });
+}
+</script>
+<?php endif; ?>

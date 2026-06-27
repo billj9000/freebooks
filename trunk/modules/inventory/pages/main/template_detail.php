@@ -55,6 +55,13 @@ if ($_REQUEST['action'] == 'properties') {
 if (!empty($extra_toolbar_buttons_detail)) {
   foreach ($extra_toolbar_buttons_detail as $key => $value) $toolbar->icon_list[$key] = $value;
 }
+if (defined('MODULE_LABELS_STATUS') && !empty($cInfo->sku)) {
+  $toolbar->add_icon('print_label',
+    'onclick="lblOpenModal(\'' . htmlspecialchars(addslashes($cInfo->sku), ENT_QUOTES, 'UTF-8') . '\')"',
+    $order = 70);
+  $toolbar->icon_list['print_label']['icon'] = 'devices/printer.png';
+  $toolbar->icon_list['print_label']['text'] = TEXT_PRINT_LABEL;
+}
 echo $toolbar->build_toolbar();
 $fields->set_fields_to_display($cInfo->inventory_type);
 
@@ -144,3 +151,27 @@ if (isset($extra_inventory_tabs) && is_array($extra_inventory_tabs)) {
 
 </div><!-- /pkg-wrap -->
 </form>
+
+<?php if (defined('MODULE_LABELS_STATUS') && !empty($cInfo->sku)): ?>
+<!-- Print Labels Modal -->
+<div class="modal fade" id="lblModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" id="lblModalContent">
+      <div class="modal-body"><div class="text-center py-3">Loading...</div></div>
+    </div>
+  </div>
+</div>
+<script>
+var lblModalUrl = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=label_modal', 'SSL')); ?>;
+function lblOpenModal(sku) {
+  var content = document.getElementById('lblModalContent');
+  content.innerHTML = '<div class="modal-body"><div class="text-center py-3">Loading...</div></div>';
+  var modal = new bootstrap.Modal(document.getElementById('lblModal'));
+  modal.show();
+  fetch(lblModalUrl + '&sku=' + encodeURIComponent(sku))
+    .then(function(r){ return r.text(); })
+    .then(function(html){ content.innerHTML = html; })
+    .catch(function(e){ content.innerHTML = '<div class="modal-body text-danger">Error loading modal</div>'; });
+}
+</script>
+<?php endif; ?>
