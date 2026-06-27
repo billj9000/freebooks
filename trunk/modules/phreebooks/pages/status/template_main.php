@@ -122,12 +122,12 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         $date_shipped = substr($result->fields['ship_date'], 0, 10);
       }
       $temp         = explode(':', $query_result->fields['shipper_code']);
-      $shipper_code = $temp[0];
+      $shipper_code = preg_replace('/[^a-z0-9_]/', '', strtolower($temp[0]));
       $ship_meth    = defined('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') ? constant('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') : $temp[0];
       $ship_srv     = defined($temp[0].'_'.$temp[1]) ? constant($temp[0].'_'.$temp[1]) : $temp[1];
       $order_link   = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;action=edit', 'SSL');
 ?>
-      <td class="text-center" onclick="location.href='<?php echo $order_link; ?>'"><?php echo $ship_meth ? ($ship_meth . ' ' . $ship_srv) : '&nbsp;'; ?></td>
+      <td class="text-center" onclick="location.href='<?php echo $order_link; ?>'"><?php echo $ship_meth ? (htmlspecialchars($ship_meth, ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($ship_srv, ENT_QUOTES, 'UTF-8')) : '&nbsp;'; ?></td>
 <?php } ?>
       <td class="text-end text-nowrap">
 <?php
