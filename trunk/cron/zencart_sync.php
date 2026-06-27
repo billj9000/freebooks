@@ -470,6 +470,7 @@ foreach ($zc_orders as $zc) {
         }
     }
     if (!$acct_id) {
+        $bill['phone'] = (string)($zc['phone'] ?? ''); // top-level field; billingAddress has no phone
         [$acct_id, $addr_id] = zc_create_customer($bill, $email, $post_date);
         if (!$acct_id) {
             fwrite(STDERR, ts() . " Order $zc_id: could not create customer for '$email'. Skipping.\n");
@@ -758,6 +759,8 @@ foreach ($zc_orders as $zc) {
         $invoice->ship_state_province = $order->ship_state_province;
         $invoice->ship_postal_code    = $order->ship_postal_code;
         $invoice->ship_country_code   = $order->ship_country_code;
+        $invoice->ship_telephone1     = $order->ship_telephone1;
+        $invoice->ship_email          = $order->ship_email;
 
         $invoice->post_date          = $post_date;
         $invoice->period             = $period;
