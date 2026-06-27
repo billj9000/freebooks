@@ -693,6 +693,7 @@ foreach ($zc_orders as $zc) {
     $_ship = zencart_resolve_shipping((string)($zc['shippingModule'] ?? ''), (string)($zc['shippingMethod'] ?? ''));
     $order->shipper_code     = $_ship['module'] . ':' . $_ship['service'];
     unset($_ship);
+    $order->notes            = (string)($zc['comments'] ?? '');
 
     if (!$order->post_ordr('insert')) {
         $errs = zc_drain_messages();
@@ -775,6 +776,7 @@ foreach ($zc_orders as $zc) {
         $invoice->rep_id             = $order->rep_id;
         $invoice->so_po_ref_id       = $so_id;
         $invoice->shipper_code       = $order->shipper_code;
+        $invoice->notes              = $order->notes;
         $invoice->item_rows          = $inv_rows;
 
         if (!$invoice->post_ordr('insert')) {

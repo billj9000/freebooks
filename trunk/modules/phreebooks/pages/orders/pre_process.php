@@ -233,6 +233,7 @@ switch ($_REQUEST['action']) {
 	$order->so_po_ref_id        = db_prepare_input($_POST['so_po_ref_id']);	// Internal link to reference po/so record
 	$order->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);	// PhreeBooks order/invoice ID
 	$order->purch_order_id      = db_prepare_input($_POST['purch_order_id']);  // customer PO/Ref number
+	$order->notes               = db_prepare_input($_POST['notes']);
 	$order->store_id            = db_prepare_input($_POST['store_id']);
 	if ($order->store_id == '') $order->store_id = 0;
 	$order->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'));

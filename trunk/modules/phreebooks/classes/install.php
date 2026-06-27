@@ -222,6 +222,7 @@ class phreebooks_admin {
 		  ship_email varchar(48) default NULL,
 		  terminal_date date default NULL,
 		  drop_ship enum('0','1') NOT NULL default '0',
+		  notes text NULL default NULL,
 		  PRIMARY KEY  (id),
 		  KEY period (period),
 		  KEY journal_id (journal_id),
@@ -374,6 +375,9 @@ class phreebooks_admin {
 	}
 	if (MODULE_PHREEBOOKS_STATUS < 3.77) {
 		include_once(DIR_FS_MODULES . 'phreebooks/updates/R37toR38.php');
+	}
+	if (MODULE_PHREEBOOKS_STATUS < 3.78) {
+		include_once(DIR_FS_MODULES . 'phreebooks/updates/R38toR39.php');
 	}
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));

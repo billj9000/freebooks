@@ -1387,6 +1387,7 @@ class journal {
 	if (isset($this->terminal_date))       $main_record['terminal_date']       = $this->terminal_date;
 	if (isset($this->drop_ship))           $main_record['drop_ship']           = $this->drop_ship;
 	if (isset($this->recur_id))            $main_record['recur_id']            = $this->recur_id;
+	if (isset($this->notes))              $main_record['notes']               = $this->notes;
 	return $main_record;
   }
 

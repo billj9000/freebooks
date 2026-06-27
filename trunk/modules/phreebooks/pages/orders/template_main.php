@@ -550,6 +550,13 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
     </tr>
   </tbody>
 </table>
+<!-- Notes -->
+<div class="card fb-card mt-2">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_NOTES; ?></div>
+  <div class="card-body py-2">
+    <textarea id="notes" name="notes" class="form-control" rows="3"><?php echo isset($order->notes) ? htmlspecialchars($order->notes, ENT_QUOTES, 'UTF-8') : ''; ?></textarea>
+  </div>
+</div>
 <?php echo $hidden_fields; ?>
 </form>
 <?php if (defined('MODULE_SHIPPING_STATUS')): ?>
