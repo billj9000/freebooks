@@ -111,6 +111,27 @@ class payment {
   function refund($payment_id, $amount_minor, $currency) {
     return false; // not supported by default
   }
+
+  // Override to create a payment checkout link for the given invoice.
+  // $fb_invoice_id: journal_main.id of the invoice being paid.
+  // Returns the checkout URL string on success, false if not supported.
+  function create_payment_link($fb_invoice_id, $amount, $currency, $description, $return_url, $cancel_url) {
+    return false;
+  }
+
+  // Override to create an invoice in the payment system.
+  // $fb_invoice_id: journal_main.id of the FreeBooks invoice being paid.
+  // $send: whether to send the invoice to the customer immediately.
+  // Returns invoice ID string on success, false if not supported.
+  function create_paypal_invoice($fb_invoice_id, $customer, $line_items, $send = false) {
+    return false;
+  }
+
+  // Override to return a URL to view a transaction on the gateway's website.
+  // Returns URL string, or null if not supported.
+  function get_transaction_url($transaction_id) {
+    return null;
+  }
  
   function confirmation() {
     return array('title' => $this->description);

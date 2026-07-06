@@ -103,7 +103,16 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
           $frow(GEN_STORE_ID, html_pull_down_menu('store_id', gen_get_store_ids(),
                 $order->store_id ? $order->store_id : $_SESSION['admin_prefs']['def_store_id'], $fs));
         }
-        $frow(TEXT_REFERENCE, html_input_field('purch_order_id', $order->purch_order_id, $fcr));
+        $txn_url = null;
+        $active_pm = isset($order->shipper_code) ? $order->shipper_code : '';
+        if ($order->purch_order_id && $active_pm && isset($$active_pm) && method_exists($$active_pm, 'get_transaction_url')) {
+          $txn_url = $$active_pm->get_transaction_url($order->purch_order_id);
+        }
+        $frow(TEXT_REFERENCE, $txn_url
+          ? '<a href="' . htmlspecialchars($txn_url, ENT_QUOTES) . '" target="_blank" rel="noopener">'
+            . htmlspecialchars($order->purch_order_id, ENT_QUOTES) . '</a>'
+            . html_hidden_field('purch_order_id', $order->purch_order_id)
+          : html_input_field('purch_order_id', $order->purch_order_id, $fcr));
         $frow(JOURNAL_ID == 20 ? TEXT_BUYER : TEXT_SALES_REP,
               html_pull_down_menu('rep_id', gen_get_rep_ids($account_type),
                 $order->rep_id ? $order->rep_id : $default_sales_rep, $fs));

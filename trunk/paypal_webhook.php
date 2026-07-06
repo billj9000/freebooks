@@ -1,0 +1,402 @@
+<?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /paypal_webhook.php
+//
+// PayPal webhook endpoint — no session auth; verified by PayPal signature.
+// Handles PAYMENT.CAPTURE.COMPLETED and INVOICING.INVOICE.PAID to auto-create J18 Cash Receipts.
+
+// ─── Read raw body before any output ─────────────────────────────────────────
+$raw_body = file_get_contents('php://input');
+
+// ─── Resolve trunk root ───────────────────────────────────────────────────────
+$trunk = __DIR__ . '/';
+if (!file_exists($trunk . 'includes/configure.php')) {
+    http_response_code(500);
+    error_log('paypal_webhook: configure.php not found');
+    exit;
+}
+require($trunk . 'includes/configure.php');
+
+if (!defined('DIR_FS_ADMIN')) define('DIR_FS_ADMIN', $trunk);
+
+// ─── Path constants ───────────────────────────────────────────────────────────
+if (!defined('PATH_TO_MY_FILES')) define('PATH_TO_MY_FILES', 'my_files/');
+define('DIR_WS_MODULES',   'modules/');
+define('DIR_WS_MY_FILES',  PATH_TO_MY_FILES);
+define('DIR_FS_INCLUDES',  DIR_FS_ADMIN . 'includes/');
+define('DIR_FS_MODULES',   DIR_FS_ADMIN . 'modules/');
+define('DIR_FS_MY_FILES',  DIR_FS_ADMIN . PATH_TO_MY_FILES);
+define('DIR_FS_THEMES',    DIR_FS_ADMIN . 'themes/');
+define('FILENAME_DEFAULT', 'index');
+define('COG_ITEM_TYPES',   'si,sr,ms,mi,ma,sa');
+define('DIR_WS_ICONS',     '');
+
+if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) {
+    require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
+}
+
+// ─── Fake minimal server context ─────────────────────────────────────────────
+if (!isset($_SERVER['HTTP_HOST']))   $_SERVER['HTTP_HOST']   = 'localhost';
+if (!isset($_SERVER['REMOTE_ADDR'])) $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+if (!isset($_REQUEST)) $_REQUEST = [];
+if (!isset($_GET))     $_GET     = [];
+if (!isset($_POST))    $_POST    = [];
+$_SESSION = ['language' => 'en_us', 'admin_id' => 1];
+
+// ─── Auto-detect company ─────────────────────────────────────────────────────
+$company = '';
+$mf = DIR_FS_MY_FILES;
+if (is_dir($mf)) {
+    foreach (scandir($mf) as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        if (is_dir($mf . $entry) && file_exists($mf . $entry . '/config.php')) {
+            $company = $entry;
+            break;
+        }
+    }
+}
+if ($company === '') {
+    http_response_code(500);
+    error_log('paypal_webhook: no company found in my_files/');
+    exit;
+}
+$_SESSION['company'] = $company;
+
+// ─── Load shared code ─────────────────────────────────────────────────────────
+$_prev_er = error_reporting(E_ALL & ~E_WARNING);
+require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
+require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
+require_once(DIR_FS_INCLUDES . 'common_functions.php');
+require_once(DIR_FS_INCLUDES . 'common_classes.php');
+error_reporting($_prev_er); unset($_prev_er);
+
+// ─── Database connection ──────────────────────────────────────────────────────
+define('DB_DATABASE', $company);
+require_once(DIR_FS_MY_FILES . $company . '/config.php');
+if (!defined('DB_SERVER_HOST') && defined('DB_SERVER')) define('DB_SERVER_HOST', DB_SERVER);
+require_once(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
+$db = new queryFactory();
+$db->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
+
+// ─── Load pb_configuration constants ─────────────────────────────────────────
+$_cfg = $db->Execute("SELECT configuration_key, configuration_value FROM " . DB_PREFIX . "configuration");
+while (!$_cfg->EOF) {
+    if (!defined($_cfg->fields['configuration_key'])) {
+        define($_cfg->fields['configuration_key'], $_cfg->fields['configuration_value']);
+    }
+    $_cfg->MoveNext();
+}
+
+// ─── Check webhook is configured ─────────────────────────────────────────────
+if (!defined('MODULE_PAYMENT_PAYPAL_WEBHOOK_ID') || MODULE_PAYMENT_PAYPAL_WEBHOOK_ID === '') {
+    http_response_code(404);
+    exit;
+}
+
+// ─── TABLE_* constants ────────────────────────────────────────────────────────
+define('TABLE_AUDIT_LOG',              DB_PREFIX . 'audit_log');
+define('TABLE_CONFIGURATION',          DB_PREFIX . 'configuration');
+define('TABLE_CURRENCIES',             DB_PREFIX . 'currencies');
+define('TABLE_CURRENT_STATUS',         DB_PREFIX . 'current_status');
+define('TABLE_DATA_SECURITY',          DB_PREFIX . 'data_security');
+define('TABLE_EXTRA_FIELDS',           DB_PREFIX . 'xtra_fields');
+define('TABLE_EXTRA_TABS',             DB_PREFIX . 'xtra_tabs');
+define('TABLE_USERS',                  DB_PREFIX . 'users');
+define('TABLE_ACCOUNTING_PERIODS',     DB_PREFIX . 'accounting_periods');
+define('TABLE_ACCOUNTS_HISTORY',       DB_PREFIX . 'accounts_history');
+define('TABLE_CHART_OF_ACCOUNTS',      DB_PREFIX . 'chart_of_accounts');
+define('TABLE_CHART_OF_ACCOUNTS_HISTORY', DB_PREFIX . 'chart_of_accounts_history');
+define('TABLE_INVENTORY_ASSY_LIST',    DB_PREFIX . 'inventory_assy_list');
+define('TABLE_INVENTORY_COGS_OWED',    DB_PREFIX . 'inventory_cogs_owed');
+define('TABLE_INVENTORY_COGS_USAGE',   DB_PREFIX . 'inventory_cogs_usage');
+define('TABLE_INVENTORY_HISTORY',      DB_PREFIX . 'inventory_history');
+define('TABLE_INVENTORY_MS_LIST',      DB_PREFIX . 'inventory_ms_list');
+define('TABLE_INVENTORY_PURCHASE',     DB_PREFIX . 'inventory_purchase_details');
+define('TABLE_JOURNAL_ITEM',           DB_PREFIX . 'journal_item');
+define('TABLE_JOURNAL_MAIN',           DB_PREFIX . 'journal_main');
+define('TABLE_RECONCILIATION',         DB_PREFIX . 'reconciliation');
+define('TABLE_TAX_AUTH',               DB_PREFIX . 'tax_authorities');
+define('TABLE_TAX_RATES',              DB_PREFIX . 'tax_rates');
+define('TABLE_ADDRESS_BOOK',           DB_PREFIX . 'address_book');
+define('TABLE_CONTACTS',               DB_PREFIX . 'contacts');
+define('TABLE_CONTACTS_LOG',           DB_PREFIX . 'contacts_log');
+define('TABLE_DEPARTMENTS',            DB_PREFIX . 'departments');
+define('TABLE_PRICE_SHEETS',           DB_PREFIX . 'price_sheets');
+define('TABLE_INVENTORY',              DB_PREFIX . 'inventory');
+define('TABLE_INVENTORY_SPECIAL_PRICES', DB_PREFIX . 'inventory_special_prices');
+define('TABLE_SHIPPING_LOG',           DB_PREFIX . 'shipping_log');
+
+// ─── Core objects and language ────────────────────────────────────────────────
+$messageStack = new messageStack;
+$currencies   = new currencies();
+
+$_prev_er = error_reporting(E_ALL & ~E_WARNING);
+gen_pull_language('contacts');
+gen_pull_language('phreebooks');
+gen_pull_language('phreebooks', 'menu');
+gen_pull_language('payment', 'paypal');
+error_reporting($_prev_er); unset($_prev_er);
+
+// ─── Load journal classes ─────────────────────────────────────────────────────
+require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
+require_once(DIR_FS_MODULES . 'phreebooks/classes/orders.php');
+require_once(DIR_FS_MODULES . 'phreebooks/classes/banking.php');
+require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
+
+// ─── Load PayPal module (for API calls and signature verification) ────────────
+require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
+load_specific_method('payment', 'paypal');
+$pp = new paypal();
+
+// ─── J18 banking subclass (mirrors zc_banking in zencart_sync.php) ────────────
+// Bypasses the JOURNAL_ID constant check in banking::__construct() and provides
+// a simplified post_ordr() that records a pre-captured payment without calling
+// the payment-processor machinery.
+class wh_banking extends banking {
+    function __construct() {
+        $this->journal_id          = 18;
+        $this->save_payment        = false;
+        $this->currencies_code     = DEFAULT_CURRENCY;
+        $this->currencies_value    = '1.0';
+        $this->gl_acct_id          = defined('AR_SALES_RECEIPTS_ACCOUNT') ? AR_SALES_RECEIPTS_ACCOUNT : AR_DEFAULT_GL_ACCT;
+        $this->gl_disc_acct_id     = defined('AR_DISCOUNT_SALES_ACCOUNT') ? AR_DISCOUNT_SALES_ACCOUNT : AR_DEFAULT_GL_ACCT;
+        $this->purchase_invoice_id = '';
+        $this->bill_primary_name   = '';
+        $this->bill_contact        = '';
+        $this->bill_address1       = '';
+        $this->bill_address2       = '';
+        $this->bill_city_town      = '';
+        $this->bill_state_province = '';
+        $this->bill_postal_code    = '';
+        $this->bill_country_code   = defined('COMPANY_COUNTRY') ? COMPANY_COUNTRY : 'GBR';
+        $this->bill_email          = '';
+        $this->search              = '';
+    }
+
+    // Simplified post_ordr(): records a payment already captured by PayPal.
+    // Stores the capture_id in the 'ttl' description so the J20 refund path can find it.
+    function post_ordr($action) {
+        global $db, $currencies, $messageStack;
+        $this->journal_main_array = $this->build_journal_main_array();
+        $this->journal_rows = [];
+
+        $total = 0.0;
+        foreach ($this->item_rows as $row) {
+            $amount = round((float)$row['total'] + (float)$row['dscnt'], 8);
+            $this->journal_rows[] = [
+                'so_po_item_ref_id' => $row['id'],
+                'gl_type'           => $row['gl_type'],
+                'description'       => $row['desc'],
+                'credit_amount'     => $amount,
+                'gl_account'        => $row['acct'],
+                'serialize_number'  => $row['inv'] ?? '',
+                'post_date'         => $this->post_date,
+            ];
+            $total += $amount;
+        }
+        // Debit: bank/cash account. Store capture_id in description for refund lookup.
+        $this->journal_rows[] = [
+            'gl_type'      => 'ttl',
+            'debit_amount' => round($total, 8),
+            'description'  => 'PayPal-Payment:' . ($this->capture_id ?? ''),
+            'gl_account'   => $this->gl_acct_id,
+            'post_date'    => $this->post_date,
+        ];
+
+        $db->transStart();
+        if (!$this->validate_purchase_invoice_id()) return false;
+        if (!$this->Post('insert'))                 return false;
+        // Store capture_id in purch_order_id for display and clickable link.
+        if (!empty($this->capture_id)) {
+            $db->Execute("UPDATE " . TABLE_JOURNAL_MAIN . " SET purch_order_id = '" . db_input($this->capture_id) . "' WHERE id = " . (int)$this->id);
+        }
+        if (!$this->increment_purchase_invoice_id()) return false;
+        $db->transCommit();
+        return true;
+    }
+}
+
+// ─── Parse and verify webhook event ──────────────────────────────────────────
+if (!$raw_body) {
+    http_response_code(400);
+    error_log('paypal_webhook: empty body');
+    exit;
+}
+
+$event = json_decode($raw_body, true);
+if (!$event || !isset($event['event_type'])) {
+    http_response_code(400);
+    error_log('paypal_webhook: invalid JSON');
+    exit;
+}
+
+// Verify PayPal signature (skip in Sandbox mode to allow PayPal Simulator).
+$sandbox = defined('MODULE_PAYMENT_PAYPAL_TESTMODE') && MODULE_PAYMENT_PAYPAL_TESTMODE === 'Sandbox';
+if (!$sandbox) {
+    $sig_payload = [
+        'auth_algo'       => $_SERVER['HTTP_PAYPAL_AUTH_ALGO']       ?? '',
+        'cert_url'        => $_SERVER['HTTP_PAYPAL_CERT_URL']        ?? '',
+        'transmission_id' => $_SERVER['HTTP_PAYPAL_TRANSMISSION_ID'] ?? '',
+        'transmission_sig'=> $_SERVER['HTTP_PAYPAL_TRANSMISSION_SIG']?? '',
+        'transmission_time'=> $_SERVER['HTTP_PAYPAL_TRANSMISSION_TIME'] ?? '',
+        'webhook_id'      => MODULE_PAYMENT_PAYPAL_WEBHOOK_ID,
+        'webhook_event'   => $event,
+    ];
+    $verify = $pp->paypal_request('v1/notifications/verify-webhook-signature', $sig_payload);
+    if (!$verify || ($verify['verification_status'] ?? '') !== 'SUCCESS') {
+        http_response_code(400);
+        error_log('paypal_webhook: signature verification failed: ' . json_encode($verify));
+        exit;
+    }
+}
+
+// Acknowledge all events immediately; process known event types below.
+http_response_code(200);
+
+$pp->ensure_paypal_orders_table();
+
+// ─── Extract event-specific IDs and amounts ───────────────────────────────────
+switch ($event['event_type']) {
+    case 'PAYMENT.CAPTURE.COMPLETED':
+        $capture_id       = $event['resource']['id'] ?? '';
+        $paypal_order_id  = $event['resource']['supplementary_data']['related_ids']['order_id'] ?? '';
+        $capture_amount   = (float)($event['resource']['amount']['value'] ?? 0);
+        $capture_currency = $event['resource']['amount']['currency_code'] ?? DEFAULT_CURRENCY;
+        break;
+
+    case 'INVOICING.INVOICE.PAID':
+        $paypal_order_id  = $event['resource']['id'] ?? '';
+        $txns             = $event['resource']['payments']['transactions'] ?? [];
+        $capture_id       = $txns[0]['transaction_id'] ?? '';
+        $capture_amount   = (float)($txns[0]['amount']['value']
+            ?? $event['resource']['payments']['paid_amount']['value'] ?? 0);
+        $capture_currency = $txns[0]['amount']['currency_code']
+            ?? $txns[0]['amount']['currency'] ?? DEFAULT_CURRENCY;
+        break;
+
+    default:
+        exit; // ignore other event types
+}
+
+if (!$capture_id || !$paypal_order_id) {
+    error_log('paypal_webhook: missing capture_id or paypal_order_id in ' . $event['event_type']
+        . ': ' . json_encode($event['resource']));
+    exit;
+}
+
+// ─── Look up FreeBooks invoice ID ────────────────────────────────────────────
+$row = $db->Execute("SELECT id, fb_invoice_id, status FROM pb_paypal_orders"
+    . " WHERE paypal_order_id = '" . db_input($paypal_order_id) . "' LIMIT 1");
+
+if ($row->EOF) {
+    error_log('paypal_webhook: order_id not in pb_paypal_orders — ignoring: ' . $paypal_order_id);
+    exit;
+}
+if ($row->fields['status'] === 'COMPLETED') {
+    exit; // idempotent
+}
+
+$ppo_id        = (int)$row->fields['id'];
+$fb_invoice_id = (int)$row->fields['fb_invoice_id'];
+
+// Mark as COMPLETED to prevent duplicate receipts if PayPal retries.
+$db->Execute("UPDATE pb_paypal_orders SET status = 'COMPLETED', capture_id = '" . db_input($capture_id) . "'"
+    . " WHERE id = " . $ppo_id);
+
+// ─── Load invoice details ─────────────────────────────────────────────────────
+$inv = $db->Execute("SELECT id, journal_id, purchase_invoice_id, bill_acct_id, bill_address_id,"
+    . " bill_primary_name, bill_email, gl_acct_id, post_date, total_amount"
+    . " FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . $fb_invoice_id . " LIMIT 1");
+
+if ($inv->EOF) {
+    error_log('paypal_webhook: fb_invoice_id ' . $fb_invoice_id . ' not found in journal_main');
+    exit;
+}
+
+if ($capture_amount <= 0) {
+    $capture_amount = (float)$inv->fields['total_amount'];
+}
+
+// ─── Auto-create J18 Cash Receipt ────────────────────────────────────────────
+// Define constants required by the journal classes.
+if (!defined('JOURNAL_ID')) define('JOURNAL_ID', 18);
+if (!defined('GL_TYPE'))    define('GL_TYPE',    'pmt');
+if (!defined('DEF_GL_ACCT')) define('DEF_GL_ACCT', AR_DEFAULT_GL_ACCT);
+if (!defined('POPUP_FORM_TYPE')) define('POPUP_FORM_TYPE', 'bnk:rcpt');
+
+$pay = new wh_banking();
+$pay->bill_acct_id      = $inv->fields['bill_acct_id'];
+$pay->bill_address_id   = $inv->fields['bill_address_id'];
+$pay->bill_primary_name = $inv->fields['bill_primary_name'];
+$pay->bill_email        = $inv->fields['bill_email'];
+$pay->post_date         = date('Y-m-d');
+$pay->shipper_code      = 'paypal';
+$pay->description       = 'PayPal payment for invoice ' . $inv->fields['purchase_invoice_id'];
+$pay->total_amount      = $capture_amount;
+$pay->capture_id        = $capture_id;
+$pay->admin_id          = 1;
+
+$pay->item_rows[] = [
+    'id'      => $fb_invoice_id,
+    'gl_type' => 'pmt',
+    'amt'     => $capture_amount,
+    'desc'    => 'Invoice ' . $inv->fields['purchase_invoice_id'],
+    'dscnt'   => 0.0,
+    'total'   => $capture_amount,
+    'inv'     => $inv->fields['purchase_invoice_id'],
+    'prcnt'   => 0,
+    'early'   => date('Y-m-d'),
+    'due'     => date('Y-m-d'),
+    'pay'     => true,
+    'acct'    => AR_DEFAULT_GL_ACCT,
+];
+
+if (!$pay->post_ordr('insert')) {
+    $errs = '';
+    foreach (($_SESSION['messageToStack'] ?? []) as $m) {
+        $errs .= strip_tags($m['text'] ?? '') . ' ';
+    }
+    $messageStack->reset();
+    error_log('paypal_webhook: J18 post failed for invoice ' . $fb_invoice_id . ': ' . trim($errs));
+    exit;
+}
+
+$receipt_id = $pay->purchase_invoice_id;
+error_log('paypal_webhook: created J18 receipt ' . $receipt_id . ' for invoice ' . $fb_invoice_id . ' capture ' . $capture_id);
+
+// ─── Notify staff ─────────────────────────────────────────────────────────────
+$notify_email = defined('MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL') ? MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL : '';
+if ($notify_email) {
+    $from_name    = defined('STORE_NAME') ? STORE_NAME : 'FreeBooks';
+    $from_address = defined('EMAIL_FROM') ? EMAIL_FROM : $notify_email;
+    $base_url     = (defined('HTTPS_SERVER') ? HTTPS_SERVER : (defined('HTTP_SERVER') ? HTTP_SERVER : ''))
+                  . (defined('DIR_WS_ADMIN') ? DIR_WS_ADMIN : '/');
+    $j18_url      = $base_url . 'index.php?module=phreebooks&page=bills&jID=18';
+    $subject      = sprintf(MODULE_PAYMENT_PAYPAL_NOTIFY_SUBJECT, $inv->fields['purchase_invoice_id']);
+    $body         = sprintf(
+        MODULE_PAYMENT_PAYPAL_NOTIFY_BODY,
+        $inv->fields['bill_primary_name'],
+        number_format($capture_amount, 2),
+        $capture_currency,
+        $capture_id,
+        $j18_url
+    );
+    validate_send_mail('', $notify_email, $subject, $body, $from_name, $from_address);
+}
+
+exit;
+?>
