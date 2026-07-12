@@ -327,6 +327,77 @@ function zc_create_customer(array $bill, string $email, string $date): array
     return [$acct_id, $addr_id];
 }
 
+// ─── Helper: resolve a ZenCart ordered line to a FreeBooks child SKU ─────────
+// Given the master SKU from the ordered line and the options[] array returned by
+// get_orders() (each element has 'name' and 'value' — both are human-readable text),
+// attempts to reconstruct the FreeBooks child SKU: MASTER-<code0><code1>.
+//
+// Returns the child SKU string on success, or null when:
+//   - the master has no inventory_ms_list row (not a master → caller keeps master SKU unchanged)
+//   - an ordered option name doesn't match attr_name_0 or attr_name_1
+//   - an ordered value description can't be found in the attribute CSV
+//   - the ordered line carries more options than the master defines
+//
+// The caller logs a STDERR warning and falls back to the master SKU when null is returned
+// for a known master item, keeping the order import non-blocking.
+function zc_resolve_variant_sku(string $master_sku, array $options): ?string
+{
+    global $db;
+
+    if (empty($options)) return null;
+
+    $ms = $db->Execute(
+        "SELECT attr_name_0, attr_0, attr_name_1, attr_1"
+        . " FROM " . TABLE_INVENTORY_MS_LIST
+        . " WHERE sku = '" . db_input($master_sku) . "' LIMIT 1"
+    );
+    if ($ms->EOF) return null; // not a master — caller treats as flat SKU
+
+    $attr_name_0 = trim((string)$ms->fields['attr_name_0']);
+    $attr_name_1 = trim((string)$ms->fields['attr_name_1']);
+
+    // Parse a CSV "code:desc,..." into a name→code map (case-insensitive on desc)
+    $parse_map = static function (string $csv): array {
+        $map = [];
+        foreach (explode(',', $csv) as $pair) {
+            $pair = trim($pair);
+            if ($pair === '') continue;
+            $pos = strpos($pair, ':');
+            if ($pos === false) continue;
+            $code = trim(substr($pair, 0, $pos));
+            $desc = trim(substr($pair, $pos + 1));
+            if ($code !== '') $map[strtolower($desc)] = $code;
+        }
+        return $map;
+    };
+
+    $map0 = $parse_map((string)$ms->fields['attr_0']);
+    $map1 = $parse_map((string)$ms->fields['attr_1']);
+
+    $code0 = null;
+    $code1 = null;
+
+    foreach ($options as $opt) {
+        $opt_name  = strtolower(trim((string)($opt['name']  ?? '')));
+        $opt_value = strtolower(trim((string)($opt['value'] ?? '')));
+
+        if ($attr_name_0 !== '' && $opt_name === strtolower($attr_name_0)) {
+            $code0 = $map0[$opt_value] ?? null;
+            if ($code0 === null) return null; // value not found in attr_0
+        } elseif ($attr_name_1 !== '' && $opt_name === strtolower($attr_name_1)) {
+            $code1 = $map1[$opt_value] ?? null;
+            if ($code1 === null) return null; // value not found in attr_1
+        } else {
+            return null; // option name doesn't match any defined attribute
+        }
+    }
+
+    // Require attr_0 to have matched when it is defined
+    if ($attr_name_0 !== '' && !empty($map0) && $code0 === null) return null;
+
+    return $master_sku . '-' . ($code0 ?? '') . ($code1 ?? '');
+}
+
 // ─── Helper: extract plain-text messages from messageStack ───────────────────
 function zc_drain_messages(): string
 {
@@ -517,7 +588,7 @@ foreach ($zc_orders as $zc) {
 
         if ($sku !== '') {
             $inv = $db->Execute(
-                "SELECT account_sales_income"
+                "SELECT account_sales_income, inventory_type"
                 . " FROM " . TABLE_INVENTORY
                 . " WHERE sku = '" . db_input($sku) . "' LIMIT 1"
             );
@@ -526,6 +597,31 @@ foreach ($zc_orders as $zc) {
                 // Do NOT use inventory.item_taxable: FreeBooks defaults it to 0 (untaxed),
                 // which would silently strip VAT from every known SKU.
                 // ZenCart's per-item tax% is the authoritative source for taxability.
+
+                // For Master Stock items, try to resolve the ordered option combination
+                // to the correct child SKU so per-variant stock decrements accurately.
+                if (in_array($inv->fields['inventory_type'], ['ms', 'mb'], true)) {
+                    $ordered_options = $item['options'] ?? [];
+                    if (!empty($ordered_options)) {
+                        $child_sku = zc_resolve_variant_sku($sku, $ordered_options);
+                        if ($child_sku !== null) {
+                            $sku = $child_sku;
+                            // Re-read GL account from the resolved child row
+                            $child_inv = $db->Execute(
+                                "SELECT account_sales_income FROM " . TABLE_INVENTORY
+                                . " WHERE sku = '" . db_input($sku) . "' LIMIT 1"
+                            );
+                            if (!$child_inv->EOF && $child_inv->fields['account_sales_income'] !== '') {
+                                $inv_acct = $child_inv->fields['account_sales_income'];
+                            }
+                        } else {
+                            // Couldn't resolve — keep master SKU; attributes already appear in name/desc
+                            fwrite(STDERR, ts() . " Order $zc_id: could not resolve variant SKU for"
+                                . " master '$sku' from options "
+                                . json_encode($ordered_options) . " — using master SKU.\n");
+                        }
+                    }
+                }
             }
         }
 

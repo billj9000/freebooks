@@ -23,12 +23,16 @@
 // 3.2 => 2011-05-27 - Patch for shared field change in Phreedom 3.1
 // 3.5 => 2013-08-08 - added product fields 
 // 3.6 => 2014-01-15 - updated for move back to phreebooks and menu changes
+// 3.7 => 2026-07-07 - Master Stock attribute/variant sync (both directions)
 // Module software version information
-define('MODULE_ZENCART_VERSION',      3.6);
+define('MODULE_ZENCART_VERSION',      3.7);
 // Set the menu order, if using ZenCart title menu option (after Customers and before Vendors)
 define('MENU_HEADING_ZENCART_ORDER',     15);
 // Security id's
 define('SECURITY_ID_ZENCART_INTERFACE', 200);
+// Database tables used by the ZenCart module (web and cron contexts)
+if (!defined('TABLE_ZC_SHIP_NOTIFY'))    define('TABLE_ZC_SHIP_NOTIFY',    DB_PREFIX . 'zc_ship_notify');
+if (!defined('TABLE_INVENTORY_MS_LIST')) define('TABLE_INVENTORY_MS_LIST', DB_PREFIX . 'inventory_ms_list');
 // New Database Tables
 if (defined('MODULE_ZENCART_STATUS')) {
 /*

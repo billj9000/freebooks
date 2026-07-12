@@ -52,7 +52,7 @@ class zencart {
             'productZencartWidth'     => (float)($inv['item_width'] ?? 0),
             'productZencartHeight'    => (float)($inv['item_height'] ?? 0),
             'productZencartReadyToShip' => !empty($inv['ships_in_own_box']) ? 1 : 0,
-            'quantity'            => (float)($inv['quantity_on_hand'] ?? 0),
+            'quantity'            => (float)($inv['quantity_on_hand'] ?? 0), // overridden below for masters
             'dateAvailable'       => $inv['creation_date'] ?? date('Y-m-d'),
             'dateUpdated'         => (($inv['last_update'] ?? '') >= ($inv['last_journal_date'] ?? ''))
                                       ? $inv['last_update'] : $inv['last_journal_date'],
@@ -124,6 +124,22 @@ class zencart {
             }
         }
 
+        // Master Stock items: attach attribute/variant payload and use aggregate child stock.
+        // mi (child) items are never pushed directly — they are represented under their master.
+        if (in_array($inv['inventory_type'] ?? '', ['ms', 'mb'], true)) {
+            $attrs = zencart_build_attributes($id);
+            if ($attrs !== null) {
+                $product['attributes'] = $attrs;
+                // Replace product-level quantity with sum of all child on-hand quantities
+                $sum_row = $db->Execute(
+                    "SELECT SUM(quantity_on_hand) AS total FROM " . TABLE_INVENTORY
+                    . " WHERE inventory_type = 'mi'"
+                    . "   AND sku LIKE '" . db_input($inv['sku']) . "-%'"
+                );
+                $product['quantity'] = $sum_row->EOF ? 0.0 : (float)($sum_row->fields['total'] ?? 0);
+            }
+        }
+
         // Extension hook for site-specific product attributes
         if (file_exists(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php')) {
             include(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php');
@@ -159,7 +175,7 @@ class zencart {
         }
 
         $result = $db->Execute(
-            "SELECT id, sku, ProductModel, quantity_on_hand, item_cost, full_price"
+            "SELECT id, sku, inventory_type, ProductModel, quantity_on_hand, item_cost, full_price"
             . " FROM " . TABLE_INVENTORY . " WHERE catalog = '1'"
         );
         if ($result->RecordCount() == 0) {
@@ -172,10 +188,28 @@ class zencart {
         $n_tiered_err  = 0;
 
         while (!$result->EOF) {
-            $inv_id = (int)$result->fields['id'];
-            $model  = !empty($result->fields['ProductModel'])
+            $inv_id   = (int)$result->fields['id'];
+            $inv_type = (string)($result->fields['inventory_type'] ?? '');
+            $model    = !empty($result->fields['ProductModel'])
                 ? $result->fields['ProductModel']
                 : $result->fields['sku'];
+
+            // mi (child) items are never pushed standalone — their master pushes them.
+            if ($inv_type === 'mi') {
+                $result->MoveNext();
+                continue;
+            }
+
+            // Master Stock items always go through uploadProduct() (attribute-aware path).
+            if (in_array($inv_type, ['ms', 'mb'], true)) {
+                if ($this->uploadProduct($inv_id, false)) {
+                    $n_tiered_ok++;
+                } else {
+                    $n_tiered_err++;
+                }
+                $result->MoveNext();
+                continue;
+            }
 
             if ($use_sheet) {
                 $special = $db->Execute(

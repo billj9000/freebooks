@@ -112,6 +112,108 @@ function zencart_resolve_shipping(string $zc_module, string $zc_description): ar
     return $best_match ?? $catch_all ?? $fallback;
 }
 
+// Builds the attributes payload for a Master Stock (ms/mb) inventory item.
+// Returns an array with 'options' and 'variants' keys, or null if the item is
+// not a master or has no attribute definitions.
+//
+// options[]  — drives Zen Cart product-option dropdowns (vanilla ZenCart 1.5.8+)
+// variants[] — superset per-child record; a future POSM branch on the API side
+//              can consume this to write per-variant stock without any change here.
+function zencart_build_attributes(int $id): ?array
+{
+    global $db;
+
+    $ms_row = $db->Execute(
+        "SELECT attr_name_0, attr_0, attr_name_1, attr_1"
+        . " FROM " . TABLE_INVENTORY_MS_LIST
+        . " WHERE sku = (SELECT sku FROM " . TABLE_INVENTORY . " WHERE id = " . $id . " LIMIT 1)"
+        . " LIMIT 1"
+    );
+    if ($ms_row->EOF || ($ms_row->fields['attr_0'] === '' && $ms_row->fields['attr_1'] === '')) {
+        return null;
+    }
+
+    // Parse each attr CSV "code:desc,code:desc," — mirrors ms.php::get_ms_list().
+    // Deduplicates by code so a tripled CSV (e.g. from repeated saves) emits each
+    // option value exactly once.
+    $parse_attr = static function (string $csv): array {
+        $entries    = [];
+        $seen_codes = [];
+        foreach (explode(',', $csv) as $pair) {
+            $pair = trim($pair);
+            if ($pair === '') continue;
+            $pos  = strpos($pair, ':');
+            if ($pos === false) continue;
+            $code = trim(substr($pair, 0, $pos));
+            $desc = trim(substr($pair, $pos + 1));
+            if ($code !== '' && !isset($seen_codes[$code])) {
+                $entries[]          = ['code' => $code, 'name' => $desc];
+                $seen_codes[$code]  = true;
+            }
+        }
+        return $entries;
+    };
+
+    $attr0_entries = $parse_attr((string)$ms_row->fields['attr_0']);
+    $attr1_entries = $parse_attr((string)$ms_row->fields['attr_1']);
+
+    $options = [];
+    $attr_name_0 = trim((string)$ms_row->fields['attr_name_0']);
+    $attr_name_1 = trim((string)$ms_row->fields['attr_name_1']);
+
+    if ($attr_name_0 !== '' && !empty($attr0_entries)) {
+        $values = [];
+        foreach ($attr0_entries as $sort => $e) {
+            $values[] = ['name' => $e['name'], 'code' => $e['code'], 'sortOrder' => $sort];
+        }
+        $options[] = ['name' => $attr_name_0, 'sortOrder' => 0, 'values' => $values];
+    }
+    if ($attr_name_1 !== '' && !empty($attr1_entries)) {
+        $values = [];
+        foreach ($attr1_entries as $sort => $e) {
+            $values[] = ['name' => $e['name'], 'code' => $e['code'], 'sortOrder' => $sort];
+        }
+        $options[] = ['name' => $attr_name_1, 'sortOrder' => 1, 'values' => $values];
+    }
+
+    if (empty($options)) return null;
+
+    // Build variants: cross-product of attr0 × attr1, same order as ms.php::save()
+    // When only one attribute is defined, attr1_entries is empty so we loop once with a null slot.
+    $variants  = [];
+    $master_sku_row = $db->Execute(
+        "SELECT sku FROM " . TABLE_INVENTORY . " WHERE id = " . $id . " LIMIT 1"
+    );
+    $master_sku = $master_sku_row->EOF ? '' : (string)$master_sku_row->fields['sku'];
+
+    $loop1 = !empty($attr1_entries) ? $attr1_entries : [null];
+    foreach ($attr0_entries as $e0) {
+        foreach ($loop1 as $e1) {
+            $child_sku = $master_sku . '-' . $e0['code'] . ($e1 !== null ? $e1['code'] : '');
+            $child_row = $db->Execute(
+                "SELECT quantity_on_hand, full_price FROM " . TABLE_INVENTORY
+                . " WHERE sku = '" . db_input($child_sku) . "' AND inventory_type = 'mi' LIMIT 1"
+            );
+            $child_qty   = $child_row->EOF ? 0.0 : (float)$child_row->fields['quantity_on_hand'];
+            $child_price = $child_row->EOF ? 0.0 : (float)$child_row->fields['full_price'];
+
+            $combo_options = [['name' => $attr_name_0, 'value' => $e0['name']]];
+            if ($e1 !== null) {
+                $combo_options[] = ['name' => $attr_name_1, 'value' => $e1['name']];
+            }
+
+            $variants[] = [
+                'sku'      => $child_sku,
+                'quantity' => $child_qty,
+                'price'    => $child_price,
+                'options'  => $combo_options,
+            ];
+        }
+    }
+
+    return ['options' => $options, 'variants' => $variants];
+}
+
 function pull_down_price_sheet_list() {
     global $db;
     $output = [['id' => '0', 'text' => TEXT_NONE]];
