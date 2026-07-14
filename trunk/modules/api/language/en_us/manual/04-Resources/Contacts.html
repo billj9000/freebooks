@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.API.04.01">
+<meta name="doc_index_1" content="REST API.Contacts Resource">
+<meta name="doc_title" content="Contacts Resource">
+<title>Contacts Resource</title>
+</head>
+<body>
+<h1 align="center">REST API &mdash; Contacts Resource</h1>
+<p><b>resource=contacts</b></p>
+<p>Returns rows from the contacts table joined to the main address row for each contact. The &ldquo;main&rdquo; address is the row in <code>address_book</code> whose type ends in <code>m</code> (e.g. <code>cm</code> for a customer main address). One row is returned per contact.</p>
+
+<h3>Contact types</h3>
+<table border="1" cellspacing="0" cellpadding="4">
+  <tr><th>type value</th><th>Contact category</th></tr>
+  <tr><td><code>c</code></td><td>Customer</td></tr>
+  <tr><td><code>v</code></td><td>Vendor / Supplier</td></tr>
+  <tr><td><code>e</code></td><td>Employee</td></tr>
+  <tr><td><code>b</code></td><td>Branch</td></tr>
+  <tr><td><code>j</code></td><td>Project</td></tr>
+  <tr><td><code>i</code></td><td>CRM / Prospect</td></tr>
+</table>
+<p>Filter by type to restrict to a specific category: <code>filters=[["type","=","c"]]</code></p>
+
+<h3>Fields</h3>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Field</th><th align="left">Type</th><th align="left">Filter</th><th align="left">Sort</th><th align="left">Description</th></tr>
+  <tr><td><code>id</code></td><td>int</td><td>yes</td><td>yes</td><td>Unique contact ID (primary key)</td></tr>
+  <tr><td><code>type</code></td><td>string</td><td>yes</td><td>no</td><td>Contact category: <code>c</code> customer, <code>v</code> vendor, <code>e</code> employee, <code>b</code> branch, <code>j</code> project, <code>i</code> CRM</td></tr>
+  <tr><td><code>short_name</code></td><td>string</td><td>yes</td><td>yes</td><td>Short identifier / account code used throughout FreeBooks</td></tr>
+  <tr><td><code>first_name</code></td><td>string</td><td>yes</td><td>yes</td><td>Individual first name (contacts table)</td></tr>
+  <tr><td><code>last_name</code></td><td>string</td><td>yes</td><td>yes</td><td>Individual last name (contacts table)</td></tr>
+  <tr><td><code>inactive</code></td><td>string</td><td>yes</td><td>no</td><td><code>0</code> = active, <code>1</code> = inactive. Filter with <code>["inactive","=","0"]</code> to exclude inactive contacts.</td></tr>
+  <tr><td><code>account_number</code></td><td>string</td><td>yes</td><td>yes</td><td>Customer/vendor account number</td></tr>
+  <tr><td><code>modified</code></td><td>date</td><td>yes</td><td>yes</td><td>Date the contact record was last updated. Use <code>&gt;=</code> for incremental sync.</td></tr>
+  <tr><td><code>primary_name</code></td><td>string</td><td>yes</td><td>yes</td><td>Company or display name from the main address row</td></tr>
+  <tr><td><code>contact</code></td><td>string</td><td>yes</td><td>no</td><td>Contact person name from the main address row</td></tr>
+  <tr><td><code>address1</code></td><td>string</td><td>no</td><td>no</td><td>First address line (main address)</td></tr>
+  <tr><td><code>address2</code></td><td>string</td><td>no</td><td>no</td><td>Second address line (main address)</td></tr>
+  <tr><td><code>city</code></td><td>string</td><td>yes</td><td>yes</td><td>City / town (main address)</td></tr>
+  <tr><td><code>state</code></td><td>string</td><td>yes</td><td>no</td><td>County / state / province (main address)</td></tr>
+  <tr><td><code>postal_code</code></td><td>string</td><td>yes</td><td>no</td><td>Postcode / ZIP (main address)</td></tr>
+  <tr><td><code>country</code></td><td>string</td><td>yes</td><td>no</td><td>ISO country code, e.g. <code>GB</code>, <code>US</code> (main address)</td></tr>
+  <tr><td><code>telephone1</code></td><td>string</td><td>yes</td><td>no</td><td>Primary telephone (main address)</td></tr>
+  <tr><td><code>telephone2</code></td><td>string</td><td>yes</td><td>no</td><td>Secondary telephone (main address)</td></tr>
+  <tr><td><code>telephone3</code></td><td>string</td><td>yes</td><td>no</td><td>Third telephone (main address)</td></tr>
+  <tr><td><code>telephone4</code></td><td>string</td><td>yes</td><td>no</td><td>Fourth telephone / fax (main address)</td></tr>
+  <tr><td><code>email</code></td><td>string</td><td>yes</td><td>no</td><td>Email address (main address)</td></tr>
+  <tr><td><code>website</code></td><td>string</td><td>no</td><td>no</td><td>Website URL (main address)</td></tr>
+  <tr><td><code>addresses</code></td><td>virtual</td><td>no</td><td>no</td><td>All address rows for the contact as a nested array. See below.</td></tr>
+</table>
+
+<h3>Default fields (when <code>fields</code> is omitted)</h3>
+<p><code>id, type, short_name, primary_name, contact, telephone1, telephone2, email, inactive, modified</code></p>
+
+<h3>Virtual field: addresses</h3>
+<p>Include <code>"addresses"</code> in the <code>fields</code> array to receive all address_book rows for each contact as a nested array. Each address object contains:</p>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Key</th><th align="left">Description</th></tr>
+  <tr><td><code>type</code></td><td>Address type code (see below)</td></tr>
+  <tr><td><code>primary_name</code></td><td>Company/display name for this address</td></tr>
+  <tr><td><code>contact</code></td><td>Contact person for this address</td></tr>
+  <tr><td><code>address1</code></td><td>First address line</td></tr>
+  <tr><td><code>address2</code></td><td>Second address line</td></tr>
+  <tr><td><code>city</code></td><td>City / town</td></tr>
+  <tr><td><code>state</code></td><td>County / state / province</td></tr>
+  <tr><td><code>postal_code</code></td><td>Postcode / ZIP</td></tr>
+  <tr><td><code>country</code></td><td>ISO country code</td></tr>
+  <tr><td><code>telephone1&ndash;4</code></td><td>Telephone numbers</td></tr>
+  <tr><td><code>email</code></td><td>Email address</td></tr>
+  <tr><td><code>website</code></td><td>Website URL</td></tr>
+</table>
+<h4>Address type codes</h4>
+<table border="1" cellspacing="0" cellpadding="4">
+  <tr><th>Code</th><th>Meaning</th></tr>
+  <tr><td><code>cm</code></td><td>Customer main (mailing) address</td></tr>
+  <tr><td><code>cs</code></td><td>Customer ship-to address</td></tr>
+  <tr><td><code>cb</code></td><td>Customer bill-to address</td></tr>
+  <tr><td><code>vm</code></td><td>Vendor main (mailing) address</td></tr>
+  <tr><td><code>vs</code></td><td>Vendor remit-to address</td></tr>
+  <tr><td><code>vb</code></td><td>Vendor bill-to address</td></tr>
+  <tr><td><code>em</code></td><td>Employee main address</td></tr>
+</table>
+<p>Example request including addresses:</p>
+<pre>fields=["id","primary_name","addresses"]&amp;filters=[["type","=","c"]]</pre>
+<p>The virtual field is loaded in a single batch query for the entire page &mdash; no N+1 performance impact.</p>
+
+<h3>Example: caller ID lookup</h3>
+<pre>
+fields=["id","primary_name","telephone1","telephone2","telephone3","telephone4","type"]
+filters=[["inactive","=","0"]]
+order_by=primary_name asc
+limit_page_length=500
+</pre>
+
+<h3>Example: incremental sync (changed since yesterday)</h3>
+<pre>
+filters=[["modified","&gt;=","2026-07-13"],["type","=","c"]]
+</pre>
+</body>
+</html>

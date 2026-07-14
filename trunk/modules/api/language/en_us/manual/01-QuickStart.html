@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.API.01">
+<meta name="doc_index_1" content="REST API.Quick Start">
+<meta name="doc_title" content="Quick Start">
+<title>Quick Start</title>
+</head>
+<body>
+<h1 align="center">REST API &mdash; Quick Start</h1>
+
+<h3>1. Activate the module</h3>
+<p>Go to <b>Company &rarr; Configuration &rarr; REST API</b>. If the module is not installed, install it first from the phreedom admin panel. Once active the <code>api_keys</code> table is created in the company database.</p>
+
+<h3>2. Generate an API key</h3>
+<ol>
+  <li>Open <b>Company &rarr; Configuration &rarr; REST API</b>.</li>
+  <li>Click <b>Generate New Key</b>.</li>
+  <li>Enter an optional label (e.g. <i>Phone System</i> or <i>Invoice Export</i>) and click <b>Generate New Key</b> again in the dialog.</li>
+  <li>Copy the displayed key &mdash; it begins with <code>fbk_live_</code> and is shown <b>once only</b>. Store it securely.</li>
+</ol>
+
+<h3>3. Make your first request</h3>
+<p>All requests are HTTP GET to <code>/api.php</code> with the API key in the <code>Authorization</code> header.</p>
+<p>Required parameters on every request:</p>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Parameter</th><th align="left">Example</th><th align="left">Description</th></tr>
+  <tr><td><code>v</code></td><td><code>v=1</code></td><td>API version. Currently only <code>1</code> is supported.</td></tr>
+  <tr><td><code>resource</code></td><td><code>resource=contacts</code></td><td>Which resource to query. See Resources section.</td></tr>
+</table>
+
+<p>Example &mdash; fetch active customers (curl):</p>
+<pre>
+KEY=fbk_live_your_key_here
+curl -sg \
+  -H "Authorization: Bearer $KEY" \
+  'https://your-freebooks-host/api.php?v=1&amp;resource=contacts
+    &amp;fields=["id","primary_name","telephone1","email","type"]
+    &amp;filters=[["type","=","c"],["inactive","=","0"]]
+    &amp;order_by=primary_name asc
+    &amp;limit_page_length=50'
+</pre>
+<p><b>Note:</b> The <code>-g</code> flag prevents curl from interpreting <code>[</code> and <code>]</code> as range specifiers. Use single quotes around the URL on Linux/macOS.</p>
+
+<p>Example response:</p>
+<pre>
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "42",
+      "primary_name": "Acme Ltd",
+      "telephone1": "01234 567890",
+      "email": "accounts@acme.example",
+      "type": "c"
+    }
+  ],
+  "meta": {
+    "limit_start": 0,
+    "limit_page_length": 50,
+    "count": 1,
+    "total": 1
+  }
+}
+</pre>
+
+<h3>4. Retrieve invoices for export</h3>
+<pre>
+curl -sg \
+  -H "Authorization: Bearer $KEY" \
+  'https://your-freebooks-host/api.php?v=1&amp;resource=invoices
+    &amp;fields=["invoice_number","date","customer_name","total","tax","currency","lines"]
+    &amp;filters=[["date","between",["2026-06-01","2026-06-30"]]]
+    &amp;order_by=date asc'
+</pre>
+<p>The virtual field <code>lines</code> is loaded in a single batch query &mdash; there is no N+1 performance penalty regardless of page size.</p>
+
+<h3>Requirements</h3>
+<ul>
+  <li>HTTPS is required on production. For local development set the environment variable <code>FREEBOOKS_API_ALLOW_HTTP=1</code> on the web server.</li>
+  <li>The <code>Authorization: Bearer</code> header must be present on every request.</li>
+  <li>All requests must use HTTP GET. The API is read-only in v1.</li>
+</ul>
+</body>
+</html>

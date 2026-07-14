@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.API.02">
+<meta name="doc_index_1" content="REST API.Authentication">
+<meta name="doc_title" content="Authentication &amp; Key Management">
+<title>Authentication</title>
+</head>
+<body>
+<h1 align="center">REST API &mdash; Authentication &amp; Key Management</h1>
+
+<h3>How authentication works</h3>
+<p>Every request must carry the API key as a Bearer token in the HTTP <code>Authorization</code> header:</p>
+<pre>Authorization: Bearer fbk_live_your_key_here</pre>
+<p>On the server side, FreeBooks hashes the token with SHA-256 and looks it up in the <code>api_keys</code> table. Only the hash is stored &mdash; the plaintext key is never persisted after the generation dialog is closed. If the key is found and enabled, the associated company database is selected and the request proceeds.</p>
+
+<h3>Security properties</h3>
+<ul>
+  <li><b>HTTPS required.</b> Requests over plain HTTP are rejected with HTTP 403 unless the server has <code>FREEBOOKS_API_ALLOW_HTTP=1</code> set in its environment (development only).</li>
+  <li><b>Keys are company-scoped.</b> A key generated while logged into company A cannot access company B&rsquo;s data.</li>
+  <li><b>Keys are one-time viewable.</b> The plaintext is shown once in the generation dialog and is never stored or recoverable. If a key is lost, delete it and generate a new one.</li>
+  <li><b>Keys are revocable instantly.</b> Revoking a key takes effect on the next request &mdash; there is no session caching.</li>
+</ul>
+
+<h3>Managing keys</h3>
+<p>Go to <b>Company &rarr; Configuration &rarr; REST API</b>. The page lists all keys for the current company with their label, key prefix (first few characters), scopes, enabled state, creation date, and last-used date.</p>
+
+<h4>Generating a key</h4>
+<ol>
+  <li>Click <b>Generate New Key</b>.</li>
+  <li>Enter an optional label to identify what this key is used for (e.g. <i>Phone System</i>, <i>Invoice Export</i>).</li>
+  <li>Click <b>Generate New Key</b> in the dialog.</li>
+  <li>The plaintext key is displayed once. Click <b>Copy</b> to copy it to the clipboard. Click <b>Close</b> when done &mdash; the key cannot be retrieved again.</li>
+</ol>
+
+<h4>Revoking a key</h4>
+<p>Click <b>Revoke</b> next to the key. The key remains in the list (marked disabled) so you can re-enable it later. Any client using a revoked key immediately receives HTTP 401.</p>
+
+<h4>Re-enabling a key</h4>
+<p>Click <b>Enable</b> next to a revoked key.</p>
+
+<h4>Deleting a key</h4>
+<p>Click <b>Delete</b> and confirm. The key record is permanently removed. Requires security level 3 (administrator).</p>
+
+<h3>Key prefix</h3>
+<p>The table shows the first few characters of each key (e.g. <code>fbk_live_9f2c&hellip;</code>). This prefix is safe to log or display; it cannot be used to authenticate. Use it to identify which key a client is using when you see it in logs.</p>
+
+<h3>Scopes</h3>
+<p>Each key records a <code>scopes</code> field (currently <code>contacts:read,invoices:read</code> for all keys). Scope enforcement will be used by future API versions to restrict individual keys to specific resources or operations. Existing keys are forward-compatible.</p>
+
+<h3>Troubleshooting</h3>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Error</th><th align="left">Cause</th><th align="left">Fix</th></tr>
+  <tr><td>HTTP 401 &ldquo;Missing Authorization header&rdquo;</td><td>No <code>Authorization</code> header was sent</td><td>Add <code>Authorization: Bearer &lt;key&gt;</code> to the request</td></tr>
+  <tr><td>HTTP 401 &ldquo;Invalid API key&rdquo;</td><td>Key not found in database</td><td>Check that the correct plaintext key is being sent; it was only shown once at generation</td></tr>
+  <tr><td>HTTP 401 &ldquo;API key is disabled&rdquo;</td><td>Key exists but is revoked</td><td>Re-enable it on the API Keys page, or generate a new key</td></tr>
+  <tr><td>HTTP 403 &ldquo;HTTPS is required&rdquo;</td><td>Request arrived over HTTP</td><td>Use <code>https://</code>; or set <code>FREEBOOKS_API_ALLOW_HTTP=1</code> for local dev</td></tr>
+  <tr><td>Apache strips the Authorization header</td><td>Apache mod_php may not pass the header</td><td>Add <code>SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1</code> to <code>.htaccess</code>, or use PHP-FPM</td></tr>
+</table>
+</body>
+</html>

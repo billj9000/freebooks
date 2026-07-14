@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.API.03">
+<meta name="doc_index_1" content="REST API.Query Language">
+<meta name="doc_title" content="Query Language">
+<title>Query Language</title>
+</head>
+<body>
+<h1 align="center">REST API &mdash; Query Language</h1>
+<p>All query parameters are passed as URL query-string parameters. JSON-valued parameters (<code>fields</code>, <code>filters</code>, <code>or_filters</code>) must be valid JSON and should be URL-encoded when the URL contains special characters.</p>
+
+<h3>fields</h3>
+<p>A JSON array of public field names to include in the response. If omitted, the resource returns its default field set.</p>
+<pre>fields=["id","primary_name","email","telephone1"]</pre>
+<p>Unknown field names produce a 400 error. Order in the array does not affect SQL but does affect the key order in JSON output.</p>
+
+<h3>filters</h3>
+<p>A JSON array of filter triples <code>[field, operator, value]</code>, all combined with AND.</p>
+<pre>filters=[["type","=","c"],["inactive","=","0"],["email","is set",""]]</pre>
+<p>Rules:</p>
+<ul>
+  <li>Each triple is <code>[field, operator, value]</code>. The field must be marked <code>filterable</code> in the resource&rsquo;s field map.</li>
+  <li>Multiple filters are AND&rsquo;d together.</li>
+  <li>For <code>in</code> and <code>not in</code>, the value must be a JSON array: <code>["c","v"]</code>.</li>
+  <li>For <code>between</code>, the value must be a 2-element JSON array: <code>["2026-01-01","2026-06-30"]</code>.</li>
+  <li>For <code>is set</code> and <code>is not set</code>, the value is ignored (pass <code>""</code>).</li>
+</ul>
+
+<h3>or_filters</h3>
+<p>A JSON array of filter triples in the same format as <code>filters</code>, but all conditions are OR&rsquo;d together. The resulting OR group is then AND&rsquo;d with the <code>filters</code> conditions.</p>
+<pre>filters=[["type","=","c"]]&amp;or_filters=[["city","=","London"],["city","=","Manchester"]]</pre>
+<p>This produces: <code>WHERE (type='c') AND (city='London' OR city='Manchester')</code></p>
+
+<h3>Operators</h3>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Operator</th><th align="left">Value</th><th align="left">SQL equivalent</th><th align="left">Notes</th></tr>
+  <tr><td><code>=</code></td><td>scalar</td><td><code>col = 'val'</code></td><td>Exact match</td></tr>
+  <tr><td><code>!=</code></td><td>scalar</td><td><code>col != 'val'</code></td><td>Not equal</td></tr>
+  <tr><td><code>&lt;</code></td><td>scalar</td><td><code>col &lt; 'val'</code></td><td>Less than</td></tr>
+  <tr><td><code>&gt;</code></td><td>scalar</td><td><code>col &gt; 'val'</code></td><td>Greater than</td></tr>
+  <tr><td><code>&lt;=</code></td><td>scalar</td><td><code>col &lt;= 'val'</code></td><td>Less than or equal</td></tr>
+  <tr><td><code>&gt;=</code></td><td>scalar</td><td><code>col &gt;= 'val'</code></td><td>Greater than or equal</td></tr>
+  <tr><td><code>like</code></td><td>scalar</td><td><code>col LIKE 'val'</code></td><td>SQL LIKE; use <code>%</code> as wildcard, e.g. <code>"%smith%"</code></td></tr>
+  <tr><td><code>not like</code></td><td>scalar</td><td><code>col NOT LIKE 'val'</code></td><td>SQL NOT LIKE; same wildcard rules</td></tr>
+  <tr><td><code>in</code></td><td>array</td><td><code>col IN ('a','b')</code></td><td>Value must be a non-empty JSON array</td></tr>
+  <tr><td><code>not in</code></td><td>array</td><td><code>col NOT IN ('a','b')</code></td><td>Value must be a non-empty JSON array</td></tr>
+  <tr><td><code>between</code></td><td>2-element array</td><td><code>col BETWEEN 'lo' AND 'hi'</code></td><td>Both ends inclusive; useful for date ranges</td></tr>
+  <tr><td><code>is set</code></td><td>ignored</td><td><code>(col IS NOT NULL AND col != '')</code></td><td>Field has a non-empty value; pass <code>""</code> as value</td></tr>
+  <tr><td><code>is not set</code></td><td>ignored</td><td><code>(col IS NULL OR col = '')</code></td><td>Field is null or empty; pass <code>""</code> as value</td></tr>
+</table>
+
+<h3>order_by</h3>
+<p>A single field name followed by <code>asc</code> or <code>desc</code> (case-insensitive). The field must be marked <code>sortable</code> in the resource field map. Default is no ordering (database natural order).</p>
+<pre>order_by=primary_name asc
+order_by=date desc</pre>
+
+<h3>limit_start</h3>
+<p>Zero-based offset for the first record to return. Default is <code>0</code>. Use with <code>limit_page_length</code> to page through results.</p>
+
+<h3>limit_page_length</h3>
+<p>Maximum number of records to return in one response. Default is <code>100</code>. Maximum is <code>500</code>. The <code>meta.total</code> field in the response gives the total matching record count regardless of pagination.</p>
+
+<h3>Paging through results</h3>
+<pre>
+# Page 1
+?v=1&amp;resource=contacts&amp;filters=[["type","=","c"]]&amp;limit_start=0&amp;limit_page_length=100
+
+# Page 2
+?v=1&amp;resource=contacts&amp;filters=[["type","=","c"]]&amp;limit_start=100&amp;limit_page_length=100
+</pre>
+<p>Continue until <code>meta.limit_start + meta.count &gt;= meta.total</code>.</p>
+
+<h3>Incremental sync (modified-since)</h3>
+<p>The contacts resource exposes a <code>modified</code> field (maps to the record&rsquo;s last-update timestamp). Use a <code>&gt;=</code> filter to fetch only records changed since your last sync:</p>
+<pre>filters=[["modified","&gt;=","2026-07-01"]]</pre>
+<p>The invoices resource does not have a row-level modified timestamp; its <code>modified</code> field maps to <code>post_date</code> (the transaction date). Use date-range filters on <code>date</code> for incremental invoice export.</p>
+
+<h3>Type coercion</h3>
+<p>Filter values are cast according to the field&rsquo;s declared type before being escaped and inserted into the query:</p>
+<ul>
+  <li><b>int</b> fields: value must be numeric; cast to integer.</li>
+  <li><b>float</b> fields: value must be numeric; cast to float.</li>
+  <li><b>date</b> fields: value must match <code>YYYY-MM-DD</code>; non-conforming values produce a 400 error.</li>
+  <li><b>string</b> fields: passed through as-is (after SQL escaping).</li>
+</ul>
+</body>
+</html>

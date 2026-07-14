@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.API.05">
+<meta name="doc_index_1" content="REST API.Response Format">
+<meta name="doc_title" content="Response Format &amp; Errors">
+<title>Response Format</title>
+</head>
+<body>
+<h1 align="center">REST API &mdash; Response Format &amp; Errors</h1>
+
+<h3>Success response</h3>
+<p>All successful responses return HTTP 200 with <code>Content-Type: application/json; charset=utf-8</code>:</p>
+<pre>
+{
+  "ok": true,
+  "data": [ ... ],
+  "meta": {
+    "limit_start":       0,
+    "limit_page_length": 100,
+    "count":             5,
+    "total":             42
+  }
+}
+</pre>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Key</th><th align="left">Description</th></tr>
+  <tr><td><code>ok</code></td><td><code>true</code> on success</td></tr>
+  <tr><td><code>data</code></td><td>Array of result objects. Each object has one key per requested field. Virtual fields containing nested arrays (e.g. <code>lines</code>, <code>addresses</code>) appear as JSON arrays within each row object.</td></tr>
+  <tr><td><code>meta.limit_start</code></td><td>Offset of the first record returned (echoes the request parameter)</td></tr>
+  <tr><td><code>meta.limit_page_length</code></td><td>Maximum records per page (echoes the effective value after clamping)</td></tr>
+  <tr><td><code>meta.count</code></td><td>Number of records in this response (may be less than <code>limit_page_length</code> on the last page)</td></tr>
+  <tr><td><code>meta.total</code></td><td>Total number of records matching the filters across all pages</td></tr>
+</table>
+
+<h3>Error response</h3>
+<pre>
+{
+  "ok": false,
+  "error": "Human-readable error message"
+}
+</pre>
+<p>The HTTP status code indicates the error category (see table below).</p>
+
+<h3>HTTP status codes</h3>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Code</th><th align="left">Meaning</th><th align="left">Common causes</th></tr>
+  <tr><td>200</td><td>OK</td><td>Request succeeded; <code>data</code> and <code>meta</code> are present</td></tr>
+  <tr><td>400</td><td>Bad Request</td><td>Missing or invalid <code>v</code> parameter; unknown or non-filterable/non-sortable field; unknown operator; malformed JSON in <code>fields</code>, <code>filters</code>, or <code>or_filters</code>; invalid date format; empty <code>in</code> array</td></tr>
+  <tr><td>401</td><td>Unauthorized</td><td>Missing <code>Authorization</code> header; invalid API key; key is disabled; key has no associated company</td></tr>
+  <tr><td>403</td><td>Forbidden</td><td>Request was made over HTTP and HTTPS is required</td></tr>
+  <tr><td>404</td><td>Not Found</td><td>Unknown <code>resource</code> value; the error message lists available resources</td></tr>
+  <tr><td>405</td><td>Method Not Allowed</td><td>Request used a method other than GET (the v1 API is read-only)</td></tr>
+  <tr><td>500</td><td>Internal Server Error</td><td>Unexpected server-side error; no details are leaked in the response</td></tr>
+  <tr><td>503</td><td>Service Unavailable</td><td>Company configuration not found or database unavailable</td></tr>
+</table>
+
+<h3>All values are strings</h3>
+<p>All scalar values in <code>data</code> are returned as JSON strings, including numeric and date fields. This matches the underlying database representation and avoids precision loss with large decimal values. Parse numbers and dates as needed in your client.</p>
+
+<h3>Paging</h3>
+<p>To determine if there are more pages:</p>
+<pre>meta.limit_start + meta.count &lt; meta.total</pre>
+<p>Advance the offset by <code>limit_page_length</code> each page until this condition is false.</p>
+
+<h3>Character encoding</h3>
+<p>All responses are UTF-8. Non-ASCII characters in data (e.g. accented letters, currency symbols) are returned as literal UTF-8, not as JSON Unicode escapes.</p>
+
+<h3>Future API versions</h3>
+<p>New API versions will be introduced via the <code>v</code> parameter (e.g. <code>v=2</code>). Version 1 will continue to be supported after new versions are released. The <code>ok/data/meta</code> envelope shape will remain consistent across versions.</p>
+<p>Write operations (POST, PATCH, DELETE) are planned for a future version. They will use the same Bearer token authentication and will require keys with write scopes.</p>
+</body>
+</html>
