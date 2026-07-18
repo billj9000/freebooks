@@ -58,19 +58,24 @@ $_SESSION = ['language' => 'en_us', 'admin_id' => 1];
 // ─── Resolve company ─────────────────────────────────────────────────────────
 $company = (string)($argv[1] ?? getenv('FREEBOOKS_COMPANY') ?? '');
 if ($company === '') {
-    // Auto-detect: first directory in my_files/ that contains config.php
+    // No company specified — fan out and run once per company. A fresh subprocess
+    // per company is required because DB_DATABASE, the TABLE_* constants and every
+    // pb_configuration value are define()'d below and cannot be re-pointed in-process.
+    // Each child re-enters the single-company path and applies its own ZENCART_ENABLED gate.
     $mf = DIR_FS_MY_FILES;
+    $rc = 0;
     if (is_dir($mf)) {
         foreach (scandir($mf) as $entry) {
             if ($entry === '.' || $entry === '..') continue;
             if (is_dir($mf . $entry) && file_exists($mf . $entry . '/config.php')) {
-                $company = $entry;
-                break;
+                passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' ' . escapeshellarg($entry), $code);
+                if ($code !== 0) $rc = $code;
             }
         }
     }
+    exit($rc);
 }
-if ($company === '' || !file_exists(DIR_FS_MY_FILES . $company . '/config.php')) {
+if (!file_exists(DIR_FS_MY_FILES . $company . '/config.php')) {
     fwrite(STDERR, "Company '$company' not found. Usage: php zencart_sync.php <company_name>\n");
     exit(1);
 }
@@ -415,6 +420,14 @@ function zc_drain_messages(): string
     }
     unset($_SESSION['messageToStack']);
     return implode('; ', array_filter($parts));
+}
+
+// ─── Master enable gate (per company) ────────────────────────────────────────
+// Must run before any order pull, journal post, stock sync or zc_confirm_shipments()
+// (the latter writes zc_ship_notify rows before hitting the API).
+if (!defined('ZENCART_ENABLED') || ZENCART_ENABLED !== '1') {
+    echo ts() . " ZenCart integration disabled for '$company'. Exiting.\n";
+    exit(0);
 }
 
 // ─── Fetch new orders from ZenCart ───────────────────────────────────────────

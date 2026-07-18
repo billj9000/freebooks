@@ -26,6 +26,9 @@ function zencart_api_call(string $task, array $body = null, array $params = [])
 {
     global $messageStack;
 
+    // Master enable switch — when disabled, no ZenCart traffic (pull or push) occurs.
+    if (!defined('ZENCART_ENABLED') || ZENCART_ENABLED !== '1') return false;
+
     $qs = array_merge(['task' => $task], $params);
     $url = rtrim(ZENCART_URL, '/') . '/freebooks-zencart.php?' . http_build_query($qs);
 

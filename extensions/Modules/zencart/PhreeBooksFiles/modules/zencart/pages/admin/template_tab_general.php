@@ -23,6 +23,8 @@
     <div class="card-header py-1 fb-widget-header"><?php echo MODULE_ZENCART_CONFIG_INFO; ?></div>
     <div class="card-body py-2">
       <div style="display:grid;grid-template-columns:1fr 280px;gap:4px 8px;align-items:center;font-weight:normal">
+        <div><?php echo ZENCART_LBL_ENABLED; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_enabled', $sel_yes_no, isset($_POST['zencart_enabled']) ? $_POST['zencart_enabled'] : (defined('ZENCART_ENABLED') ? ZENCART_ENABLED : '0'), 'class="form-select form-select-sm w-auto"'); ?></div>
         <div><?php echo ZENCART_ADMIN_URL; ?></div>
         <div><?php echo html_input_field('zencart_url', $_POST['zencart_url'] ? $_POST['zencart_url'] : ZENCART_URL, 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_ADMIN_API_KEY; ?></div>

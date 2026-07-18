@@ -36,6 +36,13 @@ $custom_path = DIR_FS_MODULES . 'custom/zencart/pages/main/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 
 /***************   Act on the action request   *************************/
+// When the integration is disabled, block all push/sync/confirm actions so a
+// migration or maintenance window cannot trigger traffic to the live store.
+if (in_array($_REQUEST['action'], array('upload','bulkupload','sync','confirm'))
+    && (!defined('ZENCART_ENABLED') || ZENCART_ENABLED !== '1')) {
+  $messageStack->add(ZENCART_DISABLED_NOTICE, 'caution');
+  $_REQUEST['action'] = '';
+}
 switch ($_REQUEST['action']) {
   case 'upload':
     $upXML = new zencart();

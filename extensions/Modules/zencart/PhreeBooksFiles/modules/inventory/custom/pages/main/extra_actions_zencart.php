@@ -23,6 +23,11 @@
 switch ($_REQUEST['action']) {
 // Begin - Upload operation added by PhreeSoft to upload products to ZenCart
   case 'upload_zc':
+	if (!defined('ZENCART_ENABLED') || ZENCART_ENABLED !== '1') {
+	  $messageStack->add(defined('ZENCART_DISABLED_NOTICE') ? ZENCART_DISABLED_NOTICE : 'The ZenCart integration is disabled.', 'caution');
+	  $_REQUEST['action'] = '';
+	  break;
+	}
 	$id = (int)db_prepare_input($_POST['rowSeq']);
 	require_once(DIR_FS_MODULES . 'zencart/functions/zencart.php');
 	require_once(DIR_FS_MODULES . 'zencart/classes/zencart.php');

@@ -23,6 +23,7 @@ define('MODULE_ZENCART_DESCRIPTION','The ZenCart module interfaces PhreeBooks wi
 define('ZENCART_ADMIN_URL','ZenCart store URL (no trailing slash, e.g. https://shop.example.com)');
 define('ZENCART_ADMIN_API_KEY','API key (must match FREEBOOKS_API_KEY in ZenCart configuration table)');
 define('MODULE_ZENCART_CONFIG_INFO','Please set the configuration values to your ZenCart e-store.');
+define('ZENCART_LBL_ENABLED','Enable the ZenCart integration. When set to No, all ZenCart traffic (order import cron, product/stock sync, shipment notifications) is disabled for this company.');
 define('ZENCART_TAX_CLASS','Enter the ZenCart Tax Class Text field (Must match exactly to the entry in ZenCart if tax is charged)');
 define('ZENCART_USE_PRICES','Do you want to use price sheets?');
 define('ZENCART_TEXT_PRICE_SHEET','ZenCart Price Sheet to use');
@@ -33,8 +34,12 @@ define('ZENCART_LBL_NOTIFY_MESSAGE','Shipping notification message — use {date
 define('ZENCART_LBL_UPDATED_BY','Name shown in the ZenCart order status "Updated By" column');
 define('ZENCART_CONFIG_SAVED','Zencart configuration values updated/saved.');
 define('ZENCART_CATALOG_ADD','Allow upload to ZenCart Catalog');
-define('ZENCART_CATALOG_CATEGORY_ID','ZenCart - category id. Needs to match Zen Cart category where product will be located.');
-define('ZENCART_CATALOG_MANUFACTURER','ZenCart - product manufacturer. Needs to match with the manufacturer name as defined in ZenCart.');
+// Stored in xtra_fields.description (varchar(64)) — keep these at or under 64 chars.
+define('ZENCART_CATALOG_CATEGORY_ID',"ZenCart - category ID. Must match Zen Cart's category.");
+define('ZENCART_CATALOG_MANUFACTURER',"ZenCart - manufacturer. Must match Zen Cart's manufacturer.");
+define('ZENCART_CATALOG_URL','ZenCart - product URL.');
+define('ZENCART_CATALOG_MODEL','ZenCart - product model.');
+define('ZENCART_CATALOG_DESCRIPTION','ZenCart - HTML long product description.');
 define('ZENCART_LBL_CATCH_ALL_ACCT','Catch-all customer contact ID for orders where email cannot be matched or a new customer cannot be created (0 = skip such orders)');
 define('ZENCART_LBL_DEFAULT_TAX','Fallback tax rate ID when ZenCart\'s item tax % cannot be matched in the Tax Rates table (0 = untaxed)');
 define('ZENCART_LBL_CREATE_INVOICE','Also create a Sales Invoice (journal 12) for each imported order');

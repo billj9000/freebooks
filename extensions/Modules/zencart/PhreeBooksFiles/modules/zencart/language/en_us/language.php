@@ -54,6 +54,7 @@ define('ZENCART_BULK_UPLOAD','ZenCart Bulk Upload');
 define('ZENCART_PRODUCT_SYNC','ZenCart Product Sync');
 define('ZENCART_SHIP_CONFIRM','ZenCart Ship Confirmation');
 define('ZENCART_INVENTORY_CATALOG_IS_EMPTY','The field webshop menu / catalog is empty. this field is required when you want to upload a product.');
+define('ZENCART_DISABLED_NOTICE','The ZenCart integration is disabled. Enable it under Company → Configuration → ZenCart before uploading or syncing.');
 
 define('ZENCART_CATALOG_URL','ZenCart - product URL.');
 define('ZENCART_CATALOG_MODEL','ZenCart - product model.');

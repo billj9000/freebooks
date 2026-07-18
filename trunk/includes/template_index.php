@@ -64,9 +64,14 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <script type="text/javascript">
   function initJoditEditors() {
     document.querySelectorAll('textarea.jodit-editor').forEach(function(el) {
+      if (el.dataset.joditInit) return;      // already initialized
+      if (el.offsetParent === null) return;  // inside a hidden tab-pane: Jodit can't size it now — defer
+      el.dataset.joditInit = '1';
       Jodit.make(el);
     });
   }
+  // Bootstrap fires shown.bs.tab when a tab becomes visible; initialize any editors deferred above.
+  document.addEventListener('shown.bs.tab', initJoditEditors);
   </script>
 <?php 
 require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/config.php');

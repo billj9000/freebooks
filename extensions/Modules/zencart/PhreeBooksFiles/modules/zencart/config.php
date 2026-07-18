@@ -24,8 +24,9 @@
 // 3.5 => 2013-08-08 - added product fields 
 // 3.6 => 2014-01-15 - updated for move back to phreebooks and menu changes
 // 3.7 => 2026-07-07 - Master Stock attribute/variant sync (both directions)
+// 3.8 => 2026-07-18 - Add ZENCART_ENABLED master switch, multi-company cron, HTML product description field
 // Module software version information
-define('MODULE_ZENCART_VERSION',      3.7);
+define('MODULE_ZENCART_VERSION',      3.8);
 // Set the menu order, if using ZenCart title menu option (after Customers and before Vendors)
 define('MENU_HEADING_ZENCART_ORDER',     15);
 // Security id's

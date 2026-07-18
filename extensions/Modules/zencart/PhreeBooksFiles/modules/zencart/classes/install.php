@@ -35,6 +35,7 @@ class zencart_admin {
 	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(
+	  'ZENCART_ENABLED'           => '0',
 	  'ZENCART_URL'               => 'https://',
 	  'ZENCART_API_KEY'           => '',
 	  'ZENCART_PRODUCT_TAX_CLASS' => '',
@@ -66,7 +67,7 @@ class zencart_admin {
 	      'module_id'   => 'inventory',
 	      'tab_name'    => 'ZenCart',
 	      'description' => 'ZenCart Catalog',
-	      'sort_order'  => '49',
+	      'sort_order'  => '48', // keep below the Amazon tab (49) so ZenCart sorts first
 	    );
 	    db_perform(TABLE_EXTRA_TABS, $sql_data_array);
 	    $tab_id = db_insert_id();
@@ -137,6 +138,18 @@ class zencart_admin {
 	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
 	  $db->Execute("alter table " . TABLE_INVENTORY . " add column ProductURL varchar(64) default ''");
 
+	  $sql_data_array = array(
+	  	'module_id'   => 'inventory',
+	  	'tab_id'      => $tab_id,
+	  	'entry_type'  => 'html',
+	  	'field_name'  => 'zencart_description',
+	  	'description' => ZENCART_CATALOG_DESCRIPTION,
+	  	'sort_order'  => 60,
+	  	'params'      => serialize(array('type'=>'html', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
+	  );
+	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
+	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description text");
+
 	  gen_add_audit_log(ZENCART_LOG_FIELDS . TEXT_NEW, 'zencart - catalog');
 	}
     return $error;
@@ -144,6 +157,11 @@ class zencart_admin {
 
   function initialize($module) {
   	global $db, $messageStack;
+  	// Skip the bulk upload to ZenCart when the integration is disabled.
+  	if (!defined('ZENCART_ENABLED') || ZENCART_ENABLED !== '1') {
+  	  $messageStack->add(defined('ZENCART_DISABLED_NOTICE') ? ZENCART_DISABLED_NOTICE : 'The ZenCart integration is disabled.', 'caution');
+  	  return true;
+  	}
   	gen_pull_language('inventory');
   	require_once(DIR_FS_MODULES . 'zencart/classes/zencart.php');
   	require_once(DIR_FS_MODULES . 'zencart/functions/zencart.php');
@@ -213,6 +231,24 @@ class zencart_admin {
 	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
 	    . "notified_at DATETIME NOT NULL"
 	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8");
+
+	// Master enable switch (default off) — gates all ZenCart traffic; see functions/zencart.php + cron
+	if (!defined('ZENCART_ENABLED')) write_configure('ZENCART_ENABLED', '0');
+
+	// HTML long-description field on the ZenCart inventory tab (holds web long description)
+	if ($error == false && !db_field_exists(TABLE_INVENTORY, 'zencart_description')) {
+	  $sql_data_array = array(
+	    'module_id'   => 'inventory',
+	    'tab_id'      => $tab_id,
+	    'entry_type'  => 'html',
+	    'field_name'  => 'zencart_description',
+	    'description' => ZENCART_CATALOG_DESCRIPTION,
+	    'sort_order'  => 60,
+	    'params'      => serialize(array('type'=>'html', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
+	  );
+	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
+	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description text");
+	}
 
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
