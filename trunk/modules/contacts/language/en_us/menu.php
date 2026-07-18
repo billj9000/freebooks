@@ -31,6 +31,6 @@ define('TEXT_CUSTOMER','Customer');
 define('TEXT_VENDOR','Vendor');
 define('TEXT_EMPLOYEE','Employee');
 define('TEXT_BRANCHES', 'Branch');
-define('TEXT_PROJECT','Project');
+if (!defined('TEXT_PROJECT')) define('TEXT_PROJECT','Project'); // phreedom's language.php also defines this, loaded earlier during install
 define('TEXT_PROJECTS','Projects');
 ?>

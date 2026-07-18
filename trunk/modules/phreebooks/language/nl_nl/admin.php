@@ -14,7 +14,7 @@ define('MODULE_PHREEBOOKS_NOTES_1','MEDIUM BELANGRIJK: Voer bedrijfsinformatie i
 define('MODULE_PHREEBOOKS_NOTES_2','MINST BELANGRIJK: Set up mail server instellingen (Bedrijf -> Module Administratie -> Email tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_3','HEEL BELANGRIJK: Verander de standaard grootboekrekeningen of importeer nieuwe (Bedrijf -> Module Administratie -> PhreeBooks Module -> Grootboekrekeningen tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_4','MEDIUM BELANGRIJK: Werk de standaard grootboekrekeningen bij voor klanten en leveranciers, nadat de grootboekrekeningen geladen zijn (Bedrijf -> Module Administratie -> PhreeeBooks Module Eigenschappen -> Klanten/Leveranciers tabblad)');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_PAYMENT_TERMS','Betalingscondities');
 define('TEXT_ACCOUNT_AGING','Account Ouderdom');
 define('TEXT_GENERAL_JOURNAL','Algemene Journaal Instellingen');
@@ -196,8 +196,11 @@ define('SETUP_TAX_DESC_SHORT','Verkorte Naam');
 define('SETUP_TAX_GL_ACCT','Grootboekrekeningnummer ');
 define('SETUP_TAX_RATE','Belasting tarief (procent)');
 define('SETUP_TAX_AUTH_EDIT_INTRO','Maak de nodige wijzigingen');
-define('SETUP_INFO_DESC_SHORT','Verkorte Naam (15 karakters max)');
-define('SETUP_INFO_DESC_LONG','Lange Omschrijving (64 karakters max)');
+// contacts' admin.php also defines these, loaded earlier during install; see
+// the equivalent en_us note above — contacts' SETUP_INFO_DESC_SHORT text
+// already wins today, guarding here changes nothing observable.
+if (!defined('SETUP_INFO_DESC_SHORT')) define('SETUP_INFO_DESC_SHORT','Verkorte Naam (15 karakters max)');
+if (!defined('SETUP_INFO_DESC_LONG')) define('SETUP_INFO_DESC_LONG','Lange Omschrijving (64 karakters max)');
 define('SETUP_INFO_GL_ACCOUNT','Grootboekrekening om belasting op te boeken');
 define('SETUP_INFO_VENDOR_ID','Leverancier om belasting aan te betalen');
 define('SETUP_INFO_TAX_RATE','Belasting tarief (in procent)');

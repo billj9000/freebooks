@@ -24,7 +24,7 @@ define('MODULE_INVENTORY_DESCRIPTION','The inventory module contains all of the 
 define('BOX_INV_ADMIN','Inventory Administration');
 define('INV_HEADING_FIELD_PROPERTIES', 'Field Type and Properties (Select One)');
 // General Defines
-define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_INVENTORY_TYPES','Inventory Type');
 define('TEXT_SALES_ACCOUNT','Sales GL Account');
 define('TEXT_INVENTORY_ACCOUNT','Inventory GL Account');

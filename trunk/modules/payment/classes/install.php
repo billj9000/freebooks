@@ -36,6 +36,13 @@ class payment_admin {
 	$error = false;
 	$methods = array('cod','moneyorder'); // pick a couple of modules to install
 	foreach ($methods as $method) {
+	  // Each method's class properties reference its own language constants
+	  // (e.g. MODULE_PAYMENT_COD_TEXT_TITLE), evaluated at class-declaration
+	  // time, so its language file must be loaded before the require below.
+	  $method_lang = $_SESSION['language'] ?? DEFAULT_LANGUAGE;
+	  $method_lang_file = DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/language/' . $method_lang . '/language.php';
+	  if (!file_exists($method_lang_file)) $method_lang_file = DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/language/en_us/language.php';
+	  if (file_exists($method_lang_file)) require_once($method_lang_file);
 	  require_once(DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/' . $method . '.php');
 	  $properties = new $method();
 	  write_configure('MODULE_' . strtoupper($module) . '_' . strtoupper($method) . '_STATUS', '1');

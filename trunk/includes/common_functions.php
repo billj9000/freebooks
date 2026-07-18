@@ -100,7 +100,7 @@
 	if ($result->RecordCount() == 0) {
 	  $sql_array = array('configuration_key'  => $constant, 'configuration_value'=> $value);
 	  db_perform(TABLE_CONFIGURATION,  $sql_array);
-	  define($constant, $value);
+	  if (!defined($constant)) define($constant, $value);
 	} elseif ($result->fields['configuration_value'] <> $value) {
 	  db_perform(TABLE_CONFIGURATION, array('configuration_value'=>$value), 'update', "configuration_key = '".$constant."'");
 	}
@@ -191,21 +191,24 @@
   function gen_calculate_period($post_date, $hide_error = false) {
 	global $db, $messageStack;
 	$post_time_stamp = strtotime($post_date);
-	$period_start_time_stamp = strtotime(CURRENT_ACCOUNTING_PERIOD_START);
-	$period_end_time_stamp = strtotime(CURRENT_ACCOUNTING_PERIOD_END);
-
-	if (($post_time_stamp >= $period_start_time_stamp) && ($post_time_stamp <= $period_end_time_stamp)) {
-		return CURRENT_ACCOUNTING_PERIOD;
-	} else {
-		$result = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . "
-			where start_date <= '" . $post_date . "' and end_date >= '" . $post_date . "'");
-		if ($result->RecordCount() <> 1) { // post_date is out of range of defined accounting periods
-			if (!$hide_error) $messageStack->add(ERROR_MSG_POST_DATE_NOT_IN_FISCAL_YEAR,'error');
-			return false;
+	// These are only set once a period has been cached (write_configure(), a
+	// few lines below this function's own caller); on a fresh install nothing
+	// has been cached yet, so fall through to the DB lookup below instead.
+	if (defined('CURRENT_ACCOUNTING_PERIOD_START') && defined('CURRENT_ACCOUNTING_PERIOD_END')) {
+		$period_start_time_stamp = strtotime(CURRENT_ACCOUNTING_PERIOD_START);
+		$period_end_time_stamp = strtotime(CURRENT_ACCOUNTING_PERIOD_END);
+		if (($post_time_stamp >= $period_start_time_stamp) && ($post_time_stamp <= $period_end_time_stamp)) {
+			return CURRENT_ACCOUNTING_PERIOD;
 		}
-		if (!$hide_error) $messageStack->add(ERROR_MSG_BAD_POST_DATE,'caution');
-		return $result->fields['period'];
 	}
+	$result = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . "
+		where start_date <= '" . $post_date . "' and end_date >= '" . $post_date . "'");
+	if ($result->RecordCount() <> 1) { // post_date is out of range of defined accounting periods
+		if (!$hide_error) $messageStack->add(ERROR_MSG_POST_DATE_NOT_IN_FISCAL_YEAR,'error');
+		return false;
+	}
+	if (!$hide_error) $messageStack->add(ERROR_MSG_BAD_POST_DATE,'caution');
+	return $result->fields['period'];
   }
 
   function gen_get_period_pull_down($include_all = true) {
@@ -476,7 +479,7 @@
   	}
   	$stats = (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME))."ms, ".$db->count_queries."q ".(int)($db->total_query_time * 1000)."ms";
 	$fields = array(
-	  'user_id'   => $_SESSION['admin_id'] ? $_SESSION['admin_id'] : '1',
+	  'user_id'   => !empty($_SESSION['admin_id']) ? $_SESSION['admin_id'] : '1',
 	  'action'    => substr($action, 0, 64), // limit to field length
 	  'ip_address'=> $_SERVER['REMOTE_ADDR'],
 	  'stats'     => $stats,

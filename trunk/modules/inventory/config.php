@@ -35,7 +35,7 @@ define('SECURITY_ID_PRICE_SHEET_MANAGER', 88);
 define('SECURITY_ID_VEND_PRICE_SHEET_MGR',89);
 define('SECURITY_ID_ADJUST_INVENTORY',   152);
 define('SECURITY_ID_ASSEMBLE_INVENTORY', 153);
-define('SECURITY_ID_MAINTAIN_INVENTORY', 151);
+if (!defined('SECURITY_ID_MAINTAIN_INVENTORY')) define('SECURITY_ID_MAINTAIN_INVENTORY', 151); // this file appears to get required twice during install; guard to be safe
 define('SECURITY_ID_TRANSFER_INVENTORY', 156);
 // New Database Tables
 define('TABLE_INVENTORY',                DB_PREFIX . 'inventory');

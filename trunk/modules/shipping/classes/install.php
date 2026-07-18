@@ -130,6 +130,13 @@ class shipping_admin {
 	$error = false;
 	$methods = array('freeshipper','flat'); // pick a couple of modules to install
 	foreach ($methods as $method) {
+	  // Each method's keys() references its own language constants (e.g.
+	  // MODULE_SHIPPING_FREESHIPPER_TITLE_SHORT), so its language file must be
+	  // loaded before the class is used.
+	  $method_lang = $_SESSION['language'] ?? DEFAULT_LANGUAGE;
+	  $method_lang_file = DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/language/' . $method_lang . '/language.php';
+	  if (!file_exists($method_lang_file)) $method_lang_file = DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/language/en_us/language.php';
+	  if (file_exists($method_lang_file)) require_once($method_lang_file);
 	  require_once(DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/' . $method . '.php');
 	  $properties = new $method();
 	  write_configure('MODULE_' . strtoupper($module) . '_' . strtoupper($method) . '_STATUS', '1');

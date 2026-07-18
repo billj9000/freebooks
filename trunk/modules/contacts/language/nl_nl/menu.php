@@ -20,7 +20,7 @@ define('TEXT_BRANCHES', 'Vestigingen');
 define('TEXT_CUSTOMER','Klant');
 define('TEXT_VENDOR','Leverancier');
 define('TEXT_EMPLOYEE','Medewerker');
-define('TEXT_PROJECT','Project');
+if (!defined('TEXT_PROJECT')) define('TEXT_PROJECT','Project'); // phreedom's language.php also defines this, loaded earlier during install
 define('TEXT_PROJECTS','Projecten');
-define('TEXT_BRANCH', 'Vestiging');
+if (!defined('TEXT_BRANCH')) define('TEXT_BRANCH', 'Vestiging'); // phreedom's language.php also defines this, loaded earlier during install
 ?>

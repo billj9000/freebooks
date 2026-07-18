@@ -309,7 +309,8 @@ class objectInfo {
 	  	global $db;
 	  	if (substr($txt, 0, 1) == "\n") {
 //echo "\nTime: " . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . " ms, " . $db->count_queries . " SQLs " . (int)($db->total_query_time * 1000)." ms => " . substr($txt, 1) . '<br>';
-	    	$this->debug_info .= "\nTime: " . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . " ms, " . $db->count_queries . " SQLs " . (int)($db->total_query_time * 1000)." ms => ";
+	    	$query_info = is_object($db) ? $db->count_queries . " SQLs " . (int)($db->total_query_time * 1000)." ms => " : "(no db connection yet) => ";
+	    	$this->debug_info .= "\nTime: " . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . " ms, " . $query_info;
 	    	$this->debug_info .= substr($txt, 1);
 	  	} else {
 	    	$this->debug_info .= $txt;

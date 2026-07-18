@@ -31,9 +31,9 @@ define('COST_TYPE_MAT','Materials');
 define('COST_TYPE_CNT','Contractors');
 define('COST_TYPE_EQT','Equipment');
 define('COST_TYPE_OTH','Other');
-define('TEXT_CUSTOMER','Customer');
-define('TEXT_VENDOR','Vendor');
-define('TEXT_EMPLOYEE','Employee');
+if (!defined('TEXT_CUSTOMER')) define('TEXT_CUSTOMER','Customer'); // also defined in this module's menu.php, loaded first
+if (!defined('TEXT_VENDOR')) define('TEXT_VENDOR','Vendor'); // also defined in this module's menu.php, loaded first
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Employee'); // also defined in this module's menu.php, loaded first
 define('TEXT_CONTACT_TYPE','Contact Type');
 define('NEXT_CUST_ID_NUM_DESC','Next Customer ID');
 define('NEXT_VEND_ID_NUM_DESC','Next Vendor ID');

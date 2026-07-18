@@ -28,7 +28,7 @@ define('MODULE_PHREEBOOKS_NOTES_3','PRIORITY HIGH: Change or import chart of acc
 define('MODULE_PHREEBOOKS_NOTES_4','PRIORITY MEDIUM: Update default general ledger accounts for customer and vendors, after loading GL accounts (Company -> Module Administration -> PhreeBooks Module Properties -> Customers/Vendors tab)');
 define('MODULE_PHREEBOOKS_NOTES_5','PRIORITY HIGH: Set up sales and puchase taxes, after loading GL accounts (Company -> Module Administration -> PhreeBooks Module Properties -> Taxes tabs)');
 // General Defines
-define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_PAYMENT_TERMS','Payment Terms');
 define('TEXT_ACCOUNT_AGING','Account Aging');
 define('TEXT_GENERAL_JOURNAL','General Journal Settings');
@@ -232,8 +232,13 @@ define('SETUP_TAX_DESC_SHORT', 'Short Name');
 define('SETUP_TAX_GL_ACCT', 'GL Account ID');
 define('SETUP_TAX_RATE', 'Tax Rate (percent)');
 define('SETUP_TAX_AUTH_EDIT_INTRO', 'Please make any necessary changes');
-define('SETUP_INFO_DESC_SHORT', 'Short Name (15 chars max)');
-define('SETUP_INFO_DESC_LONG', 'Long Description (64 chars max)');
+// contacts' admin.php also defines these, loaded earlier during install.
+// Note: its SETUP_INFO_DESC_SHORT text differs ("Short Description (16 chars
+// max)" vs phreebooks' "Short Name (15 chars max)") — contacts' version
+// already wins today (this second define() has always silently failed), so
+// guarding it here changes nothing observable, just removes the warning.
+if (!defined('SETUP_INFO_DESC_SHORT')) define('SETUP_INFO_DESC_SHORT', 'Short Name (15 chars max)');
+if (!defined('SETUP_INFO_DESC_LONG')) define('SETUP_INFO_DESC_LONG', 'Long Description (64 chars max)');
 define('SETUP_INFO_GL_ACCOUNT', 'GL Account to record tax:');
 define('SETUP_INFO_VENDOR_ID', 'Vendor to submit funds to:');
 define('SETUP_INFO_TAX_RATE', 'Tax rate (in percent)');

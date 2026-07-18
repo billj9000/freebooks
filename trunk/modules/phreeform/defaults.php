@@ -18,10 +18,10 @@
 //
 
 define('DEFAULT_MODULE','phreebooks'); // for importing selection dropdown
-define('PF_DIR_MY_REPORTS',  DIR_FS_MY_FILES . $_SESSION['company'] . '/phreeform/');
-define('PF_WEB_MY_REPORTS',  DIR_WS_MY_FILES . $_SESSION['company'] . '/phreeform/');
+define('PF_DIR_MY_REPORTS',  DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/');
+define('PF_WEB_MY_REPORTS',  DIR_WS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/');
 define('PF_DIR_DEF_REPORTS', 'modules/' . DEFAULT_MODULE . '/language/' . DEFAULT_LANGUAGE . '/reports/');
-define('PF_DIR_DEF_IMAGE_LINK', DIR_FS_MY_FILES . $_SESSION['company'] . '/');
+define('PF_DIR_DEF_IMAGE_LINK', DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/');
 define('nl',"\n");
 
 $phreeformTypes = array(
@@ -315,7 +315,7 @@ $joinSyntax = array(
 if (file_exists(DIR_FS_MODULES."phreeform/custom/extra_phreeform.php")) { // user custom additions
 	require_once (DIR_FS_MODULES . "phreeform/custom/extra_phreeform.php");
 }
-if (is_array($loaded_modules)) foreach ($loaded_modules as $mod) {
+if (isset($loaded_modules) && is_array($loaded_modules)) foreach ($loaded_modules as $mod) {
   if (file_exists(DIR_FS_MODULES . "$mod/config_phreeform.php")) {
 	gen_pull_language($mod, 'admin');
     require_once (DIR_FS_MODULES . "$mod/config_phreeform.php");

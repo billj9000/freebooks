@@ -18,6 +18,12 @@
 //  Path: /modules/xml_builder/classes/install.php
 //
 class xml_builder_admin {
+	public $notes 			= array();
+	public $prerequisites 	= array();
+	public $keys			= array();
+	public $dirlist			= array();
+	public $tables			= array();
+
   function __construct() {
 	$this->notes = array(); // placeholder for any operational notes
 	$this->prerequisites = array( // modules required and rev level for this module to work properly

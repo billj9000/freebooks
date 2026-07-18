@@ -39,8 +39,17 @@ define('DIR_FS_MY_FILES',  DIR_FS_ADMIN . PATH_TO_MY_FILES);
 define('DIR_FS_THEMES',    DIR_FS_ADMIN . 'themes/');
 define('FILENAME_DEFAULT', 'index');
 if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
-// set the type of request (secure or not)
-$request_type = (isset($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) == 'on' || $_SERVER['HTTPS'] == '1' || strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_BY']),'SSL') || strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_HOST']),'SSL'))) ? 'SSL' : 'NONSSL';
+// set the type of request (secure or not). Behind a reverse proxy that
+// terminates TLS itself (Fly, Traefik, nginx, most CDNs/load balancers), the
+// app never sees $_SERVER['HTTPS'] — the original protocol is signaled via
+// the standard X-Forwarded-Proto header instead, which the legacy checks
+// below never looked at, causing an infinite HTTP<->HTTPS redirect loop.
+$request_type = (
+  (isset($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) == 'on' || $_SERVER['HTTPS'] == '1')) ||
+  strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_BY'] ?? ''), 'SSL') ||
+  strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_HOST'] ?? ''), 'SSL') ||
+  strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') == 'https'
+) ? 'SSL' : 'NONSSL';
 // define the inventory types that are tracked in cost of goods sold
 define('COG_ITEM_TYPES','si,sr,ms,mi,ma,sa');
 $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : 360;

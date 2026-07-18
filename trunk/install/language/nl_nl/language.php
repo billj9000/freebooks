@@ -7,9 +7,14 @@
 // Version: 3.3
 // +-----------------------------------------------------------------+
 // Path: /Iinstall/language/nl_nl/language.php
-define('LANGUAGE','Nederlands (NL)');
-define('HTML_PARAMS','lang="nl-NL" xml:lang="nl-NL"');
-define('CHARSET','UTF-8');
+// HTML_PARAMS and CHARSET intentionally not defined here — they're also
+// defined (identically) by modules/phreedom/language/nl_nl/language.php,
+// which install/pages/main/pre_process.php loads immediately after this file.
+// The LANGUAGE define below is left commented out rather than deleted, for
+// the same reason, but install/functions/install.php reads this file as raw
+// text to build the welcome page's language selector, so its exact text
+// (not a paraphrase) must stay present. Do not remove or reword this line.
+// define('LANGUAGE','Nederlands (NL)');
 define('LANGUAGE_TEXT','Beschikbare Talen: ');
 define('TITLE_WELCOME','Welkom - Phreedom Klein Bedrijf oplossingen');
 define('TEXT_AGREE','Akkoord');
@@ -30,7 +35,8 @@ define('INSTALL_ERROR_FTP','Uw server php applicatie is geïnstalleerd zonder FT
 define('INSTALL_ERROR_INCLUDES_DIR','De directory /includes is niet beschrijfbaar. We hebben toegang nodig om hier uw configuratie bestand op te slaan.');
 define('INSTALL_ERROR_MY_FILES_DIR','De directory /my_files is niet beschrijfbaar. We hebben toegang nodig om hier uw bedrijfsbestanden te kunnen opslaan.');
 define('TEXT_RECHECK','Her-Controleer');
-define('TEXT_INSTALL','Installeer');
+// TEXT_INSTALL intentionally not defined here — see note near the top of this
+// file; modules/phreedom/language/nl_nl/language.php also defines it.
 define('TITLE_INSTALL','Installeer - Phreedom Klein Bedrijf Oplossingen');
 define('MSG_INSTALL_INTRO','Vul alstublieft wat informatie over uw bedrijf, administrator, web server en database.');
 define('TEXT_COMPANY_INFO','Bedrijf Informatie');

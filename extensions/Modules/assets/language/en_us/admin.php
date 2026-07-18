@@ -25,7 +25,7 @@ define('BOX_ASSETS_ADMIN','Assets Module Administration');
 define('TEXT_NEW_USED','New/Used');
 define('TEXT_NEW_TAB', 'New Asset Tab');
 define('TEXT_EDIT_TAB', 'Edit Asset Tab');
-define('TEXT_NEW_FIELD', 'New Asset Field');
+if (!defined('TEXT_NEW_FIELD')) define('TEXT_NEW_FIELD', 'New Asset Field'); // phreedom's admin.php also defines this (generic 'New Field'), loaded earlier during install
 define('TEXT_EDIT_FIELD', 'Edit Asset Field');
 
 ?>

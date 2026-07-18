@@ -299,8 +299,8 @@ define('ITEM_IS_OUT_OF_STOCK_AND_INACTIVE', 'artikel is inactief en niet op voor
 define('THERE_IS_SALES_ORDER_FOR_THIS_ITEM', 'er is een verkoop bestelling voor dit artikel');
 define('ITEM_IS_ON_ORDER', 'artikel staat in bestelling');
 define('ITEM_MUST_BE_ORDERD', 'artikel moet besteld worden');
-define('TEXT_NULL','is Null');
-define('TEXT_NOT_NULL','is not Null');
+if (!defined('TEXT_NULL')) define('TEXT_NULL','is Null'); // phreedom's language.php also defines this, loaded earlier during install
+if (!defined('TEXT_NOT_NULL')) define('TEXT_NOT_NULL','is not Null'); // ditto — note phreedom's nl_nl copy says 'is niet Null' (correctly translated) and already wins; this untranslated copy has never actually been shown
 define('ORD_POSTCODE_COUNTRY', 'Land');
 define('ORD_POSTCODE_POSTAL',  'Postcode');
 define('ORD_POSTCODE_FIND',    'Find Address');

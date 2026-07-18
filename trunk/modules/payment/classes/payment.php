@@ -28,10 +28,20 @@ class payment {
   public $show_in_pos	  = true;
   public $pos_gl_acct;
   public $sort_order;
-  public $key             = array(); 
-	 
+  public $key             = array();
+  public $field_0;
+  public $field_1;
+  public $field_2;
+  public $field_3;
+  public $field_4;
+  public $field_5;
+  public $field_6;
+
   public function __construct(){
-  	define('FILENAME_POPUP_CVV_HELP', 'popup_cvv_help'); // TBD
+  	// Every payment method instantiates this base constructor (e.g. during
+  	// install, which creates several methods in the same request), so this
+  	// must not re-define on the second and later instantiations.
+  	if (!defined('FILENAME_POPUP_CVV_HELP')) define('FILENAME_POPUP_CVV_HELP', 'popup_cvv_help'); // TBD
 	$this->open_pos_drawer  = defined('MODULE_PAYMENT_'.strtoupper($this->code).'_OPEN_POS_DRAWER')  ? constant('MODULE_PAYMENT_'.strtoupper($this->code).'_OPEN_POS_DRAWER')  : $this->open_pos_drawer;
 	$this->sort_order  		= defined('MODULE_PAYMENT_'.strtoupper($this->code).'_SORT_ORDER')  		? constant('MODULE_PAYMENT_'.strtoupper($this->code).'_SORT_ORDER')  	 : $this->sort_order;
 	$this->pos_gl_acct 		= defined('MODULE_PAYMENT_'.strtoupper($this->code).'_POS_GL_ACCT') 		? constant('MODULE_PAYMENT_'.strtoupper($this->code).'_POS_GL_ACCT') 	 : $this->pos_gl_acct;

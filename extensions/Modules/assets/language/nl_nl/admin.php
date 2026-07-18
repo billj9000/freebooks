@@ -25,7 +25,7 @@ define('BOX_ASSETS_ADMIN','Activa Module Admin');
 define('TEXT_NEW_USED','Nieuw/Gebruikt');
 define('TEXT_NEW_TAB', 'Nieuw Activa Tabblad');
 define('TEXT_EDIT_TAB', 'Bewerk Activa Tabblad');
-define('TEXT_NEW_FIELD', 'Nieuw Activa Veld');
+if (!defined('TEXT_NEW_FIELD')) define('TEXT_NEW_FIELD', 'Nieuw Activa Veld'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_EDIT_FIELD', 'Bewerk Activa Veld');
 
 ?>

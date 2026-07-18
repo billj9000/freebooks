@@ -53,17 +53,17 @@
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_COMPANY_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_COMPANY_NAME; ?></td>
-	<td><?php echo html_input_field('company_name', $_POST['company_name']); ?></td>
+	<td><?php echo html_input_field('company_name', $_POST['company_name'] ?? ''); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_INSTALL_DEMO_DATA; ?></td>
-	<td><?php echo html_pull_down_menu('company_demo', $sel_yes_no, $_POST['company_demo'] ? $_POST['company_demo'] : 0); ?></td>
+	<td><?php echo html_pull_down_menu('company_demo', $sel_yes_no, $_POST['company_demo'] ?? 0); ?></td>
    </tr>
-   
+
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_ADMIN_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_USER_NAME; ?></td>
-	<td><?php echo html_input_field('user_username', $_POST['user_username']); ?></td>
+	<td><?php echo html_input_field('user_username', $_POST['user_username'] ?? ''); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_USER_PASSWORD; ?></td>
@@ -75,36 +75,36 @@
    </tr>
    <tr>
 	<td><?php echo TEXT_USER_EMAIL; ?></td>
-	<td><?php echo html_input_field('user_email', $_POST['user_email']); ?></td>
+	<td><?php echo html_input_field('user_email', $_POST['user_email'] ?? ''); ?></td>
    </tr>
 
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_SRVR_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_HTTP_SRVR; ?></td>
-	<td><?php echo html_input_field('srvr_http', $_POST['srvr_http'] ? $_POST['srvr_http'] : $srvr_http); ?></td>
+	<td><?php echo html_input_field('srvr_http', $_POST['srvr_http'] ?? $srvr_http); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_USE_SSL; ?></td>
-	<td><?php echo html_pull_down_menu('use_ssl', $sel_yes_no, $_POST['use_ssl'] ? $_POST['use_ssl'] : 0); ?></td>
+	<td><?php echo html_pull_down_menu('use_ssl', $sel_yes_no, $_POST['use_ssl'] ?? 0); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_HTTPS_SRVR; ?></td>
-	<td><?php echo html_input_field('srvr_https', $_POST['srvr_https'] ? $_POST['srvr_https'] : $srvr_https); ?></td>
+	<td><?php echo html_input_field('srvr_https', $_POST['srvr_https'] ?? $srvr_https); ?></td>
    </tr>
 
 <?php if (!getenv('DB_HOST')): ?>
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_DB_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_DB_HOST; ?></td>
-	<td><?php echo html_input_field('db_host', $_POST['db_host'] ?: 'localhost'); ?></td>
+	<td><?php echo html_input_field('db_host', $_POST['db_host'] ?? 'localhost'); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_DB_NAME; ?></td>
-	<td><?php echo html_input_field('db_name', $_POST['db_name']); ?></td>
+	<td><?php echo html_input_field('db_name', $_POST['db_name'] ?? ''); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_DB_USER; ?></td>
-	<td><?php echo html_input_field('db_username', $_POST['db_username']); ?></td>
+	<td><?php echo html_input_field('db_username', $_POST['db_username'] ?? ''); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_DB_PASSWORD; ?></td>
@@ -112,18 +112,18 @@
    </tr>
    <tr>
 	<td><?php echo TEXT_DB_PREFIX; ?></td>
-	<td><?php echo html_input_field('db_prefix', $_POST['db_prefix']); ?></td>
+	<td><?php echo html_input_field('db_prefix', $_POST['db_prefix'] ?? ''); ?></td>
    </tr>
 <?php endif; ?>
 
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_FISCAL_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_FY_MONTH_INFO; ?></td>
-	<td><?php echo html_pull_down_menu('fy_month', $sel_fy_month, $_POST['fy_month'] ? $_POST['fy_month'] : '01'); ?></td>
+	<td><?php echo html_pull_down_menu('fy_month', $sel_fy_month, $_POST['fy_month'] ?? '01'); ?></td>
    </tr>
    <tr>
 	<td><?php echo TEXT_FY_YEAR_INFO; ?></td>
-	<td><?php echo html_pull_down_menu('fy_year', $sel_fy_year, $_POST['fy_year'] ? $_POST['fy_year'] : date('Y')); ?></td>
+	<td><?php echo html_pull_down_menu('fy_year', $sel_fy_year, $_POST['fy_year'] ?? date('Y')); ?></td>
    </tr>
 
    <tr>

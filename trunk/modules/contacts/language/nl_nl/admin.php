@@ -19,9 +19,9 @@ define('COST_TYPE_MAT','Materialen');
 define('COST_TYPE_CNT','Aannemers');
 define('COST_TYPE_EQT','Gereedschap');
 define('COST_TYPE_OTH','Overige');
-define('TEXT_CUSTOMER','Klant');
-define('TEXT_VENDOR','Leverancier');
-define('TEXT_EMPLOYEE','Medewerker');
+if (!defined('TEXT_CUSTOMER')) define('TEXT_CUSTOMER','Klant'); // also defined in this module's menu.php, loaded first
+if (!defined('TEXT_VENDOR')) define('TEXT_VENDOR','Leverancier'); // also defined in this module's menu.php, loaded first
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Medewerker'); // also defined in this module's menu.php, loaded first
 define('TEXT_CONTACT_TYPE','Contact Type');
 define('NEXT_CUST_ID_NUM_DESC','Volgende Klant ID');
 define('NEXT_VEND_ID_NUM_DESC','Volgende Leverancier ID');

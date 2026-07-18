@@ -328,7 +328,7 @@ function save_report($report, $rID = '', $save_path = PF_DIR_MY_REPORTS) {
 	  }
 	}
 	$parent_id = $result->fields['id'];
-	if ($report->standard_report == '1') $report->standard_report = 's';
+	if (isset($report->standard_report) && $report->standard_report == '1') $report->standard_report = 's';
 	$sql_array = array(
 	  'parent_id' => $parent_id,
 	  'doc_type'  => isset($report->standard_report) ? $report->standard_report : 's',

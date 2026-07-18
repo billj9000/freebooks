@@ -508,12 +508,14 @@ function csv_explode($str, $delim = ',', $enclose = '"', $preserve = false){
 	  return;
 	}
 	// First check to see if inventory field table is synced with actual inventory table
+	$table_fields = array();
 	$temp = $db->Execute("describe " . $db_table);
 	while (!$temp->EOF) {
 		$table_fields[]=$temp->fields['Field'];
 		$temp->MoveNext();
 	}
 	sort($table_fields);
+	$field_list = array(); // stays empty when TABLE_EXTRA_FIELDS has no rows yet for this module (e.g. a fresh install)
 	$temp = $db->Execute("select field_name from " . TABLE_EXTRA_FIELDS . " where module_id = '$module' order by field_name");
 	while (!$temp->EOF) {
 		$field_list[]=$temp->fields['field_name'];
@@ -521,7 +523,7 @@ function csv_explode($str, $delim = ',', $enclose = '"', $preserve = false){
 	}
 	$needs_sync = false;
 	foreach ($table_fields as $key=>$value) {
-		if ($value <> $field_list[$key]) {
+		if ($value <> ($field_list[$key] ?? null)) {
 			$needs_sync = true;
 			break;
 		}

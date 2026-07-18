@@ -17,9 +17,14 @@
 //  Path: /modules/install/language/en_us/language.php
 //
 
-define('LANGUAGE','English (US)');
-define('HTML_PARAMS','lang="en-US" xml:lang="en-US"');
-define('CHARSET', 'UTF-8');
+// HTML_PARAMS and CHARSET intentionally not defined here — they're also
+// defined (identically) by modules/phreedom/language/en_us/language.php,
+// which install/pages/main/pre_process.php loads immediately after this file.
+// The LANGUAGE define below is left commented out rather than deleted, for
+// the same reason, but install/functions/install.php reads this file as raw
+// text to build the welcome page's language selector, so its exact text
+// (not a paraphrase) must stay present. Do not remove or reword this line.
+// define('LANGUAGE','English (US)');
 // template_welcome
 define('LANGUAGE_TEXT','Available Installation Languages: ');
 define('TITLE_WELCOME','Welcome - PhreeBooks Accounting');
@@ -57,7 +62,8 @@ define('INSTALL_ERROR_FTP','Your servers php application was installed without F
 define('INSTALL_ERROR_INCLUDES_DIR','The directory /includes is not writeable. The installer needs access to this directory to create the configuration file.');
 define('INSTALL_ERROR_MY_FILES_DIR','The directory /my_files is not writeable. The installer needs access to this directory to store your company files.');
 define('TEXT_RECHECK','Re-check');
-define('TEXT_INSTALL','Install');
+// TEXT_INSTALL intentionally not defined here — see note near the top of this
+// file; modules/phreedom/language/en_us/language.php also defines it.
 // template_install
 define('TITLE_INSTALL','Install - PhreeBooks Accounting');
 define('MSG_INSTALL_INTRO','Please enter some information about your company, adminstrator, web server and database.');

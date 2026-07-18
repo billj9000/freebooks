@@ -16,6 +16,10 @@
 // +-----------------------------------------------------------------+
 //  Path: /install/pages/main/pre_process.php
 //
+// application_top.php normally defines this as its very first line; install
+// bypasses that bootstrap, but messageStack's debug info (common_classes.php)
+// still expects it to be set.
+define('PAGE_EXECUTION_START_TIME', microtime(true));
 session_start();
 /**************  include page specific files    *********************/
 // calculate server path info
@@ -30,31 +34,51 @@ define('DIR_FS_ADMIN', $dir_root);
 define('DB_TYPE','mysql');
 define('DEFAULT_LANGUAGE','en_us');
 define('PATH_TO_MY_FILES','my_files/'); // for now since it is in the release
+define('DIR_WS_MY_FILES', PATH_TO_MY_FILES);
 define('DIR_FS_MODULES','../modules/');
 define('DIR_FS_MY_FILES','../' . PATH_TO_MY_FILES);
+// application_top.php normally defines this; phreedom/config.php's $mainmenu
+// array (built during the 'install' action, below) depends on it.
+define('FILENAME_DEFAULT', 'index');
 // Set the default chart to load
 $default_chart = DIR_FS_MODULES . 'phreebooks/language/en_us/charts/USA_Retail.xml';
 
 require_once('functions/install.php');
-$lang = $_GET['lang'] ? $_GET['lang'] : DEFAULT_LANGUAGE;
+$lang = !empty($_GET['lang']) ? $_GET['lang'] : DEFAULT_LANGUAGE;
 $_SESSION['language'] = $lang;
 install_pull_language($lang);
 install_lang('phreedom',  $lang, 'language'); // install general language file
 install_lang('phreeform', $lang, 'language'); // install general language file
 require_once('defaults.php');
 require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
+// PDF_APP is normally seeded into pb_configuration and turned into a constant
+// by application_top.php's config bootstrap, which hasn't run yet at install
+// time. Default it the same way phreeform/classes/install.php seeds it.
+if (!defined('PDF_APP')) define('PDF_APP', 'TCPDF');
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
+// common_functions.php declares a class implementing PHPMailer's
+// OAuthTokenProvider interface, so the Composer autoloader must be available
+// before it's required — application_top.php normally does this, but install
+// bypasses that bootstrap. Same guarded require api.php/cron scripts use.
+if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
 require_once('../includes/common_functions.php');
 require_once('../includes/common_classes.php');
 require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 /**************   page specific initialization  *************************/
+// DEBUG is normally seeded into pb_configuration (see phreedom/classes/install.php)
+// and turned into a constant by application_top.php's config bootstrap, which
+// hasn't run yet at install time. The 'install' action below checks it directly.
+if (!defined('DEBUG')) define('DEBUG', '0');
+// Same reasoning as DEBUG above — messageStack::add()'s 'success' branch
+// checks this directly, and it's normally seeded via pb_configuration too.
+if (!defined('HIDE_SUCCESS_MESSAGES')) define('HIDE_SUCCESS_MESSAGES', '0');
 $error   = false;
 $caution = false;
 $messageStack = new messageStack();
 /***************   act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? 'welcome') {
 	default:
 	case 'welcome':
 		if (isset($_POST['license_consent']) && $_POST['license_consent'] == 'disagree') {
@@ -107,10 +131,6 @@ switch ($_REQUEST['action']) {
 		if (!function_exists('xml_parser_create')) {
 			$caution = $messageStack->add(INSTALL_ERROR_XML, 'caution');
 		}
-		//Check for FTP support built in to PHP (for manual sending of configure.php files to server if applicable)
-		if (@!extension_loaded('ftp')) {
-			$caution = $messageStack->add(INSTALL_ERROR_FTP, 'caution');
-		}
 		// check for /includes writeable
 		if (!is_writable('../includes')) {
 			$error = $messageStack->add(INSTALL_ERROR_INCLUDES_DIR, 'error');
@@ -142,7 +162,7 @@ switch ($_REQUEST['action']) {
 		$use_ssl         = $_POST['use_ssl'] ? 'true' : 'false';
 		$srvr_https      = db_prepare_input($_POST['srvr_https']);
 		$db_host         = getenv('DB_HOST')     ?: db_prepare_input($_POST['db_host']);
-		$db_prefix       = db_prepare_input($_POST['db_prefix']);
+		$db_prefix       = db_prepare_input($_POST['db_prefix'] ?? '');
 		$db_name         = getenv('DB_NAME')     ?: db_prepare_input($_POST['db_name']);
 		$db_username     = getenv('DB_USER')     ?: db_prepare_input($_POST['db_username']);
 		$db_password     = getenv('DB_PASSWORD') ?: db_prepare_input($_POST['db_password']);
@@ -164,6 +184,18 @@ switch ($_REQUEST['action']) {
 
 		// define some things so the install can use existing functions
 		define('DB_PREFIX', $db_prefix);
+		// HTTP_SERVER/HTTPS_SERVER are normally read from includes/configure.php,
+		// which this same action only writes near the end (see below) — but
+		// html_href_link(), called while building each module's menu further
+		// down, needs them now. Define them early from the same form values
+		// that get written into configure.php later.
+		define('HTTP_SERVER',  $srvr_http);
+		define('HTTPS_SERVER', $srvr_https);
+		// Same reasoning as above: normally computed by application_top.php (or
+		// the 'open_company' action once configure.php exists) from
+		// ENABLE_SSL_ADMIN/HTTPS_SERVER/HTTP_SERVER. $use_ssl already holds the
+		// same 'true'/'false' value that gets written as ENABLE_SSL_ADMIN.
+		define('DIR_WS_FULL_PATH', ($use_ssl == 'true' ? $srvr_https : $srvr_http) . DIR_WS_ADMIN);
 		$_SESSION['company']  = $db_name;
 		$_SESSION['language'] = $lang;
 		// create the company directory
@@ -201,6 +233,15 @@ switch ($_REQUEST['action']) {
 	  	$contents = scandir(DIR_FS_MODULES);
 		// fake the install status of all modules found to 1, so all gets installed
 	  	foreach ($contents as $entry) define('MODULE_' . strtoupper($entry) . '_STATUS','1');
+	  	// phreedom is excluded from the module loop below (its config.php is
+	  	// required here instead), so its own menu/admin language files — which
+	  	// config.php's $mainmenu array depends on (e.g. TEXT_HOME) — need to be
+	  	// loaded explicitly first. phreedom/config.php also references two menu
+	  	// headings (Banking, GL) that live in phreebooks' own menu.php, since it
+	  	// assembles the overall top-level menu structure for the whole app.
+	  	install_lang('phreedom', $lang, 'menu');
+	  	install_lang('phreedom', $lang, 'admin');
+	  	install_lang('phreebooks', $lang, 'menu');
 	  	require_once (DIR_FS_MODULES . 'phreedom/config.php'); // needed here to avoid breaking menu array
 	  	foreach ($contents as $entry) {
 	  		// load the configuration files to load version info
