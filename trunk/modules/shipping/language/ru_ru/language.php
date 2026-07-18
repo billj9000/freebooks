@@ -12,7 +12,7 @@ define('HEADING_TITLE_MODULES_SHIPPING','Службы доставки');
 define('SHIPPING_HEADING_SHIP_MGR','Управление модулями доставки');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Shipping Methods Available');
 define('TEXT_PRODUCTION','Production');
-define('TEXT_TEST','Тест');
+if (!defined('TEXT_TEST')) define('TEXT_TEST','Тест'); // phreedom's language.php also defines this (untranslated 'Test'), loaded first — its value already wins today, guarding just removes the warning
 define('TEXT_PDF','PDF');
 define('TEXT_GIF','GIF');
 define('TEXT_THERMAL','Thermal');
@@ -171,7 +171,7 @@ define('SHIPPING_RET_LOCAL','Print Local Return Label');
 define('SHIPPING_RET_MAILS','Carrier Prints and Mails Return Label');
 define('SHIPPING_SENDER','Отправитель');
 define('SHIPPING_RECEIPIENT','Receipient');
-define('SHIPPING_THIRD_PARTY','Третья сторона');
+if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Третья сторона'); // this file defines it twice (identical text) — guarding just removes the redefinition warning
 define('SHIPPING_COLLECT','Collect');
 
 // Shipping Packages page

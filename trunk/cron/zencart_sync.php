@@ -164,6 +164,12 @@ if (file_exists(DIR_FS_MODULES . 'shipping/language/en_us/language.php')) {
     require_once(DIR_FS_MODULES . 'shipping/language/en_us/language.php');
 }
 if (file_exists(DIR_FS_MODULES . 'shipping/defaults.php')) {
+    // shipping/defaults.php builds paths from DIR_FS_WORKING, which index.php
+    // normally sets to the currently-active module's directory. Standalone
+    // scripts never go through index.php, so set it here for shipping's sake
+    // — the later "ZenCart module" section below uses a local variable
+    // instead of this constant, so there's no redefinition conflict.
+    if (!defined('DIR_FS_WORKING')) define('DIR_FS_WORKING', DIR_FS_MODULES . 'shipping/');
     require_once(DIR_FS_MODULES . 'shipping/defaults.php');
 }
 
@@ -237,13 +243,15 @@ define('DEF_GL_ACCT',     AR_DEFAULT_GL_ACCT);
 define('DEF_INV_GL_ACCT', AR_DEF_GL_SALES_ACCT);
 
 // ZenCart module
-define('DIR_FS_WORKING', DIR_FS_MODULES . 'zencart/');
-if (!file_exists(DIR_FS_WORKING . 'functions/zencart.php')) {
+// A local variable, not DIR_FS_WORKING — that constant is already set (to
+// shipping/'s directory) further up and PHP constants can't be redefined.
+$dir_fs_zencart = DIR_FS_MODULES . 'zencart/';
+if (!file_exists($dir_fs_zencart . 'functions/zencart.php')) {
     fwrite(STDERR, "ZenCart module not installed in trunk/modules/zencart/. Aborting.\n");
     exit(1);
 }
-require_once(DIR_FS_WORKING . 'functions/zencart.php');
-require_once(DIR_FS_WORKING . 'classes/zencart.php');
+require_once($dir_fs_zencart . 'functions/zencart.php');
+require_once($dir_fs_zencart . 'classes/zencart.php');
 
 // ─── Helper: convert a country value to a 3-letter ISO code (FreeBooks format) ─
 // Accepts ISO-2 ('US'), ISO-3 ('USA'), or full names ('United States').

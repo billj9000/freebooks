@@ -24,7 +24,7 @@ define('SHIPPING_HEADING_SHIP_MGR','Shipping Module Manager');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Shipping Methods Available');
 // General Defines
 define('TEXT_PRODUCTION','Production');
-define('TEXT_TEST','Test');
+if (!defined('TEXT_TEST')) define('TEXT_TEST','Test'); // phreedom's language.php also defines this, loaded first by every entry point that uses both
 define('TEXT_PDF','PDF');
 define('TEXT_GIF','GIF');
 define('TEXT_THERMAL','Thermal');
@@ -305,6 +305,6 @@ define('SHIPPING_LABEL_EMAIL_ERROR',   'Failed to send email. Please check your 
 define('SHIPPING_LABEL_EMAIL_SUBJECT', 'Shipping Label');
 define('SHIPPING_LABEL_EMAIL_BODY',    'Please find your shipping label attached.');
 define('SHIPPING_RECEIPIENT','Receipient');
-define('SHIPPING_THIRD_PARTY','Third Party');
+if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Third Party'); // already defined above ('Recpt/Third Party Acct #', which wins) — this file defines it twice
 define('SHIPPING_COLLECT','Collect');
 ?>

@@ -12,7 +12,7 @@ define('HEADING_TITLE_MODULES_SHIPPING','Verzending Services');
 define('SHIPPING_HEADING_SHIP_MGR','Verzending Module Manager');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Beschikbare Verzend Methodes');
 define('TEXT_PRODUCTION','Productie');
-define('TEXT_TEST','Test');
+if (!defined('TEXT_TEST')) define('TEXT_TEST','Test'); // phreedom's language.php also defines this, loaded first by every entry point that uses both
 define('TEXT_PDF','PDF');
 define('TEXT_GIF','GIF');
 define('TEXT_THERMAL','Thermisch');
@@ -186,7 +186,7 @@ define('SHIPPING_RET_LOCAL','Print Locale Retour Label');
 define('SHIPPING_RET_MAILS','Koerier Print en mailt labels retour');
 define('SHIPPING_SENDER','Zender');
 define('SHIPPING_RECEIPIENT','Ontvanger');
-define('SHIPPING_THIRD_PARTY','Ontv/Derde Acct #');
+if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Ontv/Derde Acct #'); // this file defines it twice (identical text) — guarding just removes the redefinition warning
 define('SHIPPING_COLLECT','Verzamel');
 
 // Shipping Packages page

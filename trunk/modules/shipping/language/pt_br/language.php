@@ -134,7 +134,7 @@ define('TEXT_PAGKAGE_DEFAULTS','Padrão Embalagem');
 define('TEXT_THERMAL','Térmica');
 define('TEXT_GIF','GIF');
 define('TEXT_PDF','PDF');
-define('TEXT_TEST','Teste');
+if (!defined('TEXT_TEST')) define('TEXT_TEST','Teste'); // phreedom's language.php also defines this, loaded first by every entry point that uses both
 define('TEXT_PRODUCTION','Produção');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Métodos Entrega Disponíveis');
 define('SHIPPING_HEADING_SHIP_MGR','Módulo Gerenciamento Entrega');
@@ -186,7 +186,7 @@ define('SHIPPING_RET_LOCAL','Imprimir Etiqueta Retorno Local');
 define('SHIPPING_RET_MAILS','Transportador Imprime e Envia Etiqueta Retorno');
 define('SHIPPING_SENDER','Remetente');
 define('SHIPPING_RECEIPIENT','Destinatário');
-define('SHIPPING_THIRD_PARTY','Terceiro');
+if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Terceiro'); // already defined above ('Recibo/Terceiro Conta #', which wins) — this file defines it twice
 define('SHIPPING_COLLECT','Coleta');
 
 // Shipping Packages page
