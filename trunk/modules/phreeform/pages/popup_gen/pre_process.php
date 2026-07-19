@@ -280,7 +280,10 @@ if (!$error) switch ($_REQUEST['action']) {
 	// if we are here, delivery method was email
 	if (!$error && $output) {
 		$temp_file = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/' . $output['filename'];
-		$handle = fopen($temp_file, 'w');
+		if (!$handle = @fopen($temp_file, 'w')) {
+		  $messageStack->add(sprintf(PHREEFORM_WRITE_ERROR, $temp_file), 'error');
+		  break;
+		}
 		fwrite($handle, $output['pdf']);
 		fclose($handle);
 		$block = array();

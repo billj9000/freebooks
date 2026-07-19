@@ -1,6 +1,18 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /oauth2_callback.php
 //
@@ -74,8 +86,15 @@ if (!$client_id || !$client_secret) {
   oc_die('Client ID or secret not saved yet. Save the form before authorising.');
 }
 
-// Build redirect_uri (must match what was sent to the provider)
-$redirect_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
+// Build redirect_uri (must match what was sent to the provider). Must also check
+// X-Forwarded-Proto: Fly (and most reverse proxies) terminate TLS at the edge and forward
+// internally over plain HTTP, so $_SERVER['HTTPS'] alone is unset even though the browser's
+// original request — and the redirect_uri the JS sent to the provider using
+// window.location.protocol — was https. Missing this produced an http:// mismatch against
+// the https:// registered with the provider (AADSTS500112 on Microsoft).
+$is_https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+  || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+$redirect_uri = ($is_https ? 'https' : 'http')
   . '://' . $_SERVER['HTTP_HOST']
   . rtrim(dirname($_SERVER['PHP_SELF']), '/') . '/oauth2_callback.php';
 
