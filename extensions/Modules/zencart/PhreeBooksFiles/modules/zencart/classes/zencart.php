@@ -52,7 +52,7 @@ class zencart {
             'productZencartWidth'     => (float)($inv['item_width'] ?? 0),
             'productZencartHeight'    => (float)($inv['item_height'] ?? 0),
             'productZencartReadyToShip' => !empty($inv['ships_in_own_box']) ? 1 : 0,
-            'quantity'            => (float)($inv['quantity_on_hand'] ?? 0), // overridden below for masters
+            'quantity'            => max(0.0, (float)($inv['quantity_on_hand'] ?? 0) - (float)($inv['quantity_on_sales_order'] ?? 0)), // overridden below for masters
             'dateAvailable'       => $inv['creation_date'] ?? date('Y-m-d'),
             'dateUpdated'         => (($inv['last_update'] ?? '') >= ($inv['last_journal_date'] ?? ''))
                                       ? $inv['last_update'] : $inv['last_journal_date'],
@@ -130,9 +130,9 @@ class zencart {
             $attrs = zencart_build_attributes($id);
             if ($attrs !== null) {
                 $product['attributes'] = $attrs;
-                // Replace product-level quantity with sum of all child on-hand quantities
+                // Replace product-level quantity with sum of all child available (on-hand less reserved) quantities
                 $sum_row = $db->Execute(
-                    "SELECT SUM(quantity_on_hand) AS total FROM " . TABLE_INVENTORY
+                    "SELECT SUM(GREATEST(quantity_on_hand - quantity_on_sales_order, 0)) AS total FROM " . TABLE_INVENTORY
                     . " WHERE inventory_type = 'mi'"
                     . "   AND sku LIKE '" . db_input($inv['sku']) . "-%'"
                 );
@@ -148,7 +148,8 @@ class zencart {
         return zencart_api_call('updateProducts', ['products' => [$product]]) !== false;
     }
 
-    // Push current quantity_on_hand and retail price for all catalog=1 products.
+    // Push current available quantity (quantity_on_hand less quantity_on_sales_order) and
+    // retail price for all catalog=1 products.
     // Items with quantity-tiered price sheets are uploaded individually via uploadProduct()
     // so ZenCart receives the full tier structure. All other items go through the bulk
     // updateProductsQty endpoint.
@@ -175,7 +176,7 @@ class zencart {
         }
 
         $result = $db->Execute(
-            "SELECT id, sku, inventory_type, ProductModel, quantity_on_hand, item_cost, full_price"
+            "SELECT id, sku, inventory_type, ProductModel, quantity_on_hand, quantity_on_sales_order, item_cost, full_price"
             . " FROM " . TABLE_INVENTORY . " WHERE catalog = '1'"
         );
         if ($result->RecordCount() == 0) {
@@ -242,7 +243,7 @@ class zencart {
 
             $bulk_products[] = [
                 'products_model' => $model,
-                'quantity'       => (float)$result->fields['quantity_on_hand'],
+                'quantity'       => max(0.0, (float)$result->fields['quantity_on_hand'] - (float)$result->fields['quantity_on_sales_order']),
                 'price'          => $price,
             ];
             $result->MoveNext();
