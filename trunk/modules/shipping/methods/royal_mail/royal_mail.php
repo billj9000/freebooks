@@ -335,6 +335,9 @@ class royal_mail {
     return array(array(
       'ref_id'        => $sInfo->purchase_invoice_id,
       'tracking'      => $trackingNumber ?: $orderIdentifier,
+      // Click & Drop's own order id — always required by cancelShipment()'s
+      // DELETE /orders/{id} call, which does not accept a tracking number.
+      'order_id'      => $orderIdentifier,
       'zone'          => '',
       'book_cost'     => 0,
       'net_cost'      => 0,

@@ -34,8 +34,9 @@
 // 3.76 => adds currency_code column to inventory_purchase
 // 3.77 => adds ships_in_own_box flag to inventory
 // 3.78 => adds notes column to journal_main
+// 3.79 => adds carrier_order_id column to shipping_log
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.78);
+define('MODULE_PHREEBOOKS_VERSION',    3.79);
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);

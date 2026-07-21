@@ -37,15 +37,18 @@ if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'delete':
-    $row = $db->Execute("select carrier, ship_date, tracking_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+    $row = $db->Execute("select carrier, ship_date, tracking_id, carrier_order_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
     if ($row->RecordCount() == 0) { $messageStack->add(SHIPPING_DELETE_ERROR, 'error'); break; }
     $del_carrier  = $row->fields['carrier'];
     $del_tracking = $row->fields['tracking_id'];
+    // Some carriers (e.g. Royal Mail Click & Drop) cancel by a different id than
+    // the tracking number shown to the user — use it when one was recorded.
+    $del_cancel_id = $row->fields['carrier_order_id'] ?: $del_tracking;
     $del_date     = substr($row->fields['ship_date'], 0, 10);
     load_specific_method('shipping', $del_carrier);
     $carrier_obj = new $del_carrier();
     if (method_exists($carrier_obj, 'cancelShipment')) {
-      if (!$carrier_obj->cancelShipment($del_tracking)) break; // error already on messageStack
+      if (!$carrier_obj->cancelShipment($del_cancel_id)) break; // error already on messageStack
     }
     $label_path = SHIPPING_DEFAULT_LABEL_DIR . $del_carrier . '/' . str_replace('-', '/', $del_date) . '/';
     foreach (glob($label_path . $del_tracking . '*.pdf') ?: array() as $f) @unlink($f);

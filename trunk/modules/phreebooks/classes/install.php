@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -378,6 +379,9 @@ class phreebooks_admin {
 	}
 	if (MODULE_PHREEBOOKS_STATUS < 3.78) {
 		include_once(DIR_FS_MODULES . 'phreebooks/updates/R38toR39.php');
+	}
+	if (MODULE_PHREEBOOKS_STATUS < 3.79) {
+		include_once(DIR_FS_MODULES . 'phreebooks/updates/R39toR40.php');
 	}
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));

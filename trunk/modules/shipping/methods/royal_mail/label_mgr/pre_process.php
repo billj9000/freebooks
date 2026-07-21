@@ -96,16 +96,17 @@ switch ($_REQUEST['action']) {
       $labels_array = array();
       foreach ($result as $pkg_result) {
         $sql_array = array(
-          'ref_id'          => $pkg_result['ref_id'],
-          'shipment_id'     => $shipment_num,
-          'carrier'         => $shipping_module,
-          'method'          => $sInfo->ship_method,
-          'ship_date'       => $sInfo->ship_date . ' ' . date('H:i:s'),
-          'deliver_date'    => $pkg_result['delivery_date'],
-          'tracking_id'     => $pkg_result['tracking'],
-          'cost'            => $pkg_result['net_cost'],
-          'recipient_name'  => $sInfo->ship_primary_name ?? '',
-          'recipient_email' => $sInfo->ship_email ?? '',
+          'ref_id'           => $pkg_result['ref_id'],
+          'shipment_id'      => $shipment_num,
+          'carrier'          => $shipping_module,
+          'method'           => $sInfo->ship_method,
+          'ship_date'        => $sInfo->ship_date . ' ' . date('H:i:s'),
+          'deliver_date'     => $pkg_result['delivery_date'],
+          'tracking_id'      => $pkg_result['tracking'],
+          'cost'             => $pkg_result['net_cost'],
+          'recipient_name'   => $sInfo->ship_primary_name ?? '',
+          'recipient_email'  => $sInfo->ship_email ?? '',
+          'carrier_order_id' => $pkg_result['order_id'] ?? '',
         );
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
         $labels_array[] = $pkg_result['tracking'];
