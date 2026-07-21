@@ -32,7 +32,6 @@ define('TEXT_LOGOUT','Log Out');
 define('TEXT_HOME','Home');
 define('CHARSET','windows-1252');
 define('HTML_PARAMS','lang=\"pt-BR\" xml:lang=\"pt-BR\"');
-define('TEXT_PHREEDOM_INFO','EDS Brasil Business Solutions');
 define('TITLE','EDS Brasil ERP');
 define('LANGUAGE','Portugues (BR)');
 define('BOX_GENERAL_ADMIN','Configurações Gerais');

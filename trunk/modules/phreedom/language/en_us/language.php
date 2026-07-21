@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,8 +19,8 @@
 //
 // Locale specification
 define('LANGUAGE','English (US)');
-define('TITLE', 'PhreeBooks ERP');
-define('TEXT_PHREEDOM_INFO','PhreeSoft Small Business Solutions');
+define('TITLE', 'FreeBooks');
+define('TITLE_LOGIN', 'FreeBooks Login');
 define('HTML_PARAMS','lang="en-US" xml:lang="en-US"');
 define('CHARSET', 'UTF-8');
 // Page Page titles, toolbar commmon, headers and footers

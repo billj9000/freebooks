@@ -272,7 +272,6 @@ define('TEXT_EXTRA_TABS','Abas Customizadas');
 define('CHARSET','utf-8');
 define('TEXT_DEFAULT_GL_ACCOUNTS','Contas Contábeis Padrão');
 define('HTML_PARAMS','lang=\"pt-BR\" xml:lang=\"pt-BR\"');
-define('TEXT_PHREEDOM_INFO','EDS Brasil Business Solutions');
 define('TITLE','EDS Brasil ERP');
 define('LANGUAGE','Portugues (BR)');
 define('GEN_LOG_LOGIN','User Login -> ');

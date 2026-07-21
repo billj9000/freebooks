@@ -9,8 +9,8 @@
 // Path: //modules/phreedom/language/ru_ru/language.php
 
 define('LANGUAGE','Русский (RU)');
-define('TITLE','PhreeBooks');
-define('TEXT_PHREEDOM_INFO','PhreeSoft Small Business Solutions');
+define('TITLE','FreeBooks');
+define('TITLE_LOGIN','FreeBooks Login');
 define('HTML_PARAMS','lang=');
 define('CHARSET','UTF-8');
 define('TEXT_INFO_SEARCH_PERIOD_FILTER','Accounting Period: ');

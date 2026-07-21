@@ -9,7 +9,6 @@
 // Path: /modules/phreedom/language/pt_br/ori_pt_br/admin.php
 
 define('HTML_PARAMS','lang=\"pt-BR\" xml:lang=\"pt-BR\"');
-define('TEXT_PHREEDOM_INFO','EDS Brasil Business Solutions');
 define('TITLE','EDS Brasil ERP');
 define('LANGUAGE','Portugues (BR)');
 define('CHARSET','utf-8');

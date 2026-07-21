@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -258,7 +259,7 @@ switch ($_REQUEST['action']) {
 	$include_template  = $_REQUEST['action'] == 'pw_lost_req' ? 'template_pw_lost.php' : 'template_login.php';
   	$include_header    = false;
 	$include_footer    = false;
-	define('PAGE_TITLE', TITLE);
+	define('PAGE_TITLE', TITLE_LOGIN);
     break;
   case 'crash':
 	$include_template  = 'template_crash.php';
