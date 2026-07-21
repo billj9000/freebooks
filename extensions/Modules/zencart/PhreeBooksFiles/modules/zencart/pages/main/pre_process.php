@@ -50,6 +50,9 @@ switch ($_REQUEST['action']) {
     if ($upXML->uploadProduct($id)) gen_add_audit_log(ZENCART_UPLOAD_PRODUCT, $upXML->sku);
     break;
   case 'bulkupload':
+    // uploads every catalog product one HTTP call at a time; can run well past
+    // the default 60s max_execution_time on large catalogs
+    if (ini_get('max_execution_time') < 20000) set_time_limit(20000);
     $upXML     = new bulk_upload();
     $inc_image = isset($_POST['include_images']);
     if ($upXML->bulkUpload($inc_image)) {

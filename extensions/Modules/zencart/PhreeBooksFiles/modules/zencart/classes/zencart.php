@@ -23,12 +23,22 @@ class zencart {
     // Upload a single inventory product to ZenCart via the REST API.
     public function uploadProduct(int $id, bool $inc_image = true): bool
     {
+        $product = $this->buildProductPayload($id, $inc_image);
+        if ($product === null) return false;
+        return zencart_api_call('updateProducts', ['products' => [$product]]) !== false;
+    }
+
+    // Builds the ZenCart 'products' payload entry for one inventory item, without sending it —
+    // lets callers (e.g. bulk_upload.php) batch several products into one updateProducts call.
+    // Returns null (with $messageStack populated) if the item can't be built.
+    public function buildProductPayload(int $id, bool $inc_image = true): ?array
+    {
         global $db, $currencies, $messageStack;
 
         $result = $db->Execute("SELECT * FROM " . TABLE_INVENTORY . " WHERE id = " . $id);
         if ($result->RecordCount() <> 1) {
             $messageStack->add(ZENCART_INVALID_SKU, 'error');
-            return false;
+            return null;
         }
         $inv = $result->fields;
         $this->sku = $inv['sku'];
@@ -37,7 +47,8 @@ class zencart {
             'products_model'      => !empty($inv['ProductModel']) ? $inv['ProductModel'] : $inv['sku'],
             'languageCode'        => 'en',
             'productType'         => 'Product - General',
-            'manufacturer'        => $inv['manufacturer'] ?? '',
+            // ZenCart's manufacturers_name column is varchar(32); FreeBooks' is varchar(64)
+            'manufacturer'        => mb_substr($inv['manufacturer'] ?? '', 0, 32),
             'productCategory'     => $inv['category_id'] ?? '',
             'productName'         => $inv['description_short'] ?? '',
             'productDescription'  => $inv['description_sales'] ?? '',
@@ -80,7 +91,7 @@ class zencart {
             );
             if ($sheet->RecordCount() == 0) {
                 $messageStack->add(ZENCART_ERROR_NO_PRICE_SHEET . $sheet_name, 'error');
-                return false;
+                return null;
             }
             $special = $db->Execute(
                 "SELECT price_levels FROM " . TABLE_INVENTORY_SPECIAL_PRICES
@@ -145,7 +156,7 @@ class zencart {
             include(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php');
         }
 
-        return zencart_api_call('updateProducts', ['products' => [$product]]) !== false;
+        return $product;
     }
 
     // Push current available quantity (quantity_on_hand less quantity_on_sales_order) and
