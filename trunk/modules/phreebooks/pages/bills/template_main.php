@@ -29,6 +29,9 @@ if (JOURNAL_ID == 18) {
 } elseif (JOURNAL_ID == 20) {
   if ($account_type != 'c') echo html_hidden_field('shipper_code', '') . chr(10);
   echo html_hidden_field('refund_payment_id', isset($order->refund_payment_id) ? $order->refund_payment_id : '') . chr(10);
+  // snapshot of the payment method refund_payment_id was looked up against; used server-side to
+  // detect if the user switched to a different method (manual refund) before submitting
+  echo html_hidden_field('refund_orig_shipper_code', !empty($order->refund_payment_id) ? $order->shipper_code : '') . chr(10);
 }
 if (!ENABLE_MULTI_BRANCH) echo html_hidden_field('store_id', '0') . chr(10);
 // payment_id dropdown: invisible, used by fillPayment() JS

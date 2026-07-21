@@ -147,7 +147,7 @@ function fillBill(xml) {
 	});
     // fix some special cases, checkboxes, and active fields
 	var shipper_code = xmlText(bill, "shipper_code");
-	if (shipper_code && journalID == '18') { // holds payment method for receipts
+	if (shipper_code && (journalID == '18' || (journalID == '20' && account_type == 'c'))) { // holds payment method for receipts and customer refunds
 	  document.getElementById('shipper_code').value = shipper_code;
 	  activateFields();
 	  var payFields = xmlText(bill, "payment_fields");

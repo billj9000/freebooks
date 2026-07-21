@@ -70,6 +70,10 @@ class banking extends journal {
 				$debit_total  += $this->add_total_journal_row('debit', $result['total'] - $result['discount']);
 				break;
 			case 20: // Cash Disbursements Journal
+				if (!empty($this->shipper_code)) { // customer refunds have a payment method; vendor bill payments don't
+					$method = load_specific_method('payment', $this->shipper_code);
+					if (class_exists($method)) $processor = new $method;
+				}
 				$result        = $this->add_item_journal_rows('debit');	// read in line items and add to journal row array
 				$debit_total   = $result['total'];
 				$credit_total  = $this->add_discount_journal_row('credit');
@@ -210,6 +214,8 @@ class banking extends journal {
 				case '20':
 				default:
 					$desc = GEN_ADM_TOOLS_J20 . '-' . TEXT_TOTAL;
+					// include the payment method's reference field(s), e.g. a Cheque/Money Order number
+					if (!empty($this->shipper_code) && isset($processor) && $processor) $desc .= ':' . $processor->payment_fields;
 			}
 			$this->journal_rows[] = array( // record for accounts receivable
 				'gl_type'              => 'ttl',

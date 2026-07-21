@@ -132,6 +132,13 @@ switch ($_REQUEST['action']) {
 	$order->payment_id          = db_prepare_input($_POST['payment_id']);
 	$order->save_payment        = isset($_POST['save_payment']) ? true : false;
 	$order->refund_payment_id   = db_prepare_input($_POST['refund_payment_id'] ?? '');
+	// if the user switched away from the payment method the refund_payment_id was looked up
+	// against, this is a manual refund (not an automatic gateway refund) - clear it so neither
+	// the validation below nor banking.php's automatic-refund logic treat it as one
+	$refund_orig_shipper_code  = db_prepare_input($_POST['refund_orig_shipper_code'] ?? '');
+	if ($order->refund_payment_id !== '' && $order->shipper_code !== $refund_orig_shipper_code) {
+	  $order->refund_payment_id = '';
+	}
 
 	// load item row data
 	$x = 1;
