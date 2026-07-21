@@ -87,6 +87,7 @@ define('SHIPPING_TEXT_BOOK_PRICE','Book Price');
 define('SHIPPING_TEXT_COST','Цена доставки');
 define('SHIPPING_TEXT_NOTES','Примечание');
 define('SHIPPING_TEXT_PRINT_LABEL','Распечатать бланк');
+define('SHIPPING_TEXT_SAVE_PRINT_LABEL','Создать отправку и распечатать бланк');
 define('SHIPPING_TEXT_CLOSE_DAY','Daily Close');
 define('SHIPPING_TEXT_DELETE_LABEL','Delete Shipment');
 define('SHIPPING_TEXT_SHIPMENT_ID','Shipment ID');

@@ -61,6 +61,7 @@ define('SHIPPING_TEXT_SHIPMENT_ID','ID Entrega');
 define('SHIPPING_TEXT_DELETE_LABEL','Remover Entrega');
 define('SHIPPING_TEXT_CLOSE_DAY','Fechamento Diário');
 define('SHIPPING_TEXT_PRINT_LABEL','Imprimir Etiqueta');
+define('SHIPPING_TEXT_SAVE_PRINT_LABEL','Criar Entrega e Imprimir Etiqueta');
 define('SHIPPING_TEXT_NOTES','Notas');
 define('SHIPPING_TEXT_COST','Custo');
 define('SHIPPING_TEXT_BOOK_PRICE','Livro Preços');

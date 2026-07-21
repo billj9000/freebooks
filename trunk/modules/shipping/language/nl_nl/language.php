@@ -87,6 +87,7 @@ define('SHIPPING_TEXT_BOOK_PRICE','Prijs boeken');
 define('SHIPPING_TEXT_COST','Kosten');
 define('SHIPPING_TEXT_NOTES','Aantekeningen');
 define('SHIPPING_TEXT_PRINT_LABEL','Print Label');
+define('SHIPPING_TEXT_SAVE_PRINT_LABEL','Zending Aanmaken en Label Afdrukken');
 define('SHIPPING_TEXT_CLOSE_DAY','Dagelijks Afsluiten');
 define('SHIPPING_TEXT_DELETE_LABEL','Verwijder verzending');
 define('SHIPPING_TEXT_SHIPMENT_ID','Verzendings ID');
