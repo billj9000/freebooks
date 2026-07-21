@@ -44,11 +44,8 @@ switch (JOURNAL_ID) {
   case 12: $toolbar->add_help('07.03.03.04'); break;
   case 13: $toolbar->add_help('07.03.03.04'); break;
   case 18:
-    $toolbar->add_icon('new', 'onclick="location.href=\''.html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;type=c&amp;jID='.JOURNAL_ID, 'SSL') . '\'"', 2);
-    $toolbar->add_help('');
-    break;
   case 20:
-    $toolbar->add_icon('new', 'onclick="location.href=\''.html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;type=v&amp;jID='.JOURNAL_ID, 'SSL') . '\'"', 2);
+    $toolbar->add_icon('new', 'onclick="location.href=\''.html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;type='.$account_type.'&amp;jID='.JOURNAL_ID, 'SSL') . '\'"', 2);
     $toolbar->add_help('');
     break;
 }
@@ -62,7 +59,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
 </div>
 <?php } ?>
 <div class="d-flex justify-content-between mb-1">
-  <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE')); ?></div>
+  <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . $page_title); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
 <table class="pkg-table table table-borderless table-hover">
@@ -98,10 +95,8 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         $link_page = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;action=edit', 'SSL');
         break;
       case 18:
-        $link_page = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;type=c&amp;action=edit', 'SSL');
-        break;
       case 20:
-        $link_page = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;type=v&amp;action=edit', 'SSL');
+        $link_page = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;type=' . $account_type . '&amp;action=edit', 'SSL');
         break;
     }
 ?>
@@ -204,7 +199,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
   </tbody>
 </table>
 <div class="d-flex justify-content-between mt-1">
-  <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE')); ?></div>
+  <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . $page_title); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
 </form>

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,6 +19,13 @@
 //
 /**************   Check user security   *****************************/
 define('JOURNAL_ID', $_GET['jID']);
+// journals 18 (Cash Receipts) and 20 (Cash Disbursements) each serve two account
+// types via the same journal_id (customer receipt/vendor refund and vendor
+// payment/customer refund, respectively); default preserves the historical
+// meaning of the existing un-typed manager links.
+if (JOURNAL_ID == 18 || JOURNAL_ID == 20) {
+  $account_type = ($_GET['type'] == 'c' || $_GET['type'] == 'v') ? $_GET['type'] : (JOURNAL_ID == 18 ? 'c' : 'v');
+}
 switch (JOURNAL_ID) {
   case  2: $security_token = SECURITY_ID_JOURNAL_ENTRY;      break;
   case  3: $security_token = SECURITY_ID_PURCHASE_QUOTE;     break;
@@ -28,8 +36,8 @@ switch (JOURNAL_ID) {
   case 10: $security_token = SECURITY_ID_SALES_ORDER;        break;
   case 12: $security_token = SECURITY_ID_SALES_INVOICE;      break;
   case 13: $security_token = SECURITY_ID_SALES_CREDIT;       break;
-  case 18: $security_token = SECURITY_ID_CUSTOMER_RECEIPTS;  break;
-  case 20: $security_token = SECURITY_ID_PAY_BILLS;          break;
+  case 18: $security_token = ($account_type == 'v') ? SECURITY_ID_VENDOR_RECEIPTS : SECURITY_ID_CUSTOMER_RECEIPTS; break;
+  case 20: $security_token = ($account_type == 'c') ? SECURITY_ID_CUSTOMER_PAYMENTS : SECURITY_ID_PAY_BILLS;       break;
   default:
     die('Bad or missing journal id found (filename: modules/phreebooks/status.php), Journal_ID needs to be passed to this script to identify the correct procedure.');
 }
@@ -74,7 +82,7 @@ switch ($_REQUEST['action']) {
 $heading_array = array(
   'post_date'           => TEXT_DATE,
   'purchase_invoice_id' => constant('ORD_HEADING_NUMBER_' . JOURNAL_ID),
-  'bill_primary_name'   => in_array(JOURNAL_ID, array(9,10,12,13,19)) ? ORD_CUSTOMER_NAME : ORD_VENDOR_NAME,
+  'bill_primary_name'   => (in_array(JOURNAL_ID, array(9,10,12,13,19)) || (in_array(JOURNAL_ID, array(18,20)) && $account_type == 'c')) ? ORD_CUSTOMER_NAME : ORD_VENDOR_NAME,
   'purch_order_id'      => TEXT_REFERENCE,
   'closed'              => TEXT_CLOSED,
   'total_amount'        => TEXT_AMOUNT,
@@ -136,11 +144,11 @@ switch (JOURNAL_ID) {
 	break;
   case 18:	// Cash Receipts Journal
 	define('POPUP_FORM_TYPE','bnk:rcpt');
-	$page_title = ORD_TEXT_18_C_WINDOW_TITLE;
+	$page_title = constant('ORD_TEXT_18_' . strtoupper($account_type) . '_WINDOW_TITLE');
 	break;
   case 20:	// Cash Distribution Journal
 	define('POPUP_FORM_TYPE','bnk:chk');
-	$page_title = ORD_TEXT_20_V_WINDOW_TITLE;
+	$page_title = constant('ORD_TEXT_20_' . strtoupper($account_type) . '_WINDOW_TITLE');
 	break;
   default:
 }
@@ -160,6 +168,11 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
 }
 
 if($_REQUEST['store_id']) $search .= " and store_id = '{$_REQUEST['store_id']}' ";
+// J18/J20 share a journal_id across two account types; restrict the list to the
+// requested type via the contact it's billed to
+if (in_array(JOURNAL_ID, array(18, 20))) {
+  $search .= " and bill_acct_id in (select id from " . TABLE_CONTACTS . " where type = '" . db_input($account_type) . "')";
+}
 // hook to add new fields to the query return results
 if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
 

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -103,7 +104,7 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	  	'order'		  => 10,
 	  	'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_18_C_WINDOW_TITLE),
 	  	'security_id' => SECURITY_ID_RECEIPTS_STATUS,
-	  	'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=18&amp;list=1', 'SSL'),
+	  	'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=18&amp;type=c&amp;list=1', 'SSL'),
 	  	'show_in_users_settings' => true,
 	  	'params'      => '',
 	);
@@ -115,7 +116,15 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 		'show_in_users_settings' => true,
 		'params'      => '',
 	);
-	
+	$mainmenu["banking"]['submenu']["receipts"]['submenu']["payments_mgr"] = array(
+		'order'		  => 20,
+		'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_20_C_WINDOW_TITLE),
+		'security_id' => SECURITY_ID_PAYMENTS_STATUS,
+		'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=20&amp;type=c&amp;list=1', 'SSL'),
+		'show_in_users_settings' => true,
+		'params'      => '',
+	);
+
 	// banking vendors
 	$mainmenu["banking"]['submenu']["vendor_payments"] = array(
   		'order'		  => 25,
@@ -146,7 +155,7 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	    'order'		  => 25,
 	    'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_20_V_WINDOW_TITLE),
 	    'security_id' => SECURITY_ID_PAYMENTS_STATUS,
-	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=20&amp;list=1', 'SSL'),
+	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=20&amp;type=v&amp;list=1', 'SSL'),
 	    'show_in_users_settings' => true,
 	    'params'      => '',
 	);
@@ -155,6 +164,14 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	    'text'        => ORD_TEXT_18_V_WINDOW_TITLE,
 	    'security_id' => SECURITY_ID_VENDOR_RECEIPTS,
 	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;jID=18&amp;type=v', 'SSL'),
+	    'show_in_users_settings' => true,
+	    'params'      => '',
+	);
+	$mainmenu["banking"]['submenu']["vendor_payments"]['submenu']["receipts_mgr"] = array(
+	  	'order'		  => 35,
+	    'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_18_V_WINDOW_TITLE),
+	    'security_id' => SECURITY_ID_RECEIPTS_STATUS,
+	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=18&amp;type=v&amp;list=1', 'SSL'),
 	    'show_in_users_settings' => true,
 	    'params'      => '',
 	);

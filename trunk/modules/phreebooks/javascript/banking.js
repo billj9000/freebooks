@@ -235,6 +235,7 @@ function loadNewBalance() { // request funtion
 function showNewBalance(xml) { // call back function
   xml = parseXml(xml);
   if (!xml) return;
+  if (!document.getElementById('acct_balance')) return; // only rendered for vendor payments, not customer receipts/refunds
   var value = xmlText(xml, "value");
   if (isNaN(value) || !value) value = '0';
   var start_balance = parseFloat(value);
@@ -356,7 +357,7 @@ function updateTotalPrices() {
   }
   var tot = new String(total);
   document.getElementById('total').value = formatCurrency(tot);
-  if (journalID == 20) {
+  if (journalID == 20 && document.getElementById('acct_balance')) { // only rendered for vendor payments, not customer refunds
     var start_balance = cleanCurrency(document.getElementById('acct_balance').value);
     temp = new String(start_balance - tot);
     document.getElementById('end_balance').value = formatCurrency(temp);

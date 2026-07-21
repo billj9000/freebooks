@@ -37,7 +37,7 @@ if (!ENABLE_MULTI_BRANCH) echo html_hidden_field('store_id', '0') . chr(10);
 // payment_id dropdown: invisible, used by fillPayment() JS
 echo html_pull_down_menu('payment_id', gen_null_pull_down(), '', 'style="visibility:hidden;position:absolute" onchange="fillPayment()"') . chr(10);
 // toolbar
-$toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=' . JOURNAL_ID . '&amp;list=1', 'SSL') . '\'"';
+$toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=' . JOURNAL_ID . '&amp;type=' . $account_type . '&amp;list=1', 'SSL') . '\'"';
 $toolbar->icon_list['open']['params']   = 'onclick="OpenOrdrList(this)"';
 $toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . TEXT_DELETE_ENTRY . '\')) submitToDo(\'delete\')"';
 $toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';

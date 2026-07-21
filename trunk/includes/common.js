@@ -459,7 +459,7 @@ function fetchXml(url, callback) {
   fetch(url)
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
     .then(function(t) { callback(new DOMParser().parseFromString(t, 'text/xml')); })
-    .catch(function(e) { alert('Ajax Error: ' + e.message); });
+    .catch(function(e) { console.error('fetchXml (' + url + '):', e); alert('Ajax Error: ' + e.message); });
 }
 
 // ajax wrappers
