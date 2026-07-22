@@ -1900,7 +1900,7 @@ function createXmlFooter() {
 //encases the data in its xml tags and CDATA declaration
 function xmlEntry($key, $data, $ignore = NULL) {
 	$str = "\t<" . $key . ">";
-	if ($data != NULL) {
+	if ($data !== NULL && $data !== '') {
 		//convert our db data to the proper encoding if able
 		if (defined("DB_CHARSET") && defined("CHARSET")) $data = charConv($data, DB_CHARSET, CHARSET);
 		if ($ignore) $str .= $data;
