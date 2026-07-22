@@ -58,13 +58,21 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
   <?php echo GEN_STORE_ID . '&nbsp;' . html_pull_down_menu('store_id', gen_get_store_ids(), isset($_REQUEST['store_id']) ? $_REQUEST['store_id'] : $_SESSION['admin_prefs']['def_store_id'], 'onchange="submitToDo(\'filter\')"'); ?>
 </div>
 <?php } ?>
+<?php if (JOURNAL_ID == 12) { ?>
+<div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="selectAllUnprinted()"><?php echo STATUS_SELECT_ALL_UNPRINTED; ?></button>
+  <button type="button" class="btn btn-primary btn-sm" id="btn_print_selected" onclick="printSelectedInvoices()" disabled><?php echo STATUS_PRINT_SELECTED; ?></button>
+  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn_clear_selection" onclick="clearInvoiceSelection()" style="display:none;"><?php echo STATUS_CLEAR_SELECTION; ?></button>
+  <span id="selection_count" class="text-muted small"></span>
+</div>
+<?php } ?>
 <div class="d-flex justify-content-between mb-1">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . $page_title); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
 <table class="pkg-table table table-borderless table-hover">
   <thead class="table-dark">
-    <tr><?php echo $list_header; ?></tr>
+    <tr><?php if (JOURNAL_ID == 12) { ?><th style="width:2em"></th><?php } ?><?php echo $list_header; ?></tr>
   </thead>
   <tbody>
 <?php
@@ -101,6 +109,9 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
     }
 ?>
     <tr class="<?php echo $row_class; ?>" style="cursor:pointer">
+<?php if (JOURNAL_ID == 12) { ?>
+      <td class="text-center"><input type="checkbox" class="row-select" value="<?php echo $oID; ?>" onchange="toggleInvoiceSelect(this)"></td>
+<?php } ?>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $post_date; ?></td>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $reference_id; ?></td>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $primary_name; ?></td>
@@ -123,6 +134,9 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
       $order_link   = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;oID=' . $oID . '&amp;jID=' . JOURNAL_ID . '&amp;action=edit', 'SSL');
 ?>
       <td class="text-center" onclick="location.href='<?php echo $order_link; ?>'"><?php echo $ship_meth ? (htmlspecialchars($ship_meth, ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($ship_srv, ENT_QUOTES, 'UTF-8')) : '&nbsp;'; ?></td>
+<?php } ?>
+<?php if (JOURNAL_ID == 12) { ?>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $query_result->fields['printed'] ? TEXT_YES : ''; ?></td>
 <?php } ?>
       <td class="text-end text-nowrap">
 <?php

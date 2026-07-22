@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -623,9 +624,9 @@ function BuildPDF($report, $delivery_method = 'D') { // for forms only - PDF sty
 	    }
 	  }
 	  // set the printed flag field if provided
-	  if ($report->setprintedflag) {
+	  if ($report->setprintedfield) {
 		$id_field = $report->formbreakfield;
-		$temp     = explode('.', $report->setprintedflag);
+		$temp     = explode('.', $report->setprintedfield);
 		if (count(is_array($temp) ? $temp : []) == 2) { // need the table name and field name
 		  $sql = "update " . $temp[0] . " set " . $temp[1] . " = " . $temp[1] . " + 1 where " . $report->formbreakfield . " = '" . $Fvalue . "'";
 		  $db->Execute($sql);
@@ -762,9 +763,9 @@ function BuildSeq($report, $delivery_method = 'D') { // for forms only - Sequent
 	  }
     }
     // set the printed flag field if provided
-    if ($report->setprintedflag) {
+    if ($report->setprintedfield) {
 	  $id_field = $report->formbreakfield;
-	  $temp     = explode('.', $report->setprintedflag);
+	  $temp     = explode('.', $report->setprintedfield);
 	  if (count(is_array($temp) ? $temp : []) == 2) { // need the table name and field name
 	    $sql = "update " . $temp[0] . " set " . $temp[1] . " = " . $temp[1] . " + 1 where " . $report->formbreakfield . " = '" . $Fvalue . "'";
 	    $db->Execute($sql);

@@ -134,7 +134,9 @@ switch (JOURNAL_ID) {
 	  $heading_array['shipper_code'] = TEXT_CARRIER;
 	}
 	define('POPUP_FORM_TYPE','cust:inv');
-	$heading_array['closed'] = TEXT_PAID;
+	$heading_array['closed']  = TEXT_PAID;
+	$heading_array['printed'] = STATUS_TEXT_PRINTED;
+	$field_list[]              = 'printed';
 	$page_title = ORD_TEXT_12_WINDOW_TITLE;
 	break;
   case 13:	// Customer Credit Memo Journal

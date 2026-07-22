@@ -483,4 +483,11 @@ define('GENERAL_JOURNAL_21_LEDGER_HEADING','Закупки Всего');
 define('ORD_POSTCODE_COUNTRY', 'Страна');
 define('ORD_POSTCODE_POSTAL',  'Индекс');
 define('ORD_POSTCODE_FIND',    'Find Address');
+define('STATUS_TEXT_PRINTED',            'Printed');
+define('STATUS_SELECT_ALL_UNPRINTED',    'Select All Unprinted');
+define('STATUS_PRINT_SELECTED',          'Print Selected');
+define('STATUS_CLEAR_SELECTION',         'Clear Selection');
+define('STATUS_SELECTION_COUNT_SINGLE',  '1 invoice selected');
+define('STATUS_SELECTION_COUNT_PLURAL',  '%d invoices selected');
+define('STATUS_SELECT_UNPRINTED_ERROR',  'Could not retrieve unprinted invoices. Please try again.');
 ?>

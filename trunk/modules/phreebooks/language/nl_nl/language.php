@@ -304,4 +304,11 @@ if (!defined('TEXT_NOT_NULL')) define('TEXT_NOT_NULL','is not Null'); // ditto â
 define('ORD_POSTCODE_COUNTRY', 'Land');
 define('ORD_POSTCODE_POSTAL',  'Postcode');
 define('ORD_POSTCODE_FIND',    'Find Address');
+define('STATUS_TEXT_PRINTED',            'Printed');
+define('STATUS_SELECT_ALL_UNPRINTED',    'Select All Unprinted');
+define('STATUS_PRINT_SELECTED',          'Print Selected');
+define('STATUS_CLEAR_SELECTION',         'Clear Selection');
+define('STATUS_SELECTION_COUNT_SINGLE',  '1 invoice selected');
+define('STATUS_SELECTION_COUNT_PLURAL',  '%d invoices selected');
+define('STATUS_SELECT_UNPRINTED_ERROR',  'Could not retrieve unprinted invoices. Please try again.');
 ?>

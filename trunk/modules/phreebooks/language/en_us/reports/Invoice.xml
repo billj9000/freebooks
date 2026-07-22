@@ -8,7 +8,7 @@
 	<filenameprefix><![CDATA[Invoice-]]></filenameprefix>
 	<filenamefield><![CDATA[purchase_invoice_id]]></filenamefield>
 	<serialform><![CDATA[0]]></serialform>
-	<setprintedfield><![CDATA[[table1].printed]]></setprintedfield>
+	<setprintedfield><![CDATA[journal_main.printed]]></setprintedfield>
 	<formbreakfield><![CDATA[id]]></formbreakfield>
 	<security><![CDATA[u:0;g:0]]></security>
 	<reporttype><![CDATA[frm]]></reporttype>

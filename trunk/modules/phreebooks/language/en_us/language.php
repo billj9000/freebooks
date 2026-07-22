@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -333,4 +334,12 @@ if (!defined('TEXT_NOT_NULL')) define('TEXT_NOT_NULL','is not Null'); // ditto
 define('ORD_POSTCODE_COUNTRY', 'Country');
 define('ORD_POSTCODE_POSTAL',  'Post Code');
 define('ORD_POSTCODE_FIND',    'Find Address');
+// Sales Invoice Manager - unprinted invoice bulk selection/print
+define('STATUS_TEXT_PRINTED',            'Printed');
+define('STATUS_SELECT_ALL_UNPRINTED',    'Select All Unprinted');
+define('STATUS_PRINT_SELECTED',          'Print Selected');
+define('STATUS_CLEAR_SELECTION',         'Clear Selection');
+define('STATUS_SELECTION_COUNT_SINGLE',  '1 invoice selected');
+define('STATUS_SELECTION_COUNT_PLURAL',  '%d invoices selected');
+define('STATUS_SELECT_UNPRINTED_ERROR',  'Could not retrieve unprinted invoices. Please try again.');
 ?>
