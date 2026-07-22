@@ -20,10 +20,58 @@
 <body>
 
 <h1 align="center">Invoice Manager</h1>
-<p>&nbsp;</p>
+<p>The Invoice Manager is a powerful tool to manage your company's sales invoices. From this function you can review invoice status, print individual invoices, or print a batch of newly-created invoices in one step, and edit an invoice. The Invoice Manager defaults to the current period but a search field and period selection pull down are provided to help locate invoices anywhere in the system.</p>
+<h3>Invoice Manager Features:</h3>
+<ul>
+  <li>Easily view invoices and determine open/paid and printed/unprinted status</li>
+  <li>Powerful search capabilities to find or filter results</li>
+  <li>Ability to print an invoice without opening it up or re-posting</li>
+  <li>Ability to select and print a batch of invoices in one step, including every unprinted invoice in the system regardless of how many pages of the list they span</li>
+  <li>Ability to open for edit the invoice and review additional details</li>
+  <li>Ability to receive payment against an invoice</li>
+</ul>
+<h3>Viewing an Invoice</h3>
+<ol>
+  <li>Select Customers-&gt;Invoice Manager</li>
+  <li>Locate the invoice to view and press the icon labeled Edit.</li>
+  <li>The Sales/Invoice screen will load and the form will be filled in with the information of the selected invoice.</li>
+  <li>From here, the invoice may be edited, deleted, or reviewed.</li>
+</ol>
+<h3>Printing a Single Invoice</h3>
+<ol>
+  <li>Select Customers-&gt;Invoice Manager</li>
+  <li>Locate the invoice to print and press the icon labeled Print.</li>
+  <li>The reportwriter form display screen will appear listing the available forms to print.</li>
+  <li>Select the form to print, the delivery method, and press the PDF icon to generate the form.</li>
+  <li>The Printed column for that invoice will update the next time the list is loaded.</li>
+</ol>
+<h3>Printing a Batch of Unprinted Invoices</h3>
+<p>The Invoice Manager tracks whether each invoice has already been printed, shown in the Printed column. This makes it easy to print every new invoice in one step without needing to check each one individually or remember which invoices were already handled.</p>
+<ol>
+  <li>Select Customers-&gt;Invoice Manager</li>
+  <li>Press the Select All Unprinted button. Every invoice in the system that has not yet been printed will be selected via its checkbox, even if it is on a different page of the list. A count of the invoices currently selected is shown next to the buttons.</li>
+  <li>To exclude an invoice from the batch, uncheck its box. To include an invoice that was not already unprinted, check its box directly. Selections made this way are also kept when moving between pages of the list.</li>
+  <li>Press the Print Selected button. The reportwriter form display screen will appear, filtered to the selected invoices.</li>
+  <li>Select the form to print, the delivery method, and press the PDF icon to generate the batch. Each invoice in the batch will be marked as printed as it is generated.</li>
+  <li>Press Clear Selection at any time to deselect every invoice and start over.</li>
+</ol>
+<h3>Receiving Payment for an Invoice</h3>
+<ol>
+  <li>Select Customers-&gt;Invoice Manager</li>
+  <li>Locate the invoice to receive payment for and press the icon labeled Payment.</li>
+  <li>The Customer Receipt screen will load with the invoice ready to be paid.</li>
+  <li>Enter the payment details and press Save.</li>
+</ol>
 <h3>Related Topics</h3>
+<h4>Customers</h4>
+<p><a href="../02-Accounts/01-NewAccount.html">Adding a new customer account </a><br />
+   <a href="../02-Accounts/02-EditAccount.html">Updating a customer account</a><br />
+   <a href="../02-Accounts/03-DeleteAccount.html">Deleting a customer account</a></p>
 <h4>Invoices</h4>
 <p><a href="01-EnterInv.html">Entering an invoice</a><br />
-Closing an invoice</p>
+   <a href="02-EditInv.html">Editing an invoice</a><br />
+   <a href="03-DeleteInv.html">Deleting an invoice</a></p>
+<h4>Banking</h4>
+<p><a href="../../05-Banking/02-Receipts/01-SingleReceipts.html">Receiving customer payments</a></p>
 </body>
 </html>
