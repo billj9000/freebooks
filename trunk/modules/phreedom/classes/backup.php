@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -173,22 +173,33 @@ class backup {
     global $messageStack;
 	$source_file = $path . $filename;
 	clearstatcache(true, $source_file);
-	$contents = file_get_contents($source_file);
-	if ($contents === false || strlen($contents) == 0) {
+	$fsize = @filesize($source_file);
+	if ($fsize === false || $fsize == 0) {
 	  $messageStack->add(GEN_BACKUP_DOWNLOAD_EMPTY, 'caution');
 	  return;
 	}
-	if (!$save_source) unlink($source_file);
+	@set_time_limit(0);
 	while (ob_get_level() > 0) ob_end_clean();
 	header("Content-Type: " . $this->backup_mime);
 	header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
-	header("Content-Length: " . strlen($contents));
+	header("Content-Length: " . $fsize);
 	header('Pragma: cache');
 	header('Cache-Control: public, must-revalidate, max-age=0');
 	header('Connection: close');
 	header('Expires: ' . date('r', time() + 60 * 60));
 	header('Last-Modified: ' . date('r', time()));
-	echo $contents;
+	// stream in chunks instead of file_get_contents() so memory use stays
+	// flat regardless of backup size (large company file backups can run
+	// into the hundreds of MB)
+	$handle = fopen($source_file, 'rb');
+	if ($handle !== false) {
+	  while (!feof($handle)) {
+	    echo fread($handle, 1024 * 1024);
+	    flush();
+	  }
+	  fclose($handle);
+	}
+	if (!$save_source) @unlink($source_file);
 	exit();
   }
 
