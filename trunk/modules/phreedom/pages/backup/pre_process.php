@@ -116,6 +116,11 @@ switch ($_REQUEST['action']) {
       } else {
         $messageStack->add(sprintf(BIGDUMP_FILE_SAVED, $fname), 'success');
       }
+    } elseif (($_FILES['dumpfile']['error'] ?? -1) == UPLOAD_ERR_INI_SIZE || ($_FILES['dumpfile']['error'] ?? -1) == UPLOAD_ERR_FORM_SIZE) {
+      $messageStack->add(TEXT_IMP_ERMSG1, 'error');
+    } elseif (empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+      // whole request exceeded post_max_size; PHP drops $_FILES/$_POST entirely in this case
+      $messageStack->add(TEXT_IMP_ERMSG1, 'error');
     } else {
       $messageStack->add(BIGDUMP_ERROR_UPLOAD . htmlspecialchars($_FILES['dumpfile']['name'] ?? ''), 'error');
     }
