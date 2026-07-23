@@ -47,6 +47,7 @@ define('royal_mail_RMIT',  'International Business Mail Tracked');
 define('royal_mail_RMIS',  'International Business Mail Signed');
 define('royal_mail_RMITS', 'International Business Mail Tracked & Signed');
 define('royal_mail_RMIE',  'International Business Parcel Standard');
+define('royal_mail_RMIPT', 'International Business Parcel Tracked');
 // Parcelforce international (via Click & Drop)
 define('royal_mail_ER1',   'Parcelforce Europriority');
 define('royal_mail_ECA',   'Parcelforce GlobalPriority');
@@ -75,12 +76,35 @@ class royal_mail {
     'RMIS'  => 'MTM',
     'RMITS' => 'MTG',
     'RMIE'  => 'MP9',
+    'RMIPT' => 'OTA',
     // Parcelforce international
     'ER1'   => 'ER1',
     'ECA'   => 'ECA',
   );
 
-  var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE', 'ER1', 'ECA');
+  var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE', 'RMIPT', 'ER1', 'ECA');
+
+  // Click & Drop rejects packageFormatIdentifier values that don't match the service's
+  // mail class (e.g. "Package size 'Parcel' is not valid for the service 'MTK'") — this
+  // restriction isn't in the public API schema, only surfaced by that runtime error.
+  // Business Mail (RMIT/RMIS/RMITS) is letter-post; everything else here is parcel-post.
+  const FORMATS_BY_SERVICE = array(
+    'RMIT'  => array('letter', 'largeLetter', 'documents'),
+    'RMIS'  => array('letter', 'largeLetter', 'documents'),
+    'RMITS' => array('letter', 'largeLetter', 'documents'),
+    'RMIE'  => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+    'RMIPT' => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+    'NDA'   => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+    'FE0'   => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+    'FEM'   => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+    'ER1'   => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+    'ECA'   => array('smallParcel', 'mediumParcel', 'largeParcel', 'parcel'),
+  );
+  const ALL_FORMATS = array('letter', 'largeLetter', 'smallParcel', 'mediumParcel', 'largeParcel', 'parcel', 'documents');
+
+  static function allowedFormats($internalCode) {
+    return self::FORMATS_BY_SERVICE[$internalCode] ?? self::ALL_FORMATS;
+  }
 
   function __construct() {
     $this->code = 'royal_mail';
@@ -162,13 +186,21 @@ class royal_mail {
     }
 
     // Packages — weight in grams + optional format identifier
+    $allowedFormats = self::allowedFormats($internalCode);
     $packages = array();
     foreach ($sInfo->package as $pkg) {
       $entry = array(
         'weightInGrams' => $this->toGrams($pkg['weight'] ?? 0, $sInfo->pkg_weight_unit ?? 'KGS'),
       );
       $fmt = trim($pkg['format'] ?? '');
-      if ($fmt && $fmt !== 'undefined') $entry['packageFormatIdentifier'] = $fmt;
+      if ($fmt && $fmt !== 'undefined') {
+        if (!in_array($fmt, $allowedFormats)) {
+          $messageStack->add(sprintf(MODULE_SHIPPING_ROYAL_MAIL_ERROR_BAD_FORMAT,
+            $fmt, $serviceCode, implode(', ', $allowedFormats)), 'error');
+          return false;
+        }
+        $entry['packageFormatIdentifier'] = $fmt;
+      }
       $packages[] = $entry;
     }
     if (empty($packages)) {

@@ -234,7 +234,8 @@ $sel_sm = 'class="form-select form-select-sm"';
         <div class="row g-2 align-items-center mb-1">
           <label class="col-auto col-form-label col-form-label-sm"><?php echo SHIPPING_SERVICE_TYPE; ?></label>
           <div class="col-auto">
-            <?php echo html_pull_down_menu('ship_method', gen_build_pull_down($shipping_methods), $sInfo->ship_method, $sel_sm); ?>
+            <?php echo html_pull_down_menu('ship_method', gen_build_pull_down($shipping_methods), $sInfo->ship_method,
+              $sel_sm . ' onchange="filterFormatOptions()"'); ?>
           </div>
         </div>
         <div class="row g-2 align-items-center mb-1">
@@ -330,7 +331,8 @@ $sel_sm = 'class="form-select form-select-sm"';
                      value="<?php echo htmlspecialchars($package['weight']); ?>"
                      onchange="updateWeight()"></td>
           <td><?php
-            $fmtOptions = array(
+            $allowedFmt = royal_mail::allowedFormats($sInfo->ship_method ?? '');
+            $fmtOptions = array_values(array_filter(array(
               array('id' => 'letter',       'text' => RM_PKG_LETTER),
               array('id' => 'largeLetter',  'text' => RM_PKG_LARGE_LETTER),
               array('id' => 'smallParcel',  'text' => RM_PKG_SMALL_PARCEL),
@@ -338,8 +340,9 @@ $sel_sm = 'class="form-select form-select-sm"';
               array('id' => 'largeParcel',  'text' => RM_PKG_LARGE_PARCEL),
               array('id' => 'parcel',       'text' => RM_PKG_PARCEL),
               array('id' => 'documents',    'text' => RM_PKG_DOCUMENTS),
-            );
-            echo html_pull_down_menu('fmt_' . $rowCnt, $fmtOptions, $package['format'] ?? 'smallParcel',
+            ), function($opt) use ($allowedFmt) { return in_array($opt['id'], $allowedFmt); }));
+            $curFmt = in_array($package['format'] ?? '', $allowedFmt) ? $package['format'] : ($allowedFmt[0] ?? 'parcel');
+            echo html_pull_down_menu('fmt_' . $rowCnt, $fmtOptions, $curFmt,
               'id="fmt_' . $rowCnt . '" ' . $sel_sm . ' style="min-width:9em"');
           ?></td>
           <td><input type="text" class="form-control form-control-sm text-end" style="width:7em"

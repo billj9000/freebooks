@@ -78,6 +78,7 @@ $shipping_defaults['service_levels'] = array( // order determines sequence in pu
   'RMIS'  => SHIPPING_RMIS,
   'RMITS' => SHIPPING_RMITS,
   'RMIE'  => SHIPPING_RMIE,
+  'RMIPT' => SHIPPING_RMIPT,
   // Parcelforce domestic (legacy module codes)
   'PFX9'  => SHIPPING_PFX9,
   'PFX10' => SHIPPING_PFX10,

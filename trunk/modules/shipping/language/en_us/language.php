@@ -209,6 +209,7 @@ define('SHIPPING_RMIT',  'International Business Mail Tracked');
 define('SHIPPING_RMIS',  'International Business Mail Signed');
 define('SHIPPING_RMITS', 'International Business Mail Tracked & Signed');
 define('SHIPPING_RMIE',  'International Business Parcel Standard');
+define('SHIPPING_RMIPT', 'International Business Parcel Tracked');
 // Parcelforce domestic (legacy module codes)
 define('SHIPPING_PFX9',  'Parcelforce Express 9');
 define('SHIPPING_PFX10', 'Parcelforce Express 10');

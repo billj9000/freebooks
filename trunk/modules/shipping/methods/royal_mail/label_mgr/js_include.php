@@ -29,6 +29,11 @@ var pkgFormats       = <?php echo json_encode(array(
   array('id' => 'parcel',       'text' => RM_PKG_PARCEL),
   array('id' => 'documents',    'text' => RM_PKG_DOCUMENTS),
 )); ?>;
+// Click & Drop rejects package formats that don't match the service's mail class
+// (e.g. a parcel format on a Business Mail letter-post service) — keep in sync with
+// royal_mail::FORMATS_BY_SERVICE in royal_mail.php.
+var formatsByService = <?php echo json_encode(royal_mail::FORMATS_BY_SERVICE); ?>;
+var allFormatIds      = pkgFormats.map(function(f) { return f.id; });
 
 function init() {
   <?php
@@ -38,9 +43,35 @@ function init() {
     }
   ?>
   toggleCustoms();
+  filterFormatOptions();
   updateWeight();
   var w1 = document.getElementById('wt_1');
   if (w1) w1.focus();
+}
+
+function allowedFormatIds() {
+  var svcEl = document.getElementById('ship_method');
+  var svc   = svcEl ? svcEl.value : '';
+  return formatsByService[svc] || allFormatIds;
+}
+
+function filterFormatOptions() {
+  var allowed = allowedFormatIds();
+  var tbl = document.getElementById('item_table');
+  for (var i = 1; i <= tbl.rows.length; i++) {
+    var sel = document.getElementById('fmt_' + i);
+    if (!sel) break;
+    var current = sel.value;
+    sel.innerHTML = '';
+    pkgFormats.forEach(function(f) {
+      if (allowed.indexOf(f.id) === -1) return;
+      var opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.text;
+      sel.appendChild(opt);
+    });
+    sel.value = (allowed.indexOf(current) !== -1) ? current : allowed[0];
+  }
 }
 
 function toggleCustoms() {
@@ -82,8 +113,10 @@ function check_form() {
 }
 
 function buildFormatSelect(rowCnt, selected) {
+  var allowed = allowedFormatIds();
   var html = '<select class="form-select form-select-sm" name="fmt_' + rowCnt + '" id="fmt_' + rowCnt + '" style="min-width:9em">';
   pkgFormats.forEach(function(f) {
+    if (allowed.indexOf(f.id) === -1) return;
     html += '<option value="' + f.id + '"' + (f.id === selected ? ' selected' : '') + '>' + f.text + '</option>';
   });
   html += '</select>';
@@ -94,6 +127,8 @@ function addRow() {
   var tbl    = document.getElementById('item_table');
   var rowCnt = tbl.rows.length + 1;
   var newRow = tbl.insertRow(-1);
+  var allowed    = allowedFormatIds();
+  var defaultFmt = (allowed.indexOf('parcel') !== -1) ? 'parcel' : allowed[0];
   var cells  = [
     '<button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 lh-1"' +
       ' onclick="if(confirm(\'' + image_delete_msg.replace(/'/g, "\\'") + '\')) removeRow(' + rowCnt + ')">&times;</button>',
@@ -102,7 +137,7 @@ function addRow() {
     '<input type="text" class="form-control form-control-sm text-end" style="width:6em"' +
       ' name="wt_' + rowCnt + '" id="wt_' + rowCnt + '" value=""' +
       ' onchange="updateWeight()">',
-    buildFormatSelect(rowCnt, 'parcel'),
+    buildFormatSelect(rowCnt, defaultFmt),
     '<input type="text" class="form-control form-control-sm text-end" style="width:7em"' +
       ' name="ins_' + rowCnt + '" id="ins_' + rowCnt + '" value="0.00">',
   ];

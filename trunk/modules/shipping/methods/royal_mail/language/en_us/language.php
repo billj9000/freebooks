@@ -30,6 +30,7 @@ define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER_DESC', 'Sort order of display. Low
 // Error messages
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL',  'Royal Mail: Label creation failed - ');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NOKEY',  'Royal Mail: Click & Drop API key not configured.');
+define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_BAD_FORMAT', 'Royal Mail: Package format \'%s\' is not valid for service \'%s\'. Valid formats: %s.');
 // Label form — customs section
 define('RM_CUSTOMS_SECTION',           'Customs / Export Information');
 define('RM_TEXT_DECLARATION_CATEGORY', 'Declaration Category');
