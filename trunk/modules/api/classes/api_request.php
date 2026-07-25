@@ -32,13 +32,17 @@ require_once(DIR_FS_MODULES . 'api/defaults.php');
 require_once(DIR_FS_MODULES . 'api/classes/api_query.php');
 require_once(DIR_FS_MODULES . 'api/classes/resources/contacts.php');
 require_once(DIR_FS_MODULES . 'api/classes/resources/invoices.php');
+require_once(DIR_FS_MODULES . 'api/classes/resources/credit_memos.php');
+require_once(DIR_FS_MODULES . 'api/classes/resources/tax_rates.php');
 
 class api_request {
 
   // Map of resource name → class name
   private static array $resources = [
-    'contacts' => 'api_resource_contacts',
-    'invoices' => 'api_resource_invoices',
+    'contacts'      => 'api_resource_contacts',
+    'invoices'      => 'api_resource_invoices',
+    'credit_memos'  => 'api_resource_credit_memos',
+    'tax_rates'     => 'api_resource_tax_rates',
   ];
 
   public function dispatch(): void {
@@ -221,6 +225,8 @@ class api_request {
     if (!defined('TABLE_ADDRESS_BOOK')) define('TABLE_ADDRESS_BOOK', DB_PREFIX . 'address_book');
     if (!defined('TABLE_JOURNAL_MAIN')) define('TABLE_JOURNAL_MAIN', DB_PREFIX . 'journal_main');
     if (!defined('TABLE_JOURNAL_ITEM')) define('TABLE_JOURNAL_ITEM', DB_PREFIX . 'journal_item');
+    if (!defined('TABLE_TAX_AUTH'))     define('TABLE_TAX_AUTH',     DB_PREFIX . 'tax_authorities');
+    if (!defined('TABLE_TAX_RATES'))    define('TABLE_TAX_RATES',    DB_PREFIX . 'tax_rates');
   }
 
   // -----------------------------------------------------------------------

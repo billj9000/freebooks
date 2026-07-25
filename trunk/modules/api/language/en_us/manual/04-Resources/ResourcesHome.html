@@ -14,6 +14,8 @@
   <tr><th align="left">Resource</th><th align="left">Description</th></tr>
   <tr><td><code>contacts</code></td><td>Customers, vendors, employees, and other contacts. Includes all address and telephone data.</td></tr>
   <tr><td><code>invoices</code></td><td>Sales invoices (journal J12). Includes line items via the virtual <code>lines</code> field.</td></tr>
+  <tr><td><code>credit_memos</code></td><td>Customer credit memos (journal J13). Same schema as <code>invoices</code>, including line items via the virtual <code>lines</code> field.</td></tr>
+  <tr><td><code>tax_rates</code></td><td>Read-only lookup of tax_rate_ids referenced by <code>invoices</code>/<code>credit_memos</code>, resolved to their description and computed percentage.</td></tr>
 </table>
 <p>Select a resource from the table of contents for its full field reference.</p>
 <p>Additional resources (purchase orders, payments, inventory, etc.) will be added in future releases and will appear in this section.</p>

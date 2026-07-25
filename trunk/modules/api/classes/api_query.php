@@ -116,6 +116,18 @@ class api_query {
       $sql_fields[] = $pk;
     }
 
+    // Some virtual fields need a raw column the caller didn't request (e.g. a
+    // "freight_tax_rate" virtual field computed from the real "freight_tax_id"
+    // column). Resources declare these via an optional virtual_field_dependencies().
+    if (!empty($virtual_fields) && method_exists($resource, 'virtual_field_dependencies')) {
+      $dependencies = $resource->virtual_field_dependencies();
+      foreach ($virtual_fields as $vf) {
+        foreach ($dependencies[$vf] ?? [] as $dep_field) {
+          if (!in_array($dep_field, $sql_fields)) $sql_fields[] = $dep_field;
+        }
+      }
+    }
+
     // ── 2. Build SELECT column list ────────────────────────────────────────
     $select_cols = array_map(fn($name) => $field_map[$name]['col'] . ' AS ' . $name, $sql_fields);
 

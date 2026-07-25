@@ -41,7 +41,7 @@ GET /api.php?v=1&resource={resource}[&fields=...][&filters=...][&order_by=...][&
 | Parameter         | Type       | Description                                                                 |
 |-------------------|------------|-----------------------------------------------------------------------------|
 | `v`               | required   | API version. Currently `1`.                                                 |
-| `resource`        | required   | Resource name: `contacts` or `invoices`.                                    |
+| `resource`        | required   | Resource name: `contacts`, `invoices`, `credit_memos`, or `tax_rates`.       |
 | `fields`          | JSON array | Field names to return. Omit for the default set.                            |
 | `filters`         | JSON array | Array of `[field, operator, value]` triples. AND-combined.                  |
 | `order_by`        | string     | `field asc` or `field desc`.                                                |
@@ -156,10 +156,16 @@ Sales invoices (journal_id = 12). The virtual `lines` field returns product line
 | `bill_country`     | string | Billing country code                                      |
 | `bill_email`       | string | Billing email                                             |
 | `bill_telephone`   | string | Billing phone                                             |
+| `ship_country`     | string | Shipping country code (3-letter, e.g. `GBR`); blank if no shipping address recorded |
 | `total`            | float  | Grand total                                               |
 | `tax`              | float  | Total tax                                                 |
 | `freight`          | float  | Shipping charge                                           |
+| `freight_tax_id`   | int    | Raw per-order override typed on the order form (usually `0` = "use the company default"); **not** the effective rate — see `freight_taxable` |
+| `freight_taxable`  | virtual | Effective tax rate ID FreeBooks actually applied to freight (from the posted `frt` journal_item row); mirrors a line item's `taxable` |
+| `freight_tax_rate` | float  | Virtual — `freight_taxable` resolved to a percentage (see note below)  |
+| `freight_gl_account` | string | Virtual — GL account the freight charge posts to (freight is its own journal_item row, gl_type `frt`, excluded from `lines`); blank if there's no freight |
 | `discount`         | float  | Discount                                                  |
+| `discount_gl_account` | string | Virtual — GL account the discount posts to (its own journal_item row, gl_type `dsc`, excluded from `lines`); blank if there's no discount |
 | `currency`         | string | Currency code (e.g. `GBP`)                               |
 | `currency_rate`    | float  | Exchange rate                                             |
 | `closed`           | string | `0`=open, `1`=paid/closed                                |
@@ -181,6 +187,11 @@ Sales invoices (journal_id = 12). The virtual `lines` field returns product line
 | `amount`     | Extended amount                      |
 | `gl_account` | GL account code                      |
 | `taxable`    | Tax rate ID (0 = non-taxable)        |
+| `tax_rate`   | `taxable` resolved to a percentage (see note below) |
+
+**Note on `tax_rate` / `freight_tax_rate`:** `taxable`/`freight_taxable` are tax_rate_ids, not percentages — a tax_rate_id can combine multiple tax authorities. `tax_rate` and `freight_tax_rate` resolve them to the actual percentage FreeBooks would use to calculate tax (summing `tax_rates.rate_accounts` against `tax_authorities.tax_rate`, the same calculation as `gen_calculate_tax_rate()`), so callers don't need to duplicate that lookup or hardcode rates that could drift out of sync.
+
+**Important:** use `freight_taxable`, not `freight_tax_id`, if you need the tax rate ID that actually applied to freight. `freight_tax_id` is the raw per-order override on the order form and is commonly left at `0` ("use the company default," `AR_ADD_SALES_TAX_TO_SHIPPING`) — the effective id FreeBooks used is only recorded on the posted freight line itself, which is what `freight_taxable` (and `freight_tax_rate`) resolve from.
 
 **Examples:**
 
@@ -197,6 +208,57 @@ Unpaid invoices over £500:
 GET /api.php?v=1&resource=invoices
   &filters=[["closed","=","0"],["total",">=","500"]]
   &order_by=date asc
+```
+
+---
+
+### `credit_memos`
+
+Customer credit memos (journal_id = 13). Same schema and virtual `lines` handling as `invoices` — see that section for field-by-field detail on the shared columns.
+
+> **Note on `modified`:** as with `invoices`, `journal_main` has no row-modified timestamp; `modified` maps to `post_date` (the credit memo date). For incremental sync, filter on `date` instead.
+
+> **Note on `qty` sign:** credit memo line item `qty` is stored positive (invoices negate `qty` for inventory draw-down). This does not affect `amount`/`unit_price`, which are derived from `debit_amount`/`credit_amount` exactly as for invoices.
+
+**Default fields:** `id`, `credit_memo_number`, `reference`, `date`, `customer_id`, `customer_name`, `total`, `tax`, `freight`, `currency`, `closed`
+
+**All fields:** identical to `invoices`, except `invoice_number` is named `credit_memo_number`. See the `invoices` field table above.
+
+**Line item fields:** identical to `invoices` — see the `invoices` line item table above.
+
+**Examples:**
+
+June credit memos:
+```
+GET /api.php?v=1&resource=credit_memos
+  &fields=["credit_memo_number","date","customer_name","total","tax","currency","lines"]
+  &filters=[["date","between",["2026-06-01","2026-06-30"]]]
+  &order_by=date asc
+```
+
+---
+
+### `tax_rates`
+
+Read-only lookup of the tax_rate_ids referenced by `invoices`/`credit_memos`' `taxable` / `freight_taxable` fields. FreeBooks' own admin UI (Company Setup > Tax Rates) never displays this numeric id — it only appears inside a hidden `onclick` attribute on the edit icon — so this is the only way for an external integration to discover which id corresponds to which real-world tax.
+
+**Default fields:** `id`, `type`, `description_short`, `description_long`, `rate`, `freight_taxable`
+
+**All fields:**
+
+| Field                | Type    | Description                                                    |
+|----------------------|---------|------------------------------------------------------------------|
+| `id`                 | int     | tax_rate_id — matches `invoices`/`credit_memos`' `taxable`/`freight_taxable` |
+| `type`               | string  | `c` = customer/sales, `v` = vendor/purchase; only `c` rows are relevant to `invoices`/`credit_memos` |
+| `description_short`  | string  | Short label as shown in FreeBooks admin (e.g. `VAT`)             |
+| `description_long`   | string  | Long label as shown in FreeBooks admin (e.g. `20% VAT on sales`) |
+| `rate`               | float   | Virtual — computed percentage (sums `tax_rates.rate_accounts` against `tax_authorities.tax_rate`, same calculation as `gen_calculate_tax_rate()`) |
+| `freight_taxable`    | string  | `1`/`0` — whether this rate is FreeBooks' UI default suggestion for freight (informational only; the effective per-invoice freight rate is `invoices`/`credit_memos`' own `freight_taxable` field) |
+
+**Example:** find the sales tax rates and their percentages:
+```
+GET /api.php?v=1&resource=tax_rates
+  &filters=[["type","=","c"]]
 ```
 
 ---
@@ -218,6 +280,9 @@ curl -s -H "$H" "$BASE?v=1&resource=contacts&filters=%5B%5B%22type%22%2C%22%3D%2
 
 # June invoices with lines
 curl -s -H "$H" "$BASE?v=1&resource=invoices&fields=%5B%22invoice_number%22%2C%22date%22%2C%22customer_name%22%2C%22total%22%2C%22lines%22%5D&filters=%5B%5B%22date%22%2C%22between%22%2C%5B%222026-06-01%22%2C%222026-06-30%22%5D%5D%5D" | python3 -m json.tool
+
+# June credit memos with lines
+curl -s -H "$H" "$BASE?v=1&resource=credit_memos&fields=%5B%22credit_memo_number%22%2C%22date%22%2C%22customer_name%22%2C%22total%22%2C%22lines%22%5D&filters=%5B%5B%22date%22%2C%22between%22%2C%5B%222026-06-01%22%2C%222026-06-30%22%5D%5D%5D" | python3 -m json.tool
 
 # Bad field (expect 400)
 curl -s -H "$H" "$BASE?v=1&resource=contacts&fields=%5B%22nonexistent%22%5D"

@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.API.04.03">
+<meta name="doc_index_1" content="REST API.Credit Memos Resource">
+<meta name="doc_title" content="Credit Memos Resource">
+<title>Credit Memos Resource</title>
+</head>
+<body>
+<h1 align="center">REST API &mdash; Credit Memos Resource</h1>
+<p><b>resource=credit_memos</b></p>
+<p>Returns Customer Credit Memos (journal J13) from <code>journal_main</code>. The base filter <code>journal_id = 13</code> is always applied automatically; callers cannot override it.</p>
+<p>The field layout, virtual <code>lines</code> handling, and <code>modified</code> mapping are identical to the <a href="Invoices.html">Invoices</a> resource &mdash; see that page for full field-by-field detail. Only the differences are documented here.</p>
+
+<h3>Fields</h3>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Field</th><th align="left">Type</th><th align="left">Filter</th><th align="left">Sort</th><th align="left">Description</th></tr>
+  <tr><td><code>id</code></td><td>int</td><td>yes</td><td>yes</td><td>Unique journal entry ID (primary key)</td></tr>
+  <tr><td><code>credit_memo_number</code></td><td>string</td><td>yes</td><td>yes</td><td>Credit memo number as printed on the document</td></tr>
+  <tr><td><code>reference</code></td><td>string</td><td>yes</td><td>no</td><td>Customer purchase order / payment reference</td></tr>
+  <tr><td><code>date</code></td><td>date</td><td>yes</td><td>yes</td><td>Credit memo / posting date (<code>YYYY-MM-DD</code>)</td></tr>
+  <tr><td><code>customer_id</code></td><td>int</td><td>yes</td><td>no</td><td>Contact ID of the credited customer; matches <code>contacts.id</code></td></tr>
+  <tr><td><code>customer_name</code></td><td>string</td><td>yes</td><td>yes</td><td>Customer name as it appears on the credit memo</td></tr>
+  <tr><td><code>customer_contact</code></td><td>string</td><td>no</td><td>no</td><td>Contact person name on the credit memo</td></tr>
+  <tr><td><code>bill_address1</code></td><td>string</td><td>no</td><td>no</td><td>Billing address line 1 as recorded on the credit memo</td></tr>
+  <tr><td><code>bill_address2</code></td><td>string</td><td>no</td><td>no</td><td>Billing address line 2</td></tr>
+  <tr><td><code>bill_city</code></td><td>string</td><td>no</td><td>no</td><td>Billing city / town</td></tr>
+  <tr><td><code>bill_state</code></td><td>string</td><td>no</td><td>no</td><td>Billing county / state / province</td></tr>
+  <tr><td><code>bill_postal_code</code></td><td>string</td><td>no</td><td>no</td><td>Billing postcode / ZIP</td></tr>
+  <tr><td><code>bill_country</code></td><td>string</td><td>no</td><td>no</td><td>Billing ISO country code</td></tr>
+  <tr><td><code>bill_email</code></td><td>string</td><td>no</td><td>no</td><td>Billing email address</td></tr>
+  <tr><td><code>bill_telephone</code></td><td>string</td><td>no</td><td>no</td><td>Billing telephone number</td></tr>
+  <tr><td><code>ship_country</code></td><td>string</td><td>no</td><td>no</td><td>Shipping ISO country code; blank if no shipping address was recorded on the credit memo</td></tr>
+  <tr><td><code>total</code></td><td>float</td><td>yes</td><td>yes</td><td>Credit memo total amount (inclusive of tax and freight)</td></tr>
+  <tr><td><code>tax</code></td><td>float</td><td>yes</td><td>no</td><td>Total sales tax / VAT on the credit memo</td></tr>
+  <tr><td><code>freight</code></td><td>float</td><td>no</td><td>no</td><td>Freight / shipping charge</td></tr>
+  <tr><td><code>freight_tax_id</code></td><td>int</td><td>no</td><td>no</td><td>Raw per-order override; <b>not</b> the effective rate &mdash; see <code>freight_taxable</code></td></tr>
+  <tr><td><code>freight_taxable</code></td><td>virtual</td><td>no</td><td>no</td><td>Effective tax rate ID FreeBooks actually applied to freight</td></tr>
+  <tr><td><code>freight_tax_rate</code></td><td>virtual</td><td>no</td><td>no</td><td><code>freight_taxable</code> resolved to a percentage &mdash; see note below</td></tr>
+  <tr><td><code>freight_gl_account</code></td><td>virtual</td><td>no</td><td>no</td><td>GL account the freight charge posts to; blank if there's no freight</td></tr>
+  <tr><td><code>discount</code></td><td>float</td><td>no</td><td>no</td><td>Discount amount applied to the credit memo</td></tr>
+  <tr><td><code>discount_gl_account</code></td><td>virtual</td><td>no</td><td>no</td><td>GL account the discount posts to; blank if there's no discount</td></tr>
+  <tr><td><code>currency</code></td><td>string</td><td>yes</td><td>no</td><td>ISO currency code, e.g. <code>GBP</code>, <code>USD</code></td></tr>
+  <tr><td><code>currency_rate</code></td><td>float</td><td>no</td><td>no</td><td>Exchange rate to base currency at time of posting</td></tr>
+  <tr><td><code>closed</code></td><td>string</td><td>yes</td><td>no</td><td><code>0</code> = open, <code>1</code> = fully applied and closed</td></tr>
+  <tr><td><code>terms</code></td><td>string</td><td>no</td><td>no</td><td>Payment terms string as recorded on the credit memo</td></tr>
+  <tr><td><code>shipper_code</code></td><td>string</td><td>no</td><td>no</td><td>Shipping method code</td></tr>
+  <tr><td><code>rep_id</code></td><td>int</td><td>no</td><td>no</td><td>Sales representative contact ID</td></tr>
+  <tr><td><code>notes</code></td><td>string</td><td>no</td><td>no</td><td>Internal notes on the credit memo</td></tr>
+  <tr><td><code>modified</code></td><td>date</td><td>yes</td><td>yes</td><td>Maps to <code>post_date</code> (see note below)</td></tr>
+  <tr><td><code>lines</code></td><td>virtual</td><td>no</td><td>no</td><td>Credit memo line items as a nested array. See below.</td></tr>
+</table>
+
+<h3>Default fields (when <code>fields</code> is omitted)</h3>
+<p><code>id, credit_memo_number, reference, date, customer_id, customer_name, total, tax, freight, currency, closed</code></p>
+
+<h3>Note on the <code>modified</code> field</h3>
+<p>As with <code>invoices</code>, the <code>journal_main</code> table does not store a row-level last-modified timestamp. The <code>modified</code> field maps to <code>post_date</code> (the credit memo date). Use the <code>date</code> field for range filters.</p>
+
+<h3>Note on line item quantity sign</h3>
+<p>Credit memo line item <code>qty</code> is stored as a positive value (invoices negate <code>qty</code> for inventory draw-down). This does not affect <code>amount</code> or <code>unit_price</code>, which are derived from <code>debit_amount</code>/<code>credit_amount</code> exactly as for invoices.</p>
+
+<h3>Virtual field: lines</h3>
+<p>Include <code>"lines"</code> in the <code>fields</code> array to receive the product line items for each credit memo as a nested array. Summary rows (tax, freight, discount, totals) are excluded; only product lines are returned.</p>
+<p>Each line item object contains:</p>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <tr><th align="left">Key</th><th align="left">Description</th></tr>
+  <tr><td><code>sku</code></td><td>Inventory SKU / product code</td></tr>
+  <tr><td><code>description</code></td><td>Line item description as it appears on the credit memo</td></tr>
+  <tr><td><code>qty</code></td><td>Quantity (float, positive)</td></tr>
+  <tr><td><code>unit_price</code></td><td>Unit price, computed as <code>amount / qty</code> (6 decimal places)</td></tr>
+  <tr><td><code>amount</code></td><td>Extended line total (<code>unit_price &times; qty</code>)</td></tr>
+  <tr><td><code>gl_account</code></td><td>General ledger income account code</td></tr>
+  <tr><td><code>taxable</code></td><td>Tax rate ID (<code>0</code> = non-taxable) &mdash; not a percentage; see <code>tax_rate</code> below</td></tr>
+  <tr><td><code>tax_rate</code></td><td><code>taxable</code> resolved to a percentage &mdash; see note below</td></tr>
+</table>
+<p>Line items are loaded in a single batch query for the entire page &mdash; no N+1 performance impact.</p>
+
+<h3>Note on <code>tax_rate</code> / <code>freight_tax_rate</code></h3>
+<p>As with <code>invoices</code>: <code>taxable</code> and <code>freight_taxable</code> are tax_rate_ids, not percentages. <code>tax_rate</code> and <code>freight_tax_rate</code> resolve them to the actual percentage FreeBooks would use to calculate tax. Use <code>freight_taxable</code>, not the raw <code>freight_tax_id</code> column, for the effective rate. See the <a href="Invoices.html">Invoices</a> page for the full explanation.</p>
+
+<h3>Example: export credit memos for a date range</h3>
+<pre>
+fields=["credit_memo_number","date","customer_id","customer_name","total","tax","freight","currency","currency_rate","closed","lines"]
+filters=[["date","between",["2026-06-01","2026-06-30"]]]
+order_by=date asc
+</pre>
+
+<h3>Example: credit memos for a specific customer</h3>
+<pre>
+filters=[["customer_id","=","42"]]
+order_by=date desc
+</pre>
+</body>
+</html>

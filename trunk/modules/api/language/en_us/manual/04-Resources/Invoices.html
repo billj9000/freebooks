@@ -30,10 +30,16 @@
   <tr><td><code>bill_country</code></td><td>string</td><td>no</td><td>no</td><td>Billing ISO country code</td></tr>
   <tr><td><code>bill_email</code></td><td>string</td><td>no</td><td>no</td><td>Billing email address</td></tr>
   <tr><td><code>bill_telephone</code></td><td>string</td><td>no</td><td>no</td><td>Billing telephone number</td></tr>
+  <tr><td><code>ship_country</code></td><td>string</td><td>no</td><td>no</td><td>Shipping ISO country code; blank if no shipping address was recorded on the invoice</td></tr>
   <tr><td><code>total</code></td><td>float</td><td>yes</td><td>yes</td><td>Invoice total amount (inclusive of tax and freight)</td></tr>
   <tr><td><code>tax</code></td><td>float</td><td>yes</td><td>no</td><td>Total sales tax / VAT on the invoice</td></tr>
   <tr><td><code>freight</code></td><td>float</td><td>no</td><td>no</td><td>Freight / shipping charge</td></tr>
+  <tr><td><code>freight_tax_id</code></td><td>int</td><td>no</td><td>no</td><td>Raw per-order override typed on the order form (usually <code>0</code> = &ldquo;use the company default&rdquo;); <b>not</b> the effective rate &mdash; see <code>freight_taxable</code></td></tr>
+  <tr><td><code>freight_taxable</code></td><td>virtual</td><td>no</td><td>no</td><td>Effective tax rate ID FreeBooks actually applied to freight (from the posted <code>frt</code> journal_item row); mirrors a line item's <code>taxable</code></td></tr>
+  <tr><td><code>freight_tax_rate</code></td><td>virtual</td><td>no</td><td>no</td><td><code>freight_taxable</code> resolved to a percentage &mdash; see note below</td></tr>
+  <tr><td><code>freight_gl_account</code></td><td>virtual</td><td>no</td><td>no</td><td>GL account the freight charge posts to (its own journal_item row, gl_type <code>frt</code>, excluded from <code>lines</code>); blank if there's no freight</td></tr>
   <tr><td><code>discount</code></td><td>float</td><td>no</td><td>no</td><td>Discount amount applied to the invoice</td></tr>
+  <tr><td><code>discount_gl_account</code></td><td>virtual</td><td>no</td><td>no</td><td>GL account the discount posts to (its own journal_item row, gl_type <code>dsc</code>, excluded from <code>lines</code>); blank if there's no discount</td></tr>
   <tr><td><code>currency</code></td><td>string</td><td>yes</td><td>no</td><td>ISO currency code, e.g. <code>GBP</code>, <code>USD</code></td></tr>
   <tr><td><code>currency_rate</code></td><td>float</td><td>no</td><td>no</td><td>Exchange rate to base currency at time of posting</td></tr>
   <tr><td><code>closed</code></td><td>string</td><td>yes</td><td>no</td><td><code>0</code> = open / partially paid, <code>1</code> = fully paid and closed</td></tr>
@@ -62,9 +68,14 @@
   <tr><td><code>unit_price</code></td><td>Unit price, computed as <code>amount / qty</code> (6 decimal places)</td></tr>
   <tr><td><code>amount</code></td><td>Extended line total (<code>unit_price &times; qty</code>)</td></tr>
   <tr><td><code>gl_account</code></td><td>General ledger income account code</td></tr>
-  <tr><td><code>taxable</code></td><td><code>1</code> if the line is taxable, <code>0</code> if not</td></tr>
+  <tr><td><code>taxable</code></td><td>Tax rate ID (<code>0</code> = non-taxable) &mdash; not a percentage; see <code>tax_rate</code> below</td></tr>
+  <tr><td><code>tax_rate</code></td><td><code>taxable</code> resolved to a percentage &mdash; see note below</td></tr>
 </table>
 <p>Line items are loaded in a single batch query for the entire page &mdash; no N+1 performance impact.</p>
+
+<h3>Note on <code>tax_rate</code> / <code>freight_tax_rate</code></h3>
+<p><code>taxable</code> and <code>freight_taxable</code> are tax_rate_ids, not percentages &mdash; a tax_rate_id can combine multiple tax authorities. <code>tax_rate</code> and <code>freight_tax_rate</code> resolve them to the actual percentage FreeBooks would use to calculate tax (summing <code>tax_rates.rate_accounts</code> against <code>tax_authorities.tax_rate</code>, the same calculation as <code>gen_calculate_tax_rate()</code>), so callers don't need to duplicate that lookup or hardcode rates that could drift out of sync.</p>
+<p><b>Important:</b> use <code>freight_taxable</code>, not <code>freight_tax_id</code>, if you need the tax rate ID that actually applied to freight. <code>freight_tax_id</code> is the raw per-order override on the order form and is commonly left at <code>0</code> (&ldquo;use the company default,&rdquo; <code>AR_ADD_SALES_TAX_TO_SHIPPING</code>) &mdash; the effective id FreeBooks used is only recorded on the posted freight line itself, which is what <code>freight_taxable</code> (and <code>freight_tax_rate</code>) resolve from.</p>
 
 <h3>Example: export invoices for a date range</h3>
 <pre>
