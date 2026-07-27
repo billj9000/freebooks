@@ -77,36 +77,53 @@ class backup {
 		$result = $db->Execute("show create table $table");
 		$query .= $result->fields['Create Table'] . ";" . lnbr . lnbr;
 	  }
+	  fwrite($handle, $query);
 	  if ($type == 'data' || $type == 'both') {
-		$result = $db->Execute('SELECT * FROM ' . $table . $params);
-		if ($result->RecordCount() > 0) {
-		  $temp_array = $result->fields;
-		  foreach (array_keys($temp_array) as $key) $data['keys'][] = $key;
-		  $sql_head  = "INSERT INTO $table (`" . join('`,`', $data['keys']) . '`) VALUES ' . lnbr;
-		  $count     = 0; // set to max_count to force the sql_head at the start
-		  $query .= $sql_head;
-		  while (!$result->EOF) {
-			$data = array();
-			$temp_array = $result->fields;
-			foreach ($temp_array as $value) {
-			  $data[] = addslashes($value);
+		// Pull rows in bounded chunks rather than one SELECT * covering the whole table —
+		// query_factory's Execute() always buffers the full result set in memory (PDO
+		// fetchAll()), so a large table (e.g. a full-history company's journal_item at
+		// 200K+ rows) can exceed memory_limit before a single row is written. Chunking
+		// keeps memory bounded regardless of table size; the emitted SQL is byte-for-byte
+		// identical to the previous single-query version.
+		$count_result = $db->Execute('SELECT COUNT(*) AS cnt FROM ' . $table . $params);
+		$total_rows   = (int)$count_result->fields['cnt'];
+		if ($total_rows > 0) {
+		  $chunk_size = 1000;
+		  $sql_head   = '';
+		  $count      = 0; // rows since the last INSERT statement was opened
+		  $row_number = 0;
+		  for ($offset = 0; $offset < $total_rows; $offset += $chunk_size) {
+			$result      = $db->Execute('SELECT * FROM ' . $table . $params . ' LIMIT ' . $offset . ',' . $chunk_size);
+			$chunk_query = '';
+			while (!$result->EOF) {
+			  $temp_array = $result->fields;
+			  if ($sql_head === '') {
+				$keys     = array_keys($temp_array);
+				$sql_head = "INSERT INTO $table (`" . join('`,`', $keys) . '`) VALUES ' . lnbr;
+				$chunk_query .= $sql_head;
+			  }
+			  $data = array();
+			  foreach ($temp_array as $value) {
+				$data[] = addslashes($value);
+			  }
+			  $chunk_query .= "('" . implode("', '", $data) . "')";
+			  $row_number++;
+			  $count++;
+			  if ($row_number == $total_rows) {
+				$chunk_query .= ';' . lnbr;
+			  } elseif ($count > $this->max_count) {
+				$count = 0;
+				$chunk_query .= ';' . lnbr . $sql_head;
+			  } else {
+				$chunk_query .= ',' . lnbr;
+			  }
+			  $result->MoveNext();
 			}
-			$query .= "('" . implode("', '", $data) . "')";
-			$result->MoveNext();
-			$count++;
-			if ($result->EOF) {
-			  $query .= ';' . lnbr;
-			} elseif ($count > $this->max_count) {
-			  $count = 0;
-			  $query .= ';' . lnbr . $sql_head;
-			} else {
-			  $query .= ',' . lnbr;
-			}
+			fwrite($handle, $chunk_query);
 		  }
 		}
 	  }
-	  $query .= lnbr . lnbr;
-	  fwrite($handle, $query);
+	  fwrite($handle, lnbr . lnbr);
 	}
 	fclose($handle);
 	return true;
