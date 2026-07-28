@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="11.VIN.02">
+<meta name="doc_index_1" content="VIN Lookup.Settings and Caching">
+<meta name="doc_title" content="Settings and Caching">
+<title>Settings and Caching</title>
+</head>
+<body>
+<h1 align="center">Settings and Caching</h1>
+<p>Settings live under <b>Company &gt; Configuration &gt; VIN Lookup</b>. Access to this page, and to using the tool itself, is controlled by its own permission &mdash; grant it to a role or user under Roles/Users like any other module.</p>
+<h3>Settings fields</h3>
+<ul>
+  <li><b>API key</b> &mdash; your Vehicle Data Global bearer token. This is separate from the API key used for postcode lookup elsewhere in FreeBooks, even though both talk to the same provider account.</li>
+  <li><b>Data package(s)</b> &mdash; the provider's <code>packageName</code> value for this request, e.g. <code>VehicleDetails</code>. This determines which fields come back and what the lookup costs; change it to match what your Vehicle Data Global account is licensed for.</li>
+  <li><b>API endpoint</b> &mdash; the provider URL. Only change this if Vehicle Data Global instructs you to.</li>
+</ul>
+<h3>Test Connection</h3>
+<p>Before saving, enter a real registration number next to <b>Test Connection</b> and click <b>Test</b>. This calls the provider directly with the values currently in the form (even if unsaved) and reports success or the exact error and HTTP status returned, which is the fastest way to confirm the key and package name are correct.</p>
+<h3>How caching works</h3>
+<ul>
+  <li>A successful lookup is stored against its registration number and never expires on its own &mdash; there is no time-based cache expiry.</li>
+  <li>A failed lookup (bad key, registration not found, provider error) is <i>never</i> cached, so it will always retry against the provider next time.</li>
+  <li>Use <b>Refresh from Provider</b> on the results page to force a fresh lookup and overwrite the cached copy for that registration.</li>
+  <li>Deleting a row from Recent Lookups also forces the next lookup for that registration to go back to the provider.</li>
+  <li>Users with full access to VIN Lookup additionally see a raw JSON panel under each result, useful for confirming exactly what the provider returned.</li>
+</ul>
+</body>
+</html>
