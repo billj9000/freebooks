@@ -23,7 +23,7 @@ gen_pull_language('bulk_inv', 'admin');
 define('MODULE_BULK_INV_VERSION', '1.0');
 // Menu Sort Positions
 // Security id's
-define('SECURITY_ID_MAINTAIN_INVENTORY', 151);
+if (!defined('SECURITY_ID_MAINTAIN_INVENTORY')) define('SECURITY_ID_MAINTAIN_INVENTORY', 151); // shared with inventory module; guard against load-order changes
 // New Database Tables
 // Menu Locations
 
