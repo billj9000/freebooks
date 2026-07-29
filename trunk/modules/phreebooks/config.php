@@ -66,6 +66,8 @@ define('SECURITY_ID_ACCT_REGISTER',      105);
 define('SECURITY_ID_VOID_CHECKS',        106);
 define('SECURITY_ID_CUSTOMER_PAYMENTS',  107);
 define('SECURITY_ID_VENDOR_RECEIPTS',    108);
+define('SECURITY_ID_VENDOR_REFUND_STATUS',   109);
+define('SECURITY_ID_CUSTOMER_REFUND_STATUS', 110);
 define('SECURITY_ID_RECEIPTS_STATUS',    111);
 define('SECURITY_ID_PAYMENTS_STATUS',    112);
 define('SECURITY_ID_JOURNAL_ENTRY',      126);
@@ -120,7 +122,7 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	$mainmenu["banking"]['submenu']["receipts"]['submenu']["payments_mgr"] = array(
 		'order'		  => 20,
 		'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_20_C_WINDOW_TITLE),
-		'security_id' => SECURITY_ID_PAYMENTS_STATUS,
+		'security_id' => SECURITY_ID_CUSTOMER_REFUND_STATUS,
 		'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=20&amp;type=c&amp;list=1', 'SSL'),
 		'show_in_users_settings' => true,
 		'params'      => '',
@@ -171,7 +173,7 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	$mainmenu["banking"]['submenu']["vendor_payments"]['submenu']["receipts_mgr"] = array(
 	  	'order'		  => 35,
 	    'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_18_V_WINDOW_TITLE),
-	    'security_id' => SECURITY_ID_RECEIPTS_STATUS,
+	    'security_id' => SECURITY_ID_VENDOR_REFUND_STATUS,
 	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=18&amp;type=v&amp;list=1', 'SSL'),
 	    'show_in_users_settings' => true,
 	    'params'      => '',
