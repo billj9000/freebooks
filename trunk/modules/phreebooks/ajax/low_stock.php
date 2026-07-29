@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -30,10 +30,11 @@ $where .= " p.vendor_id = $cID";
 if (ENABLE_MULTI_BRANCH) {
   $quantity_where = "remaining";
   $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity, sum(remaining) as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, description_short,
-  	((minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation - quantity_on_hand )/purch_package_quantity) as qty_required, purch_package_quantity  
+  	minimum_stock_level, quantity_on_sales_order, quantity_on_order, quantity_on_allocation,
+  	((minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation - quantity_on_hand )/purch_package_quantity) as qty_required, purch_package_quantity
 	from ".TABLE_INVENTORY. " a join " . TABLE_INVENTORY_HISTORY . "  c join " . TABLE_INVENTORY_PURCHASE . " p ON a.sku = p.sku and a.sku = c.sku
-	where minimum_stock_level <> 0 and inactive = '0' and remaining < (minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation) and ".$where." 
-	group by a.sku order by a.sku";
+	where minimum_stock_level <> 0 and inactive = '0' and remaining > 0 and ".$where."
+	group by a.sku having sum(remaining) < (minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation) order by a.sku";
 } else {
   $quantity_where = "a.quantity_on_hand";
   $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity,  quantity_on_hand as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, description_short,
