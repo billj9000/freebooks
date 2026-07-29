@@ -16,9 +16,9 @@
 
 define('MODULE_LABELS_VERSION', 1.00);
 
-// Security IDs (200-201 — check master doc to avoid overlap)
-define('SECURITY_ID_LABELS_MANAGE', 200);
-define('SECURITY_ID_LABELS_PRINT',  201);
+// Security IDs
+define('SECURITY_ID_LABELS_MANAGE', 116);
+define('SECURITY_ID_LABELS_PRINT',  117);
 
 // Database table
 define('TABLE_LABEL_TEMPLATES', DB_PREFIX . 'label_templates');
