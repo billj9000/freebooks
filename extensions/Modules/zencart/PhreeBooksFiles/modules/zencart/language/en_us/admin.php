@@ -48,6 +48,10 @@ define('ZENCART_LBL_LAST_ORDER','Last imported ZenCart order ID — edit to re-i
 define('ZENCART_LBL_PAYMENT_MAP','Payment module map — comma-separated entries of the form zcmodule=fbmodule:glacct (e.g. paypalexpress=paypal_nvp:1020,stripe=freecharger:1030). fbmodule and glacct are each optional.');
 define('ZENCART_LBL_SHIPPING_MAP','Shipping method map — pipe-separated entries of the form zc_module:keyword=fb_module:fb_service. keyword is matched as a case-insensitive substring of the ZenCart shipping description (may contain colons); longest match wins. Leave keyword blank for a catch-all entry for that module. Example: royalmail:RM Tracked 24=royal_mail:RM24|royalmail:=royal_mail:RM48|dhl:DHL Express: Domestic=dhl_express:DHL_D');
 define('ZENCART_LBL_NON_SHIP_SKUS','Non-shipping SKUs — comma-separated list of ZenCart item codes that are fee charges (IOSS, duty, etc.) and should be excluded from the customs/shipping line items and declared goods value. These items are still imported into the order for accounting purposes.');
+define('ZENCART_LBL_VAT_INVOICE','Email a VAT invoice for each imported order, when the customer contact has a VAT number on file (Contacts &gt; VAT Number field)');
+define('ZENCART_LBL_VAT_INVOICE_FORM','PhreeForm invoice form to email as the VAT invoice');
+define('ZENCART_LBL_VAT_INVOICE_SUBJECT','VAT invoice email subject — use {invoice}, {order}, {name}, {company}, {date} in any order');
+define('ZENCART_LBL_VAT_INVOICE_MESSAGE','VAT invoice email message — use {invoice}, {order}, {name}, {company}, {date} in any order');
 // Validation warnings for config maps
 define('ZENCART_WARN_PAYMENT_MAP_FMT',      'Payment map entry #%d ("%s"): missing "=" separator — expected format zcmodule=fbmodule:glacct.');
 define('ZENCART_WARN_PAYMENT_MAP_EMPTY',    'Payment map entry #%d: ZenCart module name is empty.');

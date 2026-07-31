@@ -54,6 +54,10 @@ class zencart_admin {
 	  'ZENCART_PAYMENT_MAP'           => '',
 	  'ZENCART_SHIPPING_MAP'          => '',
 	  'ZENCART_NON_SHIP_SKUS'         => '',
+	  'ZENCART_VAT_INVOICE'           => '0',
+	  'ZENCART_VAT_INVOICE_FORM'      => '',
+	  'ZENCART_VAT_INVOICE_SUBJECT'   => 'VAT Invoice {invoice}',
+	  'ZENCART_VAT_INVOICE_MESSAGE'   => 'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.',
 	);
   }
 
@@ -234,6 +238,22 @@ class zencart_admin {
 
 	// Master enable switch (default off) — gates all ZenCart traffic; see functions/zencart.php + cron
 	if (!defined('ZENCART_ENABLED')) write_configure('ZENCART_ENABLED', '0');
+
+	// VAT invoice email — off by default; see functions/zencart.php::zencart_email_vat_invoice()
+	if (!defined('ZENCART_VAT_INVOICE'))         write_configure('ZENCART_VAT_INVOICE', '0');
+	if (!defined('ZENCART_VAT_INVOICE_SUBJECT')) write_configure('ZENCART_VAT_INVOICE_SUBJECT', 'VAT Invoice {invoice}');
+	if (!defined('ZENCART_VAT_INVOICE_MESSAGE')) write_configure('ZENCART_VAT_INVOICE_MESSAGE',
+	  'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.');
+	// Pre-select the stock VAT invoice form so the setting isn't blank on first upgrade.
+	// Only ever fills an empty value — never overwrites a form the admin has already chosen.
+	if (!defined('ZENCART_VAT_INVOICE_FORM') || ZENCART_VAT_INVOICE_FORM === '') {
+	  if (!defined('TABLE_PHREEFORM')) define('TABLE_PHREEFORM', DB_PREFIX . 'phreeform');
+	  $frm = $db->Execute("SELECT id FROM " . TABLE_PHREEFORM
+	    . " WHERE doc_group = 'cust:inv' AND doc_ext = 'frm' AND doc_title = 'Invoice-VAT' LIMIT 1");
+	  // Left blank (not '0') when no matching form exists yet, so a later module update —
+	  // after the admin adds an Invoice-VAT form — can still auto-select it.
+	  if (!$frm->EOF) write_configure('ZENCART_VAT_INVOICE_FORM', (int)$frm->fields['id']);
+	}
 
 	// HTML long-description field on the ZenCart inventory tab (holds web long description)
 	if ($error == false && !db_field_exists(TABLE_INVENTORY, 'zencart_description')) {

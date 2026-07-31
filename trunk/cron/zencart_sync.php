@@ -1,4 +1,21 @@
 <?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /cron/zencart_sync.php
+//
 /**
  * ZenCart → FreeBooks order import cron script.
  *
@@ -964,6 +981,11 @@ foreach ($zc_orders as $zc) {
                     echo ts() . " Applied payment {$pay->purchase_invoice_id} ({$zc_currency} {$payment_amount}) for ZC order $zc_id\n";
                 }
             }
+
+            // Email a VAT invoice when the customer is VAT-registered (contacts.vat_number
+            // non-empty) and the feature is enabled. Placed after the payment block above —
+            // not before — so the rendered form's payments section reflects what was applied.
+            zencart_email_vat_invoice($invoice_id, $acct_id, $zc_id);
         }
     }
 

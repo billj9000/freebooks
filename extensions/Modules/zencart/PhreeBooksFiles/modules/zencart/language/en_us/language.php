@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -55,6 +56,8 @@ define('ZENCART_PRODUCT_SYNC','ZenCart Product Sync');
 define('ZENCART_SHIP_CONFIRM','ZenCart Ship Confirmation');
 define('ZENCART_INVENTORY_CATALOG_IS_EMPTY','The field webshop menu / catalog is empty. this field is required when you want to upload a product.');
 define('ZENCART_DISABLED_NOTICE','The ZenCart integration is disabled. Enable it under Company → Configuration → ZenCart before uploading or syncing.');
+// VAT invoice email — fallback default body if ZENCART_VAT_INVOICE_MESSAGE is ever cleared
+define('ZENCART_VAT_INVOICE_MESSAGE_DEFAULT','Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.');
 
 define('ZENCART_CATALOG_URL','ZenCart - product URL.');
 define('ZENCART_CATALOG_MODEL','ZenCart - product model.');

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -25,8 +26,9 @@
 // 3.6 => 2014-01-15 - updated for move back to phreebooks and menu changes
 // 3.7 => 2026-07-07 - Master Stock attribute/variant sync (both directions)
 // 3.8 => 2026-07-18 - Add ZENCART_ENABLED master switch, multi-company cron, HTML product description field
+// 3.9 => 2026-07-30 - Email a VAT invoice for imported orders when the customer is VAT-registered
 // Module software version information
-define('MODULE_ZENCART_VERSION',      3.8);
+define('MODULE_ZENCART_VERSION',      3.9);
 // Set the menu order, if using ZenCart title menu option (after Customers and before Vendors)
 define('MENU_HEADING_ZENCART_ORDER',     15);
 // Security id's

@@ -61,6 +61,14 @@
         <div><?php echo html_input_field('zencart_shipping_map', isset($_POST['zencart_shipping_map']) ? $_POST['zencart_shipping_map'] : (defined('ZENCART_SHIPPING_MAP') ? ZENCART_SHIPPING_MAP : ''), 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_LBL_NON_SHIP_SKUS; ?></div>
         <div><?php echo html_input_field('zencart_non_ship_skus', isset($_POST['zencart_non_ship_skus']) ? $_POST['zencart_non_ship_skus'] : (defined('ZENCART_NON_SHIP_SKUS') ? ZENCART_NON_SHIP_SKUS : ''), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_VAT_INVOICE; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_vat_invoice', $sel_yes_no, isset($_POST['zencart_vat_invoice']) ? $_POST['zencart_vat_invoice'] : (defined('ZENCART_VAT_INVOICE') ? ZENCART_VAT_INVOICE : '0'), 'class="form-select form-select-sm w-auto"'); ?></div>
+        <div><?php echo ZENCART_LBL_VAT_INVOICE_FORM; ?></div>
+        <div><?php echo html_pull_down_menu('zencart_vat_invoice_form', zencart_pull_invoice_forms(), isset($_POST['zencart_vat_invoice_form']) ? $_POST['zencart_vat_invoice_form'] : (defined('ZENCART_VAT_INVOICE_FORM') ? ZENCART_VAT_INVOICE_FORM : ''), 'class="form-select form-select-sm w-auto"'); ?></div>
+        <div><?php echo ZENCART_LBL_VAT_INVOICE_SUBJECT; ?></div>
+        <div><?php echo html_input_field('zencart_vat_invoice_subject', isset($_POST['zencart_vat_invoice_subject']) ? $_POST['zencart_vat_invoice_subject'] : (defined('ZENCART_VAT_INVOICE_SUBJECT') ? ZENCART_VAT_INVOICE_SUBJECT : ''), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_VAT_INVOICE_MESSAGE; ?></div>
+        <div><?php echo html_input_field('zencart_vat_invoice_message', isset($_POST['zencart_vat_invoice_message']) ? $_POST['zencart_vat_invoice_message'] : (defined('ZENCART_VAT_INVOICE_MESSAGE') ? ZENCART_VAT_INVOICE_MESSAGE : ''), 'class="form-control form-control-sm"'); ?></div>
       </div>
     </div>
   </div>
