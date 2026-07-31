@@ -32,6 +32,5 @@ function loadPopUp(action, id) {
 function togglePriceSheets() {
   var show = document.getElementById('zencart_use_price_sheets').selectedIndex ? '' : 'none';
   document.getElementById('price_sheet_row').style.display = show;
-  document.getElementById('price_sheet_label').style.display = show;
 }
 </script>
