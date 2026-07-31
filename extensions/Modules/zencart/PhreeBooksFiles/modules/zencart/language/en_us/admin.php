@@ -52,6 +52,7 @@ define('ZENCART_LBL_VAT_INVOICE','Email a VAT invoice for each imported order, w
 define('ZENCART_LBL_VAT_INVOICE_FORM','PhreeForm invoice form to email as the VAT invoice');
 define('ZENCART_LBL_VAT_INVOICE_SUBJECT','VAT invoice email subject — use {invoice}, {order}, {name}, {company}, {date} in any order');
 define('ZENCART_LBL_VAT_INVOICE_MESSAGE','VAT invoice email message — use {invoice}, {order}, {name}, {company}, {date} in any order');
+define('ZENCART_LBL_VAT_INVOICE_BCC','BCC address for VAT invoice emails (optional, leave blank for none)');
 // Validation warnings for config maps
 define('ZENCART_WARN_PAYMENT_MAP_FMT',      'Payment map entry #%d ("%s"): missing "=" separator — expected format zcmodule=fbmodule:glacct.');
 define('ZENCART_WARN_PAYMENT_MAP_EMPTY',    'Payment map entry #%d: ZenCart module name is empty.');

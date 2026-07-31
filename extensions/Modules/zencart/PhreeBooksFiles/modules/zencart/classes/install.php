@@ -58,6 +58,7 @@ class zencart_admin {
 	  'ZENCART_VAT_INVOICE_FORM'      => '',
 	  'ZENCART_VAT_INVOICE_SUBJECT'   => 'VAT Invoice {invoice}',
 	  'ZENCART_VAT_INVOICE_MESSAGE'   => 'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.',
+	  'ZENCART_VAT_INVOICE_BCC'       => '',
 	);
   }
 
@@ -244,6 +245,7 @@ class zencart_admin {
 	if (!defined('ZENCART_VAT_INVOICE_SUBJECT')) write_configure('ZENCART_VAT_INVOICE_SUBJECT', 'VAT Invoice {invoice}');
 	if (!defined('ZENCART_VAT_INVOICE_MESSAGE')) write_configure('ZENCART_VAT_INVOICE_MESSAGE',
 	  'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.');
+	if (!defined('ZENCART_VAT_INVOICE_BCC'))     write_configure('ZENCART_VAT_INVOICE_BCC', '');
 	// Pre-select the stock VAT invoice form so the setting isn't blank on first upgrade.
 	// Only ever fills an empty value — never overwrites a form the admin has already chosen.
 	if (!defined('ZENCART_VAT_INVOICE_FORM') || ZENCART_VAT_INVOICE_FORM === '') {

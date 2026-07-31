@@ -360,8 +360,12 @@ function zencart_email_vat_invoice(int $invoice_id, int $acct_id, int $zc_id): b
         $from_name    = defined('COMPANY_NAME') ? COMPANY_NAME : 'FreeBooks';
         $from_address = defined('EMAIL_FROM') ? EMAIL_FROM : '';
 
+        $block = [];
+        $bcc = defined('ZENCART_VAT_INVOICE_BCC') ? trim(ZENCART_VAT_INVOICE_BCC) : '';
+        if ($bcc !== '') $block['EMAIL_BCC_ADDRESS'] = $bcc;
+
         $attachments_list = ['file' => $temp_path];
-        $sent = validate_send_mail($to_name, $to_email, $subject, $message, $from_name, $from_address, [], $attachments_list);
+        $sent = validate_send_mail($to_name, $to_email, $subject, $message, $from_name, $from_address, $block, $attachments_list);
         @unlink($temp_path);
 
         if ($sent) {

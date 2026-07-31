@@ -69,6 +69,8 @@
         <div><?php echo html_input_field('zencart_vat_invoice_subject', isset($_POST['zencart_vat_invoice_subject']) ? $_POST['zencart_vat_invoice_subject'] : (defined('ZENCART_VAT_INVOICE_SUBJECT') ? ZENCART_VAT_INVOICE_SUBJECT : ''), 'class="form-control form-control-sm"'); ?></div>
         <div><?php echo ZENCART_LBL_VAT_INVOICE_MESSAGE; ?></div>
         <div><?php echo html_input_field('zencart_vat_invoice_message', isset($_POST['zencart_vat_invoice_message']) ? $_POST['zencart_vat_invoice_message'] : (defined('ZENCART_VAT_INVOICE_MESSAGE') ? ZENCART_VAT_INVOICE_MESSAGE : ''), 'class="form-control form-control-sm"'); ?></div>
+        <div><?php echo ZENCART_LBL_VAT_INVOICE_BCC; ?></div>
+        <div><?php echo html_input_field('zencart_vat_invoice_bcc', isset($_POST['zencart_vat_invoice_bcc']) ? $_POST['zencart_vat_invoice_bcc'] : (defined('ZENCART_VAT_INVOICE_BCC') ? ZENCART_VAT_INVOICE_BCC : ''), 'class="form-control form-control-sm"'); ?></div>
       </div>
     </div>
   </div>
