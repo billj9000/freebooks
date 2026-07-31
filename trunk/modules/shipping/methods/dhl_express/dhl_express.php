@@ -395,14 +395,21 @@ class dhl_express {
       'outputImageProperties' => array(
         'printerDPI'     => 300,
         'encodingFormat' => 'pdf',
-        'imageOptions'   => array(
+        // Paperless Trade (WY, added below) has DHL generate + electronically upload the commercial
+        // invoice; requesting the 'invoice' image here also returns us a printable copy of it.
+        'imageOptions'   => $isDomestic ? array(
           array('typeCode' => 'label', 'templateName' => 'ECOM26_84_001', 'isRequested' => true),
+        ) : array(
+          array('typeCode' => 'label',   'templateName' => 'ECOM26_84_001',    'isRequested' => true),
+          array('typeCode' => 'invoice', 'templateName' => 'COMMERCIAL_INVOICE_P_10', 'isRequested' => true, 'invoiceType' => 'commercial'),
         ),
       ),
       'customerReferences' => array(
         array('value' => $sInfo->purchase_invoice_id, 'typeCode' => 'CU'),
       ),
-    );
+    // Paperless Trade: required on international shipments so DHL auto-generates and
+    // electronically uploads the commercial invoice for customs clearance (Issue #59).
+    ) + (!$isDomestic ? array('valueAddedServices' => array(array('serviceCode' => 'WY'))) : array());
 
     if (!$isDomestic) {
       $currency     = $sInfo->currencies_code ?: (defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP');
@@ -520,6 +527,20 @@ class dhl_express {
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'No label documents in API response.', 'error');
       return false;
     }
+
+    // Paperless Trade commercial invoice (one per shipment, not per package) — save alongside
+    // the labels and hand its filename back so the caller can offer it in the label viewer.
+    foreach ($data['documents'] ?? array() as $doc) {
+      if (($doc['typeCode'] ?? '') !== 'invoice') continue;
+      $invoiceData = base64_decode($doc['content'] ?? '');
+      if (!$invoiceData) continue;
+      $invoiceTracking = $tracking . '-invoice';
+      if (file_put_contents($file_path . $invoiceTracking . '.pdf', $invoiceData)) {
+        $results[0]['invoice_tracking'] = $invoiceTracking;
+      }
+      break;
+    }
+
     return $results;
   }
 

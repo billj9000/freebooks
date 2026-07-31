@@ -116,6 +116,10 @@ switch ($_REQUEST['action']) {
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
         $labels_array[] = $pkg_result['tracking'];
       }
+      // Paperless Trade commercial invoice, if DHL returned one — shown alongside the labels
+      if (!empty($result[0]['invoice_tracking'])) {
+        $labels_array[] = $result[0]['invoice_tracking'];
+      }
       $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
       gen_add_audit_log(SHIPPING_LOG_LABEL_PRINTED, $shipment_num . '-' . $sInfo->purchase_invoice_id);
       // DHL labels are always PDF — redirect to viewer, passing email address hints
