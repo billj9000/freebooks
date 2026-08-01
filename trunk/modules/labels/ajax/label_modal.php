@@ -51,6 +51,10 @@ $render_url = html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=rende
     <label class="form-label"><?php echo TEXT_QTY_PER_ITEM; ?></label>
     <input type="number" id="lbl_qty" class="form-control form-control-sm" value="1" min="1" max="999" style="width:80px">
   </div>
+  <div class="mb-3">
+    <label class="form-label"><?php echo TEXT_NUM_LABELS; ?></label>
+    <input type="number" id="lbl_count" class="form-control form-control-sm" value="1" min="1" max="999" style="width:80px">
+  </div>
   <div id="lbl_error" class="text-danger small" style="display:none"></div>
 <?php endif; ?>
 </div>

@@ -26,7 +26,8 @@ define('TEXT_PREVIEW',             'Preview');
 define('TEXT_PRINT_LABELS',        'Print Labels');
 define('TEXT_PRINT_LABEL',         'Print Label');
 define('TEXT_SELECT_TEMPLATE',     'Select Template');
-define('TEXT_QTY_PER_ITEM',        'Qty per Item');
+define('TEXT_QTY_PER_ITEM',        'Pack Qty');
+define('TEXT_NUM_LABELS',          'Number of Labels to Print');
 define('TEXT_VARIABLE_REFERENCE',  'Available Variables');
 define('TEXT_NO_TEMPLATES_DEFINED','No label templates have been defined yet.');
 define('TEXT_LABEL_DELETED',       'Label template deleted.');
@@ -37,6 +38,10 @@ define('TEXT_LABEL_DATE_MODIFIED', 'Last Modified');
 define('TEXT_LABEL_PRINT_QTY',     'Quantity');
 define('TEXT_LABEL_NO_ITEMS',      'No items selected for printing.');
 define('TEXT_LABEL_NO_TEMPLATE',   'Please select a label template.');
+define('TEXT_SKU_SEARCH',          'Search by SKU or Vendor Part #');
+define('TEXT_SKU_SEARCH_PLACEHOLDER', 'Start typing a SKU or vendor part number...');
+define('TEXT_SKU_NO_MATCHES',      'No matching items found.');
+define('TEXT_LABEL_PRINT_NO_PERMISSION', 'You do not have permission to print labels. Please contact your administrator.');
 
 // Variable reference descriptions
 define('TEXT_VAR_SKU',             '{{ sku }} — Item SKU / part number');
@@ -46,4 +51,6 @@ define('TEXT_VAR_PRICE',           '{{ price }} — Formatted retail price');
 define('TEXT_VAR_COST',            '{{ cost }} — Formatted item cost');
 define('TEXT_VAR_UPC',             '{{ upc }} — UPC code');
 define('TEXT_VAR_WEIGHT',          '{{ weight }} — Item weight');
-define('TEXT_VAR_BARCODE_SVG',     '{{ barcode_svg | raw }} — CODE128 barcode SVG (HTML templates only)');
+define('TEXT_VAR_BARCODE_SVG',     '{{ barcode_svg | raw }} — CODE128 barcode SVG encoding the SKU (HTML templates only)');
+define('TEXT_VAR_QRCODE_SVG',      '{{ qrcode_svg | raw }} — QR code SVG encoding the SKU (HTML templates only)');
+define('TEXT_VAR_QTY_PER_ITEM',    '{{ pack_qty }} — the "Pack Qty" value entered on the Print Labels popup/page');

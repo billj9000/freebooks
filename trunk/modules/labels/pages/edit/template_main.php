@@ -73,7 +73,7 @@ echo $toolbar->build_toolbar();
         <div class="card-header py-1 fb-widget-header"><?php echo TEXT_HTML_TEMPLATE; ?></div>
         <div class="card-body">
           <textarea name="html_template" class="form-control form-control-sm font-monospace" rows="10"
-                    placeholder="<div style=&quot;padding:4px&quot;><strong>{{ sku }}</strong><br>{{ description }}<br>{{ barcode_svg | raw }}</div>"><?php echo htmlspecialchars($cInfo['html_template'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
+                    placeholder="<div style=&quot;padding:4px&quot;><strong>{{ sku }}</strong><br>{{ description }}<br>{{ barcode_svg | raw }}<br>{{ qrcode_svg | raw }}</div>"><?php echo htmlspecialchars($cInfo['html_template'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ echo $toolbar->build_toolbar();
         <div class="card-header py-1 fb-widget-header"><?php echo TEXT_ZPL_TEMPLATE; ?></div>
         <div class="card-body">
           <textarea name="zpl_template" class="form-control form-control-sm font-monospace" rows="10"
-                    placeholder="^XA&#10;^FO20,20^A0N,28,28^FD{{ sku }}^FS&#10;^FO20,55^A0N,20,20^FD{{ description }}^FS&#10;^FO20,80^BCN,50,Y,N,N^FD{{ sku }}^FS&#10;^XZ"><?php echo htmlspecialchars($cInfo['zpl_template'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
+                    placeholder="^XA&#10;^FO20,20^A0N,28,28^FD{{ sku }}^FS&#10;^FO20,55^A0N,20,20^FD{{ description }}^FS&#10;^FO20,80^BCN,50,Y,N,N^FD{{ sku }}^FS&#10;^FO20,150^BQN,2,4^FDLA,{{ sku }}^FS&#10;^XZ"><?php echo htmlspecialchars($cInfo['zpl_template'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
           <div class="form-text"><?php echo TEXT_PRINTER_TYPE_ZPL; ?> — use plain text variables (no <code>| raw</code> needed).</div>
         </div>
       </div>
@@ -112,6 +112,8 @@ echo $toolbar->build_toolbar();
             <tr><td><code>{{ upc }}</code></td><td><?php echo TEXT_VAR_UPC; ?></td></tr>
             <tr><td><code>{{ weight }}</code></td><td><?php echo TEXT_VAR_WEIGHT; ?></td></tr>
             <tr><td><code>{{ barcode_svg | raw }}</code></td><td><?php echo TEXT_VAR_BARCODE_SVG; ?></td></tr>
+            <tr><td><code>{{ qrcode_svg | raw }}</code></td><td><?php echo TEXT_VAR_QRCODE_SVG; ?></td></tr>
+            <tr><td><code>{{ pack_qty }}</code></td><td><?php echo TEXT_VAR_QTY_PER_ITEM; ?></td></tr>
           </tbody>
         </table>
       </div>

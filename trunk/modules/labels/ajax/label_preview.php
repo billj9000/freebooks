@@ -37,6 +37,7 @@ if (!$result->EOF) {
 
 $renderer = new LabelRenderer();
 $vars     = $renderer->buildVars($sample);
+$vars['pack_qty'] = '1'; // preview has no Pack Qty field; show a representative value
 
 $w = number_format($width_mm,  2, '.', '');
 $h = number_format($height_mm, 2, '.', '');

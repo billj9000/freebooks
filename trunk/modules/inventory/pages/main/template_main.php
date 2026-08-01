@@ -21,6 +21,12 @@ echo html_form('inventory', FILENAME_DEFAULT, gen_get_all_get_params(['action', 
 echo html_hidden_field('action', '') . chr(10);
 echo html_hidden_field('rowSeq', '') . chr(10);
 
+$can_print_labels = defined('MODULE_LABELS_STATUS') && (
+  ($_SESSION['admin_id'] ?? 0) == 1
+  || (array_key_exists(SECURITY_ID_LABELS_PRINT, $_SESSION['admin_security'] ?? [])
+      && $_SESSION['admin_security'][SECURITY_ID_LABELS_PRINT] > 0)
+);
+
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, '', 'SSL') . '\'"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['delete']['show']   = false;
@@ -108,7 +114,7 @@ echo $toolbar->build_toolbar($add_search = true);
       <td class="text-center" onclick="event.stopPropagation()">
         <?php
         if (function_exists('add_extra_action_bar_buttons')) echo add_extra_action_bar_buttons($query_result->fields);
-        if (defined('MODULE_LABELS_STATUS') && $security_level > 0)
+        if ($can_print_labels)
           echo html_icon('devices/printer.png', TEXT_PRINT_LABELS, 'small',
             "onclick=\"lblOpenModal('" . htmlspecialchars(addslashes($query_result->fields['sku']), ENT_QUOTES, 'UTF-8') . "')\"") . chr(10);
         if ($security_level > 1) echo html_icon('actions/edit-find-replace.png', TEXT_EDIT, 'small',
@@ -140,7 +146,7 @@ echo $toolbar->build_toolbar($add_search = true);
 </div><!-- /pkg-wrap -->
 </form>
 
-<?php if (defined('MODULE_LABELS_STATUS')): gen_pull_language('labels'); ?>
+<?php if ($can_print_labels): gen_pull_language('labels'); ?>
 <!-- Print Labels Modal -->
 <div class="modal fade" id="lblModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -151,9 +157,10 @@ echo $toolbar->build_toolbar($add_search = true);
 </div>
 <script src="<?php echo DIR_WS_ADMIN; ?>modules/phreedom/includes/qz-tray/qz-tray.js"></script>
 <script>
-var lblModalUrl  = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=label_modal', 'SSL')); ?>;
-var lblRenderUrl = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=render', 'SSL')); ?>;
-var lblNoItems   = <?php echo json_encode(TEXT_LABEL_NO_ITEMS); ?>;
+var lblModalUrl    = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=label_modal', 'SSL')); ?>;
+var lblRenderUrl   = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=render', 'SSL')); ?>;
+var lblNoItems     = <?php echo json_encode(TEXT_LABEL_NO_ITEMS); ?>;
+var lblNoPermission = <?php echo json_encode(TEXT_LABEL_PRINT_NO_PERMISSION); ?>;
 
 function lblOpenModal(sku) {
   var content = document.getElementById('lblModalContent');
@@ -162,20 +169,27 @@ function lblOpenModal(sku) {
   modal.show();
   fetch(lblModalUrl + '&sku=' + encodeURIComponent(sku))
     .then(function(r){ return r.text(); })
-    .then(function(html){ content.innerHTML = html; })
+    .then(function(html){
+      if (html.indexOf('<error>') !== -1) {
+        content.innerHTML = '<div class="modal-body text-danger">' + lblNoPermission + '</div>';
+      } else {
+        content.innerHTML = html;
+      }
+    })
     .catch(function(e){ content.innerHTML = '<div class="modal-body text-danger">Error loading modal</div>'; });
 }
 
 function lblPrint(preselectSku) {
   var templateId = document.getElementById('lbl_template_id').value;
   var qty        = parseInt(document.getElementById('lbl_qty').value, 10) || 1;
+  var count      = parseInt(document.getElementById('lbl_count').value, 10) || 1;
   var errDiv     = document.getElementById('lbl_error');
   errDiv.style.display = 'none';
 
-  var skus = preselectSku ? [{sku: preselectSku, qty: qty}] : [];
+  var skus = preselectSku ? [{sku: preselectSku, qty: qty, count: count}] : [];
   if (!skus.length) {
     document.querySelectorAll('input[name="selected_sku"]:checked').forEach(function(cb) {
-      skus.push({sku: cb.value, qty: qty});
+      skus.push({sku: cb.value, qty: qty, count: count});
     });
   }
   if (!skus.length) { errDiv.textContent = lblNoItems; errDiv.style.display = ''; return; }

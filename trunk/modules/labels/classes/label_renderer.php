@@ -14,13 +14,22 @@
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 use Picqer\Barcode\BarcodeGeneratorSVG;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 
 class LabelRenderer {
 
   private BarcodeGeneratorSVG $barcodeGen;
+  private QRCode $qrGen;
 
   public function __construct() {
     $this->barcodeGen = new BarcodeGeneratorSVG();
+    $this->qrGen = new QRCode(new QROptions([
+      'scale'           => 3,
+      'quietzoneSize'   => 2,
+      'svgAddXmlHeader' => false,
+      'imageBase64'     => false,
+    ]));
   }
 
   public function buildVars(array $row): array {
@@ -30,11 +39,17 @@ class LabelRenderer {
 
     $sku         = $row['sku'] ?? '';
     $barcode_svg = '';
+    $qrcode_svg  = '';
     if ($sku !== '') {
       try {
         $barcode_svg = $this->barcodeGen->getBarcode($sku, BarcodeGeneratorSVG::TYPE_CODE_128, 2, 50);
       } catch (\Throwable $e) {
         $barcode_svg = '';
+      }
+      try {
+        $qrcode_svg = $this->qrGen->render($sku);
+      } catch (\Throwable $e) {
+        $qrcode_svg = '';
       }
     }
 
@@ -47,6 +62,7 @@ class LabelRenderer {
       'upc'               => htmlspecialchars($row['upc_code'] ?? '', ENT_QUOTES, 'UTF-8'),
       'weight'            => htmlspecialchars((string)($row['item_weight'] ?? ''), ENT_QUOTES, 'UTF-8'),
       'barcode_svg'       => $barcode_svg, // raw SVG — caller uses | raw in template
+      'qrcode_svg'        => $qrcode_svg,  // raw SVG — caller uses | raw in template
     ];
   }
 

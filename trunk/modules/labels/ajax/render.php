@@ -40,11 +40,13 @@ $label_items = array();
 foreach ($skus as $item) {
   $sku = db_input($item['sku'] ?? '');
   if ($sku === '') continue;
-  $qty = max(1, (int)($item['qty'] ?? 1));
+  $qty   = max(1, (int)($item['qty'] ?? 1));   // label content — printed on the label, does not affect copy count
+  $count = max(1, (int)($item['count'] ?? 1)); // how many label copies to actually print
   $row = $db->Execute("SELECT sku, description_short, description_sales, full_price, item_cost, upc_code, item_weight FROM " . TABLE_INVENTORY . " WHERE sku = '" . $sku . "'");
   if ($row->EOF) continue;
   $vars = $renderer->buildVars($row->fields);
-  for ($i = 0; $i < $qty; $i++) {
+  $vars['pack_qty'] = (string)$qty;
+  for ($i = 0; $i < $count; $i++) {
     $label_items[] = $vars;
   }
 }

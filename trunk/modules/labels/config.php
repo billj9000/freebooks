@@ -34,4 +34,13 @@ if (defined('MODULE_LABELS_STATUS')) {
     'show_in_users_settings' => true,
     'params'                 => '',
   );
+
+  $mainmenu['inventory']['submenu']['labels_print'] = array(
+    'order'                  => 91,
+    'text'                   => TEXT_PRINT_LABELS,
+    'security_id'            => SECURITY_ID_LABELS_PRINT,
+    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=labels&amp;page=print', 'SSL'),
+    'show_in_users_settings' => true,
+    'params'                 => '',
+  );
 }
