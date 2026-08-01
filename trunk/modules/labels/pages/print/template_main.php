@@ -32,7 +32,7 @@ echo $toolbar->build_toolbar();
         <input type="text" id="lbl_sku_search" name="q" class="form-control form-control-sm" autocomplete="off"
                placeholder="<?php echo TEXT_SKU_SEARCH_PLACEHOLDER; ?>"
                hx-get="<?php echo html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=sku_search', 'SSL'); ?>"
-               hx-trigger="keyup changed delay:300ms"
+               hx-trigger="keyup changed delay:300ms, keyup[key=='Enter']"
                hx-include="this"
                hx-target="#lbl_sku_results"
                hx-swap="innerHTML">
@@ -93,6 +93,31 @@ echo $toolbar->build_toolbar();
 <script>
 var lblRenderUrl = <?php echo json_encode(html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=render', 'SSL')); ?>;
 var lblSelectedSku = '';
+var lblEnterArmed = false;
+
+// Pressing Enter selects the SKU immediately if the results list already shows exactly one
+// match; otherwise it forces the search to run right away (bypassing the debounce, in case the
+// user typed and hit Enter before the debounced request fired) and selects once that settles,
+// but only if it still narrows to exactly one match.
+document.getElementById('lbl_sku_search').addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  var results = document.querySelectorAll('#lbl_sku_results button');
+  if (results.length === 1) {
+    results[0].click();
+  } else {
+    lblEnterArmed = true;
+  }
+});
+
+document.getElementById('lbl_sku_results').addEventListener('htmx:afterSwap', function() {
+  if (!lblEnterArmed) return;
+  lblEnterArmed = false;
+  var results = document.querySelectorAll('#lbl_sku_results button');
+  if (results.length === 1) {
+    results[0].click();
+  }
+});
 
 function lblSelectSku(sku, description) {
   lblSelectedSku = sku;
