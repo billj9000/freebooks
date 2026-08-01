@@ -8,9 +8,11 @@ FreeBooks can be deployed directly to any PHP 8.x-capable web server (Apache or 
 
 For a containerised setup, see the [freebooks-docker](https://github.com/billj9000/freebooks-docker) repository.
 
-## Direct (thermal) label printing — QZ Tray
+## Direct (thermal) label printing — QZ Tray (optional)
 
-FreeBooks supports printing shipping labels and POS receipts directly to thermal printers (Zebra, Eltron, etc.) without a print dialog. This requires the **QZ Tray** desktop application to be installed on each workstation that needs direct printing.
+By default, FreeBooks prints shipping labels, POS receipts, and inventory labels through the browser's normal print dialog — no extra software is required.
+
+**QZ Tray** is an optional desktop application that lets FreeBooks send print jobs straight to a thermal printer (Zebra, Eltron, etc.), skipping the print dialog entirely. It's only needed on workstations that print directly to thermal hardware; everyone else can ignore this section.
 
 QZ Tray runs as a background service and accepts print jobs from the browser over a local WebSocket connection. Download it from [qz.io](https://qz.io/download/).
 
@@ -25,9 +27,9 @@ QZ Tray runs as a background service and accepts print jobs from the browser ove
 
 Each shipping method (FedEx, Endicia, UPS) and the POS till configuration has a **Printer Name** setting. Set this to the exact name of the printer as it appears in your operating system's printer list (e.g. `ZDesigner ZT230-203dpi ZPL`).
 
-**Fallback behaviour:**
+**Without QZ Tray:**
 
-If QZ Tray is not running, direct print buttons will show an error and fall back to the browser's built-in PDF/print dialog via the report system. No data is lost.
+QZ Tray is entirely optional. If it isn't installed, or isn't running, FreeBooks automatically falls back to printing through the browser's normal print dialog — labels and receipts still print, no data is lost, and no configuration is needed to enable this fallback; it's the default behaviour.
 
 ## Post-install security
 
