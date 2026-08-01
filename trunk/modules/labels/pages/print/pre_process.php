@@ -25,3 +25,5 @@ while (!$result->EOF) {
   $templates[] = $result->fields;
   $result->MoveNext();
 }
+
+$last_template_id = (int)($_SESSION['labels_last_template_id'] ?? 0);

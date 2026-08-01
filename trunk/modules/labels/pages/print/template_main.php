@@ -54,7 +54,7 @@ echo $toolbar->build_toolbar();
       <?php else: ?>
         <select id="lbl_template_id" class="form-select form-select-sm" style="max-width:320px">
           <?php foreach ($templates as $t): ?>
-          <option value="<?php echo (int)$t['id']; ?>" data-type="<?php echo htmlspecialchars($t['printer_type'], ENT_QUOTES, 'UTF-8'); ?>">
+          <option value="<?php echo (int)$t['id']; ?>" data-type="<?php echo htmlspecialchars($t['printer_type'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo ((int)$t['id'] === $last_template_id) ? ' selected' : ''; ?>>
             <?php echo htmlspecialchars($t['name'], ENT_QUOTES, 'UTF-8'); ?>
             (<?php echo $t['printer_type'] === 'zpl' ? 'ZPL' : 'HTML'; ?>)
           </option>

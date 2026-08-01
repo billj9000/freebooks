@@ -27,6 +27,7 @@ while (!$result->EOF) {
 }
 
 $render_url = html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=render', 'SSL');
+$last_template_id = (int)($_SESSION['labels_last_template_id'] ?? 0);
 ?>
 <div class="modal-header">
   <h5 class="modal-title"><?php echo TEXT_PRINT_LABELS; ?></h5>
@@ -40,7 +41,7 @@ $render_url = html_href_link(FILENAME_DEFAULT, 'module=labels&page=ajax&op=rende
     <label class="form-label"><?php echo TEXT_SELECT_TEMPLATE; ?></label>
     <select id="lbl_template_id" class="form-select form-select-sm">
       <?php foreach ($templates as $t): ?>
-      <option value="<?php echo (int)$t['id']; ?>" data-type="<?php echo htmlspecialchars($t['printer_type'], ENT_QUOTES, 'UTF-8'); ?>">
+      <option value="<?php echo (int)$t['id']; ?>" data-type="<?php echo htmlspecialchars($t['printer_type'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo ((int)$t['id'] === $last_template_id) ? ' selected' : ''; ?>>
         <?php echo htmlspecialchars($t['name'], ENT_QUOTES, 'UTF-8'); ?>
         (<?php echo $t['printer_type'] === 'zpl' ? 'ZPL' : 'HTML'; ?>)
       </option>

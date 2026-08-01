@@ -34,6 +34,9 @@ if ($tmpl->EOF) {
 }
 $template = $tmpl->fields;
 
+// Remember this as the user's default template choice until they pick a different one or log out.
+$_SESSION['labels_last_template_id'] = $template_id;
+
 $renderer    = new LabelRenderer();
 $label_items = array();
 
