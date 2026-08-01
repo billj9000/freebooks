@@ -111,6 +111,11 @@ function lblClearSku() {
   if (btn) btn.disabled = true;
 }
 
+function lblResetQtyFields() {
+  document.getElementById('lbl_qty').value = 1;
+  document.getElementById('lbl_count').value = 1;
+}
+
 function lblPrint() {
   if (!lblSelectedSku) return;
   var templateSelect = document.getElementById('lbl_template_id');
@@ -142,6 +147,7 @@ function lblPrint() {
       }
       if (data.type === 'html') {
         printWin.document.open(); printWin.document.write(data.html); printWin.document.close();
+        lblResetQtyFields();
       } else if (data.type === 'zpl') {
         printWin.close();
         lblPrintZpl(data.labels, errDiv);
@@ -163,6 +169,7 @@ function lblPrintZpl(labels, errDiv) {
   qz.websocket.connect()
     .then(function(){ return qz.printers.getDefault(); })
     .then(function(printer){ return qz.print(qz.configs.create(printer), lines); })
+    .then(function(){ lblResetQtyFields(); })
     .catch(function(e){ errDiv.textContent = 'Print error: ' + e; errDiv.style.display = ''; });
 }
 </script>
