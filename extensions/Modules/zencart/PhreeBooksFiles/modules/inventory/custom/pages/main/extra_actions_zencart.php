@@ -35,7 +35,41 @@ switch ($_REQUEST['action']) {
 	if ($upXML->uploadProduct($id)) gen_add_audit_log(ZENCART_UPLOAD_PRODUCT, $upXML->sku);
 	$_REQUEST['action'] = '';
 	break;
-// End - Upload operation added by PhreeSoft	
+// End - Upload operation added by PhreeSoft
+
+// Begin - Save & Upload operation for the inventory item detail page toolbar button.
+// $cInfo is not instantiated by the core switch below for unrecognised action names,
+// so this mirrors the same instantiation the 'save' case relies on, then re-uses the
+// exact same $cInfo->save() call before uploading, and hands off to the core 'edit'
+// case (by rewriting $_REQUEST['action']) to redisplay the item afterward.
+  case 'save_upload_zc':
+	validate_security($security_level, 2); // security check - same level required as a normal save
+	if (file_exists(DIR_FS_WORKING . 'custom/classes/type/'.$type.'.php')) {
+		require_once(DIR_FS_WORKING . 'custom/classes/type/'.$type.'.php');
+	} elseif (file_exists(DIR_FS_WORKING . 'classes/type/'.$type.'.php')) {
+		require_once(DIR_FS_WORKING . 'classes/type/'.$type.'.php');
+	} else {
+		die('Bad inventory type');
+	}
+	$cInfo = new $type();
+	if ($cInfo->save() !== false) {
+		if (defined('ZENCART_ENABLED') && ZENCART_ENABLED === '1') {
+			require_once(DIR_FS_MODULES . 'zencart/functions/zencart.php');
+			require_once(DIR_FS_MODULES . 'zencart/classes/zencart.php');
+			$upXML = new zencart();
+			if ($upXML->uploadProduct($cInfo->id, true)) {
+				gen_add_audit_log(ZENCART_UPLOAD_PRODUCT, $upXML->sku);
+				$messageStack->add(ZENCART_SAVE_UPLOAD_SUCCESS, 'success');
+			}
+		} else {
+			$messageStack->add(defined('ZENCART_DISABLED_NOTICE') ? ZENCART_DISABLED_NOTICE : 'The ZenCart integration is disabled.', 'caution');
+		}
+	}
+	$id = $cInfo->id;
+	$_REQUEST['action'] = 'edit';
+	break;
+// End - Save & Upload operation
+
   default:
 }
 ?>

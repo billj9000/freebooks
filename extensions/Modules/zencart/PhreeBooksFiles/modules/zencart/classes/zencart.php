@@ -52,6 +52,9 @@ class zencart {
             'productCategory'     => $inv['category_id'] ?? '',
             'productName'         => $inv['description_short'] ?? '',
             'productDescription'  => $inv['description_sales'] ?? '',
+            // Long HTML body shown on the ZenCart product page (products_description);
+            // distinct from productDescription above, which the API maps to products_name.
+            'productZencartDescription' => $inv['zencart_description'] ?? '',
             'productTaxable'      => !empty($inv['item_taxable']),
             'productStatus'       => empty($inv['inactive']) ? 1 : 0,
             'product_virtual'     => 0,

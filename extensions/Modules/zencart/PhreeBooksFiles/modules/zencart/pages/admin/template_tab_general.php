@@ -94,6 +94,14 @@
             <td class="zc-field"><?php echo html_input_field('zencart_non_ship_skus', isset($_POST['zencart_non_ship_skus']) ? $_POST['zencart_non_ship_skus'] : (defined('ZENCART_NON_SHIP_SKUS') ? ZENCART_NON_SHIP_SKUS : ''), 'class="form-control-sm" size="40"'); ?></td>
           </tr>
 
+          <tr class="zc-row shaded">
+            <td class="zc-label">
+              <strong>Show list-page upload icon</strong>
+              <span class="hint"><?php echo ZENCART_LBL_LIST_ICON_ENABLED; ?></span>
+            </td>
+            <td class="zc-field"><?php echo html_pull_down_menu('zencart_list_icon_enabled', $sel_yes_no, isset($_POST['zencart_list_icon_enabled']) ? $_POST['zencart_list_icon_enabled'] : (defined('ZENCART_LIST_ICON_ENABLED') ? ZENCART_LIST_ICON_ENABLED : '0'), 'class="form-select form-select-sm w-auto"'); ?></td>
+          </tr>
+
           <tr class="table-secondary"><th colspan="2">Order Import</th></tr>
 
           <tr class="zc-row shaded">

@@ -25,6 +25,8 @@ define('ZENCART_CONFIRM_MESSAGE','Your order shipped {date} via {carrier} {servi
 define('ZENCART_BULK_UPLOAD_SUCCESS','Successfully uploaded %s item(s) to the ZenCart e-store.');
 define('ZENCART_TEXT_ERROR','Error # ');
 define('ZENCART_IVENTORY_UPLOAD','ZenCart Upload');
+define('ZENCART_SAVE_UPLOAD','Save & Upload to ZenCart');
+define('ZENCART_SAVE_UPLOAD_SUCCESS','Item saved and successfully uploaded to the ZenCart e-store.');
 define('ZENCART_BULK_UPLOAD_TITLE','Bulk Upload');
 define('ZENCART_BULK_UPLOAD_INFO','Bulk upload all products selected to be displayed in the ZenCart e-commerce site. Images are not included unless the checkbox is checked.');
 define('ZENCART_BULK_UPLOAD_TEXT','Bulk upload products to e-store');
@@ -61,5 +63,6 @@ define('ZENCART_VAT_INVOICE_MESSAGE_DEFAULT','Please find attached the VAT invoi
 
 define('ZENCART_CATALOG_URL','ZenCart - product URL.');
 define('ZENCART_CATALOG_MODEL','ZenCart - product model.');
+define('ZENCART_LBL_LIST_ICON_ENABLED','Show the ZenCart upload icon on each row of the inventory list page. The Save & Upload button on an item\'s own edit page is controlled separately and is unaffected by this setting.');
 
 ?>

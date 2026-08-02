@@ -59,6 +59,7 @@ class zencart_admin {
 	  'ZENCART_VAT_INVOICE_SUBJECT'   => 'VAT Invoice {invoice}',
 	  'ZENCART_VAT_INVOICE_MESSAGE'   => 'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.',
 	  'ZENCART_VAT_INVOICE_BCC'       => '',
+	  'ZENCART_LIST_ICON_ENABLED'     => '0',
 	);
   }
 

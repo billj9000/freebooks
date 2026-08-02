@@ -126,6 +126,8 @@ The shipping tax rate is taken from ZenCart's shipping tax percentage, mapped to
 
 From the Inventory list, select a product and use the **ZenCart Upload** toolbar button. The product's details, price, and image are sent to ZenCart via the `updateProducts` API endpoint.
 
+From an individual item's edit page, a **Save & Upload to ZenCart** toolbar button (using the ZenCart icon) does both in one click — it saves your edits first, then uploads the freshly-saved product, image included. It only appears once the item's ZenCart tab **catalog** checkbox has been ticked and saved at least once.
+
 ### Bulk upload
 
 From **Modules → ZenCart**, use the **Bulk Upload** button to upload all inventory items that have the `catalog` checkbox set. Tick "Include Images" to send product images; unticked is faster and suitable for price/description-only updates.
@@ -150,6 +152,24 @@ Images are read from `my_files/{company}/inventory/images/` and sent as URL-safe
 ### Custom product attributes
 
 If `modules/zencart/custom/extra_product_attrs.php` exists, it is included after the standard product array is built. Use this to add site-specific fields (e.g. custom ZenCart attributes) without modifying the core module.
+
+### Customisation hooks on the ZenCart side
+
+The above `custom/` override covers the FreeBooks side of this module. Data crossing
+the wire also passes through `freebooks-zencart.php`, the API endpoint installed on
+the ZenCart server (see "1. ZenCart side — install the API endpoint" above) — that
+file is shared across stores and deliberately kept store-neutral. Store-specific
+quirks that live purely on the ZenCart side — most commonly a mismatch between a
+store's `products_model` SKU convention and the FreeBooks SKU, or holding back a
+stock buffer on one product — belong in a **ZenCart-side hook file**, not in either
+codebase's core.
+
+Drop a PHP file into `includes/freebooks_hooks/` on the ZenCart server; it registers
+callbacks that `freebooks-zencart.php` calls at fixed points (`sku.to_freebooks`,
+`sku.from_freebooks`, `quantity.from_freebooks`, and others). Full reference, security
+notes, and a worked example are in the [zencart-api repository's
+README](https://github.com/billj9000/zencart-api#customisation-hooks) — see
+`examples/10-sku-prefix.php.dist` for a copy-and-edit starting point.
 
 ---
 
