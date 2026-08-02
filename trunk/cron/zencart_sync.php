@@ -952,8 +952,16 @@ foreach ($zc_orders as $zc) {
                 }
                 $pay_ref = (string)($zc['paymentRef'] ?? '');
                 $pay->purch_order_id = $pay_ref !== '' ? $pay_ref : 'ZC-' . $zc_id;
+                // The 'ttl' row's description doubles as storage for the payment
+                // module's own custom fields (e.g. paypal's Transaction ID):
+                // bills/pre_process.php strips everything up to the first ':' and
+                // explodes the remainder into field_0, field_1, etc. A colon here
+                // (not the em-dash this used to use) is required for that parse to
+                // find pay_ref at all — without it every module's custom field(s)
+                // are silently left unset, even though purch_order_id above already
+                // has the same value.
                 $pay->description    = 'ZenCart order #' . $zc_id
-                    . ($pay_ref !== '' ? ' — ' . $pay_ref : '');
+                    . ($pay_ref !== '' ? ':' . $pay_ref : '');
                 $pay->admin_id           = (int)$_SESSION['admin_id'];
                 $pay->total_amount       = $payment_amount;
 
