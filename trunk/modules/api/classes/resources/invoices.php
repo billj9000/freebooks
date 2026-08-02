@@ -48,6 +48,22 @@
 // under- or over-state freight's tax whenever it falls back to the company
 // default instead of an explicit override.
 //
+// 'payment_reference' is NOT journal_main.purch_order_id on the invoice
+// itself (that's 'reference' above, the customer's PO Number). It's the
+// purch_order_id of the Cash Receipt (J18) that paid this invoice, which
+// banking::post_ordr() populates from the payment processor's own reference
+// (transaction ID, cheque number, etc — see banking.php around
+// "Store payment reference"). The link is direct: so_po_item_ref_id on the
+// receipt's 'pmt'/'chk' row holds the invoice's own journal_main.id (the
+// pay-invoice screen's item_rows is one row per open invoice being paid,
+// keyed by that invoice's journal_main.id) — NOT a journal_item.id, which
+// is a separate auto-increment sequence that can numerically collide with
+// unrelated journal_main ids and silently attach the wrong customer's
+// reference if joined against by mistake. An invoice can have more than
+// one receipt (partial payments); the most recent one with a non-blank
+// reference wins. Blank when the invoice hasn't been paid yet (or was paid
+// with no reference recorded).
+//
 // Note on 'modified': journal_main has no row-modified timestamp, so
 // 'modified' maps to post_date (the transaction/invoice date).  This
 // is documented in the README.  A date-range filter on 'date' (which
@@ -99,6 +115,7 @@ class api_resource_invoices {
       'freight_tax_rate'    => ['col' => '',  'type' => 'virtual', 'filterable' => false, 'sortable' => false, 'virtual' => true],
       'freight_gl_account'  => ['col' => '',  'type' => 'virtual', 'filterable' => false, 'sortable' => false, 'virtual' => true],
       'discount_gl_account' => ['col' => '',  'type' => 'virtual', 'filterable' => false, 'sortable' => false, 'virtual' => true],
+      'payment_reference'   => ['col' => '',  'type' => 'virtual', 'filterable' => false, 'sortable' => false, 'virtual' => true],
     ];
   }
 
@@ -141,14 +158,15 @@ class api_resource_invoices {
     $needs_freight_tax_rate    = in_array('freight_tax_rate', $virtual_fields);
     $needs_freight_gl_account  = in_array('freight_gl_account', $virtual_fields);
     $needs_discount_gl_account = in_array('discount_gl_account', $virtual_fields);
+    $needs_payment_reference   = in_array('payment_reference', $virtual_fields);
     $needs_frt_row = $needs_freight_taxable || $needs_freight_tax_rate || $needs_freight_gl_account;
-    if (!$needs_lines && !$needs_frt_row && !$needs_discount_gl_account) {
+    if (!$needs_lines && !$needs_frt_row && !$needs_discount_gl_account && !$needs_payment_reference) {
       return $rows;
     }
 
     $tax_rate_lookup = $this->load_tax_rate_lookup($db);
 
-    if ($needs_lines || $needs_frt_row || $needs_discount_gl_account) {
+    if ($needs_lines || $needs_frt_row || $needs_discount_gl_account || $needs_payment_reference) {
       // Collect invoice ids present on this page
       $ids = array_map('intval', array_column($rows, 'id'));
       $id_list = implode(',', $ids);
@@ -228,6 +246,44 @@ class api_resource_invoices {
           if ($needs_freight_tax_rate) $row['freight_tax_rate'] = $tax_rate_lookup[$freight_taxable] ?? 0.0;
         }
         if ($needs_discount_gl_account) $row['discount_gl_account'] = $discount_gl_by_id[(int)$row['id']] ?? '';
+      }
+      unset($row);
+    }
+
+    if ($needs_payment_reference) {
+      // A receipt's 'pmt'/'chk' row's so_po_item_ref_id holds the *paid
+      // document's own journal_main.id* directly (confirmed against a real
+      // receipt — banking.php's pay-invoice screen builds item_rows one per
+      // open invoice being paid, 'id' = that invoice's journal_main.id, NOT
+      // a journal_item.id). Do not join this against journal_item.id: that
+      // column is a separate auto-increment sequence that can numerically
+      // collide with journal_main.id values for unrelated records,
+      // silently attaching a completely different customer's payment
+      // reference to this invoice (found the hard way — id collision
+      // between an early invoice's own line-item ids and nearby unrelated
+      // receipts' journal_main ids). Ordered so the most recent receipt
+      // with a non-blank reference comes first per invoice; a
+      // partially-paid invoice with several receipts otherwise has no
+      // single "the" reference.
+      $sql = "SELECT pay_items.so_po_item_ref_id AS invoice_id, pay.purch_order_id AS payment_reference
+              FROM " . TABLE_JOURNAL_ITEM . " pay_items
+              JOIN " . TABLE_JOURNAL_MAIN . " pay ON pay.id = pay_items.ref_id
+              WHERE pay_items.gl_type IN ('pmt','chk')
+                AND pay_items.so_po_item_ref_id IN ($id_list)
+                AND pay.purch_order_id <> ''
+              ORDER BY pay_items.so_po_item_ref_id, pay.post_date DESC, pay.id DESC";
+      $result = $db->Execute($sql);
+      $payment_reference_by_id = [];
+      while (!$result->EOF) {
+        $rid = (int)$result->fields['invoice_id'];
+        // First row per id wins (most recent, per ORDER BY above).
+        if (!isset($payment_reference_by_id[$rid])) {
+          $payment_reference_by_id[$rid] = $result->fields['payment_reference'];
+        }
+        $result->MoveNext();
+      }
+      foreach ($rows as &$row) {
+        $row['payment_reference'] = $payment_reference_by_id[(int)$row['id']] ?? '';
       }
       unset($row);
     }

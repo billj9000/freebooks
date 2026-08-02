@@ -166,6 +166,7 @@ Sales invoices (journal_id = 12). The virtual `lines` field returns product line
 | `freight_gl_account` | string | Virtual — GL account the freight charge posts to (freight is its own journal_item row, gl_type `frt`, excluded from `lines`); blank if there's no freight |
 | `discount`         | float  | Discount                                                  |
 | `discount_gl_account` | string | Virtual — GL account the discount posts to (its own journal_item row, gl_type `dsc`, excluded from `lines`); blank if there's no discount |
+| `payment_reference` | string | Virtual — reference (transaction ID, cheque number, etc) from the Cash Receipt that paid this invoice, **not** `reference` above (which is the invoice's own PO Number). Most recent receipt with a non-blank reference wins if there's more than one (partial payments). Blank if unpaid. |
 | `currency`         | string | Currency code (e.g. `GBP`)                               |
 | `currency_rate`    | float  | Exchange rate                                             |
 | `closed`           | string | `0`=open, `1`=paid/closed                                |
