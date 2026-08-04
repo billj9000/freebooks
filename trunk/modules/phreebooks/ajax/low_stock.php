@@ -29,7 +29,7 @@ if (isset($sID) && ENABLE_MULTI_BRANCH) $where = " store_id = $sID and ";
 $where .= " p.vendor_id = $cID";	
 if (ENABLE_MULTI_BRANCH) {
   $quantity_where = "remaining";
-  $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity, sum(remaining) as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, description_short,
+  $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity, sum(remaining) as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, p.vendor_sku, description_short,
   	minimum_stock_level, quantity_on_sales_order, quantity_on_order, quantity_on_allocation,
   	((minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation - quantity_on_hand )/purch_package_quantity) as qty_required, purch_package_quantity
 	from ".TABLE_INVENTORY. " a join " . TABLE_INVENTORY_HISTORY . "  c join " . TABLE_INVENTORY_PURCHASE . " p ON a.sku = p.sku and a.sku = c.sku
@@ -37,7 +37,7 @@ if (ENABLE_MULTI_BRANCH) {
 	group by a.sku having sum(remaining) < (minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation) order by a.sku";
 } else {
   $quantity_where = "a.quantity_on_hand";
-  $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity,  quantity_on_hand as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, description_short,
+  $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity,  quantity_on_hand as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, p.vendor_sku, description_short,
   	((minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation - quantity_on_hand )/purch_package_quantity) as qty_required, purch_package_quantity    
 	from ".TABLE_INVENTORY."  a join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku 
 	where minimum_stock_level <> 0 and inactive = '0' and quantity_on_hand < (minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation) and ".$where." 
@@ -66,6 +66,7 @@ while (!$result->EOF) {
 	$xml .= "\t" . xmlEntry("item_cost",			  $result->fields['item_cost'] * $result->fields['purch_package_quantity']);
 	$xml .= "\t" . xmlEntry("purch_taxable",		  $result->fields['purch_taxable']);
 	$xml .= "\t" . xmlEntry("description_purchase",	  $result->fields['description_purchase']);
+	$xml .= "\t" . xmlEntry("vendor_sku",			  $result->fields['vendor_sku']);
 	$xml .= "\t" . xmlEntry("description_short",	  $result->fields['description_short']);
 	$xml .= "\t" . xmlEntry("purch_package_quantity", $result->fields['purch_package_quantity']);
 	$xml .= "\t" . xmlEntry("rID", 					  $rID++);

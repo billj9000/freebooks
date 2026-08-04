@@ -241,7 +241,7 @@ switch ($_REQUEST['action']) {
 //	if ($disp_order == 'a.sku DESC')$disp_order ='LPAD(a.sku,'.MAX_INVENTORY_SKU_LENGTH.',0) DESC';
 	// build the list for the page selected
     if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
-      $search_fields = array('a.sku', 'a.description_short', 'a.description_sales', 'p.description_purchase');
+      $search_fields = array('a.sku', 'a.description_short', 'a.description_sales', 'p.description_purchase', 'p.vendor_sku');
 	  // hook for inserting new search fields to the query criteria.
 	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
   	  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';

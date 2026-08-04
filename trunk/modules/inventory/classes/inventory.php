@@ -469,6 +469,7 @@ class inventory {
 			$this->purchase_array[]= array (
 				'id'						=> $result->fields['id'],
 				'vendor_id' 				=> $result->fields['vendor_id'],
+				'vendor_sku'				=> $result->fields['vendor_sku'],
 				'description_purchase'		=> $result->fields['description_purchase'],
 				'item_cost'	 				=> $result->fields['item_cost'],
 				'currency_code'				=> $result->fields['currency_code'],
@@ -489,6 +490,7 @@ class inventory {
 			$this->backup_purchase_array[$result->fields['id']]= array (
 				'id'						=> $result->fields['id'],
 				'vendor_id' 				=> $result->fields['vendor_id'],
+				'vendor_sku'				=> $result->fields['vendor_sku'],
 				'description_purchase'		=> $result->fields['description_purchase'],
 				'item_cost'	 				=> $result->fields['item_cost'],
 				'currency_code'				=> $result->fields['currency_code'],
@@ -502,13 +504,17 @@ class inventory {
 		$i = 0;
 		if($_POST['vendor_id_array']) foreach ($_POST['vendor_id_array'] as $key => $value) {
 			$sql_data_array = array ();
-			if($_POST['vendor_id_array'][$key] == '' && $_POST['description_purchase_array'][$key] == '' && $currencies->clean_value($_POST['item_cost_array'][$key]) == 0) break;
+			if($_POST['vendor_id_array'][$key] == '' && $_POST['description_purchase_array'][$key] == '' && ($_POST['vendor_sku_array'][$key] ?? '') == '' && $currencies->clean_value($_POST['item_cost_array'][$key]) == 0) break;
 			$sql_data_array['sku'] = $this->sku;
 			$this->purchase_array[$i]['id']	= isset($_POST['row_id_array'][$key]) ? $_POST['row_id_array'][$key] : '';
 			if(isset($_POST['vendor_id_array'][$key])) {
 				$sql_data_array['vendor_id'] 					= $_POST['vendor_id_array'][$key];
 				$this->purchase_array[$i]['vendor_id'] 				= $_POST['vendor_id_array'][$key];
-			} 	
+			}
+			if(isset($_POST['vendor_sku_array'][$key])) {
+				$sql_data_array['vendor_sku'] 					= $_POST['vendor_sku_array'][$key];
+				$this->purchase_array[$i]['vendor_sku'] 				= $_POST['vendor_sku_array'][$key];
+			}
 			if(isset($_POST['description_purchase_array'][$key])){
 				$sql_data_array['description_purchase']			= $_POST['description_purchase_array'][$key];
 				$this->purchase_array[$i]['description_purchase']	= $_POST['description_purchase_array'][$key];
@@ -545,6 +551,7 @@ class inventory {
 					$this->backup_purchase_array[db_insert_id()]= array (
 						'id'						=> db_insert_id(),
 						'vendor_id' 				=> $_POST['vendor_id_array'][$key],
+						'vendor_sku'				=> $_POST['vendor_sku_array'][$key] ?? '',
 						'description_purchase'		=> $_POST['description_purchase_array'][$key],
 						'item_cost'	 				=> $_POST['item_cost_array'][$key],
 						'currency_code'				=> $_POST['item_cost_currency_array'][$key] ?? DEFAULT_CURRENCY,

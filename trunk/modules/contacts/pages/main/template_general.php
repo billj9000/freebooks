@@ -76,6 +76,12 @@
        <td align="right"><?php echo ACT_DEFAULT_CURRENCY; ?></td>
        <td><?php echo html_pull_down_menu('currency_code', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), $cInfo->currency_code ?: DEFAULT_CURRENCY); ?></td>
       </tr>
+<?php if ($type == 'v' && defined('MODULE_PHREEBOOKS_STATUS')): ?>
+      <tr>
+       <td align="right"><?php echo ACT_PO_EXPORT_PROFILE; ?></td>
+       <td><?php echo html_pull_down_menu('export_profile_id', gen_get_pull_down(TABLE_PURCHASE_EXPORT_PROFILE, true, 1, 'id', 'profile_name'), $cInfo->export_profile_id ?? ''); ?></td>
+      </tr>
+<?php endif; ?>
     </table>
   </fieldset>
 

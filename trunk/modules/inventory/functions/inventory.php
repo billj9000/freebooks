@@ -30,6 +30,22 @@
 	return ($store_bal - $qty_owed);
   }
 
+  function inv_vendor_sku($sku, $vendor_id) {
+	// Resolves the supplier's own part number for an item: the explicit
+	// vendor_sku column if set, else the first word of description_purchase
+	// (the long-standing convention before vendor_sku existed), else ''.
+	global $db;
+	if (!$sku || !$vendor_id) return '';
+	$result = $db->Execute("select vendor_sku, description_purchase from " . TABLE_INVENTORY_PURCHASE
+		. " where sku = '" . db_input($sku) . "' and vendor_id = '" . (int)$vendor_id . "'");
+	if ($result->EOF) return '';
+	if (trim((string)$result->fields['vendor_sku']) != '') return trim($result->fields['vendor_sku']);
+	$description = trim((string)$result->fields['description_purchase']);
+	if ($description == '') return '';
+	$words = preg_split('/\s+/', $description);
+	return $words[0];
+  }
+
   function inv_calculate_prices($item_cost, $full_price, $encoded_price_levels) {
     global $currencies, $messageStack;
 	if (!defined('MAX_NUM_PRICE_LEVELS')) {

@@ -290,6 +290,7 @@ class mb extends inventory {//Master Build (combination of Master Stock Item and
 				$purchase_data_array = array (
 					'sku'						=> $sku,
 					'vendor_id' 				=> $purchase_row['vendor_id'],
+					'vendor_sku'				=> $purchase_row['vendor_sku'],
 					'description_purchase'		=> sprintf($purchase_row['description_purchase'], $variables[$sku]['idx0'], $variables[$sku]['idx1'] ),
 					'item_cost'	 				=> $purchase_row['item_cost'],
 					'purch_package_quantity'	=> $purchase_row['purch_package_quantity'],

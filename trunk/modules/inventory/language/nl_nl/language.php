@@ -121,6 +121,7 @@ define('INV_MS_CREATED_SKUS','De volgende Art.nr. zullen gemaakt worden');
 define('INV_ENTRY_INVENTORY_TYPE','Voorraad Type');
 define('INV_ENTRY_INVENTORY_DESC_SHORT','Korte Omschrijving');
 define('INV_ENTRY_INVENTORY_DESC_PURCHASE','Inkoop Omschrijving');
+define('INV_ENTRY_VENDOR_SKU','Leverancier Artikelnummer');
 define('INV_ENTRY_IMAGE_PATH','Relatieve Afbeelding map');
 define('INV_ENTRY_SELECT_IMAGE','Selecteer Afbeelding');
 define('INV_ENTRY_ACCT_SALES','Verkoop /Inkomsten rekening');

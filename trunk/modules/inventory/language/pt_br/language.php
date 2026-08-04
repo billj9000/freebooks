@@ -101,6 +101,7 @@ define('INV_ENTRY_SELECT_IMAGE','Selecione Imagem');
 define('INV_ENTRY_IMAGE_PATH','Caminho Relativo Imagem');
 define('INV_ENTRY_INVENTORY_DESC_SHORT','Descrição Curta');
 define('INV_ENTRY_INVENTORY_DESC_PURCHASE','Descrição Compra');
+define('INV_ENTRY_VENDOR_SKU','Código do Fornecedor');
 define('INV_ENTRY_INVENTORY_TYPE','Tipo Inventário');
 define('INV_TEXT_ATTRIBUTES','Atributo');
 define('INV_MS_CREATED_SKUS','O seguinte SKUserá criado');

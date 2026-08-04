@@ -308,6 +308,7 @@ function fillOrder(xml) {
 		  insertValue('qty_' + jIndex,               quantity);
 		  insertValue('pstd_' + jIndex,              xmlText(item, "pstd"));
 		  insertValue('sku_'  + jIndex,              xmlText(item, "sku"));
+		  insertValue('vsku_'  + jIndex,             xmlText(item, "vendor_sku"));
 		  insertValue('desc_'  + jIndex,             xmlText(item, "description"));
 		  insertValue('proj_'  + jIndex,             xmlText(item, "proj_id"));
 		  insertValue('date_1_'  + jIndex,           xmlText(item, "date_1"));
@@ -480,6 +481,17 @@ function downloadAttachment() {
   document.getElementById('action').form.submit();
 }
 
+function exportOrder() {
+  // Deliberately bypasses submitToDo()/showLoading() - the response is a file
+  // stream, not a page reload, so the "please wait" overlay would never clear
+  // (nothing here ever calls hideLoading(); it relies on the full-page reload
+  // that print/save get but a download never does).
+  document.getElementById('action').value = 'export';
+  if (check_form()) {
+    document.getElementById('action').form.submit();
+  }
+}
+
 function DropShipView(currObj) {
 	var add_id;
 	if (document.getElementById('drop_ship').checked) {
@@ -632,6 +644,9 @@ function addInvRow() {
   cell    = '<input type="text" name="sku_'+rowCnt+'" id="sku_'+rowCnt+'" size="'+(max_sku_len+1)+'" maxlength="'+max_sku_len+'" onfocus="clearField(\'sku_'+rowCnt+'\', \''+text_search+'\')" onkeydown="checkEnterEvent(event, '+rowCnt+');" onblur="setField(\'sku_'+rowCnt+'\', \''+text_search+'\'); loadSkuDetails(0, '+rowCnt+')" />&nbsp;';
   cell   += buildIcon(icon_path+'16x16/actions/system-search.png', text_search, 'id="sku_open_'+rowCnt+'" align="top" style="cursor:pointer" onclick="InventoryList('+rowCnt+')"');
   cell   += buildIcon(icon_path+'16x16/actions/document-properties.png', text_properties, 'id="sku_prop_'+rowCnt+'" align="top" style="cursor:pointer; display:none;" onclick="InventoryProp('+rowCnt+')"');
+  if (account_type == 'v') {
+    cell += '<br><input type="text" name="vsku_'+rowCnt+'" id="vsku_'+rowCnt+'" readonly="readonly" tabindex="-1" size="'+(max_sku_len+1)+'" maxlength="32" placeholder="'+text_vendor_sku+'" class="text-muted" style="border:none;background:transparent;font-size:.85em;padding:0" />';
+  }
   newCell = newRow.insertCell(-1);
   newCell.innerHTML = cell;
   newCell.align  = 'center';
@@ -1236,6 +1251,7 @@ function fillInventory(xml) {
 	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = xmlText(xml, "purch_taxable");
 	  var descPurch = xmlText(xml, "description_purchase");
 	  document.getElementById('desc_'  +rowCnt).value = descPurch ? descPurch : xmlText(xml, "description_short");
+	  if (document.getElementById('vsku_'+rowCnt)) document.getElementById('vsku_'+rowCnt).value = xmlText(xml, "vendor_sku");
 	  if (journalID == 4) {
 		  if (xmlText(xml, "quantity_on_order") >= 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'Yellow';
@@ -1260,6 +1276,7 @@ function fillInventory(xml) {
 	  if (default_sales_tax == -1) document.getElementById('tax_'   +rowCnt).value = xmlText(xml, "purch_taxable");
 	  var descPurch6 = xmlText(xml, "description_purchase");
 	  document.getElementById('desc_'  +rowCnt).value = descPurch6 ? descPurch6 : xmlText(xml, "description_short");
+	  if (document.getElementById('vsku_'+rowCnt)) document.getElementById('vsku_'+rowCnt).value = xmlText(xml, "vendor_sku");
 	  if (journalID == 6) {
 		  if (xmlText(xml, "quantity_on_sales_order") >= 0) {
 			  document.getElementById('sku_'+rowCnt).style.backgroundColor = 'Aquamarine';
@@ -1406,6 +1423,7 @@ function PostProcessLowStock(xml) {
 		document.getElementById('purch_package_quantity_'+rowCnt).value = xmlText(stock, "purch_package_quantity");
 		var descPurch = xmlText(stock, "description_purchase");
 		document.getElementById('desc_'+rowCnt).value = descPurch ? descPurch : xmlText(stock, "description_short");
+		if (document.getElementById('vsku_'+rowCnt)) document.getElementById('vsku_'+rowCnt).value = xmlText(stock, "vendor_sku");
 		i++;
 		updateRowTotal(rowCnt, false);
 	});

@@ -63,9 +63,9 @@ if ($rID) $xml .= xmlEntry("rID", $rID);
 
 $vendor = in_array($jID, array(3,4,6,7)) ? true : false;
 if ($vendor && !$iID && $strict == false && $UPC == false) { // just search for products from that vendor for purchases
- 	$v_search_fields = array('a.sku', 'a.upc_code', 'a.description_short', 'a.description_sales', 'p.description_purchase' );
+ 	$v_search_fields = array('a.sku', 'a.upc_code', 'a.description_short', 'a.description_sales', 'p.description_purchase', 'p.vendor_sku' );
   	$first_search = " where " . implode(" like '%$sku%' or ", $v_search_fields) . " like '%$sku%' and p.vendor_id = '$cID' and a.inactive = '0'";
-  	$purchase     = $db->Execute("select DISTINCT a.id as id, p.vendor_id as vendor_id, p.description_purchase as description_purchase, p.purch_package_quantity as purch_package_quantity, 
+  	$purchase     = $db->Execute("select DISTINCT a.id as id, p.vendor_id as vendor_id, p.vendor_sku as vendor_sku, p.description_purchase as description_purchase, p.purch_package_quantity as purch_package_quantity,
   	p.purch_taxable as purch_taxable, p.item_cost as item_cost, p.price_sheet_v as price_sheet_v from " . TABLE_INVENTORY . " a LEFT JOIN " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku $first_search GROUP BY a.sku");
   	if($purchase->recordCount() == 1){
   		$search = " where id = '{$purchase->fields['id']}'";
@@ -102,11 +102,11 @@ if ($inventory->RecordCount() != 1) { // need to return something to avoid error
 }
 foreach ($inventory->fields as $key => $value) $inventory_array[$key] = $value;
 if($vendor) {
-	$purchase  = $db->Execute("select vendor_id, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' and vendor_id = '$cID'" );
+	$purchase  = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' and vendor_id = '$cID'" );
 	if($purchase->RecordCount() == 1 ) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 	else {
 		// no vendor-specific purchase row — fall back to cheapest row for cost/description
-		$purchase = $db->Execute("select vendor_id, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $inventory_array['sku'] . "' order by item_cost asc limit 1");
+		$purchase = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $inventory_array['sku'] . "' order by item_cost asc limit 1");
 		if($purchase->RecordCount() == 1) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 		// if vendor is known, override fallback currency with the vendor's stored currency
 		if ($cID) {
@@ -118,7 +118,7 @@ if($vendor) {
 	if( $jID == 4 && $inventory_array['price_sheet_v'] == '' && $inventory_array['item_cost'] >= $purchase->fields['cheapest'] &&
 	  abs($inventory_array['item_cost'] - $purchase->fields['cheapest']) > 0.00001 ) $stock_note[] = sprintf(INV_CHEAPER_ELSEWHERE, $inventory_array['sku']);
 }else{
-	$purchase  = $db->Execute("select vendor_id, description_purchase, purch_package_quantity, purch_taxable, MAX(item_cost) as item_cost, currency_code, price_sheet_v
+	$purchase  = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, MAX(item_cost) as item_cost, currency_code, price_sheet_v
 		from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' GROUP BY sku" );
 	if($purchase->RecordCount() == 1 )foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 }

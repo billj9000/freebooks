@@ -47,6 +47,7 @@ define('ACT_CATEGORY_M_ADDRESS','Endereço Principal Correio');
 define('ACT_VAT_NUMBER','Número IVA');
 define('ACT_EORI_NUMBER','Número EORI');
 define('ACT_DEFAULT_CURRENCY','Moeda Padrão');
+define('ACT_PO_EXPORT_PROFILE','Perfil de Exportação de Pedido');
 define('ACT_CATEGORY_CONTACT','Informação Contato');
 define('ACT_V_PAGE_TITLE_EDIT','Editar Fornecedor');
 define('ACT_V_LAST_DATE2','Data Último Pagamento: ');

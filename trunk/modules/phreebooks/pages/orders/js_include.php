@@ -38,6 +38,7 @@ var account_type         = '<?php echo $account_type; ?>';
 var text_search          = '<?php echo TEXT_SEARCH; ?>';
 var text_enter_new       = '<?php echo TEXT_ENTER_NEW; ?>';
 var text_properties      = '<?php echo TEXT_PROPERTIES; ?>';
+var text_vendor_sku      = '<?php echo ORD_VENDOR_SKU; ?>';
 var text_terms           = '<?php echo gen_terms_to_language('0', true, ($account_type == "v") ? 'AP' : 'AR'); ?>';
 var text_Please_Select   = '<?php echo GEN_HEADING_PLEASE_SELECT; ?>';
 var text_gl_acct         = '<?php echo TEXT_GL_ACCOUNT; ?>';

@@ -405,6 +405,7 @@ function addVendorRow() {
   <?php
   $cells = [
     isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $cInfo->vendor_id ?? '', 'class="form-select form-select-sm" onchange="fetchVendorCurrency(this)"')) : '',
+    isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_input_field('vendor_sku_array[]', '', 'class="form-control form-control-sm" size="16" maxlength="32"')) : '',
     isset($cInfo->description_purchase) ? str_replace("'", "\'", html_textarea_field('description_purchase_array[]', 40, 2, $cInfo->description_purchase ?? '', '', true)) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), DEFAULT_CURRENCY, 'class="form-select form-select-sm"')) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_input_field('item_cost_array[]', $cInfo->item_cost ?? 0, 'onchange="what_to_update();" size="12" maxlength="20" class="text-end"', false)) : '',

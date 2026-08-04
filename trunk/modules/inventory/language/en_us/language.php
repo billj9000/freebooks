@@ -143,6 +143,7 @@ define('INV_MS_CREATED_SKUS','The followng SKUs will be created');
 define('INV_ENTRY_INVENTORY_TYPE', 'Inventory Type');
 define('INV_ENTRY_INVENTORY_DESC_SHORT', 'Short Description');
 define('INV_ENTRY_INVENTORY_DESC_PURCHASE', 'Purchase Description');
+define('INV_ENTRY_VENDOR_SKU', 'Vendor SKU');
 define('INV_ENTRY_IMAGE_PATH','Relative Image Path');
 define('INV_ENTRY_SELECT_IMAGE','Select Image');
 define('INV_ENTRY_ACCT_SALES', 'Sales/Income Account');

@@ -93,6 +93,7 @@ define('ACT_V_PAGE_TITLE_EDIT','Редактировать поставщика'
 define('ACT_VAT_NUMBER','Номер НДС');
 define('ACT_EORI_NUMBER','Номер EORI');
 define('ACT_DEFAULT_CURRENCY','Валюта по умолчанию');
+define('ACT_PO_EXPORT_PROFILE','Профиль экспорта заказа');
 define('ACT_CATEGORY_CONTACT','Контактная информация');
 define('ACT_CATEGORY_M_ADDRESS','Почтовый адрес');
 define('ACT_CATEGORY_S_ADDRESS','Адреса доставки');

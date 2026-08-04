@@ -334,6 +334,30 @@ if (!defined('TEXT_NOT_NULL')) define('TEXT_NOT_NULL','is not Null'); // ditto
 define('ORD_POSTCODE_COUNTRY', 'Country');
 define('ORD_POSTCODE_POSTAL',  'Post Code');
 define('ORD_POSTCODE_FIND',    'Find Address');
+define('ORD_VENDOR_SKU',       'Vendor SKU');
+define('PO_EXPORT_NO_ORDER',   'The order could not be found - save the purchase order and try again.');
+define('PO_EXPORT_NO_PROFILE', 'This vendor has no export profile assigned. Set one on the vendor record, then retry.');
+define('PO_EXPORT_NO_LINES',   'This purchase order has no exportable lines.');
+define('PO_EXPORT_MISSING_SKUS', 'Cannot export: the following items have no Vendor SKU set: %s. Set the Vendor SKU on the Vendor Details tab of each item, then retry.');
+// Purchase order export profiles admin page
+define('PO_EXPORT_PROFILES_TITLE',     'PO Export Profiles');
+define('PO_EXPORT_PROFILE_NEW_TITLE',  'New PO Export Profile');
+define('PO_EXPORT_PROFILE_EDIT_TITLE', 'Edit PO Export Profile');
+define('PO_EXPORT_PROFILES_LOG',       'PO Export Profile');
+define('PO_EXPORT_COL_NAME',           'Profile Name');
+define('PO_EXPORT_COL_EXTENSION',      'File Extension');
+define('PO_EXPORT_COL_LINE_ENDING',    'Line Ending');
+define('PO_EXPORT_COL_HEADER_TEMPLATE','Header Template');
+define('PO_EXPORT_COL_LINE_TEMPLATE',  'Line Template');
+define('PO_EXPORT_COL_FOOTER_TEMPLATE','Footer Template');
+define('PO_EXPORT_LINE_ENDING_CRLF',   'Windows (CRLF)');
+define('PO_EXPORT_LINE_ENDING_LF',     'Unix (LF)');
+define('PO_EXPORT_PLACEHOLDER_HELP_LINE',   'Per-line placeholders: {vendor_sku} {sku} {qty} {description} {cost} {line_no} {package_qty}');
+define('PO_EXPORT_PLACEHOLDER_HELP_HEADER', 'Header/footer placeholders: {po_number} {po_date} {vendor_name} {account_number} {line_count} {total}. Unknown placeholders render blank.');
+define('PO_EXPORT_NO_PROFILES',        'No export profiles have been created yet.');
+define('PO_EXPORT_MSG_DELETE',         'Are you sure you want to delete this export profile?');
+define('PO_EXPORT_ERROR_NO_NAME',      'Please enter a profile name.');
+define('PO_EXPORT_ERROR_IN_USE',       'This profile is assigned to one or more vendors and cannot be deleted. Reassign those vendors first.');
 // Sales Invoice Manager - unprinted invoice bulk selection/print
 define('STATUS_TEXT_PRINTED',            'Printed');
 define('STATUS_SELECT_ALL_UNPRINTED',    'Select All Unprinted');

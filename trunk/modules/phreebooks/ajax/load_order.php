@@ -24,6 +24,7 @@ $security_level = validate_ajax_user();
 gen_pull_language('contacts');
 require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
+require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 /**************   page specific initialization  *************************/
 $cID       = db_prepare_input($_GET['cID']);
 $oID       = db_prepare_input($_GET['oID']);
@@ -145,6 +146,7 @@ if (!empty($order->fields)) {
 			'so_po_item_ref_id' 		=> $ordr_items->fields['id'],
 		    'qty'               		=> $ordr_items->fields['qty'],
 			'sku'               		=> $ordr_items->fields['sku'],
+			'vendor_sku'        		=> (isset($type) && $type == 'v') ? inv_vendor_sku($ordr_items->fields['sku'], $cID) : '',
 			'gl_type'           		=> $ordr_items->fields['gl_type'],
 		  	'description'       		=> $ordr_items->fields['description'],
 			'gl_account'        		=> $ordr_items->fields['gl_account'],
@@ -220,6 +222,7 @@ if (!empty($order->fields)) {
 		    if ($ordr_items->fields['so_po_item_ref_id'] && $item_list[$i]['so_po_item_ref_id'] == $ordr_items->fields['so_po_item_ref_id']) {
 			  $item_list[$i]['id']          			= $ordr_items->fields['id'];
 			  $item_list[$i]['item_cnt']    			= $ordr_items->fields['item_cnt'];
+			  $item_list[$i]['vendor_sku']  			= (isset($type) && $type == 'v') ? inv_vendor_sku($ordr_items->fields['sku'], $cID) : '';
 			  $item_list[$i]['gl_type']     			= $ordr_items->fields['gl_type'];
 			  $item_list[$i][$qty_pstd]     			= $ordr_items->fields['qty'];
 			  $item_list[$i]['description'] 			= $ordr_items->fields['description'];
@@ -248,6 +251,7 @@ if (!empty($order->fields)) {
 		    'gl_type'     				=> $ordr_items->fields['gl_type'],
 		  	$qty_pstd     				=> $ordr_items->fields['qty'],
 			'sku'         				=> $ordr_items->fields['sku'],
+			'vendor_sku'  				=> (isset($type) && $type == 'v') ? inv_vendor_sku($ordr_items->fields['sku'], $cID) : '',
 			'description'				=> $ordr_items->fields['description'],
 			'gl_account'  				=> $ordr_items->fields['gl_account'],
 			'taxable'     				=> $ordr_items->fields['taxable'],

@@ -35,8 +35,9 @@
 // 3.77 => adds ships_in_own_box flag to inventory
 // 3.78 => adds notes column to journal_main
 // 3.79 => adds carrier_order_id column to shipping_log
+// 3.80 => adds vendor_sku to inventory_purchase, purchase order export profiles
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.79);
+define('MODULE_PHREEBOOKS_VERSION',    3.80);
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);
@@ -58,6 +59,7 @@ define('SECURITY_ID_PURCHASE_STATUS',     58);
 define('SECURITY_ID_RFQ_STATUS',          59);
 define('SECURITY_ID_VCM_STATUS',          60);
 define('SECURITY_ID_PURCH_INV_STATUS',    61);
+define('SECURITY_ID_PURCHASE_EXPORT',     62);
 define('SECURITY_ID_SELECT_PAYMENT',     101);
 define('SECURITY_ID_CUSTOMER_RECEIPTS',  102);
 define('SECURITY_ID_PAY_BILLS',          103);
@@ -83,6 +85,7 @@ define('TABLE_JOURNAL_MAIN',              DB_PREFIX . 'journal_main');
 define('TABLE_TAX_AUTH',                  DB_PREFIX . 'tax_authorities');
 define('TABLE_TAX_RATES',                 DB_PREFIX . 'tax_rates');
 define('TABLE_RECONCILIATION',            DB_PREFIX . 'reconciliation');
+define('TABLE_PURCHASE_EXPORT_PROFILE',   DB_PREFIX . 'purchase_export_profile');
 
 if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	// banking customers
@@ -345,8 +348,16 @@ if (defined('MODULE_PHREEBOOKS_STATUS')) {
 	$mainmenu["vendors"]['submenu']["orders"]['submenu']["order_mgr"] = array(
 		'order'		  => 35,
 	    'text'        => sprintf(BOX_STATUS_MGR, ORD_TEXT_4_WINDOW_TITLE),
-	    'security_id' => SECURITY_ID_PURCHASE_STATUS, 
+	    'security_id' => SECURITY_ID_PURCHASE_STATUS,
 	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=4&amp;list=1', 'SSL'),
+		'show_in_users_settings' => true,
+	    'params'      => '',
+	);
+	$mainmenu["vendors"]['submenu']["orders"]['submenu']["export_profiles"] = array(
+		'order'		  => 36,
+	    'text'        => PO_EXPORT_PROFILES_TITLE,
+	    'security_id' => SECURITY_ID_PURCHASE_EXPORT,
+	    'link'        => html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=export_profiles', 'SSL'),
 		'show_in_users_settings' => true,
 	    'params'      => '',
 	);

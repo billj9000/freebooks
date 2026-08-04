@@ -240,6 +240,7 @@ class contacts {
     $sql_data_array['special_terms']   = $this->special_terms;
     $sql_data_array['price_sheet']     = $this->price_sheet;
     $sql_data_array['currency_code']   = $this->currency_code ?? '';
+    $sql_data_array['export_profile_id'] = ($this->type == 'v') ? (int)($this->export_profile_id ?? 0) : 0;
     $sql_data_array['tax_id']          = $this->tax_id;
     $sql_data_array['last_update']     = 'now()';
     if ($this->id == '') { //create record

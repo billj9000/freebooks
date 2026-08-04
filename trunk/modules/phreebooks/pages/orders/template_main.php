@@ -105,6 +105,9 @@ if ($security_level >1 && JOURNAL_ID == 4 ) {
   $toolbar->add_icon('import', 'onclick=PreProcessLowStock()');
   $toolbar->icon_list['import']['text'] = LOW_STOCK_BUTTON;
 }
+if ($security_level > 1 && JOURNAL_ID == 4 && isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $oID) {
+  $toolbar->add_icon('export', 'onclick="exportOrder()"', 97);
+}
 if (!empty($extra_toolbar_buttons)) {
   foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 }
@@ -418,6 +421,9 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
           echo html_input_field('sku_' . $i, $order->item_rows[$j]['sku'], ($sku_enable ? '' : ' readonly="readonly"') . ' size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" maxlength="' . MAX_INVENTORY_SKU_LENGTH . '" onfocus="clearField(\'sku_' . $i . '\', \'' . TEXT_SEARCH . '\')" onkeydown="checkEnterEvent(event,' . $i . ');" onblur="setField(\'sku_' . $i . '\', \'' . TEXT_SEARCH . '\'); loadSkuDetails(0, ' . $i . ')"') . chr(10);
           echo html_icon('status/folder-open.png', TEXT_SEARCH, 'small', 'id="sku_open_' . $i . '" align="top" style="cursor:pointer' . ($sku_enable ? '' : ';display:none') . '" onclick="InventoryList(' . $i . ')"') . chr(10);
           echo html_icon('actions/document-properties.png', TEXT_PROPERTIES, 'small', 'id="sku_prop_' . $i . '" align="top" style="cursor:pointer;" onclick="InventoryProp('.$i.')"') . chr(10);
+          if ($account_type == 'v') {
+            echo '<br>' . html_input_field('vsku_' . $i, $order->item_rows[$j]['vendor_sku'], 'readonly="readonly" tabindex="-1" size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" maxlength="32" placeholder="' . ORD_VENDOR_SKU . '" class="text-muted" style="border:none;background:transparent;font-size:.85em;padding:0"') . chr(10);
+          }
           echo '</td>' . chr(10);
           echo '  <td colspan="' . ((SINGLE_LINE_ORDER_SCREEN) ? 1 : 3) . '">' . html_input_field('desc_' . $i, $order->item_rows[$j]['desc'], 'size="'.((SINGLE_LINE_ORDER_SCREEN)?50:75).'" maxlength="255"') . '</td>' . chr(10);
           if (SINGLE_LINE_ORDER_SCREEN) {

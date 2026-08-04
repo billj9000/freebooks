@@ -12,13 +12,13 @@
 //  Path: /modules/labels/ajax/sku_search.php
 //
 // Returns a list-group fragment of inventory items matching a SKU prefix
-// or a vendor part number (which lives inside inventory_purchase_details.
-// description_purchase - there's no dedicated vendor part number column,
-// vendors' part numbers are conventionally embedded in that free-text field),
-// for the Quick Label Print page's live search box. Mirrors the matching
-// behavior of the Inventory Manager's own search box (pre_process.php),
-// minus the description_short/description_sales fields, which aren't
-// useful for a "find the part number" lookup.
+// or a vendor part number - the vendor_sku column on
+// inventory_purchase_details, falling back to a match inside the free-text
+// description_purchase for rows that predate that column - for the Quick
+// Label Print page's live search box. Mirrors the matching behavior of the
+// Inventory Manager's own search box (pre_process.php), minus the
+// description_short/description_sales fields, which aren't useful for a
+// "find the part number" lookup.
 
 validate_ajax_user(SECURITY_ID_LABELS_PRINT);
 
@@ -34,7 +34,7 @@ $result = $db->Execute(
   "SELECT DISTINCT i.sku, i.description_short"
   . " FROM " . TABLE_INVENTORY . " i"
   . " LEFT JOIN " . TABLE_INVENTORY_PURCHASE . " p ON p.sku = i.sku"
-  . " WHERE i.inactive = '0' AND (i.sku LIKE '" . $term . "%' OR p.description_purchase LIKE '%" . $term . "%')"
+  . " WHERE i.inactive = '0' AND (i.sku LIKE '" . $term . "%' OR p.vendor_sku LIKE '" . $term . "%' OR p.description_purchase LIKE '%" . $term . "%')"
   . " ORDER BY (i.sku LIKE '" . $term . "%') DESC, i.sku"
   . " LIMIT 15"
 );

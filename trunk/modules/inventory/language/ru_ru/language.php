@@ -125,6 +125,7 @@ define('INV_MS_CREATED_SKUS','Следующие АРТиулы созданы')
 define('INV_ENTRY_INVENTORY_TYPE','Тип единицы');
 define('INV_ENTRY_INVENTORY_DESC_SHORT','Краткое описание');
 define('INV_ENTRY_INVENTORY_DESC_PURCHASE','Описание (для закупки)');
+define('INV_ENTRY_VENDOR_SKU','Артикул поставщика');
 define('INV_ENTRY_IMAGE_PATH','Папка изображений');
 define('INV_ENTRY_SELECT_IMAGE','Выберите изображение');
 define('INV_ENTRY_ACCT_SALES','Счет Продаж/Доходов');

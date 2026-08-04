@@ -127,6 +127,7 @@ define('ACT_V_PAGE_TITLE_EDIT','Edit Vendor');
 define('ACT_VAT_NUMBER','VAT Number');
 define('ACT_EORI_NUMBER','EORI Number');
 define('ACT_DEFAULT_CURRENCY','Default Currency');
+define('ACT_PO_EXPORT_PROFILE','PO Export Profile');
 define('ACT_CATEGORY_CONTACT','Contact Information');
 define('ACT_CATEGORY_M_ADDRESS','Main Mailing Address');
 define('ACT_CATEGORY_S_ADDRESS','Shipping Addresses');

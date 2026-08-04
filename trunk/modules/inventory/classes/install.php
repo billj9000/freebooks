@@ -178,6 +178,7 @@ class inventory_admin {
 		  id int(11) NOT NULL auto_increment,
 		  sku varchar(24) NOT NULL default '',
 		  vendor_id int(11) NOT NULL default '0',
+		  vendor_sku varchar(32) NOT NULL default '',
 		  description_purchase varchar(255) default NULL,
 		  purch_package_quantity double NOT NULL default '1',
 		  purch_taxable int(11) NOT NULL default '0',

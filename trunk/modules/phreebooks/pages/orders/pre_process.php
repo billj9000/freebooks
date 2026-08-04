@@ -172,6 +172,7 @@ switch ($_REQUEST['action']) {
   case 'save':
   case 'email':
   case 'print':
+  case 'export':
   case 'payment':
   case 'post_previous':
   case 'post_next':
@@ -277,6 +278,7 @@ switch ($_REQUEST['action']) {
 		'qty'               		=> $currencies->clean_value(db_prepare_input($_POST['qty_' . $x]), $order->currencies_code),
 		'pstd'             			=> $currencies->clean_value(db_prepare_input($_POST['pstd_' . $x]), $order->currencies_code),
 		'sku'               		=> ($_POST['sku_' . $x] == TEXT_SEARCH) ? '' : db_prepare_input($_POST['sku_' . $x]),
+		'vendor_sku'        		=> db_prepare_input($_POST['vsku_' . $x] ?? ''),
 		'desc'              		=> db_prepare_input($_POST['desc_' . $x]),
 		'proj'              		=> db_prepare_input($_POST['proj_' . $x]),
 	  	'purch_package_quantity'	=> db_prepare_input($_POST['purch_package_quantity_' . $x]),
@@ -342,6 +344,23 @@ switch ($_REQUEST['action']) {
 			default: $jID = 0; // error
 		  }
 		  gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;jID=' . $jID . '&amp;type=' . $account_type . '&amp;oID=' . $order->id . '&amp;action=pmt', 'SSL'));
+		} elseif ($_REQUEST['action'] == 'export') {
+		  require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
+		  require_once(DIR_FS_MODULES . 'phreebooks/classes/purchase_export.php');
+		  $exporter = new purchase_export();
+		  $resolved = $exporter->resolve($order->id);
+		  if (isset($resolved['error'])) {
+			$messageStack->add($resolved['error'], 'error');
+		  } else {
+			$body     = $exporter->render($resolved['profile'], $resolved['order'], $resolved['vendor'], $resolved['lines']);
+			$filename = $exporter->safe_filename($resolved['order']['purch_order_id'] ?: $order->id, $resolved['profile']['file_extension']);
+			while (ob_get_level() > 0) ob_end_clean();
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename="' . $filename . '"; size=' . strlen($body));
+			header('Content-Length: ' . strlen($body));
+			echo $body;
+			exit;
+		  }
 		} // else print or print_update, fall through and load javascript to call form_popup and clear form
 	  } else { // reset the id because the post failed (ID could have been set inside of Post)
 		$error = true;
