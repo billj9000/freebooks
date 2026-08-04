@@ -379,7 +379,7 @@ class orders extends journal {
 		  case  3: 
 		  case  4:
 			$qty_pstd = 'qty';
-			$terminal_date = gen_specific_date($this->post_date, $this->item_rows[$i]['lead_time']);
+			$terminal_date = gen_specific_date($this->post_date, (int)$this->item_rows[$i]['lead_time']);
 			break;
 		  case  9:
 		  case 10: 
