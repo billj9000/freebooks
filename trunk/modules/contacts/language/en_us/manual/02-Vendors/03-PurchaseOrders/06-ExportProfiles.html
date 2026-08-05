@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.02.03.06">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Purchase Orders.Export Profiles">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Export Profiles">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css">
+<title>Purchase Orders - Export Profiles</title>
+</head>
+
+<body>
+
+<h1 align="center">Purchase Orders - Export Profiles</h1>
+<p>Some vendors accept purchase orders uploaded to their own ordering system as a file, rather than by fax or email of a printed PO. An Export Profile describes the line format that vendor's system expects - for example, a simple file of one line per item reading <em>vendor part number;quantity</em> - so a purchase order can be downloaded in that format directly from the PO screen. Each line is built from the vendor's own part number for the item (see <a href="../../../../../../phreebooks/language/en_us/manual/04-Inventory/01-Maintenance/05-VendorSKU.html">Vendor SKU</a>), resolved fresh at export time so the file always reflects the current item record rather than whatever was on the order when it was saved.</p>
+<h3>Creating an Export Profile</h3>
+<ol>
+  <li>From the Vendors Menu, select Purchase Orders, then PO Export Profiles.</li>
+  <li>Press New.</li>
+  <li>Enter a Profile Name and, if the vendor requires something other than a plain text file, a File Extension.</li>
+  <li>Enter the Line Template - the text repeated for every item on the order, with placeholders substituted per line. The most common template is <em>{vendor_sku};{qty}</em>. Available placeholders are <em>{vendor_sku}</em>, <em>{sku}</em>, <em>{qty}</em>, <em>{description}</em>, <em>{cost}</em>, <em>{line_no}</em> and <em>{package_qty}</em>.</li>
+  <li>If the vendor's format requires a header or footer line, enter a Header Template and/or Footer Template. These accept <em>{po_number}</em>, <em>{po_date}</em>, <em>{vendor_name}</em>, <em>{account_number}</em>, <em>{line_count}</em> and <em>{total}</em>. Any placeholder not recognized is left blank rather than causing an error.</li>
+  <li>Select the Line Ending the vendor's system expects (Windows/CRLF or Unix/LF).</li>
+  <li>Press Save.</li>
+</ol>
+<h3>Assigning a Profile to a Vendor</h3>
+<ol>
+  <li>Open the vendor's account and select the General tab.</li>
+  <li>Select the profile from the PO Export Profile pull-down menu, next to Default Currency.</li>
+  <li>Press Update to save the vendor account.</li>
+</ol>
+<h3>Exporting a Purchase Order</h3>
+<ol>
+  <li>Open the purchase order to export.</li>
+  <li>Press the Export icon in the toolbar. The purchase order is saved first, exactly as when printing.</li>
+  <li>The file is generated and downloaded by the browser using the vendor's assigned profile.</li>
+</ol>
+<p>NOTE: If the vendor has no Export Profile assigned, or if any line item has no Vendor SKU that can be resolved, the export is stopped and the affected items are listed so they can be corrected before retrying.</p>
+<h3>Related Topics</h3>
+<h4>Vendor Accounts</h4>
+<p><a href="../02-Accounts/01-NewAccount.html">Entering a new vendor </a><br />
+    <a href="../02-Accounts/02-EditAccount.html">Editing a vendor account </a><br />
+    <a href="../02-Accounts/03-DeleteAccount.html">Deleting a vendor account</a><br />
+    <a href="../02-Accounts/04-PaymentTerms.html">Setting vendor payment terms and credit limits </a></p>
+<h4>Purchase Orders</h4>
+<p><a href="01-EnterPO.html">Entering a purchase order</a><br />
+    <a href="02-EditPO.html">Editing a purchase order</a><br />
+    <a href="03-DeletePO.html">Deleting a purchase order</a><br />
+    <a href="04-POManager.html">Checking purchase order status (Purchase Order Manager) </a><br />
+    <a href="05-ClosePO.html">Closing a purchase order</a></p>
+<h4>Inventory</h4>
+<p><a href="../../../../../../phreebooks/language/en_us/manual/04-Inventory/01-Maintenance/05-VendorSKU.html">Setting a vendor's part number for an inventory item</a></p>
+<h4>Reports and Forms </h4>
+<p>Checking vendor balances</p>
+</body>
+</html>

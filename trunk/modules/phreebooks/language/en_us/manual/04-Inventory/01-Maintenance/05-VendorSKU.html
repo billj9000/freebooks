@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.04.01.05">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Inventory.Vendor SKU">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Vendor SKU">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css">
+<title>Inventory - Vendor SKU</title>
+</head>
+
+<body>
+
+<h1 align="center">Inventory - Vendor SKU </h1>
+<p>Each row on the Vendor Details tab of an inventory item can record that supplier's own part number for the item, separately from the FreeBooks SKU. This is the number a supplier's own ordering system recognizes, so it is what appears on the Purchase Order screen and what gets used by <a href="../../../../../../contacts/language/en_us/manual/02-Vendors/03-PurchaseOrders/06-ExportProfiles.html">PO Export Profiles</a> when a purchase order is exported to a file for upload to a vendor's site.</p>
+<p>If the Vendor SKU field is left blank for a vendor row, FreeBooks falls back to the first word of that row's Purchase Description. This keeps older items working without requiring every item to be updated, but setting the Vendor SKU explicitly is recommended since it removes any ambiguity about which word in the description is meant to be the part number.</p>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Edit/Maintain.</li>
+  <li>Locate the item to edit and click on the edit icon to advance to the data entry screen.</li>
+  <li>Select the System tab and locate the Vendor Details section.</li>
+  <li>For the row belonging to the vendor whose part number you want to record, enter the number into the Vendor SKU field. Add a new row with the Add icon if the vendor is not already listed.</li>
+  <li>When all desired fields have been entered, press Update to save your information and return to the inventory edit/maintain window.</li>
+</ol>
+<p>NOTE: The Vendor SKU is shown read-only on Purchase Order line items, resolved live from the item record - it is not something typed directly into a purchase order.</p>
+<h3>Related Topics</h3>
+<h4>Inventory</h4>
+<p>Setting inventory default accounts<br />
+  <a href="01-AddItem.html">Adding inventory items</a><br />
+  <a href="02-EditItem.html">Editing inventory items</a><br />
+  <a href="03-CopyItem.html">Copying inventory items</a><br />
+  <a href="04-DeleteItem.html">Deleting inventory items</a><br />
+  <a href="../02-Adjustments/AdjustmentsHome.html">Inventory adjustments</a><br />
+  <a href="../03-Assemblies/AssembliesHome.html">Entering an inventory assembly</a><br />
+  <a href="../05-Fields/FieldsHome.html">Adding an inventory field</a><br />
+  <a href="../05-Fields/01-FieldsEdit.html">Editing an inventory field </a><br />
+  <a href="../05-Fields/02-FieldsDelete.html">Deleting an inventory field</a><br />
+  <a href="../04-Tabs/TabsHome.html">Adding an inventory field tab (category)</a><br />
+  <a href="../04-Tabs/01-TabsEdit.html">Editing an inventory field tab (category)</a><br />
+  <a href="../04-Tabs/02-TabsDelete.html">Deleting an inventory field tab (category)</a></p>
+<h4>Purchase Orders</h4>
+<p><a href="../../../../../../contacts/language/en_us/manual/02-Vendors/03-PurchaseOrders/01-EnterPO.html">Entering a purchase order</a><br />
+  <a href="../../../../../../contacts/language/en_us/manual/02-Vendors/03-PurchaseOrders/06-ExportProfiles.html">Exporting a purchase order to a vendor file format (PO Export Profiles)</a></p>
+<h4>Inventory Activities </h4>
+<p>Using the price manager<br />
+  <a href="../../08-Setup/06-ImportExport/01-ImportData.html">Importing Inventory</a><br />
+  <a href="../../08-Setup/06-ImportExport/02-ExportData.html">Exporting inventory</a><br />
+  Synchronizing with other applications</p>
+<h4>Reports</h4>
+<p>Inventory item list<br />
+  Inventory assembly list <br />
+  Inventory adjustment journal<br />
+  Inventory assembly journal</p>
+</body>
+</html>
