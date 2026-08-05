@@ -31,6 +31,16 @@ Each shipping method (FedEx, Endicia, UPS) and the POS till configuration has a 
 
 QZ Tray is entirely optional. If it isn't installed, or isn't running, FreeBooks automatically falls back to printing through the browser's normal print dialog — labels and receipts still print, no data is lost, and no configuration is needed to enable this fallback; it's the default behaviour.
 
+## Maintenance scripts
+
+`trunk/cron/` contains standalone CLI scripts, each documented in full in its own header comment (usage, flags, and behavior):
+
+- **`zencart_sync.php`** — imports new ZenCart orders as FreeBooks Sales Orders. Scheduled every 15 minutes.
+- **`update_currency_rates.php`** — updates currency exchange rates from the ECB daily feed. Scheduled daily.
+- **`backfill_vendor_sku.php`** — one-off tool to populate `vendor_sku` on inventory items from existing vendor descriptions, optionally stripping the part number back out of the description. Not scheduled; run manually with `--apply` when needed.
+
+Run any script with `php trunk/cron/<script>.php [company_name]` — see each file's header comment for its full set of flags and options.
+
 ## Post-install security
 
 After completing installation, **remove the `install/` directory** from the web root. Leaving it accessible allows anyone to re-initialise the database.
