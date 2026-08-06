@@ -25,6 +25,7 @@ $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
+$toolbar->add_help('06.03');
 echo $toolbar->build_toolbar();
 
 $cur_theme  = $prefs['theme']  ?: DEFAULT_THEME;
@@ -76,4 +77,36 @@ $cur_hover  = !empty($prefs['menu_hover']);
     </div>
   </div>
 </div>
+
+<?php if (wa_enabled()): ?>
+<div class="d-flex justify-content-center mt-3">
+  <div class="card" style="min-width:400px;max-width:540px;width:100%">
+    <div class="card-header py-2 fb-widget-header"><?php echo TEXT_PASSKEYS_TITLE; ?></div>
+    <div class="card-body">
+      <p class="mb-3" style="font-size:11px"><?php echo TEXT_PASSKEYS_DESC; ?></p>
+
+      <table class="table table-borderless table-hover" style="font-size:11px">
+        <thead class="table-dark">
+          <tr>
+            <th><?php echo TEXT_PASSKEY_LABEL; ?></th>
+            <th><?php echo TEXT_PASSKEY_ADDED; ?></th>
+            <th><?php echo TEXT_PASSKEY_LAST_USED; ?></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="pk-tbody">
+          <?php if (!$pk_credentials): ?>
+          <tr id="pk-empty-row"><td colspan="4" class="text-muted"><?php echo TEXT_PASSKEY_NONE; ?></td></tr>
+          <?php else: foreach ($pk_credentials as $pk_index => $cred): $pk_row_class = $pk_index % 2 ? 'odd' : 'even'; ?>
+          <?php require(DIR_FS_MODULES . 'phreedom/includes/webauthn/row.php'); endforeach; endif; ?>
+        </tbody>
+      </table>
+
+      <button type="button" id="pk-add-btn" class="btn btn-primary btn-sm"><?php echo TEXT_PASSKEY_ADD; ?></button>
+      <div id="pk-msg" class="mt-2" style="font-size:11px"></div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+
 </form>

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -49,7 +50,11 @@ if (!$user_validated) {
   $_SESSION['pb_type']   = isset($_GET['type'])		? $_GET['type']		: '';
   $module = 'phreedom';
   $page   = 'main';
-  if (!isset($_REQUEST['action']) || $_REQUEST['action'] <> 'validate') $_REQUEST['action'] = 'login';
+  // 'validate' is the password login post; the pk_login_* actions are the
+  // two steps of a passkey login ceremony (see phreedom/pages/main/pre_process.php) -
+  // all three must be allowed through while logged out, everything else forces the login screen.
+  $pre_auth_actions = array('validate', 'pk_login_begin', 'pk_login_finish');
+  if (!isset($_REQUEST['action']) || !in_array($_REQUEST['action'], $pre_auth_actions, true)) $_REQUEST['action'] = 'login';
 } else {
   unset($_SESSION['pb_cat']);
   unset($_SESSION['pb_module']);

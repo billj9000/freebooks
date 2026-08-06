@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -79,6 +80,8 @@ class phreedom_admin {
       'DATE_DELIMITER'             => '/', // must match delimiter used in DATE_FORMAT
       'DATE_TIME_FORMAT'           => 'm/d/Y h:i:s a',
 	  'SERVER_ADDRESS'			   => '',
+	  'WEBAUTHN_ENABLED'           => '1',
+	  'WEBAUTHN_RP_ID'             => '', // blank = derive from HTTPS_SERVER
 	);
 	// add new directories to store images and data
 	$this->dirlist = array(
@@ -169,6 +172,23 @@ class phreedom_admin {
 		  PRIMARY KEY (admin_id),
 		  KEY idx_admin_name_zen (admin_name)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;",
+	  TABLE_WEBAUTHN_CREDS => "CREATE TABLE " . TABLE_WEBAUTHN_CREDS . " (
+		  id int(11) NOT NULL auto_increment,
+		  admin_id int(11) NOT NULL default '0',
+		  cred_id varchar(500) CHARACTER SET ascii NOT NULL default '' COMMENT 'base64url-encoded credential id',
+		  public_key text NOT NULL,
+		  user_handle char(32) NOT NULL default '' COMMENT 'hex-encoded, stable per admin_id',
+		  sign_count int(11) NOT NULL default '0',
+		  aaguid char(32) NOT NULL default '' COMMENT 'hex-encoded authenticator model id',
+		  label varchar(64) NOT NULL default '',
+		  transports varchar(64) NOT NULL default '',
+		  created datetime NOT NULL,
+		  last_used datetime default NULL,
+		  PRIMARY KEY (id),
+		  UNIQUE KEY idx_cred_id (cred_id),
+		  KEY idx_admin_id (admin_id),
+		  KEY idx_user_handle (user_handle)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 	  TABLE_USERS_PROFILES => "CREATE TABLE " . TABLE_USERS_PROFILES . " (
 		  id int(11) NOT NULL auto_increment,
 		  user_id int(11) NOT NULL default '0',
@@ -276,6 +296,9 @@ class phreedom_admin {
   	if (MODULE_PHREEDOM_STATUS < 3.7) {
   		$db->Execute("ALTER TABLE ".TABLE_AUDIT_LOG." CHANGE amount amount DOUBLE NOT NULL DEFAULT '0'");
   		$db->Execute("ALTER TABLE ".TABLE_CURRENCIES." CHANGE value value DOUBLE NOT NULL DEFAULT '0'");
+  	}
+  	if (MODULE_PHREEDOM_STATUS < 3.8) {
+  	  if (!db_table_exists(TABLE_WEBAUTHN_CREDS)) $db->Execute($this->tables[TABLE_WEBAUTHN_CREDS]);
   	}
 
     if (!$error) {

@@ -20,10 +20,12 @@
 $security_level = validate_user(SECURITY_ID_MY_PROFILE);
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
+require_once(DIR_FS_WORKING . 'functions/webauthn.php');
 
 $error = false;
 $result = $db->Execute("SELECT admin_prefs FROM " . TABLE_USERS . " WHERE admin_id = " . (int)$_SESSION['admin_id']);
 $prefs  = unserialize($result->fields['admin_prefs']);
+$pk_credentials = wa_enabled() ? wa_list_credentials((int)$_SESSION['admin_id']) : array();
 
 $custom_path = DIR_FS_WORKING . 'custom/pages/profile/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }

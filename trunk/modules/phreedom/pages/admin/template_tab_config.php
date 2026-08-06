@@ -68,6 +68,14 @@
           <td><?php echo html_input_field('session_timeout_admin', $_POST['session_timeout_admin'] ? $_POST['session_timeout_admin'] : SESSION_TIMEOUT_ADMIN, ''); ?></td>
         </tr>
         <tr>
+          <td><?php echo CD_16_01_DESC; ?></td>
+          <td><?php echo html_pull_down_menu('webauthn_enabled', $sel_yes_no, $_POST['webauthn_enabled'] ? $_POST['webauthn_enabled'] : WEBAUTHN_ENABLED, ''); ?></td>
+        </tr>
+        <tr>
+          <td><?php echo CD_16_02_DESC; ?></td>
+          <td><?php echo html_input_field('webauthn_rp_id', $_POST['webauthn_rp_id'] ? $_POST['webauthn_rp_id'] : WEBAUTHN_RP_ID, ''); ?></td>
+        </tr>
+        <tr>
           <td><?php echo CD_15_05_DESC; ?></td>
           <td><?php echo html_pull_down_menu('session_auto_refresh', $sel_yes_no, $_POST['session_auto_refresh'] ? $_POST['session_auto_refresh'] : SESSION_AUTO_REFRESH, ''); ?></td>
         </tr>

@@ -139,6 +139,48 @@ foreach ($mainmenu as $key => $menu_heading) {
     </div>
   </div>
 </div>
+
+<?php $pk_target_id = $uInfo->admin_id ?? 0; ?>
+<?php if (wa_enabled() && $security_level > 2 && $pk_target_id && ($uInfo->is_role ?? '0') !== '1'): ?>
+<div class="card fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo TEXT_PASSKEYS_TITLE; ?></div>
+  <div class="card-body py-2 px-3" style="font-size:11px">
+    <table class="table table-borderless table-hover" style="font-size:11px">
+      <thead class="table-dark">
+        <tr>
+          <th><?php echo TEXT_PASSKEY_LABEL; ?></th>
+          <th><?php echo TEXT_PASSKEY_ADDED; ?></th>
+          <th><?php echo TEXT_PASSKEY_LAST_USED; ?></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php $pk_admin_creds = wa_list_credentials($pk_target_id); ?>
+        <?php if (!$pk_admin_creds): ?>
+        <tr><td colspan="4" class="text-muted"><?php echo TEXT_PASSKEY_NONE; ?></td></tr>
+        <?php else: foreach ($pk_admin_creds as $pk_index => $cred): $pk_row_class = $pk_index % 2 ? 'odd' : 'even'; ?>
+        <tr id="pk-admin-row-<?php echo (int)$cred['id']; ?>" class="<?php echo $pk_row_class; ?>">
+          <td><?php echo htmlspecialchars($cred['label']); ?></td>
+          <td><?php echo htmlspecialchars($cred['created']); ?></td>
+          <td><?php echo $cred['last_used'] ? htmlspecialchars($cred['last_used']) : '<em>' . TEXT_PASSKEY_NEVER_USED . '</em>'; ?></td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm"
+              hx-post="<?php echo html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=ajax&amp;op=passkey_delete', 'SSL'); ?>"
+              hx-vals='{"id": "<?php echo (int)$cred['id']; ?>", "target_admin_id": "<?php echo (int)$pk_target_id; ?>"}'
+              hx-target="#pk-admin-row-<?php echo (int)$cred['id']; ?>"
+              hx-swap="delete"
+              hx-confirm="<?php echo addslashes(TEXT_PASSKEY_CONFIRM_REVOKE); ?>">
+              <?php echo TEXT_PASSKEY_REVOKE; ?>
+            </button>
+          </td>
+        </tr>
+        <?php endforeach; endif; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
+
 </form>
 
 <?php

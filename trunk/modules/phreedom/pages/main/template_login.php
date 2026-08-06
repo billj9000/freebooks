@@ -48,7 +48,7 @@ $_login_logo = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/p
         <div class="mb-2">
           <label class="form-label fw-bold" for="admin_name"><?php echo TEXT_LOGIN_NAME; ?></label>
           <input type="text" class="form-control form-control-sm" id="admin_name" name="admin_name"
-                 value="<?php echo htmlspecialchars($_POST['admin_name'] ?? '', ENT_QUOTES); ?>" autocomplete="username" autofocus>
+                 value="<?php echo htmlspecialchars($_POST['admin_name'] ?? '', ENT_QUOTES); ?>" autocomplete="username webauthn" autofocus>
         </div>
 
         <div class="mb-2">
@@ -81,6 +81,16 @@ $_login_logo = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/p
         </div>
 
         </form>
+
+        <?php if (wa_ssl_ok()): ?>
+        <div class="d-grid mt-2">
+          <button type="button" id="pk-login-btn" class="btn btn-outline-primary btn-sm">
+            <?php echo TEXT_PASSKEY_LOGIN_BUTTON; ?>
+          </button>
+        </div>
+        <div id="pk-login-msg" class="text-center mt-2" style="font-size:11px"></div>
+        <?php endif; ?>
+
       </div>
     </div>
 

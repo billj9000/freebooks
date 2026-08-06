@@ -72,3 +72,15 @@ function del_index(boxId, index) {
   return false;
 }
 </script>
+<?php if ($_REQUEST['action'] == 'login' && wa_ssl_ok()): ?>
+<script>
+var PK_STRINGS = {
+  unsupported: '<?php echo addslashes(TEXT_PASSKEY_MSG_UNSUPPORTED); ?>',
+  waiting:     '<?php echo addslashes(TEXT_PASSKEY_MSG_WAITING); ?>',
+  success:     '<?php echo addslashes(TEXT_PASSKEY_MSG_SUCCESS); ?>',
+  failed:      '<?php echo addslashes(TEXT_PASSKEY_MSG_FAILED); ?>',
+  cancelled:   '<?php echo addslashes(TEXT_PASSKEY_MSG_CANCELLED); ?>'
+};
+</script>
+<script src="modules/phreedom/includes/webauthn/passkey.js" defer></script>
+<?php endif; ?>

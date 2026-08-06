@@ -52,6 +52,30 @@ define('TEXT_LOGIN_COLORS','Select Color Scheme');
 define('TEXT_PASSWORD_FORGOTTEN', 'Resend Password');
 define('TEXT_LOGIN_BUTTON','Login');
 define('TEXT_FORM_PLEASE_WAIT','Please wait ... If upgrading, this may take a while.');
+
+// Passkeys (WebAuthn)
+define('TEXT_PASSKEY_LOGIN_BUTTON', 'Sign in with a passkey');
+define('TEXT_PASSKEYS_TITLE',       'My Passkeys');
+define('TEXT_PASSKEYS_DESC',        'A passkey lets you sign in with your device\'s fingerprint, face, screen lock, or a security key instead of typing your password. You can register more than one, for example a laptop and a phone.');
+define('TEXT_PASSKEY_LABEL',        'Label');
+define('TEXT_PASSKEY_ADDED',        'Added');
+define('TEXT_PASSKEY_LAST_USED',    'Last Used');
+define('TEXT_PASSKEY_NEVER_USED',   'never');
+define('TEXT_PASSKEY_NONE',         'No passkeys registered yet.');
+define('TEXT_PASSKEY_ADD',          'Add a passkey');
+define('TEXT_PASSKEY_RENAME',       'Rename');
+define('TEXT_PASSKEY_DELETE',       'Delete');
+define('TEXT_PASSKEY_REVOKE',       'Revoke');
+define('TEXT_PASSKEY_NAME_PROMPT',  'Name this passkey (eg. "Work laptop"):');
+define('TEXT_PASSKEY_RENAME_PROMPT','Rename this passkey:');
+define('TEXT_PASSKEY_CONFIRM_DELETE',  'Delete this passkey? You will no longer be able to sign in with it.');
+define('TEXT_PASSKEY_CONFIRM_REVOKE',  'Revoke this passkey? The user will no longer be able to sign in with it.');
+define('TEXT_PASSKEY_DEFAULT_LABEL',   'Passkey added %s');
+define('TEXT_PASSKEY_MSG_UNSUPPORTED', 'This browser does not support passkeys.');
+define('TEXT_PASSKEY_MSG_WAITING',     'Follow your device\'s prompt to continue...');
+define('TEXT_PASSKEY_MSG_SUCCESS',     'Success.');
+define('TEXT_PASSKEY_MSG_FAILED',      'That did not work. Please try again.');
+define('TEXT_PASSKEY_MSG_CANCELLED',   'Cancelled.');
 define('TEXT_COPYRIGHT_NOTICE','This program is free software: you can redistribute it and/or 
 modify it under the terms of the GNU General Public License as 
 published by the Free Software Foundation, either version 3 of 
@@ -134,6 +158,8 @@ define('CD_08_07_DESC', 'Updates the exchange rate for loaded currencies at ever
 define('CD_08_10_DESC', 'Limits the length of history values shown in customer/vendor accounts for sales/purchases.');
 define('CD_15_01_DESC', 'Session Timeout - Enter the time in seconds (default = 3600). Example: 3600= 1 hour<br />Note: Too few seconds can result in timeout issues when adding/editing products, minimum value is 6 minutes.');
 define('CD_15_05_DESC', 'When enabled, this option will use ajax to refresh the session timer every 5 minutes preventing the session from expiring and logging out the user. This feature helps prevent dropped posts when PhreeBooks has been inactive and a post results in a login screen.');
+define('CD_16_01_DESC', 'Allow users to sign in with a passkey (fingerprint, face, screen lock, or a security key) instead of a password. Requires the site to be running over HTTPS; the option is ignored otherwise.');
+define('CD_16_02_DESC', 'Relying Party ID for passkeys - normally leave blank to use this site\'s domain name automatically. Only set this if the site runs behind a proxy/hostname that does not match the configured server URL.');
 define('CD_20_99_DESC', 'Enable trace generation for debug purposes. If Yes is selected, an additional menu will be added to the Tools menu to download the trace information to help debug posting problems.');
 define('CD_09_01_DESC', 'Specifies the export preference when exporting reports and forms. Local will save them in the /my_files/reports directory of the webserver for use with all companies. Download will download the file to your browser to save/print on your local machine.');
 define('CD_00_01_DESC', 'Sets the display format for displayed and entered dates (default m/d/Y), m - month; d - day; Y - four digit year. Refer to the php.net function <b>date</b> for format requirements.');

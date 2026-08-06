@@ -23,6 +23,7 @@ else $security_level = validate_user(SECURITY_ID_USERS);
 gen_pull_language($module, 'admin');
 gen_pull_language('contacts');
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
+require_once(DIR_FS_WORKING . 'functions/webauthn.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 /**************   page specific initialization  *************************/
 $error  = false;

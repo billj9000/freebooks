@@ -8,7 +8,8 @@
         "dvdoug/boxpacker": "^4.0",
         "twig/twig": "^3.27",
         "picqer/php-barcode-generator": "^3.2",
-        "chillerlan/php-qrcode": "^5.0"
+        "chillerlan/php-qrcode": "^5.0",
+        "lbuchs/webauthn": "^2.2"
     },
     "config": {
         "optimize-autoloader": true

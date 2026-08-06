@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -697,6 +698,42 @@ function csv_explode($str, $delim = ',', $enclose = '"', $preserve = false){
 		default:
 	}
 	return $form_array;
+  }
+
+  /**
+   * Establishes an authenticated session for $user (a TABLE_USERS row -
+   * needs admin_id, display_name, admin_email, admin_prefs, account_id,
+   * admin_security). Shared by both the password login and the passkey
+   * login ceremony in modules/phreedom/pages/main/pre_process.php so the
+   * two credential types can never diverge in what a "logged in" session
+   * looks like.
+   */
+  function pb_establish_session($user, $company, $language) {
+	global $db, $loaded_modules;
+	$db->Execute("UPDATE " . TABLE_USERS . " SET failed_attempts = 0, locked_until = NULL WHERE admin_id = " . (int)$user['admin_id']);
+	session_regenerate_id(true); // prevent session fixation
+	$_SESSION['admin_id']       = $user['admin_id'];
+	$_SESSION['display_name']   = $user['display_name'];
+	$_SESSION['admin_email']    = $user['admin_email'];
+	$_SESSION['admin_prefs']    = unserialize($user['admin_prefs']);
+	$_SESSION['company']        = $company;
+	$_SESSION['language']       = $language;
+	$_SESSION['account_id']     = $user['account_id'];
+	$_SESSION['admin_security'] = gen_parse_permissions($user['admin_security']);
+	// set some cookies for the next visit to remember the company, language, and theme
+	$cookie_exp = 2592000 + time(); // one month
+	$cookie_opts = ['expires' => $cookie_exp, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict', 'secure' => ENABLE_SSL_ADMIN === 'true'];
+	setcookie('pb_company' , $company,  $cookie_opts);
+	setcookie('pb_language', $language, $cookie_opts);
+	// load init functions for each module and execute
+	require_once(DIR_FS_MODULES . 'phreedom/classes/install.php');
+	$phreedom = new phreedom_admin();
+	if (MODULE_PHREEDOM_STATUS <> MODULE_PHREEDOM_VERSION) $phreedom->update('phreedom');
+	$phreedom->initialize($loaded_modules);
+	if (defined('TABLE_CONTACTS')) {
+	  $dept = $db->Execute("select dept_rep_id from " . TABLE_CONTACTS . " where id = " . (int)$user['account_id']);
+	  $_SESSION['department'] = $dept->fields['dept_rep_id'];
+	}
   }
 
 ?>

@@ -17,6 +17,10 @@ class ComposerStaticInit26d1b1af28de5606f10276be9b54e8d4
     );
 
     public static $prefixLengthsPsr4 = array (
+        'l' =>
+        array (
+            'lbuchs\\WebAuthn\\' => 16,
+        ),
         'c' =>
         array (
             'chillerlan\\Settings\\' => 20,
@@ -44,6 +48,10 @@ class ComposerStaticInit26d1b1af28de5606f10276be9b54e8d4
     );
 
     public static $prefixDirsPsr4 = array (
+        'lbuchs\\WebAuthn\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/lbuchs/webauthn/src',
+        ),
         'chillerlan\\Settings\\' =>
         array (
             0 => __DIR__ . '/..' . '/chillerlan/php-settings-container/src',
@@ -542,6 +550,20 @@ class ComposerStaticInit26d1b1af28de5606f10276be9b54e8d4
         'chillerlan\\Settings\\Attributes\\ThrowOnInvalidProperty' => __DIR__ . '/..' . '/chillerlan/php-settings-container/src/Attributes/ThrowOnInvalidProperty.php',
         'chillerlan\\Settings\\SettingsContainerAbstract' => __DIR__ . '/..' . '/chillerlan/php-settings-container/src/SettingsContainerAbstract.php',
         'chillerlan\\Settings\\SettingsContainerInterface' => __DIR__ . '/..' . '/chillerlan/php-settings-container/src/SettingsContainerInterface.php',
+        'lbuchs\\WebAuthn\\Attestation\\AttestationObject' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/AttestationObject.php',
+        'lbuchs\\WebAuthn\\Attestation\\AuthenticatorData' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/AuthenticatorData.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\AndroidKey' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/AndroidKey.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\AndroidSafetyNet' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/AndroidSafetyNet.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\Apple' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/Apple.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\FormatBase' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/FormatBase.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\None' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/None.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\Packed' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/Packed.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\Tpm' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/Tpm.php',
+        'lbuchs\\WebAuthn\\Attestation\\Format\\U2f' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Attestation/Format/U2f.php',
+        'lbuchs\\WebAuthn\\Binary\\ByteBuffer' => __DIR__ . '/..' . '/lbuchs/webauthn/src/Binary/ByteBuffer.php',
+        'lbuchs\\WebAuthn\\CBOR\\CborDecoder' => __DIR__ . '/..' . '/lbuchs/webauthn/src/CBOR/CborDecoder.php',
+        'lbuchs\\WebAuthn\\WebAuthn' => __DIR__ . '/..' . '/lbuchs/webauthn/src/WebAuthn.php',
+        'lbuchs\\WebAuthn\\WebAuthnException' => __DIR__ . '/..' . '/lbuchs/webauthn/src/WebAuthnException.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

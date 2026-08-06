@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,8 +27,9 @@
 // 3.6 => 2013-06-30 - bug fixes
 // 3.7 => 2014-07-21 - bug fixes
 // 3.7.1 => 2014-08-14 - added php_info to the admin panel
+// 3.8 => 2026-08-06 - added WebAuthn/passkey authentication
 // Module software version information
-define('MODULE_PHREEDOM_VERSION',  '3.7.1');
+define('MODULE_PHREEDOM_VERSION',  '3.8');
 // Menu Sort Positions
 define('MENU_HEADING_INVENTORY_ORDER',  30);
 define('MENU_HEADING_BANKING_ORDER',    40);
@@ -54,6 +56,7 @@ define('TABLE_EXTRA_FIELDS',   DB_PREFIX . 'xtra_fields');
 define('TABLE_EXTRA_TABS',     DB_PREFIX . 'xtra_tabs');
 define('TABLE_USERS',          DB_PREFIX . 'users');
 define('TABLE_USERS_PROFILES', DB_PREFIX . 'users_profiles');
+define('TABLE_WEBAUTHN_CREDS', DB_PREFIX . 'webauthn_creds');
 // TBD Tables no longer in use, but need to verify conversion before delete
 define('TABLE_IMPORT_EXPORT',  DB_PREFIX . 'import_export');
 define('TABLE_REPORTS',        DB_PREFIX . 'reports');

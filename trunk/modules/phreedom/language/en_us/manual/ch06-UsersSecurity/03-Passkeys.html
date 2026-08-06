@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="06.03">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Security.Passkeys">
+<meta name="doc_index_2" content="Users.Passkeys">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<meta name="doc_glossary_1" content="Passkey:A sign-in credential tied to a specific device (or synced between a user's own devices) that replaces typing a password, unlocked with a fingerprint, face scan, screen lock, or security key.">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Passkeys (Passwordless Sign-In)">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Passkeys (Passwordless Sign-In)</title>
+</head>
+
+<body>
+
+<h1 align="center">Passkeys (Passwordless Sign-In)</h1>
+<p>A passkey lets a user sign in with their device's fingerprint, face scan, screen lock, or a security key instead of typing their FreeBooks password. Passkeys are phishing-resistant - the credential is tied to FreeBooks's own domain, so it can't be tricked into working on a look-alike site - and nothing about it is shared with or stored on the server beyond a public key. Passkeys are an <strong>additional</strong> way to sign in: the password login is unaffected and always remains available.</p>
+<p>Passkeys require the site to be running over HTTPS and a reasonably modern browser. If either isn't available, the passkey option simply doesn't appear and password login works as normal.</p>
+
+<h3>Enabling passkeys for a company</h3>
+<ol>
+  <li>Select Company-&gt;Configuration.</li>
+  <li>Find "Allow users to sign in with a passkey" and set it to Yes (this is the default).</li>
+  <li>The Relying Party ID field below it can normally be left blank - it only needs a value on installs running behind a proxy or hostname that doesn't match the site's configured server URL.</li>
+  <li>Press Save.</li>
+</ol>
+<p>This setting is per company: an install running several companies can allow passkeys on some and not others.</p>
+
+<h3>Registering a passkey</h3>
+<ol>
+  <li>Log in with your password as normal.</li>
+  <li>Select Company-&gt;Profile.</li>
+  <li>In the My Passkeys card, press "Add a passkey".</li>
+  <li>Enter a name for the passkey (for example "Work laptop" or "Phone") and follow your browser/device's prompt.</li>
+</ol>
+<p>A user can register more than one passkey - for example, one for a laptop and one for a phone - and can rename or delete their own passkeys at any time from the same My Passkeys card.</p>
+
+<h3>Signing in with a passkey</h3>
+<ol>
+  <li>On the login screen, select the company as normal.</li>
+  <li>Press "Sign in with a passkey" and follow your browser/device's prompt. No username or password is needed - the passkey identifies the account.</li>
+</ol>
+
+<h3>Removing a user's access (administrators)</h3>
+<p>An administrator cannot register a passkey on a user's behalf - registration always happens on the user's own device - but can revoke one of a user's existing passkeys: open Setup-&gt;Users, edit the user, and use the Passkeys card's Revoke button. This immediately stops that passkey working for sign-in; it does not affect the user's password.</p>
+
+<h3>Notes for multi-company installs</h3>
+<p>Passkeys are stored per company, matching how each company has its own separate database. However, if several companies share the same FreeBooks domain (the usual case), the browser's own passkey manager - for example Windows Passkey Manager, or a phone's built-in one - groups all of them together under that one site entry, since it identifies sites by domain rather than by company. To keep them distinguishable there, FreeBooks labels each passkey with both the username and the company name (for example "jsmith &mdash; ACME Corp" and "jsmith &mdash; Widget Co") at the point it's registered. If two companies happen to show the same name in that list, check that each company's name (Company-&gt;Configuration) is actually set correctly and distinctly, since it's what's used for this label.</p>
+<p>Deleting a passkey from the My Passkeys card (or having an administrator revoke it) only removes FreeBooks's record of it - it does not reach into the browser or device to remove the credential there, since no such capability exists in the passkey standard. The entry may keep appearing as a sign-in option and will simply be rejected if used. If this is undesirable, remove it from the browser/device's own passkey or password manager as well.</p>
+
+<h3>Related Topics</h3>
+<p><a href="UsersMain.html">Users and Security</a><br />
+    <a href="01-CtlPanelSecurity.html">Control Panel Security</a><br />
+    <a href="02-RptFrmSecurity.html">Reports/Forms Security</a><br />
+    <a href="../ch04-Setup/MultiCompany.html">Setting up Multiple Companies</a><br />
+    <a href="../ch04-Setup/OAuth2Setup.html">OAuth2 Setup (Gmail / Office 365)</a></p>
+
+</body>
+</html>

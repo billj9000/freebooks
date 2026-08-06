@@ -23,6 +23,7 @@
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
+require_once(DIR_FS_WORKING . 'functions/webauthn.php');
 /**************   page specific initialization  *************************/
 $error        = false; 
 $menu_id      = isset($_GET['mID']) ? $_GET['mID'] : 'index'; // default to index unless heading is passed
@@ -60,30 +61,7 @@ switch ($_REQUEST['action']) {
       $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input(pw_encrypt_password($admin_pass)) . "' where admin_id = " . (int)$result->fields['admin_id']);
     }
     if (!$error) {
-      $db->Execute("UPDATE " . TABLE_USERS . " SET failed_attempts = 0, locked_until = NULL WHERE admin_id = " . (int)$result->fields['admin_id']);
-      session_regenerate_id(true); // prevent session fixation
-      $_SESSION['admin_id']       = $result->fields['admin_id'];
-      $_SESSION['display_name']   = $result->fields['display_name'];
-      $_SESSION['admin_email']    = $result->fields['admin_email'];
-	  $_SESSION['admin_prefs']    = unserialize($result->fields['admin_prefs']);
-	  $_SESSION['company']        = $admin_company;
-      $_SESSION['language']       = $admin_language;
-	  $_SESSION['account_id']     = $result->fields['account_id'];
-      $_SESSION['admin_security'] = gen_parse_permissions($result->fields['admin_security']);
-	  // set some cookies for the next visit to remember the company, language, and theme
-	  $cookie_exp = 2592000 + time(); // one month
-	  $cookie_opts = ['expires' => $cookie_exp, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict', 'secure' => ENABLE_SSL_ADMIN === 'true'];
-	  setcookie('pb_company' , $admin_company,  $cookie_opts);
-	  setcookie('pb_language', $admin_language, $cookie_opts);
-	  // load init functions for each module and execute
-	  require(DIR_FS_MODULES . 'phreedom/classes/install.php');
-	  $phreedom = new phreedom_admin();
-	  if (MODULE_PHREEDOM_STATUS <> MODULE_PHREEDOM_VERSION) $phreedom->update('phreedom');
-	  $phreedom->initialize($loaded_modules);
-	  if (defined('TABLE_CONTACTS')) {
-	    $dept = $db->Execute("select dept_rep_id from " . TABLE_CONTACTS . " where id = " . $result->fields['account_id']);
-	    $_SESSION['department'] = $dept->fields['dept_rep_id'];
-	  }
+	  pb_establish_session($result->fields, $admin_company, $admin_language);
 	  gen_add_audit_log(GEN_LOG_LOGIN . $admin_name);
 	  // check for session timeout to reload to requested page
 	  $get_params = '';
@@ -102,6 +80,88 @@ switch ($_REQUEST['action']) {
 	}
 	$_REQUEST['action'] = 'login';
 	break;
+  case 'pk_login_begin':
+    // step 1 of a passkey login: hand the browser a challenge to sign.
+    // No credential ids are offered (discoverable/resident credentials only),
+    // so the authenticator itself decides which passkey (if any) it has for this site.
+    header('Content-Type: application/json');
+    if (!wa_enabled()) { echo json_encode(array('ok' => false, 'message' => ERROR_PASSKEY_DISABLED)); exit; }
+    try {
+      $webAuthn = wa_new_instance();
+    } catch (\Throwable $e) {
+      echo json_encode(array('ok' => false, 'message' => ERROR_PASSKEY_SERVER));
+      exit;
+    }
+    $pk_args = $webAuthn->getGetArgs(array(), 30, true, true, true, true, true, 'preferred');
+    wa_store_challenge($webAuthn->getChallenge()->getBinaryString(), 'login');
+    echo json_encode(array('ok' => true, 'publicKey' => $pk_args->publicKey));
+    exit;
+  case 'pk_login_finish':
+    // step 2: verify the signed assertion, identify the account by the
+    // credential id (never by a posted username), and log in exactly the
+    // way a password login does.
+    header('Content-Type: application/json');
+    $pk_challenge   = wa_consume_challenge('login');
+    $pk_cred_id     = db_prepare_input($_POST['cred_id'] ?? '');
+    $pk_client_data = $_POST['client_data'] ?? '';
+    $pk_auth_data   = $_POST['authenticator_data'] ?? '';
+    $pk_signature   = $_POST['signature'] ?? '';
+    $pk_user_handle = $_POST['user_handle'] ?? '';
+    if (!wa_enabled() || !$pk_challenge || !$pk_cred_id || !$pk_client_data || !$pk_auth_data || !$pk_signature || !$pk_user_handle) {
+      gen_add_audit_log(GEN_LOG_LOGIN_FAILED . '(passkey)');
+      echo json_encode(array('ok' => false, 'message' => ERROR_WRONG_LOGIN));
+      exit;
+    }
+    $pk_cred = wa_get_credential_by_cred_id($pk_cred_id);
+    if (!$pk_cred || bin2hex(wa_b64url_decode($pk_user_handle)) !== $pk_cred['user_handle']) {
+      gen_add_audit_log(GEN_LOG_LOGIN_FAILED . '(passkey: unknown credential)');
+      echo json_encode(array('ok' => false, 'message' => ERROR_WRONG_LOGIN));
+      exit;
+    }
+    $pk_user = $db->Execute("select admin_id, admin_name, inactive, display_name, admin_email, account_id, admin_prefs, admin_security, locked_until,
+        (locked_until IS NOT NULL AND locked_until > UTC_TIMESTAMP()) AS is_locked
+        from " . TABLE_USERS . " where admin_id = " . (int)$pk_cred['admin_id']);
+    if (!$pk_user || $pk_user->EOF || $pk_user->fields['inactive']) {
+      gen_add_audit_log(GEN_LOG_LOGIN_FAILED . '(passkey: inactive user)');
+      echo json_encode(array('ok' => false, 'message' => ERROR_WRONG_LOGIN));
+      exit;
+    }
+    if ($pk_user->fields['is_locked']) {
+      echo json_encode(array('ok' => false, 'message' => ERROR_ACCOUNT_LOCKED));
+      exit;
+    }
+    try {
+      $webAuthn = wa_new_instance();
+      $webAuthn->processGet(
+        wa_b64url_decode($pk_client_data),
+        wa_b64url_decode($pk_auth_data),
+        wa_b64url_decode($pk_signature),
+        $pk_cred['public_key'],
+        $pk_challenge,
+        (int)$pk_cred['sign_count'],
+        false, // requireUserVerification - login was requested with 'preferred', not 'required'
+        true   // requireUserPresent
+      );
+    } catch (\Throwable $e) {
+      gen_add_audit_log(GEN_LOG_LOGIN_FAILED . '(passkey: ' . $pk_user->fields['admin_name'] . ')');
+      echo json_encode(array('ok' => false, 'message' => ERROR_WRONG_LOGIN));
+      exit;
+    }
+    $pk_new_count = $webAuthn->getSignatureCounter();
+    wa_update_sign_count($pk_cred['id'], $pk_new_count !== null ? $pk_new_count : $pk_cred['sign_count']);
+    $admin_company  = $_SESSION['companies'][$_POST['company']] ?? ($_SESSION['company'] ?? '');
+    $admin_language = db_prepare_input($_POST['language'] ?? DEFAULT_LANGUAGE);
+    pb_establish_session($pk_user->fields, $admin_company, $admin_language);
+    gen_add_audit_log(GEN_LOG_LOGIN . $pk_user->fields['admin_name'] . ' (passkey)');
+    $get_params = '';
+    if (isset($_SESSION['pb_cat']) && $_SESSION['pb_cat']) {
+      $get_params  = 'module='    . $_SESSION['pb_cat'];
+      $get_params .= '&amp;page=' . $_SESSION['pb_module'];
+      if (isset($_SESSION['pb_jID']) && $_SESSION['pb_jID'])  $get_params .= '&amp;jID='  . $_SESSION['pb_jID'];
+      if (isset($_SESSION['pb_type']) && $_SESSION['pb_type']) $get_params .= '&amp;type=' . $_SESSION['pb_type'];
+    }
+    echo json_encode(array('ok' => true, 'redirect' => html_href_link(FILENAME_DEFAULT, $get_params, 'SSL')));
+    exit;
   case 'pw_lost_sub':
     $admin_email = db_prepare_input($_POST['admin_email']);
     $result = $db->Execute("select admin_id, admin_name, admin_email 
