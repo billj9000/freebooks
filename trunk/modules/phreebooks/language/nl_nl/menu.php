@@ -42,4 +42,5 @@ define('BOX_TEXT_NEW_TITLE','Nieuwe %s');
 define('ORD_TEXT_ORDERS_TITLE','Orders');
 define('ORD_TEXT_INVOICE_TITLE','Facturen');
 define('ORD_TEXT_CREDIT_TITLE','Credit');
+define('PO_EXPORT_PROFILES_TITLE','Inkooporder Exportprofielen');
 ?>

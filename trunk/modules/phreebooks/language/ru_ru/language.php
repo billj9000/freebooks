@@ -489,7 +489,6 @@ define('PO_EXPORT_NO_PROFILE', 'Для этого поставщика не за
 define('PO_EXPORT_NO_LINES',   'В этом заказе на закупку нет строк для экспорта.');
 define('PO_EXPORT_MISSING_SKUS', 'Экспорт невозможен: у следующих позиций не задан артикул поставщика: %s. Укажите артикул поставщика на вкладке данных закупки каждой позиции и повторите попытку.');
 // Purchase order export profiles admin page
-define('PO_EXPORT_PROFILES_TITLE',     'Профили экспорта заказов на закупку');
 define('PO_EXPORT_PROFILE_NEW_TITLE',  'Новый профиль экспорта');
 define('PO_EXPORT_PROFILE_EDIT_TITLE', 'Редактировать профиль экспорта');
 define('PO_EXPORT_PROFILES_LOG',       'Профиль экспорта');

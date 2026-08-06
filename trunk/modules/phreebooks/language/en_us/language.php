@@ -340,7 +340,6 @@ define('PO_EXPORT_NO_PROFILE', 'This vendor has no export profile assigned. Set 
 define('PO_EXPORT_NO_LINES',   'This purchase order has no exportable lines.');
 define('PO_EXPORT_MISSING_SKUS', 'Cannot export: the following items have no Vendor SKU set: %s. Set the Vendor SKU on the Vendor Details tab of each item, then retry.');
 // Purchase order export profiles admin page
-define('PO_EXPORT_PROFILES_TITLE',     'PO Export Profiles');
 define('PO_EXPORT_PROFILE_NEW_TITLE',  'New PO Export Profile');
 define('PO_EXPORT_PROFILE_EDIT_TITLE', 'Edit PO Export Profile');
 define('PO_EXPORT_PROFILES_LOG',       'PO Export Profile');

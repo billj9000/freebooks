@@ -49,4 +49,5 @@ define('BOX_STATUS_MGR','%s Manager');
 define('ORD_TEXT_RECEIPTS_TITLE','Receipts');
 define('ORD_TEXT_PAYMENTS_TITLE','Payments');
 define('BOX_TEXT_NEW_TITLE','New %s');
+define('PO_EXPORT_PROFILES_TITLE','PO Export Profiles');
 ?>

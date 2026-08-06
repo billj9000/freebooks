@@ -62,5 +62,6 @@ define('ORD_TEXT_20_V_WINDOW_TITLE','Платеж поставщику');
 define('BOX_TEXT_NEW_TITLE','Новый %s');
 define('BOX_STATUS_MGR','Список %s');
 define('BOX_GL_BUDGET','Бюджетирование');
+define('PO_EXPORT_PROFILES_TITLE','Профили экспорта заказов на закупку');
 
 ?>

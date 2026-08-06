@@ -310,7 +310,6 @@ define('PO_EXPORT_NO_PROFILE', 'Voor deze leverancier is geen exportprofiel inge
 define('PO_EXPORT_NO_LINES',   'Deze inkooporder heeft geen exporteerbare regels.');
 define('PO_EXPORT_MISSING_SKUS', 'Exporteren niet mogelijk: de volgende artikelen hebben geen leverancier artikelnummer: %s. Stel het leverancier artikelnummer in op het tabblad Inkoopgegevens van elk artikel en probeer het opnieuw.');
 // Purchase order export profiles admin page
-define('PO_EXPORT_PROFILES_TITLE',     'Inkooporder Exportprofielen');
 define('PO_EXPORT_PROFILE_NEW_TITLE',  'Nieuw Exportprofiel');
 define('PO_EXPORT_PROFILE_EDIT_TITLE', 'Exportprofiel Bewerken');
 define('PO_EXPORT_PROFILES_LOG',       'Exportprofiel');

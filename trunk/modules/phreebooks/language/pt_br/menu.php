@@ -34,5 +34,6 @@ define('ORD_TEXT_2_WINDOW_TITLE','Diário Geral');
 define('ORD_TEXT_0_WINDOW_TITLE','Saldos Iniciais');
 define('MENU_HEADING_BANKING','Bancos');
 define('MENU_HEADING_GL','Contabilidade');
+define('PO_EXPORT_PROFILES_TITLE','Perfis de Exportação de Pedido de Compra');
 
 ?>

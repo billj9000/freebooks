@@ -300,7 +300,6 @@ define('PO_EXPORT_NO_PROFILE', 'Este fornecedor não possui um perfil de exporta
 define('PO_EXPORT_NO_LINES',   'Este pedido de compra não possui itens exportáveis.');
 define('PO_EXPORT_MISSING_SKUS', 'Não é possível exportar: os itens a seguir não possuem Código do Fornecedor: %s. Defina o Código do Fornecedor na aba de Dados de Compra de cada item e tente novamente.');
 // Purchase order export profiles admin page
-define('PO_EXPORT_PROFILES_TITLE',     'Perfis de Exportação de Pedido de Compra');
 define('PO_EXPORT_PROFILE_NEW_TITLE',  'Novo Perfil de Exportação');
 define('PO_EXPORT_PROFILE_EDIT_TITLE', 'Editar Perfil de Exportação');
 define('PO_EXPORT_PROFILES_LOG',       'Perfil de Exportação');
