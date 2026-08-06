@@ -97,7 +97,7 @@ $_login_logo = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/p
     <!-- Footer -->
     <div class="text-center mt-3" style="font-size:9px;color:#888">
       <?php echo TEXT_COPYRIGHT; ?> &copy; <?php echo date('Y'); ?> Bill Jones<br>
-      Portions &copy; 2008&ndash;2014 <a href="http://www.PhreeSoft.com" style="color:#888">PhreeSoft, LLC</a>
+      Portions &copy; 2008&ndash;2014 PhreeSoft, LLC
     </div>
 
   </div>

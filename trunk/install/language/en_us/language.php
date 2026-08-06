@@ -49,13 +49,16 @@ define('MSG_INSPECT_ERRORS','The following installation errors have been found.
   <li>Errors (in red) must be fixed before the installation script can proceed.</li>
   <li>Cautions (in yellow) will not prevent installation but may prevent modules from operating properly.</li>
 </ul>');
-define('INSTALL_ERROR_PHP_VERSION','Your php version needs to be 5.2 or greater.');
-define('INSTALL_ERROR_REGISER_GLOBALS','Register globals needs to be turned off.');
-define('INSTALL_ERROR_SAFE_MODE','Your php configuration is set to run in safe mode. Safe mode needs to be turned off to install PhreeBooks.');
-define('INSTALL_ERROR_SESSION_SUPPORT','Your php configuration does not have session support installed. Session support is required to run PhreeBooks.');
+define('INSTALL_ERROR_PHP_VERSION','Your php version needs to be 8.0 or greater.');
+define('INSTALL_ERROR_SESSION_SUPPORT','Your php configuration does not have session support installed. Session support is required to run FreeBooks.');
+define('INSTALL_ERROR_PDO_MYSQL','Your php configuration does not have the pdo_mysql extension installed. This extension is required to connect to the database.');
 define('INSTALL_ERROR_OPENSSL','Your server needs to have openssl installed.');
 define('INSTALL_ERROR_CURL','Your servers php application was installed without cURL support. cURL support is required for secure communications to send/receive information to remore applications.');
-define('INSTALL_ERROR_UPLOADS','Your servers php application was installed without file upload support. Upload support is required for importing files to PhreeBooks.');
+define('INSTALL_ERROR_MBSTRING','Your servers php application was installed without mbstring support. Some modules may not operate correctly with this feature not available.');
+define('INSTALL_ERROR_GD','Your servers php application was installed without GD support. Barcodes, labels and some PDF reports will not be available without this feature.');
+define('INSTALL_ERROR_ZIP','Your servers php application was installed without Zip support. Database backup and restore will not be available without this feature.');
+define('INSTALL_ERROR_BZ2','Your servers php application was installed without BZip2 support. Large database import/restore tools will not be available without this feature.');
+define('INSTALL_ERROR_UPLOADS','Your servers php application was installed without file upload support. Upload support is required for importing files to FreeBooks.');
 define('INSTALL_ERROR_UPLOAD_DIR','I could not find a temporary upload directory on this server.');
 define('INSTALL_ERROR_XML','Your servers php application was installed without XML support. Some modules may not operate with this feature not available.');
 define('INSTALL_ERROR_FTP','Your servers php application was installed without FTP support. Some modules may not operate with this feature not available.');

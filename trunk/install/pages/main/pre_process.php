@@ -95,21 +95,16 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		}
 		// start the checks for minimum requirements
 		//PHP Version Check
-		if (version_compare(PHP_VERSION, '5.2.0', '<')) {
+		if (version_compare(PHP_VERSION, '8.0.0', '<')) {
 	  		$error = $messageStack->add(INSTALL_ERROR_PHP_VERSION, 'error');
-		}
-		// Check Register Globals
-		$register_globals = ini_get("register_globals");
-		if ($register_globals <> '' && $register_globals <> '0' && strtoupper($register_globals) <> 'OFF') {
-	  		$error = $messageStack->add(INSTALL_ERROR_REGISER_GLOBALS, 'error');
-		}
-		// SAFE MODE check
-		if (ini_get("safe_mode")) {
-			$error = $messageStack->add(INSTALL_ERROR_SAFE_MODE, 'error');
 		}
 		// Support for Sessions check
 		if (@!extension_loaded('session')) {
 			$error = $messageStack->add(INSTALL_ERROR_SESSION_SUPPORT, 'error');
+		}
+		// Support for PDO MySQL check (required to connect to the database)
+		if (@!extension_loaded('pdo_mysql')) {
+			$error = $messageStack->add(INSTALL_ERROR_PDO_MYSQL, 'error');
 		}
 		//Check for OpenSSL support (only relevant for Apache
 		if (@!extension_loaded('openssl')) {
@@ -118,6 +113,22 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		//Check for cURL support (ie: for payment/shipping gateways)
 		if (@!extension_loaded('curl')) {
 			$error = $messageStack->add(INSTALL_ERROR_CURL, 'error');
+		}
+		//Check for mbstring support (multi-byte string handling)
+		if (@!extension_loaded('mbstring')) {
+			$caution = $messageStack->add(INSTALL_ERROR_MBSTRING, 'caution');
+		}
+		//Check for GD support (barcodes, labels, and PDF reports)
+		if (@!extension_loaded('gd')) {
+			$caution = $messageStack->add(INSTALL_ERROR_GD, 'caution');
+		}
+		//Check for Zip support (database backup/restore)
+		if (@!extension_loaded('zip')) {
+			$caution = $messageStack->add(INSTALL_ERROR_ZIP, 'caution');
+		}
+		//Check for BZip2 support (large database import/restore tools)
+		if (@!extension_loaded('bz2')) {
+			$caution = $messageStack->add(INSTALL_ERROR_BZ2, 'caution');
 		}
 		//Check for upload support built in to PHP
 		if (@!ini_get('file_uploads')) {

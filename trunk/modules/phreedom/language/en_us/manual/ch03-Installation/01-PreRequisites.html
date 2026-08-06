@@ -20,12 +20,14 @@
 <body>
 
 <h1 align="center">Pre-requisites</h1>
-<p>Prior to running the setup script. the following items need to be verified:</p>
+<p>Prior to running the setup script, the following items need to be verified:</p>
 <h3>System Requirements </h3>
-<p>During the setup script, PhreeBooks will inspect your system and let you know of any missing or downlevel pre-requisites. The setup script will not continue until these pre-requisites are met.</p>
+<p>During the setup script, FreeBooks will inspect your system and let you know of any missing or downlevel pre-requisites. The setup script will not continue until these pre-requisites are met.</p>
 <ol>
-  <li>Mysql Version: 4.0 or higher </li>
-  <li>PHP Version: 5.0 and higher </li>
+  <li>PHP Version: 8.0 or higher (PHP 8.3 is used in the reference Docker image and is recommended)</li>
+  <li>MySQL 5.7 or higher, or MariaDB 10.3 or higher (the reference Docker setup uses MariaDB 11.4)</li>
+  <li>Required PHP extensions: <code>pdo_mysql</code>, <code>gd</code>, <code>zip</code>, <code>bz2</code>, <code>openssl</code>, <code>curl</code>, <code>mbstring</code>, and session support</li>
+  <li>HTTPS is recommended, and is required if you plan to enable passkey (WebAuthn) sign-in &mdash; see <a href="../ch06-UsersSecurity/03-Passkeys.html">Passkeys (Passwordless Sign-In)</a></li>
 </ol>
 <h3>Customization Requirements </h3>
 <ol>
