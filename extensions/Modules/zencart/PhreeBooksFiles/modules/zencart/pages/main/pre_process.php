@@ -32,7 +32,7 @@ require_once(DIR_FS_WORKING . 'classes/bulk_upload.php');
 $error     = false;
 $ship_date = $_POST['ship_date'] ? gen_db_date($_POST['ship_date']) : date('Y-m-d');
 /***************   hook for custom actions  ***************************/
-$custom_path = DIR_FS_MODULES . 'custom/zencart/pages/main/extra_actions.php';
+$custom_path = DIR_FS_WORKING . 'custom/pages/main/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 
 /***************   Act on the action request   *************************/

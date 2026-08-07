@@ -1,3 +1,7 @@
 trunk/includes/configure.php
 trunk/my_files/
 *.swp
+
+# Site-specific customization hooks for the ZenCart module — deploy-only,
+# never generic shipped code. See extensions/Modules/zencart/README.md.
+extensions/Modules/zencart/PhreeBooksFiles/modules/zencart/custom/

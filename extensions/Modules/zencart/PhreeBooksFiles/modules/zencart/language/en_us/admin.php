@@ -40,7 +40,6 @@ define('ZENCART_CATALOG_MANUFACTURER',"ZenCart - manufacturer. Must match Zen Ca
 define('ZENCART_CATALOG_URL','ZenCart - product URL.');
 define('ZENCART_CATALOG_MODEL','ZenCart - product model.');
 define('ZENCART_CATALOG_DESCRIPTION','ZenCart - HTML long product description.');
-define('ZENCART_CATALOG_OEM_PART_NUMBERS','Original Part Numbers');
 define('ZENCART_LBL_CATCH_ALL_ACCT','Catch-all customer contact ID for orders where email cannot be matched or a new customer cannot be created (0 = skip such orders)');
 define('ZENCART_LBL_DEFAULT_TAX','Fallback tax rate ID when ZenCart\'s item tax % cannot be matched in the Tax Rates table (0 = untaxed)');
 define('ZENCART_LBL_CREATE_INVOICE','Also create a Sales Invoice (journal 12) for each imported order');
