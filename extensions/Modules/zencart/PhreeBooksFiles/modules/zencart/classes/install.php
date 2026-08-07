@@ -156,6 +156,19 @@ class zencart_admin {
 	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
 	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description text");
 
+	  $sql_data_array = array(
+	    'module_id'   => 'inventory',
+	    'tab_id'      => $tab_id,
+	    'entry_type'  => 'text',
+	    'field_name'  => 'zencart_oem_partnumbers',
+	  	'description' => ZENCART_CATALOG_OEM_PART_NUMBERS,
+	  	'sort_order'  => 55,
+	  	'use_in_inventory_filter'=>'1',
+	  	'params'      => serialize(array('type'=>'text', 'length'=>'250', 'default'=>'', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
+	  );
+	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
+	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_oem_partnumbers varchar(250) default ''");
+
 	  gen_add_audit_log(ZENCART_LOG_FIELDS . TEXT_NEW, 'zencart - catalog');
 	}
     return $error;
@@ -271,6 +284,23 @@ class zencart_admin {
 	  );
 	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
 	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description text");
+	}
+
+	// OEM / original manufacturer part numbers — included in the inventory quick search
+	// via custom/pages/main/extra_actions.php when this field is present.
+	if ($error == false && !db_field_exists(TABLE_INVENTORY, 'zencart_oem_partnumbers')) {
+	  $sql_data_array = array(
+	    'module_id'   => 'inventory',
+	    'tab_id'      => $tab_id,
+	    'entry_type'  => 'text',
+	    'field_name'  => 'zencart_oem_partnumbers',
+	    'description' => ZENCART_CATALOG_OEM_PART_NUMBERS,
+	    'sort_order'  => 55,
+	    'use_in_inventory_filter' => '1',
+	    'params'      => serialize(array('type'=>'text', 'length'=>'250', 'default'=>'', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
+	  );
+	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
+	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_oem_partnumbers varchar(250) default ''");
 	}
 
 	if (!$error) {
