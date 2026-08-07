@@ -8,7 +8,7 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/inventory/language/pt_br/language.php
 
-define('INV_CALCULATING_ERROR','Quando Phreebooks tiver que calcular o preço cheio com impostos será = ');
+define('INV_CALCULATING_ERROR','Quando FreeBooks tiver que calcular o preço cheio com impostos será = ');
 define('JS_MS_COLON_NOT_ALLOWED','Não é permitido dois pontos na descrição.');
 define('JS_MS_COMMA_NOT_ALLOWED','Não é permitido vírgula na descrição.');
 define('TEXT_MS_HELP','Ao gravar o %s digitado em uma das descrições será substituido pela descrição daquele campo.');

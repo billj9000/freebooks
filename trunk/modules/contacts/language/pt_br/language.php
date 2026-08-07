@@ -28,7 +28,7 @@ define('ACT_CARD_HINT','Card Hint');
 define('ACT_PAYMENT_CREDIT_CARD_EXPIRES','Data Expiração Cartão de Crédito');
 define('ACT_PAYMENT_CREDIT_CARD_NUMBER','Número Cartão de Crédito');
 define('ACT_CARDHOLDER_NAME','Nome Cartão de Crédito');
-define('ACT_PAYMENT_MESSAGE','Entre a informação de pagamento a sere gravada no PhreeBooks.');
+define('ACT_PAYMENT_MESSAGE','Entre a informação de pagamento a sere gravada no FreeBooks.');
 define('ACT_INV_NUMBER','Fatura Número');
 define('ACT_PO_NUMBER','Compra Número');
 define('ACT_SO_NUMBER','Venda Número');

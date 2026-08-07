@@ -241,7 +241,7 @@ define('TEXT_AVERAGE_USE','Average use (excluding this month)');
 define('TEXT_MS_HELP','When saving the %s written in one of the descriptions will be replaced by the description of that field.');
 define('JS_MS_COMMA_NOT_ALLOWED','Comma is not allowed in the description.');
 define('JS_MS_COLON_NOT_ALLOWED','Colon is not allowed in the description.');
-define('INV_CALCULATING_ERROR', 'When Phreebooks has to calculate the full price with tax it will come to = ');
+define('INV_CALCULATING_ERROR', 'When FreeBooks has to calculate the full price with tax it will come to = ');
 define('INV_WHAT_TO_CALCULATE','enter 1 to recalculate the margin \nenter 2 to recalculate the sales prices based on margin \nenter 3 to recalculate the sales prices based on markup');
 define('INV_CHEAPER_ELSEWHERE','sku %s is cheaper elsewhere.');
 define('INV_IMAGE_DUPLICATE_NAME','The name of the image is already used in the database, Change the file name to continu. ');

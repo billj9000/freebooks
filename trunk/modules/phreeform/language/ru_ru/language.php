@@ -39,7 +39,7 @@ define('TEXT_EMAIL_MSG_DETAIL','E-mail Message Body Text');
 define('TEXT_FILENAME_SOURCE','Download Filename Source');
 define('TEXT_DUPLICATE','Дублировать');
 define('TEXT_EMPTY_FOLDER','The Folder does not contain any documents.');
-define('TEXT_ENTER_NEW_PATH','Enter New Path to search for reports (from PhreeBooks root):');
+define('TEXT_ENTER_NEW_PATH','Enter New Path to search for reports (from FreeBooks root):');
 define('TEXT_FIELD_LIST','Field List');
 define('TEXT_FIELD_SETUP','Field Setup');
 define('TEXT_FIELDNAME','Fieldname');

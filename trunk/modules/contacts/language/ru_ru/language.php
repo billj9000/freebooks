@@ -111,7 +111,7 @@ define('ACT_SO_NUMBER','SO Номер');
 define('ACT_PO_NUMBER','PO Номер');
 define('ACT_INV_NUMBER','Номер счета');
 define('ACT_NO_RESULTS','Ничего не найдено');
-define('ACT_PAYMENT_MESSAGE','Введенная платежная информация будет сохранена PhreeBooks.');
+define('ACT_PAYMENT_MESSAGE','Введенная платежная информация будет сохранена FreeBooks.');
 define('ACT_CARDHOLDER_NAME','Имя владельца карты');
 define('ACT_PAYMENT_CREDIT_CARD_NUMBER','Номер карты');
 define('ACT_PAYMENT_CREDIT_CARD_EXPIRES','Срок действия карты');

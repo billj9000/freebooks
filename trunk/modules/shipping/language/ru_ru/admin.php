@@ -33,6 +33,6 @@ define('SHIPPING_METHOD','Select Method:');
 define('SHIPPING_MONTH','Select Month:');
 define('SHIPPING_YEAR','Select Year:');
 define('SHIPPING_TOOLS_TITLE','Shipping Label File Maintenance');
-define('SHIPPING_TOOLS_CLEAN_LOG_DESC','This operation creates a downloaded backup of your shipping label files. This will help keep the server storage size down and reduce company backup file sizes. Backing up these files is recommended before cleaning out old files to preserve PhreeBooks transaction history. <br />INFORMATION: Cleaning out the shipping labels will leave the current records in the database shipping manager and logs.');
+define('SHIPPING_TOOLS_CLEAN_LOG_DESC','This operation creates a downloaded backup of your shipping label files. This will help keep the server storage size down and reduce company backup file sizes. Backing up these files is recommended before cleaning out old files to preserve FreeBooks transaction history. <br />INFORMATION: Cleaning out the shipping labels will leave the current records in the database shipping manager and logs.');
 
 ?>

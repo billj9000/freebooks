@@ -114,7 +114,7 @@ define('ACT_INV_HIST','Factuur Historie (Meest recente %s Resultaten)');
 define('ACT_SO_NUMBER','VerkoopOrder Nummer');
 define('ACT_PO_NUMBER','InkoopOrder Nummer');
 define('ACT_INV_NUMBER','Factuur Nummer');
-define('ACT_PAYMENT_MESSAGE','Voer de betalingsinformatie in om op te slaan in PhreeBooks.');
+define('ACT_PAYMENT_MESSAGE','Voer de betalingsinformatie in om op te slaan in FreeBooks.');
 define('ACT_CARDHOLDER_NAME','Kaarthouder');
 define('ACT_PAYMENT_CREDIT_CARD_NUMBER','Credit Card Nummer');
 define('ACT_PAYMENT_CREDIT_CARD_EXPIRES','Credit Card Verval Datum');

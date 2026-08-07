@@ -34,9 +34,9 @@ define('CD_05_50_DESC','Determines the default sales tax rate to use when adding
 define('CD_05_52_DESC','Determines the default purchase tax rate to use when adding inventory items.<br /><br />NOTE: This value is applied to inventory Auto-Add but can be changed in the Inventory => Maintain screen. The tax rates are selected from the table tax_rates and must be setup through Setup => Purchase tax Rates.');
 define('CD_05_55_DESC','Позволяет автоматическое создание товарно-материальных ценностей в окне заказов. <br /> <br /> Наименований не требуется. Эта функция позволяет автоматическое создание наименований в таблице базы данных исклада .');
 define('CD_05_60_DESC','Allows an ajax call to fill in possible choices as data is entered into the SKU field. his feature is helpful when the SKUs are known and expedites filling in order forms. May slow down SKU entries when bar code scanners are used.');
-define('CD_05_65_DESC','When enabled, PhreeBooks looks for a SKU length in the order form equal to the Bar Code Length value and when the length is reached, attempts to match with an inventory item. This allow fast entry of items when using bar code readers.');
-define('CD_05_70_DESC','Sets the number of characters to expect when reading inventory bar code values. PhreeBooks only searches when the number of characters has been reached. Typical values are 12 and 13 characters.');
-define('CD_05_75_DESC','When enabled, PhreeBooks will update the item cost in the inventory table with either the PO price or Purchase/Receive price. Usefule for on the fly PO/Purchases and updating prices from the order screen without having to update the inventory tables first.');
+define('CD_05_65_DESC','When enabled, FreeBooks looks for a SKU length in the order form equal to the Bar Code Length value and when the length is reached, attempts to match with an inventory item. This allow fast entry of items when using bar code readers.');
+define('CD_05_70_DESC','Sets the number of characters to expect when reading inventory bar code values. FreeBooks only searches when the number of characters has been reached. Typical values are 12 and 13 characters.');
+define('CD_05_75_DESC','When enabled, FreeBooks will update the item cost in the inventory table with either the PO price or Purchase/Receive price. Usefule for on the fly PO/Purchases and updating prices from the order screen without having to update the inventory tables first.');
 define('INV_HEADING_CATEGORY_NAME','Название категории');
 define('INV_INFO_CATEGORY_DESCRIPTION','Описание категории');
 define('INV_INFO_CATEGORY_NAME','Inventory Category name<br />Name should be short (10) with no special characters or spaces.');
@@ -88,10 +88,10 @@ define('INV_TOOLS_SO_ERROR','SKU: %s had a quantity on Sales Order of %s and sho
 define('INV_TOOLS_SO_PO_RESULT','Finished processing Inventory order quantities. The total number of items processed was %s. The number of records with errors was %s.');
 define('INV_TOOLS_AUTDIT_LOG_SO_PO','Inv Tools - Repair SO/PO Qty (%s)');
 define('INV_TOOLS_VALIDATE_INVENTORY','Validate Inventory Displayed Stock');
-define('INV_TOOLS_VALIDATE_INV_DESC','This operation tests to make sure your inventory quantities listed in the inventory database and displayed in the inventory screens are the same as the quantities in the inventory history database as calculated by PhreeBooks when inventory movements occur. The only items tested are the ones that are tracked in the cost of goods sold calculation. Repairing inventory balances will correct the quantity in stock and leave the inventory history data alone. ');
+define('INV_TOOLS_VALIDATE_INV_DESC','This operation tests to make sure your inventory quantities listed in the inventory database and displayed in the inventory screens are the same as the quantities in the inventory history database as calculated by FreeBooks when inventory movements occur. The only items tested are the ones that are tracked in the cost of goods sold calculation. Repairing inventory balances will correct the quantity in stock and leave the inventory history data alone. ');
 define('INV_TOOLS_REPAIR_TEST','Test Inventory Balances with COGS History');
 define('INV_TOOLS_REPAIR_FIX','Repair Inventory Balances with COGS History');
-define('INV_TOOLS_REPAIR_CONFIRM','Are you sure you want to repair the inventory stock on hand to match the PhreeBooks COGS history calculated values?');
+define('INV_TOOLS_REPAIR_CONFIRM','Are you sure you want to repair the inventory stock on hand to match the FreeBooks COGS history calculated values?');
 define('INV_TOOLS_BTN_TEST','Проверить баланс Склада');
 define('INV_TOOLS_BTN_REPAIR','Синхронизировать Кол. на складе');
 define('INV_TOOLS_OUT_OF_BALANCE','SKU: %s -> stock indicates %s on hand but COGS history list %s available');

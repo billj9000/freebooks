@@ -10,7 +10,7 @@
 
 define('INV_IMAGE_FILE_TYPE_ERROR','Erro ao subir arquivo de imagem. Formato não aceitável.');
 define('INV_IMAGE_FILE_WRITE_ERROR','Houve um problema ao gravar o arquivo de imagem na pasta especificada.');
-define('GEN_ADM_TOOLS_SEQ_DESC','Alterações na sequência podem ser feitas aqui.<br />ATENÇÃO 1: PhreeBooks não permite sequências duplicadas, certifique-se que a nova sequência não conflite com os valores já lançados.<br />ATENÇÃO 2: O próximo número de depósito pe gerado pelo sistema e utiliza a data corrente.<br />ATENÇÃO 3: o próximo número de cheuqe pode ser digitado na tela de pagamento antes de lançar um pagamento e será sequenciado a partir do número lançado.');
+define('GEN_ADM_TOOLS_SEQ_DESC','Alterações na sequência podem ser feitas aqui.<br />ATENÇÃO 1: FreeBooks não permite sequências duplicadas, certifique-se que a nova sequência não conflite com os valores já lançados.<br />ATENÇÃO 2: O próximo número de depósito pe gerado pelo sistema e utiliza a data corrente.<br />ATENÇÃO 3: o próximo número de cheuqe pode ser digitado na tela de pagamento antes de lançar um pagamento e será sequenciado a partir do número lançado.');
 define('INV_IMAGE_PATH_ERROR','EErro no caminho especificado para carregar a imagem!');
 define('INV_CANNOT_DELETE_SYSTEM','Campos da categoria Sistema não podem ser removidos!');
 define('INV_CATEGORY_CANNOT_DELETE','Não é possível remover a categoria. Está em uso pelo campo: ');
@@ -175,7 +175,7 @@ define('CD_00_02_DESC','Identifica o delimitador utilizado para separar datas (p
 define('CD_00_01_DESC','Estabelece o formato de apresentação para entrada e apresentação de datas(padrão m/d/Y), m - mês; d - dia; Y - ano (4 dígitos).');
 define('CD_20_99_DESC','Habilita geração de rastreio para propósito de debug. Se selecionado, um menu adicional será adicionado às Ferramentas para baixar a informação que permitirá rastrear problemas de lançamento.');
 define('CD_09_01_DESC','Especifica a preferência de exportação quando exportando relatórios e formulários. Local vai salvá-los no diretório /my_files/reports do sevidor web para uso de todas as empresas. Download vai baixar o arquivo no seu browser para salvar/imprimir na máquina local.');
-define('CD_15_05_DESC','Quando habilitada, esta opção utilizará ajax para atualizar o temporizador de sessão a cada 5 minutos prevenindo a sessão de expirar e desconectar o usuário. Ajuda a prevenir lançamentos descartados quando PhreeBooks fica inativo e um lançamento resulta em uma tela de login.');
+define('CD_15_05_DESC','Quando habilitada, esta opção utilizará ajax para atualizar o temporizador de sessão a cada 5 minutos prevenindo a sessão de expirar e desconectar o usuário. Ajuda a prevenir lançamentos descartados quando FreeBooks fica inativo e um lançamento resulta em uma tela de login.');
 define('CD_08_10_DESC','Limita o tamanho dos valores históricos mostrados nas contas de cliente/fornecedor para vendas/compras.');
 define('CD_15_01_DESC','Limite Tempo Sessão - Entre o tempo em segundos (padrão = 3600). Exemplo: 3600 = 1 hora<br />Atenção: Poucos segundos podem resultar em problemas ao inserir/editar produtos.');
 define('CD_08_07_DESC','Atualiza as taxas de conversão das moedas carregadas em todo login.<br />Se desabilitado, taxas podem ser alteradas manualmente no menu Setup => Moedas.');
@@ -183,7 +183,7 @@ define('CD_08_05_DESC','Não apresenta mensagens em operações bem sucedidas. S
 define('GEN_TABLES_AVAILABLE','Tabelas Disponíveis para: ');
 define('CD_07_17_DESC','Tamanho mínimo de senha');
 define('CD_08_01_DESC','Número máximo de resultados de busca por página');
-define('CD_08_03_DESC','Verificar automaticamente novas versões do PhreeBooks.');
+define('CD_08_03_DESC','Verificar automaticamente novas versões do FreeBooks.');
 define('GEN_EXPORT_MESSAGE','Seleciona um formato e pressione o botão Exportar para continuar.');
 define('GEN_IMPORT_MESSAGE','A lista abaixo mostra as tabelas disponpiveis para importação. Selecione um formato, carregue o arquivo e pressione o botão Importar para continuar.');
 define('SAMPLE_XML','Exemplo XML');
@@ -213,7 +213,7 @@ define('GEN_ADM_TOOLS_BTN_BACKUP','Backup Agora!');
 define('GEN_ADM_TOOLS_BTN_CLEAN_CONFIRM','Tem certeza de que quer remover estes registros de Log Auditoria?');
 define('GEN_ADM_TOOLS_CLEAN_LOG_CLEAN','Limpar Log Auditoria');
 define('GEN_ADM_TOOLS_CLEAN_LOG_BACKUP','Backup Log Auditoria');
-define('GEN_ADM_TOOLS_CLEAN_LOG_DESC','Esta operação cria uma cópia de segurança do seus arquivos de Logs de Auditoria. Isto vai ajudar a manter o tamanho da base de dados menor e reduzirá a necessidade de espaço de backup para a empresa. Fazer cópia de segurança deste log é recomendado antes de limpá-lo, para preservar o histórico de transações do PhreeBooks. <br />INFORMAÇÃO: Limpar os Logs Auditoria deixará a informação do período corrente intacta e removerá todos os demais registros.');
+define('GEN_ADM_TOOLS_CLEAN_LOG_DESC','Esta operação cria uma cópia de segurança do seus arquivos de Logs de Auditoria. Isto vai ajudar a manter o tamanho da base de dados menor e reduzirá a necessidade de espaço de backup para a empresa. Fazer cópia de segurança deste log é recomendado antes de limpá-lo, para preservar o histórico de transações do FreeBooks. <br />INFORMAÇÃO: Limpar os Logs Auditoria deixará a informação do período corrente intacta e removerá todos os demais registros.');
 define('GEN_ADM_TOOLS_CLEAN_LOG','Backup/Limpar Log Auditoria');
 define('ERROR_CANNOT_CREATE_MODULE_DIR','Erro criando diretório: %s. Verifique suas permissões!');
 define('ERROR_CANNOT_REMOVE_MODULE_DIR','Erro removendo diretório: %s. O diretório pode não existir ou pode não estar vazio! Deve ser removido manualmente.');
@@ -225,8 +225,8 @@ define('INV_FIELD_RESERVED_WORD','The field name entered is a reserved word. Ple
 define('GEN_ADM_TOOLS_SEQ_HEADING','Alterar Vários Números Sequenciais');
 define('GENERAL_CONFIG_SAVED','Valores de Configuração foram gravados.');
 define('HEADING_TITLE_CRASH_BUTTON','Baixar Informação Rastreio Erro');
-define('HEADING_TITLE_CRASH_INFORMATION','PhreeBooks encontrou um erro inesperado. Clique no botão abaixo para baixar o arquivo de informação de rastreio para enviar para o administrador do sistema.');
-define('HEADING_TITLE_CRASH_TITLE','Informação Rastreio Erro SQL PhreeBooks');
+define('HEADING_TITLE_CRASH_INFORMATION','FreeBooks encontrou um erro inesperado. Clique no botão abaixo para baixar o arquivo de informação de rastreio para enviar para o administrador do sistema.');
+define('HEADING_TITLE_CRASH_TITLE','Informação Rastreio Erro SQL FreeBooks');
 define('GEN_AUDIT_DB_DATA_CLEAN','Limpeza de Tabela Log de Auditoria Realizada');
 define('GEN_AUDIT_DB_DATA_BACKUP','Backup de Tabela Log de Auditoria Realizado');
 define('GEN_RESTRICT_PERIOD','Restringir Lançamentos ao Período Corrente?');
@@ -252,7 +252,7 @@ define('TEXT_LOGIN_LANGUAGE','Selecione Língua');
 define('TEXT_LOGIN_COMPANY','Selecione Empresa: ');
 define('TEXT_LOGIN_PASS','Senha: ');
 define('TEXT_LOGIN_NAME','Usuário: ');
-define('HEADING_TITLE','PhreeBooks Login');
+define('HEADING_TITLE','FreeBooks Login');
 define('TEXT_NEXT_ID','ID Próxima Linha');
 define('TEXT_ENGINE','BD Máquina');
 define('TEXT_NUM_ROWS','Número de Linhas');

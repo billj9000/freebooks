@@ -38,6 +38,6 @@ define('SHIPPING_METHOD','Selecteer Methode:');
 define('SHIPPING_MONTH','Selecteer Maand:');
 define('SHIPPING_YEAR','Selecteer Jaar:');
 define('SHIPPING_TOOLS_TITLE','Verzendlabel bestand Onderhoud');
-define('SHIPPING_TOOLS_CLEAN_LOG_DESC','Deze handeling creëert een gedownload back-up van uw verzendetiket bestanden. Dit zal helpen de server opslag grootte en de back-up bestand formaten klein te houden. Back-up van deze bestanden wordt aanbevolen voor het reinigen van oude bestanden om de PhreeBooks transactie geschiedenis te bewaren. <br /> INFORMATIE: Schoonmaak van de verzendlabels houd de huidige records in de verzend manager en logboeken.');
+define('SHIPPING_TOOLS_CLEAN_LOG_DESC','Deze handeling creëert een gedownload back-up van uw verzendetiket bestanden. Dit zal helpen de server opslag grootte en de back-up bestand formaten klein te houden. Back-up van deze bestanden wordt aanbevolen voor het reinigen van oude bestanden om de FreeBooks transactie geschiedenis te bewaren. <br /> INFORMATIE: Schoonmaak van de verzendlabels houd de huidige records in de verzend manager en logboeken.');
 
 ?>
