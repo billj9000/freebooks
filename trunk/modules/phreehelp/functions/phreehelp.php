@@ -201,14 +201,14 @@ function retrieve_index() {
 function search_results($search_text) {
   global $db;
   if (!$search_text) return '';
-  $sql = "select id, doc_url, doc_title, MATCH (doc_title, doc_text) AGAINST ('" . $search_text . "') as score 
+  $search_text = db_input($search_text);
+  $sql = "select id, doc_url, doc_title, MATCH (doc_title, doc_text) AGAINST ('" . $search_text . "') as score
     from " . TABLE_PHREEHELP . " where MATCH (doc_title, doc_text) AGAINST ('" . $search_text . "')";
   $results = $db->Execute($sql);
   if ($results->RecordCount() == 0) return TEXT_NO_RESULTS;
   $search_array = array();
   $index = 0;
   while (!$results->EOF) {
-	$score = number_format($index->fields['score'], 2);
 	$search_array[$index]['id']        = $results->fields['id'];
 	$search_array[$index]['doc_url']   = $results->fields['doc_url'];
 	$search_array[$index]['doc_title'] = $results->fields['doc_title'];

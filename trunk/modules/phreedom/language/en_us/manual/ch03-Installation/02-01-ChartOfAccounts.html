@@ -20,13 +20,23 @@
 <body>
 
 <h1 align="center"> Chart of Accounts</h1>
-<p>FreeBooks contains several example chart of accounts that can be entered during setup. There is also a provision to import your own chart of accounts during the set-up process. Your custom chart of accounts file should be placed into the directory /modules/install/charts before the setup script is executed. The file requirements are as follows:</p>
-<p>File Type: Text (.php extension)<br />
-  Format: php syntax as follows:</p>
-<p>Comments -  preceeded by a //<br />
-  Variable $chart_description - defines the title of the chart of accounts<br />
-  Autoincrement Array Variable $chart_array - contains three elements (1) Account Number (alphanumeric), (2) Description, (3) Account_type code.</p>
-<p>The Account types are:</p>
+<p>FreeBooks ships with four example charts of accounts, and loads one of them automatically the first time a company is set up:</p>
+<ul>
+  <li>US - General store (LLC and Partnerships)</li>
+  <li>US - General store (Corporations, S Corporations)</li>
+  <li>US - Retail store (LLC and Partnerships) &mdash; the default</li>
+  <li>US - Retail store (Corporations, S Corporations)</li>
+</ul>
+<p><strong>NOTE:</strong> the installer currently loads the Retail (LLC/Partnerships) chart automatically; there is no setup-time option to pick a different one of the four, and no way to supply a custom chart of your own. If a different starting chart is needed, the closest options today are to edit accounts afterward through <strong>General Ledger &gt; Chart of Accounts</strong>, or to have a developer point the installer at a different chart file (see the file format below) before running setup.</p>
+<p>Each chart is an XML file under <code>modules/phreebooks/language/en_us/charts/</code>. An account entry looks like this:</p>
+<p><code>&lt;account&gt;<br />
+&nbsp;&nbsp;&lt;id&gt;1100&lt;/id&gt;<br />
+&nbsp;&nbsp;&lt;description&gt;Accounts Receivable&lt;/description&gt;<br />
+&nbsp;&nbsp;&lt;heading&gt;0&lt;/heading&gt;<br />
+&nbsp;&nbsp;&lt;primary&gt;&lt;/primary&gt;<br />
+&nbsp;&nbsp;&lt;type&gt;2&lt;/type&gt;<br />
+&lt;/account&gt;</code></p>
+<p>The Account types (the <code>&lt;type&gt;</code> value) are:</p>
 <p>0 - Cash<br />
   2 - Accounts Receivable<br />
   4 - Inventory<br />
@@ -40,25 +50,9 @@
   30 - Income<br />
   32 - Cost of Sales<br />
   34 - Expenses<br />
-  40 - Equity - Doesn\'t Close<br />
+  40 - Equity - Doesn't Close<br />
   42 - Equity - Gets Closed<br />
   44 - Equity - Retained Earnings<br />
 </p>
-<p>The example below is a snippet from the USA General Retail chart of accounts: </p>
-<p>&lt;?php<br />
-  // Chart of Accounts for USA simple General company<br />
-  $chart_description = &quot;US - General store simple Chart of Accounts&quot;;<br />
-$chart_array = array();</p>
-<p>$chart_array[] = array('1060','Checking Account','0');<br />
-  $chart_array[] = array('1065','Petty Cash','0');<br />
-  $chart_array[] = array('1200','Accounts Receivables','2');<br />
-  $chart_array[] = array('1205','Allowance for doubtful accounts','2');<br />
-  <br />
-.<br />
-.<br />
-.<br />
-$chart_array[] = array('5800','Licenses','34');<br />
-$chart_array[] = array('5810','Foreign Exchange Loss','34');<br />
-?&gt; </p>
 </body>
 </html>

@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.03">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Settings">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Reports and Forms Settings">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Reports and Forms Settings</title>
+</head>
+
+<body>
+
+<h1 align="center">Reports and Forms Settings</h1>
+<p>Module-wide settings for Reports and Forms (as opposed to settings on an individual report or form) are found in its admin settings, under three tabs.</p>
+
+<h3>General</h3>
+<p>Defaults applied to newly-created reports and forms (each can still be overridden per-report):</p>
+<ul>
+  <li>Default column width and page margin.</li>
+  <li>Default text for the two title lines (for example, defaulting to the report's own name and a "Report Generated" date line).</li>
+  <li>Default paper size and orientation.</li>
+  <li>Name-trim length used when listing reports and forms in the folder browser.</li>
+  <li>Heading row spacing.</li>
+  <li><strong>PDF engine</strong> &mdash; FPDF (lighter, the default) or TCPDF. TCPDF is required for UTF-8 text and for bar codes; if a form uses a bar code element, TCPDF must be selected here.</li>
+</ul>
+
+<h3>Stats</h3>
+<p>Usage statistics for reports and forms.</p>
+
+<h3>Tools</h3>
+<p>A structure verification/rebuild utility: it re-scans the reports and forms folder structure, clears out any database entries that no longer have a matching saved file, and moves any orphaned reports or forms it finds into a Miscellaneous folder rather than losing them.</p>
+
+<h3>Related Links</h3>
+<p><a href="02-Designing.html" target="mainFrame">Designing Reports and Forms</a></p>
+</body>
+</html>

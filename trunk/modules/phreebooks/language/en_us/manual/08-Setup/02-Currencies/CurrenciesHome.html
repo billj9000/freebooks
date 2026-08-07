@@ -22,11 +22,12 @@
 <h1 align="center">Setup - Currencies</h1>
 <p>FreeBooks is designed to handle multiple currencies. the US Dollar is the default currency shipped with the standard release.</p>
 <h3>Updating the exchange rate </h3>
-<p>Exchange rates can be updated through two exchange servers, oanda and xe. Oanda is the primary server and xe is the backup server should oanda be down. </p>
-<ol>
-  <li>Select Setup-&gt;Currencies.</li>
-  <li>Press the Update Exchange Rate icon, <img src="../../../../../themes/default/icons/32x32/apps/system-software-update.png" width="32" height="32" border="none">. The exchange rat servers will be queried and the rates updated. </li>
-</ol>
+<p>Exchange rates update automatically from the European Central Bank's daily reference rates &mdash; there is no manual "update now" button. Updates happen two ways:</p>
+<ul>
+  <li>A daily scheduled task (<code>cron/update_currency_rates.php</code>) refreshes every non-default currency's rate.</li>
+  <li>If Auto Update Currency is enabled (System Configuration &gt; General), rates are also refreshed automatically the next time an administrator logs in.</li>
+</ul>
+<p>Because updates are pulled from a single free daily feed, only one currency pair conversion per day is available; there is currently no backup rate source.</p>
 <h3>Adding a Currency</h3>
 <ol>
   <li>Select Setup-&gt;Currencies.</li>
@@ -54,6 +55,6 @@
   <li>Press OK to confirm the deletion and the currency will be removed from the database. </li>
 </ol>
 <h3>Related Links</h3>
-<p>&nbsp; </p>
+<p><a href="../../../../../../phreedom/language/en_us/manual/ch04-Setup/CompanySetup.html">Company Setup</a> &mdash; choosing your company's default currency.</p>
 </body>
 </html>

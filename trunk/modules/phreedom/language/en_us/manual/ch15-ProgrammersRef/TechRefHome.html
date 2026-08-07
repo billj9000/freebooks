@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="15">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Programmer's Reference">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Programmer's Reference">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Programmer's Reference</title>
+</head>
+
+<body>
+
+<h1 align="center">Programmer's Reference</h1>
+<p>This chapter is for developers working on FreeBooks itself &mdash; extending a module, adding a page, or building an integration. It's a tour of the codebase, not an end-user guide.</p>
+
+<h3>Request flow</h3>
+<p>Every request enters through <code>trunk/index.php</code>, which:</p>
+<ol>
+  <li>Loads <code>includes/application_top.php</code> &mdash; bootstraps the session, configuration, database connection, and language strings.</li>
+  <li>Authenticates the user, redirecting to the login page if not authenticated.</li>
+  <li>Dispatches to <code>modules/{module}/pages/{page}/pre_process.php</code> for business logic and form handling.</li>
+  <li>For AJAX requests (<code>?page=ajax&amp;op={op}</code>), loads <code>modules/{module}/ajax/{op}.php</code> and exits.</li>
+  <li>Renders <code>modules/{module}/pages/{page}/template_main.php</code> inside <code>includes/template_index.php</code>.</li>
+  <li>Closes with <code>includes/application_bottom.php</code>.</li>
+</ol>
+<p>URL parameters drive routing &mdash; for example <code>?module=phreebooks&amp;page=journal&amp;jID=12</code>.</p>
+
+<h3>Module structure</h3>
+<p>Every module under <code>trunk/modules/</code> follows the same layout:</p>
+<p><code>config.php</code> (module metadata, menu definitions, <code>TABLE_*</code> constants, security IDs), <code>defaults.php</code> (module-level constants), <code>pages/{page}/</code> (<code>pre_process.php</code>, <code>template_main.php</code>, <code>js_include.php</code>), <code>ajax/</code> (one file per AJAX op), <code>classes/</code>, <code>functions/</code>, <code>language/{locale}/</code> (including this manual, under <code>language/{locale}/manual/</code>), and <code>custom/</code>.</p>
+
+<h3>Key shared code</h3>
+<ul>
+  <li><code>includes/common_functions.php</code> &mdash; global helper functions: <code>db_perform()</code>, <code>gen_redirect()</code>, <code>html_href_link()</code>, <code>gen_pull_language()</code>, <code>gen_calculate_period()</code>, <code>html_icon()</code>, and many more.</li>
+  <li><code>includes/common_classes.php</code> &mdash; core UI and utility classes: <code>toolbar</code>, <code>messageStack</code>, <code>splitPageResults</code>, <code>currencies</code>, <code>encryption</code>.</li>
+  <li><code>includes/db/mysql/query_factory.php</code> &mdash; the <code>queryFactory</code> database abstraction class, wrapping PDO with transaction support (<code>transStart()</code>/<code>transCommit()</code>/<code>transRollback()</code>) and a result-cursor API (<code>Execute()</code>, <code>MoveNext()</code>, <code>EOF()</code>, <code>fields</code>).</li>
+</ul>
+<p>Always build SQL through <code>$db->prepare_input()</code> or the <code>db_input()</code> helper when interpolating user input into a query &mdash; neither <code>db_prepare_input()</code> nor <code>db_perform()</code>'s array binding escape a raw string dropped directly into a hand-built <code>SELECT</code>/<code>WHERE</code> clause.</p>
+
+<h3>Customization: the custom/ override layer</h3>
+<p>The <code>custom/</code> subdirectory within any module is a drop-in override layer. If <code>modules/{module}/custom/pages/{page}/pre_process.php</code> exists, it is loaded instead of the standard file, mirroring the same sub-structure as the module itself. This allows site-specific modifications without patching core files, and is also how optional extensions (see <code>extensions/Modules/</code> in the repository) hook into existing pages &mdash; for example adding an extra toolbar button or menu entry.</p>
+
+<h3>Security model</h3>
+<ul>
+  <li>Session-based authentication (<code>$_SESSION['admin_id']</code>, <code>$_SESSION['company']</code>).</li>
+  <li>Per-page permission checks via <code>validate_user($security_id)</code>, using role definitions maintained in the phreedom module.</li>
+  <li>Multi-company isolation: each company has its own database, with credentials in <code>my_files/{company}/config.php</code>.</li>
+</ul>
+
+<h3>Extending the report/print engine</h3>
+<p>New modules that need printable output (invoices, labels, custom reports) plug into the existing report designer rather than building their own PDF generation &mdash; see <a href="../ch11-ReportsForms/ReportsHome.html">Reports and Forms</a>.</p>
+
+<h3>Related Links</h3>
+<p><a href="../ch16-TestSpec/TestSpecMain.html">Test Specification</a> &mdash; the manual regression test plan to run against significant changes.<br />
+<a href="../../../../../api/language/en_us/manual/ApiHome.html">REST API</a> &mdash; the supported integration surface for external systems.</p>
+</body>
+</html>

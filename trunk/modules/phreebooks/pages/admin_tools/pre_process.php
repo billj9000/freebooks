@@ -113,7 +113,7 @@ switch ($_REQUEST['action']) {
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;
   case 'beg_balances': // Enter beginning balances
-	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=beg_bal', 'SSL'));
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=import_export&amp;action=beg_balances', 'SSL'));
 	break;
   case 'purge_db':
 	validate_security($security_level, 4);

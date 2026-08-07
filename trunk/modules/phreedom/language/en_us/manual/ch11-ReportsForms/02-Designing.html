@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.02">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Designing">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Designing Reports and Forms">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Designing Reports and Forms</title>
+</head>
+
+<body>
+
+<h1 align="center">Designing Reports and Forms</h1>
+<p>Editing or creating a report or form opens the designer, which requires a higher permission level than simply running one. A new report or form starts from a data source, then adds filters and either a column layout (Reports) or a positioned layout (Forms).</p>
+
+<h3>Data source</h3>
+<p>Every report or form is built on a SQL query: pick the database table(s) it draws from, and how they join together if more than one table is used (standard join types are available &mdash; inner, left, right, cross, and their "outer"/"natural" variants). This is how a report can, for example, combine invoice header and line-item data in one query.</p>
+
+<h3>Criteria (filters)</h3>
+<p>Any field in the data source can be exposed as a run-time filter. Depending on the field, the filter can be a simple choice (All/Yes/No, All/Active/Inactive, All/Printed/Unprinted), a range or exact match, or a raw comparison (equals, not equals, in a list, less than, greater than, is/is not null). Date fields can instead use a fiscal-period-aware date range, tied into FreeBooks' accounting period system rather than plain calendar dates.</p>
+
+<h3>Designing a Report</h3>
+<p>For a Report, you choose which fields become columns: label, visibility, column width, whether it starts a new column group, and any per-field processing (see below). You can also define grouping (break the report into sections by a field's value, optionally starting a new page per group, with subtotals) and sorting. Separate font, size, color, and alignment settings apply to the heading, the two title lines, the filter description, the data rows, and the totals row.</p>
+
+<h3>Designing a Form</h3>
+<p>A Form is different: instead of a column list, you place elements at exact positions on a page, like a page layout tool. Available building blocks include:</p>
+<ul>
+  <li>A single data field, a repeating data block, or a data table (for line items).</li>
+  <li>A running total.</li>
+  <li>Letter Template / Letter Data blocks, for building mail-merge style letters as a Form.</li>
+  <li>Fixed text, an image (uploaded or from an image library), or a dynamic image linked per-record.</li>
+  <li>Rectangles and lines, for visual structure.</li>
+  <li>Company data (your own company's name/address/logo), as a single field or a block.</li>
+  <li>A page number.</li>
+  <li>A bar code &mdash; Code 39 and variants, Interleaved 2 of 5, Code 128 (A/B/C), EAN-13, UPC-A, POSTNET, or Codabar. Bar codes require the TCPDF PDF engine (see <a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a>).</li>
+</ul>
+<p>Each element has its own font, size, alignment, and color, and can optionally have a border and/or fill. Table-style blocks have separate styling for their header row.</p>
+<p>A Form can also be configured to: mark a record as printed once the form is generated for it (to help avoid accidentally reprinting the same document), start a new page whenever a chosen field's value changes (useful for printing a batch of many records in one run, one per page), and serialize/number each printed copy.</p>
+
+<h3>Field processing</h3>
+<p>Individual fields can be transformed as they're placed on a report or form: convert to uppercase or lowercase, negate a number, spell out a number in words (for printing checks), round to two decimals, format as a date, format as a dollar or euro amount, show blank instead of "No", force a field blank, or show a duplicate/printed indicator. When combining several fields into one line (for example a full address from separate address fields), a text separator controls how they're joined: a space, double space, comma, comma-space, new line, semicolon-space, or simply dropped if the value is empty.</p>
+
+<h3>Security</h3>
+<p>A report or form can be restricted to specific users and/or specific groups, left open to everyone, or effectively hidden from all logins. The designer warns if you're about to save a report that nobody would be able to see.</p>
+
+<h3>Starting from a built-in template</h3>
+<p>Rather than building from scratch, starter report and form templates shipped with a module can be imported individually or in bulk &mdash; this is how modules provide their default/example reports and forms.</p>
+
+<h3>Related Links</h3>
+<p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports and Forms</a></p>
+</body>
+</html>

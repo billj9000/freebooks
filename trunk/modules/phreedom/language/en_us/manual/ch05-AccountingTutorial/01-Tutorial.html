@@ -21,6 +21,37 @@
 <body>
 
 <h1 align="center">Accounting Tutorial</h1>
-<p>&nbsp;</p>
+
+<h3>The accounting equation</h3>
+<p>Every business's finances balance around one equation:</p>
+<p align="center"><strong>Assets = Liabilities + Equity</strong></p>
+<p>Assets are what the company owns (cash, inventory, money owed by customers). Liabilities are what it owes (loans, money owed to vendors). Equity is what's left over &mdash; the owners' stake. Every transaction changes this equation, but it must always stay in balance.</p>
+
+<h3>Double-entry bookkeeping</h3>
+<p>FreeBooks, like all real accounting systems, uses double-entry bookkeeping: every transaction is recorded as at least two entries &mdash; a <strong>debit</strong> to one account and a matching <strong>credit</strong> to another, for the same amount. Debits and credits aren't "good" or "bad"; what they increase or decrease depends on the account type:</p>
+<ul>
+  <li><strong>Assets</strong> and <strong>Expenses</strong> increase with a debit, decrease with a credit.</li>
+  <li><strong>Liabilities</strong>, <strong>Equity</strong>, and <strong>Revenue</strong> increase with a credit, decrease with a debit.</li>
+</ul>
+<p>Because every transaction touches at least two accounts equally, total debits across the company always equal total credits &mdash; this is the trial balance, and FreeBooks checks it automatically before a transaction is allowed to post.</p>
+
+<h3>Chart of accounts</h3>
+<p>The <a href="../../../../../phreebooks/language/en_us/manual/06-GenLedger/01-ChartOfAccounts/ChartHome.html" target="mainFrame">Chart of Accounts</a> is the full list of accounts a company posts to, each tagged with a type (asset, liability, equity, revenue, or expense). Every journal entry posts to two or more of these accounts.</p>
+
+<h3>A worked example</h3>
+<p>Say a customer is invoiced $100 for a service. FreeBooks posts:</p>
+<ul>
+  <li>Debit Accounts Receivable $100 (an asset &mdash; the customer now owes more)</li>
+  <li>Credit Revenue $100 (revenue increases)</li>
+</ul>
+<p>When the customer later pays that invoice, FreeBooks posts:</p>
+<ul>
+  <li>Debit Cash $100 (an asset &mdash; the company now has more cash)</li>
+  <li>Credit Accounts Receivable $100 (the customer owes less)</li>
+</ul>
+<p>In both cases the debits and credits are equal, and the books stay in balance. Every <a href="../../../../../phreebooks/language/en_us/manual/06-GenLedger/02-JournalEntries/JournalHome.html" target="mainFrame">journal entry</a> in FreeBooks, whether entered directly or generated automatically from a sales order, invoice, or bill, follows this same pattern.</p>
+
+<h3>Fiscal periods</h3>
+<p>Transactions post into a specific accounting period (typically a month), part of the company's fiscal year. See <a href="../../../../../phreebooks/language/en_us/manual/06-GenLedger/03-Utilities/UtilitiesHome.html" target="mainFrame">General Ledger Utilities</a> for advancing the current period.</p>
 </body>
 </html>

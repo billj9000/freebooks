@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="16">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Test Specification">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Test Specification">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Test Specification</title>
+</head>
+
+<body>
+
+<h1 align="center">Test Specification</h1>
+<p>FreeBooks doesn't have an automated test suite; instead, manual test procedures are maintained as spreadsheets in the <code>TestProcedures/</code> directory at the root of the source repository (outside <code>trunk/</code>, so this content isn't part of a deployed installation &mdash; it's for developers and testers working from the source tree).</p>
+
+<h3>PB-TEST-J6-J12.ods</h3>
+<p>A single spreadsheet containing a full manual regression test plan, organized into sections with individually numbered test cases:</p>
+<ul>
+  <li><strong>Installation</strong> &mdash; clean install, upgrade.</li>
+  <li><strong>Configuration</strong> &mdash; company settings, currency, chart of accounts, tax authorities/rates (customer and vendor), custom tabs and fields (inventory and contacts), install/remove, security, permissions, users, roles.</li>
+  <li><strong>Dashboards</strong> &mdash; adding, removing, and moving dashboards.</li>
+  <li><strong>Contacts</strong> &mdash; customers, vendors, employees, branches, CRM entries, projects (including copy/rename/delete).</li>
+  <li><strong>Inventory</strong> &mdash; one test case per inventory type (stock under each costing method, non-stock, master stock, assembly, description, service, labor).</li>
+  <li><strong>Payment and Shipping Modules</strong> &mdash; one test case per built-in module.</li>
+  <li><strong>Price Sheets</strong> &mdash; creating and revising customer and vendor price sheets.</li>
+  <li><strong>Every journal</strong> (General Ledger, RFQ, PO, Purchase, Vendor Credit Memo, Customer Quote, Sales Order, Sale, Customer Credit Memo, Inventory Adjustment, Inventory Assembly, Cash Disbursement, POP, Cash Receipt, POS) &mdash; covering new entries, recurring entries, and conversions between related documents (quote &rarr; order &rarr; sale, PO &rarr; purchase, etc).</li>
+  <li><strong>Banking</strong> &mdash; reconciliation, bank register.</li>
+  <li><strong>PhreeHelp</strong>, <strong>Inventory Tools</strong>, the <strong>SOAP/ZenCart/OpenCart interfaces</strong>, and <strong>General Journal Tools</strong> (new fiscal year, period changes, chart balance verification, purging).</li>
+</ul>
+<p>Several test cases include a detailed worked example with expected values &mdash; for instance, a step-by-step inventory costing scenario (purchases and sales in sequence, including an out-of-order edit and a delete) with the expected running average cost, inventory valuation, and income statement impact at each step, used to verify the costing engine calculates correctly.</p>
+
+<h3>demo_samples.zip</h3>
+<p>A companion set of sample CSV files for exercising the import features documented in <a href="../ch10-ImportingExporting/ImpExpHome.html">Importing/Exporting</a>: <code>demo_contacts.csv</code>, <code>demo_inventory.csv</code>, <code>demo_inventory_bb.csv</code> (inventory beginning balances), <code>demo_po.csv</code>, and <code>demo_purch.csv</code>.</p>
+</body>
+</html>
