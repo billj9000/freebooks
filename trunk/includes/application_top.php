@@ -108,7 +108,7 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   $db->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
   // set application wide parameters for phreebooks module
   $result = $db->Execute_return_error("select configuration_key, configuration_value from " . DB_PREFIX . "configuration");
-  if ($db->error_number != '' || $result->RecordCount() == 0) trigger_error(LOAD_CONFIG_ERROR, E_USER_ERROR);
+  if ($db->error_number != '' || $result->RecordCount() == 0) throw new RuntimeException(LOAD_CONFIG_ERROR);
   while (!$result->EOF) {
 	define($result->fields['configuration_key'], $result->fields['configuration_value']);
 	$result->MoveNext();

@@ -74,7 +74,7 @@ $include_footer   = false;
 $include_template = 'template_main.php';
 $pre_process_path = DIR_FS_MODULES . $module . '/pages/' . $page . '/pre_process.php';
 if (file_exists($pre_process_path)) { define('DIR_FS_WORKING', DIR_FS_MODULES . $module . '/'); }
-  else trigger_error('No pre_process file, looking for the file: ' . $pre_process_path, E_USER_ERROR);
+  else throw new RuntimeException('No pre_process file, looking for the file: ' . $pre_process_path);
 require($pre_process_path); 
 if (file_exists(DIR_FS_WORKING . 'custom/pages/' . $page . '/' . $include_template)) {
   $template_path = DIR_FS_WORKING . 'custom/pages/' . $page . '/' . $include_template;

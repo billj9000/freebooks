@@ -2143,14 +2143,20 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
 
 function PhreebooksExceptionHandler($exception) {
 	global $messageStack;
+    // Log before branching. An uncaught exception always terminates the
+    // request, so it must be recorded on every path -- including AJAX, which
+    // exits below and previously produced no log entry at all. Logging is also
+    // unconditional rather than gated on DEBUG, which defaults to '0' and so
+    // left these failures with no trace in production. Both points match
+    // PhreebooksErrorHandler, which logs every error level before it branches.
+  	$text  = date('Y-m-d H:i:s') . " User: " . ($_SESSION['admin_id'] ?? '') . " Company: " . ($_SESSION['company'] ?? '');
+    $text .= " Exception: '" . $exception->getMessage() . "' line " . $exception->getLine() . " in file " . $exception->getFile();
+    if (defined('DIR_FS_MY_FILES')) error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
 	if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
     	echo createXmlHeader() . xmlEntry('error', "Exception: " . $exception->getMessage()) . createXmlFooter();
         die();
     }
     if (isset($messageStack)) $messageStack->add($exception->getMessage(), 'error');
-  	$text  = date('Y-m-d H:i:s') . " User: " . ($_SESSION['admin_id'] ?? '') . " Company: " . ($_SESSION['company'] ?? '');
-    $text .= " Exception: '" . $exception->getMessage() . "' line " . $exception->getLine() . " in file " . $exception->getFile();
-    if (defined('DEBUG') && DEBUG && defined('DIR_FS_MY_FILES')) error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
 }
 
 function Phreebooks_autoloader($class){

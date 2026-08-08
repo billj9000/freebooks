@@ -95,7 +95,7 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
     require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/menu_bs.php');
   } else echo "<div id=\"content-wrap\">\n"; ?>
   <!-- Template -->
-  <?php if (is_file($template_path)) { require($template_path); } else trigger_error('No template file: ' . $template_path, E_USER_ERROR); ?>
+  <?php if (is_file($template_path)) { require($template_path); } else throw new RuntimeException('No template file: ' . $template_path); ?>
   </div>
   <!-- Footer -->
   <?php if ($include_footer) { // Hook for custom logo
