@@ -198,8 +198,13 @@ switch ($_REQUEST['action']) {
 		$choices = scandir(DIR_FS_MODULES . "$dir/dashboards/");
 		foreach ($choices as $name) if ($name == $dashboard_id) { $module_id = $dir; break; }
 	  }
-	  if ($module_name <> '') break;
+	  if ($module_id <> '') break;
 	}
+	// $dashboard_id comes from $_POST and is used below both as a require_once path
+	// segment and as a class name in "new $dashboard_id". Only proceed if it matched
+	// a real dashboard directory above; otherwise a crafted value could traverse the
+	// filesystem or instantiate an arbitrary class.
+	if ($module_id === '') break;
     load_method_language(DIR_FS_MODULES . "$module_id/dashboards/$dashboard_id");
 	require_once (DIR_FS_MODULES . "$module_id/dashboards/$dashboard_id/$dashboard_id.php");
     $new_box 				= new $dashboard_id;
