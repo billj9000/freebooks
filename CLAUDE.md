@@ -115,9 +115,9 @@ When converting an existing jQuery UI page to Bootstrap, follow these rules. Det
 
 **Tab pages** — see the tab conversion checklist in the memory reference.
 
-### Security Model
-
 ## File Header Policy
+
+This policy applies to **FreeBooks' own source files only** — see "Third-party code" below for the exclusion.
 
 Every PHP and CSS file we touch or create must carry the standard FreeBooks header block. The copyright lines differ depending on whether the file originated in PhreeBooks 3.7.1 or was written by us.
 
@@ -155,6 +155,26 @@ git diff --name-status d55b74c HEAD -- <path>
 `A` = added by us (Bill Jones only); `M` = modified from PhreeBooks (both lines).
 
 CSS files use the same block with `/* * */` comment style instead of `//`.
+
+### Third-party code — do NOT add the header
+
+Vendored third-party libraries carry their own copyright and license headers. **Never add, replace, or edit the copyright block in these files, even when we modify them** — asserting FreeBooks/Bill Jones copyright over someone else's LGPL/MIT/GPL code misstates authorship and can breach the upstream license. Leave the existing upstream header exactly as-is and change only the code.
+
+This covers, among others:
+
+| Path | Upstream |
+|---|---|
+| `trunk/vendor/` | Composer packages (PHPMailer, Twig, BoxPacker, …) |
+| `trunk/modules/phreeform/includes/tcpdf/` | TCPDF — LGPL v3, Nicola Asuni / Tecnick.com |
+| `trunk/modules/phreeform/includes/fpdf/` | FPDF — Olivier Plathey |
+| `trunk/ext/` | Bootstrap, htmx, and other bundled front-end assets |
+| `trunk/jodit/` | Jodit editor |
+| `extensions/Modules/zencart/ZenCartFiles/` | ZenCart's own files (run on the ZenCart side) |
+| `extensions/Modules/doc_ctl/includes/jstree/` | jsTree |
+
+The `d55b74c` provenance check above does **not** apply here: these files were present at the initial import, but that makes them vendored PhreeBooks dependencies, not PhreeBooks code we inherited. If a file has an upstream author/license banner of its own, treat it as third-party regardless of what the git history says.
+
+`trunk/ext/bootstrap5/freebooks.css` is the exception in that list — it is our own stylesheet living alongside vendored assets, so it *does* take the standard header.
 
 ### Security Model
 
