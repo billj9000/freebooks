@@ -65,9 +65,9 @@ class sku_pricer {
   		foreach ($rows as $row) {
 			$where = false;
 			if (isset($row['sku']) && strlen($row['sku']) > 0) {
-				$where = "sku='{$row['sku']}'";
+				$where = "sku='".db_input($row['sku'])."'";
 			} elseif (isset($row['upc_code']) && strlen($row['upc_code']) > 0) {
-				$where = "upc_code='{$row['upc_code']}'";
+				$where = "upc_code='".db_input($row['upc_code'])."'";
 			}
 			if (!$where) {
 				$messageStack->add("No search field was found. Either the SKU or UPC Code field must be included in the csv file.", 'error');
@@ -82,11 +82,11 @@ class sku_pricer {
 			if ($result->AffectedRows() > 0) $count++;
 			// now update the purchase table (need the sku, upc_code will not work)
 			if (!isset($row['sku'])) {
-				$result = $db->Execute("SELECT sku from ".TABLE_INVENTORY." WHERE upc_code='{$row['upc_code']}'");
+				$result = $db->Execute("SELECT sku from ".TABLE_INVENTORY." WHERE upc_code='".db_input($row['upc_code'])."'");
 				$row['sku'] = $result->fields['sku'];
-				$where = "sku='{$row['sku']}'";
+				$where = "sku='".db_input($row['sku'])."'";
 			}
-			if (isset($row['vendor_id']) && $row['vendor_id']) $where .= " AND vendor_id = '{$row['vendor_id']}'";
+			if (isset($row['vendor_id']) && $row['vendor_id']) $where .= " AND vendor_id = '".db_input($row['vendor_id'])."'";
 			$query = "";
 			foreach ($purch_fields as $key => $value) if (isset($row[$key])) $query .= " $value='".db_input($row[$key])."',";
 			$query = substr($query, 0, strlen($query)-1); // remove last comma

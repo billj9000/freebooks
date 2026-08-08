@@ -39,8 +39,10 @@ switch ($_REQUEST['action']) {
 	  break;
 	}
     $subject = $_POST['subject'];
-    $id      = $_POST['rowSeq'];
-	if (!$subject || !$id) break;
+    $id      = (int)$_POST['rowSeq']; // used in btn_delete()'s SQL
+	// $$subject is a variable-variable method call — restrict it to the known
+	// objects so a crafted subject can't reach an arbitrary variable.
+	if (!in_array($subject, array('tabs', 'fields'), true) || !$id) break;
     $$subject->btn_delete($id);
 	break;
   case 'update':      $subject_module->btn_update(); break;

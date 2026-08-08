@@ -42,7 +42,7 @@ switch ($_REQUEST['action'] ?? '') {
   case 'save':
   case 'print':
 	validate_security($security_level, 2);
-  	$id       = db_prepare_input($_POST['id']);
+  	$id       = (int)db_prepare_input($_POST['id']);
 	$sku      = db_prepare_input($_POST['sku']);
 	$sku_id   = db_prepare_input($_POST['sku_id']);
 	$qty      = db_prepare_input($_POST['qty']);
@@ -142,7 +142,7 @@ switch ($_REQUEST['action'] ?? '') {
 	break;
 
   case 'save_step':
-	$id         = db_prepare_input($_POST['id']); // the id of the work order
+	$id         = (int)db_prepare_input($_POST['id']); // the id of the work order
     $step       = db_prepare_input($_POST['rowSeq']);
 	$user_mfg   = db_prepare_input($_POST['user_mfg']);
 	$user_qa    = db_prepare_input($_POST['user_qa']);
@@ -316,7 +316,7 @@ switch ($_REQUEST['action'] ?? '') {
 	break;
   case 'close_wo':
 	validate_security($security_level, 2);
-	$id = db_prepare_input($_POST['id']);
+	$id = (int)db_prepare_input($_POST['id']);
 	if ($id) {
 	  $db->Execute("update " . TABLE_WO_JOURNAL_MAIN . " set closed='1', close_date='" . date('Y-m-d') . "' where id=" . (int)$id);
 	  $result = $db->Execute("select qty, sku_id, wo_id from " . TABLE_WO_JOURNAL_MAIN . " where id=" . (int)$id);
@@ -329,7 +329,7 @@ switch ($_REQUEST['action'] ?? '') {
 	break;
   case 'delete':
 	validate_security($security_level, 4);
-    $id = db_prepare_input($_GET['id']);
+    $id = (int)db_prepare_input($_GET['id']);
 	if (!$id) $error = true;
 	if (!$error) {
 	  // check to un-allocate inventory

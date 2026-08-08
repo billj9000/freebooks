@@ -42,7 +42,7 @@ switch ($_REQUEST['action']) {
 	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	  break;
 	}
-	$id                  = db_prepare_input($_POST['id']);
+	$id                  = (int)db_prepare_input($_POST['id']);
 	$rma_num             = db_prepare_input($_POST['rma_num']);
 	$caller_name         = db_prepare_input($_POST['caller_name']);
 	$caller_telephone1   = db_prepare_input($_POST['caller_telephone1']);
@@ -156,7 +156,7 @@ switch ($_REQUEST['action']) {
 	}
 	break;
   case 'edit':
-	$id = db_prepare_input($_POST['rowSeq']);
+	$id = (int)db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select * from " . TABLE_RMA . " where id = " . $id);
 	$attachments     = $result->fields['attachments']     ? unserialize($result->fields['attachments'])     : array();
 	$receive_details = $result->fields['receive_details'] ? unserialize($result->fields['receive_details']) : array();
@@ -170,7 +170,7 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id     = db_prepare_input($_GET['cID']);
+	$id     = (int)db_prepare_input($_GET['cID']);
 	$result = $db->Execute("select rma_num from " . TABLE_RMA . " where id = " . $id);
 	if ($result->RecordCount() > 0) {
 	  $db->Execute("delete from " . TABLE_RMA . " where id = " . $id);

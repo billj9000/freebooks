@@ -33,7 +33,7 @@ class fields {
 	$description  = db_prepare_input($_POST['description']);
 	$tab_id       = db_prepare_input($_POST['tab_id']);
 	$entry_type   = db_prepare_input($_POST['entry_type']);
-	$field_name   = preg_replace("[^A-Za-z0-9_]", "", $field_name); // clean out all non-allowed values
+	$field_name   = preg_replace('/[^A-Za-z0-9_]/', '', (string)$field_name); // strip all but [A-Za-z0-9_] — field_name is used as a raw DDL identifier in ALTER TABLE below, so this whitelist is the only thing keeping it injection-safe
 	if (!$field_name) $error = $messageStack->add(ASSETS_ERROR_FIELD_BLANK,'error');
 	$reserved_names = array('select', 'delete', 'insert', 'update', 'to', 'from', 'where', 'and', 'or',
 		'alter', 'table', 'add', 'change', 'in', 'order', 'set', 'inner');

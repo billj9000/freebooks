@@ -52,7 +52,7 @@ switch ($_REQUEST['action']) {
 		$_REQUEST['action'] = 'new';
 		break;
 	}
-	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '$asset_id'");
+	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '".db_input($asset_id)."'");
 	if ($result->RecordCount() <> 0) {
 		$messageStack->add(ASSETS_ERROR_DUPLICATE_SKU, 'error');
 		$_REQUEST['action'] = 'new';
@@ -84,7 +84,7 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id         = db_prepare_input($_GET['cID']);
+	$id         = (int)db_prepare_input($_GET['cID']);
 	$result     = $db->Execute("select asset_id, asset_type, image_with_path from " . TABLE_ASSETS . " where id = " . $id);
 	$asset_id   = $result->fields['asset_id'];
 	$asset_type = $result->fields['asset_type'];
@@ -104,7 +104,7 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id              = db_prepare_input($_POST['id']);
+	$id              = (int)db_prepare_input($_POST['id']);
 	$asset_id        = db_prepare_input($_POST['asset_id']);
 	$image_with_path = db_prepare_input($_POST['image_with_path']); // the current image name with path relative from my_files/company_db/asset/images directory
 	$asset_path      = db_prepare_input($_POST['asset_path']);
@@ -208,10 +208,10 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id 		  = db_prepare_input($_GET['cID']);
+	$id 		  = (int)db_prepare_input($_GET['cID']);
 	$new_asset_id = db_prepare_input($_GET['asset_id']);
 	// check for duplicate skus
-	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '" . $new_asset_id . "'");
+	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '" . db_input($new_asset_id) . "'");
 	if ($result->Recordcount() > 0) {	// error and reload
 		$messageStack->add(ASSETS_ERROR_DUPLICATE_SKU, 'error');
 		break;
@@ -244,7 +244,7 @@ switch ($_REQUEST['action']) {
 	$_POST['rowSeq'] = $new_id;	// set item pointer to new record
 	$_REQUEST['action'] = 'edit'; // fall through to edit case
   case 'edit':
-    $id = db_prepare_input(isset($_POST['rowSeq']) ? $_POST['rowSeq'] : $_GET['cID']);
+    $id = (int)db_prepare_input(isset($_POST['rowSeq']) ? $_POST['rowSeq'] : $_GET['cID']);
 	$sql = "select * from " . TABLE_ASSETS . " 
 		where id = " . (int)$id . " order by asset_id";
 	$asset = $db->Execute($sql);
@@ -258,10 +258,10 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id = db_prepare_input($_GET['cID']);
+	$id = (int)db_prepare_input($_GET['cID']);
 	$asset_id = db_prepare_input($_GET['asset_id']);
 	// check for duplicate skus
-	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '" . $asset_id . "'");
+	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '" . db_input($asset_id) . "'");
 	if ($result->Recordcount() > 0) {	// error and reload
 		$messageStack->add(ASSETS_ERROR_DUPLICATE_SKU, 'error');
 		break;

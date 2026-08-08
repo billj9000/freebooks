@@ -151,7 +151,7 @@ switch ($action) {
     break;
 
   case 'delete':
-	$shipment_id = db_prepare_input($_GET['sID']);
+	$shipment_id = (int)db_prepare_input($_GET['sID']);
 	$shipments   = $db->Execute("select method, ship_date, tracking_id from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
 	$ship_method = $shipments->fields['method'];
 	$shipment    = new $shipping_module;

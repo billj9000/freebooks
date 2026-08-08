@@ -150,7 +150,7 @@ switch ($action) {
     break;
 
   case 'delete':
-	$shipment_id = db_prepare_input($_GET['sID']);
+	$shipment_id = (int)db_prepare_input($_GET['sID']);
 	$result = $db->Execute("select method, ship_date from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
 	$ship_method = $result->fields['method'];
 	if ($result->RecordCount() == 0 || !$ship_method) {

@@ -41,7 +41,7 @@ class tabs {
       gen_add_audit_log(sprintf(EXTRA_TABS_LOG, TEXT_UPDATE), $tab_name);
 	} else {
 	  // Test for duplicates.
-	  $result = $db->Execute("select id from " . TABLE_EXTRA_TABS . " where module_id='assets' and tab_name='" . $tab_name . "'");
+	  $result = $db->Execute("select id from " . TABLE_EXTRA_TABS . " where module_id='assets' and tab_name='" . db_input($tab_name) . "'");
 	  if ($result->RecordCount() > 0) {
 	  	$messageStack->add(EXTRA_TABS_DELETE_ERROR,'error');
 		return false;

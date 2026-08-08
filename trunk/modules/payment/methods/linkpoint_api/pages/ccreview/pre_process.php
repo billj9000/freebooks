@@ -60,7 +60,7 @@ $disp_order  = $result['disp_order'];
 if ($acct_period == 'all') {
 	$period_filter = '';
 } else {
-	$periods       = $db->Execute("select * from " . TABLE_ACCOUNTING_PERIODS . " where period = $acct_period");
+	$periods       = $db->Execute("select * from " . TABLE_ACCOUNTING_PERIODS . " where period = " . (int)$acct_period);
 	$start_date    = $periods->fields['start_date'];
 	$end_date      =  $periods->fields['end_date'];
 	$period_filter = " and DATE_FORMAT(lp.date_added,'%Y-%m-%d' ) BETWEEN  '$start_date' AND '$end_date' "; 

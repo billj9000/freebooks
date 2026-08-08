@@ -33,7 +33,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 2);
-  	$id = db_prepare_input($_POST['rowSeq']);
+  	$id = (int)db_prepare_input($_POST['rowSeq']);
 	// check for errors, process
 
 	// write the data
@@ -103,14 +103,14 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'edit':
-    $id = db_prepare_input($_POST['rowSeq']);
+    $id = (int)db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select * from " . TABLE_CAPA . " where id = " . $id);
 	$cInfo = new objectInfo($result->fields);
 	break;
 
   case 'delete':
 	validate_security($security_level, 4);
-  	$id     = db_prepare_input($_GET['cID']);
+  	$id     = (int)db_prepare_input($_GET['cID']);
 	$result = $db->Execute("select capa_num from " . TABLE_CAPA . " where id = " . $id);
 	if ($result->RecordCount() > 0) {
 	  $db->Execute("delete from " . TABLE_CAPA . " where id = " . $id);

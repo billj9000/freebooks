@@ -26,12 +26,12 @@ $processed   = false;
 if (($_REQUEST['search_text'] ?? '') == TEXT_SEARCH) $_REQUEST['search_text'] = '';
 if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search'; // if enter key pressed and search not blank
 $tab    = isset($_GET['tab'])     ? $_GET['tab']                       : 'home';
-$doc_id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['docID']);
+$doc_id = isset($_POST['rowSeq']) ? (int)$_POST['rowSeq'] : (int)($_GET['docID'] ?? 0); // interpolated into SQL (quoted and unquoted) below
 if(!isset($_REQUEST['list'])) $_REQUEST['list'] = 1;
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'save_doc':
-	$id          = db_prepare_input($_POST['id']);
+	$id          = (int)db_prepare_input($_POST['id']);
 	$title       = db_prepare_input($_POST['title']);
 	$description = db_prepare_input($_POST['description']);
 	$users  = 'u:-1';

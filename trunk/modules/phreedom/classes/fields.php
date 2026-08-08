@@ -46,7 +46,7 @@ class fields {
 		return false;
 	}
     // clean out all non-allowed values and then check if we have a empty string 
-	$this->field_name   = preg_replace("[^A-Za-z0-9_]", "", $this->field_name); 
+	$this->field_name   = preg_replace('/[^A-Za-z0-9_]/', '', (string)$this->field_name); // strip all but [A-Za-z0-9_] — field_name is used as a raw DDL identifier in ALTER TABLE below, so this whitelist is the only thing keeping it injection-safe
 	if ($this->field_name == '') { 
 	   $messageStack->add(ASSETS_ERROR_FIELD_BLANK,'error');
 	   $this->error = true;

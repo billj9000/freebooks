@@ -644,7 +644,7 @@ var $PackageMap = array( // for rate estimates, assume this set of options
 //	$result = array();
 	if ($log_id) {
 	  $shipments  = $db->Execute("select id, ref_id, deliver_date, actual_date, tracking_id, notes 
-		from ".TABLE_SHIPPING_LOG." where carrier = '$this->code' and id = '$log_id'");
+		from ".TABLE_SHIPPING_LOG." where carrier = '$this->code' and id = '".db_input($log_id)."'");
 	} else {
 	  $start_date = $track_date;
 	  $end_date   = gen_specific_date($track_date, $day_offset =  1);
