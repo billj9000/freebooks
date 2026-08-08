@@ -25,6 +25,7 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
+$toolbar->add_help('09.ZC');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo BOX_ZENCART_MODULE; ?></h1>

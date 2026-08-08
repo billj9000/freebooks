@@ -38,7 +38,7 @@ if ($security_level > 3 && db_table_exists(DB_PREFIX.'reports')) {
     'order'  => '30',
   );
 }
-$toolbar->add_help('11.01.01');
+$toolbar->add_help('11.02');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>

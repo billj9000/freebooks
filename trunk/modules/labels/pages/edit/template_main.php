@@ -19,6 +19,7 @@ $toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) {
   $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'label_form\').submit()"';
 }
+$toolbar->add_help('07.04.07');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo $is_new ? TEXT_ADD_TEMPLATE : TEXT_EDIT_TEMPLATE; ?></h1>

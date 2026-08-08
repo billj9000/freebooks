@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="09.00.00">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Shipping.Packages">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Packages">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>Shipping - Packages</title>
+</head>
+
+<body>
+
+<h1 align="center">Shipping - Packages</h1>
+<p>Shipping Packages are reusable box/carton definitions &mdash; code, name, weight, capacity, and
+dimensions &mdash; that carrier modules capable of automatic box-packing (DHL Express and Royal Mail)
+use to work out which box or boxes a shipment needs, based on the dimensions and weight recorded on
+each inventory item. A package can be restricted to a single carrier or left available to all of
+them.</p>
+
+<h4>Creating a Package</h4>
+<ol>
+  <li>From the main menu, select Tools-&gt;Shipping Packages.</li>
+  <li>Press New.</li>
+  <li>Enter a Code and a Name for the package.</li>
+  <li>Optionally enter a Description.</li>
+  <li>Select a Carrier, or leave it as All Carriers so any carrier's box-packing can use it.</li>
+  <li>Enter the package's own Tare Weight (how much the empty box weighs) and, if the carrier needs it,
+      a Max Weight capacity.</li>
+  <li>Enter External dimensions (the box's outside length/width/height) and, if known, Internal
+      dimensions (the usable packing space). Vol. Weight (volumetric/dimensional weight) is calculated
+      automatically from the External dimensions as they're entered.</li>
+  <li>Optionally enter a Cost for the box itself, and a Sort Order to control where it appears in lists
+      and how it's tried first during box-packing.</li>
+  <li>Press Save.</li>
+</ol>
+<p>NOTE: The Code must be unique across all packages, regardless of carrier.</p>
+
+<h4>Editing or Deleting a Package</h4>
+<ol>
+  <li>From Tools-&gt;Shipping Packages, optionally use the Carrier filter to narrow the list.</li>
+  <li>Click a row to open it for editing, make changes, and press Save; or press the Delete icon on a
+      row to remove it.</li>
+  <li>Check Inactive instead of deleting to keep a package out of box-packing and new lists without
+      losing its history on past shipments.</li>
+</ol>
+
+<h4>How Packages Are Used</h4>
+<p>When a carrier module that supports automatic box-packing needs to know what a shipment will ship
+in &mdash; for example, DHL Express when quoting a rate &mdash; it packs the order's line items into
+the active packages available to that carrier (its own carrier-specific packages plus any marked All
+Carriers), and uses the resulting box or boxes for the rate request or label. Each inventory item needs
+its own weight and dimensions recorded on the item record for this to work:</p>
+<ul>
+  <li>Items with no dimensions recorded are left out of the box-packing itself, but their weight is
+      still added to the total; a caution message lists which SKUs were affected.</li>
+  <li>Items that don't fit in any available package are also flagged with a caution message, listing
+      the affected SKUs, so packages can be added or adjusted to cover them.</li>
+</ul>
+
+<h3>Related Topics</h3>
+<p><a href="../01-Modules/ModulesHome.html">Shipping Modules</a><br />
+   <a href="../ShippingHome.html">Shipping</a></p>
+<p>&nbsp;</p>
+</body>
+</html>

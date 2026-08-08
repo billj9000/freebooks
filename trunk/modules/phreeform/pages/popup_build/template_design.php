@@ -35,7 +35,7 @@ $toolbar->icon_list['preview'] = array(
   'text'   => TEXT_SAVE_PREVIEW, 
   'order'  => '20',
 );
-$toolbar->add_help('11.01.01');
+$toolbar->add_help('11.02');
 echo $toolbar->build_toolbar(); 
 
 // Build the page

@@ -6,7 +6,7 @@
 <meta name="doc_index_1" content="ZenCart.Overview">
 <meta name="doc_index_2" content="E-Commerce.ZenCart">
 <meta name="doc_title" content="ZenCart Module">
-<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="stylesheet" type="text/css" href="stylesheet.css">
 <title>ZenCart Module</title>
 </head>
 <body>
@@ -190,6 +190,46 @@ status; partially shipped orders receive the Partial status.</p>
 <p>The script is safe to run frequently &mdash; it only imports orders with IDs
 higher than the last imported order ID and always runs a stock quantity sync
 at the end.</p>
+
+<h2>Customizing (Extension Hooks)</h2>
+
+<p>Like every FreeBooks module, ZenCart pages load a site-specific override file if one
+exists, without needing to patch the module itself:</p>
+<ul>
+  <li><code>modules/zencart/custom/pages/main/extra_actions.php</code> &mdash; runs during
+      the Tools &rarr; ZenCart page's action handling.</li>
+  <li><code>modules/zencart/custom/pages/admin/extra_actions.php</code> &mdash; runs during
+      the Company &rarr; Configuration &rarr; ZenCart page's action handling.</li>
+  <li><code>modules/zencart/custom/pages/admin/template_tab_custom.php</code> &mdash; if
+      present, adds a Custom tab to the Configuration &rarr; ZenCart settings page.</li>
+</ul>
+
+<p>The module also installs a hook into <strong>Inventory</strong> via
+<code>modules/inventory/custom/pages/main/extra_menus.php</code>. This is what adds the
+ZenCart Upload icon to the Inventory list (shown per row when the item's Catalog checkbox
+is set) and the equivalent Save &amp; Upload toolbar button on the item's edit screen. If a
+site already uses the Inventory <code>extra_menus.php</code> override slot for something
+else, that file will need to be merged with ZenCart's rather than simply replaced.</p>
+
+<h3>Extra product attributes</h3>
+<p>To add site-specific fields to the payload FreeBooks sends when uploading or syncing a
+product, create <code>modules/zencart/custom/extra_product_attrs.php</code>. It is
+included directly from <code>zencart::buildProductPayload()</code> with two variables
+already in scope:</p>
+<ul>
+  <li><code>$inv</code> &mdash; the full inventory row being uploaded</li>
+  <li><code>$product</code> &mdash; the payload array being assembled; add or modify keys
+      on it directly (no return value is used)</li>
+</ul>
+<p>This module ships a working example that pushes the <code>zencart_oem_partnumbers</code>
+custom inventory field to ZenCart's <code>additional_skus</code> product field via the
+<code>productZencartOemPartnumbers</code> key (already mapped to that column by
+<code>freebooks-zencart.php</code> on the ZenCart side):</p>
+<pre>if (!empty($inv['zencart_oem_partnumbers'])) {
+    $product['productZencartOemPartnumbers'] = $inv['zencart_oem_partnumbers'];
+}</pre>
+<p>Any custom inventory field can be pushed the same way, provided <code>freebooks-zencart.php</code>
+is also updated to map the new payload key to a column ZenCart understands.</p>
 
 </body>
 </html>

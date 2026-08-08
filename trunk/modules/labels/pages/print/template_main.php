@@ -16,6 +16,7 @@ $toolbar->icon_list['open']['show']   = false;
 $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['save']['show']   = false;
 $toolbar->icon_list['print']['show']  = false;
+$toolbar->add_help('07.04.07');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo TEXT_PRINT_LABELS; ?></h1>

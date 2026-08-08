@@ -19,6 +19,7 @@ $toolbar->icon_list['print']['show']  = false;
 if ($security_level > 1) {
   $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=labels&page=edit', 'SSL') . '\'"', 10);
 }
+$toolbar->add_help('07.04.07');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo TEXT_LABEL_TEMPLATES; ?></h1>

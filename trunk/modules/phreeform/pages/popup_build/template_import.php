@@ -28,7 +28,7 @@ $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['print']['show']    = false;
 $toolbar->icon_list['delete']['show']   = false;
-$toolbar->add_help('11.01.01');
+$toolbar->add_help('11.02');
 echo $toolbar->build_toolbar();
 ?>
 <div class="d-flex justify-content-center mt-3">

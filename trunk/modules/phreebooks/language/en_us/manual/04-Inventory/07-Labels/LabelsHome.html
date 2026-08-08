@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.04.07">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Inventory.Label Printing">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Label Printing">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>Inventory - Label Printing</title>
+</head>
+
+<body>
+
+<h1 align="center">Inventory - Label Printing</h1>
+<p>FreeBooks includes a label printing module for printing product/barcode labels for inventory items. A label
+template controls both the physical size of the label and its content, which can include the item's SKU, a
+CODE128 barcode, and a QR code, in addition to plain text fields such as description, price, cost, UPC and
+weight. Templates can render either as HTML (printed through the browser or a QZ Tray-connected label printer)
+or as ZPL (sent directly to a Zebra-compatible thermal printer through QZ Tray).</p>
+
+<h4>Creating a Label Template</h4>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Label Templates.</li>
+  <li>Press New.</li>
+  <li>Enter a Template Name, and the label's Width (mm) and Height (mm).</li>
+  <li>Select a Printer Type:
+    <ul>
+      <li>HTML (browser / QZ Tray) &mdash; the label is built as an HTML fragment. Enter it in the HTML
+          Template box.</li>
+      <li>ZPL (thermal/Zebra) &mdash; the label is built as raw ZPL and sent to the workstation's default
+          printer through QZ Tray. A separate ZPL Template box appears when this type is selected.</li>
+    </ul>
+  </li>
+  <li>Build the template using the placeholders listed under Available Variables:
+    <table border="0" cellpadding="2" cellspacing="0">
+      <tr><td><code>{{ sku }}</code></td><td>Item SKU / part number</td></tr>
+      <tr><td><code>{{ description }}</code></td><td>Full item description</td></tr>
+      <tr><td><code>{{ short_description }}</code></td><td>Short description</td></tr>
+      <tr><td><code>{{ price }}</code></td><td>Formatted retail price</td></tr>
+      <tr><td><code>{{ cost }}</code></td><td>Formatted item cost</td></tr>
+      <tr><td><code>{{ upc }}</code></td><td>UPC code</td></tr>
+      <tr><td><code>{{ weight }}</code></td><td>Item weight</td></tr>
+      <tr><td><code>{{ barcode_svg }}</code></td><td>CODE128 barcode SVG encoding the SKU (HTML templates only &mdash; use <code>{{ barcode_svg | raw }}</code>)</td></tr>
+      <tr><td><code>{{ qrcode_svg }}</code></td><td>QR code SVG encoding the SKU (HTML templates only &mdash; use <code>{{ qrcode_svg | raw }}</code>)</td></tr>
+      <tr><td><code>{{ pack_qty }}</code></td><td>The Pack Qty value entered on the Print Labels page/popup</td></tr>
+    </table>
+  </li>
+  <li>Press Preview at any time to render the current HTML Template against sample data.</li>
+  <li>Press Save.</li>
+</ol>
+<p>NOTE: Managing label templates (creating, editing, deleting) and printing labels are controlled by two
+separate permissions, so a user can be allowed to print existing labels without being able to change the
+templates.</p>
+
+<h4>Printing Labels</h4>
+<p>There are two ways to print labels for an item:</p>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Print Labels. Search for the item by SKU or vendor part number
+      (type at least 3 characters), select it from the results, choose a Label Template, set the Pack Qty
+      (the value that fills the <code>{{ pack_qty }}</code> placeholder on the label) and the Number of Labels
+      to print, then press Print Labels.</li>
+  <li>From the Inventory Manager list or an item's edit screen, press the printer icon (Print Label /
+      Print Labels) on the item's row or toolbar. This opens the same print options in a popup, pre-filled
+      with that item's SKU.</li>
+</ol>
+<p>What happens next depends on the selected template's Printer Type:</p>
+<ul>
+  <li><strong>HTML templates</strong> open a new browser tab containing one label per page and trigger the
+      browser's print dialog automatically.</li>
+  <li><strong>ZPL templates</strong> are sent through QZ Tray to the workstation's default printer. QZ Tray
+      must be installed and running on the workstation for ZPL printing to work; if it isn't detected, an
+      error is shown instead of a print job.</li>
+</ul>
+
+<h4>Editing or Deleting a Label Template</h4>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Label Templates.</li>
+  <li>Press Edit on the template's row to change it, or Delete to remove it.</li>
+</ol>
+
+<h3>Related Topics</h3>
+<h4>Inventory</h4>
+<p><a href="../01-Maintenance/01-AddItem.html">Adding inventory items</a><br />
+    <a href="../01-Maintenance/02-EditItem.html">Editing inventory items</a><br />
+    <a href="../01-Maintenance/05-VendorSKU.html">Setting a vendor's part number for an item (Vendor SKU)</a></p>
+<h4>User and Security Settings</h4>
+<p><a href="../../../../../../phreedom/language/en_us/manual/ch06-UsersSecurity/UsersMain.html">Setting user access security</a></p>
+<p>&nbsp;</p>
+</body>
+</html>

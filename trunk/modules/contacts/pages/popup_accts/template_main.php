@@ -27,8 +27,8 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 switch ($account_type) {
-  case 'c': $toolbar->add_help('07.02.02'); break;
-  case 'v': $toolbar->add_help('07.03.02'); break;
+  case 'c': $toolbar->add_help('07.03.02'); break;
+  case 'v': $toolbar->add_help('07.02.02'); break;
 }
 echo $toolbar->build_toolbar($add_search = true);
 ?>

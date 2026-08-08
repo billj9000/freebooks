@@ -20,7 +20,7 @@ $toolbar->icon_list['open']['show']   = false;
 $toolbar->icon_list['save']['show']   = false;
 $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
-$toolbar->add_help('11.VIN.01');
+$toolbar->add_help('13.01');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>

@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.04.06">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Inventory.Price Sheets">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Price Sheets">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>Inventory - Price Sheets</title>
+</head>
+
+<body>
+
+<h1 align="center">Inventory - Price Sheets</h1>
+<p>A price sheet is a reusable formula for calculating an item's price from up to five quantity-break
+levels. Customer Price Sheets are used for sales pricing; Vendor Price Sheets are used for purchase
+pricing. The same price sheet applies across every item that uses it, so a price change only has to be
+made once to affect every item and every order that references it.</p>
+
+<h4>Creating a Price Sheet</h4>
+<ol>
+  <li>From the main menu, select Customers-&gt;Customer Price Sheets (for sales pricing) or
+      Vendors-&gt;Vendor Price Sheets (for purchase pricing).</li>
+  <li>Press New.</li>
+  <li>Enter a Price Sheet Name and an Effective Date.</li>
+  <li>Check Use as Default to make this sheet the fallback used for any item and customer/vendor that
+      doesn't have a more specific price sheet assigned (see Assigning a Price Sheet, below). Only one
+      sheet per type (Customer/Vendor) can be the default at a time; checking this box on a new sheet
+      clears the flag from whichever sheet held it previously.</li>
+  <li>Fill in each of the five price levels (see Price Levels, below).</li>
+  <li>Press Save.</li>
+</ol>
+
+<h4>Price Levels</h4>
+<p>Each price sheet has five levels, evaluated independently:</p>
+<ul>
+  <li><strong>Quantity</strong> &mdash; the quantity break this level represents. Level 1's quantity is
+      informational only; it's always the price used below the Level 2 break.</li>
+  <li><strong>Source</strong> &mdash; where the starting price for this level comes from: Direct Entry
+      (type the price in directly), Item Cost, Full Price (the item's retail price field), or Price
+      Level 1 (this level's price is derived from what Level 1 calculates to, avoiding the need to
+      re-enter it). Level 1 cannot source from itself, so its Source list omits Price Level 1.</li>
+  <li><strong>Adjustment</strong> &mdash; an optional modification applied to the source price: Decrease/
+      Increase by Amount, Decrease/Increase by Percent, Mark up by Percent, Margin by Percent (solves for
+      a price that yields the given profit margin), or Tiered Pricing (blends this level's price with the
+      previous level's price and quantity break, giving a smoothed per-unit price across the two
+      thresholds rather than a hard cliff).</li>
+  <li><strong>Adj. Value</strong> &mdash; the amount or percentage used by the Adjustment.</li>
+  <li><strong>Rounding</strong> &mdash; optional rounding of the final level price: Next Dollar (round up
+      to a whole unit), Constant Cents (round down to whole units and fix the decimal remainder, e.g.
+      .99), or Next Increment (round up to the next multiple of the Rnd. Value, e.g. the next $0.25).</li>
+  <li><strong>Rnd. Value</strong> &mdash; the cents or increment value used by Rounding.</li>
+</ul>
+<p>NOTE: If multi-currency is enabled, price sheet values are always entered and stored in the company's
+default currency.</p>
+
+<h4>Assigning a Price Sheet</h4>
+<p>When an order or invoice is priced, FreeBooks looks for a price sheet in this order and uses the
+first one it finds:</p>
+<ol>
+  <li>The Default Price Sheet set on the customer's or vendor's account (General tab).</li>
+  <li>A price sheet assigned to the specific inventory item through the Price Manager (see Special/
+      Per-Item Pricing, below).</li>
+  <li>Whichever Customer or Vendor Price Sheet is currently marked Use as Default.</li>
+</ol>
+
+<h4>Revising a Price Sheet</h4>
+<p>Price changes are tracked as dated revisions rather than edited in place, so historical orders keep
+showing the price that was actually in effect at the time.</p>
+<ol>
+  <li>From the Customer Price Sheets or Vendor Price Sheets list, locate the sheet's most recent
+      revision (the Revise button only appears on the highest revision of a given sheet name).</li>
+  <li>Press Revise. A new revision is created with tomorrow's date as its Effective Date by default, and
+      the previous revision's Expiration Date is set accordingly. Any special/per-item pricing recorded
+      against the old revision is copied forward to the new one.</li>
+  <li>Adjust the Effective Date and price levels as needed, then press Save.</li>
+</ol>
+
+<h4>Deleting a Price Sheet</h4>
+<ol>
+  <li>From the Customer Price Sheets or Vendor Price Sheets list, press the Delete icon on the sheet's
+      row.</li>
+  <li>Confirm the prompt. Deleting a sheet also removes any special/per-item pricing recorded against it.
+      If the deleted sheet was the type's default, a warning is shown so a new default can be chosen.</li>
+</ol>
+
+<h4>Special/Per-Item Pricing</h4>
+<p>An individual inventory item can override the price sheet it uses, and override that sheet's price
+levels just for that item, without affecting any other item on the sheet.</p>
+<ol>
+  <li>From Inventory-&gt;Inventory Manager, press the Price Manager icon (spreadsheet icon) on the
+      item's row, or press the equivalent icon on the item's edit screen toolbar.</li>
+  <li>Each active price sheet of the matching type is shown on its own tab.</li>
+  <li>Leave Use Default Price Sheet Settings checked to keep using the sheet's own levels for this item,
+      or uncheck it and edit the Level/Quantity/Source/Adjustment/Rounding grid to set a price override
+      just for this item.</li>
+  <li>Press Save. This also sets the item's assigned price sheet to whichever tab was edited (used by the
+      priority order described under Assigning a Price Sheet).</li>
+</ol>
+
+<h4>Looking Up a Calculated Price</h4>
+<p>The Price Manager lookup popup shows the price every active sheet (of the matching type) calculates
+for a given item, including any special/per-item override, so the correct level price can be copied
+directly into a cost or price field instead of calculated by hand.</p>
+<ol>
+  <li>From Inventory-&gt;Load Item Pricing (reached from the Load Item Pricing button on the Customer/
+      Vendor Price Sheets list), press the Price Manager icon on an item's row.</li>
+  <li>Click a listed price to copy it into the Cost or Full Price field on the calling row.</li>
+</ol>
+
+<h4>Bulk-Editing Item Cost and Price</h4>
+<p>Inventory-&gt;Load Item Pricing lists every inventory item with its Lead Time, Minimum Stock Level,
+Reorder Quantity, Item Cost, and Full Price in an editable grid, so these fields can be updated for many
+items at once without opening each item individually. Press Save when finished. This page edits the
+item's own cost/price fields directly; it does not change any price sheet.</p>
+
+<h3>Related Topics</h3>
+<h4>Inventory</h4>
+<p><a href="../01-Maintenance/01-AddItem.html">Adding inventory items</a><br />
+    <a href="../01-Maintenance/02-EditItem.html">Editing inventory items</a></p>
+<h4>User and Security Settings</h4>
+<p><a href="../../../../../../phreedom/language/en_us/manual/ch06-UsersSecurity/UsersMain.html">Setting user access security</a></p>
+<p>&nbsp;</p>
+</body>
+</html>

@@ -44,7 +44,7 @@ function synchronize() {
 	$doc_text  = trim(strip_tags($doc_html));
 	$doc_text  = str_replace(chr(10), ' ', $doc_text); // process out special characters
 	$sql      = "insert into " . TABLE_PHREEHELP . " (doc_url, doc_pos, doc_index, doc_title, doc_text)
-	  values ('" . $file_name . "', '" . $tags['doc_pos'] . "', '" . $tags['doc_index_1'] . "', '" . $doc_title . "', '" . addslashes($doc_text) . "')";
+	  values ('" . addslashes($file_name) . "', '" . addslashes($tags['doc_pos']) . "', '" . addslashes($tags['doc_index_1']) . "', '" . addslashes($doc_title) . "', '" . addslashes($doc_text) . "')";
 	$row      = $db->Execute($sql);
 	$id       = db_insert_id();
 	$toc[$id] = $tags['doc_pos'];
