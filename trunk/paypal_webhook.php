@@ -101,6 +101,23 @@ while (!$_cfg->EOF) {
     $_cfg->MoveNext();
 }
 
+// ─── Shared-secret gate ───────────────────────────────────────────────────────
+// When MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET is set, require it on every call
+// before doing any work. This is the primary guard for Sandbox mode, where
+// PayPal's Simulator events cannot be signature-verified and the verification
+// below is skipped — without a secret, a Sandbox-configured instance would
+// accept forged webhooks. Register the notification URL with PayPal as
+// .../paypal_webhook.php?whsecret=<secret> (an X-FreeBooks-Webhook-Secret
+// header is also accepted for proxies that strip the query string).
+if (defined('MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET') && MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET !== '') {
+    $provided_secret = (string)($_GET['whsecret'] ?? $_SERVER['HTTP_X_FREEBOOKS_WEBHOOK_SECRET'] ?? '');
+    if ($provided_secret === '' || !hash_equals((string)MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET, $provided_secret)) {
+        http_response_code(403);
+        error_log('paypal_webhook: shared-secret check failed');
+        exit;
+    }
+}
+
 // ─── Check webhook is configured ─────────────────────────────────────────────
 if (!defined('MODULE_PAYMENT_PAYPAL_WEBHOOK_ID') || MODULE_PAYMENT_PAYPAL_WEBHOOK_ID === '') {
     http_response_code(404);

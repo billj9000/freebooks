@@ -25,6 +25,7 @@ define('MODULE_PAYMENT_PAYPAL_CLIENT_SECRET_DESC',      'PayPal REST API Client 
 define('MODULE_PAYMENT_PAYPAL_TESTMODE_DESC',           'Environment (Sandbox for testing, Production for live)');
 define('MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL_DESC',       'Email address to notify when a webhook auto-creates a receipt (leave blank to disable)');
 define('MODULE_PAYMENT_PAYPAL_WEBHOOK_ID_DESC',         'Webhook ID from the PayPal developer dashboard (required for automatic receipt creation)');
+define('MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET_DESC',     'Shared secret required on the webhook URL as ?whsecret=... Append it to the notification URL you register with PayPal. When set it is required on every webhook call (Sandbox and Live) before processing — set this to close the Sandbox-mode signature-verification bypass.');
 
 // Bills UI
 define('MODULE_PAYMENT_PAYPAL_TEXT_TRANSACTION_ID',     'PayPal Transaction ID');

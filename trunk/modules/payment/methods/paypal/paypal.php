@@ -36,6 +36,7 @@ class paypal extends payment {
     $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_TESTMODE',      'default' => 'Sandbox', 'text' => MODULE_PAYMENT_PAYPAL_TESTMODE_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL',  'default' => '', 'text' => MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_WEBHOOK_ID',    'default' => '', 'text' => MODULE_PAYMENT_PAYPAL_WEBHOOK_ID_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET','default' => '', 'text' => MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET_DESC];
   }
 
   function configure($key) {
