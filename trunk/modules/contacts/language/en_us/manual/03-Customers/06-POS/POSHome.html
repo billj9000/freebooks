@@ -20,6 +20,24 @@
 <body>
 
 <h1 align="center">Customers - Point of Sale</h1>
-<p>Point of sale is processed the same as a sale/invoice except payment is received at the time of invoice. In the Sales/Invoice window press the payment button after completing the invoice to post the invoice and open the payment receipts window to process the payment and print a receipt. </p>
+<p>Point of Sale (POS) is a dedicated register screen, not the standard Sales/Invoice window. It is provided by its own module (Point of Sale) with its own menu items and its own journal (J19).</p>
+
+<h4>Menu Access</h4>
+<ul>
+  <li><strong>Customers &rarr; Point of Sale</strong> &mdash; opens the POS register screen for ringing up a sale.</li>
+  <li><strong>Banking &rarr; Point of Sale &rarr; POS/POP Manager</strong> &mdash; search, view, and reprint past POS transactions.</li>
+  <li><strong>Banking &rarr; Point of Sale &rarr; Closing POS/POP</strong> &mdash; count and reconcile a till at the end of a shift.</li>
+  <li><strong>Banking &rarr; Receipts &rarr; Customer Deposits</strong> and <strong>Banking &rarr; Vendor Payments &rarr; Vendor Deposits</strong> &mdash; record a till's cash deposit to the bank.</li>
+</ul>
+
+<h4>Ringing Up a Sale</h4>
+<ol>
+  <li>Open <strong>Customers &rarr; Point of Sale</strong>.</li>
+  <li>Choose the active till from the till drop-down (if more than one till is configured).</li>
+  <li>Click <strong>Select Customer</strong> to look up the customer, or leave it on the default account for a walk-in sale.</li>
+  <li>Add items to the sale the same way as on a sales order.</li>
+  <li>Click <strong>Pay</strong> to open the payment popup, enter the tender, and complete the sale. The transaction posts immediately as a Point of Sale (J19) entry &mdash; there is no separate invoice-then-receipt step as there is on the standard Sales/Invoice window.</li>
+</ol>
+<p>The <strong>Open Sales</strong> button reopens a held/parked sale, and <strong>Other Transactions</strong> records non-inventory till activity (such as a paid-out). At the end of a shift, use <strong>Closing POS/POP</strong> to reconcile the till.</p>
 </body>
 </html>

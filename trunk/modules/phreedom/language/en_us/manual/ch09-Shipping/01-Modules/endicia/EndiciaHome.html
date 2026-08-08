@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="09.01.11">
+<meta name="doc_index_1" content="Shipping Modules.US Postal Service (Endicia)">
+<meta name="doc_index_2" content="US Postal Service (Endicia).Setup">
+<meta name="doc_title" content="Shipping Modules - US Postal Service (Endicia)">
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+<title>Shipping Modules - US Postal Service (Endicia)</title>
+</head>
+<body>
+
+<h1 align="center">Shipping Modules - US Postal Service (Endicia)</h1>
+
+<p>FreeBooks includes a shipping module for USPS rates and labels, powered by Endicia (a USPS-licensed
+postage provider). The module supports domestic rate quotes, thermal and standard label printing,
+package tracking, and a postage balance you fund directly from within FreeBooks.</p>
+
+<p>An Endicia account is required. Basic service is normally sufficient (roughly $15.95/month at time
+of writing &mdash; confirm current pricing with Endicia).</p>
+
+<h4>Features</h4>
+<ul>
+  <li>Domestic rate quotes for the USPS mail classes enabled in configuration (Priority, Express, First
+      Class, Parcel Select, Media Mail, and others)</li>
+  <li>Label generation via SOAP request to the Endicia label service</li>
+  <li>Thermal label printing (EPL2 or ZPLII printer languages)</li>
+  <li>Postage balance purchase ("Buy Postage") directly from Shipping Manager</li>
+  <li>Pass phrase management (required to activate the account and secure label requests)</li>
+  <li>Package tracking by date or by individual shipment</li>
+  <li>Label refund/void requests</li>
+  <li>Shipping Manager integration</li>
+</ul>
+
+<h4>Prerequisites</h4>
+<ol>
+  <li>An Endicia account &mdash; register at
+      <a href="http://www.endicia.com/labelserver/login.cfm?partid=lpst" target="_blank">endicia.com</a>.
+      Wait for the confirmation email with your account number.</li>
+  <li>The temporary pass phrase used during Endicia registration (this is changed to a permanent one
+      during setup, see below).</li>
+  <li>For thermal labels, a supported Zebra/Eltron-compatible label printer. Older Eltron/Zebra 2442
+      and 2844 models do not support the barcode types required for USPS postage printing.</li>
+</ol>
+
+<h4>Installation</h4>
+<ol>
+  <li>Go to <strong>Company &rarr; Configuration &rarr; Shipping Module</strong>.</li>
+  <li>Locate the <em>US Postal Service</em> row and click <strong>Install</strong>.</li>
+  <li>Click the row again and click <strong>Edit</strong>.</li>
+  <li>Enter your Endicia <strong>Account Number</strong> and the temporary <strong>Pass Phrase</strong>
+      from registration. Save the changes.</li>
+  <li>Go to <strong>Tools &rarr; Shipping Manager</strong>, open the <em>US Postal Service</em> tab, and
+      click <strong>Change Pass Phrase</strong> to activate the account with a permanent pass phrase.
+      The new pass phrase is saved automatically.</li>
+  <li>Back in the module's Edit screen, set <strong>Mode</strong> to <em>Production</em> for live rates
+      and labels (leave as <em>Test</em> to use Endicia's sandbox environment).</li>
+  <li>Select the <strong>Printer Type</strong> (EPL2 or ZPLII) matching your label printer, and enter
+      the <strong>Printer Name</strong> as configured on the local workstation.</li>
+  <li>Check the USPS <strong>service types</strong> to offer, set a <strong>Sort Order</strong> greater
+      than zero (a sort order of zero hides the module), and click <strong>Update</strong>.</li>
+</ol>
+
+<h4>Buying Postage</h4>
+<p>In <strong>Tools &rarr; Shipping Manager</strong>, open the <em>US Postal Service</em> tab, select an
+amount from the postage dropdown, and click <strong>Buy Postage</strong> to add funds to your Endicia
+postage balance. Labels cannot be printed once the balance is exhausted.</p>
+
+<h4>Getting a Rate Quote</h4>
+<ol>
+  <li>Open a sales invoice or order.</li>
+  <li>Click the <strong>Shipping Estimator</strong> button next to the freight method field.</li>
+  <li>Verify or update the destination address and package details, then click <strong>Next</strong>.</li>
+  <li>Rates for the enabled USPS service types are listed. Click the desired rate to populate the
+      carrier, service, and cost on the order; the popup closes automatically.</li>
+</ol>
+
+<h4>Printing a Label</h4>
+<ol>
+  <li>Post (save) the invoice first.</li>
+  <li>In <strong>Customers &rarr; Invoice Manager</strong>, locate the invoice and click the
+      <strong>Ship</strong> icon on its row, or use <strong>Tools &rarr; Shipping Manager</strong> to
+      ship a package not tied to an invoice.</li>
+  <li>Enter or verify the package weight and dimensions, then submit the label request.</li>
+  <li>The label is retrieved from Endicia and stored on the server (thermal labels are saved as raw
+      printer files under <code>my_files</code>). Print it to the configured printer.</li>
+</ol>
+
+<h4>Tracking</h4>
+<p>Package status can be checked by shipment date or by an individual shipment log entry from
+<strong>Tools &rarr; Shipping Manager</strong>; status updates are reported through the message stack
+rather than a persistent tracking page.</p>
+
+<h4>Voiding a Label</h4>
+<p>Labels can be refunded/voided from the Shipping Manager log entry. Endicia's own refund eligibility
+rules apply (labels must typically be refunded within a limited window of being printed).</p>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="../../ShippingHome.html">Shipping Manager</a><br>
+  <a href="../ModulesHome.html">Shipping Modules Overview</a><br>
+  <a href="../../../../../../../contacts/language/en_us/manual/03-Customers/05-Invoices/04-InvoiceManager.html">Invoice Manager</a>
+</p>
+
+</body>
+</html>

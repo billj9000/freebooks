@@ -14,14 +14,14 @@
 <!-- End of meta tags -->
 
 <link rel="stylesheet" type="text/css" href="../../../../stylesheet.css">
-<title>General Journal - Utilities</title>
+<title>General Ledger - Administrative Tools</title>
 </head>
 
 <body>
 
-<h1 align="center">General Journal - Utilities</h1>
-<p>General Journal utilities provide administrative functions such as fiscal year setup, defining the current accounting period, setting up beginning balances and purging the database tables. Security should be restricted to the general journal utilities since significant damage to the company data can be had here. </p>
-<p>General Journal Utilities include:</p>
+<h1 align="center">General Ledger - Administrative Tools</h1>
+<p>The Administrative Tools page (reached from the General Ledger menu) provides administrative functions such as fiscal year setup, defining the current accounting period, setting up beginning balances and purging the database tables. Security should be restricted to the Administrative Tools page since significant damage to the company data can be had here. </p>
+<p>Administrative Tools include:</p>
 <p>Accounting period change - Sets the current accounting period to a specified period. typically, this will need to be changed at the start of each accounting period as defined in the fiscal year.</p>
 <p>Fiscal Year setup, addition and change - the first fiscal year is set up through the setup script. This script allows for changes to any fiscal year and also generates the next fiscal year. </p>
 <p>NOTE: For performance reasons, it is best not to generate the next fiscal year until it is necessary. Every journal entry that affects the financial statement propagates through the remaining periods from the post date to the last period defined in the database. This results in extra queries to the database and slows down each posting.</p>

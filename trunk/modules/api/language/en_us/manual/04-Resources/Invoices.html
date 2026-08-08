@@ -17,7 +17,8 @@
   <tr><th align="left">Field</th><th align="left">Type</th><th align="left">Filter</th><th align="left">Sort</th><th align="left">Description</th></tr>
   <tr><td><code>id</code></td><td>int</td><td>yes</td><td>yes</td><td>Unique journal entry ID (primary key)</td></tr>
   <tr><td><code>invoice_number</code></td><td>string</td><td>yes</td><td>yes</td><td>Invoice number as printed on the document</td></tr>
-  <tr><td><code>reference</code></td><td>string</td><td>yes</td><td>no</td><td>Customer purchase order / payment reference</td></tr>
+  <tr><td><code>reference</code></td><td>string</td><td>yes</td><td>no</td><td>Customer purchase order number</td></tr>
+  <tr><td><code>payment_reference</code></td><td>virtual</td><td>no</td><td>no</td><td>Reference from the payment that closed this invoice (see note below); blank if unpaid</td></tr>
   <tr><td><code>date</code></td><td>date</td><td>yes</td><td>yes</td><td>Invoice / posting date (<code>YYYY-MM-DD</code>)</td></tr>
   <tr><td><code>customer_id</code></td><td>int</td><td>yes</td><td>no</td><td>Contact ID of the billed customer; matches <code>contacts.id</code></td></tr>
   <tr><td><code>customer_name</code></td><td>string</td><td>yes</td><td>yes</td><td>Customer name as it appears on the invoice</td></tr>
@@ -76,6 +77,9 @@
 <h3>Note on <code>tax_rate</code> / <code>freight_tax_rate</code></h3>
 <p><code>taxable</code> and <code>freight_taxable</code> are tax_rate_ids, not percentages &mdash; a tax_rate_id can combine multiple tax authorities. <code>tax_rate</code> and <code>freight_tax_rate</code> resolve them to the actual percentage FreeBooks would use to calculate tax (summing <code>tax_rates.rate_accounts</code> against <code>tax_authorities.tax_rate</code>, the same calculation as <code>gen_calculate_tax_rate()</code>), so callers don't need to duplicate that lookup or hardcode rates that could drift out of sync.</p>
 <p><b>Important:</b> use <code>freight_taxable</code>, not <code>freight_tax_id</code>, if you need the tax rate ID that actually applied to freight. <code>freight_tax_id</code> is the raw per-order override on the order form and is commonly left at <code>0</code> (&ldquo;use the company default,&rdquo; <code>AR_ADD_SALES_TAX_TO_SHIPPING</code>) &mdash; the effective id FreeBooks used is only recorded on the posted freight line itself, which is what <code>freight_taxable</code> (and <code>freight_tax_rate</code>) resolve from.</p>
+
+<h3>Note on <code>payment_reference</code></h3>
+<p><code>payment_reference</code> is <b>not</b> <code>journal_main.purch_order_id</code> on the invoice itself &mdash; that's the <code>reference</code> field above, the customer's PO number. It's the payment processor's own reference (transaction ID, cheque number, etc.) recorded on the Cash Receipt (J18) that paid this invoice. An invoice can have more than one receipt against it (partial payments); the most recent receipt with a non-blank reference is used. Blank if the invoice hasn't been paid yet, or was paid with no reference recorded.</p>
 
 <h3>Example: export invoices for a date range</h3>
 <pre>
