@@ -357,7 +357,6 @@ class authorizenet extends payment {
     $this->commErrNo = curl_errno($ch);
 
     $this->commInfo = @curl_getinfo($ch);
-    curl_close ($ch);
 
     // if in 'echo' mode, dump the returned data to the browser and stop execution
     if ((defined('AUTHORIZENET_DEVELOPER_MODE') && AUTHORIZENET_DEVELOPER_MODE == 'echo')) {

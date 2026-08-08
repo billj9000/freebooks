@@ -124,7 +124,6 @@ curl_setopt_array($ch, array(
 ));
 $response = curl_exec($ch);
 $curl_err  = curl_error($ch);
-curl_close($ch);
 
 if (!$response) { oc_die('Token request failed: ' . $curl_err); }
 $json = json_decode($response, true);

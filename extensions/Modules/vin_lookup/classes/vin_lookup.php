@@ -61,7 +61,6 @@ class VinLookup {
     $raw      = curl_exec($ch);
     $curlErr  = curl_error($ch);
     $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($raw === false || $raw === '') {
       $msg = $curlErr !== '' ? $curlErr : VIN_ERROR_NO_RESPONSE;

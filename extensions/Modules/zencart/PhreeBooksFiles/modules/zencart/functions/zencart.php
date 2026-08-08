@@ -22,7 +22,7 @@
 // $body    — if set, JSON-encodes and sends as POST; otherwise GET
 // $params  — additional query string parameters (e.g. ['last_order' => 42])
 // Returns the decoded 'data' field on success, true if no 'data' field, false on error.
-function zencart_api_call(string $task, array $body = null, array $params = [])
+function zencart_api_call(string $task, ?array $body = null, array $params = [])
 {
     global $messageStack;
 
@@ -59,7 +59,6 @@ function zencart_api_call(string $task, array $body = null, array $params = [])
     $errno = curl_errno($ch);
     $error = curl_error($ch);
     $http  = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($errno) {
         $messageStack->add('ZenCart API cURL error: ' . $error, 'error');

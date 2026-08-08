@@ -50,7 +50,6 @@ curl_setopt_array($ch, [
 ]);
 $body     = curl_exec($ch);
 $curl_err = curl_error($ch);
-curl_close($ch);
 
 if ($curl_err) {
   echo json_encode(['error' => 'Network error: ' . $curl_err]);
@@ -75,7 +74,6 @@ foreach (($data['device_codes'] ?? []) as $code) {
     CURLOPT_TIMEOUT        => 10,
   ]);
   curl_exec($ch2);
-  curl_close($ch2);
   $deleted++;
 }
 

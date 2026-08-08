@@ -129,7 +129,6 @@ class currency {
       curl_setopt($ch, CURLOPT_TIMEOUT, 10);
       $raw = curl_exec($ch);
       $err = curl_errno($ch);
-      curl_close($ch);
       if ($err || !$raw) return false;
       libxml_use_internal_errors(true);
       $ecb_xml = simplexml_load_string($raw);

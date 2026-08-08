@@ -418,7 +418,6 @@ class square_terminal extends payment {
     ]);
     $body = curl_exec($ch);
     $curl_error = curl_error($ch);
-    curl_close($ch);
     if (!$body) { $this->refund_error = $curl_error ?: 'No response from Square'; return false; }
     $data = json_decode($body, true);
     if (isset($data['errors'])) {
@@ -454,7 +453,6 @@ class square_terminal extends payment {
       CURLOPT_TIMEOUT        => 15,
     ]);
     $body = curl_exec($ch);
-    curl_close($ch);
     if (!$body) return false;
     $data = json_decode($body, true);
     if (!isset($data['payment']['status']) || $data['payment']['status'] !== 'COMPLETED') return false;

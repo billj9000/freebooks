@@ -575,7 +575,6 @@ class dhl_express {
     }
     $result = curl_exec($ch);
     $error  = curl_error($ch);
-    curl_close($ch);
     return $error ? false : $result;
   }
 

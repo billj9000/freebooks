@@ -258,7 +258,7 @@ class impbanking extends journal {
 						}
 						$messageStack->debug("\n now only use invoices " .arr2string($invoice));
 						break;
-					case 9;//do a partial payment
+					case 9://do a partial payment
 						if($difference_perc > 0){
 					    	$found_invoices[$i]['amount'] = round($found_invoices[$i]['amount'] / $difference_perc,  $currencies->currencies[DEFAULT_CURRENCY]['decimal_places']);
 					    	$messageStack->debug("\n step ".$step." doing a partial payment. ");
@@ -270,7 +270,7 @@ class impbanking extends journal {
 					    	$found_invoices[$i]['discount']       = false;
 						}
 					    break;
-					case 4;//try the first invoice		
+					case 4://try the first invoice		
 						$messageStack->debug("\n step $step trying the first invoice. ");
 						if($i > 0){
 							$found_invoices[$i]['discount'] 	 = false; 

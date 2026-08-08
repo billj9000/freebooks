@@ -58,7 +58,6 @@ function GetXMLString($y, $SubmitURL, $GetPost) {
 	$output['result'] = 'success';
 	$output['xmlString'] = $xyz;
   }
-  curl_close ($ch);
   return $output;
 }
 

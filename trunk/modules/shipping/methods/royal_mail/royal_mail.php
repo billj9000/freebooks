@@ -435,7 +435,6 @@ class royal_mail {
     }
     $result = curl_exec($ch);
     $error  = curl_error($ch);
-    curl_close($ch);
     return $error ? false : $result;
   }
 

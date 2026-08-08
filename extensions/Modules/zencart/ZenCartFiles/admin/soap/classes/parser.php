@@ -19,7 +19,7 @@
 
 class parser {
 
-  function doCURLRequest($method = 'GET', $url, $vars) {
+  function doCURLRequest($method, $url, $vars) {
 	global $messageStack;
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
@@ -41,7 +41,6 @@ class parser {
 	}
 	$data  = curl_exec($ch);
 	$error = curl_error($ch);
-	curl_close($ch);
 	if ($data != '') {
 	  return $data;
 	} else {

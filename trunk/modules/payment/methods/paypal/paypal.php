@@ -460,7 +460,6 @@ class paypal extends payment {
       CURLOPT_TIMEOUT        => 15,
     ]);
     $body = curl_exec($ch);
-    curl_close($ch);
     if (!$body) return false;
     $data = json_decode($body, true);
     if (!isset($data['access_token'])) return false;
@@ -503,7 +502,6 @@ class paypal extends payment {
     }
     $resp      = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     if ($resp === false) return false; // curl-level failure
     if ($http_code >= 400) {
       $data = $resp !== '' ? json_decode($resp, true) : null;

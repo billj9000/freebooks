@@ -61,7 +61,7 @@ switch ($_REQUEST['action']) {
 	if (method_exists($properties, 'install')) $properties->install(); // handle special case install, db, files, etc
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;
-  case 'remove';
+  case 'remove':
   	validate_security($security_level, 4);
   	require_once($method_dir . $method . '/' . $method . '.php');
 	$properties = new $method();

@@ -891,7 +891,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
   function general_rand($min = null, $max = null) {
     static $seeded;
     if (!$seeded) {
-      mt_srand((double)microtime()*1000000);
+      mt_srand((float)microtime()*1000000);
       $seeded = true;
     }
     if (isset($min) && isset($max)) {
@@ -2214,7 +2214,6 @@ function gen_oauth2_refresh_access_token() {
     CURLOPT_HTTPHEADER     => array('Content-Type: application/x-www-form-urlencoded'),
   ));
   $response = curl_exec($ch);
-  curl_close($ch);
   if (!$response) return false;
   $json = json_decode($response, true);
   return isset($json['access_token']) ? $json['access_token'] : false;

@@ -324,7 +324,6 @@ class firstdata extends payment {
 	// Check for curl errors
 	$curlerrornum = curl_errno($ch);
 	$curlerror    = curl_error($ch);
-	curl_close ($ch);
 	if ($curlerrornum) { 
 		$messageStack->add('XML Read Error (cURL) #' . $curlerrornum . '. Description = ' . $curlerror,'error');
 		return true;

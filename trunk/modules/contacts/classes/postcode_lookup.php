@@ -39,7 +39,6 @@ class FetchifyProvider implements PostcodeLookupProvider {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         $raw = curl_exec($ch);
-        curl_close($ch);
         if (!$raw) return [];
         $data = json_decode($raw, true);
         if (!isset($data['results'])) return [];
@@ -85,7 +84,6 @@ class VehicleDataProvider implements PostcodeLookupProvider {
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $this->apiKey]);
         $raw = curl_exec($ch);
-        curl_close($ch);
         if (!$raw) return [];
         $data = json_decode($raw, true);
         if (empty($data['ResponseInformation']['IsSuccessStatusCode'])) return [];

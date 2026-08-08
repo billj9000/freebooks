@@ -135,7 +135,7 @@ class import_order {
   		$header = NULL;
   		$data = array();
   		if (($handle = fopen($filename, 'r')) !== FALSE) {
-  			while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+  			while (($row = fgetcsv($handle, 1000, $delimiter, escape: "\\")) !== FALSE) {
   				if (!$header) $header = $row;
   				else $data[] = array_combine($header, $row);
   			}

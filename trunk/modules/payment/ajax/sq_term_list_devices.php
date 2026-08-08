@@ -48,7 +48,6 @@ curl_setopt_array($ch, [
 ]);
 $body     = curl_exec($ch);
 $curl_err = curl_error($ch);
-curl_close($ch);
 
 if ($curl_err) {
   echo json_encode(['error' => 'Network error: ' . $curl_err]);
@@ -89,7 +88,6 @@ curl_setopt_array($ch2, [
   CURLOPT_TIMEOUT        => 10,
 ]);
 $body2 = curl_exec($ch2);
-curl_close($ch2);
 $codes_data = $body2 ? json_decode($body2, true) : [];
 
 echo json_encode([
