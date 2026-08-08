@@ -17,11 +17,10 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreeform/classes/letter_generator.php
 //
-if (PDF_APP == 'TCPDF') { 
-  define ('K_PATH_MAIN', DIR_FS_MODULES . 'phreeform/includes/tcpdf/');
-  define ('K_PATH_URL',  DIR_WS_MODULES . 'phreeform/includes/tcpdf/');
-  require_once (DIR_FS_MODULES . 'phreeform/includes/tcpdf/tcpdf.php'); // TCPDF class to generate reports, default
-} else {
+// TCPDF is supplied by Composer (tecnickcom/tcpdf) and autoloads on first use,
+// resolving its own paths and cache directory via tcpdf_autoconfig.php — so no
+// K_PATH_* constants are set here. Only the FPDF fallback needs an include.
+if (PDF_APP != 'TCPDF') {
   require_once (DIR_FS_MODULES . 'phreeform/includes/fpdf/fpdf.php'); // FPDF class to generate reports
 }
 
@@ -117,6 +116,14 @@ class PDF extends TCPDF {
 	  }
     }
 
+    // Substitutes the per-group page-count aliases by rewriting TCPDF's raw page
+    // buffers before they are written out. This reaches into TCPDF internals --
+    // it overrides the protected _putpages() and reads/mutates $this->page and
+    // $this->pages -- which is why the module is pinned to the TCPDF 6.x line.
+    // TCPDF 7 is a thin shim over tc-lib-pdf: its public method surface is fully
+    // compatible, but _putpages(), $page and $pages do not exist there, so this
+    // is the one thing blocking a 7.x upgrade. Reworking it to use TCPDF's own
+    // getAliasNbPages() placeholder mechanism would remove that block.
     function _putpages() {
 	  $nb = $this->page;
 	  if (!empty($this->PageGroups)) { // do page number replacement

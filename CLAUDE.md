@@ -164,8 +164,7 @@ This covers, among others:
 
 | Path | Upstream |
 |---|---|
-| `trunk/vendor/` | Composer packages (PHPMailer, Twig, BoxPacker, …) |
-| `trunk/modules/phreeform/includes/tcpdf/` | TCPDF — LGPL v3, Nicola Asuni / Tecnick.com |
+| `trunk/vendor/` | Composer packages (PHPMailer, Twig, BoxPacker, TCPDF, …) |
 | `trunk/modules/phreeform/includes/fpdf/` | FPDF — Olivier Plathey |
 | `trunk/ext/` | Bootstrap, htmx, and other bundled front-end assets |
 | `trunk/jodit/` | Jodit editor |

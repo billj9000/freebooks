@@ -9,7 +9,8 @@
         "twig/twig": "^3.27",
         "picqer/php-barcode-generator": "^3.2",
         "chillerlan/php-qrcode": "^5.0",
-        "lbuchs/webauthn": "^2.2"
+        "lbuchs/webauthn": "^2.2",
+        "tecnickcom/tcpdf": "^6.11"
     },
     "config": {
         "optimize-autoloader": true
