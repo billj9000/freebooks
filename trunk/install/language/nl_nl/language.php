@@ -22,7 +22,7 @@ define('TEXT_DISAGREE','Niet Akkoord');
 define('DESC_AGREE','Ik heb de licentie door gelezen en ga akkoord met de voorwaarden');
 define('DESC_DISAGREE','Ik heb de Licentie door gelezen en ga niet akkoord met de voorwaarden.');
 define('TITLE_INSPECT','Controleer - Phreedom Klein Bedrijf Oplossingen');
-define('INSTALL_ERROR_PHP_VERSION','Uw php versie moet 8.0 of hoger zijn');
+define('INSTALL_ERROR_PHP_VERSION','Uw php versie moet 8.2 of hoger zijn, en lager dan 9.0');
 define('INSTALL_ERROR_SESSION_SUPPORT','Uw php configuratie is geïnstalleerd  zonder session support. Dit is vereist om met Phreedom te werken.');
 define('INSTALL_ERROR_OPENSSL','Uw server moet openssl geinstalleerd hebben.');
 define('INSTALL_ERROR_CURL','Uw servers php applicatie is geïnstalleerd  zonder cURL support. cURL support is voor beveiligde communicatie tussen applications van derden.');

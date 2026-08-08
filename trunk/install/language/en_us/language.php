@@ -49,7 +49,7 @@ define('MSG_INSPECT_ERRORS','The following installation errors have been found.
   <li>Errors (in red) must be fixed before the installation script can proceed.</li>
   <li>Cautions (in yellow) will not prevent installation but may prevent modules from operating properly.</li>
 </ul>');
-define('INSTALL_ERROR_PHP_VERSION','Your php version needs to be 8.0 or greater.');
+define('INSTALL_ERROR_PHP_VERSION','Your php version needs to be 8.2 or greater, and below 9.0.');
 define('INSTALL_ERROR_SESSION_SUPPORT','Your php configuration does not have session support installed. Session support is required to run FreeBooks.');
 define('INSTALL_ERROR_PDO_MYSQL','Your php configuration does not have the pdo_mysql extension installed. This extension is required to connect to the database.');
 define('INSTALL_ERROR_OPENSSL','Your server needs to have openssl installed.');

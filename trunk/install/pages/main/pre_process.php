@@ -95,7 +95,11 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		}
 		// start the checks for minimum requirements
 		//PHP Version Check
-		if (version_compare(PHP_VERSION, '8.0.0', '<')) {
+		// Supported range is PHP 8.2 up to (but excluding) 9.0. The lower bound
+		// is what the Composer dependencies require; the upper bound is there
+		// because PHP 9 has not been tested against and removes features this
+		// codebase still relies on.
+		if (version_compare(PHP_VERSION, '8.2.0', '<') || version_compare(PHP_VERSION, '9.0.0', '>=')) {
 	  		$error = $messageStack->add(INSTALL_ERROR_PHP_VERSION, 'error');
 		}
 		// Support for Sessions check

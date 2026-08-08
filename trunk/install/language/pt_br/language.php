@@ -44,7 +44,7 @@ define('MSG_INSPECT_ERRORS','Os seguintes erros de instalação foram encontrados.
   <li>Erros (em vermelho) devem ser corrigidos antes que o script de instalação possa continuar.</li>
   <li>Avisos (em amarelo) não impedirão a instalação mas podem impedir a operação apropriada de alguns módulos.</li>
 </ul>');
-define('INSTALL_ERROR_PHP_VERSION','Sua versão de php deve ser 5.2 ou posterior.');
+define('INSTALL_ERROR_PHP_VERSION','Sua versão de php deve ser 8.2 ou posterior, e inferior a 9.0.');
 define('INSTALL_ERROR_REGISER_GLOBALS','Registro globais deve ser desabilitado.');
 define('INSTALL_ERROR_SAFE_MODE','Sua configuração php está habilitada para operar em modo seguro. Modo seguro deve ser desabilitado para instalar o PhreeBooks.');
 define('INSTALL_ERROR_SESSION_SUPPORT','Sua configuração php não tem o suporte de sessão instalao. Suporte de sessão é necessário para executar o PhreeBooks.');

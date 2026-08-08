@@ -3,7 +3,7 @@
     "description": "FreeBooks ERP",
     "type": "project",
     "require": {
-        "php": ">=8.0",
+        "php": "^8.2",
         "phpmailer/phpmailer": "^7.0",
         "dvdoug/boxpacker": "^4.0",
         "twig/twig": "^3.27",
