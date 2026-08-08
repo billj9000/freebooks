@@ -9,7 +9,7 @@
 // Path: //modules/phreehelp/language/ru_ru/language.php
 
 define('HEADING_TITLE','FreeBooks авторизация');
-define('TITLE_TOP_FRAME', 'FreeBooks Help - на основе PhreeHelp');
+define('HEADING_HELP_LABEL', 'Помощь');
 define('HEADING_CONTENTS','Содержание');
 define('HEADING_INDEX','Index');
 define('TEXT_DOCUMENT','Документ');

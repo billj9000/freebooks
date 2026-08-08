@@ -19,8 +19,8 @@
 //
 
 // Window heading label
-define('HEADING_TITLE','FreeBooks Help - Powered by PhreeHelp');
-define('TITLE_TOP_FRAME', 'FreeBooks Help - Powered by PhreeHelp');
+define('HEADING_TITLE','FreeBooks Help');
+define('HEADING_HELP_LABEL', 'Help');
 
 // Tab Labels
 define('HEADING_CONTENTS','Contents');

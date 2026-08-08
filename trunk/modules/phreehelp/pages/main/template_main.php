@@ -65,23 +65,37 @@
     #helpTabContent { flex: 1; overflow-y: auto; padding: 0.5rem; }
     #contentFrame { flex: 1; border: none; height: 100%; background: #ffffff; }
 
-    /* Top toolbar: match the app's gloss-wave header look */
-    #help-toolbar {
+    /* Header bar: dark gloss-wave, matches the app's main navbar (.fb-navbar) */
+    #help-header {
+      display:             flex;
+      align-items:         center;
+      gap:                 8px;
+      padding:             4px 8px;
       background-color:    #2191c0;
       background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
       background-repeat:   repeat-x;
       background-position: 50% 50%;
       border-bottom:       1px solid #4297d7;
     }
-    #help-toolbar .btn {
-      border-color: #4297d7;
-      background:   rgba(255,255,255,0.15);
-      color:        #eaf5f7;
+    #help-header-label {
+      color:       #ffffff;
+      font-weight: bold;
+      font-size:   13px;
     }
-    #help-toolbar .btn:hover {
-      background: rgba(255,255,255,0.3);
-      color:      #ffffff;
+
+    /* Toolbar bar: lighter "glass" gloss-wave, matches .fb-toolbar-section */
+    #help-toolbar {
+      display:             flex;
+      align-items:         center;
+      gap:                 4px;
+      padding:             0 6px;
+      background-color:    #79c9ec;
+      background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+      background-repeat:   repeat-x;
+      background-position: 50% 50%;
+      border-bottom:       1px solid #448dae;
     }
+    #help-toolbar img.imgIcon { cursor: pointer; }
 
     /* Sidebar tabs: reuse fb-tabs but keep them compact in the narrow rail */
     #helpTabs .nav-link { font-size: 11px; padding: 4px 8px; }
@@ -134,13 +148,22 @@
 <body>
 <div id="help-layout">
 
-  <!-- Top navigation bar -->
-  <div id="help-toolbar" class="d-flex align-items-center gap-1 p-1 flex-shrink-0">
-    <button class="btn btn-sm" title="<?php echo TEXT_HOME; ?>"    onclick="document.getElementById('contentFrame').contentWindow.location.href='<?php echo DOC_ROOT_URL; ?>'"><?php echo html_icon('actions/go-home.png',        TEXT_HOME,    'large'); ?></button>
-    <button class="btn btn-sm" title="<?php echo TEXT_BACK; ?>"    onclick="document.getElementById('contentFrame').contentWindow.history.back()"><?php echo html_icon('actions/go-previous.png',   TEXT_BACK,    'large'); ?></button>
-    <button class="btn btn-sm" title="<?php echo TEXT_FORWARD; ?>" onclick="document.getElementById('contentFrame').contentWindow.history.forward()"><?php echo html_icon('actions/go-next.png',       TEXT_FORWARD, 'large'); ?></button>
-    <button class="btn btn-sm" title="<?php echo TEXT_PRINT; ?>"   onclick="document.getElementById('contentFrame').contentWindow.print()"><?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large'); ?></button>
-    <button class="btn btn-sm" title="<?php echo TEXT_EXIT; ?>" onclick="window.close()"><?php echo html_icon('actions/system-log-out.png', TEXT_EXIT,    'large'); ?></button>
+  <!-- Header bar: FreeBooks logo, dark gloss-wave (matches the app's main navbar) -->
+  <div id="help-header" class="flex-shrink-0">
+    <?php $help_logo = DIR_WS_THEMES . 'images/freebooks_logo_text_default.png'; ?>
+    <?php if (is_file($help_logo)): ?>
+      <img src="<?php echo $help_logo; ?>" alt="FreeBooks" style="height:20px;width:auto">
+    <?php endif; ?>
+    <span id="help-header-label"><?php echo HEADING_HELP_LABEL; ?></span>
+  </div>
+
+  <!-- Toolbar bar: lighter glass gloss-wave (matches .fb-toolbar-section) -->
+  <div id="help-toolbar" class="flex-shrink-0">
+    <?php echo html_icon('actions/go-home.png',        TEXT_HOME,    'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.location.href=\'' . DOC_ROOT_URL . '\'"'); ?>
+    <?php echo html_icon('actions/go-previous.png',     TEXT_BACK,    'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.history.back()"'); ?>
+    <?php echo html_icon('actions/go-next.png',         TEXT_FORWARD, 'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.history.forward()"'); ?>
+    <?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.print()"'); ?>
+    <?php echo html_icon('actions/system-log-out.png',  TEXT_EXIT,    'large', 'style="cursor:pointer;" onclick="window.close()"'); ?>
   </div>
 
   <!-- Main body -->
