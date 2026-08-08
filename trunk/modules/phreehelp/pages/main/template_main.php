@@ -59,23 +59,88 @@
   </script>
   <style>
     html, body { height: 100%; margin: 0; overflow: hidden; }
-    #help-layout { display: flex; flex-direction: column; height: 100vh; }
+    #help-layout { display: flex; flex-direction: column; height: 100vh; font-family: Verdana, Arial, sans-serif; font-size: 11px; }
     #help-body   { display: flex; flex: 1; overflow: hidden; }
-    #help-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; overflow: hidden; }
+    #help-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid #a6c9e2; background: #fcfdfd; display: flex; flex-direction: column; overflow: hidden; }
     #helpTabContent { flex: 1; overflow-y: auto; padding: 0.5rem; }
-    #contentFrame { flex: 1; border: none; height: 100%; }
+    #contentFrame { flex: 1; border: none; height: 100%; background: #ffffff; }
+
+    /* Top toolbar: match the app's gloss-wave header look */
+    #help-toolbar {
+      background-color:    #2191c0;
+      background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+      background-repeat:   repeat-x;
+      background-position: 50% 50%;
+      border-bottom:       1px solid #4297d7;
+    }
+    #help-toolbar .btn {
+      border-color: #4297d7;
+      background:   rgba(255,255,255,0.15);
+      color:        #eaf5f7;
+    }
+    #help-toolbar .btn:hover {
+      background: rgba(255,255,255,0.3);
+      color:      #ffffff;
+    }
+
+    /* Sidebar tabs: reuse fb-tabs but keep them compact in the narrow rail */
+    #helpTabs .nav-link { font-size: 11px; padding: 4px 8px; }
+
+    /* ── fb-help-tree: Contents / Index / Search rendering ───────────────── */
+    .fb-help-tree {
+      list-style: none;
+      margin:     0;
+      padding:    0;
+    }
+    .fb-help-tree .fb-help-tree {
+      margin-left:  14px;
+      padding-left: 8px;
+      border-left:  1px dotted #a6c9e2;
+    }
+    .fb-help-tree-root { padding: 4px 2px; }
+    .fb-help-node { margin: 1px 0; }
+
+    /* Folders and leaf (document) rows both lay out icon + label side by side */
+    .fb-help-folder, .fb-help-leaf {
+      display:       flex;
+      align-items:   flex-start;
+      gap:           4px;
+      padding:       2px 4px;
+      border-radius: 3px;
+    }
+    .fb-help-folder { cursor: pointer; }
+    .fb-help-folder:hover,
+    .fb-help-leaf:hover {
+      background-color: #e8f4fb;
+    }
+    .fb-help-tree a.fb-help-label,
+    .fb-help-tree span.fb-help-label {
+      color:            #222222;
+      text-decoration:  none;
+      word-break:       break-word;
+      flex:             1 1 auto;
+    }
+    .fb-help-tree a.fb-help-label:hover { color: #026890; text-decoration: underline; }
+    .fb-help-toggle { line-height: 0; flex-shrink: 0; }
+    .fb-help-folder .fb-help-label { color: #164a63; font-weight: bold; }
+    .fb-help-tree a.fb-help-label.fb-help-active {
+      background-color: #cfe9f7;
+      color:             #026890;
+      font-weight:       bold;
+      border-radius:     3px;
+    }
   </style>
 </head>
 <body>
 <div id="help-layout">
 
   <!-- Top navigation bar -->
-  <div class="d-flex align-items-center gap-1 p-1 border-bottom bg-light flex-shrink-0">
-    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_HOME; ?>"    onclick="document.getElementById('contentFrame').contentWindow.location.href='<?php echo DOC_ROOT_URL; ?>'"><?php echo html_icon('actions/go-home.png',        TEXT_HOME,    'large'); ?></button>
-    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_BACK; ?>"    onclick="document.getElementById('contentFrame').contentWindow.history.back()"><?php echo html_icon('actions/go-previous.png',   TEXT_BACK,    'large'); ?></button>
-    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_FORWARD; ?>" onclick="document.getElementById('contentFrame').contentWindow.history.forward()"><?php echo html_icon('actions/go-next.png',       TEXT_FORWARD, 'large'); ?></button>
-    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_PRINT; ?>"   onclick="document.getElementById('contentFrame').contentWindow.print()"><?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large'); ?></button>
-    <button class="btn btn-outline-secondary btn-sm" title="<?php echo TEXT_EXIT; ?>" onclick="window.close()"><?php echo html_icon('actions/system-log-out.png', TEXT_EXIT,    'large'); ?></button>
+  <div id="help-toolbar" class="d-flex align-items-center gap-1 p-1 flex-shrink-0">
+    <button class="btn btn-sm" title="<?php echo TEXT_HOME; ?>"    onclick="document.getElementById('contentFrame').contentWindow.location.href='<?php echo DOC_ROOT_URL; ?>'"><?php echo html_icon('actions/go-home.png',        TEXT_HOME,    'large'); ?></button>
+    <button class="btn btn-sm" title="<?php echo TEXT_BACK; ?>"    onclick="document.getElementById('contentFrame').contentWindow.history.back()"><?php echo html_icon('actions/go-previous.png',   TEXT_BACK,    'large'); ?></button>
+    <button class="btn btn-sm" title="<?php echo TEXT_FORWARD; ?>" onclick="document.getElementById('contentFrame').contentWindow.history.forward()"><?php echo html_icon('actions/go-next.png',       TEXT_FORWARD, 'large'); ?></button>
+    <button class="btn btn-sm" title="<?php echo TEXT_PRINT; ?>"   onclick="document.getElementById('contentFrame').contentWindow.print()"><?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large'); ?></button>
+    <button class="btn btn-sm" title="<?php echo TEXT_EXIT; ?>" onclick="window.close()"><?php echo html_icon('actions/system-log-out.png', TEXT_EXIT,    'large'); ?></button>
   </div>
 
   <!-- Main body -->
@@ -123,5 +188,48 @@
 
   </div><!-- /help-body -->
 </div><!-- /help-layout -->
+<script>
+  // Keep the Contents tree in sync with whatever page is loaded in the
+  // content frame: open every ancestor folder of the current page, open
+  // the page's own subtree if it's a chapter home page, and highlight
+  // its link — whether the frame navigated via a sidebar click or a link
+  // inside the manual content itself.
+  function openFolderDiv(div) {
+    div.style.display = 'block';
+    var key = document.getElementById('img' + div.id);
+    if (key) key.innerHTML = "<img src='" + icon_path + "16x16/actions/document-open.png' width='16' height='16' border='0'>";
+  }
+  function openAncestorFolders(link) {
+    var node = link.closest('.fb-help-node');
+    while (node) {
+      var wrapperDiv = node.parentElement ? node.parentElement.closest('div[id^="dc_"]') : null;
+      if (!wrapperDiv) break;
+      openFolderDiv(wrapperDiv);
+      node = wrapperDiv.closest('.fb-help-node');
+    }
+  }
+  function openOwnChildren(link) {
+    var node = link.closest('.fb-help-node');
+    var ownDiv = node ? node.querySelector(':scope > div[id^="dc_"]') : null;
+    if (ownDiv) openFolderDiv(ownDiv);
+  }
+  function syncContentsTreeToFrame() {
+    var frame = document.getElementById('contentFrame');
+    var currentHref;
+    try { currentHref = frame.contentWindow.location.href; } catch (e) { return; }
+    var match = null;
+    document.querySelectorAll('#tab-contents a.fb-help-label').forEach(function (a) {
+      a.classList.remove('fb-help-active');
+      if (a.href === currentHref) match = a;
+    });
+    if (match) {
+      match.classList.add('fb-help-active');
+      openAncestorFolders(match);
+      openOwnChildren(match);
+      match.scrollIntoView({ block: 'nearest' });
+    }
+  }
+  document.getElementById('contentFrame').addEventListener('load', syncContentsTreeToFrame);
+</script>
 </body>
 </html>

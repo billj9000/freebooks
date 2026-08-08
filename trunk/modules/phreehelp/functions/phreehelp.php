@@ -1,4 +1,4 @@
-<?php 
+<?php
 // +-----------------------------------------------------------------+
 // |                   PhreeBooks Open Source ERP                    |
 // +-----------------------------------------------------------------+
@@ -69,7 +69,7 @@ function directory_to_array($directory, $extension = "", $full_path = true) {
   foreach ($contents as $file) {
 	if ($file <> "." && $file <> "..") {
 	  if (is_dir($directory. "/" . $file)) {
-		$array_items = array_merge($array_items, directory_to_array($directory. "/" . $file, $extension, $full_path)); 
+		$array_items = array_merge($array_items, directory_to_array($directory. "/" . $file, $extension, $full_path));
 	  } else {
 		$file_ext = substr(strrchr($file, "."), 1);
 		if (!$extension || in_array($file_ext, $extension)) {
@@ -83,7 +83,8 @@ function directory_to_array($directory, $extension = "", $full_path = true) {
 
 function retrieve_toc() {
   global $db;
-  $toc = $db->Execute('select id, parent_id, doc_type, doc_url, doc_title from ' . TABLE_PHREEHELP . ' 
+  $dir_only = false;
+  $toc = $db->Execute('select id, parent_id, doc_type, doc_url, doc_title from ' . TABLE_PHREEHELP . '
 	order by parent_id, doc_pos');
   $toc_array = array();
   $toc_array[-1][] = array('id' => 0, 'doc_type' => '0', 'doc_title' => TEXT_MANUAL); // home dir
@@ -98,81 +99,83 @@ function retrieve_toc() {
 	}
 	$toc->MoveNext();
   }
-  $toc_string = build_help_tree('dir_tree', $toc_array, $index = -1, $level = 0, $cont_level = array());
+  $toc_string = build_help_tree('dir_tree', $toc_array, $index = -1, $level = 0);
   return $toc_string;
-  }
+}
 
-  function build_help_tree($name, $full_array, $index = -1, $level = 0, $cont_level = array()) {
-	$entry_string = '';
-	for ($j = 0; $j < count(is_array($full_array[$index]) ? $full_array[$index] : []); $j++) {
-	  $new_ref   = $index . '_' . $full_array[$index][$j]['id'];
-	  $cont_temp = array_keys($cont_level);
-	  $entry_string .= '<div style="height:16px;">' . chr(10);
-	  for ($i = 0; $i < $level; $i++) {
-	    if (false) {
-	    } elseif ($i == $level-1 && $j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
-		  $entry_string .= html_icon('phreebooks/cont-end.gif', '', 'small');
-		} elseif ($i == $level-1 && $j == count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
-		  $entry_string .= html_icon('phreebooks/end-end.gif',  '', 'small');
-		} elseif (in_array($i, $cont_temp)) {
-		  $entry_string .= html_icon('phreebooks/cont.gif',     '', 'small');
-		} elseif ($i < $level-1) {
-		  $entry_string .= html_icon('phreebooks/blank.gif',    '', 'small');
-		}
-	  }
-	  if ($full_array[$index][$j]['doc_type'] == '0') {  // folder
-		$entry_string .= '<a id="imgdc_' . $new_ref . '" href="javascript:Toggle(\'dc_' . $new_ref . '\');">' . html_icon('places/folder.png', TEXT_OPEN, 'small', 'class="draggable"', '', '', 'icndc_' . $new_ref) . '</a>';
-	  } else {
-		$entry_string .= html_icon('mimetypes/text-x-generic.png', $full_array[$index][$j]['doc_title'], 'small');
-	  }
-	  $short_title     = (strlen($full_array[$index][$j]['doc_title']) <= PH_DEFAULT_TRIM_LENGTH) ? $full_array[$index][$j]['doc_title'] : substr($full_array[$index][$j]['doc_title'], 0, PH_DEFAULT_TRIM_LENGTH) . '...';
-	  if ($full_array[$index][$j]['doc_url']) {
-	    $entry_string .= '&nbsp;<a href="' . $full_array[$index][$j]['doc_url'] . '" target="mainFrame">' . htmlspecialchars($short_title) . '</a>' . chr(10);
-	  } else {
-	    $entry_string .= '&nbsp;' . htmlspecialchars($short_title) . chr(10);
-	  }
-	  $entry_string .= '</div>' . chr(10);
-	  if ($j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
-		$cont_level[$level-1] = true;
-	  } else {
-		unset($cont_level[$level-1]);
-	  }
-	  if (isset($full_array[$full_array[$index][$j]['id']])) {
-		$display_none  = ($level == 0) ? '' : 'display:none; ';
-		$entry_string .= '<div id="dc_' . $new_ref . '" style="' . $display_none . 'margin-left:0px;">' . chr(10);
-		$entry_string .= build_help_tree($name, $full_array, $full_array[$index][$j]['id'], $level+1, $cont_level) . chr(10);
-		$entry_string .= '</div>' . chr(10);
-	  }
-	}
-	return $entry_string;
+// Renders the Contents tab as a nested <ul> tree (fb-help-tree, styled in
+// template_main.php) instead of the old GIF-spacer <div> rows. Folders
+// default open at the top level and collapsed below, toggled client-side
+// by the existing Toggle()/Expand()/Collapse() JS in template_main.php.
+function build_help_tree($name, $full_array, $index = -1, $level = 0) {
+  $entries = (isset($full_array[$index]) && is_array($full_array[$index])) ? $full_array[$index] : array();
+  if (empty($entries)) return '';
+  $entry_string = '<ul class="fb-help-tree' . ($level == 0 ? ' fb-help-tree-root' : '') . '">' . chr(10);
+  foreach ($entries as $entry) {
+    $new_ref      = $index . '_' . $entry['id'];
+    $has_children = isset($full_array[$entry['id']]);
+    $entry_string .= '<li class="fb-help-node">' . chr(10);
+    if ($entry['doc_type'] == '0') { // folder
+      $entry_string .= '<span class="fb-help-folder" onclick="Toggle(\'dc_' . $new_ref . '\')">';
+      $entry_string .= '<a id="imgdc_' . $new_ref . '" href="javascript:void(0);" class="fb-help-toggle" onclick="event.stopPropagation();Toggle(\'dc_' . $new_ref . '\');">' . html_icon('places/folder.png', TEXT_OPEN, 'small') . '</a> ';
+      if ($entry['doc_url']) {
+        $entry_string .= '<a href="' . $entry['doc_url'] . '" target="mainFrame" class="fb-help-label" onclick="event.stopPropagation();">' . htmlspecialchars($entry['doc_title']) . '</a>';
+      } else {
+        $entry_string .= '<span class="fb-help-label">' . htmlspecialchars($entry['doc_title']) . '</span>';
+      }
+      $entry_string .= '</span>' . chr(10);
+    } else { // leaf document
+      $entry_string .= '<span class="fb-help-leaf">' . html_icon('mimetypes/text-x-generic.png', '', 'small') . ' <a href="' . $entry['doc_url'] . '" target="mainFrame" class="fb-help-label">' . htmlspecialchars($entry['doc_title']) . '</a></span>' . chr(10);
+    }
+    if ($has_children) {
+      $display_none  = ($level == 0) ? '' : 'display:none;';
+      $entry_string .= '<div id="dc_' . $new_ref . '" style="' . $display_none . '">' . chr(10);
+      $entry_string .= build_help_tree($name, $full_array, $entry['id'], $level + 1) . chr(10);
+      $entry_string .= '</div>' . chr(10);
+    }
+    $entry_string .= '</li>' . chr(10);
   }
+  $entry_string .= '</ul>' . chr(10);
+  return $entry_string;
+}
 
+// Shared by the Index tab (retrieve_index) and Search tab (search_results).
+// Same fb-help-tree markup as build_help_tree; groups always render
+// collapsed since there's no natural "top level" here. Note: doc_title
+// values already contain HTML entities as authored in each page's
+// <title> tag, so they are intentionally NOT re-escaped here (matches
+// the original behavior of this function).
 function build_href($array_tree, $ref = '') {
   ksort($array_tree);
-  $entry_string = '';
-  foreach ($array_tree as $key => $entry) {
-	$new_ref = $ref . '_' . $entry['id'];
-	if (isset($entry['children'])) {
-	  $entry_string .= '<a id="ph_' . $new_ref . '" href="javascript:Toggle(\'' . $new_ref . '\');">' . html_icon('places/folder.png', TEXT_FOLDER, 'small') . '</a>' . chr(10);
-	} else {
-	  $entry_string .= html_icon('mimetypes/text-html.png', TEXT_DOCUMENT, 'small') . chr(10);
-	}
-	if (isset($entry['doc_title'])) {
-	  if (isset($entry['doc_url'])) {
-		$entry_string .= '<a href="' . $entry['doc_url'] . '" target="mainFrame">' . $entry['doc_title'] . '</a>' . chr(10);
-	  } else {
-		$entry_string .= $entry['doc_title'] . chr(10);
-	  }
-	} else {
-	  $entry_string .= TEXT_UNTITLED . chr(10);
-	}
-	$entry_string .= '<br />' . chr(10);
-	if (isset($entry['children'])) {
-	  $entry_string .= '<div id="' . $new_ref . '" style="display:none; margin-left:1px;">' . chr(10) . chr(10);
-	  $entry_string .= build_href($entry['children'], $new_ref) . chr(10);
-	  $entry_string .= '</div>' . chr(10);
-	}
+  if (empty($array_tree)) return '';
+  $is_root_level = (strpos($ref, '_') === false);
+  $entry_string  = '<ul class="fb-help-tree' . ($is_root_level ? ' fb-help-tree-root' : '') . '">' . chr(10);
+  foreach ($array_tree as $entry) {
+    $new_ref      = $ref . '_' . $entry['id'];
+    $has_children = isset($entry['children']);
+    $entry_string .= '<li class="fb-help-node">' . chr(10);
+    if ($has_children) {
+      $entry_string .= '<span class="fb-help-folder" onclick="Toggle(\'' . $new_ref . '\')">';
+      $entry_string .= '<a id="img' . $new_ref . '" href="javascript:void(0);" class="fb-help-toggle" onclick="event.stopPropagation();Toggle(\'' . $new_ref . '\');">' . html_icon('places/folder.png', TEXT_FOLDER, 'small') . '</a> ';
+    } else {
+      $entry_string .= '<span class="fb-help-leaf">';
+      $entry_string .= html_icon('mimetypes/text-html.png', TEXT_DOCUMENT, 'small') . ' ';
+    }
+    $title = isset($entry['doc_title']) ? $entry['doc_title'] : TEXT_UNTITLED;
+    if (isset($entry['doc_url'])) {
+      $entry_string .= '<a href="' . $entry['doc_url'] . '" target="mainFrame" class="fb-help-label"' . ($has_children ? ' onclick="event.stopPropagation();"' : '') . '>' . $title . '</a>';
+    } else {
+      $entry_string .= '<span class="fb-help-label">' . $title . '</span>';
+    }
+    $entry_string .= '</span>' . chr(10);
+    if ($has_children) {
+      $entry_string .= '<div id="' . $new_ref . '" style="display:none;">' . chr(10);
+      $entry_string .= build_href($entry['children'], $new_ref) . chr(10);
+      $entry_string .= '</div>' . chr(10);
+    }
+    $entry_string .= '</li>' . chr(10);
   }
+  $entry_string .= '</ul>' . chr(10);
   return $entry_string;
 }
 
