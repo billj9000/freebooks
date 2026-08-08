@@ -30,7 +30,13 @@ require_once(DIR_FS_MODULES . 'phreebooks/classes/banking.php');
 $error			 = false;
 $till_known 	 = false;
 $cleared_items   = array();
-$current_cleard_items = unserialize($_POST['current_cleard_items']);
+// current_cleard_items round-trips through a client-side hidden field, so it
+// is untrusted. allowed_classes=>false blocks PHP object injection, and the
+// values are journal-item IDs — force them to ints so they are safe to merge,
+// serialize and later interpolate into "id IN (...)" clauses.
+$current_cleard_items = unserialize((string)($_POST['current_cleard_items'] ?? ''), array('allowed_classes' => false));
+if (!is_array($current_cleard_items)) $current_cleard_items = array();
+$current_cleard_items = array_map('intval', $current_cleard_items);
 $all_items       = array();
 $gl_types 		 = array('pmt','ttl','tpm');
 $post_date 		 = ($_POST['post_date']) ? gen_db_date($_POST['post_date']) : '';
@@ -77,7 +83,7 @@ switch ($_REQUEST['action']) {
 	$tills->new_balance($currencies->clean_value($_POST['new_balance']));
 	if (is_array($_POST['id'])) for ($i = 0; $i < count($_POST['id']); $i++) {
 	  $all_items[] = $_POST['id'][$i];
-	  $cleared_items[]   = $_POST['id'][$i];
+	  $cleared_items[]   = (int)$_POST['id'][$i]; // interpolated into "id IN (...)" below
 	  $glrows[db_prepare_input($_POST['gl_account_' . $i])] += $currencies->clean_value($_POST['amt_'.$i]) - $currencies->clean_value($_POST['pmt_'.$i]);
 	}
 	$balance_payments = 0;
@@ -139,7 +145,7 @@ switch ($_REQUEST['action']) {
 	$db->transCommit();
 	if( !$error ){
 		$newrow = $db->Execute("select i.id from " . TABLE_JOURNAL_MAIN . " m join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id where i.gl_account = '" . $tills->gl_acct_id . "' and m.id ='".$glEntry->id."'");
-		$cleared_items[] = $newrow->fields['id'];
+		$cleared_items[] = (int)$newrow->fields['id'];
 		$statement_balance = $currencies->clean_value($_POST['statement_balance']);// misschien moet dit opgehaald worden ipv balans waarde van till
 		// see if this is an update or new entry
 		$sql_data_array = array(
@@ -218,7 +224,9 @@ if ($post_date){
 	$result = $db->Execute($sql);
 	if ($result->RecordCount() <> 0) { // there are current cleared items in the present accounting period (edit)
 	  $statement_balance = $currencies->format($result->fields['statement_balance']);
-	  $cleared_items     = unserialize($result->fields['cleared_items']);
+	  $cleared_items     = unserialize((string)$result->fields['cleared_items'], array('allowed_classes' => false));
+	  if (!is_array($cleared_items)) $cleared_items = array();
+	  $cleared_items     = array_map('intval', $cleared_items); // interpolated into "id IN (...)" below
 	  // load information from general ledger
 	  if (count($cleared_items) > 0) {
 		$sql = "select i.id, m.post_date, i.debit_amount, i.credit_amount, m.purchase_invoice_id, i.gl_type, i.description, m.journal_id, i.gl_account, a.description as gl_name

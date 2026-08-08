@@ -77,6 +77,10 @@ function startOAuth2() {
   var redirectUri = window.location.protocol + '//' + window.location.host +
                     window.location.pathname.replace(/\/[^\/]*$/, '/') + 'oauth2_callback.php';
 
+  // CSRF state — bound to the PHP session and re-checked by oauth2_callback.php
+  // so a forged callback (attacker-supplied code) can't bind their mailbox.
+  var oauth2State = <?php $_SESSION['oauth2_state'] = bin2hex(random_bytes(16)); echo json_encode($_SESSION['oauth2_state']); ?>;
+
   var authUrl;
   if (provider === 'google') {
     authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
@@ -85,6 +89,7 @@ function startOAuth2() {
       '&response_type=code' +
       '&scope='         + encodeURIComponent('https://mail.google.com/') +
       '&access_type=offline' +
+      '&state='         + encodeURIComponent(oauth2State) +
       '&prompt=consent';
   } else {
     authUrl = 'https://login.microsoftonline.com/' + encodeURIComponent(tenant) + '/oauth2/v2.0/authorize' +
@@ -92,6 +97,7 @@ function startOAuth2() {
       '&redirect_uri='  + encodeURIComponent(redirectUri) +
       '&response_type=code' +
       '&scope='         + encodeURIComponent('https://outlook.office365.com/SMTP.Send offline_access') +
+      '&state='         + encodeURIComponent(oauth2State) +
       '&prompt=consent';
   }
 

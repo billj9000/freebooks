@@ -53,6 +53,16 @@ if (empty($_GET['code'])) {
   oc_die('No authorization code returned.');
 }
 
+// CSRF protection: the state we placed in the auth URL (see admin js_include.php)
+// must match the one stored in this session. Consumed one-time so a replayed
+// callback fails. Without this, an attacker could feed their own authorization
+// code to a logged-in admin and bind the attacker's mailbox refresh token.
+$sess_state = $_SESSION['oauth2_state'] ?? '';
+unset($_SESSION['oauth2_state']);
+if (empty($_GET['state']) || $sess_state === '' || !hash_equals($sess_state, (string)$_GET['state'])) {
+  oc_die('Invalid or expired authorization state. Please retry from the admin page.');
+}
+
 // Read provider and client credentials from the DB (loaded after connecting)
 if (empty($_SESSION['company'])) { oc_die('Session expired. Log in again and retry.'); }
 
