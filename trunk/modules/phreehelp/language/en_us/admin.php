@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,7 +19,7 @@
 //
 
 // Module information
-define('MODULE_PHREEHELP_TITLE','PhreeHelp Module');
-define('MODULE_PHREEHELP_DESCRIPTION','The PhreeHelp module provides a popup context help screen to display manual entries supplied with modules. <b>NOTE: This is a core module and should not be removed!</b>');
+define('MODULE_PHREEHELP_TITLE','Help Module');
+define('MODULE_PHREEHELP_DESCRIPTION','The Help module provides a popup context help screen to display manual entries supplied with modules. <b>NOTE: This is a core module and should not be removed!</b>');
 
 ?>

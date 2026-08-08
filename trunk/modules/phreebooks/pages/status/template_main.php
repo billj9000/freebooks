@@ -35,14 +35,14 @@ switch (JOURNAL_ID) {
     $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=journal', 'SSL') . '\'"', 2);
     $toolbar->add_help('');
     break;
-  case  3: $toolbar->add_help('07.02.03.04'); break;
+  case  3: $toolbar->add_help('07.02.04'); break;
   case  4: $toolbar->add_help('07.02.03.04'); break;
-  case  6: $toolbar->add_help('07.02.03.04'); break;
-  case  7: $toolbar->add_help('07.02.03.04'); break;
-  case  9: $toolbar->add_help('07.03.03.04'); break;
+  case  6: $toolbar->add_help('07.02.05'); break;
+  case  7: $toolbar->add_help('07.02.07'); break;
+  case  9: $toolbar->add_help('07.03.04'); break;
   case 10: $toolbar->add_help('07.03.03.04'); break;
-  case 12: $toolbar->add_help('07.03.03.04'); break;
-  case 13: $toolbar->add_help('07.03.03.04'); break;
+  case 12: $toolbar->add_help('07.03.05.04'); break;
+  case 13: $toolbar->add_help('07.03.07'); break;
   case 18:
   case 20:
     $toolbar->add_icon('new', 'onclick="location.href=\''.html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;type='.$account_type.'&amp;jID='.JOURNAL_ID, 'SSL') . '\'"', 2);
