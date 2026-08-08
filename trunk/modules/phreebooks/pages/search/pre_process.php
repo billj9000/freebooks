@@ -140,7 +140,7 @@ $disp_order  = $result['disp_order'];
 
 // build the list for the page selected
 $criteria = array();
-if ($_SESSION['search_journal_id']) $criteria[] = 'm.journal_id = ' . $_SESSION['search_journal_id'];
+if ($_SESSION['search_journal_id']) $criteria[] = 'm.journal_id = ' . (int)$_SESSION['search_journal_id'];
 
 $ref_fields = array('m.purchase_invoice_id', 'm.purch_order_id', 'i.serialize_number');
 $result = build_search_sql($ref_fields, $_SESSION['search_ref_id'], $_SESSION['search_ref_from'], $_SESSION['search_ref_to']);

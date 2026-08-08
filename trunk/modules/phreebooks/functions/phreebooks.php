@@ -439,13 +439,13 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
 	  switch ($id) {
 	    default:
 		case 'all':  break;
-		case 'eq':   if ($id_from) $output .= $field . " = '" . $id_from . "'";      break;
-		case 'neq':  if ($id_from) $output .= $field . " <> '" . $id_from . "'";     break;
-		case 'like': if ($id_from) $output .= $field . " like '%" . $id_from . "%'"; break;
+		case 'eq':   if ($id_from) $output .= $field . " = '" . db_input($id_from) . "'";      break;
+		case 'neq':  if ($id_from) $output .= $field . " <> '" . db_input($id_from) . "'";     break;
+		case 'like': if ($id_from) $output .= $field . " like '%" . db_input($id_from) . "%'"; break;
 		case 'rng':
-		  if ($id_from)          $output .= $field . " >= '" . $id_from . "'";
+		  if ($id_from)          $output .= $field . " >= '" . db_input($id_from) . "'";
 		  if ($output && $id_to) $output .= " and ";
-		  if ($id_to)            $output .= $field . " <= '" . $id_to . "'";
+		  if ($id_to)            $output .= $field . " <= '" . db_input($id_to) . "'";
 	  }
 	  if ($output) $crit[] = $output;
     }
