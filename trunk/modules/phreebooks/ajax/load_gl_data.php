@@ -38,7 +38,7 @@ while (!$result->EOF) {
   $result->MoveNext();
 }
 $result = $db->Execute("select debit_amount - credit_amount as balance from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', $periods) . ")");
+	where account_id = '" . db_input($gl_acct) . "' and period in (" . implode(',', $periods) . ")");
 while (!$result->EOF) {
   $xml .= "\t<items>\n";
   $xml .= "\t\t" . xmlEntry('balance', $currencies->format($result->fields['balance']));

@@ -103,7 +103,7 @@ switch ($_REQUEST['action']) {
 	  $sql_data_array['admin_pass'] = pw_encrypt_password($password_new);
 	}
 	if (!$admin_id) { // check for duplicate user name
-	  $result = $db->Execute("select admin_id from " . TABLE_USERS . " where admin_name = '" . db_prepare_input($_POST['admin_name']) . "'");
+	  $result = $db->Execute("select admin_id from " . TABLE_USERS . " where admin_name = '" . db_input(db_prepare_input($_POST['admin_name'])) . "'");
 	  if ($result->RecordCount() > 0) {
 		$error = $messageStack->add(ENTRY_DUP_USER_NEW_ERROR, 'error');
 	  }
@@ -130,7 +130,7 @@ switch ($_REQUEST['action']) {
 	$admin_id = db_prepare_input($_GET['cID']);
 	$new_name = db_prepare_input($_GET['name']);
 	// check for duplicate user names
-	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_name = '" . $new_name . "'");
+	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_name = '" . db_input($new_name) . "'");
 	if ($result->Recordcount() > 0) {	// error and reload
 	  $messageStack->add(GEN_ERROR_DUPLICATE_ID, 'error');
 	  break;

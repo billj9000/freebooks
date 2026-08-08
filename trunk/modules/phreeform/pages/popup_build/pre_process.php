@@ -28,7 +28,7 @@ if (file_exists($custom_path)) { include_once($custom_path); }
 /**************   page specific initialization  *************************/
 $error       = false;
 $self_close  = false;
-$id          = $_GET['id']           ? $_GET['id']       : $_POST['id'];
+$id          = (int)($_GET['id']       ? $_GET['id']       : $_POST['id']);
 $rID         = $_GET['rID']          ? $_GET['rID']      : $_POST['rID'];
 $parent_id   = $_GET['parent_id']    ? $_GET['parent_id']: $_POST['parent_id'];
 $def_module  = $_POST['mod']         ? $_POST['mod']     : DEFAULT_MODULE;
@@ -276,7 +276,7 @@ switch ($_REQUEST['action']) {
 	  $messageStack->add(PHREEFORM_DIR_MOVE_ERROR,'error');
 	  break;
 	}
-	$result = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_group = '" . $doc_group . "'");
+	$result = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_group = '" . db_input($doc_group) . "'");
 	if ($result->RecordCount() > 0) {
 	  if ($result->fields['id'] <> $id) {
 	   $messageStack->add(PHREEFORM_DIR_GROUP_DUP_ERROR, 'error');

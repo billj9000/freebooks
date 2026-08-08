@@ -44,16 +44,22 @@ if (!$sku && !$UPC && !$iID) {
 if(!$UPC && !$iID && (validate_UPCABarcode($sku) || validate_EAN13Barcode($sku) )){
 	$UPC = $sku;	
 }
+// Escaped copies for SQL string interpolation below. The raw values are kept
+// for barcode validation (above) and XML output, so we don't escape in place.
+$sku_db = db_input($sku);
+$upc_db = db_input($UPC);
+$iid_db = db_input($iID);
+$cid_db = db_input($cID);
 // Load the sku information
 if ($iID) {
-  $search = " where id = '$iID'";
+  $search = " where id = '$iid_db'";
 } else if ($UPC) {
-  $search = " where upc_code = '$UPC'";
+  $search = " where upc_code = '$upc_db'";
 } else if ($strict){ // exact search for sku match
-  $search = " where sku = '$sku'";
+  $search = " where sku = '$sku_db'";
 } else { // broad search for a match
   $search_fields = array('sku', 'upc_code', 'description_short', 'description_sales', 'description_purchase');
-  $search = " where " . implode(" like '%$sku%' or ", $search_fields) . " like '%$sku%'";
+  $search = " where " . implode(" like '%$sku_db%' or ", $search_fields) . " like '%$sku_db%'";
 }
 
 if (!$bID) $bID = 0; // assume only one branch or main branch if not specified
@@ -64,7 +70,7 @@ if ($rID) $xml .= xmlEntry("rID", $rID);
 $vendor = in_array($jID, array(3,4,6,7)) ? true : false;
 if ($vendor && !$iID && $strict == false && $UPC == false) { // just search for products from that vendor for purchases
  	$v_search_fields = array('a.sku', 'a.upc_code', 'a.description_short', 'a.description_sales', 'p.description_purchase', 'p.vendor_sku' );
-  	$first_search = " where " . implode(" like '%$sku%' or ", $v_search_fields) . " like '%$sku%' and p.vendor_id = '$cID' and a.inactive = '0'";
+  	$first_search = " where " . implode(" like '%$sku_db%' or ", $v_search_fields) . " like '%$sku_db%' and p.vendor_id = '$cid_db' and a.inactive = '0'";
   	$purchase     = $db->Execute("select DISTINCT a.id as id, p.vendor_id as vendor_id, p.vendor_sku as vendor_sku, p.description_purchase as description_purchase, p.purch_package_quantity as purch_package_quantity,
   	p.purch_taxable as purch_taxable, p.item_cost as item_cost, p.price_sheet_v as price_sheet_v from " . TABLE_INVENTORY . " a LEFT JOIN " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku $first_search GROUP BY a.sku");
   	if($purchase->recordCount() == 1){
@@ -80,7 +86,7 @@ for ($step = 1; $step < 4; $step++){
 	switch($step){
 		case 1:
 			if ($vendor == true  || $iID == true || $strict == true || $UPC == true) break;
-			$inventory =  $db->Execute("select * from " . TABLE_INVENTORY .  " where sku = '$sku' and inactive = '0'");
+			$inventory =  $db->Execute("select * from " . TABLE_INVENTORY .  " where sku = '$sku_db' and inactive = '0'");
 			break; 
 		case 2:
 			$inventory =  $db->Execute("select * from " . TABLE_INVENTORY . $search . " and inactive = '0'");

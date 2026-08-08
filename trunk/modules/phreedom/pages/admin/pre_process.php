@@ -238,7 +238,7 @@ switch ($_REQUEST['action']) {
 	  gen_auto_update_period(false);
 	}
 	if (!$error) { // reset SESSION['company'] to new company and redirect to install->store_setup
-	  $db->Execute("update " . TABLE_CONFIGURATION . " set configuration_value = '" . $co_name . "' 
+	  $db->Execute("update " . TABLE_CONFIGURATION . " set configuration_value = '" . db_input($co_name) . "'
 	    where configuration_key = 'COMPANY_NAME'");
 	  $messageStack->add(SETUP_CO_MGR_CREATE_SUCCESS,'success');
 	  gen_add_audit_log(SETUP_CO_MGR_LOG . TEXT_COPY, $db_name);

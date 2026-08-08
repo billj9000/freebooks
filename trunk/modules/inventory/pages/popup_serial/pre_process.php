@@ -25,9 +25,9 @@ $sku   = db_prepare_input($_GET['sku']);
 $store = isset($_GET['storeID']) ? (int)$_GET['store_id'] : 0;
 $rowID = db_prepare_input($_GET['rowID']);
 // retrieve some inventory item details
-$result = $db->Execute("SELECT description_short FROM ".TABLE_INVENTORY." WHERE sku='$sku'");
+$result = $db->Execute("SELECT description_short FROM ".TABLE_INVENTORY." WHERE sku='".db_input($sku)."'");
 $description = $result->fields['description_short'];
-$sql = "SELECT serialize_number FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='$sku' AND remaining>0";
+$sql = "SELECT serialize_number FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='".db_input($sku)."' AND remaining>0";
 if ($store) $sql .= " AND store_id='$store'";
 $result = $db->Execute($sql);
 $snValues = array();

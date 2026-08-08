@@ -211,30 +211,30 @@ switch ($_REQUEST['action']) {
   case 'delete':
 	$dashboard_id = db_prepare_input($_POST['dashboard_id']);
 	$result = $db->Execute("delete from " . TABLE_USERS_PROFILES . " 
-	  where user_id=".$_SESSION['admin_id']." and menu_id='$menu_id' and dashboard_id='$dashboard_id'");
+	  where user_id=".(int)$_SESSION['admin_id']." and menu_id='".db_input($menu_id)."' and dashboard_id='".db_input($dashboard_id)."'");
 	break;
   case 'move_up': 
   case 'move_down':
 	$dashboard_id = db_prepare_input($_POST['dashboard_id']);
 	$sql = "select column_id, row_id from " . TABLE_USERS_PROFILES . " 
-		where user_id=".$_SESSION['admin_id']." and menu_id='$menu_id' and dashboard_id='$dashboard_id'";
+		where user_id=".(int)$_SESSION['admin_id']." and menu_id='".db_input($menu_id)."' and dashboard_id='".db_input($dashboard_id)."'";
 	$result         = $db->Execute($sql);
 	$current_row    = $result->fields['row_id'];
 	$current_column = $result->fields['column_id'];
 	$new_row        = ($_REQUEST['action'] == 'move_up') ? ($current_row - 1) : ($current_row + 1);
 	$sql = "select max(row_id) as max_row from " . TABLE_USERS_PROFILES . " 
-		where user_id=".$_SESSION['admin_id']." and menu_id='$menu_id' and column_id='$current_column'";
+		where user_id=".(int)$_SESSION['admin_id']." and menu_id='".db_input($menu_id)."' and column_id='".db_input($current_column)."'";
 	$result         = $db->Execute($sql);
 	$max_row        = $result->fields['max_row'];
 	if (($new_row >= 1 && $_REQUEST['action'] == 'move_up') || ($new_row <= $max_row && $_REQUEST['action'] == 'move_down')) {
 	  $sql = "update " . TABLE_USERS_PROFILES . " set row_id = 0 
-		where user_id=".$_SESSION['admin_id']." and menu_id='$menu_id' and column_id=$current_column and row_id='$current_row'";
+		where user_id=".$_SESSION['admin_id']." and menu_id='".db_input($menu_id)."' and column_id=$current_column and row_id='$current_row'";
 	  $db->Execute($sql);
 	  $sql = "update " . TABLE_USERS_PROFILES . " set row_id=$current_row 
-		where user_id=".$_SESSION['admin_id']." and menu_id='$menu_id' and column_id=$current_column and row_id='$new_row'";
+		where user_id=".$_SESSION['admin_id']." and menu_id='".db_input($menu_id)."' and column_id=$current_column and row_id='$new_row'";
 	  $db->Execute($sql);
 	  $sql = "update " . TABLE_USERS_PROFILES . " set row_id=$new_row   
-		where user_id=".$_SESSION['admin_id']." and menu_id='$menu_id' and column_id=$current_column and row_id=0";
+		where user_id=".$_SESSION['admin_id']." and menu_id='".db_input($menu_id)."' and column_id=$current_column and row_id=0";
 	  $db->Execute($sql);
 	}
 	break;

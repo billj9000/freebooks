@@ -133,7 +133,7 @@ while (!$result->EOF) {
 
 $toggle_list = false;
 if ($group) {
-  $result = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_group = '" . $group . "'");
+  $result = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_group = '" . db_input($group) . "'");
   if ($result->RecordCount() > 0) $toggle_list = buildToggleList($result->fields['id']);
 }
 

@@ -32,6 +32,7 @@ if ($period == 'all') {
 	$messageStack->add(BNK_ERROR_PERIOD_NOT_ALL, 'error');
 	$period = CURRENT_ACCOUNTING_PERIOD;
 }
+$period          = (int)$period; // interpolated unquoted into SQL below
 $gl_account      = isset($_POST['gl_account']) ? $_POST['gl_account'] : AR_SALES_RECEIPTS_ACCOUNT;
 $cleared_items   = array();
 $uncleared_items = array();
@@ -47,6 +48,10 @@ while (!$result->EOF) {
   $gl_accounts[] = $result->fields['id'];
   $result->MoveNext();
 }
+// gl_account feeds several SQL statements below in a quoted-string context and
+// comes straight from $_POST. Restrict it to the known cash-account list (the
+// same set shown in the dropdown) so a crafted value can't break out.
+if (!in_array($gl_account, $gl_accounts, true)) $gl_account = AR_SALES_RECEIPTS_ACCOUNT;
 
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/reconciliation/extra_actions.php';
@@ -58,11 +63,12 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, 3);
   	$statement_balance = $currencies->clean_value($_POST['start_balance']);
 	if (is_array($_POST['id'])) for ($i = 0; $i < count($_POST['id']); $i++) {
-	  $all_items[] = $_POST['id'][$i];
+	  $id = (int)$_POST['id'][$i]; // interpolated into "id IN (...)" below
+	  $all_items[] = $id;
 	  if (isset($_POST['chk'][$i])) {
-		$cleared_items[]   = $_POST['id'][$i];
+		$cleared_items[]   = $id;
 	  } else {
-		$uncleared_items[] = $_POST['id'][$i];
+		$uncleared_items[] = $id;
 	  }
 	}
 	// see if this is an update or new entry
@@ -150,7 +156,8 @@ $sql = "select statement_balance, cleared_items from ".TABLE_RECONCILIATION." wh
 $result = $db->Execute($sql);
 if ($result->RecordCount() <> 0) { // there are current cleared items in the present accounting period (edit)
   $statement_balance = $currencies->format($result->fields['statement_balance']);
-  $cleared_items     = unserialize($result->fields['cleared_items']);
+  $cleared_items     = unserialize((string)$result->fields['cleared_items'], array('allowed_classes' => false));
+  if (!is_array($cleared_items)) $cleared_items = array();
   // load information from general ledger
   if (count($cleared_items) > 0) {
 //	$sql = "select i.id, m.post_date, i.debit_amount, i.credit_amount, m.purchase_invoice_id, m.bill_primary_name, i.description, m.journal_id 

@@ -55,9 +55,9 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'toggle':
     $id     = db_prepare_input($_POST['rowSeq']);
-	$result = $db->Execute("select waiting from " . TABLE_JOURNAL_MAIN . " where id = '" . $id . "'");
+	$result = $db->Execute("select waiting from " . TABLE_JOURNAL_MAIN . " where id = '" . db_input($id) . "'");
 	$toggle = $result->fields['waiting'] ? '0' : '1';
-	$db->Execute("update " . TABLE_JOURNAL_MAIN . " set waiting = '" . $toggle . "' where id = '" . $id . "'");
+	$db->Execute("update " . TABLE_JOURNAL_MAIN . " set waiting = '" . $toggle . "' where id = '" . db_input($id) . "'");
     break;
   case 'dn_attach':
 	$oID = db_prepare_input($_POST['rowSeq']);

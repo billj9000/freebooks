@@ -40,7 +40,7 @@ switch ($_REQUEST['action']) {
 	while (true) {
 	  if (!isset($_POST['id_' . $tab_id])) break;
 	  $sheet_id = (int)$_POST['id_' . $tab_id];
-	  $sheet_name = db_prepare_input($_POST['sheet_name_'. $tab_id]);
+	  $sheet_name = db_input(db_prepare_input($_POST['sheet_name_'. $tab_id])); // used only in SQL string literals below
 	  $default_checked = isset($_POST['def_' . $tab_id]) ? true : false;
 	  if ($default_checked) {
 		$db->Execute("delete from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = $id and price_sheet_id = '$sheet_id'");

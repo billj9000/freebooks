@@ -57,7 +57,7 @@ switch ($_REQUEST['action']) {
 	  'admin_security' => $admin_security,
 	);
 	if (!$admin_id) {
-	  $result = $db->Execute("select admin_id from " . TABLE_USERS . " where admin_name = '" . db_prepare_input($_POST['admin_name']) . "'");
+	  $result = $db->Execute("select admin_id from " . TABLE_USERS . " where admin_name = '" . db_input(db_prepare_input($_POST['admin_name'])) . "'");
 	  if ($result->RecordCount() > 0) {
 		$error = $messageStack->add(ENTRY_DUP_USER_NEW_ERROR, 'error');
 	  }
@@ -83,7 +83,7 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, 2);
 	$admin_id = db_prepare_input($_GET['cID']);
 	$new_name = db_prepare_input($_GET['name']);
-	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_name = '" . $new_name . "'");
+	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_name = '" . db_input($new_name) . "'");
 	if ($result->Recordcount() > 0) {
 	  $messageStack->add(GEN_ERROR_DUPLICATE_ID, 'error');
 	  break;
