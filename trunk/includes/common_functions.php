@@ -689,11 +689,12 @@ function saveUploadZip($file_field, $dest_dir, $dest_name) {
 		$fildesc = TEXT_PERIOD . ' ' . CURRENT_ACCOUNTING_PERIOD . ' (' . gen_locale_date(CURRENT_ACCOUNTING_PERIOD_START) . ' ' . TEXT_TO . ' ' . gen_locale_date(CURRENT_ACCOUNTING_PERIOD_END) . '); ';
 		break;
 	  case "z": // date by period
-		$temp = gen_calculate_fiscal_dates($DateArray[1]);
+		$period_num = (int)$DateArray[1]; // period is numeric; cast guards the unquoted SQL interpolation below
+		$temp = gen_calculate_fiscal_dates($period_num);
 		$ds = $temp['start_date'];
 		$de = $temp['end_date'];
-		$d  = 'period = ' . $DateArray[1];
-		$fildesc = TEXT_PERIOD . ' ' . $DateArray[1] . ' (' . gen_locale_date($ds) . ' ' . TEXT_TO . ' ' . gen_locale_date($de) . '); ';
+		$d  = 'period = ' . $period_num;
+		$fildesc = TEXT_PERIOD . ' ' . $period_num . ' (' . gen_locale_date($ds) . ' ' . TEXT_TO . ' ' . gen_locale_date($de) . '); ';
 		break;
 	}
 	$dates = array(
@@ -726,6 +727,13 @@ function gen_db_date($raw_date = '', $separator = '/') {
       case 'd': $day   = substr('0'  . $parts[$key], -2, 2); break;
     }
   }
+  // Each part must be digits-only. The numeric range checks below use loose
+  // comparison, and in PHP 8 a value like "1'" compares as 1 (so "1'" < 1 is
+  // false, "1'" > 12 is false) — which would let an embedded quote pass
+  // validation and reach the callers that concatenate this return value straight
+  // into SQL (gen_build_sql_date, statement_builder, phreeform BuildSQL). Reject
+  // any non-numeric part up front so only a clean date can ever leave here.
+  if (!ctype_digit((string)$year) || !ctype_digit((string)$month) || !ctype_digit((string)$day)) $error = true;
   if ($month < 1    || $month > 12)   $error = true;
   if ($day   < 1    || $day   > 31)   $error = true;
   if ($year  < 1900 || $year  > 2099) $error = true;
@@ -733,7 +741,8 @@ function gen_db_date($raw_date = '', $separator = '/') {
     $messageStack->add(sprintf(GEN_CALENDAR_FORMAT_ERROR, $raw_date, DATE_FORMAT, DATE_FORMAT_CALENDAR), 'error');
     return date('Y-m-d');
   }
-  return $year . '-' . $month . '-' . $day;
+  // Reassemble from integer-cast parts so the output is guaranteed digits-only.
+  return sprintf('%04d-%02d-%02d', (int)$year, (int)$month, (int)$day);
 }
 
   function gen_locale_date($raw_date, $long = false) { // from db to display format
@@ -800,6 +809,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 
   function gen_calculate_fiscal_dates($period) {
 	global $db, $messageStack;
+	$period = (int)$period; // period is always an accounting-period number; cast guards the unquoted interpolation below
 	$result = $db->Execute("select fiscal_year, start_date, end_date from " . TABLE_ACCOUNTING_PERIODS . "
 	  where period = " . $period);
 	if ($result->RecordCount() <> 1) { // post_date is out of range of defined accounting periods
