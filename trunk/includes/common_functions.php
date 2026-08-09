@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -1650,10 +1651,12 @@ function validate_ajax_user($token = 0) {
 		$messageStack->add(TEXT_IMP_ERMSG7, 'error');
 		return false;
 	}
-	$ext = strtolower(substr($_FILES[$filename]['name'], -3, 3));
-	$textfile = (strpos($_FILES[$filename]['type'], $file_type) === false) ? false : true;
+	// Validate by file extension only — the browser-supplied 'type' (Content-Type) is
+	// attacker-controlled and trivially spoofed, so it must never be able to bypass the
+	// extension allowlist (it previously did, via the $textfile OR-bypass below).
+	$ext = strtolower(pathinfo($_FILES[$filename]['name'], PATHINFO_EXTENSION));
 	if (!is_array($extension)) $extension = array($extension);
-	if ((!$textfile && in_array($ext, $extension)) || $textfile) { // allow file_type and extensions
+	if (in_array($ext, $extension)) {
 		return true;
 	}
 	$messageStack->add(TEXT_IMP_ERMSG6, 'error');
@@ -1872,11 +1875,13 @@ function pw_encrypt_password($plain) {
 }
 
 function pw_create_random_value($length = 12) {
+  // used to generate live credentials (e.g. the password-reset temp password), so this
+  // must be cryptographically unpredictable — rand()/mt_rand() are not.
   $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
   $chars_length = (strlen($chars) - 1);
-  $string = $chars[rand(0, $chars_length)];
+  $string = $chars[random_int(0, $chars_length)];
   for ($i = 1; $i < $length; $i = strlen($string)) {
-	$r = $chars[rand(0, $chars_length)];
+	$r = $chars[random_int(0, $chars_length)];
 	if ($r != $string[$i - 1]) $string .=  $r;
   }
   return $string;

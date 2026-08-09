@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -50,12 +51,15 @@ $http_domain  = gen_get_top_level_domain(HTTP_SERVER);
 $https_domain = gen_get_top_level_domain(HTTPS_SERVER);
 $current_domain = (($request_type == 'NONSSL') ? $http_domain : $https_domain);
 
-// set the session cookie parameters
+// set the session cookie parameters — match includes/application_top.php's hardened flags
+// (this file previously used the old 4-arg form with no httponly/secure/samesite)
+session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'domain' => (gen_not_null($current_domain) ? $current_domain : ''), 'httponly' => true, 'samesite' => 'Lax', 'secure' => ENABLE_SSL_ADMIN === 'true']);
 session_start();
-session_set_cookie_params(0, '/', (gen_not_null($current_domain) ? $current_domain : ''));
 
 // determine what company to connect to
-$db_name = $_GET['db'];
+// basename() prevents $_GET['db'] from traversing outside my_files/ to read/require an
+// unintended config.php elsewhere on disk.
+$db_name = basename((string)$_GET['db']);
 if (!$db_name || $db_name == 'auto') { // get the first company and use that db, for single company installs only!
 	$folders = scandir(DIR_FS_MY_FILES);
 	foreach ($folders as $folder) if ($folder <> '.' && $folder <> '..' && is_dir(DIR_FS_MY_FILES . $folder)) {

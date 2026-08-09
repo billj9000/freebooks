@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -31,10 +32,20 @@ class fields {
     public  $extra_tab_li   = '';
 	public  $extra_tab_html = ''; 
     
-	public function __construct($sync = true){ 
-	  	$this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
+	public function __construct($sync = true){
 		require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
+		// capture the subclass-declared identity before the mass-assign below can clobber it —
+		// $_POST is trusted to populate this object's many entry-type fields (field_name,
+		// description, entry_type, etc.), but module/db_table/security_id must never come
+		// from the request: db_table/module drive raw ALTER TABLE / SQL below, and security_id
+		// gates btn_save()/btn_delete(), so letting POST override any of them is a privilege
+		// escalation + arbitrary-table DDL injection (a request could set db_table=users).
+		$module    = $this->module;
+		$db_table  = $this->db_table;
 	  	foreach ($_POST as $key => $value) $this->$key = $value;
+	  	$this->module      = $module;
+	  	$this->db_table    = $db_table;
+	  	$this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
 	  	$this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
 		if ($sync) xtra_field_sync_list($this->module, $this->db_table);
 	}
@@ -91,7 +102,7 @@ class fields {
 		if ($params['length'] < 1) $params['length'] = DEFAULT_TEXT_LENGTH;
 		if ($params['length'] < 256) {
 			$values['entry_type'] = 'varchar(' . $params['length'] . ')';
-			$values['entry_params'] = " default '" . $params['default'] . "'";
+			$values['entry_params'] = " default '" . db_input($params['default']) . "'";
 		} elseif ($_POST['TextLength'] < 65536) { 
 			$values['entry_type'] = 'text';
 		} elseif ($_POST['TextLength'] < 16777216) {
@@ -105,7 +116,7 @@ class fields {
 	  case 'inventory_link':
 		$params['default']      = db_prepare_input($_POST['link_default']);
 		$values['entry_type']   = 'varchar(255)';
-		$values['entry_params'] = " default '".$params['default']."'";
+		$values['entry_params'] = " default '".db_input($params['default'])."'";
 		break;
 	  case 'integer':
 		$params['select']  = db_prepare_input($_POST['integer_range']);
@@ -117,7 +128,7 @@ class fields {
 			case "3": $values['entry_type'] = 'int';       break;
 			case "4": $values['entry_type'] = 'bigint';
 		}
-		$values['entry_params'] = " default '" . $params['default'] . "'";
+		$values['entry_params'] = " default '" . db_input($params['default']) . "'";
 		break;
 	  case 'decimal':
 		$params['select']  = db_prepare_input($_POST['decimal_range']);
@@ -135,7 +146,7 @@ class fields {
                 break;
             
 		}
-		$values['entry_params'] = " default '" . $params['default'] . "'";
+		$values['entry_params'] = " default '" . db_input($params['default']) . "'";
 		break;
 	  case 'drop_down':
 	  case 'radio':
@@ -144,7 +155,7 @@ class fields {
 		$max_choice_size = 0;
 		while ($choice = array_shift($choices)) {
 			$a_choice = explode(':',$choice);
-			if ($a_choice[2] == 1) $values['entry_params'] = " default '" . $a_choice[0] . "'";
+			if ($a_choice[2] == 1) $values['entry_params'] = " default '" . db_input($a_choice[0]) . "'";
 			if (strlen($a_choice[0]) > $max_choice_size) $max_choice_size = strlen($a_choice[0]);
 		}
 		$values['entry_type'] = 'char(' . $max_choice_size . ')';
@@ -166,7 +177,7 @@ class fields {
 	  case 'check_box':
 		$params['select']       = db_prepare_input($_POST['check_box_range']);
 		$values['entry_type']   = 'enum("0","1")';
-		$values['entry_params'] = " default '" . $params['select'] . "'";
+		$values['entry_params'] = " default '" . db_input($params['select']) . "'";
 		break;
 	  case 'time_stamp':
 		$values['entry_type'] = 'timestamp';
@@ -189,14 +200,14 @@ class fields {
 	if (!$this->id == 0) {
 	  // load old field name as it may have been changed.
 	  if ($this->tab_id <> '') {
-		  $result = $db->Execute("select field_name from " . TABLE_EXTRA_FIELDS . " where id = " . $this->id );
+		  $result = $db->Execute("select field_name from " . TABLE_EXTRA_FIELDS . " where id = " . (int)$this->id );
 		  if (isset($values['entry_type']) || $this->field_name <> $result->fields['field_name']) {
 			$sql = "alter table " . $this->db_table . " change " . $result->fields['field_name'] . " " . $this->field_name . " 
 			  " . $values['entry_type'] . (isset($values['entry_params']) ? $values['entry_params'] : '');
 			$result = $db->Execute($sql);
 		  }
 	  }
-	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array, 'update', "id = " . $this->id );
+	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array, 'update', "id = " . (int)$this->id );
 	  gen_add_audit_log($this->module .' '. sprintf(EXTRA_FIELDS_LOG , TEXT_UPDATE), $this->id  . ' - ' . $this->field_name);
 	} else {
 	  $sql = "alter table " . $this->db_table . " 
@@ -215,13 +226,14 @@ class fields {
 	  $messageStack->add(ERROR_NO_PERMISSION,'error');
 	  return false;
 	}
+	$id = (int)$id;
 	$result = $db->Execute("SELECT * FROM ".TABLE_EXTRA_FIELDS." WHERE id=$id");
 	foreach ($result->fields as $key => $value) $this->$key = $value;
 	if ($this->tab_id == '0') { // don't allow deletion of system fields
 	  $messageStack->add(INV_CANNOT_DELETE_SYSTEM,'error');
 	  return false;
 	}
-	$db->Execute("DELETE FROM ".TABLE_EXTRA_FIELDS." WHERE id=$this->id");
+	$db->Execute("DELETE FROM ".TABLE_EXTRA_FIELDS." WHERE id=" . (int)$this->id);
 	$db->Execute("ALTER TABLE $this->db_table DROP COLUMN $this->field_name");
 	gen_add_audit_log ($this->module.' '.sprintf(EXTRA_FIELDS_LOG, TEXT_DELETE), "$id - $this->field_name");
 	return true;
@@ -270,7 +282,7 @@ class fields {
   	function build_form_html($action, $id = '') {
     	global $db, $messageStack, $currencies, $integer_lengths, $decimal_lengths, $check_box_choices;
 		if ($action <> 'new' && $this->error == false) {
-	   		$result = $db->Execute("select * from ".TABLE_EXTRA_FIELDS." where id='$this->id'");
+	   		$result = $db->Execute("select * from ".TABLE_EXTRA_FIELDS." where id=" . (int)$this->id);
 	   		$params = unserialize($result->fields['params']);
 	   		foreach ($result->fields as $key => $value) $this->$key = $value;
 	   		if (is_array($params)) foreach ($params as $key => $value) $this->$key = $value;

@@ -151,7 +151,9 @@ switch ($_REQUEST['action']) {
 	    if (isset($_POST['img_sel_' . $key])) {
 		  if ($_POST['img_sel_' . $key] == 'U') { // upload
 		    if (validate_upload('img_upload_' . $key, 'image', array('jpg', 'jpeg', 'png', 'gif'))) {
-			  $properties->filename = $_FILES['img_upload_' . $key]['name'];
+			  // basename() strips any directory traversal from the client-supplied filename
+			  // before it's used as the destination path for move_uploaded_file() below.
+			  $properties->filename = basename($_FILES['img_upload_' . $key]['name']);
 			  if (!@move_uploaded_file($_FILES['img_upload_' . $key]['tmp_name'], PF_DIR_MY_REPORTS . 'images/' . $properties->filename)) {
 			    $messageStack->add(sprintf(PHREEFORM_IMAGE_MOVE_ERROR, PF_DIR_MY_REPORTS . 'images/' . $properties->filename), 'error');
 			  }

@@ -18,7 +18,10 @@
 // Path: /index.php
 //
 ob_start();
-ini_set('display_errors', '1');
+// display_errors is decided once DEBUG (seeded from pb_configuration) is known — see
+// includes/application_top.php. Default to off here so an uncaught error/deprecation
+// before that point doesn't leak stack traces/paths/query text to visitors.
+ini_set('display_errors', '0');
 ini_set('max_input_vars', '3000');
 error_reporting(E_ALL ^ E_NOTICE);
 date_default_timezone_set('Europe/London');

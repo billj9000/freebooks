@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -22,14 +22,30 @@ $xml = NULL;
 $security_level = validate_ajax_user(SECURITY_ID_PHREEFORM);
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
-$runaway   = 0;
-$tables    = array();
-$i         = 2;
+$runaway     = 0;
+$tables      = array();
+$i           = 2;
+// Table names and join type are used as raw SQL identifiers/keywords below (they can't be
+// parameterized), so they're restricted to safe allowlists — table/column identifiers, and
+// a fixed set of join keywords. This is unrelated to the free-form join "criteria", which by
+// design lets report authors (SECURITY_ID_PHREEFORM) write arbitrary join conditions; that
+// capability already exists via the saved report engine (reportwriter.php) and is out of
+// scope for this endpoint-level fix.
+$valid_ident = '/^[A-Za-z0-9_]+$/';
+$valid_joins = array('JOIN', 'INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'LEFT OUTER JOIN', 'RIGHT OUTER JOIN');
+if (!preg_match($valid_ident, (string)$_GET['table1'])) {
+  echo createXmlHeader() . xmlEntry('error', 'Invalid table name.') . createXmlFooter();
+  die;
+}
 $strTable .= DB_PREFIX . $_GET['table1'];
 $tables[]  = $_GET['table1'];
 while (true) {
   if (!isset($_GET['table' . $i])) break;
-  $joinopt = (isset($_GET['joinopt' . $i])) ? $_GET['joinopt' . $i] : 'JOIN';
+  $joinopt = (isset($_GET['joinopt' . $i])) ? strtoupper($_GET['joinopt' . $i]) : 'JOIN';
+  if (!in_array($joinopt, $valid_joins, true) || !preg_match($valid_ident, (string)$_GET['table' . $i])) {
+    echo createXmlHeader() . xmlEntry('error', 'Invalid table name or join type.') . createXmlFooter();
+    die;
+  }
   $strTable .= ' ' . $joinopt . ' ' . DB_PREFIX . $_GET['table' . $i] . ' on ' . $_GET['table' . $i . 'criteria'];
   $tables[] = $_GET['table' . $i];
   $i++;

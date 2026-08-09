@@ -164,23 +164,21 @@ switch ($_REQUEST['action']) {
     exit;
   case 'pw_lost_sub':
     $admin_email = db_prepare_input($_POST['admin_email']);
-    $result = $db->Execute("select admin_id, admin_name, admin_email 
+    $result = $db->Execute("select admin_id, admin_name, admin_email
 	  from " . TABLE_USERS . " where admin_email = '" . db_input($admin_email) . "'");
-    if (!$admin_email || $admin_email <> $result->fields['admin_email']) {
-      $error = true;
-      $messageStack->add(ERROR_WRONG_EMAIL, 'error');
-    }
     $_SESSION['company'] = $_SESSION['companies'][$_POST['company']];
-    if (!$error) {
+    // Respond identically whether or not the email matched an account, and only act when it
+    // did — otherwise this endpoint lets an attacker enumerate registered admin emails.
+    if ($admin_email && $admin_email == $result->fields['admin_email']) {
       $new_password = pw_create_random_value(ENTRY_PASSWORD_MIN_LENGTH);
       $admin_pass   = pw_encrypt_password($new_password);
-      $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input($admin_pass) . "' where admin_id = " . $result->fields['admin_id']);
+      $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input($admin_pass) . "' where admin_id = " . (int)$result->fields['admin_id']);
       $html_msg['EMAIL_CUSTOMERS_NAME'] = $result->fields['admin_name'];
       $html_msg['EMAIL_MESSAGE_HTML']   = sprintf(TEXT_EMAIL_MESSAGE, COMPANY_NAME, $new_password);
       validate_send_mail($result->fields['admin_name'], $result->fields['admin_email'], TEXT_EMAIL_SUBJECT, $html_msg['EMAIL_MESSAGE_HTML'], COMPANY_NAME, EMAIL_FROM, $html_msg);
-      $messageStack->add(SUCCESS_PASSWORD_SENT, 'success');
 	  gen_add_audit_log(GEN_LOG_RESEND_PW . $admin_email);
     }
+    $messageStack->add(SUCCESS_PASSWORD_SENT, 'success');
     break;
   case 'logout':
 	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_id = " . $_SESSION['admin_id']);
@@ -247,26 +245,29 @@ switch ($_REQUEST['action']) {
   case 'move_right':
 	$dashboard_id = db_prepare_input($_POST['dashboard_id']);
 	$sql = "select column_id, row_id from " . TABLE_USERS_PROFILES . " 
-		where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $menu_id . "' and dashboard_id = '" . $dashboard_id . "'";
+		where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($menu_id) . "' and dashboard_id = '" . db_input($dashboard_id) . "'";
 	$result         = $db->Execute($sql);
 	$current_row    = $result->fields['row_id'];
 	$current_column = $result->fields['column_id'];
 	$new_col = ($_REQUEST['action'] == 'move_left') ? ($current_column - 1) : ($current_column + 1);
 	if (($new_col >= 1 && $_REQUEST['action'] == 'move_left') || ($new_col <= MAX_CP_COLUMNS && $_REQUEST['action'] == 'move_right')) {
 	  $sql = "select max(row_id) as max_row from " . TABLE_USERS_PROFILES . " 
-		where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $menu_id . "' and column_id = '" . $new_col . "'";
+		where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($menu_id) . "' and column_id = '" . (int)$new_col . "'";
 	  $result = $db->Execute($sql);
 	  $new_max_row = $result->fields['max_row'] + 1;
-	  $sql = "update  " . TABLE_USERS_PROFILES . " set column_id = " . $new_col . ", row_id = " . $new_max_row . " 
-		where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $menu_id . "' and dashboard_id = '" . $dashboard_id . "'";
+	  $sql = "update  " . TABLE_USERS_PROFILES . " set column_id = " . (int)$new_col . ", row_id = " . (int)$new_max_row . " 
+		where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($menu_id) . "' and dashboard_id = '" . db_input($dashboard_id) . "'";
 	  $db->Execute($sql);
 	  $sql = "update  " . TABLE_USERS_PROFILES . " set row_id = row_id - 1 
-		where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $menu_id . "' 
-		and column_id = " . $current_column . " and row_id >= '" . $current_row . "'";
+		where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($menu_id) . "' 
+		and column_id = " . (int)$current_column . " and row_id >= '" . db_input($current_row) . "'";
 	  $db->Execute($sql);
 	}
 	break;
   case 'debug':
+	// trace.txt can contain full SOAP request/response payloads (customer data, tokens);
+	// restrict to admins with Configuration rights instead of any authenticated user.
+	validate_security(validate_user(SECURITY_ID_CONFIGURATION), 3);
 	$file_name = 'trace.txt';
 	if (!$handle = fopen(DIR_FS_MY_FILES . $file_name, "r")) {
 	  $messageStack->add(DEBUG_TRACE_MISSING, 'error');
@@ -284,9 +285,6 @@ switch ($_REQUEST['action']) {
 	header('Last-Modified: ' . date('r', time()));
 	print $contents;
 	exit();
-  case 'php_info':
-  	if ($_SESSION['admin_id'] == 1) die(phpinfo());
-  	break;
   default:
 }
 
@@ -336,7 +334,7 @@ switch ($_REQUEST['action']) {
 	  gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;action=login', 'SSL'));	
 	}
 	$cp_boxes = $db->Execute("select * from ".TABLE_USERS_PROFILES." 
-		where user_id = '".$_SESSION['admin_id']."' and menu_id = '$menu_id' order by column_id, row_id");
+		where user_id = '".(int)$_SESSION['admin_id']."' and menu_id = '".db_input($menu_id)."' order by column_id, row_id");
 	$include_template  = 'template_main.php';
 	define('PAGE_TITLE', COMPANY_NAME);
 	break;

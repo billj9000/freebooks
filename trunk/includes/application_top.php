@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -113,6 +114,8 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
 	define($result->fields['configuration_key'], $result->fields['configuration_value']);
 	$result->MoveNext();
   }
+  // DEBUG is now known — only show PHP errors to the browser when it's explicitly on.
+  ini_set('display_errors', (defined('DEBUG') && DEBUG) ? '1' : '0');
   if (!defined('DATE_FORMAT_CALENDAR')) {
     $cal_format = defined('DATE_FORMAT') ? preg_replace(array('/m/','/d/','/Y/'), array('mm','dd','yy'), DATE_FORMAT) : 'mm-dd-yy';
     define('DATE_FORMAT_CALENDAR', $cal_format);

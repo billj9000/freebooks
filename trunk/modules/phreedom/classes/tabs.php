@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -48,7 +48,7 @@ class tabs {
 	      gen_add_audit_log(sprintf(EXTRA_TABS_LOG, TEXT_UPDATE), $this->tab_name);
 		} else {
 		  // Test for duplicates.
-		  $result = $db->Execute("select id from " . TABLE_EXTRA_TABS . " where module_id='" . $this->module . "' and tab_name='" . $this->tab_name . "'");
+		  $result = $db->Execute("select id from " . TABLE_EXTRA_TABS . " where module_id='" . db_input($this->module) . "' and tab_name='" . db_input($this->tab_name) . "'");
 		  if ($result->RecordCount() > 0) {
 		  	$messageStack->add(EXTRA_TABS_DELETE_ERROR,'error');
 		  	$this->error = true;
@@ -66,6 +66,7 @@ class tabs {
 		  $messageStack->add(ERROR_NO_PERMISSION,'error');
 		  return false;
 		}
+		$id = (int)$id;
 		$result = $db->Execute("SELECT field_name FROM ".TABLE_EXTRA_FIELDS." WHERE tab_id='$id'");
 		if ($result->RecordCount() > 0) {
 		  $messageStack->add(INV_CATEGORY_CANNOT_DELETE . $result->fields['field_name'], 'error');
@@ -84,7 +85,7 @@ class tabs {
 		  'value' => array(TEXT_TITLE, TEXT_DESCRIPTION, TEXT_SORT_ORDER, TEXT_ACTION),
 		  'params'=> 'width="100%" cellspacing="0" cellpadding="1"',
 	   );
-	   $result = $db->Execute("select id, tab_name, description, sort_order from " . TABLE_EXTRA_TABS . " where module_id='" . $this->module . "'");
+	   $result = $db->Execute("select id, tab_name, description, sort_order from " . TABLE_EXTRA_TABS . " where module_id='" . db_input($this->module) . "'");
 	   $rowCnt = 0;
 	   while (!$result->EOF) {
 		  $actions = '';

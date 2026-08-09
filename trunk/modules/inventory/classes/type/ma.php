@@ -1,4 +1,22 @@
 <?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /modules/inventory/classes/type/ma.php
+//
 require_once(DIR_FS_MODULES . 'inventory/classes/inventory.php');
 class ma extends inventory { //Item Assembly formerly know as 'as' but this resulted in problems with the php function as.
 	public $inventory_type			= 'ma';
@@ -87,7 +105,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 		  	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '". db_input($_POST['assy_sku'][$x])."'" );
 		  	if (($result->RecordCount() == 0 || $currencies->clean_value($_POST['assy_qty'][$x]) == 0) && $_POST['assy_sku'][$x] =! '') {
 		  		// show error, bad sku, negative quantity. error check sku is valid and qty > 0
-				$error = $messageStack->add(INV_ERROR_BAD_SKU . db_prepare_input($_POST['assy_sku'][$x]), 'error');
+				$error = $messageStack->add(INV_ERROR_BAD_SKU . htmlspecialchars(db_prepare_input($_POST['assy_sku'][$x]), ENT_QUOTES, 'UTF-8'), 'error');
 		  	}else{
 		  		$prices = inv_calculate_sales_price(abs($this->bom[$x]['qty']), $result->fields['id'], 0, 'v');
 				$bom_list[$x]['item_cost'] = strval($prices['price']);
