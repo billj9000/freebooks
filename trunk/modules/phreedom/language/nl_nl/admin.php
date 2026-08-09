@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Taal Vertaal Bestand
 // Generated: 2011-11-29 07:08:14
 // Module/Method: phreedom
@@ -274,4 +290,7 @@ define('INV_LABEL_CHECK_BOX_FIELD','Check Box (Ja of Nee)');
 define('TEXT_TAB_NAME','Tabblad Titel');
 define('TEXT_COPYRIGHT_NOTICE','Dit programma is gratis software: je kunt het herdistribueren en / of <br>wijzigen onder de voorwaarden van de GNU General Public License zoals<br>gepubliceerd door de Free Software Foundation, ofwel versie 3 van<br>de Licentie, of een latere versie. Dit programma wordt verspreid<br>in de hoop dat het nuttig zal zijn, maar ZONDER ENIGE GARANTIE;<br>zelfs zonder de impliciete garantie van VERKOOPBAARHEID of GESCHIKTHEID<br>VOOR EEN BEPAALD DOEL. Zie de GNU General Public License voor<br>meer details. De licentie die is gebundeld met dit pakket is<br>gelegen %s.');
 
+// Password reset (token flow) - added 2026-08-09
+define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
+define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 ?>

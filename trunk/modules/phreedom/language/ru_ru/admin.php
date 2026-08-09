@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2014-11-23 10:04:29
 // Module/Method: phreedom
@@ -198,4 +214,7 @@ define('GEN_LOG_LOGIN_FAILED','Failed User Login - id -> ');
 define('GEN_LOG_LOGOFF','User Logoff -> ');
 define('GEN_LOG_RESEND_PW','Re-sent Password to email -> ');
 
+// Password reset (token flow) - added 2026-08-09
+define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
+define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 ?>

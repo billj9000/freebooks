@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -29,6 +30,8 @@ define('DEFAULT_COLORS','start');
 define('MAX_CP_COLUMNS', 3); // set the maximum number of dashboard columns
 define('LOGIN_MAX_ATTEMPTS',    5);  // failed logins before lockout
 define('LOGIN_LOCKOUT_MINUTES', 15); // lockout duration
+define('PW_RESET_TTL_MIN',      60); // password-reset link lifetime (minutes)
+define('PW_RESET_COOLDOWN_MIN',  5); // min minutes between reset emails for one account (anti-flood)
 define('VERSION_CHECK_URL','http://www.phreesoft.com/revisions.xml');
 define('MAX_IMPORT_CSV_ITEMS',5); // for importing linked tables if possible with csv
 define('DEFAULT_TEXT_LENGTH', '32');

@@ -18,6 +18,19 @@
 //  Path: /modules/phreedom/functions/phreedom.php
 //
 
+// Resolve a raw password-reset token (as sent in the e-mailed link) to its user row, or false.
+// Only the SHA-256 hash of the token is stored, so a DB read never exposes a usable token; the
+// row is returned only while the token is unexpired. The caller must still consume the token
+// (clear pw_reset_token/pw_reset_expires) once the password is actually changed.
+function pw_reset_lookup($token) {
+  global $db;
+  if (!preg_match('/^[a-f0-9]{64}$/', (string)$token)) return false; // token is bin2hex(random_bytes(32))
+  $hash   = hash('sha256', $token);
+  $result = $db->Execute("select admin_id, admin_name, admin_email from " . TABLE_USERS . "
+    where pw_reset_token = '" . db_input($hash) . "' and pw_reset_expires is not null and pw_reset_expires > UTC_TIMESTAMP()");
+  return (!$result->EOF) ? $result->fields : false;
+}
+
 function load_company_dropdown($include_select = false) {
   $output = array();
   $i = 1;

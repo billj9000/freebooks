@@ -29,6 +29,7 @@ $error        = false;
 $menu_id      = isset($_GET['mID']) ? $_GET['mID'] : 'index'; // default to index unless heading is passed
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_req') $_REQUEST['action'] = 'pw_lost_req';
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_sub') $_REQUEST['action'] = 'pw_lost_sub';
+// pw_reset_form / pw_reset_save arrive as an explicit action= on the e-mailed link (see pw_lost_sub)
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'validate':
@@ -163,22 +164,75 @@ switch ($_REQUEST['action']) {
     echo json_encode(array('ok' => true, 'redirect' => html_href_link(FILENAME_DEFAULT, $get_params, 'SSL')));
     exit;
   case 'pw_lost_sub':
+    // Step 1 of recovery: e-mail a single-use, time-limited reset LINK. The password is NOT
+    // changed here — the user sets their own via the link — so merely requesting a reset can
+    // never lock out or hijack the real account, and no secret is ever sent over e-mail.
     $admin_email = db_prepare_input($_POST['admin_email']);
-    $result = $db->Execute("select admin_id, admin_name, admin_email
+    $company_dir = $_SESSION['companies'][$_POST['company']] ?? '';
+    $_SESSION['company'] = $company_dir;
+    $result = $db->Execute("select admin_id, admin_name, admin_email, pw_reset_expires
 	  from " . TABLE_USERS . " where admin_email = '" . db_input($admin_email) . "'");
-    $_SESSION['company'] = $_SESSION['companies'][$_POST['company']];
     // Respond identically whether or not the email matched an account, and only act when it
     // did — otherwise this endpoint lets an attacker enumerate registered admin emails.
     if ($admin_email && $admin_email == $result->fields['admin_email']) {
-      $new_password = pw_create_random_value(ENTRY_PASSWORD_MIN_LENGTH);
-      $admin_pass   = pw_encrypt_password($new_password);
-      $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input($admin_pass) . "' where admin_id = " . (int)$result->fields['admin_id']);
-      $html_msg['EMAIL_CUSTOMERS_NAME'] = $result->fields['admin_name'];
-      $html_msg['EMAIL_MESSAGE_HTML']   = sprintf(TEXT_EMAIL_MESSAGE, COMPANY_NAME, $new_password);
-      validate_send_mail($result->fields['admin_name'], $result->fields['admin_email'], TEXT_EMAIL_SUBJECT, $html_msg['EMAIL_MESSAGE_HTML'], COMPANY_NAME, EMAIL_FROM, $html_msg);
-	  gen_add_audit_log(GEN_LOG_RESEND_PW . $admin_email);
+      // Per-account cooldown: skip re-issuing/re-mailing if a token was minted within the last
+      // PW_RESET_COOLDOWN_MIN minutes (curbs e-mail flooding of a known address).
+      $expires_ts  = $result->fields['pw_reset_expires'] ? strtotime($result->fields['pw_reset_expires'] . ' UTC') : 0;
+      $minted_ago  = $expires_ts - (PW_RESET_TTL_MIN - PW_RESET_COOLDOWN_MIN) * 60; // >now => minted within cooldown
+      if ($expires_ts && $minted_ago > time()) {
+        // still in cooldown — do nothing but fall through to the identical success response
+      } else {
+        $token = bin2hex(random_bytes(32));                 // 256-bit token, sent only in the link
+        $hash  = hash('sha256', $token);                    // only the hash is stored
+        $db->Execute("update " . TABLE_USERS . " set pw_reset_token = '" . db_input($hash) . "',
+          pw_reset_expires = DATE_ADD(UTC_TIMESTAMP(), INTERVAL " . (int)PW_RESET_TTL_MIN . " MINUTE)
+          where admin_id = " . (int)$result->fields['admin_id']);
+        $reset_link = html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main&action=pw_reset_form&company=' . rawurlencode($company_dir) . '&token=' . $token, 'SSL');
+        $html_msg['EMAIL_CUSTOMERS_NAME'] = $result->fields['admin_name'];
+        $html_msg['EMAIL_MESSAGE_HTML']   = sprintf(TEXT_EMAIL_MESSAGE, COMPANY_NAME, (int)PW_RESET_TTL_MIN, $reset_link);
+        validate_send_mail($result->fields['admin_name'], $result->fields['admin_email'], TEXT_EMAIL_SUBJECT, $html_msg['EMAIL_MESSAGE_HTML'], COMPANY_NAME, EMAIL_FROM, $html_msg);
+        gen_add_audit_log(GEN_LOG_PW_RESET_REQ . $admin_email);
+      }
     }
     $messageStack->add(SUCCESS_PASSWORD_SENT, 'success');
+    break;
+  case 'pw_reset_form':
+    // Step 2: landing from the e-mailed link. Validate the token and show the set-password form.
+    $pw_reset_company = basename((string)($_REQUEST['company'] ?? ''));
+    $pw_reset_token   = (string)($_REQUEST['token'] ?? '');
+    $pw_reset_user    = pw_reset_lookup($pw_reset_token);
+    $pw_reset_valid   = (bool)$pw_reset_user;
+    if (!$pw_reset_valid) $messageStack->add(ERROR_PW_RESET_INVALID, 'error');
+    break;
+  case 'pw_reset_save':
+    // Step 3: set the new password. Re-validate the token, enforce policy, then consume the token.
+    $pw_reset_company = basename((string)($_REQUEST['company'] ?? ''));
+    $pw_reset_token   = (string)($_POST['token'] ?? '');
+    $pw_reset_user    = pw_reset_lookup($pw_reset_token);
+    if (!$pw_reset_user) {
+      $pw_reset_valid = false;
+      $messageStack->add(ERROR_PW_RESET_INVALID, 'error');
+      break;
+    }
+    $password_new  = (string)($_POST['password_new']  ?? '');
+    $password_conf = (string)($_POST['password_conf'] ?? '');
+    if (strlen($password_new) < ENTRY_PASSWORD_MIN_LENGTH) {
+      $pw_reset_valid = true; // keep showing the form
+      $messageStack->add(sprintf(ENTRY_PASSWORD_NEW_ERROR, ENTRY_PASSWORD_MIN_LENGTH), 'error');
+      break;
+    }
+    if ($password_new !== $password_conf) {
+      $pw_reset_valid = true;
+      $messageStack->add(ENTRY_PASSWORD_NEW_ERROR_NOT_MATCHING, 'error');
+      break;
+    }
+    // Success: set the new password, consume the token, and clear any brute-force lockout.
+    $db->Execute("update " . TABLE_USERS . " set admin_pass = '" . db_input(pw_encrypt_password($password_new)) . "',
+      pw_reset_token = NULL, pw_reset_expires = NULL, failed_attempts = 0, locked_until = NULL
+      where admin_id = " . (int)$pw_reset_user['admin_id']);
+    gen_add_audit_log(GEN_LOG_PW_RESET_DONE . $pw_reset_user['admin_email']);
+    $messageStack->add_session(SUCCESS_PASSWORD_RESET, 'success');
+    gen_redirect(html_href_link(FILENAME_DEFAULT, '', 'SSL'));
     break;
   case 'logout':
 	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_id = " . $_SESSION['admin_id']);
@@ -324,6 +378,16 @@ switch ($_REQUEST['action']) {
 	$include_footer    = false;
 	define('PAGE_TITLE', TITLE_LOGIN);
     break;
+	  case 'pw_reset_form':
+	  case 'pw_reset_save':
+		// Set-a-new-password page reached from the e-mailed link. The template shows the form
+		// when $pw_reset_valid, otherwise just the error message queued in the action switch above.
+		load_company_dropdown(); // populate $_SESSION['companies'] for a cold-clicked link
+		$include_template  = 'template_pw_reset.php';
+		$include_header    = false;
+		$include_footer    = false;
+		define('PAGE_TITLE', TITLE_LOGIN);
+	    break;
   case 'crash':
 	$include_template  = 'template_crash.php';
 	define('PAGE_TITLE', TITLE);

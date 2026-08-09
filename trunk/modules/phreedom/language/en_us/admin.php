@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -49,7 +50,7 @@ define('TEXT_LOGIN_LANGUAGE','Select Language: ');
 define('TEXT_LOGIN_THEME','Select Theme');
 define('TEXT_LOGIN_MENU','Select Menu Location');
 define('TEXT_LOGIN_COLORS','Select Color Scheme');
-define('TEXT_PASSWORD_FORGOTTEN', 'Resend Password');
+define('TEXT_PASSWORD_FORGOTTEN', 'Reset Password');
 define('TEXT_LOGIN_BUTTON','Login');
 define('TEXT_FORM_PLEASE_WAIT','Please wait ... If upgrading, this may take a while.');
 
@@ -364,4 +365,7 @@ define('CD_OAUTH2_NOT_AUTHORIZED',    'Not yet authorised.');
 define('CD_OAUTH2_ERROR_NO_TOKEN',    'OAuth2 token refresh failed. Re-authorise in Admin &rsaquo; Email.');
 define('CD_OAUTH2_ERROR_NO_CURL',     'OAuth2 requires the PHP cURL extension.');
 
+// Password reset (token flow) - added 2026-08-09
+define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
+define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 ?>

@@ -98,7 +98,13 @@ else { define('DIR_WS_ICONS', 'themes/default/icons/'); } // use default
 $messageStack = new messageStack;
 $toolbar      = new toolbar;
 // determine what company to connect to
-$db_company = (isset($_SESSION['company'])) ? $_SESSION['company'] : $_SESSION['companies'][$_POST['company']];
+$db_company = (isset($_SESSION['company'])) ? $_SESSION['company'] : ($_SESSION['companies'][$_POST['company']] ?? '');
+// A password-reset link is clicked cold — often on a different device with a fresh session that has
+// no company list yet — so the reset flow names its company directly in the URL. basename() blocks
+// path traversal and the file_exists() check below still gates it to a real installed company.
+if (!$db_company && in_array($_REQUEST['action'] ?? '', array('pw_reset_form', 'pw_reset_save'), true) && isset($_REQUEST['company'])) {
+  $db_company = basename((string)$_REQUEST['company']);
+}
 if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   define('DB_DATABASE', $db_company);
   require_once(DIR_FS_MY_FILES . $db_company . '/config.php');
@@ -148,6 +154,12 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   $col = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS . " LIKE 'failed_attempts'");
   if ($col->EOF) {
     $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN failed_attempts INT NOT NULL DEFAULT 0, ADD COLUMN locked_until DATETIME NULL");
+  }
+  // Add password-reset token columns if not present (single-use, time-limited reset links).
+  // pw_reset_token holds a SHA-256 hex hash of the token e-mailed to the user, never the token itself.
+  $col = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS . " LIKE 'pw_reset_token'");
+  if ($col->EOF) {
+    $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN pw_reset_token CHAR(64) NULL, ADD COLUMN pw_reset_expires DATETIME NULL");
   }
 }
 $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : $_session_timeout;

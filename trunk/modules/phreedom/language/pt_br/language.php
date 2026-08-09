@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Arquivo Tradução Idioma  Phreedom
 // Generated: 2013-10-22 05:28:46
 // Module/Method: phreedom
@@ -38,8 +54,8 @@ define('ERROR_CANNOT_DELETE_DEFAULT_CURRENCY','Erro - A moeda padrão não pode 
 define('PB_USE_ACCOUNTING_PERIODS','Usar Períodos Fiscais (field: period)');
 define('ERROR_WRONG_LOGIN','Você digitou um nome ou uma senha errados.');
 define('ERROR_ACCOUNT_LOCKED', 'Too many failed login attempts. This account is temporarily locked. Please try again later.');
-define('TEXT_EMAIL_SUBJECT','Sua solitação de nova senha ');
-define('SUCCESS_PASSWORD_SENT','Sucesso: Uma nova Senha foi enviada para seu endereço de email.');
+define('TEXT_EMAIL_SUBJECT', 'Password reset request');
+define('SUCCESS_PASSWORD_SENT', 'If that e-mail address is registered, a password reset link has been sent to it.');
 define('ERROR_WRONG_EMAIL','Você entrou um endereço de email errado.');
 define('TEXT_ROW_DELETE_ALERT','Tem certeza de que quer excluir esta linha?');
 define('TEXT_DELETE_ENTRY','Tem certeza de que quer excluir esta entrada?');
@@ -406,4 +422,10 @@ define('GEN_LOG_PERIOD_CHANGE','Período Fiscal - Alterar');
 define('GEN_LOG_INSTALL_SUCCESS','Módulo %s: ');
 define('TEXT_PRODUCT_DEFAULT','Produto Padrão');
 
+define('TEXT_EMAIL_MESSAGE', 'A password reset was requested for your \'%1$s\' account.' . "\n\n" . 'To choose a new password, open this link (valid for %2$d minutes):' . "\n\n" . '%3$s' . "\n\n" . 'If you did not request this, no action is needed - your password has not been changed.');
+// Password reset (token flow) - added 2026-08-09
+define('ERROR_PW_RESET_INVALID', 'This password reset link is invalid or has expired. Please request a new one.');
+define('SUCCESS_PASSWORD_RESET', 'Your password has been reset. You can now log in with your new password.');
+define('TEXT_SET_NEW_PASSWORD', 'Set a New Password');
+define('TEXT_NEW_PASSWORD', 'New Password');
 ?>

@@ -54,9 +54,11 @@ if (!$user_validated) {
   $module = 'phreedom';
   $page   = 'main';
   // 'validate' is the password login post; the pk_login_* actions are the
-  // two steps of a passkey login ceremony (see phreedom/pages/main/pre_process.php) -
-  // all three must be allowed through while logged out, everything else forces the login screen.
-  $pre_auth_actions = array('validate', 'pk_login_begin', 'pk_login_finish');
+  // two steps of a passkey login ceremony (see phreedom/pages/main/pre_process.php);
+  // pw_reset_form/pw_reset_save are the two steps of a lost-password reset reached from an
+  // e-mailed token link - all are legitimately performed while logged out. Everything else
+  // forces the login screen. (The older ?req=pw_lost_* form is handled inside pre_process.)
+  $pre_auth_actions = array('validate', 'pk_login_begin', 'pk_login_finish', 'pw_reset_form', 'pw_reset_save');
   if (!isset($_REQUEST['action']) || !in_array($_REQUEST['action'], $pre_auth_actions, true)) $_REQUEST['action'] = 'login';
 } else {
   unset($_SESSION['pb_cat']);

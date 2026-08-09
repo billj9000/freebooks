@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2014-11-23 10:04:29
 // Module/Method: phreedom
@@ -335,8 +351,8 @@ define('ENTRY_DUP_USER_NEW_ERROR','The username you selected is already in use i
 define('TEXT_DELETE_INTRO_USERS','Are you sure you want to delete this user account?');
 define('TEXT_DELETE_ENTRY','Are you sure you want to delete this entry?');
 define('ERROR_WRONG_EMAIL','<p>You entered the wrong email address.</p>');
-define('SUCCESS_PASSWORD_SENT','<p>Success: A new password has been sent to your e-mail address.</p>');
-define('TEXT_EMAIL_SUBJECT','Your requested password reset request');
+define('SUCCESS_PASSWORD_SENT', 'If that e-mail address is registered, a password reset link has been sent to it.');
+define('TEXT_EMAIL_SUBJECT', 'Password reset request');
 define('ERROR_WRONG_LOGIN','You entered the wrong username or password.');
 define('ERROR_ACCOUNT_LOCKED', 'Too many failed login attempts. This account is temporarily locked. Please try again later.');
 define('PB_USE_ACCOUNTING_PERIODS','Use Accounting Periods (field: period)');
@@ -376,4 +392,10 @@ define('GEN_DB_DATA_BACKUP','Сделать бекап БД компании');
 define('GEN_LOG_PERIOD_CHANGE','Период учета - Изменить');
 define('GEN_LOG_INSTALL_SUCCESS','Модуль %s: ');
 
+define('TEXT_EMAIL_MESSAGE', 'A password reset was requested for your \'%1$s\' account.' . "\n\n" . 'To choose a new password, open this link (valid for %2$d minutes):' . "\n\n" . '%3$s' . "\n\n" . 'If you did not request this, no action is needed - your password has not been changed.');
+// Password reset (token flow) - added 2026-08-09
+define('ERROR_PW_RESET_INVALID', 'This password reset link is invalid or has expired. Please request a new one.');
+define('SUCCESS_PASSWORD_RESET', 'Your password has been reset. You can now log in with your new password.');
+define('TEXT_SET_NEW_PASSWORD', 'Set a New Password');
+define('TEXT_NEW_PASSWORD', 'New Password');
 ?>

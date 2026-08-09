@@ -383,9 +383,15 @@ define('TEXT_DELETE_INTRO_USERS', 'Are you sure you want to delete this user acc
 define('TEXT_DELETE_ENTRY', 'Are you sure you want to delete this entry?');
 define('TEXT_ROW_DELETE_ALERT','Are you sure you want to delete this row?');
 define('ERROR_WRONG_EMAIL', 'You entered the wrong email address.');
-define('SUCCESS_PASSWORD_SENT', 'Success: A new password has been sent to your e-mail address.');
-define('TEXT_EMAIL_SUBJECT', 'Your requested password reset request');
-define('TEXT_EMAIL_MESSAGE', 'A new password was requested from your email address.' . "\n\n" . 'Your new password to \'%s\' is:' . "\n\n" . '   %s' . "\n\n");
+define('SUCCESS_PASSWORD_SENT', 'If that e-mail address is registered, a password reset link has been sent to it.');
+define('TEXT_EMAIL_SUBJECT', 'Password reset request');
+define('TEXT_EMAIL_MESSAGE', 'A password reset was requested for your \'%1$s\' account.' . "
+
+" . 'To choose a new password, open this link (valid for %2$d minutes):' . "
+
+" . '%3$s' . "
+
+" . 'If you did not request this, no action is needed - your password has not been changed.');
 define('ERROR_WRONG_LOGIN', 'You entered the wrong username or password.');
 define('ERROR_ACCOUNT_LOCKED', 'Too many failed login attempts. This account is temporarily locked. Please try again later.');
 define('ERROR_PASSKEY_DISABLED', 'Passkey sign-in is not available on this site.');
@@ -435,4 +441,9 @@ define('GEN_LOG_INSTALL_SUCCESS','Module %s: ');
 
 define('TEXT_PRODUCT_DEFAULT','Product Default');
 
+// Password reset (token flow) - added 2026-08-09
+define('ERROR_PW_RESET_INVALID', 'This password reset link is invalid or has expired. Please request a new one.');
+define('SUCCESS_PASSWORD_RESET', 'Your password has been reset. You can now log in with your new password.');
+define('TEXT_SET_NEW_PASSWORD', 'Set a New Password');
+define('TEXT_NEW_PASSWORD', 'New Password');
 ?>
