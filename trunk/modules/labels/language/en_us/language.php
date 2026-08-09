@@ -54,3 +54,9 @@ define('TEXT_VAR_WEIGHT',          '{{ weight }} — Item weight');
 define('TEXT_VAR_BARCODE_SVG',     '{{ barcode_svg | raw }} — CODE128 barcode SVG encoding the SKU (HTML templates only)');
 define('TEXT_VAR_QRCODE_SVG',      '{{ qrcode_svg | raw }} — QR code SVG encoding the SKU (HTML templates only)');
 define('TEXT_VAR_QTY_PER_ITEM',    '{{ pack_qty }} — the "Pack Qty" value entered on the Print Labels popup/page');
+
+// Conditional layout reference
+define('TEXT_CONDITIONAL_LAYOUT',  'Conditional Layout');
+define('TEXT_COND_IF',             '{% if upc %}...{% endif %} — only include the content when a variable has a value');
+define('TEXT_COND_IF_ELSE',        '{% if upc %}...{% else %}...{% endif %} — choose between two blocks');
+define('TEXT_COND_NOTE',           'Conditions can test variables and compare values (e.g. {% if price %} or {% if weight > 1 %}). Loops are not available.');

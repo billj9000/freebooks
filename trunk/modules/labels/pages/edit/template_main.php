@@ -119,6 +119,18 @@ echo $toolbar->build_toolbar();
         </table>
       </div>
 
+      <!-- Conditional layout reference -->
+      <div class="fb-fieldset mb-3">
+        <div class="fb-fieldset-legend"><?php echo TEXT_CONDITIONAL_LAYOUT; ?></div>
+        <table class="table table-sm table-borderless mb-0" style="font-size:0.85em">
+          <tbody>
+            <tr><td><code>{% if %}</code></td><td><?php echo TEXT_COND_IF; ?></td></tr>
+            <tr><td><code>{% if %}{% else %}</code></td><td><?php echo TEXT_COND_IF_ELSE; ?></td></tr>
+          </tbody>
+        </table>
+        <div class="form-text px-2 pb-1"><?php echo TEXT_COND_NOTE; ?></div>
+      </div>
+
     </div>
   </div>
 

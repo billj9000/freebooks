@@ -13,6 +13,8 @@
 
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
+use Twig\Sandbox\SecurityPolicy;
+use Twig\Extension\SandboxExtension;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -66,16 +68,38 @@ class LabelRenderer {
     ];
   }
 
+  // The template *source* itself is user-authored (saved label templates / the live preview
+  // textarea), not just the variables — so this is executing untrusted Twig code, not just
+  // untrusted data. Without a sandbox, Twig's `map`/`filter`/`reduce` can invoke arbitrary
+  // PHP callables (e.g. `{{ ['id']|map('system') }}`), which is RCE. The sandbox below allows
+  // only what label templates legitimately need and nothing that can execute code.
+  //
+  // The `if` tag (which also covers elseif/else/endif) is allowed so templates can do simple
+  // conditional layout, e.g. `{% if upc %}...{% endif %}`. This is safe because the sandbox
+  // checks tags, filters, functions, methods and property access INDEPENDENTLY: allowing the
+  // `if` tag does not loosen the filter/function/method/property allowlists, so an attacker
+  // writing `{% if x|map('system') %}` is still stopped by the filter policy. Verified: the
+  // RCE gadgets (`map`/`filter` callables, `constant()`, `attribute()` onto an object's
+  // method/property) remain blocked identically with or without `if` — the label context
+  // holds only strings, and `_self` is the template-name string in Twig 3, not the object.
+  //
+  // NOTE: `for` is deliberately NOT allowed — Twig range loops (`{% for i in 1..N %}`) are a
+  // CPU/memory DoS vector. Only add it if there's a real need, and with a bounded range.
+  private function sandboxedTwig(ArrayLoader $loader): Environment {
+    $twig   = new Environment($loader, ['autoescape' => false]);
+    $policy = new SecurityPolicy(['if'], ['raw'], [], [], []);
+    $twig->addExtension(new SandboxExtension($policy, true));
+    return $twig;
+  }
+
   public function renderHtml(string $template, array $vars): string {
     $loader = new ArrayLoader(['label' => $template]);
-    $twig   = new Environment($loader, ['autoescape' => false]);
-    return $twig->render('label', $vars);
+    return $this->sandboxedTwig($loader)->render('label', $vars);
   }
 
   public function renderZpl(string $template, array $vars): string {
     $loader = new ArrayLoader(['label' => $template]);
-    $twig   = new Environment($loader, ['autoescape' => false]);
-    return $twig->render('label', $vars);
+    return $this->sandboxedTwig($loader)->render('label', $vars);
   }
 
   public function buildPrintPage(array $labelHtmlArray, float $widthMm, float $heightMm): string {
