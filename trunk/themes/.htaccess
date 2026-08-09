@@ -1,7 +1,8 @@
 # +-----------------------------------------------------------------+
-# |                   PhreeBooks Open Source ERP                    |
+# |                          FreeBooks ERP                          |
 # +-----------------------------------------------------------------+
-# | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+# | Copyright(c) 2026 Bill Jones                                    |
+# | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 # +-----------------------------------------------------------------+
 # | This program is free software: you can redistribute it and/or   |
 # | modify it under the terms of the GNU General Public License as  |
@@ -13,7 +14,7 @@
 # | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 # | GNU General Public License for more details.                    |
 # +-----------------------------------------------------------------+
-#  Path: /themes/.htacces
+#  Path: /themes/.htaccess
 #
 #
 # This is used with Apache WebServers
@@ -32,14 +33,24 @@
 
 # deny *everything*
 <FilesMatch ".*">
-  Order Allow,Deny
-  Deny from all
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+  </IfModule>
 </FilesMatch>
 
 # but now allow just *certain* necessary files:
 <FilesMatch ".*\.(jpe?g|JPE?G|gif|GIF|png|PNG|swf|SWF|js|JS|css|CSS)$" >
-  Order Allow,Deny
-  Allow from all
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Allow from all
+  </IfModule>
 </FilesMatch>
 
 IndexIgnore */*
