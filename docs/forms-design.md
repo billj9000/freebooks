@@ -2,7 +2,7 @@
 
 **Status:** Approved design, not yet implemented. Targets the 1.0.0 release.
 **Supersedes:** the `phreeform` module.
-**Last updated:** 2026-08-10
+**Last updated:** 2026-08-11
 
 Forms is a new module that replaces PhreeForm's data and authoring layers, and rebuilds its
 rendering behind an explicit interface. It is a breaking change and therefore lands **at 1.0.0**,
@@ -348,7 +348,38 @@ special-class documents are the business-critical ones:
   *verifies* correctness rather than preserving it by carrying legacy code forward.
 - PhreeForm is removed only when nothing references it.
 
-### 8.1 Conversion utility
+### 8.1 Baseline capture (step 0)
+
+Baselines are rendered from **PhreeForm on the test container** and kept **local, not committed**
+(they are generated fixtures). Each capture snapshots two artefacts per record: the resolved data
+crossing into the renderer (the semantic baseline) and the PDF bytes (for positional/visual diff).
+
+Captured 2026-08-10 — Invoices `pf_91` records 349 (18 lines, EUR @1.225), 89 (12, USD @0.757),
+110 (12, GBP), 507 (4), 430 (5); Purchase Order `pf_73` record 516 (211 lines → 8 pages).
+
+Four things the capture harness must handle — each one silently produces wrong or empty results:
+
+1. **Rendering an Invoice mutates data.** `pf_91` carries `setprintedfield = journal_main.printed`
+   and `BuildPDF` fires `UPDATE journal_main SET printed = printed + 1` per record. **Null
+   `setprintedfield` before rendering** so the counter never moves and captures are re-runnable;
+   assert `printed` is unchanged afterwards. (`pf_73` has no such field.) This is also why the
+   Forms `afterRender` hook must fire on *delivery*, never on *render* — otherwise a preview or a
+   diff run increments the counter, which is arguably the existing bug.
+2. **The stored `datedefault` is `'c'` (Today)**, which selects zero rows for historical records and
+   returns `PHREEFORM_NOROWS`. Override to `'a'` (All) — this is exactly what the real print button
+   does (`…&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=<id>`).
+3. **The container runs `display_errors = Off`**, so CLI fatals are silent and a failing capture
+   looks like an empty result. Run with `php -d display_errors=1`.
+4. **Bootstrap must mirror `application_top.php`'s order**: Composer autoload → `phreedom`/
+   `phreebooks` menu language → `phreedom/config.php` → per-module language + config → module
+   default language for `phreeform`. Loading them out of order fails on undefined
+   `SECURITY_ID_*` / `MENU_HEADING_*` / `PF_FONT_*` constants. `trunk/cron/*.php` is the working
+   template for the rest of the CLI bootstrap.
+
+Use `BuildForm($report, 'S')` — delivery method `S` returns the bytes instead of emitting HTTP
+headers and calling `exit()`.
+
+### 8.2 Conversion utility
 
 The XML format is fully mechanical (56/56 parsed clean) and carries labels, widths, alignment,
 totals, and processing hints that map directly. But conversion is a **mapping** problem, not a
@@ -386,11 +417,20 @@ clearly rather than guess a mapping.
 
 Not yet validated; resolve during implementation.
 
-1. **`Ttl` "Continued" is pagination-aware content.** On multi-page forms, total fields render as
-   "Continued" on non-final pages — content that depends on page position. The renderer must pass a
-   `PageContext` when resolving bindings. Modelled as the `CONTINUED_ON_OVERFLOW` visibility
-   variant, but it is the one place the seam is not perfectly one-directional. **Build it first to
-   prove the model.**
+1. **`Ttl` "Continued" is pagination-aware content — semantics now confirmed, implementation still
+   to do.** On multi-page forms, total fields render as "Continued" on non-final pages: content
+   that depends on page position. The renderer must pass a `PageContext` when resolving bindings.
+   Modelled as the `CONTINUED_ON_OVERFLOW` visibility variant, and it remains the one place the
+   seam is not perfectly one-directional.
+
+   **Verified 2026-08-10 against real output** (PO 1234, `pf_73`, 211 lines → 8 pages): pages 1–7
+   render "Continued", page 8 renders the real total (6,800.17). The behaviour is exactly as
+   modelled, so the residual risk is implementation rather than unknown semantics.
+
+   ⚠️ **The Invoice cannot exercise this** — `Invoice.xml` / `pf_91` contains **no `Ttl` elements**
+   and uses plain `Data` bindings for totals (§4.4). `Ttl` appears only in six query-driven forms:
+   `SalesOrder`, `PurchaseOrder`, `CustomerQuotes`, `CustomerCreditMemo`, `VendorCreditMemo`,
+   `DepositSlip`. Prove it against a Purchase Order, not the Invoice.
 2. **`TDup` carries a known PhreeForm limitation** — its own comment says it "only works if each
    form is contained in a single page". Modelling it as a second `Table` may remove that limit;
    confirm the intended use (two-part remittance forms) before assuming that is desirable.
@@ -406,9 +446,21 @@ Not yet validated; resolve during implementation.
 
 ## 11. First implementation steps
 
-1. Build the dataset + field catalog from §6, starting with D1 split into Transactions and
-   General Ledger.
-2. Implement `LayoutDocument` + the Layout renderer against **Invoice**, including the `Ttl`
-   "Continued" case (risk 1).
-3. Stand up the side-by-side diff harness before porting any second document.
-4. Port `entry_builder` as the first `DocumentProvider`.
+**Two proving documents, not one.** They cover the two architectural paths, and neither alone is
+sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order has no provider.
+
+| Proving document | Path | Proves |
+|---|---|---|
+| **Invoice** (`pf_91`, 12–18 lines, EUR/USD/GBP) | `DocumentProvider` | `LayoutDocument` expressiveness, `Record`/`TypedValue`, per-record currency (`posted_cur`) |
+| **PO 1234** (`pf_73`, 211 lines → 8 pages) | query-driven | Pagination, `Ttl` "Continued" (risk 1), the dataset/catalog path |
+
+1. **Step 0 — baseline (done 2026-08-10).** Captured from PhreeForm on the test container: five
+   invoices plus PO 1234, each snapshotting the resolved data crossing into the renderer *and* the
+   PDF bytes. Kept local, not committed. See §8.1.
+2. Define the seam: `Document`, `LayoutDocument`, `Record`, `TypedValue`, `Binding`,
+   `FormsRenderer`, `RenderedOutput` — pure value objects, no behaviour.
+3. Port `entry_builder` to an Invoice `DocumentProvider`; semantic-diff its output against the
+   step-0 baseline until clean.
+4. Implement the Layout renderer; verify the Invoice, then PO 1234 for pagination + `Ttl`.
+5. Build the dataset + field catalog from §6 (D1 split into Transactions and General Ledger) —
+   the PO baseline is its first test case.
