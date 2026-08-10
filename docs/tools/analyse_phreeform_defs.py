@@ -19,6 +19,7 @@ re-run it before revising that section.
 Usage:
     docs/tools/analyse_phreeform_defs.py [REPO_ROOT] [--json OUT.json]
 """
+import argparse
 import glob
 import json
 import os
@@ -132,13 +133,15 @@ def join_components(docs):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    root = os.path.abspath(args[0]) if args else os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", ".."))
-    json_out = None
-    if "--json" in sys.argv:
-        idx = sys.argv.index("--json")
-        json_out = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "forms_inventory.json"
+    default_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    parser = argparse.ArgumentParser(
+        description="Inventory the shipped PhreeForm definitions (see docs/forms-design.md §6).")
+    parser.add_argument("repo_root", nargs="?", default=default_root,
+                        help="repo root (default: inferred from this script's location)")
+    parser.add_argument("--json", dest="json_out", metavar="OUT.json",
+                        help="also write the full inventory as JSON")
+    opts = parser.parse_args()
+    root, json_out = os.path.abspath(opts.repo_root), opts.json_out
 
     docs, errors = parse_definitions(root)
     if not docs:
