@@ -105,14 +105,32 @@ final readonly class TypedValue
  */
 final readonly class Binding
 {
+    /**
+     * @param list<string> $sumOf for Aggregate scope, the fields to add up.
+     *   PhreeForm's Ttl sums SEVERAL fields — `foreach ($Params['Seq'] as $f)
+     *   $total += $this->$f` — so a total is not a single named value and
+     *   keeping only the first silently under-reports it. Defaults to [$name].
+     */
     public function __construct(
         public string $name,
         public Scope  $scope = Scope::Record,
+        public array  $sumOf = [],
     ) {}
 
     public static function record(string $name): self  { return new self($name, Scope::Record); }
     public static function context(string $name): self { return new self($name, Scope::Context); }
-    public static function aggregate(string $name): self { return new self($name, Scope::Aggregate); }
+
+    /** @param list<string> $fields fields to sum; defaults to [$name] */
+    public static function aggregate(string $name, array $fields = []): self
+    {
+        return new self($name, Scope::Aggregate, $fields ?: [$name]);
+    }
+
+    /** @return list<string> the fields this aggregate adds up */
+    public function aggregateFields(): array
+    {
+        return $this->sumOf ?: [$this->name];
+    }
 }
 
 /**

@@ -112,7 +112,14 @@ final readonly class FieldBlock extends Element
     }
 }
 
-/** One column of a Table. */
+/**
+ * One column of a Table.
+ *
+ * Carries its own optional Style because PhreeForm styles table columns
+ * individually — each boxfield holds its own font, size and colour, and real
+ * definitions do vary alignment per column. A column with no style inherits the
+ * table's.
+ */
 final readonly class Column
 {
     public function __construct(
@@ -122,6 +129,7 @@ final readonly class Column
         public ?Align  $align  = null,
         public ?Format $format = null,
         public bool    $total  = false,   // contributes to an Aggregate binding
+        public ?Style  $style  = null,
     ) {}
 }
 

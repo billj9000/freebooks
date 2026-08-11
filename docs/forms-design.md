@@ -425,6 +425,8 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `diff_forms_provider.php` | Semantic-diff a provider against the baseline |
 | `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
+| `render_forms_document.php` | Render a form through Forms, for diffing against the baseline |
+| `make_forms_proving_templates.php` | Create/remove the scratch multi-page + `Ttl` templates (§8.3) |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
 
 ### 8.2 Conversion utility
@@ -445,6 +447,34 @@ The user-facing converter therefore handles only genuinely *customised* installs
 diffing `my_files/{company}/phreeform/pf_N` against the shipped default. Its hard limit: a report
 whose join set matches no dataset **cannot be auto-converted** — the converter must report that
 clearly rather than guess a mapping.
+
+### 8.3 Verifying the renderer
+
+PDF bytes never match — TCPDF regenerates `file_id` and the creation date per run — so the renderer
+is compared two ways: extracted text (`pdftotext -layout`) and rendered pixels (`pdftoppm` at 100dpi
+then ImageMagick `compare -metric AE`). Text catches wrong or missing values; pixels catch what text
+cannot see, which is most of a form's furniture — rules, boxes, column widths, alignment.
+
+That second check earned its place. With text already identical, the pixel diff still found three
+real defects: table borders were not drawn at all, the heading box was a rule too tall (drawing a
+doubled line under every heading), and the boxes around `Data` totals vanished from every page but
+the last.
+
+**Pagination cannot be proven from the library as it stands.** The only multi-page record (PO 1234,
+211 lines) belongs to a query-driven form, and no `entry_builder` form is long enough to break a
+page — the largest sales invoice is 18 lines. So the same real record is made to paginate in *both*
+engines by shrinking the item table on a copy of `pf_91` (`make_forms_proving_templates.php`): same
+data, same geometry, two renderers. Those scratch definitions live in `my_files/`, are not committed,
+and must be removed afterwards or they appear in the reports UI.
+
+Results (2026-08-11, production test data):
+
+| Form | Records | Pages | Text | Pixels |
+|---|---|---|---|---|
+| `pf_91` Invoice | 349 (EUR, 14), 110 (GBP), 89 (USD), 507, 430 | 1 | identical | 2 per page |
+| `pf_9991` paginating | 349 | 6 = 6 | identical | 2 per page |
+
+The residual 2 pixels are two greys one level apart (108/109, 168/169) — antialiasing rounding.
 
 ---
 
@@ -475,10 +505,24 @@ Not yet validated; resolve during implementation.
    render "Continued", page 8 renders the real total (6,800.17). The behaviour is exactly as
    modelled, so the residual risk is implementation rather than unknown semantics.
 
-   ⚠️ **The Invoice cannot exercise this** — `Invoice.xml` / `pf_91` contains **no `Ttl` elements**
-   and uses plain `Data` bindings for totals (§4.4). `Ttl` appears only in six query-driven forms:
-   `SalesOrder`, `PurchaseOrder`, `CustomerQuotes`, `CustomerCreditMemo`, `VendorCreditMemo`,
-   `DepositSlip`. Prove it against a Purchase Order, not the Invoice.
+   ⚠️ **No provider-backed form can exercise this, and the reason is stronger than first recorded.**
+   `pf_91` has no `Ttl` (§4.4) — but neither does any other `entry_builder` form, and none can:
+   PhreeForm's `entry_builder::load_total_results()` reads `$Params['Seq']` while `BuildPDF()` passes
+   an `objectInfo`, so a `Ttl` on **any** `special_class` form is a hard fatal ("Cannot use object of
+   type objectInfo as array"). Confirmed 2026-08-11 by adding one. The legacy `Ttl` path works only
+   for query-driven forms, all six of which (`SalesOrder`, `PurchaseOrder`, `CustomerQuotes`,
+   `CustomerCreditMemo`, `VendorCreditMemo`, `DepositSlip`) await the step-5 catalog.
+
+   **Implemented and structurally proven 2026-08-11.** The renderer places deferred content in an
+   explicit second pass over the pages of each record — placeholder on every page but the last, value
+   on the last — rather than PhreeForm's reliance on when TCPDF happens to call `Footer()`. Verified
+   on a six-page proving form: "Continued" on pages 1–5, the resolved total on page 6. What remains
+   unverified is the *value* a query-driven `Ttl` computes, since there is no working legacy
+   behaviour to compare against until step 5.
+
+   A `Ttl` also sums **several** fields (`foreach ($Params['Seq'] as $f) $total += $this->$f`), so an
+   `Aggregate` binding carries a field list, not one name; keeping only the first silently
+   under-reports the total.
 2. **`TDup` carries a known PhreeForm limitation** — its own comment says it "only works if each
    form is contained in a single page". Modelling it as a second `Table` may remove that limit;
    confirm the intended use (two-part remittance forms) before assuming that is desirable.
@@ -515,7 +559,16 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    - a. **`Formatter` (done 2026-08-11).** The value-formatting half, shared by every renderer.
      `verify_forms_formatter.php` proves parity with `ProcessData()`/`AddSep()` across the hint grid
      and asserts the five DB-backed hints are refused. See §4.3.1.
-   - b. The TCPDF Layout renderer itself; verify the Invoice, then PO 1234 for pagination + `Ttl`.
+   - b. **The TCPDF Layout renderer (done 2026-08-11).** `LayoutPdfRenderer` plus `PdfCanvas` and
+     `TemplateConverter`, which maps stored PhreeForm geometry so real forms render unchanged.
+     Verified against the legacy engine on all five baseline invoices (EUR/GBP/USD, 1–14 lines):
+     **text identical, 2 differing pixels each** — two greys one level apart, i.e. antialiasing.
+     Pagination verified on a six-page proving form: identical page count, identical text, 2 pixels
+     per page. See §8.3.
+
+     PO 1234 could **not** be used: `pf_73` is query-driven, so no provider can supply it until the
+     step-5 catalog exists. Neither could any `Ttl` be diffed — see risk 1.
 5. Build the dataset + field catalog from §6 (D1 split into Transactions and General Ledger) —
-   the PO baseline is its first test case. `rep_id`/`branch` (§4.3.1) must land here as
+   the PO baseline is its first test case, and the first chance to diff a `Ttl` and a paginating
+   form against unmodified legacy output. `rep_id`/`branch` (§4.3.1) must land here as
    provider-resolved fields, since `pf_73` needs `rep_id`.
