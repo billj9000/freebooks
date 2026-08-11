@@ -231,6 +231,38 @@ losing expressiveness:
 Element counts across all 17 forms: `Text` 290, `Data` 194, `Line` 58, `CDta` 46, `TBlk` 24,
 `Rect` 18, `Tbl` 17, `CBlk` 14, `Img` 13, `PgNum` 10, `Ttl` 8, `TDup` 1, `BarCode` 1, `ImgLink` 1.
 
+### 4.3.1 The `processing` vocabulary splits three ways
+
+PhreeForm treats "processing" as one concept. It is three, and only two of them belong below the
+seam. Established by reading every `pf_process_*` hook, not by inspecting names — four hints that
+look like database lookups turn out not to be:
+
+| Group | Hints | Where it belongs |
+|---|---|---|
+| **Presentation** | `date`, `posted_cur`, `null_pcur`, `def_cur`, `null_dcur`, `rnd_dec`, `rnd_pre`, `rnd2d`, `dlr`, `null-dlr`, `euro`, `uc`, `lc`, `neg`, `yesBno`, `printed`, `blank`, `n2wrd`, `terms`, `ship_name`, plus the separators `sp`, `2sp`, `comma`, `com-sp`, `nl`, `semi-sp`, `del-nl` | Renderer (`Formatter`) |
+| **Code → label** | `j_desc`, `coa_type`, `cvt_iso2`, `cvt_cntry`, `NewUsed` | Renderer, via an **injected lookup map** |
+| **Resolution (queries the DB)** | `rep_id`, `branch`, `avg_cost`, `avg_total`, `ordr_qty` | **Provider** |
+
+The middle group reads a constant or a static array (`$coa_types_list`, `$arrLocales`) — no query at
+all — so it is presentation. But those tables live in *other modules*, so they are handed to the
+`Formatter` as a `lookups` array rather than reached for directly; the render layer never learns that
+`$coa_types_list` came from `phreebooks/defaults.php`.
+
+The third group is data lookups wearing a formatting costume, and it violates §2.1 rule 3 outright.
+`rep_id` is the sharp one: it calls `pb_get_user_name()`, which **queries the `users` table** — one of
+the sensitive tables the whole security model in §3 exists to keep away from report authors — and it
+is used by `pf_73` (Purchase Order). Under Forms these become fields the provider resolves, so the
+document arrives carrying the name and the renderer never queries anything.
+
+`Formatter` therefore refuses the resolution hints: it passes the value through and reports them via
+`unresolvedHints()`, so the conversion utility (§8.2) can list exactly which definitions still need a
+provider-side field instead of silently printing an id where a name belongs.
+
+Two dead hints surfaced while doing this: `idx` (phreepos) calls an undefined `do_something()`, and
+`neg`/`n2wrd`/`null-dlr` hard-fatal on PHP 8 for non-numeric input because they lack the `is_numeric`
+guard their neighbours have. Forms guards them; `verify_forms_formatter.php` records the three
+resulting divergences as intended, since they occur only on input that crashes the legacy engine.
+
 ### 4.4 Two findings that shaped the model
 
 - **Totals are ordinary record bindings.** In `Invoice.xml`, `invoice_subtotal`, `sales_tax`,
@@ -388,10 +420,11 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 
 | Tool | Purpose |
 |---|---|
-| `bootstrap_freebooks.php` | Shared CLI bootstrap (trap 4) |
+| `bootstrap_freebooks.php` | Shared CLI bootstrap (trap 4) + the Formatter's lookup tables |
 | `capture_phreeform_baseline.php` | Step 0 — snapshot legacy data + PDF bytes |
 | `diff_forms_provider.php` | Semantic-diff a provider against the baseline |
 | `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
+| `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
 
 ### 8.2 Conversion utility
@@ -472,10 +505,17 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
 1. **Step 0 — baseline (done 2026-08-10).** Captured from PhreeForm on the test container: five
    invoices plus PO 1234, each snapshotting the resolved data crossing into the renderer *and* the
    PDF bytes. Kept local, not committed. See §8.1.
-2. Define the seam: `Document`, `LayoutDocument`, `Record`, `TypedValue`, `Binding`,
-   `FormsRenderer`, `RenderedOutput` — pure value objects, no behaviour.
-3. Port `entry_builder` to an Invoice `DocumentProvider`; semantic-diff its output against the
-   step-0 baseline until clean.
-4. Implement the Layout renderer; verify the Invoice, then PO 1234 for pagination + `Ttl`.
+2. **Step 1 — the seam (done 2026-08-10).** `Document`, `LayoutDocument`, `Record`, `TypedValue`,
+   `Binding`, `FormsRenderer`, `RenderedOutput` — pure value objects, no behaviour. Guarded by
+   `verify_forms_seam.php` (20 assertions, runs with no database).
+3. **Step 2 — Invoice provider (done 2026-08-10).** `entry_builder` ported to
+   `EntryDocumentProvider`; `diff_forms_provider.php` reports 0 differences against the step-0
+   baseline for records 349 (EUR, zero-rated) and 110 (GBP, 20% VAT).
+4. **Step 3 — the renderer.** In progress.
+   - a. **`Formatter` (done 2026-08-11).** The value-formatting half, shared by every renderer.
+     `verify_forms_formatter.php` proves parity with `ProcessData()`/`AddSep()` across the hint grid
+     and asserts the five DB-backed hints are refused. See §4.3.1.
+   - b. The TCPDF Layout renderer itself; verify the Invoice, then PO 1234 for pagination + `Ttl`.
 5. Build the dataset + field catalog from §6 (D1 split into Transactions and General Ledger) —
-   the PO baseline is its first test case.
+   the PO baseline is its first test case. `rep_id`/`branch` (§4.3.1) must land here as
+   provider-resolved fields, since `pf_73` needs `rep_id`.

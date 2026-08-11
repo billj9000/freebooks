@@ -153,3 +153,33 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
 
     return $company;
 }
+
+/**
+ * The code-to-label tables the Formatter needs, gathered from the modules that
+ * own them. Doing it here keeps the render layer free of module dependencies -
+ * see the LOOKUP_HINTS note in modules/forms/classes/render/formatter.php.
+ *
+ * @return array<string,array<string|int,string>>
+ */
+function fb_formatter_lookups(): array
+{
+    require(DIR_FS_MODULES . 'phreebooks/defaults.php');   // $coa_types_list
+    $arrLocales = $GLOBALS['arrLocales'] ?? [];            // phreeform/config_phreeform.php
+
+    // An absent label is omitted rather than blanked, so an unknown code renders
+    // as itself - matching the legacy hooks' isset() fallbacks.
+    $pluck = function (array $rows, string $field): array {
+        $out = [];
+        foreach ($rows as $key => $row) {
+            $value = (string)($row[$field] ?? '');
+            if ($value !== '') $out[$key] = $value;
+        }
+        return $out;
+    };
+
+    return [
+        'coa_type'  => $pluck($coa_types_list ?? [], 'text'),
+        'cvt_iso2'  => $pluck($arrLocales, 'iso2'),
+        'cvt_cntry' => $pluck($arrLocales, 'name'),
+    ];
+}
