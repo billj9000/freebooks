@@ -374,10 +374,25 @@ Four things the capture harness must handle — each one silently produces wrong
    `phreebooks` menu language → `phreedom/config.php` → per-module language + config → module
    default language for `phreeform`. Loading them out of order fails on undefined
    `SECURITY_ID_*` / `MENU_HEADING_*` / `PF_FONT_*` constants. `trunk/cron/*.php` is the working
-   template for the rest of the CLI bootstrap.
+   template for the rest of the CLI bootstrap. This lives once, in
+   `docs/tools/bootstrap_freebooks.php`, which every Forms tool requires.
 
 Use `BuildForm($report, 'S')` — delivery method `S` returns the bytes instead of emitting HTTP
 headers and calling `exit()`.
+
+A fifth trap sits outside the harness: **company auto-detection**. A baseline taken from the wrong
+database still renders plausible-looking output and exits 0 — an early run silently captured `demo`
+instead of `production`. The bootstrap always echoes the company it resolved and warns when it guessed.
+
+The tools, all under `docs/tools/` and all run inside the container with `-d display_errors=1`:
+
+| Tool | Purpose |
+|---|---|
+| `bootstrap_freebooks.php` | Shared CLI bootstrap (trap 4) |
+| `capture_phreeform_baseline.php` | Step 0 — snapshot legacy data + PDF bytes |
+| `diff_forms_provider.php` | Semantic-diff a provider against the baseline |
+| `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
+| `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
 
 ### 8.2 Conversion utility
 

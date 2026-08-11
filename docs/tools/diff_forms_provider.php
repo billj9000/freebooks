@@ -44,7 +44,9 @@
  *      values, not just the fields.
  *
  * Usage (inside the container, which is where the database lives):
- *   php -d display_errors=1 diff_forms_provider.php <report_id> <ids> <baseline_dir> [company]
+ *   docker cp docs/tools/ <container>:/tmp/fbtools/
+ *   docker exec <container> php -d display_errors=1 \
+ *       /tmp/fbtools/diff_forms_provider.php <report_id> <ids> <baseline_dir> [company]
  *
  * Exits non-zero if any field or line item differs.
  */
@@ -62,77 +64,8 @@ if (!$REPORT_ID || !$RECORDS) {
 }
 
 // ─── Bootstrap (see forms-design.md §8.1 trap 4) ──────────────────────────────
-$fs_admin = rtrim(getenv('FREEBOOKS_WEBROOT') ?: '/var/www/html', '/') . '/';
-require($fs_admin . 'includes/configure.php');
-if (!defined('DIR_FS_ADMIN'))     define('DIR_FS_ADMIN', $fs_admin);
-if (!defined('PATH_TO_MY_FILES')) define('PATH_TO_MY_FILES', 'my_files/');
-define('DIR_WS_MODULES',  'modules/');
-define('DIR_WS_MY_FILES', PATH_TO_MY_FILES);
-define('DIR_FS_INCLUDES', DIR_FS_ADMIN . 'includes/');
-define('DIR_FS_MODULES',  DIR_FS_ADMIN . 'modules/');
-define('DIR_FS_MY_FILES', DIR_FS_ADMIN . PATH_TO_MY_FILES);
-define('DIR_FS_THEMES',   DIR_FS_ADMIN . 'themes/');
-define('FILENAME_DEFAULT','index');
-define('DIR_WS_ICONS',    '');
-
-$company = (string)($argv[4] ?? getenv('FREEBOOKS_COMPANY') ?: '');
-if ($company === '' && is_dir(DIR_FS_MY_FILES)) {
-    foreach (scandir(DIR_FS_MY_FILES) as $e) {
-        if ($e === '.' || $e === '..') continue;
-        if (is_dir(DIR_FS_MY_FILES . $e) && file_exists(DIR_FS_MY_FILES . $e . '/config.php')) { $company = $e; break; }
-    }
-    fwrite(STDERR, "WARNING: company auto-detected as '$company'.\n");
-}
-if (!file_exists(DIR_FS_MY_FILES . $company . '/config.php')) {
-    fwrite(STDERR, "Company '$company' not found.\n"); exit(1);
-}
-echo "company: $company\n";
-$_SESSION['company'] = $company; $_SESSION['language'] = 'en_us'; $_SESSION['admin_id'] = 1;
-
-if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
-require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
-require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
-require_once(DIR_FS_INCLUDES . 'common_functions.php');
-require_once(DIR_FS_INCLUDES . 'common_classes.php');
-
-define('DB_DATABASE', $company);
-require_once(DIR_FS_MY_FILES . $company . '/config.php');
-if (!defined('DB_SERVER_HOST') && defined('DB_SERVER')) define('DB_SERVER_HOST', DB_SERVER);
-require_once(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
-$db = new queryFactory();
-$db->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
-$cfg = $db->Execute("SELECT configuration_key, configuration_value FROM " . DB_PREFIX . "configuration");
-while (!$cfg->EOF) {
-    if (!defined($cfg->fields['configuration_key']))
-        define($cfg->fields['configuration_key'], $cfg->fields['configuration_value']);
-    $cfg->MoveNext();
-}
-if (!defined('DATE_FORMAT_CALENDAR')) define('DATE_FORMAT_CALENDAR', 'mm-dd-yy');
-if (!defined('DIR_WS_ADMIN'))     define('DIR_WS_ADMIN', '/');
-if (!defined('HTTP_SERVER'))      define('HTTP_SERVER', 'http://localhost');
-if (!defined('HTTPS_SERVER'))     define('HTTPS_SERVER', 'http://localhost');
-if (!defined('DIR_WS_FULL_PATH')) define('DIR_WS_FULL_PATH', HTTP_SERVER . DIR_WS_ADMIN);
-if (!defined('DIR_WS_THEMES'))    define('DIR_WS_THEMES', 'themes/default/');
-if (!defined('DIR_WS_IMAGES'))    define('DIR_WS_IMAGES', 'themes/default/images/');
-
-$messageStack = new messageStack();
-gen_pull_language('phreedom', 'menu');
-gen_pull_language('phreebooks', 'menu');
-require_once(DIR_FS_MODULES . 'phreedom/config.php');
-$loaded_modules = [];
-foreach (scandir(DIR_FS_MODULES) as $dir) {
-    if ($dir === '.' || $dir === '..') continue;
-    if (is_dir(DIR_FS_MODULES . $dir)) gen_pull_language($dir, 'menu');
-    if (defined('MODULE_' . strtoupper($dir) . '_STATUS')) {
-        $loaded_modules[] = $dir;
-        require_once(DIR_FS_MODULES . $dir . '/config.php');
-    }
-}
-$currencies = new currencies();
-gen_pull_language('phreeform');
-gen_pull_language('phreebooks');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+require_once(__DIR__ . '/bootstrap_freebooks.php');
+$company = fb_bootstrap($argv[4] ?? null);
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');

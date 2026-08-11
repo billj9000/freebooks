@@ -32,8 +32,9 @@
  * TEST database. Do not point it at production - see the printed-counter note.
  *
  * Usage (from the host):
- *   docker cp docs/tools/capture_phreeform_baseline.php <container>:/tmp/cap.php
- *   docker exec <container> php -d display_errors=1 /tmp/cap.php <report_id> <ids> [out_dir]
+ *   docker cp docs/tools/ <container>:/tmp/fbtools/
+ *   docker exec <container> php -d display_errors=1 \
+ *       /tmp/fbtools/capture_phreeform_baseline.php <report_id> <ids> [out_dir] [company]
  *
  *   report_id  phreeform.id of the form (e.g. 91 = Invoice, 73 = Purchase Order)
  *   ids        comma-separated journal_main.id values, e.g. 349,89,110
@@ -54,7 +55,8 @@
  *   3. display_errors is Off in the image, so CLI fatals are invisible. Always
  *      invoke with -d display_errors=1.
  *   4. Bootstrap must mirror application_top.php's ordering or it dies on
- *      undefined SECURITY_ID_* / MENU_HEADING_* / PF_FONT_* constants.
+ *      undefined SECURITY_ID_* / MENU_HEADING_* / PF_FONT_* constants. That
+ *      ordering lives in bootstrap_freebooks.php, which this script requires.
  */
 
 define('PAGE_EXECUTION_START_TIME', microtime(true));
@@ -70,97 +72,9 @@ if (!$REPORT_ID || !$RECORDS) {
     exit(1);
 }
 
-// ─── Bootstrap: mirrors application_top.php's ordering (trap 4) ───────────────
-$fs_admin = rtrim(getenv('FREEBOOKS_WEBROOT') ?: '/var/www/html', '/') . '/';
-if (!file_exists($fs_admin . 'includes/configure.php')) {
-    fwrite(STDERR, "No configure.php under $fs_admin - set FREEBOOKS_WEBROOT.\n");
-    exit(1);
-}
-require($fs_admin . 'includes/configure.php');
-if (!defined('DIR_FS_ADMIN'))     define('DIR_FS_ADMIN', $fs_admin);
-if (!defined('PATH_TO_MY_FILES')) define('PATH_TO_MY_FILES', 'my_files/');
-define('DIR_WS_MODULES',  'modules/');
-define('DIR_WS_MY_FILES', PATH_TO_MY_FILES);
-define('DIR_FS_INCLUDES', DIR_FS_ADMIN . 'includes/');
-define('DIR_FS_MODULES',  DIR_FS_ADMIN . 'modules/');
-define('DIR_FS_MY_FILES', DIR_FS_ADMIN . PATH_TO_MY_FILES);
-define('DIR_FS_THEMES',   DIR_FS_ADMIN . 'themes/');
-define('FILENAME_DEFAULT','index');
-define('DIR_WS_ICONS',    '');
-
-$company = (string)($argv[4] ?? getenv('FREEBOOKS_COMPANY') ?: '');
-if ($company === '' && is_dir(DIR_FS_MY_FILES)) {
-    foreach (scandir(DIR_FS_MY_FILES) as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-        if (is_dir(DIR_FS_MY_FILES . $entry) && file_exists(DIR_FS_MY_FILES . $entry . '/config.php')) {
-            $company = $entry;
-            break;
-        }
-    }
-}
-if ($company === '' || !file_exists(DIR_FS_MY_FILES . $company . '/config.php')) {
-    fwrite(STDERR, "Company '$company' not found under " . DIR_FS_MY_FILES . "\n");
-    exit(1);
-}
-// Which company we ended up on is load-bearing: baselines from the wrong
-// database still render plausible-looking output. Say it out loud.
-if (!isset($argv[4]) && !getenv('FREEBOOKS_COMPANY')) {
-    fwrite(STDERR, "WARNING: company auto-detected as '$company'. Pass it explicitly "
-                 . "(argv[4] or FREEBOOKS_COMPANY) if that is not the one you meant.\n");
-}
-echo "company: $company\n";
-
-$_SESSION['company']  = $company;
-$_SESSION['language'] = 'en_us';
-$_SESSION['admin_id'] = 1;
-
-if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
-
-require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
-require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
-require_once(DIR_FS_INCLUDES . 'common_functions.php');
-require_once(DIR_FS_INCLUDES . 'common_classes.php');
-
-define('DB_DATABASE', $company);
-require_once(DIR_FS_MY_FILES . $company . '/config.php');
-if (!defined('DB_SERVER_HOST') && defined('DB_SERVER')) define('DB_SERVER_HOST', DB_SERVER);
-require_once(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
-$db = new queryFactory();
-$db->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
-
-$cfg = $db->Execute("SELECT configuration_key, configuration_value FROM " . DB_PREFIX . "configuration");
-while (!$cfg->EOF) {
-    if (!defined($cfg->fields['configuration_key']))
-        define($cfg->fields['configuration_key'], $cfg->fields['configuration_value']);
-    $cfg->MoveNext();
-}
-if (!defined('DATE_FORMAT_CALENDAR')) define('DATE_FORMAT_CALENDAR', 'mm-dd-yy');
-// web-path constants html_href_link() needs (normally derived from the request)
-if (!defined('DIR_WS_ADMIN'))     define('DIR_WS_ADMIN', '/');
-if (!defined('HTTP_SERVER'))      define('HTTP_SERVER', 'http://localhost');
-if (!defined('HTTPS_SERVER'))     define('HTTPS_SERVER', 'http://localhost');
-if (!defined('DIR_WS_FULL_PATH')) define('DIR_WS_FULL_PATH', HTTP_SERVER . DIR_WS_ADMIN);
-if (!defined('DIR_WS_THEMES'))    define('DIR_WS_THEMES', 'themes/default/');
-if (!defined('DIR_WS_IMAGES'))    define('DIR_WS_IMAGES', 'themes/default/images/');
-
-$messageStack = new messageStack();
-gen_pull_language('phreedom',   'menu');
-gen_pull_language('phreebooks', 'menu');
-require_once(DIR_FS_MODULES . 'phreedom/config.php');
-$loaded_modules = array();                       // find_special_class() reads this global
-foreach (scandir(DIR_FS_MODULES) as $dir) {
-    if ($dir === '.' || $dir === '..') continue;
-    if (is_dir(DIR_FS_MODULES . $dir)) gen_pull_language($dir, 'menu');
-    if (defined('MODULE_' . strtoupper($dir) . '_STATUS')) {
-        $loaded_modules[] = $dir;
-        require_once(DIR_FS_MODULES . $dir . '/config.php');
-    }
-}
-$currencies = new currencies();
-gen_pull_language('phreeform');                  // PF_FONT_* etc.
-gen_pull_language('phreebooks');                 // special-class strings
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+// ─── Bootstrap (trap 4) ──────────────────────────────────────────────────────
+require_once(__DIR__ . '/bootstrap_freebooks.php');
+$company = fb_bootstrap($argv[4] ?? null);
 
 if (!is_dir($OUT) && !@mkdir($OUT, 0777, true)) {
     fwrite(STDERR, "Cannot create $OUT\n");
