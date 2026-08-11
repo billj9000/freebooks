@@ -55,12 +55,15 @@ $company = fb_bootstrap($argv[4] ?? null);
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/render/load.php');
+require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/legacy/template_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/providers/entry_provider.php');
+require_once(DIR_FS_MODULES . 'forms/classes/providers/query_provider.php');
 
+use FreeBooks\Forms\Catalog\{Catalog, Filter, ShippedDatasets};
 use FreeBooks\Forms\Document\{Context, RenderOptions, TypedValue};
 use FreeBooks\Forms\Legacy\TemplateConverter;
-use FreeBooks\Forms\Provider\EntryDocumentProvider;
+use FreeBooks\Forms\Provider\{EntryDocumentProvider, QueryDocumentProvider};
 use FreeBooks\Forms\Render\{Formatter, LayoutPdfRenderer};
 
 if (!is_dir($OUT) && !@mkdir($OUT, 0777, true)) {
@@ -71,13 +74,24 @@ if (!is_dir($OUT) && !@mkdir($OUT, 0777, true)) {
 $report = get_report_details($REPORT_ID);
 if (!$report) { fwrite(STDERR, "Report $REPORT_ID not found.\n"); exit(1); }
 
+// A form with no special_class is query-driven: it needs a catalog dataset.
+// DATASET may name one explicitly; otherwise a provider-backed form is assumed.
+$specialClass = (string)($report->special_class ?? '');
+$datasetId    = getenv('FORMS_DATASET') ?: ($specialClass === '' ? 'transactions' : '');
+
+$catalog = new Catalog();
+ShippedDatasets::registerAll($catalog);
+$dataset = $datasetId !== '' ? $catalog->get($datasetId) : null;
+
 $converter = new TemplateConverter();
-$template  = $converter->convert($report);
+$template  = $converter->convert($report, $dataset);
 $page      = $converter->convertPageSetup($report);
 
 echo "report:   pf_$REPORT_ID (" . ($report->title ?? '?') . ")\n";
+echo "driver:   " . ($specialClass !== '' ? "provider ($specialClass)" : "dataset ($datasetId)") . "\n";
 echo "elements: " . count($template->elements) . " converted\n";
 foreach ($converter->warnings() as $w) echo "  WARN $w\n";
+foreach ($converter->unmappedFields() as $u) echo "  UNMAPPED $u\n";
 
 // The company block. PhreeForm resolved CDta/CBlk by calling constant() on the
 // stored field name, so the set is whatever a template happens to reference —
@@ -106,13 +120,42 @@ printf("context:  %d constants resolved%s\n", count($contextValues),
 
 $context = new Context($contextValues, $_SESSION['language'] ?? 'en_us');
 
-$provider = new EntryDocumentProvider(
-    db:       $db,
-    template: $template,
-    context:  $context,
-    title:    (string)($report->title ?? 'Document'),
-    page:     $page,
-);
+if ($dataset !== null) {
+    // Filters the legacy definition applied invisibly (journal id, entry type,
+    // address-book type). Without them the query returns every journal and
+    // every address on file - see the row-multiplication note in the provider.
+    $filters = [];
+    foreach ((array)($report->filterlist ?? []) as $f) {
+        $name = (string)($f->fieldname ?? '');
+        $min  = (string)($f->min_val ?? '');
+        if ($min === '' || $name === '') continue;
+        $map  = TemplateConverter::mapFor($dataset);
+        $key  = $map[strtolower($name)] ?? null;
+        if ($key === null) { echo "  SKIP filter on unmapped $name\n"; continue; }
+        $filters[] = Filter::equals($key, $min);
+        echo "  filter:  $key = '$min'\n";
+    }
+
+    $provider = new QueryDocumentProvider(
+        db:         $db,
+        catalog:    $catalog,
+        datasetId:  $dataset->id,
+        template:   $template,
+        breakField: 'id',
+        context:    $context,
+        title:      (string)($report->title ?? 'Document'),
+        page:       $page,
+        filters:    $filters,
+    );
+} else {
+    $provider = new EntryDocumentProvider(
+        db:       $db,
+        template: $template,
+        context:  $context,
+        title:    (string)($report->title ?? 'Document'),
+        page:     $page,
+    );
+}
 
 $formatter = new Formatter($currencies, DEFAULT_CURRENCY, fb_formatter_lookups());
 $renderer  = new LayoutPdfRenderer(

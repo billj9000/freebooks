@@ -426,6 +426,7 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
 | `render_forms_document.php` | Render a form through Forms, for diffing against the baseline |
+| `verify_forms_catalog.php` | Attack the catalog's safety guarantees (no DB needed) |
 | `make_forms_proving_templates.php` | Create/remove the scratch multi-page + `Ttl` templates (§8.3) |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
 
@@ -475,6 +476,52 @@ Results (2026-08-11, production test data):
 | `pf_9991` paginating | 349 | 6 = 6 | identical | 2 per page |
 
 The residual 2 pixels are two greys one level apart (108/109, 168/169) — antialiasing rounding.
+
+### 8.4 Verifying the catalog
+
+Two things are being claimed, and they need different evidence.
+
+**That the safety guarantees hold** is structural, so `verify_forms_catalog.php` attacks them rather
+than demonstrating them — 66 assertions, no database required. Identifiers carrying SQL are refused
+rather than escaped; a Custom dataset refuses expressions and every table in the sensitive set,
+while a Shipped one may use both; filter values appear only as bound parameters; unknown fields are
+refused in select, filter and sort position. Three real injection strings were also fired at the live
+database through `ExecutePrepared()` — `' OR '1'='1`, a `UNION SELECT` against `users`, and a stacked
+`DROP TABLE` — each returning zero rows with `journal_main` intact.
+
+One assertion is there purely to stop drift: `Formatter::RESOLUTION_HINTS` and
+`TemplateConverter::PROVIDER_RESOLVED` are two lists in two layers describing one decision, and a
+hint the renderer refuses but the converter fails to re-point prints a raw id on a customer-facing
+document. That is exactly the defect it caught — the Purchase Order's Buyer box printing `1`.
+
+**That it reproduces real output** is empirical. PO 1234 (`pf_73`, 210 lines) renders through
+`QueryDocumentProvider` at 8 pages, matching the legacy engine's 8:
+
+| Comparison | Differing pixels (8 pages) |
+|---|---|
+| First working render | 740,384 |
+| After fixing heading-style inheritance, computed-field grain, `ship_name`, user resolution | 121,578 |
+| Excluding the unmapped Vendor SKU column | **6,498** (~810/page) |
+
+The remaining ~810 per page is the heading row's column rules landing about a pixel off; the rest is
+antialiasing.
+
+The Vendor SKU column is not a defect but the design working. This install's `pf_73` is customised
+(our own vendor-SKU work) and selects
+`IF(inventory_purchase_details.vendor_sku <> '', …, SUBSTRING_INDEX(…))` — raw SQL embedded in a form
+definition, which is precisely what §3.2 confines to the shipped tier. The converter reports it
+through `unmappedFields()` instead of silently rendering blanks, which is the behaviour §8.2 demands.
+Rendering that column requires a shipped dataset carrying it as a named computed field.
+
+Two findings from doing this that the earlier sections did not anticipate:
+
+- **Compound joins are real.** All 11 shipped relationships are simple `a.b = c.d`, but the
+  customised Purchase Order joins on both `sku` and `vendor_id`. `Join` therefore takes a *list* of
+  conditions. A single-pair model would have failed to express it, and the pressure would then have
+  been to re-introduce the free-form condition box that caused the original vulnerability.
+- **A computed field still needs a table.** Not to build the SQL — the expression says where values
+  come from — but to state its *grain*, i.e. whether it varies per line or per record. Without it the
+  row-folding code cannot classify the field, and the Unit Price column renders empty.
 
 ---
 
@@ -568,7 +615,10 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
 
      PO 1234 could **not** be used: `pf_73` is query-driven, so no provider can supply it until the
      step-5 catalog exists. Neither could any `Ttl` be diffed — see risk 1.
-5. Build the dataset + field catalog from §6 (D1 split into Transactions and General Ledger) —
-   the PO baseline is its first test case, and the first chance to diff a `Ttl` and a paginating
-   form against unmodified legacy output. `rep_id`/`branch` (§4.3.1) must land here as
-   provider-resolved fields, since `pf_73` needs `rep_id`.
+5. **The dataset + field catalog (done 2026-08-12).** Four shipped datasets (Transactions, General
+   Ledger, Inventory, Audit Trail), parameterised filters, a query builder, `ExecutePrepared()` on
+   `queryFactory`, and `QueryDocumentProvider` — which unblocks the query-driven half of the
+   library. `rep_id`/`admin_id` are resolved provider-side as promised. Verified by
+   `verify_forms_catalog.php` (66 guarantees) and against PO 1234; see §8.4.
+6. Remaining: the eight other provider ports, the reports (`TableDocument`) path, custom datasets in
+   the admin UI, and the delivery layer.

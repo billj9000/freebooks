@@ -209,9 +209,12 @@ final class Formatter
 
     private function shipName(string $id): string
     {
-        if ($id === '') return '';
+        // Falsy, not empty-string: a stored "0:" means "no carrier", and
+        // shipping_get_name()'s `if (!$parts[0])` treats "0" as absent. An
+        // === '' test instead renders the raw id in the Ship Via box.
+        if (!$id) return '';
         $parts = explode(':', $id);
-        if (($parts[0] ?? '') === '') return '';
+        if (!($parts[0] ?? '')) return '';
         $const = $parts[0] . '_' . ($parts[1] ?? '');
         return defined($const) ? (string)constant($const) : $id;
     }

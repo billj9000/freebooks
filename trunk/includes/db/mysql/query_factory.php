@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -169,6 +170,52 @@ HTML;
         if ($zf_cache) {
             $zc_cache->sql_cache_store($zf_sql, $obj->result);
             $obj->is_cached = true;
+        }
+
+        $this->total_query_time += microtime(true) - $time_start;
+        $this->count_queries++;
+        return $obj;
+    }
+
+    /**
+     * Execute a statement with bound parameters.
+     *
+     * Additive counterpart to Execute(), which takes only a finished SQL string
+     * and so leaves callers to interpolate their own values — the shape behind
+     * the injection defects fixed across popup_gen, gen_db_date() and
+     * gen_build_sql_date(). The connection has always been PDO; this exposes
+     * what it could already do.
+     *
+     * Returns the same queryFactoryResult cursor as Execute(), so callers use
+     * MoveNext()/EOF()/fields identically. Deliberately not cached: the cache is
+     * keyed on the SQL text, which is no longer unique once the values live in
+     * parameters.
+     *
+     * @param string             $zf_sql    statement containing ? placeholders
+     * @param array<int, scalar|null> $zf_params values, in placeholder order
+     */
+    function ExecutePrepared($zf_sql, array $zf_params = []) {
+        global $messageStack;
+
+        $time_start      = microtime(true);
+        $obj             = new queryFactoryResult;
+        $obj->sql_query  = $zf_sql;
+        if (!$this->db_connected) {
+            $this->set_error('0', DB_ERROR_NOT_CONNECTED);
+        }
+        $zf_sql = rtrim($zf_sql, "; \t\n\r");
+        try {
+            $stmt = $this->link->prepare($zf_sql);
+            $stmt->execute(array_values($zf_params));
+            $obj->_row_count = $stmt->rowCount();
+            $obj->result     = $stmt->columnCount() > 0 ? $stmt->fetchAll() : [];
+            $obj->_load_cursor();
+        } catch (PDOException $e) {
+            if (method_exists($messageStack, 'debug')) {
+                $messageStack->debug("\n\nThe failing sql was: " . $zf_sql);
+                $messageStack->debug("\n\nPDO returned: " . $e->getCode() . ' ' . $e->getMessage());
+            }
+            throw $e;   // the caller decides; this method never redirects or dies
         }
 
         $this->total_query_time += microtime(true) - $time_start;

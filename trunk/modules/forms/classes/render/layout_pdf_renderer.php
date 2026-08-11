@@ -500,18 +500,33 @@ final class LayoutPdfRenderer implements FormsRenderer
         }
     }
 
-    /** @return list<array{text:string,width:float,align:string}> */
+    /**
+     * @return list<array{text:string,width:float,align:string,style:?Style}>
+     *
+     * A table's heading style is applied ATTRIBUTE BY ATTRIBUTE over the
+     * column's own, not as a whole. PhreeForm reads
+     * `($Heading && $Params->hfont <> '') ? $Params->hfont : $boxfield->font`
+     * for each of font, size, colour and alignment independently, so a
+     * definition that sets no hfont keeps the column's font. Falling back to the
+     * renderer's default instead renders every table heading in the wrong
+     * typeface — freeserif against the columns' helvetica.
+     */
     private function headingCells(Table $element): array
     {
-        $cells = [];
+        $header = $element->headerStyle;
+        $cells  = [];
         foreach ($element->columns as $column) {
+            $own = $column->style;
             $cells[] = [
                 'text'  => $column->heading,
                 'width' => (float)($column->width ?? 0),
-                // The heading style wins over the column's own alignment when it
-                // sets one; PhreeForm's 'A' (auto) meant "use the column's".
-                'align' => $element->headerStyle?->align?->value ?? $column->align?->value ?? 'L',
-                'style' => null,
+                'align' => ($header?->align ?? $column->align ?? $own?->align)?->value ?? 'L',
+                'style' => new Style(
+                    font:   $header?->font   ?: $own?->font,
+                    size:   $header?->size   ?: $own?->size,
+                    colour: $header?->colour ?? $own?->colour,
+                    align:  $header?->align  ?? $own?->align,
+                ),
             ];
         }
         return $cells;
@@ -545,21 +560,25 @@ final class LayoutPdfRenderer implements FormsRenderer
      */
     private function drawTableRow(Table $element, array $cells, float $y, bool $isHeading): float
     {
-        $rowStyle = $isHeading ? ($element->headerStyle ?? $element->style) : $element->style;
-
-        $lineHeight = (($rowStyle?->size ?? 10) + $this->rowSpacing) * self::PT_TO_MM;
+        $rowStyle   = $isHeading ? ($element->headerStyle ?? $element->style) : $element->style;
         $x          = $element->box->x;
         $maxY       = $y;
+        $lineHeight = (($rowStyle?->size ?? 10) + $this->rowSpacing) * self::PT_TO_MM;
 
         foreach ($cells as $cell) {
-            // Each column may carry its own font/size/colour.
-            $cellStyle = $cell['style'] ?? $rowStyle;
+            // Each column may carry its own font/size/colour, and the row height
+            // follows the cell's own size — PhreeForm computes CellHeight per
+            // cell as ($size + ROWSPACE) * 0.35.
+            $cellStyle  = $cell['style'] ?? $rowStyle;
+            $cellHeight = (($cellStyle?->size ?? $rowStyle?->size ?? 10) + $this->rowSpacing) * self::PT_TO_MM;
+            if ($cellHeight > $lineHeight) $lineHeight = $cellHeight;
+
             $this->applyFont($cellStyle);
             $this->applyTextColour($cellStyle);
 
             $this->pdf->SetLeftMargin($x);
             $this->pdf->SetXY($x, $y);
-            $this->pdf->MultiCell($cell['width'], $lineHeight, $cell['text'], 0, $cell['align'], false);
+            $this->pdf->MultiCell($cell['width'], $cellHeight, $cell['text'], 0, $cell['align'], false);
             if ($this->pdf->GetY() > $maxY) $maxY = $this->pdf->GetY();
             $x += $cell['width'];
         }

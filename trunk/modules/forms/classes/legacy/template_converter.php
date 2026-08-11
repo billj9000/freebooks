@@ -50,6 +50,7 @@
 
 namespace FreeBooks\Forms\Legacy;
 
+use FreeBooks\Forms\Catalog\Dataset;
 use FreeBooks\Forms\Document\{
     Align, Barcode, Binding, BlockPart, Box, Colour, Column, Element, Field,
     FieldBlock, Image, Line, PageNumber, PageSetup, Rect, StaticText, Style,
@@ -62,19 +63,132 @@ final class TemplateConverter
     private array $warnings = [];
 
     /**
-     * @param object $report a legacy definition as returned by get_report_details()
+     * Processing hints the PROVIDER resolves, and the suffix of the field it
+     * supplies the answer in (§4.3.1).
+     *
+     * These look like formatting but are database lookups — rep_id reads the
+     * `users` table — so the renderer refuses them and a query-driven provider
+     * emits a resolved companion field instead. Converting a form means
+     * re-pointing the binding at that companion and dropping the hint;
+     * otherwise the Buyer box on a Purchase Order prints "1".
+     *
+     * Must stay in step with Formatter::RESOLUTION_HINTS, which
+     * verify_forms_catalog.php asserts.
      */
-    public function convert(object $report): Template
+    public const PROVIDER_RESOLVED = [
+        'rep_id'    => '_name',
+        'branch'    => '_name',
+        'avg_cost'  => '_avg_cost',
+        'avg_total' => '_avg_total',
+        'ordr_qty'  => '_ordered',
+    ];
+
+    /** @var array<string,string> legacy "table.column" => dataset field key */
+    private array $fieldMap = [];
+
+    /** @var array<string,true> legacy names no dataset field covers */
+    private array $unmapped = [];
+
+    /**
+     * @param object   $report  a legacy definition as returned by get_report_details()
+     * @param ?Dataset $dataset when given, legacy `table.column` names are
+     *   rewritten to that dataset's field keys. Names it cannot cover are
+     *   reported by unmappedFields() rather than silently emitted, because a
+     *   binding that matches nothing renders as blank — the failure mode §8.2
+     *   insists the converter must not have.
+     */
+    public function convert(object $report, ?Dataset $dataset = null): Template
     {
         $this->warnings = [];
-        $elements = [];
+        $this->unmapped = [];
+        $this->fieldMap = $dataset === null ? [] : self::mapFor($dataset);
 
+        $elements = [];
         foreach ((array)($report->fieldlist ?? []) as $index => $field) {
             $element = $this->convertField($field, $index);
             if ($element !== null) $elements[] = $element;
         }
 
         return new Template($elements);
+    }
+
+    /**
+     * Legacy `table.column` => field key, for one dataset.
+     *
+     * @return array<string,string>
+     */
+    public static function mapFor(Dataset $dataset): array
+    {
+        $map = [];
+        foreach ($dataset->fields as $key => $field) {
+            if ($field->table !== null && $field->column !== null) {
+                $map[strtolower($field->table . '.' . $field->column)] = $key;
+            }
+            // Whitespace in a stored expression is not meaningful, and the
+            // definitions are inconsistent about it ("debit_amount /qty").
+            foreach ($field->legacyNames as $legacy) {
+                $map[self::normalise($legacy)] = $key;
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * Re-point a binding whose hint is really a provider-side lookup.
+     *
+     * @return array{0: string, 1: string} the binding name and remaining hint
+     */
+    private function applyProviderResolution(string $bindName, string $hint, bool $isContext): array
+    {
+        if ($isContext || $hint === '' || !isset(self::PROVIDER_RESOLVED[$hint])) {
+            return [$bindName, $hint];
+        }
+        // The hint is consumed: the provider has already done the lookup, so
+        // the value arriving is a name and needs no further processing.
+        return [$bindName . self::PROVIDER_RESOLVED[$hint], ''];
+    }
+
+    /** Compare stored SQL fragments ignoring case and whitespace. */
+    private static function normalise(string $name): string
+    {
+        return strtolower(preg_replace('/\s+/', '', $name));
+    }
+
+    /**
+     * Legacy field names that no dataset field covers.
+     *
+     * Expect entries here for a customised install: the live Purchase Order
+     * selects `IF(vendor_sku <> '', vendor_sku, SUBSTRING_INDEX(...))`, which is
+     * raw SQL and therefore belongs in a shipped dataset as a named computed
+     * field (§3.2) — not in a form definition.
+     *
+     * @return list<string>
+     */
+    public function unmappedFields(): array
+    {
+        return array_keys($this->unmapped);
+    }
+
+    /**
+     * Rewrite one legacy field name to its dataset key.
+     *
+     * Names are left untouched when no dataset was supplied, so a provider that
+     * addresses values by their legacy name (EntryDocumentProvider) is
+     * unaffected.
+     */
+    private function mapName(string $name): string
+    {
+        if ($name === '' || !$this->fieldMap) return $name;
+
+        $key = $this->fieldMap[strtolower($name)] ?? $this->fieldMap[self::normalise($name)] ?? null;
+        if ($key !== null) return $key;
+
+        // Already a dataset key, or a Context constant: not a failure.
+        if (in_array($name, $this->fieldMap, true))     return $name;
+        if (!str_contains($name, '.'))                  return $name;
+
+        $this->unmapped[$name] = true;
+        return $name;
     }
 
     /** Page size, orientation and margins from the legacy <page> block. */
@@ -121,12 +235,16 @@ final class TemplateConverter
                     $this->warnings[] = "[$index] $type '$label' has no boxfield; skipped.";
                     return null;
                 }
-                $scope = $type === 'CDta' ? Binding::context(...) : Binding::record(...);
+                $isContext = $type === 'CDta';
+                $rawName   = $this->scalar($boxfield->fieldname ?? null);
+                $bindName  = $isContext ? $rawName : $this->mapName($rawName);
+                // On Data/CDta, `processing` IS the format hint (trap 1).
+                $hint      = $this->scalar($boxfield->processing ?? null);
+                [$bindName, $hint] = $this->applyProviderResolution($bindName, $hint, $isContext);
                 return new Field(
-                    bind:    $scope($this->scalar($boxfield->fieldname ?? null)),
+                    bind:    $isContext ? Binding::context($bindName) : Binding::record($bindName),
                     box:     $box,
-                    // On Data/CDta, `processing` IS the format hint (trap 1).
-                    format:  $this->format($this->scalar($boxfield->processing ?? null)),
+                    format:  $this->format($hint),
                     style:   $style,
                     visible: $visible,
                     label:   $label,
@@ -139,7 +257,7 @@ final class TemplateConverter
                     $name = $this->scalar($boxfield->fieldname ?? null);
                     if ($name === '') continue;
                     $parts[] = new BlockPart(
-                        bind: $type === 'CBlk' ? Binding::context($name) : Binding::record($name),
+                        bind: $type === 'CBlk' ? Binding::context($name) : Binding::record($this->mapName($name)),
                         // On blocks, `processing` is the SEPARATOR and the format
                         // hint lives in `formatting` (trap 1).
                         separator: $this->scalar($boxfield->processing ?? null),
@@ -157,7 +275,7 @@ final class TemplateConverter
                 $columns = [];
                 foreach ($this->boxfields($f) as $boxfield) {
                     $columns[] = new Column(
-                        bind:    Binding::record($this->scalar($boxfield->fieldname ?? null)),
+                        bind:    Binding::record($this->mapName($this->scalar($boxfield->fieldname ?? null))),
                         heading: $this->scalar($boxfield->description ?? null),
                         width:   $this->number($boxfield->width ?? null),
                         align:   $this->align($this->scalar($boxfield->align ?? null)),
@@ -190,7 +308,7 @@ final class TemplateConverter
                 $summed = [];
                 foreach ($this->boxfields($f) as $bf) {
                     $n = $this->scalar($bf->fieldname ?? null);
-                    if ($n !== '') $summed[] = $n;
+                    if ($n !== '') $summed[] = $this->mapName($n);
                 }
                 return new Field(
                     bind:    Binding::aggregate($summed[0] ?? '', $summed),
