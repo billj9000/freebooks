@@ -427,6 +427,7 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
 | `render_forms_document.php` | Render a form through Forms, for diffing against the baseline |
 | `verify_forms_catalog.php` | Attack the catalog's safety guarantees (no DB needed) |
+| `verify_forms_report.php` | Run one report through both engines and compare |
 | `make_forms_proving_templates.php` | Create/remove the scratch multi-page + `Ttl` templates (§8.3) |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
 
@@ -522,6 +523,45 @@ Two findings from doing this that the earlier sections did not anticipate:
 - **A computed field still needs a table.** Not to build the SQL — the expression says where values
   come from — but to state its *grain*, i.e. whether it varies per line or per record. Without it the
   row-folding code cannot classify the field, and the Unit Price column renders empty.
+
+### 8.5 The reports path — what is proven, and what is not
+
+Two claims, and only one of them currently holds.
+
+**The export defect is fixed, and that is verified.** PhreeForm formatted in the data layer, so a
+money column reached the CSV writer as `£ -0.68` and a date as `25/07/2026`. The same report through
+Forms exports `-0.68` and `2026-07-11`. One definition now serves both a readable PDF and an
+importable file, which is what makes "export invoices with payment details to another system" an
+ordinary report rather than a second copy maintained by hand. `verify_forms_report.php` asserts the
+Forms CSV carries no currency symbols, no thousands separators and ISO dates, *and* that the legacy
+output did carry display formatting — so the test fails if either side stops behaving.
+
+**Row-set parity is NOT achieved.** On Sales By SKU the legacy engine yields 4,707 data rows and
+Forms 647. The columns map exactly (all six, matching legacy's own SELECT list) and the two engines
+agree on what each column means, so the gap is in row SELECTION, not in the data model. Known
+contributors:
+
+- **Criteria semantics.** A legacy filter's behaviour comes from a mode (`ALL`, `RANGE`, `EQUAL`,
+  `IN_LIST`, …) taken from `$CritChoices[$type]` when the definition names none — so a type-0 filter
+  applies *nothing* despite carrying a `min_val`. Reading `min_val` as "equals", the obvious guess,
+  cut the report to 636 rows. That mapping is now ported faithfully, but the observed legacy output
+  still contains journals its own `IN_LIST` filter should exclude, which is not yet explained.
+- **Date defaults.** `datedefault` interacts with `gen_build_sql_date()` and is not yet ported.
+- **Grouping.** Legacy reports 1,497 total rows for this report although no `grouplist` entry is
+  marked default — `BuildDataArray()` tests `isset($GrpField)` on a variable it sets to `''`, so the
+  grouping branch runs regardless.
+
+`BuildDataArray()` and `build_criteria()` also mutate the report object as they read it
+(`array_shift($report->filterlist)`), so behaviour depends on call order. Reproducing this needs
+deliberate archaeology rather than inference, and until it is done no report should be treated as
+converted.
+
+**Found while doing this: datasets must prune their joins.** A dataset is deliberately wider than any
+one report, and `address_book` is one-to-many — so simply joining everything a dataset declares
+doubled the rows of a report that never referenced it. `QueryBuilder` now omits any LEFT join no
+selected field, filter or sort needs, keeping chains intact. INNER joins are never pruned: they can
+exclude rows, so removing one would change which records appear. This took Sales By SKU from 9,681
+rows to 636 and left the Purchase Order byte-identical.
 
 ---
 
@@ -620,5 +660,9 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    `queryFactory`, and `QueryDocumentProvider` — which unblocks the query-driven half of the
    library. `rep_id`/`admin_id` are resolved provider-side as promised. Verified by
    `verify_forms_catalog.php` (66 guarantees) and against PO 1234; see §8.4.
-6. Remaining: the eight other provider ports, the reports (`TableDocument`) path, custom datasets in
-   the admin UI, and the delivery layer.
+6. **The reports path (started 2026-08-12).** `ReportDocumentProvider` folds a dataset into a
+   `TableDocument` with group breaks and totals; `ReportConverter` maps a legacy report definition;
+   `CsvRenderer` renders it. **Row-set parity with the legacy engine is NOT yet achieved** — see
+   §8.5. The Table PDF renderer is not written.
+7. Remaining: report row-set parity, the Table PDF renderer, the eight other provider ports, custom
+   datasets in the admin UI, and the delivery layer.

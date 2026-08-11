@@ -70,7 +70,9 @@ final class QueryBuilder
         $sql    = 'SELECT ' . implode(', ', $select) . ' FROM ' . $dataset->baseTable;
         $params = [];
 
+        $needed = $this->requiredTables($dataset, $fields, $filters, $sorts);
         foreach ($dataset->joins as $join) {
+            if (!isset($needed[$join->table])) continue;
             $on = [];
             foreach ($join->on as $condition) $on[] = $condition->toSql();
             $sql .= ' ' . $join->type->value . ' ' . $join->table . ' ON ' . implode(' AND ', $on);
@@ -106,6 +108,68 @@ final class QueryBuilder
         }
 
         return new Query($sql, $params);
+    }
+
+    /**
+     * Which of a dataset's joins this query actually needs.
+     *
+     * A dataset is a curated view over a join graph, so it is deliberately wider
+     * than any one report — Transactions reaches contacts and address_book
+     * because some documents need them. Joining all of it unconditionally is not
+     * merely wasteful, it changes the ANSWER: address_book is one-to-many, so a
+     * report over journal_main + journal_item alone returns twice as many rows
+     * once an unused address_book join is bolted on. PhreeForm avoided this by
+     * making each report name its own tables; pruning is how a shared dataset
+     * gets the same result.
+     *
+     * Only LEFT joins are pruned. An INNER join can exclude rows, so removing
+     * one would change which records appear — the opposite of the problem being
+     * solved. Tables are kept transitively: dropping a link in the middle of a
+     * chain would leave the far end unreachable.
+     *
+     * @param list<FieldDefinition> $fields
+     * @param list<Filter>          $filters
+     * @param list<Sort>            $sorts
+     * @return array<string,true>   tables that must be joined
+     */
+    private function requiredTables(Dataset $dataset, array $fields, array $filters, array $sorts): array
+    {
+        $needed = [$dataset->baseTable => true];
+
+        $note = function (?FieldDefinition $field) use (&$needed, $dataset): void {
+            if ($field === null) return;
+            if ($field->table !== null) $needed[$field->table] = true;
+            // A computed field's expression may reference tables its own `table`
+            // does not name, so every known table it mentions is required.
+            if ($field->expression !== null) {
+                foreach ($dataset->tables() as $table) {
+                    if (preg_match('/\b' . preg_quote($table, '/') . '\./', $field->expression)) {
+                        $needed[$table] = true;
+                    }
+                }
+            }
+        };
+
+        foreach ($fields as $field)   $note($field);
+        foreach ($filters as $filter) $note($dataset->field($filter->fieldKey));
+        foreach ($sorts as $sort)     $note($dataset->field($sort->fieldKey));
+
+        // INNER joins stay regardless: they are part of the dataset's meaning.
+        foreach ($dataset->joins as $join) {
+            if ($join->type === JoinType::Inner) $needed[$join->table] = true;
+        }
+
+        // Keep whatever is needed to reach a required table, walking the
+        // declared join order backwards so chains resolve in one pass.
+        foreach (array_reverse($dataset->joins) as $join) {
+            if (!isset($needed[$join->table])) continue;
+            foreach ($join->on as $condition) {
+                $needed[$condition->leftTable]  = true;
+                $needed[$condition->rightTable] = true;
+            }
+        }
+
+        return $needed;
     }
 
     /**

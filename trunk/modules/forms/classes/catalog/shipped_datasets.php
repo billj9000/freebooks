@@ -170,6 +170,18 @@ final class ShippedDatasets
                     legacyNames: ['journal_item.debit_amount / journal_item.qty'],
                 ),
 
+                // Net movement on the line. The sales reports total this, and
+                // wrote the subtraction inline; naming it once means the reports
+                // agree on what "net" means.
+                new FieldDefinition(
+                    key:        'item_net',
+                    label:      'Net Amount',
+                    table:      'journal_item',
+                    type:       ValueType::Money,
+                    expression: '(journal_item.credit_amount - journal_item.debit_amount)',
+                    legacyNames: ['journal_item.credit_amount - journal_item.debit_amount'],
+                ),
+
                 // ── contact / address book ───────────────────────────────────
                 new FieldDefinition('contact_account_number', 'Account Number', 'contacts', 'account_number'),
                 new FieldDefinition('contact_short_name',     'Short Name',     'contacts', 'short_name'),
