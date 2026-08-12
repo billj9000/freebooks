@@ -119,11 +119,20 @@ final readonly class JoinCondition
 /** A table brought into a dataset, and how it attaches. */
 final readonly class Join
 {
-    /** @param list<JoinCondition> $on */
+    /**
+     * @param list<JoinCondition> $on
+     * @param bool $required Keep this join even when nothing selects, filters
+     *   or sorts on it. Default false, so an unreferenced join is pruned —
+     *   see QueryBuilder::requiredTables() for why that is the safe default.
+     *   Set it only where the join itself carries meaning: an INNER join used
+     *   as a restriction ("…and only those with a contact record") is part of
+     *   what the dataset IS, and dropping it would widen every report.
+     */
     public function __construct(
         public string   $table,
         public array    $on,
-        public JoinType $type = JoinType::Inner,
+        public JoinType $type     = JoinType::Inner,
+        public bool     $required = false,
     ) {
         Identifier::check($table, 'table name');
         if (!$on) throw new CatalogException("Join onto '$table' has no conditions.");

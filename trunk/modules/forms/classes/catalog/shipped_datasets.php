@@ -182,6 +182,23 @@ final class ShippedDatasets
                     legacyNames: ['journal_item.credit_amount - journal_item.debit_amount'],
                 ),
 
+                // The same movement with the sign the other way up. Both are
+                // needed, and which one a report wants is not a style choice:
+                // a journal line carries the amount on the side its account
+                // takes, so Sales By SKU (credit - debit) and Sales By Rep
+                // (debit - credit) are reading opposite sides of the same
+                // entry and both expect a positive number. PhreeForm wrote
+                // whichever subtraction suited inline, which is why three
+                // shipped reports reference this exact string.
+                new FieldDefinition(
+                    key:        'item_net_debit',
+                    label:      'Net Amount (Debit Side)',
+                    table:      'journal_item',
+                    type:       ValueType::Money,
+                    expression: '(journal_item.debit_amount - journal_item.credit_amount)',
+                    legacyNames: ['journal_item.debit_amount - journal_item.credit_amount'],
+                ),
+
                 // ── contact / address book ───────────────────────────────────
                 new FieldDefinition('contact_account_number', 'Account Number', 'contacts', 'account_number'),
                 new FieldDefinition('contact_short_name',     'Short Name',     'contacts', 'short_name'),

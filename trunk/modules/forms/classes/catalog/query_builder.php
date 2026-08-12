@@ -122,10 +122,23 @@ final class QueryBuilder
      * making each report name its own tables; pruning is how a shared dataset
      * gets the same result.
      *
-     * Only LEFT joins are pruned. An INNER join can exclude rows, so removing
-     * one would change which records appear — the opposite of the problem being
-     * solved. Tables are kept transitively: dropping a link in the middle of a
-     * chain would leave the far end unreachable.
+     * Pruning is decided by REFERENCE, not by join type. Keeping every INNER
+     * join looks like the cautious choice — an INNER join can exclude rows, so
+     * removing one changes which records appear — but on real reports it is the
+     * more damaging one. `transactions` joins journal_item INNER because most
+     * documents are line-grain; Open Purchase Orders selects only header
+     * columns, and carrying the unreferenced line join turned its 55 orders
+     * into 955 rows, one per line. Legacy had no such problem because each
+     * report named its own tables, so a table it did not use was simply absent.
+     *
+     * An unreferenced join contributes exactly two things: row multiplication
+     * when it is one-to-many, and silent exclusion of parents with no children.
+     * A report that names no column from that table asked for neither. Where
+     * the join genuinely is part of the dataset's meaning, it says so with
+     * `required: true` and is kept regardless.
+     *
+     * Tables are kept transitively: dropping a link in the middle of a chain
+     * would leave the far end unreachable.
      *
      * @param list<FieldDefinition> $fields
      * @param list<Filter>          $filters
@@ -154,9 +167,9 @@ final class QueryBuilder
         foreach ($filters as $filter) $note($dataset->field($filter->fieldKey));
         foreach ($sorts as $sort)     $note($dataset->field($sort->fieldKey));
 
-        // INNER joins stay regardless: they are part of the dataset's meaning.
+        // Joins the dataset declares as load-bearing stay regardless.
         foreach ($dataset->joins as $join) {
-            if ($join->type === JoinType::Inner) $needed[$join->table] = true;
+            if ($join->required) $needed[$join->table] = true;
         }
 
         // Keep whatever is needed to reach a required table, walking the

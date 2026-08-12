@@ -38,8 +38,52 @@
  * invisible. Always invoke tools with -d display_errors=1.
  *
  * Sets up the globals the legacy code reaches for: $db, $currencies,
- * $messageStack, $loaded_modules.
+ * $messageStack, $loaded_modules, and everything the module defaults.php files
+ * define — see fb_require_globals() for why that last part needs saying.
  */
+
+/**
+ * require() a legacy file so the variables it defines end up GLOBAL.
+ *
+ * PHP evaluates an include in the variable scope of whatever ran it, so a
+ * `require` of phreeform/defaults.php from INSIDE this function makes every
+ * `$var` in that file a local of fb_bootstrap() that vanishes on return.
+ * application_top.php has no such problem because it runs at file scope.
+ *
+ * This is not a tidiness point. The legacy engines read those arrays back with
+ * `global`, and an absent global is not an error — it is a silently DIFFERENT
+ * ANSWER. build_criteria() looks up `$CritChoices[$filter->type]` to find the
+ * default comparison mode; with $CritChoices unset it falls through to its
+ * `default:` case and emits no criteria at all, so Sales By SKU came back with
+ * every journal in the table (4,707 rows) instead of the two its own IN_LIST
+ * filter names (647). A tool comparing engines then reports a parity gap that
+ * exists only in the harness.
+ *
+ * Restoring file-scope behaviour takes BOTH halves, and the read half matters
+ * as much as the write half: phreeform/defaults.php guards its hook-loading
+ * loop with `isset($loaded_modules)`, so a file that can only write globals but
+ * not see them quietly skips every module's pf_process_* hooks. Hence the
+ * extract() in, and the promotion out.
+ *
+ * Note this must be the ONLY route by which these files are loaded:
+ * `require_once` on an already-loaded file returns without defining anything,
+ * so a stray direct require elsewhere would re-open the same hole.
+ */
+function fb_require_globals(string $fb_include_path): void
+{
+    // Copied by name rather than by extract(), which would try to rebind the
+    // $GLOBALS superglobal this function still needs on the way out.
+    foreach ($GLOBALS as $fb_key => $fb_value) {
+        if ($fb_key === 'GLOBALS' || $fb_key === 'fb_include_path') continue;
+        $$fb_key = $fb_value;
+    }
+    unset($fb_key, $fb_value);
+    require_once($fb_include_path);
+    foreach (get_defined_vars() as $fb_name => $fb_value) {
+        if ($fb_name === 'fb_include_path') continue;
+        $GLOBALS[$fb_name] = $fb_value;
+    }
+}
 
 /**
  * @param  string|null $company preferred company; null to auto-detect
@@ -59,7 +103,7 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
         fwrite(STDERR, "No configure.php under $fs_admin - set FREEBOOKS_WEBROOT.\n");
         exit(1);
     }
-    require($fs_admin . 'includes/configure.php');
+    fb_require_globals($fs_admin . 'includes/configure.php');
 
     if (!defined('DIR_FS_ADMIN'))     define('DIR_FS_ADMIN', $fs_admin);
     if (!defined('PATH_TO_MY_FILES')) define('PATH_TO_MY_FILES', 'my_files/');
@@ -98,17 +142,17 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
     $_SESSION['language'] = 'en_us';
     $_SESSION['admin_id'] = 1;
 
-    if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
+    if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) fb_require_globals(DIR_FS_ADMIN . 'vendor/autoload.php');
 
-    require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
-    require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
-    require_once(DIR_FS_INCLUDES . 'common_functions.php');
-    require_once(DIR_FS_INCLUDES . 'common_classes.php');
+    fb_require_globals(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
+    fb_require_globals(DIR_FS_MODULES . 'phreedom/defaults.php');
+    fb_require_globals(DIR_FS_INCLUDES . 'common_functions.php');
+    fb_require_globals(DIR_FS_INCLUDES . 'common_classes.php');
 
     define('DB_DATABASE', $company);
-    require_once(DIR_FS_MY_FILES . $company . '/config.php');
+    fb_require_globals(DIR_FS_MY_FILES . $company . '/config.php');
     if (!defined('DB_SERVER_HOST') && defined('DB_SERVER')) define('DB_SERVER_HOST', DB_SERVER);
-    require_once(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
+    fb_require_globals(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
     $db = new queryFactory();
     $db->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
 
@@ -131,7 +175,7 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
     $messageStack = new messageStack();
     gen_pull_language('phreedom',   'menu');
     gen_pull_language('phreebooks', 'menu');
-    require_once(DIR_FS_MODULES . 'phreedom/config.php');
+    fb_require_globals(DIR_FS_MODULES . 'phreedom/config.php');
 
     $loaded_modules = array();                       // find_special_class() reads this global
     foreach (scandir(DIR_FS_MODULES) as $dir) {
@@ -139,7 +183,7 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
         if (is_dir(DIR_FS_MODULES . $dir)) gen_pull_language($dir, 'menu');
         if (defined('MODULE_' . strtoupper($dir) . '_STATUS')) {
             $loaded_modules[] = $dir;
-            require_once(DIR_FS_MODULES . $dir . '/config.php');
+            fb_require_globals(DIR_FS_MODULES . $dir . '/config.php');
         }
     }
     $currencies = new currencies();
@@ -147,8 +191,8 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
     if ($withPhreeForm) {
         gen_pull_language('phreeform');              // PF_FONT_* etc.
         gen_pull_language('phreebooks');             // special-class strings
-        require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-        require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+        fb_require_globals(DIR_FS_MODULES . 'phreeform/defaults.php');
+        fb_require_globals(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
     }
 
     return $company;

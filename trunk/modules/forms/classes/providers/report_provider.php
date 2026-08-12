@@ -96,20 +96,34 @@ final class ReportDocumentProvider implements DocumentProvider
         $rows          = [];
         $groupTotals   = $this->zeroTotals();
         $reportTotals  = $this->zeroTotals();
-        $currentGroup  = null;
-        $haveGroup     = false;
+        $currentGroup      = null;   // the normalised break key
+        $currentGroupValue = null;   // the value it came from, for the label
+        $haveGroup         = false;
 
         while (!$result->EOF) {
             $raw = $result->fields;
 
             if ($this->groupBy !== null) {
                 $value = $raw[$this->groupBy] ?? null;
-                if ($haveGroup && $value !== $currentGroup) {
-                    $rows[]      = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroup, $dataset));
+                // Compare as strings. A nullable column mixes NULL and '' —
+                // Sales By SKU has 33 of one and 416 of the other — and MySQL
+                // sorts them adjacent, so a strict comparison breaks the blank
+                // run in two and prints the same empty group heading twice.
+                // Casting collapses them, as PhreeForm's loose `<>` did.
+                //
+                // What it does NOT inherit is that comparison's other half:
+                // `<>` between two numeric strings compares NUMERICALLY, so
+                // PhreeForm silently merged the SKUs '0001' and '1', and '1e2'
+                // with '100'. Those are different products and get different
+                // groups here.
+                $key = $value === null ? '' : (string)$value;
+                if ($haveGroup && $key !== $currentGroup) {
+                    $rows[]      = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroupValue, $dataset));
                     $groupTotals = $this->zeroTotals();
                 }
-                $currentGroup = $value;
-                $haveGroup    = true;
+                $currentGroup      = $key;
+                $currentGroupValue = $value;   // the label keeps the original
+                $haveGroup         = true;
             }
 
             $cells = [];
@@ -129,7 +143,7 @@ final class ReportDocumentProvider implements DocumentProvider
         }
 
         if ($haveGroup) {
-            $rows[] = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroup, $dataset));
+            $rows[] = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroupValue, $dataset));
         }
         if ($this->hasTotals()) {
             $rows[] = $this->totalRow(RowKind::ReportTotal, $reportTotals, $this->title);

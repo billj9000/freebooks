@@ -67,10 +67,22 @@ final class ReportConverter
 
             $hint = $this->scalar($field->processing ?? null);
             // A hint the renderer refuses is a provider-side lookup; re-point it
-            // exactly as the form converter does (§4.3.1).
+            // exactly as the form converter does (§4.3.1). The re-pointed key
+            // has to be checked: a dataset that has the base field but not its
+            // resolved companion would otherwise fail deep in the query builder
+            // with "no field 'history_id_avg_total'", naming a key nobody wrote.
+            // Reporting it here says which column and which hint caused it.
             if ($hint !== '' && isset(TemplateConverter::PROVIDER_RESOLVED[$hint])) {
-                $key  = $key . TemplateConverter::PROVIDER_RESOLVED[$hint];
-                $hint = '';
+                $resolved = $key . TemplateConverter::PROVIDER_RESOLVED[$hint];
+                if ($dataset->field($resolved) !== null) {
+                    $key  = $resolved;
+                    $hint = '';
+                } else {
+                    $this->warnings[] = "[$index] column '" . $this->scalar($field->description ?? null)
+                                      . "' needs '$hint', which this dataset would serve as '$resolved'"
+                                      . " — it has no such field, so the column shows '$key' unresolved.";
+                    $hint = '';   // the renderer refuses it anyway
+                }
             }
 
             $columns[] = new ReportColumn(

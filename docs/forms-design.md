@@ -408,11 +408,20 @@ Four things the capture harness must handle — each one silently produces wrong
    `SECURITY_ID_*` / `MENU_HEADING_*` / `PF_FONT_*` constants. `trunk/cron/*.php` is the working
    template for the rest of the CLI bootstrap. This lives once, in
    `docs/tools/bootstrap_freebooks.php`, which every Forms tool requires.
+5. **Mirroring the order is not enough — the SCOPE has to match too.** `application_top.php` runs at
+   file scope, so every `$var` in the files it includes is a global. A bootstrap that includes the
+   same files from inside a *function* makes them function locals that vanish on return, and the
+   legacy engines read those arrays back with `global`. Nothing errors; the answer just changes.
+   `$CritChoices` going missing this way made `build_criteria()` emit no criteria at all and cost a
+   day of chasing a "parity gap" that was never in either engine (§8.5). `fb_require_globals()`
+   restores file scope in both directions — globals in before the include, whatever it defined
+   promoted out after — and must be the only route by which those files are loaded, since
+   `require_once` on an already-loaded file defines nothing.
 
 Use `BuildForm($report, 'S')` — delivery method `S` returns the bytes instead of emitting HTTP
 headers and calling `exit()`.
 
-A fifth trap sits outside the harness: **company auto-detection**. A baseline taken from the wrong
+A sixth trap sits outside the harness: **company auto-detection**. A baseline taken from the wrong
 database still renders plausible-looking output and exits 0 — an early run silently captured `demo`
 instead of `production`. The bootstrap always echoes the company it resolved and warns when it guessed.
 
@@ -524,44 +533,70 @@ Two findings from doing this that the earlier sections did not anticipate:
   come from — but to state its *grain*, i.e. whether it varies per line or per record. Without it the
   row-folding code cannot classify the field, and the Unit Price column renders empty.
 
-### 8.5 The reports path — what is proven, and what is not
+### 8.5 The reports path
 
-Two claims, and only one of them currently holds.
+Two claims, and both now hold on the `transactions` dataset.
 
-**The export defect is fixed, and that is verified.** PhreeForm formatted in the data layer, so a
-money column reached the CSV writer as `£ -0.68` and a date as `25/07/2026`. The same report through
-Forms exports `-0.68` and `2026-07-11`. One definition now serves both a readable PDF and an
-importable file, which is what makes "export invoices with payment details to another system" an
-ordinary report rather than a second copy maintained by hand. `verify_forms_report.php` asserts the
-Forms CSV carries no currency symbols, no thousands separators and ISO dates, *and* that the legacy
-output did carry display formatting — so the test fails if either side stops behaving.
+**The export defect is fixed.** PhreeForm formatted in the data layer, so a money column reached the
+CSV writer as `£ -0.68` and a date as `25/07/2026`. The same report through Forms exports `-0.68`
+and `2026-07-11`. One definition now serves both a readable PDF and an importable file, which is
+what makes "export invoices with payment details to another system" an ordinary report rather than a
+second copy maintained by hand. `verify_forms_report.php` asserts the paired claim over both files
+in full — legacy carried display formatting *and* Forms strips it — so the test fails if either side
+stops behaving. It skips the assertion, visibly, on reports with no money or date column, rather
+than passing on the absence of evidence.
 
-**Row-set parity is NOT achieved.** On Sales By SKU the legacy engine yields 4,707 data rows and
-Forms 647. The columns map exactly (all six, matching legacy's own SELECT list) and the two engines
-agree on what each column means, so the gap is in row SELECTION, not in the data model. Known
-contributors:
+**Row-set parity holds: 13 reports, every data row and every cell.** The comparison puts the Forms
+side through the same `Formatter` a PDF renderer would use, because the two engines are not
+comparable raw — legacy formats during `BuildDataArray()`, Forms at render time. It compares
+multisets, since neither engine defines a row order unless the report sets a default sort. Group
+breaks are checked separately: a report can have every data row right and still break its groups in
+the wrong places.
 
-- **Criteria semantics.** A legacy filter's behaviour comes from a mode (`ALL`, `RANGE`, `EQUAL`,
-  `IN_LIST`, …) taken from `$CritChoices[$type]` when the definition names none — so a type-0 filter
-  applies *nothing* despite carrying a `min_val`. Reading `min_val` as "equals", the obvious guess,
-  cut the report to 636 rows. That mapping is now ported faithfully, but the observed legacy output
-  still contains journals its own `IN_LIST` filter should exclude, which is not yet explained.
-- **Date defaults.** `datedefault` interacts with `gen_build_sql_date()` and is not yet ported.
-- **Grouping.** Legacy reports 1,497 total rows for this report although no `grouplist` entry is
-  marked default — `BuildDataArray()` tests `isset($GrpField)` on a variable it sets to `''`, so the
-  grouping branch runs regardless.
+Three divergences are asserted rather than failed, because in each the legacy engine is the broken
+one:
 
-`BuildDataArray()` and `build_criteria()` also mutate the report object as they read it
-(`array_shift($report->filterlist)`), so behaviour depends on call order. Reproducing this needs
-deliberate archaeology rather than inference, and until it is done no report should be treated as
-converted.
+| Legacy behaviour | Cause | Forms |
+|---|---|---|
+| Cannot group by a column the report does not display | `BuildDataArray()` sets its break key inside `if ($DataFields->visible)`, so `$GrpField` stays `''`, `$myrow['']` is null on every row, and nothing ever breaks | Selects the group field whether or not it is shown. Customer Ledger and Vendor Ledger go from one lump total to 118 and 13 real groups |
+| Emits a spurious group total on reports with *no* grouping | `$GrpField = ''` then `isset($GrpField)`, which is true of an empty string; the closing `if ($GrpWorking !== false)` then fires once | Emits no group total when nothing is grouped |
+| Merges the SKUs `'0001'` and `'1'` | the break test is `<>`, and PHP compares two numeric strings numerically | Compares as strings — but still collapses `NULL` with `''`, which is one blank group, not two |
 
-**Found while doing this: datasets must prune their joins.** A dataset is deliberately wider than any
-one report, and `address_book` is one-to-many — so simply joining everything a dataset declares
-doubled the rows of a report that never referenced it. `QueryBuilder` now omits any LEFT join no
-selected field, filter or sort needs, keeping chains intact. INNER joins are never pruned: they can
-exclude rows, so removing one would change which records appear. This took Sales By SKU from 9,681
-rows to 636 and left the Purchase Order byte-identical.
+**The bug that produced the earlier "parity gap" was in the harness, not in either engine.** PHP
+evaluates an include in the scope of the code that ran it, so `require`ing `phreeform/defaults.php`
+from inside `fb_bootstrap()` made every `$var` in it a function local. `build_criteria()` then read
+back `global $CritChoices`, found nothing, fell through to its `default:` case and emitted **no
+criteria at all** — so Sales By SKU returned every journal in the table (4,707 rows) instead of the
+two its own `IN_LIST` filter names (647). An absent global is not an error in this codebase; it is a
+silently different answer. `fb_require_globals()` now restores file scope in both directions: it
+copies globals in before the include (`phreeform/defaults.php` guards its hook loading with
+`isset($loaded_modules)`) and promotes whatever the file defined back out afterwards.
+
+**Definitions are consumed as they are read.** `BuildDataArray()` finds the default group with
+`while ($t = array_shift($report->grouplist))` and `build_criteria()` writes each filter's resolved
+mode back onto the shared object. Handing the same `$report` to both engines showed Forms a report
+with no grouping at all — which reads as a Forms bug and is not one. Anything comparing the two must
+clone, and the clone must go to *Forms*: `prefixTables()` resolves table names off `global $report`,
+so the object the legacy engine mutates has to stay the one in global scope.
+
+**Found while doing this: pruning must be decided by reference, not by join type.** A dataset is
+deliberately wider than any one report, so joining everything it declares changes the answer —
+`address_book` is one-to-many and doubled the rows of a report that never referenced it. Keeping
+every INNER join looks like the cautious choice, but it is the more damaging one: `transactions`
+joins `journal_item` INNER because most documents are line-grain, and Open Purchase Orders selects
+only header columns, so the unreferenced line join turned its 55 orders into 955 rows. Legacy had no
+such problem because each report named its own tables. An unreferenced join contributes exactly two
+things — row multiplication when it is one-to-many, and silent exclusion of parents with no children
+— and a report naming no column from that table asked for neither. A join that genuinely is part of
+the dataset's meaning says so with `required: true`.
+
+**What is not yet done.** Only `transactions` is proven. `general_ledger`, `inventory` and
+`audit_trail` are registered but thin: their reports reference columns those datasets do not yet
+define (`inventory_history.sku`, `inventory.vendor_id`, the `greatest(...)` trial-balance
+expressions), and the converter reports each one by name rather than guessing. Filling them in is
+the next unit of work. `datedefault` / `gen_build_sql_date()` is still unported — the tool neutralises
+it with `datedefault = 'a'` on both sides, so date-ranged reports are untested. The Table PDF
+renderer does not exist yet, so reports are proven as data and as CSV, not as printed pages.
 
 ---
 
@@ -660,9 +695,11 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    `queryFactory`, and `QueryDocumentProvider` — which unblocks the query-driven half of the
    library. `rep_id`/`admin_id` are resolved provider-side as promised. Verified by
    `verify_forms_catalog.php` (66 guarantees) and against PO 1234; see §8.4.
-6. **The reports path (started 2026-08-12).** `ReportDocumentProvider` folds a dataset into a
-   `TableDocument` with group breaks and totals; `ReportConverter` maps a legacy report definition;
-   `CsvRenderer` renders it. **Row-set parity with the legacy engine is NOT yet achieved** — see
-   §8.5. The Table PDF renderer is not written.
-7. Remaining: report row-set parity, the Table PDF renderer, the eight other provider ports, custom
-   datasets in the admin UI, and the delivery layer.
+6. **The reports path (data + CSV done 2026-08-12).** `ReportDocumentProvider` folds a dataset
+   into a `TableDocument` with group breaks and totals; `ReportConverter` maps a legacy report
+   definition; `CsvRenderer` renders it. **Row-set parity holds across 13 reports** — every data
+   row, every cell and every group break — with three divergences asserted as legacy defects. Only
+   the `transactions` dataset is proven; the other three are registered but thin. See §8.5.
+7. Remaining: fill out the `general_ledger`, `inventory` and `audit_trail` datasets; the Table PDF
+   renderer; `datedefault` / `gen_build_sql_date()`; the eight other provider ports; custom datasets
+   in the admin UI; and the delivery layer.

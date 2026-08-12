@@ -56,7 +56,7 @@ use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
 use FreeBooks\Forms\Document\RowKind;
 use FreeBooks\Forms\Legacy\ReportConverter;
 use FreeBooks\Forms\Provider\ReportDocumentProvider;
-use FreeBooks\Forms\Render\CsvRenderer;
+use FreeBooks\Forms\Render\{CsvRenderer, Formatter};
 
 $failures = 0;
 function ok(string $what, bool $cond, string $detail = ''): void {
@@ -70,6 +70,20 @@ if (!$report) { fwrite(STDERR, "Report $REPORT_ID not found.\n"); exit(1); }
 echo "report:  pf_$REPORT_ID (" . ($report->title ?? '?') . ")\n";
 
 // ── the legacy engine ────────────────────────────────────────────────────────
+// Give each engine its own copy. The legacy engine CONSUMES the definition as
+// it reads it: BuildDataArray() finds the default group with
+// `while ($t = array_shift($report->grouplist))`, and build_criteria() writes
+// each filter's resolved mode back onto the shared object. Handing the same
+// $report to both engines afterwards showed Forms a report with no grouping at
+// all, which reads as a Forms bug and is not one. Anything comparing the two
+// must clone, and a caller in the application must never reuse a definition
+// object across a render.
+//
+// The clone goes to FORMS, not to the legacy engine: prefixTables() resolves
+// table names off `global $report`, so the object the legacy engine mutates has
+// to stay the one in the global scope.
+$formsReport = unserialize(serialize($report));
+
 // datedefault 'c' (Today) selects nothing historical, exactly as for forms.
 $report->datedefault = 'a';
 // BuildSQL returns ['level'=>..,'data'=>$sql,'description'=>..], not a string.
@@ -95,10 +109,10 @@ ShippedDatasets::registerAll($catalog);
 $dataset = $catalog->get($DATASET);
 
 $converter = new ReportConverter();
-$columns   = $converter->convertColumns($report, $dataset);
-$group     = $converter->convertGroup($report, $dataset);
-$sorts     = $converter->convertSorts($report, $dataset);
-$filters   = $converter->convertFilters($report, $dataset);
+$columns   = $converter->convertColumns($formsReport, $dataset);
+$group     = $converter->convertGroup($formsReport, $dataset);
+$sorts     = $converter->convertSorts($formsReport, $dataset);
+$filters   = $converter->convertFilters($formsReport, $dataset);
 
 printf("forms:   %d columns mapped, group=%s, %d sort(s), %d filter(s)\n",
     count($columns), $group ?? '(none)', count($sorts), count($filters));
@@ -113,7 +127,7 @@ $provider = new ReportDocumentProvider(
     catalog:   $catalog,
     datasetId: $dataset->id,
     columns:   $columns,
-    title:     (string)($report->title ?? 'Report'),
+    title:     (string)($formsReport->title ?? 'Report'),
     groupBy:   $group,
     filters:   $filters,
     sorts:     $sorts,
@@ -130,10 +144,90 @@ echo "\n=== same data ===\n";
 ok('row count matches the legacy engine', $formsRows === $legacyRows,
    "legacy $legacyRows, forms $formsRows");
 
-// Compare the values themselves, normalised: legacy hands back display strings,
-// so both sides are reduced to bare digits before comparing numerics.
-// Legacy hands back display strings and Forms raw values, so both sides are
-// reduced to a comparable form. Only strings that are ENTIRELY a formatted
+// Group breaks are checked separately from cell values: a report can have every
+// data row right and still break its groups in the wrong places, which shows up
+// as a repeated heading and a total that covers only part of its group.
+$legacyGroupLabels = [];
+foreach ($legacyData as $row) {
+    if (str_starts_with((string)$row[0], 'g:')) $legacyGroupLabels[] = substr((string)$row[0], 2);
+}
+// Read the group field off the clone: the legacy engine has array_shift()ed
+// the original's grouplist away by now.
+$legacyGroupNames = [];
+foreach ((array)($formsReport->grouplist ?? []) as $entry) {
+    $def = is_array($entry->default ?? null) ? reset($entry->default) : ($entry->default ?? '');
+    if (!$def || $def === '0') continue;
+    $name = is_array($entry->fieldname ?? null) ? reset($entry->fieldname) : ($entry->fieldname ?? '');
+    $legacyGroupNames[] = (string)$name;
+}
+$formsGroupLabels = [];
+foreach ($doc->rows as $row) {
+    if ($row->kind === RowKind::GroupTotal) $formsGroupLabels[] = (string)$row->label;
+}
+// PhreeForm could only group by a column the report DISPLAYS. BuildDataArray()
+// sets its break key inside `if ($DataFields->visible)`, so when the author
+// grouped by a hidden field — Customer Ledger groups by bill_acct_id, which is
+// not in its field list at all — $GrpField stayed '', $myrow[''] was null on
+// every row, nothing ever broke, and the report printed a single lump total
+// labelled with an empty string. Forms selects the group field whether or not
+// it is shown, so those reports group as their author intended.
+//
+// That is a divergence in Forms' favour, so it is asserted rather than failed —
+// but only where legacy provably could not group, and only if the data rows
+// still match exactly.
+$legacyCanGroup = false;
+foreach ($legacyGroupNames as $name) {
+    foreach ((array)($formsReport->fieldlist ?? []) as $field) {
+        $fname = is_array($field->fieldname ?? null) ? reset($field->fieldname) : ($field->fieldname ?? '');
+        $vis   = is_array($field->visible ?? null)   ? reset($field->visible)   : ($field->visible ?? '');
+        if ((string)$fname === $name && $vis && $vis !== '0') $legacyCanGroup = true;
+    }
+}
+
+if ($legacyGroupNames === []) {
+    // No default group at all — and PhreeForm still emits one group row.
+    // BuildDataArray() writes `$GrpField = ''` and then gates the whole break
+    // mechanism on `isset($GrpField)`, which is true of a variable set to the
+    // empty string. So $GrpWorking goes from false to null on the first row and
+    // never changes, no break ever fires, and the closing `if ($GrpWorking !==
+    // false)` emits one group total for the entire report — a second copy of
+    // the report total, labelled with nothing, printed directly above it.
+    echo "  note: report has no default group; legacy emits one anyway.\n";
+    ok('legacy emitted its spurious ungrouped total row', count($legacyGroupLabels) === 1,
+       'legacy emitted ' . count($legacyGroupLabels));
+    ok('legacy\'s spurious row is unlabelled', ($legacyGroupLabels[0] ?? 'x') === '',
+       'label was ' . var_export($legacyGroupLabels[0] ?? null, true));
+    ok('Forms emits no group total when nothing is grouped', $formsGroupLabels === [],
+       'forms emitted ' . count($formsGroupLabels));
+} elseif (!$legacyCanGroup) {
+    echo "  note: legacy grouped by '" . implode(', ', $legacyGroupNames)
+       . "', which it does not display — so it could not group at all.\n";
+    ok('legacy produced its degenerate single total', count($legacyGroupLabels) <= 1,
+       'legacy emitted ' . count($legacyGroupLabels) . ' groups');
+    ok('Forms groups the report as its author intended', count($formsGroupLabels) > 1,
+       'forms emitted ' . count($formsGroupLabels) . ' groups');
+} else {
+    ok(sprintf('group breaks match (%d legacy, %d forms)', count($legacyGroupLabels), count($formsGroupLabels)),
+       count($legacyGroupLabels) === count($formsGroupLabels));
+}
+$dupes = array_filter(array_count_values($formsGroupLabels), fn($n) => $n > 1);
+ok('no group heading is emitted twice', $dupes === [],
+   'repeated: ' . implode(', ', array_map(fn($k) => "'$k'", array_keys($dupes))));
+
+// Compare the values themselves — but the two engines are not comparable raw.
+// PhreeForm formatted during BuildDataArray(), so a `j_desc` column arrives as
+// "Sales/Invoice Journal (12)"; Forms carries the 12 and lets each renderer
+// decide (§4.3.1). Comparing raw against display would report all 647 rows as
+// different when nothing is wrong, so the Forms side is put through the same
+// Formatter a PDF renderer would use, with the column's own hint. That is the
+// honest test: it asks whether the two engines PRINT the same thing.
+$formatter = new Formatter(
+    currencies:      $currencies,
+    defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
+    lookups:         fb_formatter_lookups(),
+);
+
+// Both sides are then normalised. Only strings that are ENTIRELY a formatted
 // number or date are rewritten — stripping punctuation from everything turns
 // the SKU "WIDGET-301" into "301" and hides real differences behind fake ones.
 $normalise = function (string $v): string {
@@ -174,7 +268,10 @@ $formsBag = [];
 foreach ($doc->rows as $row) {
     if ($row->kind !== RowKind::Data) continue;
     $cells = [];
-    foreach ($doc->columns as $column) $cells[] = $row->cells[$column->key]?->raw ?? '';
+    foreach ($doc->columns as $column) {
+        $value   = $row->cells[$column->key] ?? null;
+        $cells[] = $value === null ? '' : $formatter->format($value, $column->format);
+    }
     $key = $fingerprint($cells);
     $formsBag[$key] = ($formsBag[$key] ?? 0) + 1;
 }
@@ -209,11 +306,46 @@ $legacyBody = implode("\n", array_slice(explode("\n", $legacyCsv), 1, 5));
 
 ok('Forms CSV carries no currency symbols',
    !preg_match('/[£$€]/u', $body), 'found a symbol in: ' . substr($body, 0, 120));
-ok('Forms CSV carries no thousands separators in numbers',
-   !preg_match('/\d,\d{3}\b/', str_replace('","', '', $body)));
-$hasLegacyFormatting = (bool)preg_match('/[£$€]/u', $legacyBody) || (bool)preg_match('#\d{2}/\d{2}/\d{4}#', $legacyBody);
-ok('legacy CSV did carry display formatting (the defect being fixed)', $hasLegacyFormatting,
-   'legacy sample: ' . substr($legacyBody, 0, 120));
+// Field by field, not line by line: on an unquoted row the delimiter between
+// two numeric columns (…,100,216.77) looks exactly like a thousands separator.
+$grouped = [];
+foreach (array_slice($lines, 1, 5) as $line) {
+    foreach (str_getcsv($line) as $cell) {
+        if (preg_match('/^-?\d{1,3}(,\d{3})+(\.\d+)?$/', trim($cell))) $grouped[] = $cell;
+    }
+}
+ok('Forms CSV carries no thousands separators in numbers', $grouped === [],
+   'grouped: ' . implode(', ', $grouped));
+// Only meaningful where the report HAS something to mis-format. Chart of
+// Accounts is all codes and names, so both engines emit the same CSV and the
+// absence of a difference is not evidence of anything.
+$formattedColumns = 0;
+foreach ($columns as $column) {
+    if ($column->format !== null || in_array($column->key, ['post_date','item_net','item_net_debit'], true)) $formattedColumns++;
+}
+$hasMoneyOrDate = false;
+foreach ((array)($formsReport->fieldlist ?? []) as $field) {
+    $p = is_array($field->processing ?? null) ? reset($field->processing) : ($field->processing ?? '');
+    if (in_array((string)$p, ['date','def_cur','pcur','null_pcur','null_dlr','dlr'], true)) $hasMoneyOrDate = true;
+}
+// Scan the WHOLE legacy CSV, not the five-row sample: `null_pcur` renders an
+// empty amount as blank, so the Audit Log's only money column shows nothing at
+// all until a row that has one.
+$legacyHasFormatting = (bool)preg_match('/[£$€]/u', $legacyCsv) || (bool)preg_match('#\d{2}/\d{2}/\d{4}#', $legacyCsv);
+if (!$hasMoneyOrDate) {
+    echo "  [--] report has no money or date column; nothing for legacy to mis-format\n";
+} elseif (!$legacyHasFormatting) {
+    echo "  [--] report's money/date columns are empty throughout; no formatting to compare\n";
+} else {
+    // The paired claim, over both files in full: legacy carried presentation
+    // into the export and Forms does not. Asserting only half of it would pass
+    // on a report that simply has no money in it.
+    $formsHasFormatting = (bool)preg_match('/[£$€]/u', $csv->bytes)
+                       || (bool)preg_match('#\d{2}/\d{2}/\d{4}#', $csv->bytes);
+    ok('legacy CSV carried display formatting and the Forms CSV strips it',
+       $legacyHasFormatting && !$formsHasFormatting,
+       'legacy=' . var_export($legacyHasFormatting, true) . ' forms=' . var_export($formsHasFormatting, true));
+}
 ok('Forms CSV dates are ISO', !preg_match('#\d{2}/\d{2}/\d{4}#', $body));
 ok('CSV is declared as text/csv', $csv->mimeType === 'text/csv');
 
