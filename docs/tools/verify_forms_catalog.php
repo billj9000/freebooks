@@ -183,6 +183,35 @@ ok('audit_trail reaches users (shipped tier privilege)', in_array('users', $audi
 ok('audit_trail exposes only named user columns',
     $audit->field('user_name')?->column === 'admin_name' && $audit->field('password') === null);
 
+echo "\n=== a table prefix reaches introductions only ===\n";
+// DB_PREFIX is empty on every database here, so nothing else would notice this
+// breaking. verify_forms_prefix.php proves it against a real prefixed schema;
+// these are the structural claims, which need no database.
+$txn       = $catalog->get('transactions');
+$prefixed  = (new QueryBuilder('pb_'))->build($txn, ['id', 'item_sku']);
+ok('the base table is introduced prefixed and aliased bare',
+    str_contains($prefixed->sql, 'FROM pb_journal_main AS journal_main'), $prefixed->sql);
+ok('a join is introduced prefixed and aliased bare',
+    str_contains($prefixed->sql, 'JOIN pb_journal_item AS journal_item'), $prefixed->sql);
+ok('no alias carries the prefix',   !preg_match('/AS pb_/', $prefixed->sql));
+ok('no column reference carries the prefix', !preg_match('/\bpb_[A-Za-z0-9_]*\./', $prefixed->sql));
+
+// An expression naming a FRESH instance of a table cannot use the alias.
+$invPrefixed = (new QueryBuilder('pb_'))->build($catalog->get('inventory'), ['history_sku_avg_cost']);
+ok('a subquery in an expression opens the prefixed table',
+    str_contains($invPrefixed->sql, 'FROM pb_inventory_history h_avg'), $invPrefixed->sql);
+ok('the correlated reference beside it stays on the alias',
+    str_contains($invPrefixed->sql, 'h_avg.sku = inventory_history.sku'), $invPrefixed->sql);
+ok('no placeholder survives into the statement', !str_contains($invPrefixed->sql, '{{'));
+
+$unprefixed = (new QueryBuilder(''))->build($txn, ['id']);
+ok('an empty prefix still aliases, so one code path serves both',
+    str_contains($unprefixed->sql, 'FROM journal_main AS journal_main'), $unprefixed->sql);
+refuses('a prefix that is not a bare identifier prefix',
+    fn() => (new QueryBuilder('pb`; DROP TABLE users; --'))->build($txn, ['id']));
+refuses('a prefix carrying a schema qualifier',
+    fn() => (new QueryBuilder('other_db.'))->build($txn, ['id']));
+
 echo "\n=== a field expression cannot carry SQL ===\n";
 // FieldExpression exists so a filter can compare a column to other columns
 // (§8.5). It is the one place a caller-shaped string comes near the statement,

@@ -437,6 +437,7 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `render_forms_document.php` | Render a form through Forms, for diffing against the baseline |
 | `verify_forms_catalog.php` | Attack the catalog's safety guarantees (no DB needed) |
 | `verify_forms_datasets.php` | Check every shipped dataset against the real schema |
+| `verify_forms_prefix.php` | Run every dataset against a DB_PREFIX'd schema and compare |
 | `verify_forms_report.php` | Run one report through both engines and compare |
 | `make_forms_proving_templates.php` | Create/remove the scratch multi-page + `Ttl` templates (§8.3) |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
@@ -640,9 +641,24 @@ special-class reports (aged receivables/payables and their summaries, the three 
 reference computed columns — `balance_0`, `current_ytd`, `budget_cur` — that are not table columns
 at all; those are the deferred provider ports, not dataset work.
 
-**Known limitation, not yet addressed:** the catalog emits bare table names and never applies
-`DB_PREFIX`. This install runs with an empty prefix so it makes no difference, and the legacy engine
-produces the same SQL, but a prefixed installation would not work.
+**Table prefixes.** FreeBooks supports a table-name prefix set at install time and baked into
+`configure.php` as `DB_PREFIX`; every install here uses an empty one, which is how the catalog got
+away with emitting bare names. Rather than prefix every *reference* — what PhreeForm's
+`prefixTables()` does, by string-replacing `"table."` throughout — a table is introduced once as
+`<prefix><table> AS <table>` and referenced by the bare name everywhere else. Field references, join
+conditions, `ORDER BY` and the raw SQL inside computed expressions then need no rewriting at all,
+and a dataset reads identically on every install.
+
+The one case aliasing cannot cover is a subquery that opens a table *again*: `(SELECT avg_cost FROM
+inventory_history h_avg …)` is a second, independent instance and needs the real prefixed name. A
+dataset writes that as `FROM {{inventory_history}}`, and the braces are deliberately unlike anything
+SQL uses, so a missed substitution is a syntax error rather than a query against the wrong table.
+
+Proven by copying every table the datasets touch into session `TEMPORARY` tables named `pb_*` and
+running each dataset's full SELECT twice — unprefixed against the real tables, prefixed against the
+copies — then comparing the row sets. Temporary tables are session-scoped, so no company database is
+touched. Note the comparison must not use `LIMIT`: with no `ORDER BY` an indexed table and a heap
+copy return *different* 200-row windows, which reads as a mismatch when the row sets are identical.
 
 ---
 
@@ -750,5 +766,4 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    report converting with nothing unmapped; 26 of 30 verified end to end, 4 untestable for want of
    data. Added `FieldExpression` (column-to-column filters) and schema verification. See §8.5.
 8. Remaining: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
-   provider ports; `DB_PREFIX` in the catalog; custom datasets in the admin UI; and the delivery
-   layer.
+   provider ports; custom datasets in the admin UI; and the delivery layer.

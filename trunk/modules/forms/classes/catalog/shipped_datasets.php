@@ -401,7 +401,7 @@ final class ShippedDatasets
                     label:      'Average Cost',
                     table:      'inventory_history',
                     type:       ValueType::Money,
-                    expression: '(SELECT h_avg.avg_cost FROM inventory_history h_avg'
+                    expression: '(SELECT h_avg.avg_cost FROM {{inventory_history}} h_avg'
                               . ' WHERE h_avg.sku = inventory_history.sku'
                               . ' ORDER BY h_avg.post_date DESC LIMIT 1)',
                 ),
@@ -411,7 +411,7 @@ final class ShippedDatasets
                     table:      'inventory_history',
                     type:       ValueType::Money,
                     expression: '(inventory_history.remaining * (SELECT h_tot.avg_cost'
-                              . ' FROM inventory_history h_tot'
+                              . ' FROM {{inventory_history}} h_tot'
                               . ' WHERE h_tot.sku = inventory_history.sku'
                               . ' ORDER BY h_tot.post_date DESC LIMIT 1))',
                 ),

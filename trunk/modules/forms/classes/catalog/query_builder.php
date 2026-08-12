@@ -49,6 +49,46 @@ final readonly class Query
 final class QueryBuilder
 {
     /**
+     * Tables are introduced as `<prefix><table> AS <table>` and referenced by
+     * the bare name everywhere else.
+     *
+     * FreeBooks supports a table-name prefix, set at install time and baked
+     * into configure.php as DB_PREFIX; the shipped installs use an empty one,
+     * which is why the catalog got away with emitting bare names. Prefixing
+     * every REFERENCE instead — which is what PhreeForm's prefixTables() does,
+     * by string-replacing "table." throughout — would mean rewriting field
+     * references, join conditions, ORDER BY and the raw SQL inside every
+     * computed expression, and getting any of those wrong fails only on an
+     * install nobody here is running.
+     *
+     * Aliasing moves the whole problem to the two places a table is introduced.
+     * A dataset then reads the same on every install, and an expression like
+     * `(journal_item.credit_amount - journal_item.debit_amount)` needs no
+     * rewriting at all. The one case that does is a subquery introducing a
+     * FRESH instance of a table — see EXPRESSION_TABLE_PATTERN.
+     *
+     * @param ?string $tablePrefix null takes DB_PREFIX; pass explicitly to test
+     *   a prefixed install from one that is not.
+     */
+    public function __construct(private readonly ?string $tablePrefix = null) {}
+
+    /** The configured prefix, validated — it reaches the statement unquoted. */
+    private function prefix(): string
+    {
+        $prefix = $this->tablePrefix ?? (defined('DB_PREFIX') ? (string)DB_PREFIX : '');
+        if ($prefix !== '' && !preg_match('/^[A-Za-z0-9_]+$/', $prefix)) {
+            throw new CatalogException("DB_PREFIX '$prefix' is not a bare identifier prefix.");
+        }
+        return $prefix;
+    }
+
+    /** `<prefix><table> AS <table>`, for a FROM or JOIN. */
+    private function introduce(string $table): string
+    {
+        return $this->prefix() . $table . ' AS ' . $table;
+    }
+
+    /**
      * @param list<string> $fieldKeys fields to select; empty selects them all
      * @param list<Filter> $filters
      * @param list<Sort>   $sorts
@@ -65,9 +105,9 @@ final class QueryBuilder
             : $dataset->fieldsFor($fieldKeys);
 
         $select = [];
-        foreach ($fields as $field) $select[] = $field->toSelect();
+        foreach ($fields as $field) $select[] = $this->expand($field->toSelect());
 
-        $sql    = 'SELECT ' . implode(', ', $select) . ' FROM ' . $dataset->baseTable;
+        $sql    = 'SELECT ' . implode(', ', $select) . ' FROM ' . $this->introduce($dataset->baseTable);
         $params = [];
 
         $needed = $this->requiredTables($dataset, $fields, $filters, $sorts);
@@ -75,7 +115,8 @@ final class QueryBuilder
             if (!isset($needed[$join->table])) continue;
             $on = [];
             foreach ($join->on as $condition) $on[] = $condition->toSql();
-            $sql .= ' ' . $join->type->value . ' ' . $join->table . ' ON ' . implode(' AND ', $on);
+            $sql .= ' ' . $join->type->value . ' ' . $this->introduce($join->table)
+                  . ' ON ' . implode(' AND ', $on);
         }
 
         $where = [];
@@ -94,7 +135,7 @@ final class QueryBuilder
                 if (!$field->sortable) {
                     throw new CatalogException("Field '{$sort->fieldKey}' is not sortable.");
                 }
-                $order[] = $field->toReference() . ' ' . $sort->direction->value;
+                $order[] = $this->expand($field->toReference()) . ' ' . $sort->direction->value;
             }
             $sql .= ' ORDER BY ' . implode(', ', $order);
         }
@@ -208,7 +249,7 @@ final class QueryBuilder
             throw new CatalogException("Field '{$filter->fieldKey}' is not filterable.");
         }
 
-        $ref = $field->toReference();
+        $ref = $this->expand($field->toReference());
 
         // A comparison against other fields emits no parameter at all: every
         // token is either a key resolved through the dataset or one of six
@@ -225,7 +266,7 @@ final class QueryBuilder
                 if (!$other->filterable) {
                     throw new CatalogException("Field '{$token['text']}' is not filterable.");
                 }
-                $sql .= ' ' . $other->toReference();
+                $sql .= ' ' . $this->expand($other->toReference());
             }
             return "$ref " . $this->comparison($filter->operator) . ' (' . trim($sql) . ')';
         }
@@ -266,6 +307,38 @@ final class QueryBuilder
 
         $params[] = $filter->values[0];
         return "$ref $op ?";
+    }
+
+    /**
+     * `{{table}}` inside a computed expression, for a FRESH table instance.
+     *
+     * Aliasing handles every reference to a table the dataset already joins,
+     * because the alias IS the bare name. It cannot handle a subquery that
+     * opens the table again — `(SELECT avg_cost FROM inventory_history h_avg
+     * WHERE …)` names a second, independent instance, and that one needs the
+     * real prefixed name. A dataset writes it as `FROM {{inventory_history}}
+     * h_avg`.
+     *
+     * The braces are deliberately unlike anything SQL uses, so a missing
+     * substitution is a syntax error rather than a query against the wrong
+     * table. Only shipped datasets carry expressions at all (§3.2), so this is
+     * developer-authored text — but the name is still checked, since it is the
+     * one part of an expression that is rewritten rather than passed through.
+     */
+    private const EXPRESSION_TABLE_PATTERN = '/\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}/';
+
+    private function expand(string $sql): string
+    {
+        if (!str_contains($sql, '{{')) return $sql;
+        $prefix = $this->prefix();
+        $out = preg_replace_callback(self::EXPRESSION_TABLE_PATTERN, function (array $m) use ($prefix): string {
+            Identifier::check($m[1], 'table name');
+            return $prefix . $m[1];
+        }, $sql);
+        if ($out === null || str_contains($out, '{{')) {
+            throw new CatalogException("Expression has an unresolved table placeholder: $sql");
+        }
+        return $out;
     }
 
     /** The SQL symbol for a scalar comparison. */
