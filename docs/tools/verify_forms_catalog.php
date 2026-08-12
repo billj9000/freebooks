@@ -39,7 +39,7 @@ require_once($root . '/render/formatter.php');
 require_once($root . '/legacy/template_converter.php');
 
 use FreeBooks\Forms\Catalog\{
-    Catalog, CatalogException, Dataset, DatasetTier, FieldDefinition, Filter,
+    Catalog, CatalogException, Dataset, DatasetTier, FieldDefinition, FieldExpression, Filter,
     FilterOperator, Join, JoinCondition, JoinType, QueryBuilder, ShippedDatasets,
     Sort, SortDirection
 };
@@ -182,6 +182,42 @@ $audit = $catalog->get('audit_trail');
 ok('audit_trail reaches users (shipped tier privilege)', in_array('users', $audit->tables(), true));
 ok('audit_trail exposes only named user columns',
     $audit->field('user_name')?->column === 'admin_name' && $audit->field('password') === null);
+
+echo "\n=== a field expression cannot carry SQL ===\n";
+// FieldExpression exists so a filter can compare a column to other columns
+// (§8.5). It is the one place a caller-shaped string comes near the statement,
+// so it is attacked here rather than trusted.
+refuses('an expression with a non-arithmetic operator',
+    fn() => new FieldExpression([['kind' => 'op', 'text' => ';']]));
+refuses('an expression whose operator is a SQL keyword',
+    fn() => new FieldExpression([['kind' => 'field', 'text' => 'qty_stock'], ['kind' => 'op', 'text' => 'UNION']]));
+refuses('an expression whose field key carries syntax',
+    fn() => new FieldExpression([['kind' => 'field', 'text' => 'qty_stock) OR 1=1 --']]));
+refuses('an expression with an unknown token kind',
+    fn() => new FieldExpression([['kind' => 'raw', 'text' => 'DROP TABLE users']]));
+refuses('an empty expression', fn() => new FieldExpression([]));
+refuses('an expression referencing no field at all',
+    fn() => new FieldExpression([['kind' => 'op', 'text' => '('], ['kind' => 'op', 'text' => ')']]));
+
+$inv  = $catalog->get('inventory');
+$expr = new FieldExpression([
+    ['kind' => 'field', 'text' => 'min_stock_level'],
+    ['kind' => 'op',    'text' => '+'],
+    ['kind' => 'field', 'text' => 'qty_on_sales'],
+]);
+$q = (new QueryBuilder())->build($inv, ['sku'],
+    [Filter::compareFields('qty_stock', FilterOperator::LessThan, $expr)]);
+ok('a field comparison binds no parameters', $q->params === []);
+ok('a field comparison emits only resolved column references',
+    str_contains($q->sql, 'inventory.quantity_on_hand < (inventory.minimum_stock_level + inventory.quantity_on_sales_order)'),
+    $q->sql);
+refuses('a field comparison against a field the dataset lacks',
+    fn() => (new QueryBuilder())->build($inv, ['sku'], [Filter::compareFields('qty_stock',
+        FilterOperator::LessThan, new FieldExpression([['kind' => 'field', 'text' => 'no_such_field']]))]));
+refuses('a field comparison with a non-scalar operator',
+    fn() => Filter::compareFields('qty_stock', FilterOperator::In, $expr));
+refuses('a filter carrying both values and an expression',
+    fn() => new Filter('qty_stock', FilterOperator::LessThan, ['5'], $expr));
 
 echo "\n=== the two halves of provider-side resolution agree ===\n";
 // The renderer refuses these hints; the converter re-points their bindings at

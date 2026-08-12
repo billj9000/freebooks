@@ -44,6 +44,9 @@ final class ShippedDatasets
         $catalog->register(self::generalLedger());
         $catalog->register(self::inventory());
         $catalog->register(self::auditTrail());
+        $catalog->register(self::contacts());
+        $catalog->register(self::workOrders());
+        $catalog->register(self::assets());
     }
 
     /**
@@ -71,6 +74,15 @@ final class ShippedDatasets
                 new Join('address_book', [
                     new JoinCondition('contacts', 'id', 'address_book', 'ref_id'),
                 ], JoinType::Left),
+                // The account a LINE posts to. Reports that select by account
+                // type rather than by journal — the Daily Cash Report asks for
+                // postings against cash accounts — need this to be reachable
+                // from the transaction side. LEFT, so a line whose account has
+                // no chart row still appears; any filter on account_type
+                // excludes those anyway, which is what legacy's INNER join did.
+                new Join('chart_of_accounts', [
+                    new JoinCondition('journal_item', 'gl_account', 'chart_of_accounts', 'id'),
+                ], JoinType::Left),
             ],
             fields: [
                 // ── the transaction ──────────────────────────────────────────
@@ -89,6 +101,7 @@ final class ShippedDatasets
                 new FieldDefinition('purch_order_id',      'Purchase Order',   'journal_main', 'purch_order_id'),
                 new FieldDefinition('so_po_ref_id',        'SO/PO Reference',  'journal_main', 'so_po_ref_id'),
                 new FieldDefinition('drop_ship',           'Drop Ship',        'journal_main', 'drop_ship',           ValueType::Boolean),
+                new FieldDefinition('store_id',            'Branch',           'journal_main', 'store_id',            ValueType::Integer),
 
                 // ── money ────────────────────────────────────────────────────
                 new FieldDefinition('total_amount',    'Total',            'journal_main', 'total_amount',    ValueType::Money),
@@ -199,6 +212,10 @@ final class ShippedDatasets
                     legacyNames: ['journal_item.debit_amount - journal_item.credit_amount'],
                 ),
 
+                // ── the account a line posts to ──────────────────────────────
+                new FieldDefinition('gl_account_title', 'Account Title', 'chart_of_accounts', 'description'),
+                new FieldDefinition('gl_account_type',  'Account Type',  'chart_of_accounts', 'account_type', ValueType::Integer),
+
                 // ── contact / address book ───────────────────────────────────
                 new FieldDefinition('contact_account_number', 'Account Number', 'contacts', 'account_number'),
                 new FieldDefinition('contact_short_name',     'Short Name',     'contacts', 'short_name'),
@@ -251,10 +268,44 @@ final class ShippedDatasets
                 new FieldDefinition('debit_amount',    'Period Debits', 'chart_of_accounts_history', 'debit_amount',  ValueType::Money),
                 new FieldDefinition('credit_amount',   'Period Credits','chart_of_accounts_history', 'credit_amount', ValueType::Money),
 
+                new FieldDefinition('history_budget',  'Period Budget', 'chart_of_accounts_history', 'budget',        ValueType::Money),
+
+                // The trial balance's two columns. A period's closing balance is
+                // opening + debits - credits, and the report shows it in
+                // whichever column its sign calls for — so each side is the
+                // balance clamped at zero, and exactly one of the pair is
+                // non-zero for any account. GREATEST() is how PhreeForm wrote it
+                // inline — note the missing space after `debit_amount` in the
+                // stored definition, which is harmless only because
+                // TemplateConverter::normalise() strips whitespace before
+                // matching.
+                new FieldDefinition(
+                    key:        'trial_debit',
+                    label:      'Trial Balance Debit',
+                    table:      'chart_of_accounts_history',
+                    type:       ValueType::Money,
+                    expression: 'GREATEST(chart_of_accounts_history.debit_amount - chart_of_accounts_history.credit_amount'
+                              . ' + chart_of_accounts_history.beginning_balance, 0)',
+                    legacyNames: ['greatest(chart_of_accounts_history.debit_amount -chart_of_accounts_history.credit_amount + chart_of_accounts_history.beginning_balance, 0)'],
+                ),
+                new FieldDefinition(
+                    key:        'trial_credit',
+                    label:      'Trial Balance Credit',
+                    table:      'chart_of_accounts_history',
+                    type:       ValueType::Money,
+                    expression: 'GREATEST(chart_of_accounts_history.credit_amount - chart_of_accounts_history.debit_amount'
+                              . ' - chart_of_accounts_history.beginning_balance, 0)',
+                    legacyNames: ['greatest(chart_of_accounts_history.credit_amount - chart_of_accounts_history.debit_amount - chart_of_accounts_history.beginning_balance, 0)'],
+                ),
+
                 new FieldDefinition('posting_id',      'Posting ID',    'journal_item', 'id',            ValueType::Integer),
+                new FieldDefinition('posting_account', 'Posting Account','journal_item', 'gl_account'),
                 new FieldDefinition('posting_debit',   'Debit',         'journal_item', 'debit_amount',  ValueType::Money),
                 new FieldDefinition('posting_credit',  'Credit',        'journal_item', 'credit_amount', ValueType::Money),
                 new FieldDefinition('posting_desc',    'Posting Text',  'journal_item', 'description'),
+                new FieldDefinition('posting_sku',     'Posting SKU',   'journal_item', 'sku'),
+                new FieldDefinition('journal_record_id','Journal Record','journal_main','id',            ValueType::Integer),
+                new FieldDefinition('journal_name',    'Contact Name',  'journal_main', 'bill_primary_name'),
                 new FieldDefinition('post_date',       'Post Date',     'journal_main', 'post_date',     ValueType::Date),
                 new FieldDefinition('period',          'Journal Period','journal_main', 'period',        ValueType::Integer),
                 new FieldDefinition('journal_id',      'Journal',       'journal_main', 'journal_id',    ValueType::Integer),
@@ -284,15 +335,40 @@ final class ShippedDatasets
                 new FieldDefinition('qty_stock',        'Qty On Hand',      'inventory', 'quantity_on_hand',         ValueType::Decimal),
                 new FieldDefinition('qty_on_order',     'Qty On Order',     'inventory', 'quantity_on_order',        ValueType::Decimal),
                 new FieldDefinition('qty_on_sales',     'Qty Committed',    'inventory', 'quantity_on_sales_order',  ValueType::Decimal),
+                new FieldDefinition('qty_allocated',    'Qty Allocated',    'inventory', 'quantity_on_allocation',   ValueType::Decimal),
                 new FieldDefinition('item_cost',        'Item Cost',        'inventory', 'item_cost',        ValueType::Money),
                 new FieldDefinition('full_price',       'Full Price',       'inventory', 'full_price',       ValueType::Money),
                 new FieldDefinition('inactive',         'Inactive',         'inventory', 'inactive',         ValueType::Boolean),
+                new FieldDefinition('cost_method',      'Cost Method',      'inventory', 'cost_method'),
+                new FieldDefinition('min_stock_level',  'Minimum Stock',    'inventory', 'minimum_stock_level', ValueType::Decimal),
+                new FieldDefinition('reorder_quantity', 'Reorder Quantity', 'inventory', 'reorder_quantity',    ValueType::Decimal),
+                new FieldDefinition('lead_time',        'Lead Time',        'inventory', 'lead_time',           ValueType::Integer),
+                // The vendor is stored as an id. The name is a contacts lookup,
+                // and joining contacts here would widen a dataset that exists to
+                // be about stock — so the id is what a report gets, exactly as
+                // the legacy Re-order Worksheet printed it.
+                new FieldDefinition('vendor_id',        'Vendor (id)',      'inventory', 'vendor_id',           ValueType::Integer),
+                // Despite the column name this is the inventory ASSET account;
+                // `wage` is a leftover from PhreeBooks' service-item handling.
+                new FieldDefinition('account_inventory','Inventory Account','inventory', 'account_inventory_wage'),
+                new FieldDefinition('account_income',   'Income Account',   'inventory', 'account_sales_income'),
+                new FieldDefinition('account_cogs',     'COGS Account',     'inventory', 'account_cost_of_sales'),
 
                 new FieldDefinition('history_id',       'History ID',       'inventory_history', 'id',        ValueType::Integer),
                 new FieldDefinition('history_date',     'Movement Date',    'inventory_history', 'post_date', ValueType::Date),
                 new FieldDefinition('history_qty',      'Movement Qty',     'inventory_history', 'qty',       ValueType::Decimal),
                 new FieldDefinition('history_remaining','Remaining',        'inventory_history', 'remaining', ValueType::Decimal),
                 new FieldDefinition('history_unit_cost','Unit Cost',        'inventory_history', 'unit_cost', ValueType::Money),
+                new FieldDefinition('history_avg_cost', 'Average Cost',     'inventory_history', 'avg_cost',  ValueType::Money),
+                new FieldDefinition('history_store_id', 'Branch',           'inventory_history', 'store_id',  ValueType::Integer),
+                new FieldDefinition('history_serial',   'Serial Number',    'inventory_history', 'serialize_number'),
+                new FieldDefinition('history_journal',  'Journal',          'inventory_history', 'journal_id', ValueType::Integer),
+                // inventory_history carries its own sku, and the valuation
+                // reports select THAT one rather than inventory.sku. They are
+                // equal by the join condition, but a report that names it must
+                // still resolve — and it fixes the grain: selecting the history
+                // copy is what tells the pruner this report is per-movement.
+                new FieldDefinition('history_sku',      'SKU (Movement)',   'inventory_history', 'sku'),
 
                 // §6.2 counted nine computed expressions across the library,
                 // all simple arithmetic; this is the one the stock valuation
@@ -304,6 +380,40 @@ final class ShippedDatasets
                     type:       ValueType::Money,
                     expression: '(inventory_history.unit_cost * inventory_history.remaining)',
                     legacyNames: ['inventory_history.unit_cost * inventory_history.remaining'],
+                ),
+
+                // The `avg_cost` and `avg_total` processing hints, as SQL.
+                //
+                // The key names look odd and are not arbitrary: ReportConverter
+                // re-points a provider-resolved hint by appending
+                // PROVIDER_RESOLVED[$hint] to the field the column already maps
+                // to, so `avg_cost` on `inventory_history.sku` must be found at
+                // `history_sku` + `_avg_cost`. Renaming either half breaks the
+                // link silently.
+                //
+                // PhreeForm ran pb_get_avg_cost() once PER ROW — two queries a
+                // row for avg_total — so the valuation reports issued several
+                // thousand round trips to print one page. Expressing it here
+                // makes it one statement, and puts the definition of "average
+                // cost" in the dataset where a report author can see it.
+                new FieldDefinition(
+                    key:        'history_sku_avg_cost',
+                    label:      'Average Cost',
+                    table:      'inventory_history',
+                    type:       ValueType::Money,
+                    expression: '(SELECT h_avg.avg_cost FROM inventory_history h_avg'
+                              . ' WHERE h_avg.sku = inventory_history.sku'
+                              . ' ORDER BY h_avg.post_date DESC LIMIT 1)',
+                ),
+                new FieldDefinition(
+                    key:        'history_id_avg_total',
+                    label:      'Total Value At Average',
+                    table:      'inventory_history',
+                    type:       ValueType::Money,
+                    expression: '(inventory_history.remaining * (SELECT h_tot.avg_cost'
+                              . ' FROM inventory_history h_tot'
+                              . ' WHERE h_tot.sku = inventory_history.sku'
+                              . ' ORDER BY h_tot.post_date DESC LIMIT 1))',
                 ),
             ],
         );
@@ -341,6 +451,155 @@ final class ShippedDatasets
                 // hashes and tokens are not reachable even from here.
                 new FieldDefinition('user_name',   'User',       'users', 'admin_name'),
                 new FieldDefinition('user_display','Display Name','users', 'display_name'),
+            ],
+        );
+    }
+
+    /**
+     * Customers, vendors and employees, with their addresses.
+     *
+     * One table serves all three in FreeBooks — `contacts.type` is 'c', 'v' or
+     * 'e' — which is why the Customer, Vendor and Employee List reports differ
+     * only in their filter. `address_book` is one-to-many (a contact has a
+     * billing address, zero or more shipping addresses, and for a vendor a
+     * remit-to), so a report that reaches it should filter `address_type` or it
+     * will see a row per address. The shipped lists all filter on 'm' (main).
+     */
+    public static function contacts(): Dataset
+    {
+        return new Dataset(
+            id:        'contacts',
+            label:     'Contacts',
+            baseTable: 'contacts',
+            description: 'Customers, vendors and employees, with their address book entries.',
+            joins: [
+                new Join('address_book', [
+                    new JoinCondition('contacts', 'id', 'address_book', 'ref_id'),
+                ], JoinType::Left),
+            ],
+            fields: [
+                new FieldDefinition('contact_id',      'Record ID',    'contacts', 'id',      ValueType::Integer),
+                new FieldDefinition('short_name',      'Short Name',   'contacts', 'short_name'),
+                new FieldDefinition('account_number',  'Account Number','contacts', 'account_number'),
+                new FieldDefinition('contact_type',    'Type',         'contacts', 'type'),
+                new FieldDefinition('contact_level',   'Level',        'contacts', 'contacts_level'),
+                new FieldDefinition('inactive',        'Inactive',     'contacts', 'inactive',    ValueType::Boolean),
+                new FieldDefinition('first_name',      'First Name',   'contacts', 'contact_first'),
+                new FieldDefinition('middle_name',     'Middle Name',  'contacts', 'contact_middle'),
+                new FieldDefinition('last_name',       'Last Name',    'contacts', 'contact_last'),
+                new FieldDefinition('gov_id_number',   'Government ID','contacts', 'gov_id_number'),
+                new FieldDefinition('vat_number',      'VAT Number',   'contacts', 'vat_number'),
+                new FieldDefinition('eori_number',     'EORI Number',  'contacts', 'eori_number'),
+                new FieldDefinition('store_id',        'Branch',       'contacts', 'store_id',    ValueType::Integer),
+                new FieldDefinition('rep_id',          'Rep (id)',     'contacts', 'dept_rep_id', ValueType::Integer),
+                new FieldDefinition('gl_account',      'GL Account',   'contacts', 'gl_type_account'),
+                new FieldDefinition('special_terms',   'Terms',        'contacts', 'special_terms'),
+                new FieldDefinition('price_sheet',     'Price Sheet',  'contacts', 'price_sheet'),
+                new FieldDefinition('currency_code',   'Currency',     'contacts', 'currency_code'),
+                new FieldDefinition('tax_id',          'Tax Rate (id)','contacts', 'tax_id',      ValueType::Integer),
+                new FieldDefinition('first_date',      'First Activity','contacts','first_date',  ValueType::Date),
+                new FieldDefinition('last_date',       'Last Activity','contacts', 'last_date_1', ValueType::Date),
+                new FieldDefinition('last_update',     'Last Updated', 'contacts', 'last_update', ValueType::Date),
+
+                new FieldDefinition('address_id',      'Address ID',   'address_book', 'address_id', ValueType::Integer),
+                new FieldDefinition('address_type',    'Address Type', 'address_book', 'type'),
+                new FieldDefinition('primary_name',    'Name',         'address_book', 'primary_name'),
+                new FieldDefinition('contact_name',    'Contact',      'address_book', 'contact'),
+                new FieldDefinition('address1',        'Address 1',    'address_book', 'address1'),
+                new FieldDefinition('address2',        'Address 2',    'address_book', 'address2'),
+                new FieldDefinition('city_town',       'City',         'address_book', 'city_town'),
+                new FieldDefinition('state_province',  'State',        'address_book', 'state_province'),
+                new FieldDefinition('postal_code',     'Postcode',     'address_book', 'postal_code'),
+                new FieldDefinition('country_code',    'Country',      'address_book', 'country_code'),
+                new FieldDefinition('telephone1',      'Telephone 1',  'address_book', 'telephone1'),
+                new FieldDefinition('telephone2',      'Telephone 2',  'address_book', 'telephone2'),
+                new FieldDefinition('telephone3',      'Telephone 3',  'address_book', 'telephone3'),
+                new FieldDefinition('telephone4',      'Telephone 4',  'address_book', 'telephone4'),
+                new FieldDefinition('email',           'Email',        'address_book', 'email'),
+                new FieldDefinition('website',         'Website',      'address_book', 'website'),
+            ],
+        );
+    }
+
+    /**
+     * Work orders, their steps, and the task catalog behind them.
+     *
+     * `wo_steps` joins `wo_task` the other way round from how it reads —
+     * `wo_task.id = wo_steps.task_id` — because a step points AT a task, and
+     * the same task is reused across many work orders.
+     */
+    public static function workOrders(): Dataset
+    {
+        return new Dataset(
+            id:        'work_orders',
+            label:     'Work Orders',
+            baseTable: 'wo_main',
+            description: 'Work orders, the steps they run, and the tasks those steps use.',
+            joins: [
+                new Join('inventory', [
+                    new JoinCondition('wo_main', 'sku_id', 'inventory', 'id'),
+                ], JoinType::Left),
+                new Join('wo_steps', [
+                    new JoinCondition('wo_main', 'id', 'wo_steps', 'ref_id'),
+                ], JoinType::Left),
+                new Join('wo_task', [
+                    new JoinCondition('wo_task', 'id', 'wo_steps', 'task_id'),
+                ], JoinType::Left),
+            ],
+            fields: [
+                new FieldDefinition('wo_id',        'Work Order ID', 'wo_main', 'id',        ValueType::Integer),
+                new FieldDefinition('wo_title',     'Work Order',    'wo_main', 'wo_title'),
+                new FieldDefinition('wo_description','Description',  'wo_main', 'description'),
+                new FieldDefinition('wo_revision',  'Revision',      'wo_main', 'revision'),
+                new FieldDefinition('wo_revision_date','Revision Date','wo_main','revision_date', ValueType::Date),
+                new FieldDefinition('wo_last_usage','Last Used',     'wo_main', 'last_usage',  ValueType::Date),
+                new FieldDefinition('wo_inactive',  'Inactive',      'wo_main', 'inactive',    ValueType::Boolean),
+                new FieldDefinition('wo_allocate',  'Allocate',      'wo_main', 'allocate',    ValueType::Boolean),
+                new FieldDefinition('wo_ref_doc',   'Reference Doc', 'wo_main', 'ref_doc'),
+                new FieldDefinition('wo_ref_spec',  'Reference Spec','wo_main', 'ref_spec'),
+
+                new FieldDefinition('sku',          'SKU',           'inventory', 'sku'),
+                new FieldDefinition('item_description','Item Description','inventory','description_short'),
+
+                new FieldDefinition('step_id',      'Step ID',       'wo_steps', 'id',      ValueType::Integer),
+                new FieldDefinition('step_number',  'Step',          'wo_steps', 'step',    ValueType::Integer),
+
+                new FieldDefinition('task_id',      'Task ID',       'wo_task', 'id',       ValueType::Integer),
+                new FieldDefinition('task_name',    'Task',          'wo_task', 'task_name'),
+                new FieldDefinition('task_description','Task Description','wo_task','description'),
+                new FieldDefinition('task_time',    'Job Time',      'wo_task', 'job_time', ValueType::Decimal),
+                new FieldDefinition('task_unit',    'Job Unit',      'wo_task', 'job_unit'),
+                new FieldDefinition('task_dept',    'Department',    'wo_task', 'dept_id',  ValueType::Integer),
+            ],
+        );
+    }
+
+    /** Fixed assets — a single table, and the smallest shipped dataset. */
+    public static function assets(): Dataset
+    {
+        return new Dataset(
+            id:        'assets',
+            label:     'Assets',
+            baseTable: 'assets',
+            description: 'Fixed assets, their cost, acquisition and disposal.',
+            fields: [
+                new FieldDefinition('record_id',    'Record ID',    'assets', 'id',        ValueType::Integer),
+                new FieldDefinition('asset_id',     'Asset ID',     'assets', 'asset_id'),
+                new FieldDefinition('asset_type',   'Type',         'assets', 'asset_type'),
+                new FieldDefinition('description',  'Description',  'assets', 'description_short'),
+                new FieldDefinition('long_description','Detail',    'assets', 'description_long'),
+                new FieldDefinition('purch_cond',   'Condition',    'assets', 'purch_cond'),
+                new FieldDefinition('serial_number','Serial Number','assets', 'serial_number'),
+                new FieldDefinition('inactive',     'Inactive',     'assets', 'inactive',  ValueType::Boolean),
+                new FieldDefinition('asset_cost',   'Cost',         'assets', 'asset_cost',  ValueType::Money),
+                new FieldDefinition('full_price',   'Full Price',   'assets', 'full_price',  ValueType::Money),
+                new FieldDefinition('depreciation_method','Depreciation Method','assets','depreciation_method'),
+                new FieldDefinition('account_asset','Asset Account','assets', 'account_asset'),
+                new FieldDefinition('account_depreciation','Depreciation Account','assets','account_depreciation'),
+                new FieldDefinition('account_maintenance','Maintenance Account','assets','account_maintenance'),
+                new FieldDefinition('acquisition_date','Acquired',  'assets', 'acquisition_date', ValueType::Date),
+                new FieldDefinition('maintenance_date','Maintenance Due','assets','maintenance_date', ValueType::Date),
+                new FieldDefinition('terminal_date','Disposed',     'assets', 'terminal_date',    ValueType::Date),
             ],
         );
     }

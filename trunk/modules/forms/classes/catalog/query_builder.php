@@ -164,8 +164,16 @@ final class QueryBuilder
         };
 
         foreach ($fields as $field)   $note($field);
-        foreach ($filters as $filter) $note($dataset->field($filter->fieldKey));
         foreach ($sorts as $sort)     $note($dataset->field($sort->fieldKey));
+        foreach ($filters as $filter) {
+            $note($dataset->field($filter->fieldKey));
+            // A field expression references fields too, and a join pruned out
+            // from under one produces "Unknown column" rather than a wrong
+            // answer — but only at run time, on whichever report uses it.
+            if ($filter->expression !== null) {
+                foreach ($filter->expression->fieldKeys() as $key) $note($dataset->field($key));
+            }
+        }
 
         // Joins the dataset declares as load-bearing stay regardless.
         foreach ($dataset->joins as $join) {
@@ -201,6 +209,26 @@ final class QueryBuilder
         }
 
         $ref = $field->toReference();
+
+        // A comparison against other fields emits no parameter at all: every
+        // token is either a key resolved through the dataset or one of six
+        // fixed symbols, so nothing a caller wrote reaches the statement.
+        if ($filter->expression !== null) {
+            $sql = '';
+            foreach ($filter->expression->tokens as $token) {
+                if ($token['kind'] === 'op') { $sql .= ' ' . $token['text']; continue; }
+                $other = $dataset->field($token['text']);
+                if ($other === null) {
+                    throw new CatalogException(
+                        "Filter on '{$filter->fieldKey}' compares against unknown field '{$token['text']}'.");
+                }
+                if (!$other->filterable) {
+                    throw new CatalogException("Field '{$token['text']}' is not filterable.");
+                }
+                $sql .= ' ' . $other->toReference();
+            }
+            return "$ref " . $this->comparison($filter->operator) . ' (' . trim($sql) . ')';
+        }
 
         switch ($filter->operator) {
             case FilterOperator::Equal:        $op = '=';  break;
@@ -238,6 +266,20 @@ final class QueryBuilder
 
         $params[] = $filter->values[0];
         return "$ref $op ?";
+    }
+
+    /** The SQL symbol for a scalar comparison. */
+    private function comparison(FilterOperator $operator): string
+    {
+        return match ($operator) {
+            FilterOperator::Equal        => '=',
+            FilterOperator::NotEqual     => '<>',
+            FilterOperator::GreaterThan  => '>',
+            FilterOperator::GreaterEqual => '>=',
+            FilterOperator::LessThan     => '<',
+            FilterOperator::LessEqual    => '<=',
+            default => throw new CatalogException("Operator '{$operator->value}' is not a scalar comparison."),
+        };
     }
 
     /** Neutralise LIKE metacharacters inside a user's search term. */

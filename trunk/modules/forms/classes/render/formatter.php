@@ -167,10 +167,15 @@ final class Formatter
     private function plain(TypedValue $value): string
     {
         if ($value->raw === null) return '';
-        return match ($value->type) {
-            ValueType::Boolean => $value->raw ? $this->constant('TEXT_YES', 'Yes') : '',
-            default            => (string)$value->raw,
-        };
+
+        // Deliberately no per-type conversion, Boolean included. A boolean once
+        // rendered here as "Yes"/"" — which reads better, and is wrong: with no
+        // hint PhreeForm's ProcessData() returns the value untouched, and
+        // `yesBno` is how a definition asks for Yes/blank. Converting anyway
+        // silently changed every unhinted boolean column in every converted
+        // report — the Vendor List prints an Inactive column of 0s and 1s, and
+        // started printing blanks.
+        return (string)$value->raw;
     }
 
     /** Code -> label from the injected table; unknown codes show as themselves. */

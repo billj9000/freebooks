@@ -436,6 +436,7 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
 | `render_forms_document.php` | Render a form through Forms, for diffing against the baseline |
 | `verify_forms_catalog.php` | Attack the catalog's safety guarantees (no DB needed) |
+| `verify_forms_datasets.php` | Check every shipped dataset against the real schema |
 | `verify_forms_report.php` | Run one report through both engines and compare |
 | `make_forms_proving_templates.php` | Create/remove the scratch multi-page + `Ttl` templates (§8.3) |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
@@ -590,13 +591,58 @@ things — row multiplication when it is one-to-many, and silent exclusion of pa
 — and a report naming no column from that table asked for neither. A join that genuinely is part of
 the dataset's meaning says so with `required: true`.
 
-**What is not yet done.** Only `transactions` is proven. `general_ledger`, `inventory` and
-`audit_trail` are registered but thin: their reports reference columns those datasets do not yet
-define (`inventory_history.sku`, `inventory.vendor_id`, the `greatest(...)` trial-balance
-expressions), and the converter reports each one by name rather than guessing. Filling them in is
-the next unit of work. `datedefault` / `gen_build_sql_date()` is still unported — the tool neutralises
+**Coverage: every non-special shipped report now converts.** Seven datasets (Transactions, General
+Ledger, Inventory, Audit Trail, Contacts, Work Orders, Assets) and 214 fields cover all 30 report
+definitions with nothing unmapped. 26 pass end to end; the other four — Employee List, both Work
+Order reports and the Asset List — have no rows in the test company, so they convert and query
+cleanly but prove nothing.
+
+Filling the datasets out turned up four things worth recording:
+
+- **A filter's value can be other COLUMNS.** The Re-order Worksheet asks for items where
+  `quantity_on_hand < (minimum_stock_level + quantity_on_sales_order - quantity_on_order)`;
+  PhreeForm decides between "a value" and "an expression" with `testTables()` and splices the latter
+  in as SQL. Binding it as a parameter is not a safe failure — MySQL coerces the string to 0, so the
+  report silently becomes "items with negative stock" and returns 251 rows instead of 986.
+  `FieldExpression` restores the capability without restoring the injection: an expression is a list
+  of tokens that are each either a dataset field KEY or one of six fixed symbols, and the keys
+  resolve through the dataset exactly as a selected field does. Anything the parser cannot account
+  for — a digit, a quote, a function call — is refused, and the filter is reported rather than
+  approximated.
+- **A resolution hint can be served two ways, and the dataset should win.** `avg_cost` and
+  `avg_total` are now dataset expressions, so the valuation reports resolve them inside the one
+  query instead of PhreeForm's two lookups per row (several thousand round trips to print a page).
+  `branch` — which resolves a CONTACT id to a short name, despite the name — stays provider-side and
+  batched, because its `COMPANY_ID` fallback for an absent or unknown id is application behaviour,
+  not arithmetic. `ReportConverter` prefers a dataset field and falls back to the provider, warning
+  only when neither can serve it.
+- **A dataset's shape has to match the report's grain.** The Daily Cash Report reads as a General
+  Ledger report but is journal-grain: its base table is `journal_main`, and running it against the
+  account-grain dataset returned two extra rows — cash accounts with no postings, which that
+  dataset's LEFT join keeps and legacy's INNER join dropped. It belongs on Transactions, which now
+  reaches `chart_of_accounts` so a report can select by account type.
+- **An unhinted boolean must print its raw value.** `Formatter::plain()` rendered a Boolean as
+  "Yes"/"" — which reads better and is wrong. With no hint `ProcessData()` returns the value
+  untouched, and `yesBno` is how a definition asks for Yes/blank, so the conversion silently changed
+  every unhinted boolean column in every converted report: the Vendor List's Inactive column of 0s
+  and 1s became blanks.
+
+`verify_forms_datasets.php` now checks the datasets against the real schema — `Identifier::check()`
+proves a name is syntactically an identifier, never that the column exists. It caught
+`journal_main.dept_rep_id`, added because a shipped report filters on it; the column is on
+`contacts`, and the legacy definition only ever worked because that filter defaulted to ALL and was
+never emitted.
+
+**What is not yet done.** `datedefault` / `gen_build_sql_date()` is unported — the tool neutralises
 it with `datedefault = 'a'` on both sides, so date-ranged reports are untested. The Table PDF
-renderer does not exist yet, so reports are proven as data and as CSV, not as printed pages.
+renderer does not exist, so reports are proven as data and as CSV, not as printed pages. The seven
+special-class reports (aged receivables/payables and their summaries, the three income statements)
+reference computed columns — `balance_0`, `current_ytd`, `budget_cur` — that are not table columns
+at all; those are the deferred provider ports, not dataset work.
+
+**Known limitation, not yet addressed:** the catalog emits bare table names and never applies
+`DB_PREFIX`. This install runs with an empty prefix so it makes no difference, and the legacy engine
+produces the same SQL, but a prefixed installation would not work.
 
 ---
 
@@ -700,6 +746,9 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    definition; `CsvRenderer` renders it. **Row-set parity holds across 13 reports** — every data
    row, every cell and every group break — with three divergences asserted as legacy defects. Only
    the `transactions` dataset is proven; the other three are registered but thin. See §8.5.
-7. Remaining: fill out the `general_ledger`, `inventory` and `audit_trail` datasets; the Table PDF
-   renderer; `datedefault` / `gen_build_sql_date()`; the eight other provider ports; custom datasets
-   in the admin UI; and the delivery layer.
+7. **Dataset coverage (done 2026-08-12).** Seven shipped datasets, 214 fields, every non-special
+   report converting with nothing unmapped; 26 of 30 verified end to end, 4 untestable for want of
+   data. Added `FieldExpression` (column-to-column filters) and schema verification. See §8.5.
+8. Remaining: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
+   provider ports; `DB_PREFIX` in the catalog; custom datasets in the admin UI; and the delivery
+   layer.

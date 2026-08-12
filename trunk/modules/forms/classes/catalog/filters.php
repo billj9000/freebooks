@@ -80,15 +80,84 @@ enum FilterOperator: string
     }
 }
 
+/**
+ * Arithmetic over dataset FIELDS, for comparing a column to other columns.
+ *
+ * PhreeForm supports this and the shipped library uses it: the Re-order
+ * Worksheet asks for items where `quantity_on_hand` is less than
+ * `(minimum_stock_level + quantity_on_sales_order - quantity_on_order)`. That
+ * cannot be a bound parameter — it is not a value — and binding it anyway is
+ * not a safe failure: MySQL coerces the string to 0, so the report silently
+ * becomes "items with negative stock" and returns 251 rows instead of 986.
+ *
+ * It is also the obvious place to reintroduce injection, so nothing here is
+ * free text. An expression is a list of tokens that are either a dataset field
+ * KEY or one of six fixed symbols; the key is resolved through the dataset at
+ * render time, exactly as a selected field is. Anything the parser cannot
+ * account for is rejected rather than passed through.
+ */
+final readonly class FieldExpression
+{
+    public const OPERATORS = ['+', '-', '*', '/', '(', ')'];
+
+    /** @param list<array{kind: 'field'|'op', text: string}> $tokens */
+    public function __construct(public array $tokens)
+    {
+        if (!$tokens) throw new CatalogException('A field expression cannot be empty.');
+        $hasField = false;
+        foreach ($tokens as $token) {
+            if ($token['kind'] === 'op') {
+                if (!in_array($token['text'], self::OPERATORS, true)) {
+                    throw new CatalogException("'{$token['text']}' is not an allowed expression operator.");
+                }
+            } elseif ($token['kind'] === 'field') {
+                $hasField = true;
+                Identifier::check($token['text'], 'field key');
+            } else {
+                throw new CatalogException("Unknown expression token kind '{$token['kind']}'.");
+            }
+        }
+        // An expression of pure arithmetic is a literal in disguise; it should
+        // have been bound as a parameter instead of routed through here.
+        if (!$hasField) throw new CatalogException('A field expression must reference at least one field.');
+    }
+
+    /** @return list<string> */
+    public function fieldKeys(): array
+    {
+        $keys = [];
+        foreach ($this->tokens as $token) if ($token['kind'] === 'field') $keys[] = $token['text'];
+        return array_values(array_unique($keys));
+    }
+}
+
 /** One condition: a dataset field, a comparison, and its values. */
 final readonly class Filter
 {
-    /** @param list<scalar|null> $values */
+    /**
+     * @param list<scalar|null> $values
+     * @param ?FieldExpression  $expression compare against other FIELDS rather
+     *   than against values; when set, $values must be empty.
+     */
     public function __construct(
-        public string         $fieldKey,
-        public FilterOperator $operator,
-        public array          $values = [],
+        public string           $fieldKey,
+        public FilterOperator   $operator,
+        public array            $values = [],
+        public ?FieldExpression $expression = null,
     ) {
+        if ($expression !== null) {
+            if ($values) {
+                throw new CatalogException("Filter on '$fieldKey' cannot take both values and a field expression.");
+            }
+            // Only the scalar comparisons make sense against an expression.
+            if (!in_array($operator, [FilterOperator::Equal, FilterOperator::NotEqual,
+                    FilterOperator::GreaterThan, FilterOperator::GreaterEqual,
+                    FilterOperator::LessThan, FilterOperator::LessEqual], true)) {
+                throw new CatalogException(
+                    "Operator '{$operator->value}' cannot compare '$fieldKey' to a field expression.");
+            }
+            return;
+        }
         $arity = $operator->arity();
         if ($arity >= 0 && count($values) !== $arity) {
             throw new CatalogException(sprintf(
@@ -98,6 +167,11 @@ final readonly class Filter
         if ($arity === -1 && !$values) {
             throw new CatalogException("Filter on '$fieldKey' with operator 'in' needs at least one value.");
         }
+    }
+
+    public static function compareFields(string $fieldKey, FilterOperator $operator, FieldExpression $expression): self
+    {
+        return new self($fieldKey, $operator, [], $expression);
     }
 
     public static function equals(string $fieldKey, mixed $value): self

@@ -53,7 +53,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/legacy/report_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/providers/report_provider.php');
 
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
-use FreeBooks\Forms\Document\RowKind;
+use FreeBooks\Forms\Document\{Row, RowKind, TableDocument, ValueType};
 use FreeBooks\Forms\Legacy\ReportConverter;
 use FreeBooks\Forms\Provider\ReportDocumentProvider;
 use FreeBooks\Forms\Render\{CsvRenderer, Formatter};
@@ -131,6 +131,7 @@ $provider = new ReportDocumentProvider(
     groupBy:   $group,
     filters:   $filters,
     sorts:     $sorts,
+    resolvedColumns: $converter->resolvedColumns(),
 );
 $doc = $provider->build([]);
 
@@ -340,11 +341,27 @@ if (!$hasMoneyOrDate) {
     // The paired claim, over both files in full: legacy carried presentation
     // into the export and Forms does not. Asserting only half of it would pass
     // on a report that simply has no money in it.
-    $formsHasFormatting = (bool)preg_match('/[£$€]/u', $csv->bytes)
-                       || (bool)preg_match('#\d{2}/\d{2}/\d{4}#', $csv->bytes);
+    // Check the Forms side cell by cell, and only cells the dataset TYPES as
+    // money or date. Scanning the whole file flags a free-text column that
+    // happens to contain a date — the Inventory Aging descriptions do — and
+    // reports it as the export defect surviving.
+    $offenders = [];
+    foreach ($doc->rows as $row) {
+        foreach ($doc->columns as $column) {
+            $value = $row->cells[$column->key] ?? null;
+            if ($value === null) continue;
+            if (!in_array($value->type, [ValueType::Money, ValueType::Decimal, ValueType::Date], true)) continue;
+            $cell = (new CsvRenderer())->render(new TableDocument(
+                title: 'x', columns: [$column], rows: [new Row(RowKind::Data, [$column->key => $value])]));
+            if (preg_match('/[£$€]/u', $cell->bytes) || preg_match('#\d{2}/\d{2}/\d{4}#', $cell->bytes)) {
+                $offenders[] = "{$column->key}=" . var_export($value->raw, true);
+            }
+        }
+        if (count($offenders) > 3) break;
+    }
     ok('legacy CSV carried display formatting and the Forms CSV strips it',
-       $legacyHasFormatting && !$formsHasFormatting,
-       'legacy=' . var_export($legacyHasFormatting, true) . ' forms=' . var_export($formsHasFormatting, true));
+       $legacyHasFormatting && $offenders === [],
+       'legacy=' . var_export($legacyHasFormatting, true) . ' forms offenders: ' . implode(', ', $offenders));
 }
 ok('Forms CSV dates are ISO', !preg_match('#\d{2}/\d{2}/\d{4}#', $body));
 ok('CSV is declared as text/csv', $csv->mimeType === 'text/csv');

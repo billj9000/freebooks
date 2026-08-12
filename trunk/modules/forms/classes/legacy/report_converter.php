@@ -32,7 +32,7 @@
 
 namespace FreeBooks\Forms\Legacy;
 
-use FreeBooks\Forms\Catalog\{Dataset, Filter, FilterOperator, Sort, SortDirection};
+use FreeBooks\Forms\Catalog\{CatalogException, Dataset, FieldExpression, Filter, FilterOperator, Sort, SortDirection};
 use FreeBooks\Forms\Document\{Align, Format, ReportColumn};
 
 final class ReportConverter
@@ -46,11 +46,34 @@ final class ReportConverter
     /** @var array<string,string> */
     private array $fieldMap = [];
 
+    /** @var array<string,string> resolved column key => the id field it derives from */
+    private array $resolved = [];
+
+    /**
+     * Hints the PROVIDER can resolve when the dataset does not.
+     *
+     * `branch` resolves a contact id to its short name — despite the name, it
+     * has nothing to do with branches. The other three (`avg_cost`,
+     * `avg_total`, `ordr_qty`) are arithmetic over a table the dataset already
+     * reaches, so they belong in the dataset as expressions and are not listed
+     * here; a dataset that omits one gets a warning rather than a silent
+     * per-row query.
+     */
+    private const PROVIDER_LOOKUPS = ['branch', 'rep_id'];
+
+    /**
+     * Columns the provider must fill in after the query.
+     *
+     * @return array<string,string> column key => dataset field holding the id
+     */
+    public function resolvedColumns(): array { return $this->resolved; }
+
     /** @return list<ReportColumn> the displayed columns, in order */
     public function convertColumns(object $report, Dataset $dataset): array
     {
         $this->warnings = [];
         $this->unmapped = [];
+        $this->resolved = [];
         $this->fieldMap = TemplateConverter::mapFor($dataset);
 
         $columns = [];
@@ -75,14 +98,21 @@ final class ReportConverter
             if ($hint !== '' && isset(TemplateConverter::PROVIDER_RESOLVED[$hint])) {
                 $resolved = $key . TemplateConverter::PROVIDER_RESOLVED[$hint];
                 if ($dataset->field($resolved) !== null) {
+                    // The dataset serves it directly — a computed field beats a
+                    // lookup, because it happens in the one query.
                     $key  = $resolved;
-                    $hint = '';
+                } elseif (in_array($hint, self::PROVIDER_LOOKUPS, true)) {
+                    // No dataset field, but the provider knows this lookup.
+                    // The column takes the resolved key and the provider is
+                    // told which id to derive it from.
+                    $this->resolved[$resolved] = $key;
+                    $key = $resolved;
                 } else {
                     $this->warnings[] = "[$index] column '" . $this->scalar($field->description ?? null)
-                                      . "' needs '$hint', which this dataset would serve as '$resolved'"
-                                      . " — it has no such field, so the column shows '$key' unresolved.";
-                    $hint = '';   // the renderer refuses it anyway
+                                      . "' needs '$hint', which neither this dataset (as '$resolved')"
+                                      . " nor the provider can serve; the column shows '$key' unresolved.";
                 }
+                $hint = '';   // resolved, or refused by the renderer anyway
             }
 
             $columns[] = new ReportColumn(
@@ -190,6 +220,29 @@ final class ReportConverter
             $min = $this->scalar($entry->min_val ?? null);
             $max = $this->scalar($entry->max_val ?? null);
 
+            // PhreeForm decides between "a value" and "other columns" with
+            // testTables(): if min_val mentions one of the report's tables it
+            // is spliced in as SQL, otherwise it is quoted as a literal. The
+            // same fork happens here, except the column side is parsed into
+            // validated field keys rather than concatenated.
+            $expression = $this->fieldExpression($min, $dataset);
+            if ($expression !== null) {
+                $operator = match ($mode) {
+                    'EQUAL'        => FilterOperator::Equal,
+                    'NOT_EQUAL'    => FilterOperator::NotEqual,
+                    'GREATER_THAN' => FilterOperator::GreaterThan,
+                    'LESS_THAN'    => FilterOperator::LessThan,
+                    default        => null,
+                };
+                if ($operator === null) {
+                    $this->warnings[] = "filter on '$legacy' compares fields with mode '$mode', "
+                                      . "which is not supported; NOT applied.";
+                    continue;
+                }
+                $filters[] = Filter::compareFields($key, $operator, $expression);
+                continue;
+            }
+
             $filter = match ($mode) {
                 'EQUAL'                                   => $min === '' ? null : Filter::equals($key, $min),
                 'NOT_EQUAL'                               => $min === '' ? null : new Filter($key, FilterOperator::NotEqual, [$min]),
@@ -213,6 +266,53 @@ final class ReportConverter
             $filters[] = $filter;
         }
         return $filters;
+    }
+
+    /**
+     * Read a legacy filter value as arithmetic over dataset fields, or null.
+     *
+     * Returns null for an ordinary literal, which is the common case — the test
+     * is deliberately strict, because treating a value as an expression would
+     * turn a filter into a comparison between two columns. Every identifier
+     * must resolve to a field of THIS dataset, and the only other characters
+     * allowed are the six expression symbols and whitespace; a digit, a quote
+     * or a function call anywhere means it is not one of these.
+     */
+    private function fieldExpression(string $source, Dataset $dataset): ?FieldExpression
+    {
+        if ($source === '' || !str_contains($source, '.')) return null;
+
+        $tokens = [];
+        $length = strlen($source);
+        for ($i = 0; $i < $length; $i++) {
+            $char = $source[$i];
+            if (ctype_space($char)) continue;
+            if (in_array($char, FieldExpression::OPERATORS, true)) {
+                $tokens[] = ['kind' => 'op', 'text' => $char];
+                continue;
+            }
+            if (!preg_match('/[A-Za-z_]/', $char)) return null;   // digit, quote, comma…
+
+            $word = '';
+            while ($i < $length && preg_match('/[A-Za-z0-9_.]/', $source[$i])) $word .= $source[$i++];
+            $i--;
+
+            $key = $this->mapName($word);
+            if ($key === null) {
+                // Record it, so a dataset missing the field says so rather than
+                // this quietly falling back to treating the whole thing as text.
+                $this->warnings[] = "filter expression references '$word', which this dataset does not provide.";
+                return null;
+            }
+            $tokens[] = ['kind' => 'field', 'text' => $key];
+        }
+
+        try {
+            return new FieldExpression($tokens);
+        } catch (CatalogException $e) {
+            $this->warnings[] = "filter expression '$source' rejected: " . $e->getMessage();
+            return null;
+        }
     }
 
     /** RANGE applies whichever bounds are present, which may be one or neither. */

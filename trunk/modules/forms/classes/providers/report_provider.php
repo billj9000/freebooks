@@ -51,6 +51,11 @@ final class ReportDocumentProvider implements DocumentProvider
      * @param list<ReportColumn> $columns   in display order
      * @param list<Filter>       $filters
      * @param list<Sort>         $sorts
+     * @param array<string,string> $resolvedColumns column key => the dataset
+     *   field key holding the id it is resolved FROM. These columns are not
+     *   selected; the provider fills them in after the query (§4.3.1). The key
+     *   convention is <id field>_name, which is what ReportConverter produces
+     *   from a `branch` or `rep_id` processing hint.
      */
     public function __construct(
         private readonly \queryFactory $db,
@@ -66,6 +71,7 @@ final class ReportDocumentProvider implements DocumentProvider
         private readonly Context       $context    = new Context(),
         private readonly PageSetup     $page       = new PageSetup(),
         private readonly ?string       $filterText = null,
+        private readonly array         $resolvedColumns = [],
     ) {}
 
     /** @param array<string,mixed> $params */
@@ -77,8 +83,14 @@ final class ReportDocumentProvider implements DocumentProvider
         // Select the displayed columns plus the group field, which is needed to
         // detect breaks even when it is not shown.
         $keys = [];
-        foreach ($this->columns as $column) $keys[$column->key] = true;
-        if ($this->groupBy !== null) $keys[$this->groupBy] = true;
+        foreach ($this->columns as $column) {
+            // A resolved column has no dataset field of its own; what the query
+            // must fetch is the id it is derived from.
+            $keys[$this->resolvedColumns[$column->key] ?? $column->key] = true;
+        }
+        if ($this->groupBy !== null) {
+            $keys[$this->resolvedColumns[$this->groupBy] ?? $this->groupBy] = true;
+        }
 
         $sorts = $this->sorts;
         // A group only breaks correctly on ordered rows, so the group field
@@ -86,12 +98,22 @@ final class ReportDocumentProvider implements DocumentProvider
         // this to the report author and produced repeated group headings when
         // they got it wrong.
         if ($this->groupBy !== null) {
-            $alreadyFirst = isset($sorts[0]) && $sorts[0]->fieldKey === $this->groupBy;
-            if (!$alreadyFirst) array_unshift($sorts, new Sort($this->groupBy));
+            $groupSortKey = $this->resolvedColumns[$this->groupBy] ?? $this->groupBy;
+            $alreadyFirst = isset($sorts[0]) && $sorts[0]->fieldKey === $groupSortKey;
+            if (!$alreadyFirst) array_unshift($sorts, new Sort($groupSortKey));
         }
 
         $query  = (new QueryBuilder())->build($dataset, array_keys($keys), $filters, $sorts);
         $result = $this->db->ExecutePrepared($query->sql, $query->params);
+
+        // Buffer, then resolve, then build. Resolution has to be BATCHED — the
+        // whole point of doing it here rather than in the renderer — so the ids
+        // must all be known before the first row is turned into cells.
+        // PhreeForm looked each one up inside its render loop, which on the
+        // Re-order Worksheet is 986 queries to print one vendor column.
+        $rawRows = [];
+        while (!$result->EOF) { $rawRows[] = $result->fields; $result->MoveNext(); }
+        $resolved = $this->resolveNames($rawRows);
 
         $rows          = [];
         $groupTotals   = $this->zeroTotals();
@@ -100,8 +122,11 @@ final class ReportDocumentProvider implements DocumentProvider
         $currentGroupValue = null;   // the value it came from, for the label
         $haveGroup         = false;
 
-        while (!$result->EOF) {
-            $raw = $result->fields;
+        foreach ($rawRows as $raw) {
+            foreach ($this->resolvedColumns as $columnKey => $idKey) {
+                $id = $raw[$idKey] ?? null;
+                $raw[$columnKey] = $resolved[$columnKey][(string)($id ?? '')] ?? '';
+            }
 
             if ($this->groupBy !== null) {
                 $value = $raw[$this->groupBy] ?? null;
@@ -138,8 +163,6 @@ final class ReportDocumentProvider implements DocumentProvider
             }
             // totalonly reports collect the arithmetic and show only the breaks.
             if (!$this->totalsOnly) $rows[] = new Row(RowKind::Data, $cells);
-
-            $result->MoveNext();
         }
 
         if ($haveGroup) {
@@ -160,6 +183,60 @@ final class ReportDocumentProvider implements DocumentProvider
     }
 
     /** @return array<string,float> */
+    /**
+     * Turn every referenced contact id into a name, in one query per column.
+     *
+     * This is the reports-side counterpart of QueryDocumentProvider's user
+     * lookup, and it reproduces contacts_get_short_name() including the part
+     * that looks like a bug: an id of 0, an empty id, or an id with no contact
+     * row all render as COMPANY_ID rather than blank. The Re-order Worksheet
+     * relies on it — an item with no vendor is shown as stocked by us.
+     *
+     * PhreeForm reached this through a hint it called `branch`, which does not
+     * resolve a branch at all; the name is historical.
+     *
+     * @param  list<array<string,mixed>> $rawRows
+     * @return array<string,array<string,string>> column key => id => name
+     */
+    private function resolveNames(array $rawRows): array
+    {
+        if (!$this->resolvedColumns) return [];
+
+        $company = defined('COMPANY_ID') ? (string)COMPANY_ID : '';
+        $table   = defined('TABLE_CONTACTS') ? TABLE_CONTACTS : 'contacts';
+        $out     = [];
+
+        foreach ($this->resolvedColumns as $columnKey => $idKey) {
+            $ids = [];
+            foreach ($rawRows as $raw) {
+                $id = $raw[$idKey] ?? null;
+                if ($id !== null && $id !== '' && ctype_digit((string)$id) && (int)$id !== 0) {
+                    $ids[(string)$id] = true;
+                }
+            }
+            // Every id resolves to the company name unless a contact says
+            // otherwise, which gives 0/''/unknown the fallback for free.
+            $names = [];
+            if ($ids) {
+                $ids = array_keys($ids);
+                $sql = "SELECT id, short_name FROM $table WHERE id IN ("
+                     . implode(', ', array_fill(0, count($ids), '?')) . ')';
+                $result = $this->db->ExecutePrepared($sql, $ids);
+                while (!$result->EOF) {
+                    $names[(string)$result->fields['id']] = (string)$result->fields['short_name'];
+                    $result->MoveNext();
+                }
+            }
+            $out[$columnKey] = $names;
+            $out[$columnKey][''] = $company;          // absent id
+            foreach ($rawRows as $raw) {
+                $id = (string)($raw[$idKey] ?? '');
+                if (!isset($out[$columnKey][$id])) $out[$columnKey][$id] = $company;
+            }
+        }
+        return $out;
+    }
+
     private function zeroTotals(): array
     {
         $totals = [];
