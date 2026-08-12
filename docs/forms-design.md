@@ -1,8 +1,9 @@
 # Forms — Design
 
-**Status:** Approved design, not yet implemented. Targets the 1.0.0 release.
+**Status:** Partially implemented — the seam, catalog, providers and Layout renderer are in
+`trunk/modules/forms/`. See §12 for measured status and what remains.
 **Supersedes:** the `phreeform` module.
-**Last updated:** 2026-08-11
+**Last updated:** 2026-08-12
 
 Forms is a new module that replaces PhreeForm's data and authoring layers, and rebuilds its
 rendering behind an explicit interface. It is a breaking change and therefore lands **at 1.0.0**,
@@ -767,3 +768,62 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    data. Added `FieldExpression` (column-to-column filters) and schema verification. See §8.5.
 8. Remaining: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
    provider ports; custom datasets in the admin UI; and the delivery layer.
+
+---
+
+## 12. Measured status
+
+Every figure below was **measured on 2026-08-12**, not quoted. Re-run the suite (§12.2) after any
+change to the seam, catalog or renderers; these numbers are the regression baseline.
+
+### 12.1 Verification suite
+
+| Tool | Proves | Needs DB | Result |
+|---|---|---|---|
+| `verify_forms_seam.php` | The seam holds: immutability, no template/data fusion, typed row kinds, renderer routing, CSV emits raw numbers | no | **20 passed, 0 failed** |
+| `verify_forms_catalog.php` | Catalog safety (§3): no free-form SQL reaches the builder, filters bind parameters, sensitive tables unreachable | no | **PASS — 96 guarantees** |
+| `verify_forms_formatter.php` | `Formatter` parity with `ProcessData()`/`AddSep()` | no | **PASS** — 16 separators, 24 lookup hints matched; 5 DB-backed hints correctly refused |
+| `verify_forms_datasets.php` | Every dataset field and join resolves against the live schema | yes | **PASS — 7 datasets, 214 fields** |
+| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **26 PASS, 0 FAIL, 4 SKIP** (of 30) |
+| `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS — 7 datasets, 188,195 rows identical** |
+| `diff_forms_provider.php` | Invoice provider matches the step-0 baseline | yes | 0 differences |
+
+**The 4 report SKIPs are not defects.** `pf_35` (Employee List), `pf_86` (Asset List) and the two
+work-order reports return **no rows in the production data** — the legacy engine returns nothing, so
+there is nothing to compare. They need a company with that data before they can be verified either
+way. Read the headline as *26 verified, 4 untestable, 0 failing*.
+
+### 12.2 Reproducing it
+
+The tools resolve the seam **relative to their own location** (`../../trunk/modules/forms/`), so
+they expect the repo layout — not a flat directory. Inside the container:
+
+```sh
+docker exec <c> mkdir -p /opt/repo/docs/tools /opt/repo/trunk/modules
+docker cp docs/tools/.          <c>:/opt/repo/docs/tools/
+docker cp trunk/modules/forms   <c>:/opt/repo/trunk/modules/
+docker exec <c> sh -c 'cd /opt/repo/docs/tools && php -d display_errors=1 verify_forms_seam.php'
+```
+
+Three traps, each of which produces a wrong or misleading result rather than a clear error:
+
+1. **Pass the company explicitly.** Auto-detection picks the *first* company directory — `demo`, not
+   `production` — so the suite silently verifies the wrong dataset. Use `FREEBOOKS_COMPANY=production`
+   or the positional argument.
+2. **`verify_forms_prefix.php` needs `-d memory_limit=2G`.** It compares whole row sets in memory
+   and dies at the default 256 MB partway through `general_ledger` — which looks like a failure of
+   the prefix work rather than of the harness.
+3. **`display_errors` is Off in the image**, so CLI fatals are invisible. Always
+   `php -d display_errors=1`.
+
+The prefix check copies each table into session `TEMPORARY` tables, so it creates, alters and drops
+nothing in any company database — safe against `demo` and `production` while both are live.
+
+### 12.3 What remains
+
+Per §11, step 8: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
+special-class provider ports; custom datasets in the admin UI; and the delivery layer.
+
+Only the `transactions` dataset is proven deeply for reports; `general_ledger`, `inventory`,
+`contacts`, `work_orders`, `audit_trail` and `assets` are registered and schema-verified but thinly
+exercised.
