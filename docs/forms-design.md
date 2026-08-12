@@ -766,7 +766,7 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
 7. **Dataset coverage (done 2026-08-12).** Seven shipped datasets, 214 fields, every non-special
    report converting with nothing unmapped; 26 of 30 verified end to end, 4 untestable for want of
    data. Added `FieldExpression` (column-to-column filters) and schema verification. See §8.5.
-   *(Superseded: those 4 were measured on `production` only. Three pass on `demo` — see §12.1.)*
+   *(Superseded: those 4 were measured on `production` only. All four pass on `demo` — see §12.1.)*
 8. Remaining: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
    provider ports; custom datasets in the admin UI; and the delivery layer.
 
@@ -785,27 +785,26 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_catalog.php` | Catalog safety (§3): no free-form SQL reaches the builder, filters bind parameters, sensitive tables unreachable | no | **PASS — 96 guarantees** |
 | `verify_forms_formatter.php` | `Formatter` parity with `ProcessData()`/`AddSep()` | no | **PASS** — 16 separators, 24 lookup hints matched; 5 DB-backed hints correctly refused |
 | `verify_forms_datasets.php` | Every dataset field and join resolves against the live schema | yes | **PASS — 7 datasets, 214 fields** |
-| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **29 of 30 verified** (26 on `production`, 3 more on `demo`), 0 failing, 1 blocked on data |
-| `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 105,705 rows |
+| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`) |
+| `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 105,711 rows |
 | `diff_forms_provider.php` | Invoice provider matches the step-0 baseline | yes | 0 differences |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
 (`pf_35` Employee List, `pf_86` Asset List, `pf_89`/`pf_90` work orders) return **no rows at all on
-`production`**, so the legacy engine produces nothing to compare and the tool reports SKIP. On `demo`,
-three of those four **PASS**.
+`production`**, so the legacy engine produces nothing to compare and the tool reports SKIP. All four
+pass on `demo`. Combined, **all 30 shipped non-special reports are verified, none failing**.
 
 The same gap silently weakened the prefix check: on `production` the `work_orders` and `assets`
 datasets compared **0 rows** and still reported `[ok]` — a vacuous pass. The `demo` run gives both
-their first real coverage (3 rows each). All seven datasets are now non-vacuously verified.
+real coverage. All seven datasets are now non-vacuously verified.
 
-**The one outstanding report, `pf_90`, is blocked on test data — not a defect.** Its assertion is
-`count($formsGroupLabels) > 1`: legacy groups by `wo_task.id`, a column it never displays, so it
-degenerates to a single unlabelled total, and the check exists to prove Forms groups properly where
-legacy cannot. `demo` holds exactly **one** `wo_task` row, so Forms can only emit one group and the
-divergence is unobservable. **Adding a second work-order task under a different work order in
-`demo`** — nothing more — makes the assertion meaningful. Do not add this to `production`; it is the
-live company.
+> A worked example of why data coverage matters, worth keeping in mind for the remaining work.
+> `pf_90` failed on `demo` while it held a single `wo_task` row. Its assertion is
+> `count($formsGroupLabels) > 1` — legacy groups by `wo_task.id`, a column it never displays, so it
+> degenerates to one unlabelled total, and the check exists to prove Forms groups where legacy
+> cannot. With one task, Forms could only emit one group and the divergence was unobservable. It
+> was never a defect. Three tasks across four work orders made it pass.
 
 ### 12.2 Reproducing it
 
@@ -840,8 +839,9 @@ nothing in any company database — safe against `demo` and `production` while b
 Per §11, step 8: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
 special-class provider ports; custom datasets in the admin UI; and the delivery layer.
 
-Dataset depth is uneven. `transactions` is proven deeply (14 reports, 28,832 rows prefixed).
-`general_ledger`, `inventory`, `contacts` and `audit_trail` are verified across several reports and
-substantial row counts. `work_orders` and `assets` are now genuinely covered but only shallowly —
-3 rows each, from `demo`, which is all the data that exists. Treat those two as smoke-tested rather
-than proven, and re-run them whenever a company with real work-order or asset data is available.
+Dataset depth is uneven, though every dataset now has real coverage. `transactions` is proven
+deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `contacts` and
+`audit_trail` are verified across several reports and substantial row counts. `work_orders` (5
+rows) and `assets` (3 rows) pass every check but on small `demo` fixtures — treat those two as
+smoke-tested rather than proven, and re-run when a company with real work-order or asset volume
+exists.
