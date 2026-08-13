@@ -794,9 +794,25 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
       resolver is what supplies the period — a provider never touches `gen_build_sql_date()`.
     - `record_ids` is not always a journal id. A statement is per contact and a work order is its
       own journal, which the baseline tooling had assumed away.
-11. Remaining: the five report-shaped provider ports (`balance_sheet`, `is_budget`,
-    `aged_receivables`, `aged_summary`, `acct_recon`); custom datasets in the admin UI; and the
-    delivery layer.
+11. **The aged pair (done 2026-08-13).** `aged_receivables` and `aged_summary` are gone, and
+    nothing replaced them: the six pseudo-columns they computed are now ordinary computed fields on
+    the Transactions dataset, and both reports run through the normal query-driven path. All four
+    shipped reports (`pf_46`–`pf_49`) match the legacy engine on both companies. What this removes:
+    - **The provider.** `ReportDocumentProvider` already did group breaks and running totals, which
+      is the ~70 lines each class duplicated from the engine.
+    - **The `GROUP BY`.** The summary is the detail report grouped by account with the rows beneath
+      hidden, so it needed a display setting rather than an aggregating query builder.
+    - **The N+1.** `aged_receivables` ran three queries per row; the `ttl` amount and the payments
+      sum are subqueries in the one statement.
+    - **The ceiling.** The buckets are fields, so any transactions report can sort, filter or total
+      on "Age 31–60" — which the legacy field picker advertised but only four reports could use.
+
+    Two additions made it possible: `{{param:name}}` in a computed expression, which binds a value
+    the dataset supplies rather than pasting it into the SQL (the cutoffs are today's date less an
+    admin setting, so no static expression can hold them); and identity columns on a totals-only
+    break row, without which an aged summary lists balances against no customer name.
+12. Remaining: the three report-shaped provider ports (`balance_sheet`, `is_budget`,
+    `acct_recon`); custom datasets in the admin UI; and the delivery layer.
 
 ---
 
@@ -810,12 +826,12 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | Tool | Proves | Needs DB | Result |
 |---|---|---|---|
 | `verify_forms_seam.php` | The seam holds: immutability, no template/data fusion, typed row kinds, renderer routing, CSV emits raw numbers | no | **20 passed, 0 failed** |
-| `verify_forms_catalog.php` | Catalog safety (§3): no free-form SQL reaches the builder, filters bind parameters, sensitive tables unreachable | no | **PASS — 96 guarantees** |
+| `verify_forms_catalog.php` | Catalog safety (§3): no free-form SQL reaches the builder, filters bind parameters, expression parameters bind rather than interpolate, sensitive tables unreachable | no | **PASS — 103 guarantees** |
 | `verify_forms_formatter.php` | `Formatter` parity with `ProcessData()`/`AddSep()` | no | **PASS** — 16 separators, 24 lookup hints matched; 5 DB-backed hints correctly refused |
-| `verify_forms_datasets.php` | Every dataset field and join resolves against the live schema | yes | **PASS — 7 datasets, 214 fields** |
+| `verify_forms_datasets.php` | Every dataset field and join resolves against the live schema | yes | **PASS — 7 datasets, 220 fields** |
 | `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`); `--dates[=prefs]` re-runs any of them with a date range applied to both engines — 15 pass so far |
 | `verify_forms_dates.php` | `DateRangeResolver` parity with `gen_build_sql_date()`, and boundary arithmetic on pinned days | yes | **PASS — 72 checks** |
-| `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 105,711 rows |
+| `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 106,146 rows |
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
@@ -962,6 +978,17 @@ so no step ever contributed a reference. The intent was plainly `count($docs) > 
 PhreeForm; `WorkOrderDocumentProvider` gets it right, which makes it the one place a Forms document
 deliberately carries *more* data than its baseline.
 
+**Both aged classes got the sign wrong, in opposite directions.** The data settles it without
+argument: a customer invoice and a vendor credit memo both carry their `ttl` amount as a DEBIT,
+while a vendor bill and a customer credit memo both carry it as a CREDIT. Which side a document
+sits on follows the ledger, not the document type — so the rule that makes every base document
+positive and every credit memo negative is to negate the payables journals (6 and 7) and leave the
+receivables journals (12 and 13) alone. `aged_receivables` negated {6, 13}, reading a vendor credit
+memo as a positive payable. `aged_summary` negated {7, 13}, reading a vendor BILL as negative.
+**Not fixed** in PhreeForm, which is being retired; Forms negates by side, and the divergence is
+asserted by `verify_forms_report.php` as "identical up to sign" rather than skipped — no row may
+appear or vanish and no magnitude may change.
+
 **One PHP 8 warning that was only ever a warning.** `is_budget::load_report_data()` emits a row
 built from `$temp`, a local of `add_income_stmt_data()` that is undefined in that scope. Every cell
 came out null, and the `def_cur` processor passes non-numerics straight through, so the row rendered
@@ -1009,18 +1036,22 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 11: the five report-shaped provider ports; custom datasets in the admin UI; and the
+Per §11, step 12: the three report-shaped provider ports; custom datasets in the admin UI; and the
 delivery layer.
 
-The five that remain are a different job from the three just finished. They return arrays of
-already-`ProcessData`-formatted strings tagged `'d'`/`'g:label'`/`'r:label'` — they are doing the
-renderer's work — and three of them discard the engine's SQL entirely and hardcode their section
-structure, so the definition is a column-layout skin over a fixed report body. Their
-`load_report_data()` signatures come in four different arities; one call site serves them all only
-because PHP does not check. Expect the port to *remove* code: `aged_receivables` and `aged_summary`
-each re-implement the group-break and total loop that `ReportDocumentProvider` already has, and
-both carry an N+1 query pattern (three queries per row, and one per row, respectively) that goes
-with it.
+The aged pair is done and needed no provider at all (§11.11). The three that remain are harder in a
+different way. They return arrays of already-`ProcessData`-formatted strings tagged
+`'d'`/`'g:label'`/`'r:label'` — they are doing the renderer's work — and all three discard the
+engine's SQL entirely and hardcode their section structure, so the definition is a column-layout
+skin over a fixed report body. Their `load_report_data()` signatures come in three different
+arities; one call site serves them all only because PHP does not check. `balance_sheet` also reads
+`global $Seq`, a variable that is a local in its caller.
+
+`is_budget` is now fully verifiable: `demo` carries budget figures on five P&L accounts across
+periods 13 and 14, and postings in periods 1, 2, 13 and 14, so all six of its columns — current,
+YTD, last-year current, last-year YTD, and both budget columns — hold distinct non-zero values for
+Income. Cost of Sales has a current and YTD actual; Expenses has budget figures only, which is
+acceptable because `add_income_stmt_data()` runs identical arithmetic for both (`negate=false`).
 
 Dataset depth is uneven, though every dataset now has real coverage. `transactions` is proven
 deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `contacts` and
@@ -1028,6 +1059,11 @@ deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `conta
 rows) and `assets` (3 rows) pass every check but on small `demo` fixtures — treat those two as
 smoke-tested rather than proven, and re-run when a company with real work-order or asset volume
 exists.
+
+`transactions` gained six computed aging fields, so it is now the only dataset whose SELECT binds
+parameters; `verify_forms_catalog.php` asserts that every one of them is a value the dataset
+declared and that the count matches the placeholders, which is a stronger guarantee than the
+"parameterless SELECT" it replaced.
 
 The same caveat now applies to two of the form providers. The POS receipt and the Work Order are
 `demo`-only — `production` has no journal-19 receipts and no work orders at all — and the four work

@@ -235,6 +235,22 @@ final readonly class Dataset
         public array       $joins = [],
         public DatasetTier $tier  = DatasetTier::Shipped,
         public string      $description = '',
+        /**
+         * Values for `{{param:name}}` placeholders in computed expressions,
+         * BOUND by the builder rather than pasted into the SQL.
+         *
+         * Some computed fields depend on something no static expression can
+         * hold: the aging buckets are today's date less an admin setting, so
+         * they change with the clock and with configuration. Writing them into
+         * the expression text would put a date literal in the SQL string, which
+         * is the shape §3 exists to keep out — even where, as here, the value
+         * never came from a user.
+         *
+         * Shipped datasets only, for the same reason expressions are.
+         *
+         * @var array<string,scalar>
+         */
+        public array       $params = [],
     ) {
         Identifier::check($id, 'dataset id');
         Identifier::check($baseTable, 'table name');
@@ -264,6 +280,11 @@ final readonly class Dataset
                     "Dataset '{$this->id}' is custom and may not define the computed field "
                     . "'{$field->key}': raw SQL expressions are restricted to shipped datasets.");
             }
+        }
+        if ($this->params) {
+            throw new CatalogException(
+                "Dataset '{$this->id}' is custom and may not carry expression parameters: "
+                . "they exist only to serve computed expressions, which it may not define.");
         }
         foreach ($this->tables() as $table) {
             if (in_array(strtolower($table), self::SENSITIVE_TABLES, true)) {

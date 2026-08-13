@@ -119,6 +119,8 @@ final class ReportDocumentProvider implements DocumentProvider
         $rows          = [];
         $groupTotals   = $this->zeroTotals();
         $reportTotals  = $this->zeroTotals();
+        /** @var array<string,TypedValue> non-total columns of the group being accumulated */
+        $groupIdentity = [];
         $currentGroup      = null;   // the normalised break key
         $currentGroupValue = null;   // the value it came from, for the label
         $haveGroup         = false;
@@ -150,8 +152,10 @@ final class ReportDocumentProvider implements DocumentProvider
                 // groups here.
                 $key = $break === null ? '' : (string)$break;
                 if ($haveGroup && $key !== $currentGroup) {
-                    $rows[]      = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroupValue, $dataset));
+                    $rows[]      = $this->totalRow(RowKind::GroupTotal, $groupTotals,
+                                                   $this->groupLabel($currentGroupValue, $dataset), $groupIdentity);
                     $groupTotals = $this->zeroTotals();
+                    $groupIdentity = [];
                 }
                 $currentGroup      = $key;
                 $currentGroupValue = $value;   // the label keeps the original
@@ -168,12 +172,24 @@ final class ReportDocumentProvider implements DocumentProvider
                     if (is_numeric($v)) $groupTotals[$column->key]  += (float)$v;
                 }
             }
-            // totalonly reports collect the arithmetic and show only the breaks.
-            if (!$this->totalsOnly) $rows[] = new Row(RowKind::Data, $cells);
+            // A totals-only report shows only its breaks, so whatever identifies
+            // the group has to travel on the break row or it is lost: an aged
+            // summary listing balances with no customer name against them is
+            // not a report. Non-total columns are constant within the group by
+            // construction — the group IS the account — so the last row's value
+            // is the group's, which is what aged_summary's roll-up kept too.
+            if ($this->totalsOnly) {
+                foreach ($this->columns as $column) {
+                    if (!$column->total) $groupIdentity[$column->key] = $cells[$column->key];
+                }
+            } else {
+                $rows[] = new Row(RowKind::Data, $cells);
+            }
         }
 
         if ($haveGroup) {
-            $rows[] = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroupValue, $dataset));
+            $rows[] = $this->totalRow(RowKind::GroupTotal, $groupTotals,
+                                      $this->groupLabel($currentGroupValue, $dataset), $groupIdentity);
         }
         if ($this->hasTotals()) {
             $rows[] = $this->totalRow(RowKind::ReportTotal, $reportTotals, $this->title);
@@ -258,12 +274,22 @@ final class ReportDocumentProvider implements DocumentProvider
         return false;
     }
 
-    /** @param array<string,float> $totals */
-    private function totalRow(RowKind $kind, array $totals, ?string $label): Row
+    /**
+     * @param array<string,float>      $totals
+     * @param array<string,TypedValue> $identity non-total columns carried onto a
+     *   totals-only break row; empty everywhere else, where the rows beneath the
+     *   break already show them.
+     */
+    private function totalRow(RowKind $kind, array $totals, ?string $label, array $identity = []): Row
     {
-        $cells = [];
+        $cells = $identity;
         foreach ($totals as $key => $sum) $cells[$key] = new TypedValue($sum, ValueType::Money);
-        return new Row($kind, $cells, $label);
+        // Column order is the report's, not the order the two arrays merged in.
+        $ordered = [];
+        foreach ($this->columns as $column) {
+            if (isset($cells[$column->key])) $ordered[$column->key] = $cells[$column->key];
+        }
+        return new Row($kind, $ordered, $label);
     }
 
     private function groupLabel(mixed $value, $dataset): string

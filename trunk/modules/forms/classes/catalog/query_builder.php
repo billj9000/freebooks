@@ -104,11 +104,15 @@ final class QueryBuilder
             ? array_values($dataset->fields)
             : $dataset->fieldsFor($fieldKeys);
 
-        $select = [];
-        foreach ($fields as $field) $select[] = $this->expand($field->toSelect());
-
-        $sql    = 'SELECT ' . implode(', ', $select) . ' FROM ' . $this->introduce($dataset->baseTable);
+        // Parameters bind positionally, so they must be collected in the order
+        // they appear in the finished SQL — SELECT, then WHERE, then ORDER BY.
+        // That is the order the clauses are assembled below; keep it that way.
         $params = [];
+
+        $select = [];
+        foreach ($fields as $field) $select[] = $this->expand($field->toSelect(), $dataset, $params);
+
+        $sql = 'SELECT ' . implode(', ', $select) . ' FROM ' . $this->introduce($dataset->baseTable);
 
         $needed = $this->requiredTables($dataset, $fields, $filters, $sorts);
         foreach ($dataset->joins as $join) {
@@ -135,7 +139,7 @@ final class QueryBuilder
                 if (!$field->sortable) {
                     throw new CatalogException("Field '{$sort->fieldKey}' is not sortable.");
                 }
-                $order[] = $this->expand($field->toReference()) . ' ' . $sort->direction->value;
+                $order[] = $this->expand($field->toReference(), $dataset, $params) . ' ' . $sort->direction->value;
             }
             $sql .= ' ORDER BY ' . implode(', ', $order);
         }
@@ -249,7 +253,7 @@ final class QueryBuilder
             throw new CatalogException("Field '{$filter->fieldKey}' is not filterable.");
         }
 
-        $ref = $this->expand($field->toReference());
+        $ref = $this->expand($field->toReference(), $dataset, $params);
 
         // A comparison against other fields emits no parameter at all: every
         // token is either a key resolved through the dataset or one of six
@@ -266,7 +270,7 @@ final class QueryBuilder
                 if (!$other->filterable) {
                     throw new CatalogException("Field '{$token['text']}' is not filterable.");
                 }
-                $sql .= ' ' . $this->expand($other->toReference());
+                $sql .= ' ' . $this->expand($other->toReference(), $dataset, $params);
             }
             return "$ref " . $this->comparison($filter->operator) . ' (' . trim($sql) . ')';
         }
@@ -325,16 +329,43 @@ final class QueryBuilder
      * developer-authored text — but the name is still checked, since it is the
      * one part of an expression that is rewritten rather than passed through.
      */
-    private const EXPRESSION_TABLE_PATTERN = '/\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}/';
+    private const EXPRESSION_TABLE_PATTERN = '/\{\{(param:)?([A-Za-z_][A-Za-z0-9_]*)\}\}/';
 
-    private function expand(string $sql): string
+    /**
+     * `{{param:name}}` resolves to a `?`, and the dataset's value for that name
+     * is appended to $params.
+     *
+     * This is the one thing a computed expression cannot express for itself: a
+     * value that is not known when the dataset is written. The aging buckets are
+     * today's date less an admin setting, so they move with the clock and with
+     * configuration. Substituting the date into the SQL text would work and
+     * would be safe — nothing user-supplied is involved — but it would put a
+     * literal where this file promises only identifiers, keywords and `?` ever
+     * go, and that promise is easier to keep than to qualify.
+     *
+     * @param array<int,scalar|null> $params appended to, in SQL-text order
+     */
+    private function expand(string $sql, ?Dataset $dataset = null, array &$params = []): string
     {
         if (!str_contains($sql, '{{')) return $sql;
         $prefix = $this->prefix();
-        $out = preg_replace_callback(self::EXPRESSION_TABLE_PATTERN, function (array $m) use ($prefix): string {
-            Identifier::check($m[1], 'table name');
-            return $prefix . $m[1];
-        }, $sql);
+        $out = preg_replace_callback(
+            self::EXPRESSION_TABLE_PATTERN,
+            function (array $m) use ($prefix, $dataset, &$params): string {
+                if (($m[1] ?? '') === '') {
+                    Identifier::check($m[2], 'table name');
+                    return $prefix . $m[2];
+                }
+                Identifier::check($m[2], 'expression parameter name');
+                if ($dataset === null || !array_key_exists($m[2], $dataset->params)) {
+                    throw new CatalogException(
+                        "Expression references parameter '{$m[2]}', which the dataset does not supply.");
+                }
+                $params[] = $dataset->params[$m[2]];
+                return '?';
+            },
+            $sql,
+        );
         if ($out === null || str_contains($out, '{{')) {
             throw new CatalogException("Expression has an unresolved table placeholder: $sql");
         }

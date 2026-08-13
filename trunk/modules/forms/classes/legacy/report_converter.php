@@ -163,8 +163,39 @@ final class ReportConverter
      * name. Call this AFTER convertColumns(), which resets the resolved-column
      * list this adds to.
      */
+    /**
+     * Behaviour a special_class supplied that its definition does not state.
+     *
+     * `aged_summary` rolls its rows up per account in PHP and emits one row per
+     * account, whatever the definition's grouplist says — the XML marks its
+     * `bill_acct_id` group `default=0`, so nothing in the file asks for it. The
+     * roll-up IS a group break with the data rows hidden, so converting the
+     * report means saying so explicitly rather than reproducing the class.
+     *
+     * Keyed on the class being replaced, because that is where the behaviour
+     * actually lived.
+     */
+    private const SPECIAL_CLASS_PROFILES = [
+        'aged_summary' => ['group' => 'bill_acct_id', 'totalsOnly' => true],
+    ];
+
+    /** Whether this report shows only its group breaks, never the rows beneath. */
+    public function convertTotalsOnly(object $report): bool
+    {
+        $profile = self::SPECIAL_CLASS_PROFILES[$this->scalar($report->special_class ?? null)] ?? null;
+        return $this->truthy($report->totalonly ?? null) || ($profile['totalsOnly'] ?? false);
+    }
+
     public function convertGroup(object $report, Dataset $dataset): ?string
     {
+        $profile = self::SPECIAL_CLASS_PROFILES[$this->scalar($report->special_class ?? null)] ?? null;
+        if ($profile !== null && isset($profile['group'])) {
+            if ($dataset->field($profile['group']) !== null) return $profile['group'];
+            $this->warnings[] = "the '{$this->scalar($report->special_class)}' roll-up needs"
+                              . " '{$profile['group']}', which this dataset does not provide;"
+                              . " the report is not grouped.";
+            return null;
+        }
         foreach ($this->entries($report->grouplist ?? null) as $entry) {
             if (!$this->truthy($entry->default ?? null)) continue;
 

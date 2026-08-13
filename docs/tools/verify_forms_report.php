@@ -136,8 +136,9 @@ $filters   = $converter->convertFilters($formsReport, $dataset);
 $range   = (new DateRangeResolver(new AppFiscalCalendar($db)))->resolve((string)$formsReport->datedefault);
 $filters = array_merge($filters, $converter->convertDateFilters($formsReport, $dataset, $range));
 
-printf("forms:   %d columns mapped, group=%s, %d sort(s), %d filter(s)\n",
-    count($columns), $group ?? '(none)', count($sorts), count($filters));
+printf("forms:   %d columns mapped, group=%s, %d sort(s), %d filter(s)%s\n",
+    count($columns), $group ?? '(none)', count($sorts), count($filters),
+    $converter->convertTotalsOnly($formsReport) ? ', totals only' : '');
 foreach ($converter->warnings() as $w)       echo "  WARN $w\n";
 foreach ($converter->unmappedFields() as $u) echo "  UNMAPPED $u\n";
 foreach ($filters as $f) echo "  filter:  {$f->fieldKey} {$f->operator->value} " . json_encode($f->values) . "\n";
@@ -154,12 +155,20 @@ $provider = new ReportDocumentProvider(
     filters:   $filters,
     sorts:     $sorts,
     resolvedColumns: $converter->resolvedColumns(),
+    totalsOnly: $converter->convertTotalsOnly($formsReport),
 );
 $doc = $provider->build([]);
 
+// A totals-only report has no data rows by construction: the roll-up its
+// special_class did in PHP is a group break with the rows beneath hidden. So
+// the legacy's DATA rows are the Forms GROUP TOTAL rows, and comparing data to
+// data would report every row missing while the output is exactly right.
+$compareKind = $converter->convertTotalsOnly($formsReport) ? RowKind::GroupTotal : RowKind::Data;
+
 $formsRows = $formsTotals = 0;
 foreach ($doc->rows as $row) {
-    if ($row->kind === RowKind::Data) $formsRows++; else $formsTotals++;
+    if ($row->kind === $compareKind) $formsRows++;
+    elseif ($row->kind !== RowKind::Data) $formsTotals++;
 }
 printf("forms:   %d data rows, %d total rows\n", $formsRows, $formsTotals);
 
@@ -220,7 +229,8 @@ if ($legacyGroupNames === []) {
        'legacy emitted ' . count($legacyGroupLabels));
     ok('legacy\'s spurious row is unlabelled', ($legacyGroupLabels[0] ?? 'x') === '',
        'label was ' . var_export($legacyGroupLabels[0] ?? null, true));
-    ok('Forms emits no group total when nothing is grouped', $formsGroupLabels === [],
+    ok('Forms emits no group total when nothing is grouped',
+       $formsGroupLabels === [] || $compareKind === RowKind::GroupTotal,
        'forms emitted ' . count($formsGroupLabels));
 } elseif (!$legacyCanGroup) {
     echo "  note: legacy grouped by '" . implode(', ', $legacyGroupNames)
@@ -294,7 +304,7 @@ foreach ($legacyDataRows as $row) {
 
 $formsBag = [];
 foreach ($doc->rows as $row) {
-    if ($row->kind !== RowKind::Data) continue;
+    if ($row->kind !== $compareKind) continue;
     $cells = [];
     foreach ($doc->columns as $column) {
         $value   = $row->cells[$column->key] ?? null;
@@ -320,8 +330,28 @@ foreach ($formsBag as $key => $n) {
         if (count($examples) < 8) $examples[] = "forms-only  x" . ($n - $theirs) . ": " . substr($key, 0, 110);
     }
 }
-ok(sprintf('every row matches (%d legacy-only, %d forms-only)', $onlyLegacy, $onlyForms),
-   $onlyLegacy === 0 && $onlyForms === 0);
+// The aged reports are expected to differ from BOTH legacy classes, and only in
+// one way: a credit memo now reads negative. So the assertion is not "identical"
+// but the stronger, more specific "identical up to sign" — no row may appear or
+// vanish and no magnitude may change, which a blanket skip would not have shown.
+const CREDIT_MEMO_SIGN_REPORTS = [46, 47, 48, 49];
+$signOnly = false;
+if (($onlyLegacy || $onlyForms) && in_array($REPORT_ID, CREDIT_MEMO_SIGN_REPORTS, true)) {
+    $unsign = fn(string $key) => implode('|', array_map(
+        fn(string $c) => is_numeric($c) ? (string)abs((float)$c) : $c, explode('|', $key)));
+    $l = $f = [];
+    foreach ($legacyBag as $k => $n) { $u = $unsign($k); $l[$u] = ($l[$u] ?? 0) + $n; }
+    foreach ($formsBag  as $k => $n) { $u = $unsign($k); $f[$u] = ($f[$u] ?? 0) + $n; }
+    $signOnly = ($l == $f);
+}
+
+if ($signOnly) {
+    ok(sprintf('rows differ from legacy by sign alone (%d row(s)), as the credit-memo'
+             . ' correction intends', max($onlyLegacy, $onlyForms)), true);
+} else {
+    ok(sprintf('every row matches (%d legacy-only, %d forms-only)', $onlyLegacy, $onlyForms),
+       $onlyLegacy === 0 && $onlyForms === 0);
+}
 foreach ($examples as $e) echo "      $e\n";
 
 echo "\n=== better export ===\n";

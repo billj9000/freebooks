@@ -159,7 +159,23 @@ refuses('registering the same dataset twice', fn() => $catalog->register(Shipped
 
 foreach ($catalog->all() as $dataset) {
     $query = $builder->build($dataset);            // every field, no filters
-    ok("dataset '{$dataset->id}' builds a parameterless SELECT", $query->params === []);
+    // With no filters, the only parameters that may appear are the dataset's
+    // own declared expression values, one per {{param:}} it actually selects.
+    // Asserting "no parameters at all" was the old form of this check; it held
+    // only while nothing used {{param:}}, and relaxing it to "some parameters
+    // are fine" would give up the guarantee entirely. Every value must be one
+    // the dataset declared, and the count must match the placeholders — so a
+    // caller's value cannot reach the SELECT clause by any route.
+    $placeholders = 0;
+    foreach ($dataset->fields as $field) {
+        $placeholders += preg_match_all('/\{\{param:[A-Za-z_][A-Za-z0-9_]*\}\}/', (string)$field->expression);
+    }
+    ok("dataset '{$dataset->id}' binds only its own declared expression values",
+        count($query->params) === $placeholders
+        && array_diff($query->params, array_values($dataset->params)) === [],
+        sprintf('%d param(s) for %d placeholder(s)', count($query->params), $placeholders));
+    ok("dataset '{$dataset->id}' leaves no literal in place of a bound value",
+        !preg_match('/\{\{/', $query->sql));
     ok("dataset '{$dataset->id}' selects from its base table",
         str_contains($query->sql, 'FROM ' . $dataset->baseTable));
     // Every join must be reachable from the tables already in play, or the SQL

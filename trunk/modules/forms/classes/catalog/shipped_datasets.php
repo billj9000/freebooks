@@ -226,8 +226,126 @@ final class ShippedDatasets
                 new FieldDefinition('address_telephone1',     'Telephone 1',    'address_book', 'telephone1'),
                 new FieldDefinition('address_telephone3',     'Telephone 3',    'address_book', 'telephone3'),
                 new FieldDefinition('address_email',          'Address Email',  'address_book', 'email'),
+
+                // ── aging ────────────────────────────────────────────────────
+                // See agingFields(): six computed columns that replace the
+                // aged_receivables and aged_summary special classes outright.
+                ...self::agingFields(),
             ],
+            params: self::agingCutoffs(),
         );
+    }
+
+    /**
+     * The aging buckets, as ordinary dataset fields.
+     *
+     * PhreeForm computed these in two special classes that between them ran one
+     * query per row, re-implemented the engine's own group-total loop, and could
+     * only be used by the four reports written against them. As fields they cost
+     * one query for any number of rows, group and total through the normal report
+     * path, and can be put on any transactions report.
+     *
+     * **The sign rule is neither legacy class's.** Both were wrong, in opposite
+     * directions, and the data says so plainly: a customer invoice and a vendor
+     * credit memo both carry their ttl amount as a DEBIT, while a vendor bill and
+     * a customer credit memo both carry it as a CREDIT. So the side a document
+     * sits on follows the ledger, not the document type, and the rule that makes
+     * every base document positive and every credit memo negative is to negate
+     * the payables journals (6 and 7) and leave the receivables journals (12 and
+     * 13) alone.
+     *
+     * `aged_receivables` negated {6, 13}, which read a vendor credit memo as a
+     * positive payable. `aged_summary` negated {7, 13}, which read a vendor BILL
+     * as negative. Adopting either would have carried one of those forward.
+     *
+     * @return list<FieldDefinition>
+     */
+    private static function agingFields(): array
+    {
+        // Payables sit on the credit side of the ttl line, receivables on the
+        // debit side; a payment reverses whichever it settles.
+        $billed = fn(string $a, string $b) =>
+            "(SELECT COALESCE(SUM(ttl.{$a}_amount - ttl.{$b}_amount), 0) FROM {{journal_item}} ttl"
+          . " WHERE ttl.ref_id = journal_main.id AND ttl.gl_type = 'ttl')";
+        $paid = fn(string $a, string $b) =>
+            "(SELECT COALESCE(SUM(pmt.{$a}_amount - pmt.{$b}_amount), 0) FROM {{journal_item}} pmt"
+          . " WHERE pmt.so_po_item_ref_id = journal_main.id AND pmt.gl_type IN ('pmt', 'chk'))";
+
+        $isPayable = 'journal_main.journal_id IN (6, 7)';
+        $balance =
+            "(CASE WHEN $isPayable"
+          . " THEN " . $billed('credit', 'debit') . ' - ' . $paid('debit', 'credit')
+          . " ELSE " . $billed('debit', 'credit') . ' - ' . $paid('credit', 'debit')
+          . ' END)';
+
+        // Each bucket restates the whole if/elseif chain, because they are
+        // separate columns rather than successive branches. A row lands in
+        // exactly one; the rest report zero, which is what makes them summable.
+        $cutoff = fn(string $days) => "(CASE WHEN $isPayable THEN {{param:ap_late_$days}} ELSE {{param:ar_late_$days}} END)";
+        $before = fn(string $days) => 'journal_main.post_date < ' . $cutoff($days);
+        $bucket = fn(string $when) => "(CASE WHEN $when THEN $balance ELSE 0 END)";
+
+        $over90 = $before('90');
+        $in60   = '(NOT ' . $before('90') . ' AND ' . $before('60') . ')';
+        $in30   = '(NOT ' . $before('60') . ' AND ' . $before('30') . ')';
+        $future = '(NOT ' . $before('30') . ' AND journal_main.post_date > {{param:today}})';
+        $current= '(NOT ' . $before('30') . ' AND NOT journal_main.post_date > {{param:today}})';
+
+        return [
+            new FieldDefinition(
+                key: 'balance_due', label: 'Balance Due', type: ValueType::Money,
+                expression: $balance, legacyNames: ['balance_due'],
+            ),
+            new FieldDefinition(
+                key: 'balance_future', label: 'Not Yet Due', type: ValueType::Money,
+                expression: $bucket($future),
+                // PhreeForm's own misspelling; it is the stored field name.
+                legacyNames: ['balance_futre'],
+            ),
+            new FieldDefinition(
+                key: 'balance_0',  label: 'Age Current', type: ValueType::Money,
+                expression: $bucket($current), legacyNames: ['balance_0'],
+            ),
+            new FieldDefinition(
+                key: 'balance_30', label: 'Age 30', type: ValueType::Money,
+                expression: $bucket($in30), legacyNames: ['balance_30'],
+            ),
+            new FieldDefinition(
+                key: 'balance_60', label: 'Age 60', type: ValueType::Money,
+                expression: $bucket($in60), legacyNames: ['balance_60'],
+            ),
+            new FieldDefinition(
+                key: 'balance_90', label: 'Age 90', type: ValueType::Money,
+                expression: $bucket($over90), legacyNames: ['balance_90'],
+            ),
+        ];
+    }
+
+    /**
+     * Today, and the three aging cutoffs for each side, as bound parameters.
+     *
+     * Receivables and payables age independently — AR_AGING_PERIOD_* against
+     * AP_AGING_DATE_* — which `aged_summary` overlooked, so a payables summary
+     * bucketed by the receivables periods.
+     *
+     * @return array<string,string>
+     */
+    private static function agingCutoffs(): array
+    {
+        $today = date('Y-m-d');
+        $back  = function (string $constant, int $fallback) use ($today): string {
+            $days = defined($constant) ? (int)constant($constant) : $fallback;
+            return date('Y-m-d', strtotime("$today -$days days"));
+        };
+        return [
+            'today'      => $today,
+            'ar_late_30' => $back('AR_AGING_PERIOD_1', 30),
+            'ar_late_60' => $back('AR_AGING_PERIOD_2', 60),
+            'ar_late_90' => $back('AR_AGING_PERIOD_3', 90),
+            'ap_late_30' => $back('AP_AGING_DATE_1',   30),
+            'ap_late_60' => $back('AP_AGING_DATE_2',   60),
+            'ap_late_90' => $back('AP_AGING_DATE_3',   90),
+        ];
     }
 
     /**
