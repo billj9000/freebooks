@@ -1,11 +1,25 @@
 <?php
 // +-----------------------------------------------------------------+
-// Phreedom Language Translation File
-// Generated: 2014-11-23 10:04:29
-// Module/Method: phreebooks
-// ISO Language: ru_ru
-// Version: 3.7
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Phreedom Language Translation File
+//  Generated: 2014-11-23 10:04:29
+//  Module/Method: phreebooks
+//  ISO Language: ru_ru
+//  Version: 3.7
 // Path: //modules/phreebooks/language/ru_ru/language.php
 
 define('GL_ENTRY_TITLE','Проводки Главной книги');
@@ -192,6 +206,7 @@ define('TEXT_SELECT_FILE','Файл длля импорта: ');
 define('GL_LOG_ADD_JOURNAL','General Journal Entry - ');
 define('GL_LOG_FY_UPDATE','General Journal Fiscal Year - ');
 define('GL_LOG_PURGE_DB','Главная книга - Очистить БД');
+define('GL_LOG_BUDGET_UPDATE','Главная книга - Обновление бюджета');
 define('GL_BTN_PURGE_DB','Очистить проводки Главной книги');
 define('GL_BTN_CHG_ACCT_PERIOD','Change Current Accounting Period');
 define('GL_BTN_NEW_FY','Generate Next Fiscal Year');

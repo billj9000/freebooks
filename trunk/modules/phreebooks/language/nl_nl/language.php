@@ -1,11 +1,25 @@
 <?php
 // +-----------------------------------------------------------------+
-// Phreedom Language Translation File
-// Generated: 2011-11-27 05:02:34
-// Module/Method: phreebooks
-// ISO Language: nl_nl
-// Version: 3.3
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Phreedom Language Translation File
+//  Generated: 2011-11-27 05:02:34
+//  Module/Method: phreebooks
+//  ISO Language: nl_nl
+//  Version: 3.3
 // Path: /modules/phreebooks/language/nl_nl/language.php
 
 define('GL_ENTRY_TITLE','Algemeen Journaal input');
@@ -249,6 +263,7 @@ define('BNK_LOG_ACCT_RECON','Rekening Verzoening, periode: ');
 define('GL_LOG_ADD_JOURNAL','Algemeen journaalpost - ');
 define('GL_LOG_FY_UPDATE','Algemeen journaalpost Fiscaal Jaar - ');
 define('GL_LOG_PURGE_DB','Algemeen Journaal - Reinig Database');
+define('GL_LOG_BUDGET_UPDATE','Grootboek - Budget Bijwerken');
 define('ORD_TT_PURCH_INV_NUM','Als u dit veld leeg laat dan kent het systeem een nummer toe.');
 define('GEN_ADM_TOOLS_J02','Algemeen Journaal (2)');
 define('GEN_ADM_TOOLS_J03','Aankoop Offerte Journaal (3)');

@@ -282,6 +282,7 @@ define('BNK_LOG_ACCT_RECON','Account Reconciliation, period: ');
 define('GL_LOG_ADD_JOURNAL','General Journal Entry - ');
 define('GL_LOG_FY_UPDATE','General Journal Fiscal Year - ');
 define('GL_LOG_PURGE_DB','General Journal - Purge Database');
+define('GL_LOG_BUDGET_UPDATE','General Ledger - Budget Update');
 // Tooltip messages
 define('ORD_TT_PURCH_INV_NUM','If you leave this field blank, Phreebooks will automatically assign a number.');
 // Journals
