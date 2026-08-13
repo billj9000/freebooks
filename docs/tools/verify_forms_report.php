@@ -43,12 +43,21 @@ require_once(__DIR__ . '/bootstrap_freebooks.php');
 // stored preference is 'c' (Today). Without either, the preference is forced to
 // 'a', because a report that returns nothing compares equal to another report
 // that returns nothing.
+//
+// --period=N and --gl=ACCOUNT stand in for the run dialog, which is where the
+// financial statements get their accounting period and the reconciliation gets
+// its GL account. Neither is in the definition, and the reconciliation reads
+// nothing at all without both.
 $DATEPREFS = null;
 $WITHDATES = false;
+$PERIOD    = null;
+$GLACCOUNT = null;
 $args      = [];
 foreach (array_slice($argv, 1) as $arg) {
-    if ($arg === '--dates')                { $WITHDATES = true; continue; }
-    if (str_starts_with($arg, '--dates=')) { $WITHDATES = true; $DATEPREFS = substr($arg, 8); continue; }
+    if ($arg === '--dates')                 { $WITHDATES = true; continue; }
+    if (str_starts_with($arg, '--dates='))  { $WITHDATES = true; $DATEPREFS = substr($arg, 8); continue; }
+    if (str_starts_with($arg, '--period=')) { $PERIOD = (int)substr($arg, 9); continue; }
+    if (str_starts_with($arg, '--gl='))     { $GLACCOUNT = substr($arg, 5); continue; }
     $args[] = $arg;
 }
 
@@ -71,7 +80,8 @@ require_once(DIR_FS_MODULES . 'forms/classes/providers/financial_provider.php');
 use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver, ShippedDatasets};
 use FreeBooks\Forms\Document\{Row, RowKind, TableDocument, ValueType};
 use FreeBooks\Forms\Legacy\ReportConverter;
-use FreeBooks\Forms\Provider\{BalanceSheetDocumentProvider, IncomeStatementDocumentProvider, ReportDocumentProvider};
+use FreeBooks\Forms\Provider\{AccountReconciliationDocumentProvider, BalanceSheetDocumentProvider,
+    IncomeStatementDocumentProvider, ReportDocumentProvider};
 use FreeBooks\Forms\Render\{CsvRenderer, Formatter};
 
 $failures = 0;
@@ -109,7 +119,16 @@ $period = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS
 if ($period === null) {
     $period = $db->Execute("select max(period) as period from " . TABLE_ACCOUNTING_PERIODS)->fields['period'] ?? 1;
 }
+if ($PERIOD !== null) $period = $PERIOD;
 $report->period = $formsReport->period = (int)$period;
+
+// The GL account the reconciliation runs for. acct_recon takes it from
+// `filterlist[0]->min_val` on the stated assumption that it is the first
+// criterion, so that is where the legacy side has to receive it; the provider
+// is told directly.
+if ($GLACCOUNT !== null && isset($report->filterlist[0])) {
+    $report->filterlist[0]->min_val = $formsReport->filterlist[0]->min_val = $GLACCOUNT;
+}
 
 // datedefault 'c' (Today) selects nothing historical, exactly as for forms.
 if (!$WITHDATES)             $report->datedefault = $formsReport->datedefault = 'a';
@@ -123,7 +142,9 @@ if (!is_array($built) || ($built['level'] ?? '') !== 'success') {
 }
 $legacySql  = $built['data'];
 $legacyData = BuildDataArray($legacySql, $report);
-if ($legacyData === false) { echo "legacy returned no rows; pick a report with data.\n"; exit(1); }
+// Non-zero: an empty legacy side agrees with any provider at all, so a scripted
+// run must not read this as a pass. It is also how a missing --gl shows up.
+if ($legacyData === false) { echo "legacy returned no rows; pick a report with data.\n"; exit(2); }
 
 $legacyRows = $legacyTotals = 0;
 foreach ($legacyData as $row) {
@@ -142,6 +163,7 @@ ShippedDatasets::registerAll($catalog);
 $STRUCTURAL = [
     'is_budget'     => IncomeStatementDocumentProvider::class,
     'balance_sheet' => BalanceSheetDocumentProvider::class,
+    'acct_recon'    => AccountReconciliationDocumentProvider::class,
 ];
 $special     = (string)($formsReport->special_class ?? '');
 $compareKind = null;
@@ -152,13 +174,15 @@ if (isset($STRUCTURAL[$special])) {
     printf("forms:   %d structural columns, %s, period %d\n", count($columns), $special, $period);
     foreach ($columns as $c) echo "  column:  {$c->key}  ({$c->heading})\n";
 
-    $class    = $STRUCTURAL[$special];
-    $provider = new $class(
-        db:      $db,
-        columns: $columns,
-        period:  $period,
-        title:   (string)($formsReport->title ?? 'Report'),
-    );
+    $class = $STRUCTURAL[$special];
+    $ctor  = [
+        'db'      => $db,
+        'columns' => $columns,
+        'period'  => $period,
+        'title'   => (string)($formsReport->title ?? 'Report'),
+    ];
+    if ($special === 'acct_recon') $ctor['glAccount'] = (string)$GLACCOUNT;
+    $provider    = new $class(...$ctor);
     $doc         = $provider->build([]);
     $compareKind = RowKind::Data;
     $converterHasTotalsOnly = false;
@@ -213,9 +237,23 @@ foreach ($doc->rows as $row) {
 }
 printf("forms:   %d data rows, %d total rows\n", $formsRows, $formsTotals);
 
+// The Account Reconciliation is expected to emit MORE rows than the legacy did,
+// and only of one kind: the transaction lines acct_recon collapsed by keying its
+// working list on journal_main.id (see AccountReconciliationDocumentProvider).
+// Every legacy row must still be present and every total unchanged, so the row
+// count is asserted as "at least, and the surplus is all line rows" rather than
+// simply relaxed.
+const RECON_COLLAPSE_REPORTS = [45];
+$reconCollapse = in_array($REPORT_ID, RECON_COLLAPSE_REPORTS, true);
+
 echo "\n=== same data ===\n";
+if ($reconCollapse) {
+    ok(sprintf('Forms lists at least as many rows as legacy (%d legacy, %d forms)', $legacyRows, $formsRows),
+       $formsRows >= $legacyRows, "legacy $legacyRows, forms $formsRows");
+} else {
 ok('row count matches the legacy engine', $formsRows === $legacyRows,
    "legacy $legacyRows, forms $formsRows");
+}
 
 // Group breaks are checked separately from cell values: a report can have every
 // data row right and still break its groups in the wrong places, which shows up
@@ -393,7 +431,23 @@ if (($onlyLegacy || $onlyForms) && in_array($REPORT_ID, CREDIT_MEMO_SIGN_REPORTS
     $signOnly = ($l == $f);
 }
 
-if ($signOnly) {
+if ($reconCollapse) {
+    // Two claims, because either alone would pass on a broken port: nothing the
+    // legacy printed has gone missing or changed, and everything extra is a
+    // transaction line — a row with no caption in the first column. A surplus
+    // total row, or a changed total, fails here.
+    $captionKey = $doc->columns[0]->key ?? '';
+    $surplus    = [];
+    foreach ($formsBag as $key => $n) {
+        $extra = $n - ($legacyBag[$key] ?? 0);
+        if ($extra > 0) $surplus[$key] = $extra;
+    }
+    $captioned = array_filter(array_keys($surplus), fn($k) => explode('|', $k)[0] !== '');
+    ok('no legacy row is lost or altered (0 legacy-only)', $onlyLegacy === 0,
+       "$onlyLegacy legacy-only row(s)");
+    ok(sprintf('the %d extra row(s) are all transaction lines legacy collapsed', $onlyForms),
+       $captioned === [], 'captioned surplus: ' . implode(', ', array_map(fn($k) => substr($k, 0, 60), $captioned)));
+} elseif ($signOnly) {
     ok(sprintf('rows differ from legacy by sign alone (%d row(s)), as the credit-memo'
              . ' correction intends', max($onlyLegacy, $onlyForms)), true);
 } else {

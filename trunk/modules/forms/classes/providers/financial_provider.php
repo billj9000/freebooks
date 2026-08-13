@@ -17,18 +17,20 @@
 //  Path: /modules/forms/classes/providers/financial_provider.php
 //
 /**
- * Forms — the Income Statement and Balance Sheet.
+ * Forms — the period-end financial statements.
  *
- * Ports phreebooks/classes/is_budget.php and balance_sheet.php (with the
- * income_statement.php helper the latter instantiates). See §5 and §11.12.
+ * Ports phreebooks/classes/is_budget.php, balance_sheet.php (with the
+ * income_statement.php helper the latter instantiates) and acct_recon.php.
+ * See §5, §11.12 and §11.13.
  *
- * These two are not dataset-shaped, and that is the point of them being here
- * rather than in the catalog. A financial statement's rows are SECTIONS in a
- * fixed order — revenues, cost of sales, gross profit, expenses, net income —
- * not a query result grouped by something. No filter or sort a report author
- * could write would produce a balance sheet, so the structure is code.
+ * These are not dataset-shaped, and that is the point of them being here rather
+ * than in the catalog. A financial statement's rows are SECTIONS in a fixed
+ * order — revenues, cost of sales, gross profit, expenses, net income; or
+ * opening balance, items in transit, items cleared — not a query result grouped
+ * by something. No filter or sort a report author could write would produce a
+ * balance sheet, so the structure is code.
  *
- * What they no longer do is format. Both legacy classes returned arrays of
+ * What they no longer do is format. All three legacy classes returned arrays of
  * ProcessData()-formatted strings, which is why the same definition could not
  * produce a readable PDF and a usable CSV. Every cell here is a TypedValue and
  * the renderer decides.
@@ -89,8 +91,8 @@ final readonly class FiscalWindow
 }
 
 /**
- * Shared machinery: both statements walk the chart of accounts by account type
- * and lay the result out in sections.
+ * Shared machinery: a statement laid out as captioned rows in sections, over a
+ * single accounting period.
  */
 abstract class FinancialStatementProvider implements DocumentProvider
 {
@@ -114,7 +116,12 @@ abstract class FinancialStatementProvider implements DocumentProvider
     /**
      * A row with a caption and any of the value columns filled.
      *
-     * @param array<string,int|float|null> $values keyed by column key
+     * A bare number is taken as money, which is what the two statements deal in
+     * throughout. Anything else — the reconciliation's post date and reference —
+     * is passed as an already-typed value and used as given, so that a column
+     * holding dates is not silently declared to be currency.
+     *
+     * @param array<string,int|float|TypedValue|null> $values keyed by column key
      */
     protected function row(string $caption, array $values = []): Row
     {
@@ -124,9 +131,12 @@ abstract class FinancialStatementProvider implements DocumentProvider
                 $cells[$column->key] = TypedValue::text($caption);
                 continue;
             }
-            $cells[$column->key] = array_key_exists($column->key, $values)
-                ? TypedValue::money($values[$column->key])
-                : TypedValue::text('');
+            if (!array_key_exists($column->key, $values)) {
+                $cells[$column->key] = TypedValue::text('');
+                continue;
+            }
+            $value = $values[$column->key];
+            $cells[$column->key] = $value instanceof TypedValue ? $value : TypedValue::money($value);
         }
         return new Row(RowKind::Data, $cells);
     }
@@ -452,5 +462,228 @@ final class BalanceSheetDocumentProvider extends FinancialStatementProvider
             $this->columns[2]->key ?? 'subtotal',
             $this->columns[3]->key ?? 'total',
         ];
+    }
+}
+
+/**
+ * The Account Reconciliation.
+ *
+ * Port of acct_recon. A bank reconciliation for one GL account as at the end of
+ * one accounting period: the account's movement for the period, the items still
+ * in transit that explain the gap to the bank's balance, and the items that
+ * cleared during it.
+ *
+ * Five columns — caption, date, reference, amount, total. Like the Balance
+ * Sheet, the definition names none of them: it lists the field `id` five times
+ * over because the class filled each row by position.
+ *
+ * Three things the legacy did that this does not:
+ *
+ * 1. It read the account out of `$report->filterlist[0]->min_val`, on the
+ *    stated assumption that "the gl account is the first criteria". Reordering
+ *    the report's filters silently reconciled the wrong account, or none.
+ *    The account is a constructor argument here, so the caller says which.
+ * 2. It interpolated that value — which arrives from the run dialog — straight
+ *    into two SQL statements. Both queries below bind it.
+ * 3. It keyed its working list by `journal_main.id`, so where one entry had
+ *    several lines against the account, only the last survived to be printed
+ *    while every one of them was added to the total. See listItems().
+ */
+final class AccountReconciliationDocumentProvider extends FinancialStatementProvider
+{
+    /** A line's two faces: the deposit side and the payment side. */
+    private const DEPOSIT = 'deposit';
+    private const PAYMENT = 'payment';
+
+    public function __construct(
+        \queryFactory $db,
+        array         $columns,
+        int           $period,
+        private readonly string $glAccount = '',
+        string        $title = 'Report',
+        Context       $context = new Context(),
+        PageSetup     $page = new PageSetup(),
+        ReportStyle   $style = new ReportStyle(),
+    ) {
+        parent::__construct($db, $columns, $period, $title, $context, $page, $style);
+    }
+
+    public function build(array $params): Document
+    {
+        $account = (string)($params['gl_account'] ?? $this->glAccount);
+        if ($account === '') return $this->document([]);
+
+        $endDate = $this->periodEndDate();
+        if ($endDate === null) return $this->document([]);
+
+        [, $date, $reference, $amount, $total] = $this->keys();
+
+        // Items not yet reconciled as at this period. An item reconciled in a
+        // LATER period was still outstanding now, which is why the test is not
+        // simply `reconciled = 0`.
+        $open    = $this->listItems($account,
+            '(i.reconciled = 0 or i.reconciled > ?)', [$this->period], $endDate);
+        $cleared = $this->listItems($account,
+            'i.reconciled = ?', [$this->period], $endDate);
+
+        $depositsInTransit   = $this->sum($open,    self::DEPOSIT);
+        $paymentsInTransit   = $this->sum($open,    self::PAYMENT);
+        $depositsCleared     = $this->sum($cleared, self::DEPOSIT);
+        $paymentsCleared     = $this->sum($cleared, self::PAYMENT);
+
+        // The account's own movement for the period, from its history row.
+        [$opening, $receipts, $disbursements] = $this->accountMovement($account);
+        $closing = $opening + $receipts - $disbursements;
+
+        $rows   = [];
+        $rows[] = $this->row(self::label('RW_RECON_BB', 'Beginning GL Balance'), [$total => $opening]);
+        $rows[] = $this->blank();
+        $rows[] = $this->row(self::label('RW_RECON_CR', 'Cash Receipts'),        [$total => $receipts]);
+        $rows[] = $this->blank();
+        $rows[] = $this->row(self::label('RW_RECON_CD', 'Cash Disbursements'),   [$total => -$disbursements]);
+        $rows[] = $this->blank();
+        $rows[] = $this->row(self::label('RW_RECON_EB', 'Ending GL Balance'),    [$total => $closing]);
+        $rows[] = $this->blank();
+
+        $rows[] = $this->row(self::label('RW_RECON_ADD_BACK', 'Add Back Deposits in Transit'));
+        $this->appendItems($rows, $open, self::DEPOSIT, 1, $date, $reference, $amount);
+        $rows[] = $this->row(self::label('RW_RECON_DIT', 'Total Deposits in Transit'),
+                             [$total => $depositsInTransit]);
+        $rows[] = $this->blank();
+
+        $rows[] = $this->row(self::label('RW_RECON_LOP', 'Less Outstanding Payments'));
+        $this->appendItems($rows, $open, self::PAYMENT, -1, $date, $reference, $amount);
+        $rows[] = $this->row(self::label('RW_RECON_TOP', 'Total Outstanding Payments'),
+                             [$total => -$paymentsInTransit]);
+        $rows[] = $this->blank();
+
+        // The bank's own balance, implied: what the statement must show for the
+        // ledger to agree with it once the items above are allowed for. The
+        // legacy calls it the unreconciled difference and its author left a
+        // "check this" note beside it; the arithmetic is right, and the two
+        // lines that follow are the proof, so it keeps its caption.
+        $rows[] = $this->row(self::label('RW_RECON_DIFF', 'Unreconciled Difference'),
+                             [$total => $closing - $depositsInTransit + $paymentsInTransit]);
+        $rows[] = $this->row(self::label('RW_RECON_EB', 'Ending GL Balance'), [$total => $closing]);
+
+        $rows[] = $this->blank();
+        $rows[] = $this->row(self::label('RW_RECON_CLEARED', 'Cleared Transactions'));
+
+        $rows[] = $this->row(self::label('RW_RECON_DCLEARED', 'Deposits Cleared'));
+        $this->appendItems($rows, $cleared, self::DEPOSIT, 1, $date, $reference, $amount);
+        $rows[] = $this->row(self::label('RW_RECON_TDC', 'Total Deposits Cleared'),
+                             [$total => $depositsCleared]);
+        $rows[] = $this->blank();
+
+        $rows[] = $this->row(self::label('RW_RECON_PCLEARED', 'Payments Cleared'));
+        $this->appendItems($rows, $cleared, self::PAYMENT, -1, $date, $reference, $amount);
+        // Shown as a positive magnitude, as the legacy did, even though the
+        // lines above it are negative. Both readings reach the same net below.
+        $rows[] = $this->row(self::label('RW_RECON_TPC', 'Total Payments Cleared'),
+                             [$total => $paymentsCleared]);
+        $rows[] = $this->blank();
+
+        $rows[] = $this->row(self::label('RW_RECON_NCLEARED', 'Net Cleared'),
+                             [$total => $depositsCleared - $paymentsCleared]);
+
+        return $this->document($rows);
+    }
+
+    /**
+     * Every journal line against the account matching a reconciliation state.
+     *
+     * One row per LINE. acct_recon collected these into an array keyed by
+     * `journal_main.id`, so a journal entry touching the account more than once
+     * — a point-of-sale entry recording the sale, its payment and the till
+     * total all against the cash account — kept only whichever line the driver
+     * returned last, while the running totals had already counted all of them.
+     * The observed effect on demo was a reconciliation listing two of its six
+     * cleared transactions underneath totals covering all six: a bank
+     * reconciliation that does not show the transactions it is totalling.
+     *
+     * A line whose debit and credit cancel is neither a deposit nor a payment
+     * and is dropped, which is also what the legacy's truth tests did with it.
+     *
+     * @param list<mixed> $bind values for the placeholders in $condition
+     * @return list<array{date:string,reference:string,net:float,side:string}>
+     */
+    private function listItems(string $account, string $condition, array $bind, string $endDate): array
+    {
+        $sql = "select m.post_date, m.purchase_invoice_id, i.debit_amount, i.credit_amount
+            from " . TABLE_JOURNAL_MAIN . " m
+            inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id
+            where i.gl_account = ? and $condition and m.post_date <= ?
+            order by m.post_date, i.id";
+
+        $result = $this->db->ExecutePrepared($sql, array_merge([$account], $bind, [$endDate]));
+        $items  = [];
+        while (!$result->EOF) {
+            $net = (float)$result->fields['debit_amount'] - (float)$result->fields['credit_amount'];
+            if ($net != 0.0) {
+                $items[] = [
+                    'date'      => (string)$result->fields['post_date'],
+                    'reference' => (string)($result->fields['purchase_invoice_id'] ?? ''),
+                    'net'       => $net,
+                    'side'      => $net > 0 ? self::DEPOSIT : self::PAYMENT,
+                ];
+            }
+            $result->MoveNext();
+        }
+        return $items;
+    }
+
+    /**
+     * @param list<array{date:string,reference:string,net:float,side:string}> $items
+     * @param list<Row> $rows appended to
+     * @param int $sign 1 to print deposits as they stand, -1 to print payments negative
+     */
+    private function appendItems(array &$rows, array $items, string $side, int $sign,
+                                 string $date, string $reference, string $amount): void
+    {
+        foreach ($items as $item) {
+            if ($item['side'] !== $side) continue;
+            $rows[] = $this->row('', [
+                $date      => TypedValue::date($item['date']),
+                $reference => TypedValue::text($item['reference']),
+                $amount    => $sign * abs($item['net']),
+            ]);
+        }
+    }
+
+    /** @param list<array{net:float,side:string}> $items */
+    private function sum(array $items, string $side): float
+    {
+        $total = 0.0;
+        foreach ($items as $item) if ($item['side'] === $side) $total += abs($item['net']);
+        return $total;
+    }
+
+    /** @return array{0:float,1:float,2:float} opening balance, receipts, disbursements */
+    private function accountMovement(string $account): array
+    {
+        $fields = $this->db->ExecutePrepared("select beginning_balance, debit_amount, credit_amount
+            from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = ? and period = ?",
+            [$account, $this->period])->fields;
+
+        return [
+            (float)($fields['beginning_balance'] ?? 0),
+            (float)($fields['debit_amount']      ?? 0),
+            (float)($fields['credit_amount']     ?? 0),
+        ];
+    }
+
+    private function periodEndDate(): ?string
+    {
+        $end = $this->db->ExecutePrepared("select end_date from " . TABLE_ACCOUNTING_PERIODS
+            . " where period = ?", [$this->period])->fields['end_date'] ?? null;
+        return $end === null ? null : (string)$end;
+    }
+
+    /** @return array{0:string,1:string,2:string,3:string,4:string} caption, date, reference, amount, total */
+    private function keys(): array
+    {
+        $defaults = ['description', 'date', 'reference', 'amount', 'total'];
+        foreach ($defaults as $i => $fallback) $defaults[$i] = $this->columns[$i]->key ?? $fallback;
+        return $defaults;
     }
 }

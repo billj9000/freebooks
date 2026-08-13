@@ -827,7 +827,36 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
     lockstep with `MoveNext()`, which holds only while every one returns the same accounts in the
     same order; an account with no history row in the prior year drops out of that cursor and every
     row after it reads its neighbour's figures. The port keys by account id, which cannot misalign.
-13. Remaining: `acct_recon`; custom datasets in the admin UI; and the delivery layer.
+13. **Account Reconciliation (done 2026-08-14).** `acct_recon` becomes
+    `AccountReconciliationDocumentProvider`, the ninth and last of the special-class ports. It is
+    structural like the two statements and shares their base class, which needed one change: a row
+    value may now be handed over already typed, so the reconciliation's post date is a date rather
+    than a column of currency.
+
+    **The report was dead.** `$dep_in_transit += $dep_amount` adds an int to `''` — the class sets
+    the unused side of each pair to the empty string so it prints blank — and PHP 8 raises
+    `Unsupported operand types` on the first payment row. `$dep_cleared` and `$chk_cleared` are
+    never initialised at all, so `null += ''` kills the second half the same way. The Account
+    Reconciliation has produced a fatal error rather than a report since the PHP 8 upgrade. Fixing
+    it (four lines) was a precondition of having anything to port against.
+
+    **And once it ran, it under-reported.** `acct_recon` collected its transactions into an array
+    keyed by `journal_main.id` while accumulating the totals separately, so a journal entry with
+    more than one line against the account kept only whichever line came back last. On `demo` this
+    printed a reconciliation listing **two of its six cleared transactions** beneath totals covering
+    all six — a bank reconciliation that does not show the transactions it is totalling. The port
+    lists one row per line; the totals are unchanged, and the harness asserts exactly that (no
+    legacy row lost or altered, and every surplus row is an uncaptioned transaction line).
+
+    Two smaller things also stop: the GL account is a constructor argument rather than
+    `$report->filterlist[0]->min_val` — "assumes that the gl account is the first criteria", so
+    reordering a report's filters silently reconciled the wrong account — and both queries bind it
+    instead of interpolating a value that arrives from the run dialog.
+
+    `verify_forms_report.php` gained `--period=` and `--gl=`, which stand in for the run dialog, and
+    now exits non-zero when the legacy side returns nothing: an empty baseline agrees with any
+    provider at all, and a forgotten `--gl` previously read as a pass.
+14. Remaining: custom datasets in the admin UI; and the delivery layer.
 
 ---
 
@@ -844,7 +873,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_catalog.php` | Catalog safety (§3): no free-form SQL reaches the builder, filters bind parameters, expression parameters bind rather than interpolate, sensitive tables unreachable | no | **PASS — 103 guarantees** |
 | `verify_forms_formatter.php` | `Formatter` parity with `ProcessData()`/`AddSep()` | no | **PASS** — 16 separators, 24 lookup hints matched; 5 DB-backed hints correctly refused |
 | `verify_forms_datasets.php` | Every dataset field and join resolves against the live schema | yes | **PASS — 7 datasets, 220 fields** |
-| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`); `--dates[=prefs]` re-runs any of them with a date range applied to both engines — 15 pass so far |
+| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`); also drives the four structural reports (`pf_45`, `pf_50`, `pf_65`, `pf_66`), which take `--period=` and `--gl=` in place of the run dialog. `--dates[=prefs]` re-runs any of them with a date range applied to both engines — 15 pass so far |
 | `verify_forms_dates.php` | `DateRangeResolver` parity with `gen_build_sql_date()`, and boundary arithmetic on pinned days | yes | **PASS — 72 checks** |
 | `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 106,146 rows |
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
@@ -893,8 +922,13 @@ Four traps, each of which produces a wrong or misleading result rather than a cl
 4. **`verify_forms_report.php` takes the dataset name, and naming the wrong one still runs.** Every
    column comes back `UNMAPPED`, the range is dropped, and the tool reports a row-count mismatch in
    the hundreds of thousands — which reads exactly like a broken converter. `pf_84` is the Audit
-   Log on `audit_trail`, not a `general_ledger` report; check §6 before believing a failure of this
-   shape.
+   Log on `audit_trail`, not a `general_ledger` report, and `pf_62` (General Ledger) is on
+   `transactions` despite its name; check §6 before believing a failure of this shape. Both were
+   mis-invoked here first.
+5. **An empty legacy side is not a pass, and the tool now exits 2 to say so.** A structural report
+   run without `--gl=`/`--period=`, or a report whose data lives only in the other company, returns
+   nothing from PhreeForm — and nothing agrees with any provider at all. Exit 0 means compared and
+   matched; exit 2 means there was nothing to compare.
 
 The prefix check copies each table into session `TEMPORARY` tables, so it creates, alters and drops
 nothing in any company database — safe against `demo` and `production` while both are live.
@@ -1018,6 +1052,23 @@ blank — which is exactly the separator the surrounding code wanted. Recorded b
 reported as wrong output and is not: the Income Statement was always correct. **Fixed** as an
 `add_heading_line()` call, same output, no warning.
 
+**The Account Reconciliation has been fatal since PHP 8, and wrong before that.** Two defects, in
+that order. `acct_recon` blanks the unused side of each transaction (`$dep_amount = ''` on a
+payment) and then adds it to a running total, so `0 + ''` raises `Unsupported operand types` on the
+first payment line; `$dep_cleared`/`$chk_cleared` are never initialised, so the cleared half fails
+identically. **Fixed** — four lines, because nothing could be captured against a class that dies.
+Underneath was the real bug: the class keys its transaction list by `journal_main.id` while
+totalling every line, so an entry with several lines against the account contributes all of them to
+the total and prints only the last. `demo` listed two of six cleared transactions. **Not fixed** in
+PhreeForm; the provider lists one row per line and the harness asserts that no legacy row was lost
+and every surplus is a transaction line. Two lesser habits also stop in the port: the GL account
+came from `$report->filterlist[0]->min_val` on the assumption it is the first criterion, and went
+into both queries unbound.
+
+This makes **two shipped reports found dead rather than merely wrong** — this one and `pf_64` above.
+Both had been unrunnable long enough that nobody noticed, which is the strongest argument in the
+document for driving the whole shipped set through a harness rather than spot-checking it.
+
 One deliberate divergence remains: a **bound that is not in database format** is dropped rather
 than guessed. `gen_db_date()` substitutes TODAY for anything it cannot parse, so a mistyped date
 silently reports the wrong month instead of failing.
@@ -1058,13 +1109,17 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 13: `acct_recon`; custom datasets in the admin UI; and the delivery layer.
+Per §11, step 14: custom datasets in the admin UI; and the delivery layer.
 
-Eight of the nine `special_class` ports are done. `acct_recon` is the last and the most
-idiosyncratic: it ignores `$sql` and `$Seq` entirely, reaches into `$report->filterlist[0]->min_val`
-on the stated assumption that "the gl account is the first criteria", and hardcodes its processing
-directives so the definition's column formatting is ignored. It is also `demo`-only — `production` has
-no reconciled journal items at all.
+**All nine `special_class` ports are done.** Nothing in `modules/phreebooks/classes/` or
+`modules/phreeform/` is now on the critical path.
+
+Reconciliation coverage is thinner than the rest and worth stating plainly. `production` has no
+reconciled journal items at all, so its runs exercise the in-transit and GL-movement halves (87 and
+57 rows on two cash accounts, matching exactly) but never the cleared sections. Only `demo` has
+reconciled items — 11 lines across two accounts and two periods — and it is also the only place the
+`journal_main` collapse is observable. Re-run against a company that reconciles regularly when one
+exists.
 
 Section headings, blank separators and subtotal captions are currently Data rows carrying only a
 caption, which is what the legacy emitted and what makes row-for-row parity checkable. Giving them

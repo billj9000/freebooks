@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,7 +15,7 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /modules/phreeform/custom/classes/acct_recon.php
+//  Path: /modules/phreebooks/classes/acct_recon.php
 //
 
 // this file contains special function calls to generate the data array needed to build reports not possible
@@ -52,8 +53,12 @@ class acct_recon {
 			$pmt_amount = '';
 			$payment    = 0;
 		  }
-		  $dep_in_transit += $dep_amount;
-		  $chk_in_transit += $pmt_amount;
+		  // Cast: the unused side of the pair is set to '' so it prints blank,
+		  // and PHP 8 raises "Unsupported operand types: int + string" on the
+		  // first payment row rather than treating '' as zero. This report has
+		  // been fatally broken since the PHP 8 upgrade.
+		  $dep_in_transit += (float)$dep_amount;
+		  $chk_in_transit += (float)$pmt_amount;
 		  $bank_list[$result->fields['id']] = array(
 			'post_date'  => $result->fields['post_date'],
 			'reference'  => $result->fields['purchase_invoice_id'],
@@ -116,6 +121,7 @@ class acct_recon {
 			
 		$result = $db->Execute($sql);
 		unset($new_total, $bank_list);
+		$dep_cleared = $chk_cleared = 0; // never initialised; null += '' is fatal on PHP 8
 		while (!$result->EOF) {
 		  $new_total      = $result->fields['debit_amount'] - $result->fields['credit_amount'];
 		  if ($new_total < 0) {
@@ -127,8 +133,8 @@ class acct_recon {
 			$pmt_amount = '';
 			$payment    = 0;
 		  }
-		  $dep_cleared += $dep_amount;
-		  $chk_cleared += $pmt_amount;
+		  $dep_cleared += (float)$dep_amount;
+		  $chk_cleared += (float)$pmt_amount;
 		  $bank_list[$result->fields['id']] = array(
 			'post_date'  => $result->fields['post_date'],
 			'reference'  => $result->fields['purchase_invoice_id'],
