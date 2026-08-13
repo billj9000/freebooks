@@ -133,13 +133,47 @@ final readonly class LayoutDocument implements Document
  * What a row means.
  *
  * Replaces PhreeForm's magic string prefixes, where $Data[$row][0] held 'd',
- * 'g:<label>' or 'r:<title>' and every consumer re-parsed them.
+ * 'g:<label>' or 'r:<title>' and every consumer re-parsed them. PhreeForm had
+ * three; the structural reports need six, because a financial statement is
+ * mostly rows that are neither data nor a group break — "Revenues" is a
+ * heading, "Gross Profit" is a subtotal, and the gap between sections is a
+ * separator. The legacy emitted all three as `'d'`, which is why no renderer
+ * could style a subtotal differently from an account line.
+ *
+ * Ask the predicates rather than comparing cases. `$row->kind !== RowKind::Data`
+ * used to mean "this is a total" and now does not — a section heading is not a
+ * total, and treating it as one draws a caption band over a heading.
  */
 enum RowKind
 {
     case Data;
-    case GroupTotal;
-    case ReportTotal;
+    case SectionHeading;   // "Revenues", "Cleared Transactions"
+    case Separator;        // a deliberate blank line between sections
+    case Subtotal;         // "Gross Profit", "Total Deposits in Transit"
+    case GroupTotal;       // a group break; its caption is in Row::$label
+    case ReportTotal;      // the report's own total; likewise
+
+    /** Carries figures of its own that a total may accumulate from. */
+    public function isData(): bool
+    {
+        return $this === self::Data;
+    }
+
+    /** Summarises other rows, and is set in the totals style. */
+    public function isTotal(): bool
+    {
+        return $this === self::Subtotal || $this === self::GroupTotal || $this === self::ReportTotal;
+    }
+
+    /**
+     * Produced by a group break, so its caption lives in `Row::$label` and a
+     * renderer draws it as a band. A Subtotal carries its caption in the first
+     * column like any other row, and must not get one.
+     */
+    public function isBreakTotal(): bool
+    {
+        return $this === self::GroupTotal || $this === self::ReportTotal;
+    }
 }
 
 /** One column of a report. */
@@ -156,7 +190,7 @@ final readonly class ReportColumn
     ) {}
 }
 
-/** One row: data, a group subtotal, or the report total. */
+/** One row: see RowKind for what it may be. */
 final readonly class Row
 {
     /** @param array<string,TypedValue> $cells keyed by ReportColumn::$key */

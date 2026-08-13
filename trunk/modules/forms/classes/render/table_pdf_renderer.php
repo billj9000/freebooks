@@ -300,9 +300,17 @@ final class TablePdfRenderer implements FormsRenderer
         $groupBreakPending  = false;
 
         foreach ($doc->rows as $row) {
-            $isTotal = $row->kind !== RowKind::Data;
+            // Three different questions, which used to be one. The caption band
+            // belongs only to a group break, because only a break keeps its
+            // caption outside the cells; a subtotal or a section heading is set
+            // in the totals style but prints its own first column; and a
+            // separator is a deliberate gap, so it neither stripes nor advances
+            // the stripe.
+            $isBreak   = $row->kind->isBreakTotal();
+            $emphasis  = $row->kind->isTotal() || $row->kind === RowKind::SectionHeading;
+            $separator = $row->kind === RowKind::Separator;
 
-            if ($isTotal) {
+            if ($isBreak) {
                 // A total needs room for its caption and the row beneath it.
                 if ($this->y + (2 * $this->maxRowHeight) > $this->pageBottom) {
                     $this->breakPage();
@@ -331,6 +339,7 @@ final class TablePdfRenderer implements FormsRenderer
             }
 
             $border = 0;
+            if ($separator) $fill = false;
             if ($needTop === 'yes') {
                 $border  = 'T';
                 $fill    = false;   // the row after a total is never striped
@@ -342,7 +351,7 @@ final class TablePdfRenderer implements FormsRenderer
 
             if (($this->y + $this->maxRowHeight) > $this->pageBottom) $this->breakPage();
 
-            $this->applyStyle($isTotal ? $style->totals : $style->data, $this->defaultSize);
+            $this->applyStyle($emphasis ? $style->totals : $style->data, $this->defaultSize);
             $pdf->SetLeftMargin($this->bandX[0]);
             $pdf->SetX($this->bandX[0]);
             $pdf->SetY($this->y);
@@ -373,7 +382,7 @@ final class TablePdfRenderer implements FormsRenderer
                 $pdf->SetY($lastY);
                 $pdf->MultiCell($width, $height, $text, 0,
                                 $this->alignCode($column->align !== null ? new Style(align: $column->align)
-                                                                        : ($isTotal ? $style->totals : $style->data),
+                                                                        : ($emphasis ? $style->totals : $style->data),
                                                  Align::Left),
                                 false, 1);
 
@@ -385,7 +394,7 @@ final class TablePdfRenderer implements FormsRenderer
             $drawn = $maxY - $top;
             if ($drawn > $this->maxRowHeight) $this->maxRowHeight = $drawn;
             $this->y = $maxY;
-            $fill    = $fill ? false : true;
+            $fill    = $separator ? false : ($fill ? false : true);
 
             if ($groupBreakPending) {
                 $this->breakPage();

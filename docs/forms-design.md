@@ -439,6 +439,9 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 |---|---|
 | `bootstrap_freebooks.php` | Shared CLI bootstrap (trap 4) + the Formatter's lookup tables |
 | `capture_phreeform_baseline.php` | Step 0 — snapshot legacy data + PDF bytes |
+| `verify_forms_delivery.php` | Delivery hygiene (§2): header injection, path traversal, overwrite, staged-attachment cleanup, refusal after output has started | no | **PASS — 45 checks** |
+| `verify_forms_dataset_map.php` | Every shipped report resolves to the dataset a passing row-set run proved | yes | **PASS — 33 mappings, 0 wrong** |
+| `verify_forms_app.php` | The application's own path — route, render, deliver — over every definition in the catalog | yes | **PASS** — `demo` 47 documents, `production` 40, both as PDF and CSV |
 | `diff_forms_provider.php` | Semantic-diff a provider against the baseline |
 | `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
@@ -856,7 +859,49 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
     `verify_forms_report.php` gained `--period=` and `--gl=`, which stand in for the run dialog, and
     now exits non-zero when the legacy side returns nothing: an empty baseline agrees with any
     provider at all, and a forgotten `--gl` previously read as a pass.
-14. Remaining: custom datasets in the admin UI; and the delivery layer.
+14. **The seam gains three row kinds, the delivery layer, and a module surface (done
+    2026-08-14).** Three pieces, in that order, because each is a precondition of the next.
+
+    **RowKind grows from three to six.** `SectionHeading`, `Separator` and `Subtotal` join `Data`,
+    `GroupTotal` and `ReportTotal`. PhreeForm emitted all six as `'d'`, which is why no renderer
+    could set "Gross Profit" differently from the account line above it. Ask
+    `isData()`/`isTotal()`/`isBreakTotal()` rather than comparing cases: `!== RowKind::Data` used to
+    mean "this is a total", and a consumer that still reads it that way draws a group caption band
+    over a section heading. Both renderers were updated accordingly; the comparison against
+    PhreeForm still treats all six as data rows, because that is what the legacy produced.
+
+    **The delivery layer.** `HttpDelivery` (attachment or inline), `FileDelivery` and
+    `EmailDelivery`, each taking its sink as an argument so the headers, the staged attachment and
+    the failure paths can all be asserted without an HTTP request or a mail server. Splitting it
+    from Render is what makes "the same report as a download and as an email attachment" one code
+    path; PhreeForm's `BuildPDF()` chose the output method, set the headers and echoed the body
+    itself.
+
+    Most of what the layer does is hygiene, and it is not incidental. PhreeForm built
+    `Content-Disposition` by concatenating a user-editable report title, unquoted and unescaped — a
+    title with a newline injects response headers. `Filename` reduces a name to one safe path
+    component and emits an RFC 6266 `filename*` alongside so an accented name survives rather than
+    becoming underscores. `HttpDelivery` refuses outright once output has started, rather than
+    warning and appending a document to a half-rendered page: that is the exact failure mode that
+    made the Work Order form silently unprintable (§12.3.1).
+
+    **A module surface.** Until now `trunk/modules/forms/` held only `classes/`, and every run in
+    this document had been driven from `docs/tools/`. It now has `config.php`, `defaults.php`,
+    `language/en_us`, an installer, and a Bootstrap page at `?module=forms&page=main` that lists
+    every definition, says what serves it, and runs it to PDF or CSV.
+
+    Two things worth naming. The module creates **no tables**: it reads the existing PhreeForm
+    catalog, so enabling it makes every stored definition runnable through the new engine with no
+    migration and without touching the old one, which is what lets the two coexist (decisions C and
+    D). And it takes **three security ids** — `SECURITY_ID_FORMS_RUN`, `_AUTHOR`, `_DATASETS` —
+    implementing decision F, where PhreeForm had one key that granted all three.
+
+    `DocumentRunner` is the only place that knows the three routes a definition can take (dataset,
+    provider, or honestly declined). `DatasetResolver` answers the question the tools had been
+    answering by hand — and getting wrong: `pf_84` is the Audit Log on `audit_trail`, `pf_62` is the
+    General Ledger report but reads `transactions`. The mapping is now code, and
+    `verify_forms_dataset_map.php` asserts all 33 proven answers.
+15. Remaining: custom datasets in the admin UI.
 
 ---
 
@@ -1109,7 +1154,12 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 14: custom datasets in the admin UI; and the delivery layer.
+Per §11, step 15: custom datasets in the admin UI.
+
+Forms is now reachable from the menu and runs the shipped catalog end to end. `verify_forms_app.php`
+drives the application's own path over every definition: on `demo` 47 documents run and render as
+both PDF and CSV (43 by dataset, 4 by provider, 10 honestly declined), on `production` 40 (six more
+select no rows there, which is data coverage rather than a defect).
 
 **All nine `special_class` ports are done.** Nothing in `modules/phreebooks/classes/` or
 `modules/phreeform/` is now on the critical path.
@@ -1120,12 +1170,6 @@ reconciled journal items at all, so its runs exercise the in-transit and GL-move
 reconciled items — 11 lines across two accounts and two periods — and it is also the only place the
 `journal_main` collapse is observable. Re-run against a company that reconciles regularly when one
 exists.
-
-Section headings, blank separators and subtotal captions are currently Data rows carrying only a
-caption, which is what the legacy emitted and what makes row-for-row parity checkable. Giving them
-their own `RowKind` would describe them better and let a renderer style a subtotal differently from
-an account line, but that is a change to the seam and is deliberately left for a decision of its
-own.
 
 `is_budget` is now fully verifiable: `demo` carries budget figures on five P&L accounts across
 periods 13 and 14, and postings in periods 1, 2, 13 and 14, so all six of its columns — current,

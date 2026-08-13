@@ -155,15 +155,44 @@ $report = new TableDocument(
         new ReportColumn('total', 'Total',    30, Align::Right, new Format('dlr'), total: true),
     ],
     rows: [
+        new Row(RowKind::SectionHeading, ['name' => TypedValue::text('North')]),
         new Row(RowKind::Data,        ['name' => TypedValue::text('Acme'),  'total' => TypedValue::money(100.5)]),
         new Row(RowKind::Data,        ['name' => TypedValue::text('Beta'),  'total' => TypedValue::money(50.25)]),
+        new Row(RowKind::Separator,   ['name' => TypedValue::text('')]),
+        new Row(RowKind::Subtotal,    ['name' => TypedValue::text('Gross'), 'total' => TypedValue::money(150.75)]),
         new Row(RowKind::GroupTotal,  ['total' => TypedValue::money(150.75)], label: 'North'),
         new Row(RowKind::ReportTotal, ['total' => TypedValue::money(150.75)], label: 'Customer List'),
     ],
 );
 ok('TableDocument builds', $report instanceof Document);
 ok("row kinds are typed, not 'd'/'g:'/'r:' string prefixes",
-   $report->rows[2]->kind === RowKind::GroupTotal && $report->rows[2]->label === 'North');
+   $report->rows[5]->kind === RowKind::GroupTotal && $report->rows[5]->label === 'North');
+
+// The three kinds added for the structural reports. PhreeForm emitted all of
+// them as 'd', so nothing could style a subtotal differently from a data row.
+// The predicates matter more than the cases: `!== RowKind::Data` used to mean
+// "this is a total", and a consumer that still reads it that way now draws a
+// group caption band over a section heading.
+ok('a section heading is neither data nor a total',
+   !RowKind::SectionHeading->isData() && !RowKind::SectionHeading->isTotal());
+ok('a separator is neither data nor a total',
+   !RowKind::Separator->isData() && !RowKind::Separator->isTotal());
+ok('a subtotal is a total but not a group break',
+   RowKind::Subtotal->isTotal() && !RowKind::Subtotal->isBreakTotal());
+ok('only group and report totals are break totals, and both are totals',
+   RowKind::GroupTotal->isBreakTotal() && RowKind::ReportTotal->isBreakTotal()
+   && RowKind::GroupTotal->isTotal() && RowKind::ReportTotal->isTotal());
+ok('a data row is data and nothing else',
+   RowKind::Data->isData() && !RowKind::Data->isTotal() && !RowKind::Data->isBreakTotal());
+
+// A caption band is drawn from Row::$label, so only a break total may carry one:
+// a subtotal names itself in its first column and would otherwise be captioned
+// twice.
+$labelled = true;
+foreach ($report->rows as $r) {
+    if ($r->label !== null && !$r->kind->isBreakTotal()) $labelled = false;
+}
+ok('only break totals carry a label', $labelled);
 
 // ── 5. Renderer registry: the swap mechanism ─────────────────────────────────
 $csv = new class implements FormsRenderer {
@@ -171,7 +200,7 @@ $csv = new class implements FormsRenderer {
     public function render(Document $doc, RenderOptions $o = new RenderOptions()): RenderedOutput {
         $out = '';
         foreach ($doc->rows as $r) {
-            if ($r->kind !== RowKind::Data) continue;
+            if (!$r->kind->isData()) continue;
             // raw values -> machine-readable, which PhreeForm could not do
             $out .= implode(',', array_map(fn($c) => (string)$c->raw, $r->cells)) . "\n";
         }

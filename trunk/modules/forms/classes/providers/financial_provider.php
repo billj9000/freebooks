@@ -35,11 +35,11 @@
  * produce a readable PDF and a usable CSV. Every cell here is a TypedValue and
  * the renderer decides.
  *
- * Section headings, blank separators and subtotal captions are emitted as Data
- * rows carrying only their description, exactly as the legacy did. Modelling
- * them as their own RowKind would describe them better, and would let a renderer
- * style a subtotal differently from an account line — but that is a change to the
- * seam, so it is left for a decision of its own rather than smuggled in here.
+ * Section headings, blank separators and subtotals each carry their own RowKind
+ * (added 2026-08-14). The legacy emitted all of them as plain data rows, which
+ * is why no renderer could set "Gross Profit" differently from the account line
+ * above it. They are still compared against the legacy as data rows, because
+ * that is what PhreeForm produced.
  *
  * A provider sits ABOVE the seam, so database access here is correct and
  * expected; it is the returned Document that must be free of it.
@@ -123,7 +123,7 @@ abstract class FinancialStatementProvider implements DocumentProvider
      *
      * @param array<string,int|float|TypedValue|null> $values keyed by column key
      */
-    protected function row(string $caption, array $values = []): Row
+    protected function row(string $caption, array $values = [], RowKind $kind = RowKind::Data): Row
     {
         $cells = [];
         foreach ($this->columns as $i => $column) {
@@ -138,13 +138,33 @@ abstract class FinancialStatementProvider implements DocumentProvider
             $value = $values[$column->key];
             $cells[$column->key] = $value instanceof TypedValue ? $value : TypedValue::money($value);
         }
-        return new Row(RowKind::Data, $cells);
+        return new Row($kind, $cells);
+    }
+
+    /** The caption that opens a section — "Revenues", "Cleared Transactions". */
+    protected function heading(string $caption): Row
+    {
+        return $this->row($caption, [], RowKind::SectionHeading);
+    }
+
+    /**
+     * A row summarising the ones above it.
+     *
+     * Distinct from a GroupTotal: nothing broke, and the caption is in the first
+     * column rather than in Row::$label, so a renderer emphasises it without
+     * drawing a group band over it.
+     *
+     * @param array<string,int|float|TypedValue|null> $values
+     */
+    protected function subtotal(string $caption, array $values = []): Row
+    {
+        return $this->row($caption, $values, RowKind::Subtotal);
     }
 
     /** A blank separator, as the legacy emitted between sections. */
     protected function blank(): Row
     {
-        return $this->row('');
+        return $this->row('', [], RowKind::Separator);
     }
 
     protected function document(array $rows): TableDocument
@@ -191,27 +211,27 @@ final class IncomeStatementDocumentProvider extends FinancialStatementProvider
 
         // Revenues. Income accounts are held on the credit side, so the section
         // is negated to read as earnings rather than as a balance.
-        $rows[] = $this->row(self::label('RW_FIN_REVENUES', 'Revenues'));
+        $rows[] = $this->heading(self::label('RW_FIN_REVENUES', 'Revenues'));
         $total  = $this->section(self::INCOME, true, $window, $rows);
         $gross  = $this->add($gross, $total);
 
         // Less cost of sales.
         $rows[] = $this->blank();
-        $rows[] = $this->row(self::label('RW_FIN_COST_OF_SALES', 'Cost of Sales'));
+        $rows[] = $this->heading(self::label('RW_FIN_COST_OF_SALES', 'Cost of Sales'));
         $total  = $this->section(self::COGS, false, $window, $rows);
         $gross  = $this->subtract($gross, $total);
 
         $rows[] = $this->blank();
-        $rows[] = $this->row(self::label('RW_FIN_GROSS_PROFIT', 'Gross Profit'), $gross);
+        $rows[] = $this->subtotal(self::label('RW_FIN_GROSS_PROFIT', 'Gross Profit'), $gross);
 
         // Less expenses.
         $rows[] = $this->blank();
-        $rows[] = $this->row(self::label('RW_FIN_EXPENSES', 'Expenses'));
+        $rows[] = $this->heading(self::label('RW_FIN_EXPENSES', 'Expenses'));
         $total  = $this->section(self::EXPENSES, false, $window, $rows);
         $net    = $this->subtract($gross, $total);
 
         $rows[] = $this->blank();
-        $rows[] = $this->row(self::label('RW_FIN_NET_INCOME', 'Net Income'), $net);
+        $rows[] = $this->subtotal(self::label('RW_FIN_NET_INCOME', 'Net Income'), $net);
 
         return $this->document($rows);
     }
@@ -235,7 +255,7 @@ final class IncomeStatementDocumentProvider extends FinancialStatementProvider
         }
 
         $rows[] = $this->blank();
-        $rows[] = $this->row(
+        $rows[] = $this->subtotal(
             self::label('TEXT_TOTAL', 'Total') . ' ' . $this->typeLabel($type),
             $total,
         );
@@ -352,43 +372,43 @@ final class BalanceSheetDocumentProvider extends FinancialStatementProvider
         [$amount, $subtotal, $total] = $this->valueKeys();
 
         // ── assets ───────────────────────────────────────────────────────────
-        $rows[] = $this->row(self::label('RW_FIN_CURRENT_ASSETS', 'Current Assets'));
+        $rows[] = $this->heading(self::label('RW_FIN_CURRENT_ASSETS', 'Current Assets'));
         $section = $this->section(self::SECTIONS['assets'], $rows, $amount, $subtotal);
         $assets  = $section;
-        $rows[]  = $this->row(self::label('RW_FIN_TOTAL_CURRENT_ASSETS', 'Total Current Assets'), [$total => $section]);
+        $rows[]  = $this->subtotal(self::label('RW_FIN_TOTAL_CURRENT_ASSETS', 'Total Current Assets'), [$total => $section]);
         $rows[]  = $this->blank();
 
-        $rows[]  = $this->row(self::label('RW_FIN_PROP_EQUIP', 'Property and Equipment'));
+        $rows[]  = $this->heading(self::label('RW_FIN_PROP_EQUIP', 'Property and Equipment'));
         $section = $this->section(self::SECTIONS['property'], $rows, $amount, $subtotal);
         $assets += $section;
-        $rows[]  = $this->row(self::label('RW_FIN_TOTAL_PROP_EQUIP', 'Total Property and Equipment'), [$total => $section]);
-        $rows[]  = $this->row(self::label('RW_FIN_TOTAL_ASSETS', 'Total Assets'), [$total => $assets]);
+        $rows[]  = $this->subtotal(self::label('RW_FIN_TOTAL_PROP_EQUIP', 'Total Property and Equipment'), [$total => $section]);
+        $rows[]  = $this->subtotal(self::label('RW_FIN_TOTAL_ASSETS', 'Total Assets'), [$total => $assets]);
         $rows[]  = $this->blank();
 
         // ── liabilities ──────────────────────────────────────────────────────
-        $rows[]  = $this->row(self::label('RW_FIN_CUR_LIABILITIES', 'Current Liabilities'));
+        $rows[]  = $this->heading(self::label('RW_FIN_CUR_LIABILITIES', 'Current Liabilities'));
         $section = $this->section(self::SECTIONS['current_liab'], $rows, $amount, $subtotal);
         $liabs   = $section;
-        $rows[]  = $this->row(self::label('RW_FIN_TOTAL_CUR_LIABILITIES', 'Total Current Liabilities'), [$total => $section]);
+        $rows[]  = $this->subtotal(self::label('RW_FIN_TOTAL_CUR_LIABILITIES', 'Total Current Liabilities'), [$total => $section]);
         $rows[]  = $this->blank();
 
-        $rows[]  = $this->row(self::label('RW_FIN_LONG_TERM_LIABILITIES', 'Long Term Liabilities'));
+        $rows[]  = $this->heading(self::label('RW_FIN_LONG_TERM_LIABILITIES', 'Long Term Liabilities'));
         $section = $this->section(self::SECTIONS['long_term'], $rows, $amount, $subtotal);
         $liabs  += $section;
-        $rows[]  = $this->row(self::label('RW_FIN_TOTAL_LT_LIABILITIES', 'Total Long Term Liabilities'), [$total => $section]);
-        $rows[]  = $this->row(self::label('RW_FIN_TOTAL_LIABILITIES', 'Total Liabilities'), [$total => $liabs]);
+        $rows[]  = $this->subtotal(self::label('RW_FIN_TOTAL_LT_LIABILITIES', 'Total Long Term Liabilities'), [$total => $section]);
+        $rows[]  = $this->subtotal(self::label('RW_FIN_TOTAL_LIABILITIES', 'Total Liabilities'), [$total => $liabs]);
         $rows[]  = $this->blank();
 
         // ── capital ──────────────────────────────────────────────────────────
-        $rows[]  = $this->row(self::label('RW_FIN_CAPITAL', 'Capital'));
+        $rows[]  = $this->heading(self::label('RW_FIN_CAPITAL', 'Capital'));
         $section = $this->section(self::SECTIONS['capital'], $rows, $amount, $subtotal);
 
         $net      = $this->ytdNetIncome();
         $section += $net;
         $liabs   += $section;
         $rows[]   = $this->row(self::label('RW_FIN_NET_INCOME', 'Net Income'), [$amount => $net]);
-        $rows[]   = $this->row(self::label('RW_FIN_TOTAL_CAPITAL', 'Total Capital'), [$total => $section]);
-        $rows[]   = $this->row(self::label('RW_FIN_TOTAL_LIABILITIES_CAPITAL', 'Total Liabilities and Capital'),
+        $rows[]   = $this->subtotal(self::label('RW_FIN_TOTAL_CAPITAL', 'Total Capital'), [$total => $section]);
+        $rows[]   = $this->subtotal(self::label('RW_FIN_TOTAL_LIABILITIES_CAPITAL', 'Total Liabilities and Capital'),
                                [$total => $liabs]);
 
         return $this->document($rows);
@@ -420,8 +440,8 @@ final class BalanceSheetDocumentProvider extends FinancialStatementProvider
                 $rows[]     = $this->row((string)$res->fields['description'], [$amount => $signed]);
                 $res->MoveNext();
             }
-            $rows[]   = $this->row(self::label('TEXT_TOTAL', 'Total') . ' ' . $this->typeLabel($type),
-                                   [$subtotal => $typeTotal]);
+            $rows[]   = $this->subtotal(self::label('TEXT_TOTAL', 'Total') . ' ' . $this->typeLabel($type),
+                                        [$subtotal => $typeTotal]);
             $running += $typeTotal;
         }
         return $running;
@@ -542,19 +562,19 @@ final class AccountReconciliationDocumentProvider extends FinancialStatementProv
         $rows[] = $this->blank();
         $rows[] = $this->row(self::label('RW_RECON_CD', 'Cash Disbursements'),   [$total => -$disbursements]);
         $rows[] = $this->blank();
-        $rows[] = $this->row(self::label('RW_RECON_EB', 'Ending GL Balance'),    [$total => $closing]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_EB', 'Ending GL Balance'), [$total => $closing]);
         $rows[] = $this->blank();
 
-        $rows[] = $this->row(self::label('RW_RECON_ADD_BACK', 'Add Back Deposits in Transit'));
+        $rows[] = $this->heading(self::label('RW_RECON_ADD_BACK', 'Add Back Deposits in Transit'));
         $this->appendItems($rows, $open, self::DEPOSIT, 1, $date, $reference, $amount);
-        $rows[] = $this->row(self::label('RW_RECON_DIT', 'Total Deposits in Transit'),
-                             [$total => $depositsInTransit]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_DIT', 'Total Deposits in Transit'),
+                                  [$total => $depositsInTransit]);
         $rows[] = $this->blank();
 
-        $rows[] = $this->row(self::label('RW_RECON_LOP', 'Less Outstanding Payments'));
+        $rows[] = $this->heading(self::label('RW_RECON_LOP', 'Less Outstanding Payments'));
         $this->appendItems($rows, $open, self::PAYMENT, -1, $date, $reference, $amount);
-        $rows[] = $this->row(self::label('RW_RECON_TOP', 'Total Outstanding Payments'),
-                             [$total => -$paymentsInTransit]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_TOP', 'Total Outstanding Payments'),
+                                  [$total => -$paymentsInTransit]);
         $rows[] = $this->blank();
 
         // The bank's own balance, implied: what the statement must show for the
@@ -562,29 +582,29 @@ final class AccountReconciliationDocumentProvider extends FinancialStatementProv
         // legacy calls it the unreconciled difference and its author left a
         // "check this" note beside it; the arithmetic is right, and the two
         // lines that follow are the proof, so it keeps its caption.
-        $rows[] = $this->row(self::label('RW_RECON_DIFF', 'Unreconciled Difference'),
-                             [$total => $closing - $depositsInTransit + $paymentsInTransit]);
-        $rows[] = $this->row(self::label('RW_RECON_EB', 'Ending GL Balance'), [$total => $closing]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_DIFF', 'Unreconciled Difference'),
+                                  [$total => $closing - $depositsInTransit + $paymentsInTransit]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_EB', 'Ending GL Balance'), [$total => $closing]);
 
         $rows[] = $this->blank();
-        $rows[] = $this->row(self::label('RW_RECON_CLEARED', 'Cleared Transactions'));
+        $rows[] = $this->heading(self::label('RW_RECON_CLEARED', 'Cleared Transactions'));
 
-        $rows[] = $this->row(self::label('RW_RECON_DCLEARED', 'Deposits Cleared'));
+        $rows[] = $this->heading(self::label('RW_RECON_DCLEARED', 'Deposits Cleared'));
         $this->appendItems($rows, $cleared, self::DEPOSIT, 1, $date, $reference, $amount);
-        $rows[] = $this->row(self::label('RW_RECON_TDC', 'Total Deposits Cleared'),
-                             [$total => $depositsCleared]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_TDC', 'Total Deposits Cleared'),
+                                  [$total => $depositsCleared]);
         $rows[] = $this->blank();
 
-        $rows[] = $this->row(self::label('RW_RECON_PCLEARED', 'Payments Cleared'));
+        $rows[] = $this->heading(self::label('RW_RECON_PCLEARED', 'Payments Cleared'));
         $this->appendItems($rows, $cleared, self::PAYMENT, -1, $date, $reference, $amount);
         // Shown as a positive magnitude, as the legacy did, even though the
         // lines above it are negative. Both readings reach the same net below.
-        $rows[] = $this->row(self::label('RW_RECON_TPC', 'Total Payments Cleared'),
-                             [$total => $paymentsCleared]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_TPC', 'Total Payments Cleared'),
+                                  [$total => $paymentsCleared]);
         $rows[] = $this->blank();
 
-        $rows[] = $this->row(self::label('RW_RECON_NCLEARED', 'Net Cleared'),
-                             [$total => $depositsCleared - $paymentsCleared]);
+        $rows[] = $this->subtotal(self::label('RW_RECON_NCLEARED', 'Net Cleared'),
+                                  [$total => $depositsCleared - $paymentsCleared]);
 
         return $this->document($rows);
     }

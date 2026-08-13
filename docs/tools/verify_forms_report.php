@@ -165,9 +165,9 @@ $STRUCTURAL = [
     'balance_sheet' => BalanceSheetDocumentProvider::class,
     'acct_recon'    => AccountReconciliationDocumentProvider::class,
 ];
-$special     = (string)($formsReport->special_class ?? '');
-$compareKind = null;
-if (isset($STRUCTURAL[$special])) {
+$special    = (string)($formsReport->special_class ?? '');
+$structural = isset($STRUCTURAL[$special]);
+if ($structural) {
     $converter = new ReportConverter();
     $columns   = $converter->convertStructuralColumns($formsReport);
     $period    = (int)($formsReport->period ?? 0);
@@ -182,10 +182,8 @@ if (isset($STRUCTURAL[$special])) {
         'title'   => (string)($formsReport->title ?? 'Report'),
     ];
     if ($special === 'acct_recon') $ctor['glAccount'] = (string)$GLACCOUNT;
-    $provider    = new $class(...$ctor);
-    $doc         = $provider->build([]);
-    $compareKind = RowKind::Data;
-    $converterHasTotalsOnly = false;
+    $provider = new $class(...$ctor);
+    $doc      = $provider->build([]);
 } else {
 $dataset = $catalog->get($DATASET);
 
@@ -224,16 +222,28 @@ $provider = new ReportDocumentProvider(
 $doc = $provider->build([]);
 }
 
-// A totals-only report has no data rows by construction: the roll-up its
-// special_class did in PHP is a group break with the rows beneath hidden. So
-// the legacy's DATA rows are the Forms GROUP TOTAL rows, and comparing data to
-// data would report every row missing while the output is exactly right.
-$compareKind = $compareKind ?? ($converter->convertTotalsOnly($formsReport) ? RowKind::GroupTotal : RowKind::Data);
+// Which Forms rows stand for the legacy engine's 'd' rows. Three cases:
+//
+//  - A STRUCTURAL report: everything that is not a group break. PhreeForm
+//    emitted a financial statement's headings, blank separators and subtotal
+//    captions as plain data rows; Forms gives each its own RowKind so a renderer
+//    can style them, without changing what is printed. Comparing Data alone
+//    would report almost every row of a balance sheet as missing.
+//  - A TOTALS-ONLY report: it has no data rows by construction, because the
+//    roll-up its special_class did in PHP is a group break with the rows beneath
+//    hidden. The legacy's data rows are the Forms group totals.
+//  - Otherwise: data rows.
+$totalsOnly = !$structural && $converter->convertTotalsOnly($formsReport);
+$compare = match (true) {
+    $structural => static fn(Row $r): bool => !$r->kind->isBreakTotal(),
+    $totalsOnly => static fn(Row $r): bool => $r->kind === RowKind::GroupTotal,
+    default     => static fn(Row $r): bool => $r->kind->isData(),
+};
 
 $formsRows = $formsTotals = 0;
 foreach ($doc->rows as $row) {
-    if ($row->kind === $compareKind) $formsRows++;
-    elseif ($row->kind !== RowKind::Data) $formsTotals++;
+    if ($compare($row))            $formsRows++;
+    elseif (!$row->kind->isData()) $formsTotals++;
 }
 printf("forms:   %d data rows, %d total rows\n", $formsRows, $formsTotals);
 
@@ -316,7 +326,7 @@ if ($legacyGroupNames === []) {
        'label was ' . var_export($legacyGroupLabels[0] ?? null, true));
     }
     ok('Forms emits no group total when nothing is grouped',
-       $formsGroupLabels === [] || $compareKind === RowKind::GroupTotal,
+       $formsGroupLabels === [] || $totalsOnly,
        'forms emitted ' . count($formsGroupLabels));
 } elseif (!$legacyCanGroup) {
     echo "  note: legacy grouped by '" . implode(', ', $legacyGroupNames)
@@ -390,7 +400,7 @@ foreach ($legacyDataRows as $row) {
 
 $formsBag = [];
 foreach ($doc->rows as $row) {
-    if ($row->kind !== $compareKind) continue;
+    if (!$compare($row)) continue;
     $cells = [];
     foreach ($doc->columns as $column) {
         $value   = $row->cells[$column->key] ?? null;

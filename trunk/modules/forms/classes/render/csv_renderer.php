@@ -81,7 +81,7 @@ final class CsvRenderer implements FormsRenderer
         }
 
         foreach ($doc->rows as $row) {
-            if ($this->dataRowsOnly && $row->kind !== RowKind::Data) continue;
+            if ($this->dataRowsOnly && !$row->kind->isData()) continue;
 
             $cells = [];
             if ($this->labelRowKinds && !$this->dataRowsOnly) $cells[] = $this->kindLabel($row);
@@ -124,10 +124,15 @@ final class CsvRenderer implements FormsRenderer
 
     private function kindLabel(Row $row): string
     {
+        // Exhaustive on purpose: a new RowKind that reaches an importer as an
+        // unhandled case should stop the render, not be silently labelled 'data'.
         return match ($row->kind) {
-            RowKind::Data        => 'data',
-            RowKind::GroupTotal  => 'group_total:' . ($row->label ?? ''),
-            RowKind::ReportTotal => 'report_total',
+            RowKind::Data           => 'data',
+            RowKind::SectionHeading => 'section',
+            RowKind::Separator      => 'separator',
+            RowKind::Subtotal       => 'subtotal',
+            RowKind::GroupTotal     => 'group_total:' . ($row->label ?? ''),
+            RowKind::ReportTotal    => 'report_total',
         };
     }
 
