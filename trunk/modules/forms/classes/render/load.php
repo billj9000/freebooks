@@ -32,4 +32,5 @@
 require_once(__DIR__ . '/formatter.php');
 require_once(__DIR__ . '/pdf_canvas.php');
 require_once(__DIR__ . '/layout_pdf_renderer.php');
+require_once(__DIR__ . '/table_pdf_renderer.php');
 require_once(__DIR__ . '/csv_renderer.php');

@@ -41,7 +41,7 @@ namespace FreeBooks\Forms\Provider;
 
 use FreeBooks\Forms\Catalog\{Catalog, Filter, QueryBuilder, Sort};
 use FreeBooks\Forms\Document\{
-    Context, Document, DocumentProvider, Format, PageSetup, ReportColumn, Row,
+    Context, Document, DocumentProvider, Format, PageSetup, ReportColumn, ReportStyle, Row,
     RowKind, TableDocument, TypedValue, ValueType
 };
 
@@ -72,6 +72,7 @@ final class ReportDocumentProvider implements DocumentProvider
         private readonly PageSetup     $page       = new PageSetup(),
         private readonly ?string       $filterText = null,
         private readonly array         $resolvedColumns = [],
+        private readonly ReportStyle   $style      = new ReportStyle(),
     ) {}
 
     /** @param array<string,mixed> $params */
@@ -129,6 +130,12 @@ final class ReportDocumentProvider implements DocumentProvider
             }
 
             if ($this->groupBy !== null) {
+                // Break on the id, label with the name. When the group is a
+                // resolved column these differ, and only the id is safe to
+                // break on: resolveNames() gives every unknown id the company
+                // name, so breaking on the name would fold all of them — and
+                // any two contacts sharing a short_name — into one group.
+                $break = $raw[$this->resolvedColumns[$this->groupBy] ?? $this->groupBy] ?? null;
                 $value = $raw[$this->groupBy] ?? null;
                 // Compare as strings. A nullable column mixes NULL and '' —
                 // Sales By SKU has 33 of one and 416 of the other — and MySQL
@@ -141,7 +148,7 @@ final class ReportDocumentProvider implements DocumentProvider
                 // PhreeForm silently merged the SKUs '0001' and '1', and '1e2'
                 // with '100'. Those are different products and get different
                 // groups here.
-                $key = $value === null ? '' : (string)$value;
+                $key = $break === null ? '' : (string)$break;
                 if ($haveGroup && $key !== $currentGroup) {
                     $rows[]      = $this->totalRow(RowKind::GroupTotal, $groupTotals, $this->groupLabel($currentGroupValue, $dataset));
                     $groupTotals = $this->zeroTotals();
@@ -179,6 +186,7 @@ final class ReportDocumentProvider implements DocumentProvider
             context:    $this->context,
             page:       $this->page,
             filterText: $this->filterText,
+            style:      $this->style,
         );
     }
 
@@ -260,8 +268,10 @@ final class ReportDocumentProvider implements DocumentProvider
 
     private function groupLabel(mixed $value, $dataset): string
     {
-        // The label is raw here; the renderer applies groupFormat, keeping
-        // presentation below the seam like every other value.
+        // Already resolved if the group is a lookup column — the loop above
+        // fills $raw from resolveNames() before reading the label. Any other
+        // formatting hint is carried on groupFormat() for a renderer that wants
+        // it; none of the shipped reports declare one.
         return (string)($value ?? '');
     }
 

@@ -33,7 +33,7 @@
 namespace FreeBooks\Forms\Legacy;
 
 use FreeBooks\Forms\Catalog\{CatalogException, Dataset, FieldExpression, Filter, FilterOperator, Sort, SortDirection};
-use FreeBooks\Forms\Document\{Align, Format, ReportColumn};
+use FreeBooks\Forms\Document\{Align, Colour, Format, PageSetup, ReportColumn, ReportStyle, Style};
 
 final class ReportConverter
 {
@@ -48,6 +48,9 @@ final class ReportConverter
 
     /** @var array<string,string> resolved column key => the id field it derives from */
     private array $resolved = [];
+
+    /** Built on demand, for the parts reports and forms share. */
+    private ?TemplateConverter $templates = null;
 
     /**
      * Hints the PROVIDER can resolve when the dataset does not.
@@ -89,36 +92,17 @@ final class ReportConverter
             }
 
             $hint = $this->scalar($field->processing ?? null);
-            // A hint the renderer refuses is a provider-side lookup; re-point it
-            // exactly as the form converter does (§4.3.1). The re-pointed key
-            // has to be checked: a dataset that has the base field but not its
-            // resolved companion would otherwise fail deep in the query builder
-            // with "no field 'history_id_avg_total'", naming a key nobody wrote.
-            // Reporting it here says which column and which hint caused it.
-            if ($hint !== '' && isset(TemplateConverter::PROVIDER_RESOLVED[$hint])) {
-                $resolved = $key . TemplateConverter::PROVIDER_RESOLVED[$hint];
-                if ($dataset->field($resolved) !== null) {
-                    // The dataset serves it directly — a computed field beats a
-                    // lookup, because it happens in the one query.
-                    $key  = $resolved;
-                } elseif (in_array($hint, self::PROVIDER_LOOKUPS, true)) {
-                    // No dataset field, but the provider knows this lookup.
-                    // The column takes the resolved key and the provider is
-                    // told which id to derive it from.
-                    $this->resolved[$resolved] = $key;
-                    $key = $resolved;
-                } else {
-                    $this->warnings[] = "[$index] column '" . $this->scalar($field->description ?? null)
-                                      . "' needs '$hint', which neither this dataset (as '$resolved')"
-                                      . " nor the provider can serve; the column shows '$key' unresolved.";
-                }
-                $hint = '';   // resolved, or refused by the renderer anyway
-            }
+            $key  = $this->repoint($key, $hint, $dataset,
+                "[$index] column '" . $this->scalar($field->description ?? null) . "'");
 
             $columns[] = new ReportColumn(
                 key:       $key,
                 heading:   $this->scalar($field->description ?? null),
-                width:     $this->number($field->width ?? null),
+                // Reports size columns with `columnwidth`; `width` is the box
+                // width a LayoutDocument element uses, and is usually absent
+                // here. Reading the wrong one silently gives every column the
+                // renderer's default and wraps the data.
+                width:     $this->number($field->columnwidth ?? $field->width ?? null),
                 align:     $this->align($this->scalar($field->align ?? null)),
                 format:    $hint === '' ? null : new Format($hint),
                 total:     $this->truthy($field->total ?? null),
@@ -128,25 +112,165 @@ final class ReportConverter
         return $columns;
     }
 
-    /** The field key the report groups on, or null. */
+    /**
+     * Re-point a key whose hint the renderer refuses onto something that can
+     * serve it (§4.3.1), exactly as the form converter does.
+     *
+     * The re-pointed key has to be checked: a dataset that has the base field
+     * but not its resolved companion would otherwise fail deep in the query
+     * builder with "no field 'history_id_avg_total'", naming a key nobody
+     * wrote. Reporting it here says which field and which hint caused it.
+     *
+     * $hint is emptied once it has been dealt with, so the caller does not also
+     * hand the renderer a format that no longer applies — the value it would
+     * format is a name by then, not the id the hint described.
+     *
+     * @param string $what how to name this field in a warning
+     */
+    private function repoint(string $key, string &$hint, Dataset $dataset, string $what): string
+    {
+        if ($hint === '' || !isset(TemplateConverter::PROVIDER_RESOLVED[$hint])) return $key;
+
+        $resolved = $key . TemplateConverter::PROVIDER_RESOLVED[$hint];
+        if ($dataset->field($resolved) !== null) {
+            // The dataset serves it directly — a computed field beats a lookup,
+            // because it happens in the one query.
+            $key = $resolved;
+        } elseif (in_array($hint, self::PROVIDER_LOOKUPS, true)) {
+            // No dataset field, but the provider knows this lookup. The field
+            // takes the resolved key and the provider is told which id to
+            // derive it from.
+            $this->resolved[$resolved] = $key;
+            $key = $resolved;
+        } else {
+            $this->warnings[] = "$what needs '$hint', which neither this dataset"
+                              . " (as '$resolved') nor the provider can serve;"
+                              . " it shows '$key' unresolved.";
+        }
+        $hint = '';   // resolved, or refused by the renderer anyway
+        return $key;
+    }
+
+    /**
+     * The field key the report groups on, or null.
+     *
+     * A group key carries a `processing` hint like any other field, and four of
+     * the shipped reports group by a contact id with the `branch` hint. Without
+     * the same re-pointing the columns get, the break is correct but the
+     * heading reads "Group Total For: 128" where PhreeForm printed the customer
+     * name. Call this AFTER convertColumns(), which resets the resolved-column
+     * list this adds to.
+     */
     public function convertGroup(object $report, Dataset $dataset): ?string
     {
         foreach ($this->entries($report->grouplist ?? null) as $entry) {
             if (!$this->truthy($entry->default ?? null)) continue;
-            return $this->mapName($this->scalar($entry->fieldname ?? null));
+
+            $legacy = $this->scalar($entry->fieldname ?? null);
+            $key    = $this->mapName($legacy);
+            if ($key === null) {
+                $this->warnings[] = "group references '$legacy', which this dataset"
+                                  . " does not provide; the report is not grouped.";
+                return null;
+            }
+            $hint = $this->scalar($entry->processing ?? null);
+            return $this->repoint($key, $hint, $dataset, "group '$legacy'");
         }
         return null;
     }
 
-    /** The formatting applied to the group's label, if any. */
+    /**
+     * The formatting applied to the group's label, if any.
+     *
+     * Hints convertGroup() re-points are excluded: by the time the label
+     * reaches a renderer it holds the resolved name, and formatting that as
+     * though it were still an id would undo the lookup.
+     */
     public function convertGroupFormat(object $report): ?Format
     {
         foreach ($this->entries($report->grouplist ?? null) as $entry) {
             if (!$this->truthy($entry->default ?? null)) continue;
             $hint = $this->scalar($entry->processing ?? null);
-            return $hint === '' ? null : new Format($hint);
+            if ($hint === '' || isset(TemplateConverter::PROVIDER_RESOLVED[$hint])) return null;
+            return new Format($hint);
         }
         return null;
+    }
+
+    /**
+     * Carry the report's page furniture across the seam.
+     *
+     * PhreeForm keeps a font/size/colour/align per band under `$report->page`,
+     * and the values really do differ between reports — see ReportStyle. The
+     * legacy engine read them straight out of the global `$report` inside
+     * Header(); here they become document data so the renderer needs no globals.
+     *
+     * Anything absent stays null, which leaves the renderer's default in force
+     * rather than inventing a value the report never specified.
+     */
+    /**
+     * Page size, orientation and margins.
+     *
+     * Delegated, because reports and forms share one `<page>` block and one
+     * meaning for it. Skipping this is not cosmetic: a report left on the
+     * PageSetup defaults gets 10 mm margins all round, which moves the page
+     * bottom and changes where every page breaks.
+     */
+    public function convertPageSetup(object $report): PageSetup
+    {
+        return ($this->templates ??= new TemplateConverter())->convertPageSetup($report);
+    }
+
+    public function convertStyle(object $report): ReportStyle
+    {
+        $page = $report->page ?? null;
+        if (!is_object($page)) return new ReportStyle();
+
+        $band = function (?object $b): ?Style {
+            if (!is_object($b)) return null;
+            $font   = $this->scalar($b->font ?? null);
+            $size   = $this->number($b->size ?? null);
+            $colour = $this->scalar($b->color ?? null);
+            $align  = $this->align($this->scalar($b->align ?? null));
+            // An entirely empty band carries no intent; leave it to the renderer.
+            if ($font === '' && $size === null && $colour === '' && $align === null) return null;
+            return new Style(
+                font:   $font === '' ? null : $font,
+                size:   $size,
+                colour: $colour === '' ? null : Colour::fromLegacy($colour),
+                align:  $align,
+            );
+        };
+
+        // `show` absent means shown: PhreeForm only ever writes the flag when a
+        // band is switched off, so treating "missing" as false would blank the
+        // company name on most of the library.
+        $shown = function (?object $b): bool {
+            if (!is_object($b) || !property_exists($b, 'show')) return true;
+            return $this->truthy($b->show);
+        };
+
+        $text = function (?object $b): ?string {
+            if (!is_object($b)) return null;
+            $t = $this->scalar($b->text ?? null);
+            return $t === '' ? null : $t;
+        };
+
+        return new ReportStyle(
+            heading:        $band($page->heading ?? null),
+            showHeading:    $shown($page->heading ?? null),
+            title1:         $band($page->title1 ?? null),
+            showTitle1:     $shown($page->title1 ?? null),
+            title1Text:     $text($page->title1 ?? null),
+            title2:         $band($page->title2 ?? null),
+            showTitle2:     $shown($page->title2 ?? null),
+            title2Text:     $text($page->title2 ?? null),
+            filter:         $band($page->filter ?? null),
+            data:           $band($page->data ?? null),
+            totals:         $band($page->totals ?? null),
+            truncate:       $this->truthy($report->truncate ?? null),
+            groupPageBreak: $this->truthy($report->grpbreak ?? null),
+        );
     }
 
     /** @return list<Sort> */

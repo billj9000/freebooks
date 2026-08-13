@@ -1,9 +1,9 @@
 # Forms — Design
 
-**Status:** Partially implemented — the seam, catalog, providers and Layout renderer are in
+**Status:** Partially implemented — the seam, catalog, providers and both renderers are in
 `trunk/modules/forms/`. See §12 for measured status and what remains.
 **Supersedes:** the `phreeform` module.
-**Last updated:** 2026-08-12
+**Last updated:** 2026-08-13
 
 Forms is a new module that replaces PhreeForm's data and authoring layers, and rebuilds its
 rendering behind an explicit interface. It is a breaking change and therefore lands **at 1.0.0**,
@@ -254,6 +254,13 @@ The third group is data lookups wearing a formatting costume, and it violates §
 the sensitive tables the whole security model in §3 exists to keep away from report authors — and it
 is used by `pf_73` (Purchase Order). Under Forms these become fields the provider resolves, so the
 document arrives carrying the name and the renderer never queries anything.
+
+A group key carries a `processing` hint like any other field and gets the same treatment: four
+shipped reports group by a contact id with the `branch` hint, and without re-pointing them the break
+is right but the heading reads `Group Total For: 128` where a customer name belongs. `ReportConverter`
+re-points the group key, and the provider breaks on the **id** while labelling with the **name** —
+breaking on the name would fold every unresolved id together, since they all resolve to the company
+name, along with any two contacts sharing a `short_name`.
 
 `Formatter` therefore refuses the resolution hints: it passes the value through and reports them via
 `unresolvedHints()`, so the conversion utility (§8.2) can list exactly which definitions still need a
@@ -767,14 +774,19 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    report converting with nothing unmapped; 26 of 30 verified end to end, 4 untestable for want of
    data. Added `FieldExpression` (column-to-column filters) and schema verification. See §8.5.
    *(Superseded: those 4 were measured on `production` only. All four pass on `demo` — see §12.1.)*
-8. Remaining: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
-   provider ports; custom datasets in the admin UI; and the delivery layer.
+8. **Table PDF renderer (done 2026-08-13).** `TablePdfRenderer` draws a `TableDocument`, reaching
+   legacy layout parity on furniture, column widths and stacking, fills, borders and the footer.
+   `ReportStyle` was added to the seam to carry the report author's band styling, and
+   `ReportConverter` gained `convertStyle()` and `convertPageSetup()`. Three deviations are
+   deliberate — see §12.3.
+9. Remaining: `datedefault` / `gen_build_sql_date()`; the eight other provider ports; custom
+   datasets in the admin UI; and the delivery layer.
 
 ---
 
 ## 12. Measured status
 
-Every figure below was **measured on 2026-08-12**, not quoted. Re-run the suite (§12.2) after any
+Every figure below was **measured on 2026-08-12**, and §12.3 on 2026-08-13, not quoted. Re-run the suite (§12.2) after any
 change to the seam, catalog or renderers; these numbers are the regression baseline.
 
 ### 12.1 Verification suite
@@ -834,10 +846,70 @@ Three traps, each of which produces a wrong or misleading result rather than a c
 The prefix check copies each table into session `TEMPORARY` tables, so it creates, alters and drops
 nothing in any company database — safe against `demo` and `production` while both are live.
 
-### 12.3 What remains
+### 12.3 Where the Table PDF renderer deliberately differs
 
-Per §11, step 8: the Table PDF renderer; `datedefault` / `gen_build_sql_date()`; the eight other
-special-class provider ports; custom datasets in the admin UI; and the delivery layer.
+`TablePdfRenderer` reaches the legacy engine's layout to the point — heading bands, column widths
+and stacking, fonts, zebra fill, the total-border state machine, and the page-number footer all
+line up. Four differences remain, and all four are intentional. They are recorded here because
+each one looks like a bug in a side-by-side diff.
+
+**1. The page bottom is the real sheet.** 55 of the 57 shipped definitions declare
+`Letter:216:282`. TCPDF does not resolve that mixed-case name and falls back to A4, so *both*
+engines print on a 297 mm sheet — but PhreeForm computes its page bottom from the **declared** 282
+mm, leaving roughly 23 mm of dead space at the foot of every page. Forms measures from the actual
+page height, so it fits about three more rows per page and pagination will not match legacy.
+Compare content, never page counts.
+
+**2. Totals sum the data, not the printed text.** PhreeForm accumulated totals by formatting each
+value for display and then parsing the formatting back off
+(`clean_value(ProcessData(...))`), so its total is the sum of the *rounded* values. Forms sums the
+raw typed values. On `pf_56` (Customer Payments, production, all dates) the difference is 4p, and the
+database settles which is right:
+
+| Source | Total |
+|---|---|
+| `journal_main.total_amount`, summed raw | **5854.5876** |
+| GL `pmt` credit postings — what reaches AR and the bank | **5854.5876** |
+| Per-row rounded, then summed — PhreeForm's figure | 5854.63 |
+
+Forms prints £5,854.59 and agrees with the journal, the payment and the ledger; PhreeForm's
+£5,854.63 agrees only with its own printed column. 43 of those 92 journals genuinely carry
+sub-penny amounts, and the GL rows carry them too (`ref_id` 311 posts `dr=30.216 / cr=30.216`) —
+so the fractions are already in the account balances, and a report that hides them is the one
+misreporting. Note separately that sub-penny values in **GBP at rate 1.0** suggest tax arithmetic
+posting unrounded upstream; that is a data question, not a rendering one.
+
+**3. No phantom group total.** PhreeForm's `if ($GrpWorking !== false)` fires even when the report
+has no group selected, emitting a duplicate of the report total labelled `Group Total For:` with a
+blank name. Forms emits a group total only where a group is configured.
+
+**4. Totals are formatted like the column they total.** PhreeForm's totals are floats it has already
+stripped the formatting from, and it prints them as-is: on `pf_62` the money columns read `£ 216.77`
+down the page and then `216.77` on the total line. Forms carries a total as a `Money` `TypedValue`
+like any other, so the same formatter runs over it and the currency stays on.
+
+### 12.3.1 Two PhreeForm bugs found while proving this
+
+Both are in the legacy engine, both were found by rendering the shipped set through it, and both
+are fixed only where noted.
+
+**`RW_DEFAULT_COLUMN_WIDTH` was defined nowhere.** `report_generator.php` read it for any visible
+column with no `columnwidth`. The name is a typo for the `PF_DEFAULT_COLUMN_WIDTH` admin setting
+(default 25 mm); before PHP 8 an undefined constant degraded to its own name and a notice, and
+since PHP 8 it is a fatal — so 13 of the shipped reports died on PDF print, among them General
+Ledger, Sales Report, Inventory List, Vendor List and Audit Log. **Fixed**, along with the
+adjacent `$CellXPos[$col]` read that warns on every field of every report.
+
+**Grouping silently collapses when the group field is not also a displayed column.** `BuildDataArray()`
+derives its break key by scanning `fieldlist` for the group's field name; when it is absent
+`$GrpField` stays `''`, `$myrow['']` is constant, and every row falls in one group. Customer Ledger
+prints one group total where there are 118 customers. **Not fixed** — PhreeForm is being retired
+and Forms groups these reports correctly.
+
+### 12.4 What remains
+
+Per §11, step 8: `datedefault` / `gen_build_sql_date()`; the eight other special-class provider
+ports; custom datasets in the admin UI; and the delivery layer.
 
 Dataset depth is uneven, though every dataset now has real coverage. `transactions` is proven
 deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `contacts` and

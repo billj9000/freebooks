@@ -182,16 +182,23 @@ final readonly class TableDocument implements Document
      * @param list<AfterRenderHook> $afterRender
      */
     public function __construct(
-        public string    $title,
-        public array     $columns,
-        public array     $rows,
-        public Context   $context     = new Context(),
-        public PageSetup $page        = new PageSetup(),
-        public ?string   $filterText  = null,   // human-readable description of the filters applied
-        public array     $afterRender = [],
+        public string      $title,
+        public array       $columns,
+        public array       $rows,
+        public Context     $context     = new Context(),
+        public PageSetup   $page        = new PageSetup(),
+        public ?string     $filterText  = null,   // human-readable description of the filters applied
+        public array       $afterRender = [],
+        /**
+         * Styling for the page furniture. Optional: a renderer supplies its own
+         * defaults wherever a band is unstyled, so a hand-built document needs
+         * none of this. See ReportStyle.
+         */
+        public ReportStyle $style       = new ReportStyle(),
     ) {}
 
-    public function title(): string        { return $this->title; }
-    public function pageSetup(): PageSetup { return $this->page; }
-    public function afterRender(): array   { return $this->afterRender; }
+    public function title(): string          { return $this->title; }
+    public function pageSetup(): PageSetup   { return $this->page; }
+    public function afterRender(): array     { return $this->afterRender; }
+    public function style(): ReportStyle     { return $this->style; }
 }

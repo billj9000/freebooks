@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -50,9 +50,16 @@ class PDF extends TCPDF {
 		foreach ($report->fieldlist as $field) {
 		  if ($field->visible) {
 			if (isset($field->columnwidth)) {
-				$CellXPos[$col] = max($CellXPos[$col], $CellXPos[$col-1] + $field->columnwidth);
+				// $CellXPos[$col] is unset until the first field of a stacked
+				// column has been measured; the ?? keeps PHP 8 from warning on
+				// every field of every report.
+				$CellXPos[$col] = max($CellXPos[$col] ?? 0, $CellXPos[$col-1] + $field->columnwidth);
 			} else {
-				$CellXPos[$col] = $CellXPos[$col-1] + RW_DEFAULT_COLUMN_WIDTH;
+				// PF_DEFAULT_COLUMN_WIDTH is the admin setting (default 25mm).
+				// This read RW_DEFAULT_COLUMN_WIDTH, which is defined nowhere:
+				// harmless as a notice before PHP 8, a fatal since, so every
+				// report with a width-less visible column died here on print.
+				$CellXPos[$col] = $CellXPos[$col-1] + PF_DEFAULT_COLUMN_WIDTH;
 			}
 			if ($field->columnbreak) $col++;
 		  }

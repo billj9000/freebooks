@@ -214,6 +214,54 @@ final readonly class PageSetup
 }
 
 /**
+ * How a report's page furniture is styled — the banded areas above the table.
+ *
+ * This is the report author's data, not a renderer preference. PhreeForm stores
+ * a font, size, colour and alignment per band in each report definition, and
+ * they genuinely vary: across the 36 shipped report definitions there are eight
+ * distinct style signatures. Five reports colour the company heading blue and
+ * their first title red; seven centre their data columns where the rest align
+ * left. A renderer with fixed defaults would silently restyle about a fifth of
+ * the library, so the values cross the seam rather than living in the renderer.
+ *
+ * Every field is optional. A renderer applies its own default wherever one is
+ * null, which is what lets a document built by hand — or by a provider that has
+ * no legacy definition behind it — render sensibly with no styling at all.
+ *
+ * `CsvRenderer` ignores this entirely; that is the seam working as intended.
+ */
+final readonly class ReportStyle
+{
+    public function __construct(
+        /** COMPANY_NAME band. */
+        public ?Style  $heading     = null,
+        public bool    $showHeading = true,
+        /** First title band. `$title1Text` may contain %date% / %reportname%. */
+        public ?Style  $title1      = null,
+        public bool    $showTitle1  = true,
+        public ?string $title1Text  = null,
+        /** Second title band. */
+        public ?Style  $title2      = null,
+        public bool    $showTitle2  = true,
+        public ?string $title2Text  = null,
+        /** The filter description drawn beneath the titles. */
+        public ?Style  $filter      = null,
+        /** Column headings and data rows. */
+        public ?Style  $data        = null,
+        /** Group and report total rows. */
+        public ?Style  $totals      = null,
+        /**
+         * Clip cell text to the column width instead of wrapping it.
+         * PhreeForm's report-level `truncate`; `Style::$truncate` is the
+         * per-element equivalent used by LayoutDocument.
+         */
+        public bool    $truncate       = false,
+        /** Start a new page after each group total (PhreeForm's `grpbreak`). */
+        public bool    $groupPageBreak = false,
+    ) {}
+}
+
+/**
  * Document-wide values that are not per-record — company name, address, locale.
  *
  * PhreeForm read these straight from global constants (COMPANY_NAME and friends)
