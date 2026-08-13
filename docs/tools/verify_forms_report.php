@@ -37,14 +37,29 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 
-$REPORT_ID = isset($argv[1]) ? (int)$argv[1] : 0;
-$DATASET   = $argv[2] ?? 'transactions';
+// --dates keeps the definition's stored date preference on BOTH sides, so the
+// range itself is what is under test; --dates=<prefs> forces one instead, which
+// is how a range that actually selects rows gets exercised on a report whose
+// stored preference is 'c' (Today). Without either, the preference is forced to
+// 'a', because a report that returns nothing compares equal to another report
+// that returns nothing.
+$DATEPREFS = null;
+$WITHDATES = false;
+$args      = [];
+foreach (array_slice($argv, 1) as $arg) {
+    if ($arg === '--dates')                { $WITHDATES = true; continue; }
+    if (str_starts_with($arg, '--dates=')) { $WITHDATES = true; $DATEPREFS = substr($arg, 8); continue; }
+    $args[] = $arg;
+}
+
+$REPORT_ID = isset($args[0]) ? (int)$args[0] : 0;
+$DATASET   = $args[1] ?? 'transactions';
 if (!$REPORT_ID) {
-    fwrite(STDERR, "Usage: php verify_forms_report.php <report_id> <dataset> [company]\n");
+    fwrite(STDERR, "Usage: php verify_forms_report.php <report_id> <dataset> [company] [--dates]\n");
     exit(1);
 }
 
-fb_bootstrap($argv[3] ?? null);
+fb_bootstrap($args[2] ?? null);
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/render/load.php');
@@ -52,7 +67,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/legacy/template_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/legacy/report_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/providers/report_provider.php');
 
-use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
+use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver, ShippedDatasets};
 use FreeBooks\Forms\Document\{Row, RowKind, TableDocument, ValueType};
 use FreeBooks\Forms\Legacy\ReportConverter;
 use FreeBooks\Forms\Provider\ReportDocumentProvider;
@@ -85,7 +100,9 @@ echo "report:  pf_$REPORT_ID (" . ($report->title ?? '?') . ")\n";
 $formsReport = unserialize(serialize($report));
 
 // datedefault 'c' (Today) selects nothing historical, exactly as for forms.
-$report->datedefault = 'a';
+if (!$WITHDATES)             $report->datedefault = $formsReport->datedefault = 'a';
+if ($DATEPREFS !== null)     $report->datedefault = $formsReport->datedefault = $DATEPREFS;
+printf("dates:   preference '%s' on %s\n", $report->datedefault, $report->datefield ?? '(no field)');
 // BuildSQL returns ['level'=>..,'data'=>$sql,'description'=>..], not a string.
 $built = BuildSQL($report);
 if (!is_array($built) || ($built['level'] ?? '') !== 'success') {
@@ -113,6 +130,11 @@ $columns   = $converter->convertColumns($formsReport, $dataset);
 $group     = $converter->convertGroup($formsReport, $dataset);
 $sorts     = $converter->convertSorts($formsReport, $dataset);
 $filters   = $converter->convertFilters($formsReport, $dataset);
+
+// The date range is resolved from the same preference string the legacy engine
+// read, against the same accounting calendar, and appended as ordinary filters.
+$range   = (new DateRangeResolver(new AppFiscalCalendar($db)))->resolve((string)$formsReport->datedefault);
+$filters = array_merge($filters, $converter->convertDateFilters($formsReport, $dataset, $range));
 
 printf("forms:   %d columns mapped, group=%s, %d sort(s), %d filter(s)\n",
     count($columns), $group ?? '(none)', count($sorts), count($filters));
@@ -205,8 +227,13 @@ if ($legacyGroupNames === []) {
        . "', which it does not display — so it could not group at all.\n";
     ok('legacy produced its degenerate single total', count($legacyGroupLabels) <= 1,
        'legacy emitted ' . count($legacyGroupLabels) . ' groups');
-    ok('Forms groups the report as its author intended', count($formsGroupLabels) > 1,
-       'forms emitted ' . count($formsGroupLabels) . ' groups');
+    // "More groups than legacy managed" rather than "more than one": with a
+    // date range applied the surviving rows can genuinely belong to a single
+    // customer or vendor, and one group is then the right answer rather than a
+    // repeat of legacy's failure.
+    ok(sprintf('Forms groups the report as its author intended (%d groups)', count($formsGroupLabels)),
+       count($formsGroupLabels) >= max(1, count($legacyGroupLabels)),
+       'forms emitted ' . count($formsGroupLabels) . ', legacy ' . count($legacyGroupLabels));
 } else {
     ok(sprintf('group breaks match (%d legacy, %d forms)', count($legacyGroupLabels), count($formsGroupLabels)),
        count($legacyGroupLabels) === count($formsGroupLabels));

@@ -32,7 +32,9 @@
 
 namespace FreeBooks\Forms\Legacy;
 
-use FreeBooks\Forms\Catalog\{CatalogException, Dataset, FieldExpression, Filter, FilterOperator, Sort, SortDirection};
+use FreeBooks\Forms\Catalog\{
+    CatalogException, Dataset, DateRange, FieldExpression, Filter, FilterOperator, Sort, SortDirection
+};
 use FreeBooks\Forms\Document\{Align, Colour, Format, PageSetup, ReportColumn, ReportStyle, Style};
 
 final class ReportConverter
@@ -313,6 +315,81 @@ final class ReportConverter
         12 => ['NOT_NULL'],
         13 => ['NULL'],
     ];
+
+    /**
+     * The report's date range, as filters on its date field.
+     *
+     * `$report->datefield` names the column the range applies to, and it is not
+     * always a date: one shipped definition stores `description` there, which is
+     * harmless only because its preference is "all dates". Eight more store a
+     * bare `post_date` with no table, which legacy resolves by textual accident.
+     * Both go through the same `mapName()` as every other field, so both either
+     * map or produce a warning.
+     *
+     * The range is emitted as `>= start` AND `< endExclusive`, never as a
+     * BETWEEN — see DateRange. A preference that constrains nothing returns no
+     * filters at all rather than a pair of always-true comparisons.
+     *
+     * Call this AFTER convertColumns(), which builds the field map.
+     *
+     * @return list<Filter>
+     */
+    public function convertDateFilters(object $report, Dataset $dataset, DateRange $range): array
+    {
+        // A partly-resolved range still narrows the report, and narrowing is the
+        // safe direction: an unfiltered report whose header claims a quarter is
+        // the outcome to avoid. So the note is reported and whatever bounds
+        // exist are applied.
+        if ($range->unresolved !== null) $this->warnings[] = "date range: {$range->unresolved}";
+        if ($range->isOpen()) return [];
+
+        // "By period" compares a period number, not a date, so it needs the
+        // dataset's period field rather than the report's date field. Three of
+        // the seven shipped datasets have no period at all; there the range is
+        // dropped with a warning, since the alternative is a report that
+        // silently covers all time while claiming a period in its header.
+        if ($range->period !== null) {
+            $periodKey = $this->periodKey($dataset);
+            if ($periodKey === null) {
+                $this->warnings[] = "the '{$dataset->id}' dataset has no accounting period field,"
+                                  . " so the by-period range was not applied.";
+                return [];
+            }
+            return [Filter::equals($periodKey, $range->period)];
+        }
+
+        $legacy = $this->scalar($report->datefield ?? null);
+        $key    = $this->mapName($legacy);
+        if ($key === null) {
+            $this->warnings[] = "the date range applies to '$legacy', which this dataset does not"
+                              . " provide; the report is not date-filtered.";
+            return [];
+        }
+
+        $filters = [];
+        if ($range->start !== null) {
+            $filters[] = new Filter($key, FilterOperator::GreaterEqual, [$range->start]);
+        }
+        if ($range->endExclusive !== null) {
+            $filters[] = new Filter($key, FilterOperator::LessThan, [$range->endExclusive]);
+        }
+        return $filters;
+    }
+
+    /**
+     * The dataset field holding an accounting period, if it has one.
+     *
+     * Matched on the column rather than the key, because the datasets name it
+     * differently — `period` on transactions, `history_period` on general
+     * ledger — and both are `<table>.period` underneath.
+     */
+    private function periodKey(Dataset $dataset): ?string
+    {
+        foreach ($dataset->fields as $key => $field) {
+            if ($field->column === 'period') return $key;
+        }
+        return null;
+    }
 
     /**
      * Filters the definition applies without being asked.

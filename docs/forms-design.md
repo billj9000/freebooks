@@ -779,8 +779,13 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    `ReportStyle` was added to the seam to carry the report author's band styling, and
    `ReportConverter` gained `convertStyle()` and `convertPageSetup()`. Three deviations are
    deliberate — see §12.3.
-9. Remaining: `datedefault` / `gen_build_sql_date()`; the eight other provider ports; custom
-   datasets in the admin UI; and the delivery layer.
+9. **Date ranges (done 2026-08-13).** `DateRangeResolver` replaces `gen_build_sql_date()`,
+   resolving all thirteen preference codes to a half-open date pair — or, for `z`, to an
+   accounting period — with the calendar behind a `FiscalCalendar` interface so the arithmetic is
+   testable off the clock. `ReportConverter::convertDateFilters()` turns the result into bound
+   filters. Verified by `verify_forms_dates.php` (72 checks) and end to end on 15 reports.
+10. Remaining: the eight other provider ports; custom datasets in the admin UI; and the delivery
+    layer.
 
 ---
 
@@ -797,7 +802,8 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_catalog.php` | Catalog safety (§3): no free-form SQL reaches the builder, filters bind parameters, sensitive tables unreachable | no | **PASS — 96 guarantees** |
 | `verify_forms_formatter.php` | `Formatter` parity with `ProcessData()`/`AddSep()` | no | **PASS** — 16 separators, 24 lookup hints matched; 5 DB-backed hints correctly refused |
 | `verify_forms_datasets.php` | Every dataset field and join resolves against the live schema | yes | **PASS — 7 datasets, 214 fields** |
-| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`) |
+| `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`); `--dates[=prefs]` re-runs any of them with a date range applied to both engines — 15 pass so far |
+| `verify_forms_dates.php` | `DateRangeResolver` parity with `gen_build_sql_date()`, and boundary arithmetic on pinned days | yes | **PASS — 72 checks** |
 | `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 105,711 rows |
 | `diff_forms_provider.php` | Invoice provider matches the step-0 baseline | yes | 0 differences |
 
@@ -906,10 +912,29 @@ derives its break key by scanning `fieldlist` for the group's field name; when i
 prints one group total where there are 118 customers. **Not fixed** — PhreeForm is being retired
 and Forms groups these reports correctly.
 
+**"By period" dies on any report that is not built on a journal.** `gen_build_sql_date()` case `z`
+emits a bare `WHERE period = N`, unqualified and unconditional. The run dialog offers that choice on
+every report, so picking it on the Audit Log builds
+`SELECT ... FROM audit_log JOIN users WHERE period = 14` — neither table has a `period` column, the
+query fails, and `queryFactory::set_error()` prints its Database Error page and `die()`s. The same
+applies to every inventory, contact and asset report. **Not fixed**, for the same reason; Forms
+warns and drops the range instead, because a report that quietly covers all time while its header
+claims one period is worse than one that says it could not comply.
+
+One deliberate divergence remains: a **bound that is not in database format** is dropped rather
+than guessed. `gen_db_date()` substitutes TODAY for anything it cannot parse, so a mistyped date
+silently reports the wrong month instead of failing.
+
+Everything else about an unresolvable range fails *narrow*, which is the rule the resolver is built
+around: an undefined accounting period keeps its `period = N` filter and loses only the dates its
+header would have shown, and a quarter whose closing period is undefined still applies the opening
+bound. Dropping the filter would turn "period 999" into "all time" — the one wrong answer that
+looks like a working report.
+
 ### 12.4 What remains
 
-Per §11, step 8: `datedefault` / `gen_build_sql_date()`; the eight other special-class provider
-ports; custom datasets in the admin UI; and the delivery layer.
+Per §11, step 10: the eight other special-class provider ports; custom datasets in the admin UI;
+and the delivery layer.
 
 Dataset depth is uneven, though every dataset now has real coverage. `transactions` is proven
 deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `contacts` and

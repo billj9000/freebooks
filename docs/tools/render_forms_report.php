@@ -49,14 +49,26 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 
-$REPORT_ID = (int)($argv[1] ?? 0);
-$DATASET   = (string)($argv[2] ?? '');
-$OUT       = (string)($argv[3] ?? '/tmp/forms-report');
+// --dates[=prefs] as in verify_forms_report.php. Both engines must be given the
+// same range or the PDFs differ in their ROWS, which reads as a renderer fault
+// and is not one.
+$DATEPREFS = null;
+$WITHDATES = false;
+$args      = [];
+foreach (array_slice($argv, 1) as $arg) {
+    if ($arg === '--dates')                { $WITHDATES = true; continue; }
+    if (str_starts_with($arg, '--dates=')) { $WITHDATES = true; $DATEPREFS = substr($arg, 8); continue; }
+    $args[] = $arg;
+}
+
+$REPORT_ID = (int)($args[0] ?? 0);
+$DATASET   = (string)($args[1] ?? '');
+$OUT       = (string)($args[2] ?? '/tmp/forms-report');
 if (!$REPORT_ID || $DATASET === '') {
-    fwrite(STDERR, "Usage: php render_forms_report.php <report_id> <dataset> [out_dir] [company]\n");
+    fwrite(STDERR, "Usage: php render_forms_report.php <report_id> <dataset> [out_dir] [company] [--dates[=prefs]]\n");
     exit(1);
 }
-$company = fb_bootstrap($argv[4] ?? null);
+$company = fb_bootstrap($args[3] ?? null);
 
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
@@ -65,7 +77,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/legacy/template_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/legacy/report_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/providers/report_provider.php');
 
-use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
+use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver, ShippedDatasets};
 use FreeBooks\Forms\Document\{Context, TypedValue};
 use FreeBooks\Forms\Legacy\ReportConverter;
 use FreeBooks\Forms\Provider\ReportDocumentProvider;
@@ -79,7 +91,8 @@ echo "company: $company\nreport:  pf_$REPORT_ID (" . ($report->title ?? '?') . "
 
 // Clone for Forms; the original stays global for the legacy engine. See above.
 $formsReport = unserialize(serialize($report));
-$report->datedefault = $formsReport->datedefault = 'a';
+if (!$WITHDATES)         $report->datedefault = $formsReport->datedefault = 'a';
+if ($DATEPREFS !== null) $report->datedefault = $formsReport->datedefault = $DATEPREFS;
 
 // ── legacy PDF ───────────────────────────────────────────────────────────────
 $built = BuildSQL($report);
@@ -105,6 +118,9 @@ $columns   = $converter->convertColumns($formsReport, $dataset);
 $group     = $converter->convertGroup($formsReport, $dataset);
 $sorts     = $converter->convertSorts($formsReport, $dataset);
 $filters   = $converter->convertFilters($formsReport, $dataset);
+
+$range   = (new DateRangeResolver(new AppFiscalCalendar($db)))->resolve((string)$formsReport->datedefault);
+$filters = array_merge($filters, $converter->convertDateFilters($formsReport, $dataset, $range));
 $style     = $converter->convertStyle($formsReport);
 $pageSetup = $converter->convertPageSetup($formsReport);
 
