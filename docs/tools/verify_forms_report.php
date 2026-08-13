@@ -64,13 +64,14 @@ require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/render/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/legacy/template_converter.php');
-require_once(DIR_FS_MODULES . 'forms/classes/legacy/report_converter.php');
 require_once(DIR_FS_MODULES . 'forms/classes/providers/report_provider.php');
+require_once(DIR_FS_MODULES . 'forms/classes/legacy/report_converter.php');
+require_once(DIR_FS_MODULES . 'forms/classes/providers/financial_provider.php');
 
 use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver, ShippedDatasets};
 use FreeBooks\Forms\Document\{Row, RowKind, TableDocument, ValueType};
 use FreeBooks\Forms\Legacy\ReportConverter;
-use FreeBooks\Forms\Provider\ReportDocumentProvider;
+use FreeBooks\Forms\Provider\{BalanceSheetDocumentProvider, IncomeStatementDocumentProvider, ReportDocumentProvider};
 use FreeBooks\Forms\Render\{CsvRenderer, Formatter};
 
 $failures = 0;
@@ -99,6 +100,17 @@ echo "report:  pf_$REPORT_ID (" . ($report->title ?? '?') . ")\n";
 // to stay the one in the global scope.
 $formsReport = unserialize(serialize($report));
 
+// The accounting period is supplied by the run dialog, not by the definition.
+// Without it the financial statements build `where period = ` and the legacy
+// engine dies on the SQL error before returning anything at all.
+$period = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS
+    . " where start_date <= '" . date('Y-m-d') . "' and end_date >= '" . date('Y-m-d') . "'")
+    ->fields['period'] ?? null;
+if ($period === null) {
+    $period = $db->Execute("select max(period) as period from " . TABLE_ACCOUNTING_PERIODS)->fields['period'] ?? 1;
+}
+$report->period = $formsReport->period = (int)$period;
+
 // datedefault 'c' (Today) selects nothing historical, exactly as for forms.
 if (!$WITHDATES)             $report->datedefault = $formsReport->datedefault = 'a';
 if ($DATEPREFS !== null)     $report->datedefault = $formsReport->datedefault = $DATEPREFS;
@@ -123,6 +135,34 @@ printf("legacy:  %d data rows, %d total rows, %d columns\n", $legacyRows, $legac
 // ── Forms ────────────────────────────────────────────────────────────────────
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
+
+// A STRUCTURAL report has no dataset: its rows are sections in a fixed order,
+// not a query result, so it is built by a provider and compared row for row.
+// Pass '-' as the dataset name for these.
+$STRUCTURAL = [
+    'is_budget'     => IncomeStatementDocumentProvider::class,
+    'balance_sheet' => BalanceSheetDocumentProvider::class,
+];
+$special     = (string)($formsReport->special_class ?? '');
+$compareKind = null;
+if (isset($STRUCTURAL[$special])) {
+    $converter = new ReportConverter();
+    $columns   = $converter->convertStructuralColumns($formsReport);
+    $period    = (int)($formsReport->period ?? 0);
+    printf("forms:   %d structural columns, %s, period %d\n", count($columns), $special, $period);
+    foreach ($columns as $c) echo "  column:  {$c->key}  ({$c->heading})\n";
+
+    $class    = $STRUCTURAL[$special];
+    $provider = new $class(
+        db:      $db,
+        columns: $columns,
+        period:  $period,
+        title:   (string)($formsReport->title ?? 'Report'),
+    );
+    $doc         = $provider->build([]);
+    $compareKind = RowKind::Data;
+    $converterHasTotalsOnly = false;
+} else {
 $dataset = $catalog->get($DATASET);
 
 $converter = new ReportConverter();
@@ -158,12 +198,13 @@ $provider = new ReportDocumentProvider(
     totalsOnly: $converter->convertTotalsOnly($formsReport),
 );
 $doc = $provider->build([]);
+}
 
 // A totals-only report has no data rows by construction: the roll-up its
 // special_class did in PHP is a group break with the rows beneath hidden. So
 // the legacy's DATA rows are the Forms GROUP TOTAL rows, and comparing data to
 // data would report every row missing while the output is exactly right.
-$compareKind = $converter->convertTotalsOnly($formsReport) ? RowKind::GroupTotal : RowKind::Data;
+$compareKind = $compareKind ?? ($converter->convertTotalsOnly($formsReport) ? RowKind::GroupTotal : RowKind::Data);
 
 $formsRows = $formsTotals = 0;
 foreach ($doc->rows as $row) {
@@ -225,10 +266,17 @@ if ($legacyGroupNames === []) {
     // false)` emits one group total for the entire report — a second copy of
     // the report total, labelled with nothing, printed directly above it.
     echo "  note: report has no default group; legacy emits one anyway.\n";
+    // A structural report emits no totals at all: its subtotals are ordinary
+    // rows with a caption, so there is no ungrouped-total defect to observe.
+    if (isset($STRUCTURAL[$special])) {
+        ok('structural report: legacy emits no group rows', count($legacyGroupLabels) === 0,
+           'legacy emitted ' . count($legacyGroupLabels));
+    } else {
     ok('legacy emitted its spurious ungrouped total row', count($legacyGroupLabels) === 1,
        'legacy emitted ' . count($legacyGroupLabels));
     ok('legacy\'s spurious row is unlabelled', ($legacyGroupLabels[0] ?? 'x') === '',
        'label was ' . var_export($legacyGroupLabels[0] ?? null, true));
+    }
     ok('Forms emits no group total when nothing is grouped',
        $formsGroupLabels === [] || $compareKind === RowKind::GroupTotal,
        'forms emitted ' . count($formsGroupLabels));

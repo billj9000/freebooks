@@ -811,8 +811,23 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
     the dataset supplies rather than pasting it into the SQL (the cutoffs are today's date less an
     admin setting, so no static expression can hold them); and identity columns on a totals-only
     break row, without which an aged summary lists balances against no customer name.
-12. Remaining: the three report-shaped provider ports (`balance_sheet`, `is_budget`,
-    `acct_recon`); custom datasets in the admin UI; and the delivery layer.
+12. **Income Statement and Balance Sheet (done 2026-08-13).** `is_budget`, `balance_sheet` and the
+    `income_statement` helper the latter existed partly to call become
+    `IncomeStatementDocumentProvider` and `BalanceSheetDocumentProvider`, sharing one `FiscalWindow`
+    that resolves the four period bounds all three derived separately. `pf_50`, `pf_65` and `pf_66`
+    match the legacy engine row for row on both companies.
+
+    These are the first reports that are genuinely *structural*: their rows are sections in a fixed
+    order — revenues, cost of sales, gross profit, expenses, net income — not a query result grouped
+    by something. No filter or sort a report author could write would produce a balance sheet, so
+    unlike the aged pair they keep a provider. `ReportConverter::convertStructuralColumns()` maps
+    their columns without a dataset.
+
+    One correctness fix travelled with the port. `is_budget` advanced four result cursors in
+    lockstep with `MoveNext()`, which holds only while every one returns the same accounts in the
+    same order; an account with no history row in the prior year drops out of that cursor and every
+    row after it reads its neighbour's figures. The port keys by account id, which cannot misalign.
+13. Remaining: `acct_recon`; custom datasets in the admin UI; and the delivery layer.
 
 ---
 
@@ -989,6 +1004,13 @@ memo as a positive payable. `aged_summary` negated {7, 13}, reading a vendor BIL
 asserted by `verify_forms_report.php` as "identical up to sign" rather than skipped — no row may
 appear or vanish and no magnitude may change.
 
+**The shipped Income Statement has never run.** `pf_64` names `special_class` `income_statement_au`,
+which exists nowhere in the codebase — not in `trunk`, not in `extensions`. `find_special_class()`
+returns false, `BuildDataArray()` returns false, and the report produces nothing at all. `pf_65`
+(Income Statement w/Budget) and `pf_66` (Income Stmt - 2 Years) use the real `is_budget` class and
+work. **Not fixed**: repointing it at `is_budget` would change what a shipped report prints, and
+Forms serves the same three definitions regardless.
+
 **One PHP 8 warning that was only ever a warning.** `is_budget::load_report_data()` emits a row
 built from `$temp`, a local of `add_income_stmt_data()` that is undefined in that scope. Every cell
 came out null, and the `def_cur` processor passes non-numerics straight through, so the row rendered
@@ -1036,16 +1058,19 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 12: the three report-shaped provider ports; custom datasets in the admin UI; and the
-delivery layer.
+Per §11, step 13: `acct_recon`; custom datasets in the admin UI; and the delivery layer.
 
-The aged pair is done and needed no provider at all (§11.11). The three that remain are harder in a
-different way. They return arrays of already-`ProcessData`-formatted strings tagged
-`'d'`/`'g:label'`/`'r:label'` — they are doing the renderer's work — and all three discard the
-engine's SQL entirely and hardcode their section structure, so the definition is a column-layout
-skin over a fixed report body. Their `load_report_data()` signatures come in three different
-arities; one call site serves them all only because PHP does not check. `balance_sheet` also reads
-`global $Seq`, a variable that is a local in its caller.
+Eight of the nine `special_class` ports are done. `acct_recon` is the last and the most
+idiosyncratic: it ignores `$sql` and `$Seq` entirely, reaches into `$report->filterlist[0]->min_val`
+on the stated assumption that "the gl account is the first criteria", and hardcodes its processing
+directives so the definition's column formatting is ignored. It is also `demo`-only — `production` has
+no reconciled journal items at all.
+
+Section headings, blank separators and subtotal captions are currently Data rows carrying only a
+caption, which is what the legacy emitted and what makes row-for-row parity checkable. Giving them
+their own `RowKind` would describe them better and let a renderer style a subtotal differently from
+an account line, but that is a change to the seam and is deliberately left for a decision of its
+own.
 
 `is_budget` is now fully verifiable: `demo` carries budget figures on five P&L accounts across
 periods 13 and 14, and postings in periods 1, 2, 13 and 14, so all six of its columns — current,

@@ -32,6 +32,7 @@
 
 namespace FreeBooks\Forms\Legacy;
 
+use FreeBooks\Forms\Provider\IncomeStatementDocumentProvider;
 use FreeBooks\Forms\Catalog\{
     CatalogException, Dataset, DateRange, FieldExpression, Filter, FilterOperator, Sort, SortDirection
 };
@@ -110,6 +111,44 @@ final class ReportConverter
                 total:     $this->truthy($field->total ?? null),
                 pageBreak: $this->truthy($field->columnbreak ?? null),
             );
+        }
+        return $columns;
+    }
+
+    /**
+     * Columns for a STRUCTURAL report — one whose rows come from a provider
+     * rather than from a dataset query.
+     *
+     * The Income Statement family names its columns meaningfully, so those
+     * names are kept and the provider fills them. The Balance Sheet does not:
+     * its definition lists `journal_main.id` four times over, because the class
+     * filled the row by position and never read the names. Anything unrecognised
+     * therefore falls back to its position, which is the only thing the legacy
+     * definition actually carried.
+     *
+     * @return list<ReportColumn>
+     */
+    public function convertStructuralColumns(object $report): array
+    {
+        $this->warnings = [];
+        $this->unmapped = [];
+        $this->resolved = [];
+
+        $named   = array_merge(['description'], IncomeStatementDocumentProvider::VALUE_KEYS);
+        $columns = [];
+        $index   = 0;
+        foreach ((array)($report->fieldlist ?? []) as $field) {
+            if (!$this->truthy($field->visible ?? null)) continue;
+            $legacy = $this->scalar($field->fieldname ?? null);
+            $hint   = $this->scalar($field->processing ?? null);
+            $columns[] = new ReportColumn(
+                key:       in_array($legacy, $named, true) ? $legacy : 'c' . $index,
+                heading:   $this->scalar($field->description ?? null),
+                width:     $this->number($field->columnwidth ?? $field->width ?? null),
+                align:     $this->align($this->scalar($field->align ?? null)),
+                format:    $hint === '' ? null : new Format($hint),
+            );
+            $index++;
         }
         return $columns;
     }
