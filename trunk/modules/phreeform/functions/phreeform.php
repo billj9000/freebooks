@@ -505,7 +505,13 @@ function BuildPDF($report, $delivery_method = 'D') { // for forms only - PDF sty
 	  }
 	  // load the posted currency values
 	  $posted_currencies = array();
-	  if (ENABLE_MULTI_CURRENCY && strpos($report->sqlTable, TABLE_JOURNAL_MAIN) !== false) {
+	  // Match the table, not any name containing it. strpos() found
+	  // 'journal_main' inside 'wo_journal_main', so with multi-currency on and
+	  // no DB_PREFIX the Work Order form asked wo_journal_main for
+	  // currencies_code and died on the SQL error before drawing a page. \b
+	  // holds either way: '_' is a word character, so pb_journal_main does not
+	  // match inside pb_wo_journal_main.
+	  if (ENABLE_MULTI_CURRENCY && preg_match('/\b' . preg_quote(TABLE_JOURNAL_MAIN, '/') . '\b/', (string)$report->sqlTable)) {
 	    $sql    = "select currencies_code, currencies_value " . $TrailingSQL;
 	    $result = $db->Execute($sql);
 	    $posted_currencies = array(

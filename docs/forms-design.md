@@ -784,8 +784,19 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
    accounting period — with the calendar behind a `FiscalCalendar` interface so the arithmetic is
    testable off the clock. `ReportConverter::convertDateFilters()` turns the result into bound
    filters. Verified by `verify_forms_dates.php` (72 checks) and end to end on 15 reports.
-10. Remaining: the eight other provider ports; custom datasets in the admin UI; and the delivery
-    layer.
+10. **The three other form providers (done 2026-08-13).** `StatementDocumentProvider`,
+    `PosDocumentProvider` and `WorkOrderDocumentProvider` complete the `LayoutDocument` half of the
+    special-class set. All three match a PhreeForm baseline field for field and line for line on
+    both companies; the statement provider also matches across date ranges, which is the only path
+    that exercises its prior-balance carry-forward. Risk 3 is **closed**: the `entry_builder` shape
+    held for all three, and no new provider method was needed. Two things the ports settle:
+    - The statement takes a `DateRange` rather than reading the report definition, so §11.9's
+      resolver is what supplies the period — a provider never touches `gen_build_sql_date()`.
+    - `record_ids` is not always a journal id. A statement is per contact and a work order is its
+      own journal, which the baseline tooling had assumed away.
+11. Remaining: the five report-shaped provider ports (`balance_sheet`, `is_budget`,
+    `aged_receivables`, `aged_summary`, `acct_recon`); custom datasets in the admin UI; and the
+    delivery layer.
 
 ---
 
@@ -805,7 +816,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_report.php` | Per-report row-set parity against PhreeForm, plus the intended CSV divergence | yes | **30 of 30 verified**, 0 failing (26 on `production`, 4 on `demo`); `--dates[=prefs]` re-runs any of them with a date range applied to both engines — 15 pass so far |
 | `verify_forms_dates.php` | `DateRangeResolver` parity with `gen_build_sql_date()`, and boundary arithmetic on pinned days | yes | **PASS — 72 checks** |
 | `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 105,711 rows |
-| `diff_forms_provider.php` | Invoice provider matches the step-0 baseline | yes | 0 differences |
+| `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -836,7 +847,7 @@ docker cp trunk/modules/forms   <c>:/opt/repo/trunk/modules/
 docker exec <c> sh -c 'cd /opt/repo/docs/tools && php -d display_errors=1 verify_forms_seam.php'
 ```
 
-Three traps, each of which produces a wrong or misleading result rather than a clear error:
+Four traps, each of which produces a wrong or misleading result rather than a clear error:
 
 1. **Always pass the company explicitly, and run both.** Auto-detection silently picks the *first*
    company directory (`demo`), so a run you believed covered `production` may not have. Use
@@ -848,6 +859,11 @@ Three traps, each of which produces a wrong or misleading result rather than a c
    the prefix work rather than of the harness.
 3. **`display_errors` is Off in the image**, so CLI fatals are invisible. Always
    `php -d display_errors=1`.
+4. **`verify_forms_report.php` takes the dataset name, and naming the wrong one still runs.** Every
+   column comes back `UNMAPPED`, the range is dropped, and the tool reports a row-count mismatch in
+   the hundreds of thousands — which reads exactly like a broken converter. `pf_84` is the Audit
+   Log on `audit_trail`, not a `general_ledger` report; check §6 before believing a failure of this
+   shape.
 
 The prefix check copies each table into session `TEMPORARY` tables, so it creates, alters and drops
 nothing in any company database — safe against `demo` and `production` while both are live.
@@ -894,10 +910,11 @@ stripped the formatting from, and it prints them as-is: on `pf_62` the money col
 down the page and then `216.77` on the total line. Forms carries a total as a `Money` `TypedValue`
 like any other, so the same formatter runs over it and the currency stays on.
 
-### 12.3.1 Two PhreeForm bugs found while proving this
+### 12.3.1 PhreeForm bugs found while proving this
 
-Both are in the legacy engine, both were found by rendering the shipped set through it, and both
-are fixed only where noted.
+All are in the legacy engine, all were found by driving the shipped set through it, and each is
+fixed only where noted. The pattern is worth naming: every one of them was invisible until
+something outside PhreeForm asked the same question twice.
 
 **`RW_DEFAULT_COLUMN_WIDTH` was defined nowhere.** `report_generator.php` read it for any visible
 column with no `columnwidth`. The name is a typo for the `PF_DEFAULT_COLUMN_WIDTH` admin setting
@@ -921,6 +938,37 @@ applies to every inventory, contact and asset report. **Not fixed**, for the sam
 warns and drops the range instead, because a report that quietly covers all time while its header
 claims one period is worse than one that says it could not comply.
 
+**The Work Order form could not be printed at all.** `BuildPDF()` decides whether to load posted
+currency values with `strpos($report->sqlTable, TABLE_JOURNAL_MAIN) !== false` — a substring test
+where an identity test was meant. `'journal_main'` is a substring of `'wo_journal_main'`, so with
+multi-currency enabled and no `DB_PREFIX` the Work Order form asked `wo_journal_main` for
+`currencies_code`, the query failed, and `gen_redirect()` sent the user to the crash page before a
+single page was drawn. A prefixed install escapes it by accident: `pb_journal_main` is not a
+substring of `pb_wo_journal_main`. **Fixed** with a word-boundary match, which is correct either
+way. This one blocked the port outright — no legacy baseline could be captured until it was fixed.
+
+**Aged Payables Summary aged its buckets by the receivables periods.** `aged_summary` computes its
+three cutoffs once from `AR_AGING_PERIOD_*`, but serves both the receivables and the payables
+summary; `aged_receivables`, its near-twin, correctly picks `AP_AGING_DATE_*` per row for journals 6
+and 7. AP and AR aging are independently configurable in admin, so the two reports disagree wherever
+an installation has set them differently. **Fixed** by choosing the cutoffs per row, as the twin
+does. Latent in both `demo` and `production`, which run the 30/60/90 default on both sides.
+
+**The Work Order form printed at most its order-level reference documents.** `wo_builder::build_ref_lists()`
+read `ref_specs` from a query that selected `ref_spec`, so order-level specifications were always
+empty; and it guarded the per-step merge with `count(is_array($docs > 0) ? $docs > 0 : [])`, where
+comparing an array to an integer yields `true`, `is_array(true)` is `false`, and `count([])` is 0 —
+so no step ever contributed a reference. The intent was plainly `count($docs) > 0`. **Not fixed** in
+PhreeForm; `WorkOrderDocumentProvider` gets it right, which makes it the one place a Forms document
+deliberately carries *more* data than its baseline.
+
+**One PHP 8 warning that was only ever a warning.** `is_budget::load_report_data()` emits a row
+built from `$temp`, a local of `add_income_stmt_data()` that is undefined in that scope. Every cell
+came out null, and the `def_cur` processor passes non-numerics straight through, so the row rendered
+blank — which is exactly the separator the surrounding code wanted. Recorded because it was first
+reported as wrong output and is not: the Income Statement was always correct. **Fixed** as an
+`add_heading_line()` call, same output, no warning.
+
 One deliberate divergence remains: a **bound that is not in database format** is dropped rather
 than guessed. `gen_db_date()` substitutes TODAY for anything it cannot parse, so a mistyped date
 silently reports the wrong month instead of failing.
@@ -931,10 +979,48 @@ header would have shown, and a quarter whose closing period is undefined still a
 bound. Dropping the filter would turn "period 999" into "all time" — the one wrong answer that
 looks like a working report.
 
+### 12.3.2 Three harness bugs the form ports exposed
+
+The provider diff had been run against one form. Three of its assumptions were really assumptions
+about the Invoice, and each produced a *wrong result* rather than an error — worth recording,
+because the same shape will recur as the report providers land.
+
+**Positional re-keying took only `Data` elements.** `BuildForm()` sequences `Data`, `BarCode` and
+`ImgLink`, and `wo_builder` returns all three. Taking `Data` alone left the name list shorter than
+the value list, so every Work Order field compared against its neighbour: six fields reported wrong
+when the data was right and only the alignment was off. An image filename showing up under `id` is
+the tell.
+
+**A `serialform` baseline captured almost nothing.** `BuildSeq()` renders by `array_shift()`ing
+`$FieldValues`, so by the time it returns there is nothing left to snapshot — the same
+consume-as-you-go hazard already recorded for `BuildDataArray()`. The POS receipt is the only
+serial form in the set. Its baseline now drives the special_class directly, which still tests the
+real legacy data layer; what it no longer proves is that the engine can drive it.
+
+**A record with nothing in it passed.** A date range that excludes every row of a record leaves the
+baseline empty, and an empty baseline agrees with any provider at all. This is the third appearance
+of the vacuous-green failure mode (after `pf_90` and the prefix check over 0 rows), so the tool now
+says `VACUOUS` and counts it separately instead of printing a tick.
+
+Two further findings were **not** harness bugs and are kept as behaviour: PhreeForm returns `null`
+for a header field its special_class never sets — the statements bind `rep_id` and `terms` that way
+— and a provider that declines to invent them agrees; and a table may hold rows of more than one
+shape, as the POS receipt's payment lines do, so a missing key is not a missing value.
+
 ### 12.4 What remains
 
-Per §11, step 10: the eight other special-class provider ports; custom datasets in the admin UI;
-and the delivery layer.
+Per §11, step 11: the five report-shaped provider ports; custom datasets in the admin UI; and the
+delivery layer.
+
+The five that remain are a different job from the three just finished. They return arrays of
+already-`ProcessData`-formatted strings tagged `'d'`/`'g:label'`/`'r:label'` — they are doing the
+renderer's work — and three of them discard the engine's SQL entirely and hardcode their section
+structure, so the definition is a column-layout skin over a fixed report body. Their
+`load_report_data()` signatures come in four different arities; one call site serves them all only
+because PHP does not check. Expect the port to *remove* code: `aged_receivables` and `aged_summary`
+each re-implement the group-break and total loop that `ReportDocumentProvider` already has, and
+both carry an N+1 query pattern (three queries per row, and one per row, respectively) that goes
+with it.
 
 Dataset depth is uneven, though every dataset now has real coverage. `transactions` is proven
 deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `contacts` and
@@ -942,3 +1028,11 @@ deeply (14 reports, 28,832 rows prefixed). `general_ledger`, `inventory`, `conta
 rows) and `assets` (3 rows) pass every check but on small `demo` fixtures — treat those two as
 smoke-tested rather than proven, and re-run when a company with real work-order or asset volume
 exists.
+
+The same caveat now applies to two of the form providers. The POS receipt and the Work Order are
+`demo`-only — `production` has no journal-19 receipts and no work orders at all — and the four work
+orders there share one task each, so the routing table is proven at one row. The statements are the
+best covered of the three: five contacts across both companies, customer and vendor, plus the same
+records re-run under three date preferences. **Neither company holds a single non-zero budget
+row**, so when `is_budget` is ported, one of the three reports it serves (`IncomeStatementw_Budget`)
+can only be verified structurally until budget figures exist.

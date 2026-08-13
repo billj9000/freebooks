@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -36,9 +36,19 @@ class aged_summary {
 	global $db;
 	// find list of accounts within search filter 
 	$today = date('Y-m-d');
-	$late_30 = gen_specific_date($today, -AR_AGING_PERIOD_1);
-	$late_60 = gen_specific_date($today, -AR_AGING_PERIOD_2);
-	$late_90 = gen_specific_date($today, -AR_AGING_PERIOD_3);
+	// Payables and receivables have independent aging settings, and this class
+	// serves both AgedReceivablesSummary and AgedPayablesSummary. It aged every
+	// row by AR_AGING_PERIOD_*, so a payables summary bucketed by the
+	// receivables periods whenever the two are configured differently. Pick the
+	// cutoffs per row from the journal, as aged_receivables already does.
+	$ar_late = array(
+	  gen_specific_date($today, -AR_AGING_PERIOD_1),
+	  gen_specific_date($today, -AR_AGING_PERIOD_2),
+	  gen_specific_date($today, -AR_AGING_PERIOD_3));
+	$ap_late = array(
+	  gen_specific_date($today, -AP_AGING_DATE_1),
+	  gen_specific_date($today, -AP_AGING_DATE_2),
+	  gen_specific_date($today, -AP_AGING_DATE_3));
 	$sql_fields = substr($sql, strpos($sql,'select ') + 7, strpos($sql, ' from ') - 7);
 	// prepare the sql by temporarily replacing calculated fields with real fields
 	$this->sql_field_array = explode(', ', $sql_fields);
@@ -53,6 +63,8 @@ class aged_summary {
 	  for ($i = 0; $i < count(is_array($this->sql_field_karray) ? $this->sql_field_karray : []); $i++) {
 	    $this->accounts[$result->fields['bill_acct_id']]['c' . $i] = $result->fields['c' . $i];
 	  }
+	  // Journals 6 and 7 are the payables side; everything else ages as receivables.
+	  list($late_30, $late_60, $late_90) = in_array($result->fields['journal_id'], array(6, 7)) ? $ap_late : $ar_late;
 	  $negate = (in_array($result->fields['journal_id'], array(7, 13))) ? true : false;
 	  $balance  = $negate ? -$result->fields['total_amount'] : $result->fields['total_amount'];
 	  $balance -= $this->fetch_paid_amounts($result->fields['id']);

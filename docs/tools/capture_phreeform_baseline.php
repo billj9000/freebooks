@@ -67,8 +67,10 @@ if (PHP_SAPI !== 'cli') { fwrite(STDERR, "CLI only.\n"); exit(1); }
 $REPORT_ID = isset($argv[1]) ? (int)$argv[1] : 0;
 $RECORDS   = isset($argv[2]) ? array_values(array_filter(array_map('intval', explode(',', $argv[2])))) : [];
 $OUT       = $argv[3] ?? '/tmp/baseline';
+/** PhreeForm date preference code; see DateRange::$preference. 'a' is all dates. */
+$DATEDEFAULT = $argv[5] ?? 'a';
 if (!$REPORT_ID || !$RECORDS) {
-    fwrite(STDERR, "Usage: php capture_phreeform_baseline.php <report_id> <id,id,...> [out_dir] [company]\n");
+    fwrite(STDERR, "Usage: php capture_phreeform_baseline.php <report_id> <id,id,...> [out_dir] [company] [datedefault]\n");
     exit(1);
 }
 
@@ -79,6 +81,75 @@ $company = fb_bootstrap($argv[4] ?? null);
 if (!is_dir($OUT) && !@mkdir($OUT, 0777, true)) {
     fwrite(STDERR, "Cannot create $OUT\n");
     exit(1);
+}
+
+/**
+ * Where a form's records live.
+ *
+ * PhreeForm breaks a form on $report->formbreakfield and hands that value to the
+ * special_class, so a baseline has to select on the same field and read its
+ * metadata from the table that field belongs to. Only the invoice family lives
+ * in journal_main: a statement is per contact, a work order is its own journal,
+ * and neither carries a printed counter or a posted currency.
+ *
+ * @return array{filter:string,table:string,ref:string,printed:bool,currency:bool}
+ */
+function baseline_source($report): array
+{
+    return match ((string)($report->special_class ?? '')) {
+        // The break value is a contact id, but the engine's own query runs over
+        // journal_main, so that is where the record is selected.
+        'statement_builder' => ['filter'  => 'journal_main.bill_acct_id',
+                                'table'   => TABLE_CONTACTS,
+                                'ref'     => 'short_name',
+                                'printed' => false, 'currency' => false],
+        'wo_builder'        => ['filter'  => 'wo_journal_main.id',
+                                'table'   => TABLE_WO_JOURNAL_MAIN,
+                                'ref'     => 'wo_title',
+                                'printed' => false, 'currency' => false],
+        default             => ['filter'  => 'journal_main.id',
+                                'table'   => TABLE_JOURNAL_MAIN,
+                                'ref'     => 'purchase_invoice_id',
+                                'printed' => true,  'currency' => true],
+    };
+}
+
+/**
+ * Baseline a receipt-style (serialform) document straight from its special_class.
+ *
+ * Resolves the header record and every Tbl into the definition, in the shape
+ * BuildPDF() would have left behind, so snapshot_elements() and the diff tool
+ * need no special case. The heading row BuildPDF puts at table_data[0] is
+ * reproduced because the diff slices it off.
+ *
+ * @return array{pdf:string}|false
+ */
+function capture_serial_baseline($report, int $recId)
+{
+    if (!$report->special_class) return false;
+    if (!$path = find_special_class($report->special_class)) return false;
+    load_special_language($path, $report->special_class);
+    require_once($path . '/classes/' . $report->special_class . '.php');
+
+    $GLOBALS['report'] = $report;          // the classes read the definition off the global
+    $class  = $report->special_class;
+    $form   = new $class();
+    $values = $form->load_query_results($report->formbreakfield, $recId);
+    if ($values === false) return false;
+    $GLOBALS['FieldValues'] = $values;
+
+    foreach ($report->fieldlist as $field) {
+        if (($field->type ?? '') === 'Tbl' && !empty($field->boxfield)) {
+            $headings = [];
+            foreach ($field->boxfield as $i => $b) $headings['r' . $i] = $b->title ?? '';
+            $field->data = array_merge([$headings], (array)$form->load_table_data($field->boxfield));
+        }
+        if (in_array($field->type ?? '', ['TBlk', 'CBlk'], true) && !empty($field->boxfield)) {
+            $field->text = $form->load_text_block_data($field->boxfield);
+        }
+    }
+    // No bytes to compare: this path deliberately stops at the data layer.
+    return ['pdf' => ''];
 }
 
 /** Snapshot the template elements plus whatever the data layer resolved into them. */
@@ -102,49 +173,71 @@ function snapshot_elements($report) {
 
 $exit = 0;
 foreach ($RECORDS as $recId) {
-    $before = $db->Execute("SELECT printed, purchase_invoice_id, currencies_code, currencies_value
-                            FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$recId)->fields;
-    if (!$before) { echo "  rec $recId: NOT FOUND\n"; $exit = 1; continue; }
-
     $report     = get_report_details($REPORT_ID);
+    $src        = baseline_source($report);
     $suppressed = $report->setprintedfield ?? '';
     $report->setprintedfield = '';        // trap 1 - never move the printed counter
-    $report->datedefault     = 'a';       // trap 2 - 'c' (Today) selects zero historical rows
+    // trap 2 - 'c' (Today) selects zero historical rows, so 'a' is the default.
+    // Override it to exercise a range: the statement's prior-balance carry
+    // forward only exists when the period has a beginning.
+    $report->datedefault     = $DATEDEFAULT;
+
+    $cols = [$src['ref'] . ' as record_ref'];
+    if ($src['printed'])  $cols[] = 'printed';
+    if ($src['currency']) { $cols[] = 'currencies_code'; $cols[] = 'currencies_value'; }
+    $before = $db->Execute("SELECT " . implode(', ', $cols) . " FROM " . $src['table']
+                         . " WHERE id = " . (int)$recId)->fields;
+    if (!$before) { echo "  rec $recId: NOT FOUND\n"; $exit = 1; continue; }
 
     $x = new stdClass();                  // select exactly this record
-    $x->fieldname = 'journal_main.id';
+    $x->fieldname = $src['filter'];
     $x->default   = 'EQUAL';
     $x->min_val   = $recId;
     $report->xfilterlist = [$x];
 
     $GLOBALS['FieldValues'] = [];
-    $output = BuildForm($report, 'S');    // 'S' returns bytes instead of exit()ing
+    if ($report->serialform) {
+        // BuildSeq() renders the receipt by array_shift()ing $FieldValues, so by
+        // the time it returns there is nothing left to snapshot — the same
+        // consume-as-you-go hazard as BuildDataArray(). Drive the special_class
+        // directly instead. This is a DATA baseline and the class IS the legacy
+        // data layer, so nothing under test is skipped; what it does not prove
+        // is that the engine can still drive it, which BuildSeq below does.
+        $output = capture_serial_baseline($report, $recId);
+    } else {
+        $output = BuildForm($report, 'S');    // 'S' returns bytes instead of exit()ing
+    }
 
-    $after = $db->Execute("SELECT printed FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$recId)->fields;
-    $moved = ($before['printed'] !== $after['printed']);
+    $after = $src['printed']
+        ? $db->Execute("SELECT printed FROM " . $src['table'] . " WHERE id = " . (int)$recId)->fields
+        : [];
+    $moved = $src['printed'] && ($before['printed'] !== $after['printed']);
 
-    $ok   = is_array($output) && !empty($output['pdf']);
+    // A serialform baseline stops at the data layer, so it has no bytes to weigh.
+    $ok   = is_array($output) && ($report->serialform ? true : !empty($output['pdf']));
     $stem = "$OUT/pf{$REPORT_ID}_rec{$recId}";
     if ($ok) file_put_contents("$stem.pdf", $output['pdf']);
 
     file_put_contents("$stem.json", json_encode([
         'report_id'        => $REPORT_ID,
         'record_id'        => $recId,
-        'record_ref'       => $before['purchase_invoice_id'],
-        'currency'         => $before['currencies_code'],
-        'currencies_value' => $before['currencies_value'],
+        'special_class'    => $report->special_class ?? '',
+        'datedefault'      => $DATEDEFAULT,
+        'record_ref'       => $before['record_ref'],
+        'currency'         => $before['currencies_code']  ?? null,
+        'currencies_value' => $before['currencies_value'] ?? null,
         'suppressed_field' => $suppressed,
-        'printed_before'   => $before['printed'],
-        'printed_after'    => $after['printed'],
+        'printed_before'   => $before['printed'] ?? null,
+        'printed_after'    => $after['printed']  ?? null,
         'pdf_bytes'        => $ok ? strlen($output['pdf']) : 0,
         'field_values'     => $GLOBALS['FieldValues'],   // the header record
         'elements'         => snapshot_elements($report),
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
     printf("  pf_%-4s rec %-6s %-12s %-4s pdf=%-10s printed %s->%s %s\n",
-        $REPORT_ID, $recId, (string)$before['purchase_invoice_id'], (string)$before['currencies_code'],
+        $REPORT_ID, $recId, (string)$before['record_ref'], (string)($before['currencies_code'] ?? '-'),
         $ok ? strlen($output['pdf']) . 'B' : 'FAILED',
-        $before['printed'], $after['printed'], $moved ? '!! COUNTER MOVED' : 'ok');
+        $before['printed'] ?? '-', $after['printed'] ?? '-', $moved ? '!! COUNTER MOVED' : 'ok');
 
     if (!$ok || $moved) $exit = 1;
 }

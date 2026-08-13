@@ -69,10 +69,40 @@ $company = fb_bootstrap($argv[4] ?? null);
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
-require_once(DIR_FS_MODULES . 'forms/classes/providers/entry_provider.php');
+require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
+foreach (['entry', 'statement', 'pos', 'work_order'] as $p) {
+    require_once(DIR_FS_MODULES . "forms/classes/providers/{$p}_provider.php");
+}
 
-use FreeBooks\Forms\Document\{Context, Template, TypedValue};
-use FreeBooks\Forms\Provider\EntryDocumentProvider;
+use FreeBooks\Forms\Catalog\{AppFiscalCalendar, DateRange, DateRangeResolver};
+use FreeBooks\Forms\Document\{Context, DocumentProvider, Template, TypedValue};
+use FreeBooks\Forms\Provider\{
+    EntryDocumentProvider, PosDocumentProvider, StatementDocumentProvider, WorkOrderDocumentProvider
+};
+
+/**
+ * The provider under test, chosen by the special_class the baseline was taken
+ * from. Everything is left at its default so the comparison is of data, not of
+ * layout: a Template with no elements still yields a full Record.
+ *
+ * The statement provider is given whatever range the baseline was captured with,
+ * resolved through the same DateRangeResolver the application uses, so the two
+ * engines are asked the same question.
+ */
+function forms_range(\queryFactory $db, string $dateDefault): DateRange
+{
+    return (new DateRangeResolver(new AppFiscalCalendar($db)))->resolve($dateDefault);
+}
+function provider_for(string $specialClass, \queryFactory $db, string $dateDefault = 'a'): DocumentProvider
+{
+    return match ($specialClass) {
+        'statement_builder' => new StatementDocumentProvider(
+            $db, new Template(), forms_range($db, $dateDefault), new Context(), 'Statement'),
+        'pos_builder'       => new PosDocumentProvider($db, new Template(), new Context(), 'Receipt'),
+        'wo_builder'        => new WorkOrderDocumentProvider($db, new Template(), new Context(), 'Work Order'),
+        default             => new EntryDocumentProvider($db, new Template(), new Context(), 'Invoice'),
+    };
+}
 
 /**
  * Fields to skip, for values PhreeForm only derives at render time.
@@ -81,6 +111,15 @@ use FreeBooks\Forms\Provider\EntryDocumentProvider;
  * the gate, so justify it in the commit that does.
  */
 const RENDER_TIME_ONLY = [];
+
+/**
+ * Values a special_class formatted in the data layer and the provider leaves
+ * typed — the seam's whole point (§2.1). These are not skipped: the provider's
+ * raw value is put through the same locale formatter the legacy called, and the
+ * result must equal the legacy string. A skip would hide a wrong date; this
+ * proves the date is right and only its presentation moved.
+ */
+const LOCALE_DATE = ['post_date'];
 
 /** Loose equality: the legacy returns DB strings, the provider keeps native types. */
 function same(mixed $a, mixed $b): bool
@@ -92,6 +131,7 @@ function same(mixed $a, mixed $b): bool
 }
 
 $totalDiffs = 0;
+$vacuous    = 0;
 foreach ($RECORDS as $recId) {
     $file = "$BASE/pf{$REPORT_ID}_rec{$recId}.json";
     if (!file_exists($file)) { echo "  rec $recId: no baseline at $file\n"; $totalDiffs++; continue; }
@@ -99,10 +139,17 @@ foreach ($RECORDS as $recId) {
 
     echo "\n=== record $recId (" . ($base['record_ref'] ?? '?') . ", " . ($base['currency'] ?? '?') . ") ===\n";
 
-    // Re-key the baseline's positional Data values by their bound fieldname.
+    // Re-key the baseline's positional values by their bound fieldname.
+    //
+    // The three types must match what BuildForm() puts in the positional list,
+    // not just 'Data'. wo_builder also sequences ImgLink and BarCode, so taking
+    // Data alone left the names one short of the values and every field on the
+    // Work Order compared against its neighbour — which reads as six wrong
+    // values rather than as one misaligned list.
     $names = [];
     foreach ($base['elements'] as $el) {
-        if (($el['type'] ?? '') === 'Data' && !empty($el['boxfields'][0]['fieldname'])) {
+        if (in_array($el['type'] ?? '', ['Data', 'BarCode', 'ImgLink'], true)
+            && !empty($el['boxfields'][0]['fieldname'])) {
             $names[] = $el['boxfields'][0]['fieldname'];
         }
     }
@@ -127,7 +174,7 @@ foreach ($RECORDS as $recId) {
     }
 
     // Run the provider.
-    $provider = new EntryDocumentProvider($db, new Template(), new Context(), 'Invoice');
+    $provider = provider_for((string)($base['special_class'] ?? ''), $db, (string)($base['datedefault'] ?? 'a'));
     $doc      = $provider->build(['record_ids' => [$recId]]);
     $rec      = $doc->records[0] ?? null;
     if ($rec === null) { echo "  provider returned no record\n"; $totalDiffs++; continue; }
@@ -138,7 +185,19 @@ foreach ($RECORDS as $recId) {
         if (in_array($name, RENDER_TIME_ONLY, true)) continue;
         $checked++;
         $mine = $rec->value($name);
-        if ($mine === null) { printf("  MISSING  %-24s legacy=%s\n", $name, var_export($legacy, true)); $diffs++; continue; }
+        if ($mine === null) {
+            // A template may bind a header field its special_class never sets —
+            // the statements do, for rep_id and terms. PhreeForm returned null
+            // for those; a provider that does not invent them agrees.
+            if ($legacy === null || $legacy === '') continue;
+            printf("  MISSING  %-24s legacy=%s\n", $name, var_export($legacy, true));
+            $diffs++;
+            continue;
+        }
+        if (in_array($name, LOCALE_DATE, true) && function_exists('gen_locale_date')
+            && !$mine->isEmpty() && same($legacy, gen_locale_date((string)$mine->raw))) {
+            continue;   // same date, formatted by the renderer instead of the provider
+        }
         if (!same($legacy, $mine->raw)) {
             printf("  DIFF     %-24s legacy=%-24s provider=%s\n",
                 $name, var_export($legacy, true), var_export($mine->raw, true));
@@ -156,7 +215,16 @@ foreach ($RECORDS as $recId) {
         foreach ($lrow as $name => $legacy) {
             $checked++;
             $mine = $mineRows[$i][$name] ?? null;
-            if ($mine === null) { printf("  MISSING  row%-2d %-18s legacy=%s\n", $i, $name, var_export($legacy, true)); $diffs++; continue; }
+            if ($mine === null) {
+                // Same equivalence as the header: a table can hold rows of more
+                // than one shape. The POS receipt appends payment lines to its
+                // item lines, and PhreeForm gave those nulls for every item
+                // column; carrying only the keys a row actually has says the same.
+                if ($legacy === null || $legacy === '') continue;
+                printf("  MISSING  row%-2d %-18s legacy=%s\n", $i, $name, var_export($legacy, true));
+                $diffs++;
+                continue;
+            }
             if (!same($legacy, $mine->raw)) {
                 printf("  DIFF     row%-2d %-18s legacy=%-18s provider=%s\n",
                     $i, $name, var_export($legacy, true), var_export($mine->raw, true));
@@ -165,9 +233,19 @@ foreach ($RECORDS as $recId) {
         }
     }
 
-    printf("  %d checked, %d differ%s\n", $checked, $diffs, $diffs === 0 ? '  ✓' : '');
+    // Zero comparisons is not a pass. A date range that excludes every row of a
+    // record leaves the baseline empty, and an empty baseline agrees with any
+    // provider at all — the same vacuous green the prefix check once reported
+    // over 0 rows (§12.1). Say so instead of printing a tick.
+    if ($checked === 0) {
+        echo "  VACUOUS  no values in the baseline — this record proves nothing\n";
+        $vacuous++;
+    }
+    printf("  %d checked, %d differ%s\n", $checked, $diffs, ($diffs === 0 && $checked > 0) ? '  ✓' : '');
     $totalDiffs += $diffs;
 }
 
-printf("\n%s\n", $totalDiffs === 0 ? 'PROVIDER MATCHES BASELINE' : "$totalDiffs difference(s)");
+printf("\n%s%s\n",
+    $totalDiffs === 0 ? 'PROVIDER MATCHES BASELINE' : "$totalDiffs difference(s)",
+    $vacuous ? " ($vacuous record(s) proved nothing)" : '');
 exit($totalDiffs === 0 ? 0 : 1);

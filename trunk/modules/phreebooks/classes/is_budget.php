@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -67,11 +67,11 @@ class is_budget {
 	$this->add_heading_line(RW_FIN_COST_OF_SALES); 
 	$total  = $this->add_income_stmt_data(32, $negate = false); // Cost of Sales account_type
 	foreach ($total as $key => $value) { if ($key !== 'description') $grand_total[$key] -= $value; }
-	$line = array(0 => 'd');
-	foreach ($report->fieldlist as $value) {
-	  $line[] = ProcessData($temp[$value->fieldname], $value->processing);
-	}
-	$this->inc_stmt_data[] = $line;
+	// A blank line before Gross Profit. This was a copy of the total-emitting
+	// block below reading $temp, which is a local of add_income_stmt_data() and
+	// undefined here: every cell came out null, and 'def_cur' passes non-numerics
+	// straight through, so the row rendered blank anyway. Same output, no warning.
+	$this->add_heading_line();
 	// Gross Profit
 	$grand_total['description'] = RW_FIN_GROSS_PROFIT;
 	$line = array(0 => 'd');
