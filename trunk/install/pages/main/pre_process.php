@@ -183,6 +183,11 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		$db_password     = getenv('DB_PASSWORD') ?: db_prepare_input($_POST['db_password']);
 		$fy_month        = db_prepare_input($_POST['fy_month']);
 		$fy_year         = db_prepare_input($_POST['fy_year']);
+		// Paper for the reports and forms this install is about to seed. Checked
+		// against the known sizes rather than trusted: the value is written to
+		// PF_DEFAULT_PAPERSIZE and from there into every report definition's XML.
+		$paper_size      = db_prepare_input($_POST['papersize'] ?? '');
+		if (!isset($PaperSizes[$paper_size])) $paper_size = 'A4:210:297';
 
 		// error check input, user info
 		if (strlen($company_name) < 1)  $error = $messageStack->add(ERROR_TEXT_ADMIN_COMPANY_ISEMPTY, 'error');
@@ -278,6 +283,14 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  				require_once (DIR_FS_MODULES . $entry . '/classes/install.php');
 	  				$classname   = $entry . '_admin';
 	  				$install_mod = new $classname;
+	  				// Substitute the chosen paper BEFORE the keys are written, not
+	  				// after. write_configure() only define()s a constant on the
+	  				// branch that INSERTS the row; on a fresh install that insert
+	  				// happens here, so writing the choice afterwards would update
+	  				// the row but leave PF_DEFAULT_PAPERSIZE defined as the shipped
+	  				// Letter — and the reports are seeded from the constant further
+	  				// down. The failure would be silent: every report simply Letter.
+	  				if ($entry == 'phreeform') $install_mod->keys['PF_DEFAULT_PAPERSIZE'] = $paper_size;
 			    	if (admin_check_versions($entry, $install_mod->prerequisites)) {
 			    		// Check for version levels
 			    		$error = true;
@@ -345,7 +358,7 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 			if (DEBUG) $messageStack->debug("\n  installing reports");
 		  	foreach ($contents as $entry) {
 		  		// install reports now that categories are set up
-		  		if ($entry <> '.' && $entry <> '..' ) admin_add_reports($entry, DIR_FS_MY_FILES . $_SESSION['company'] . '/phreeform/');
+		  		if ($entry <> '.' && $entry <> '..' ) admin_add_reports($entry, DIR_FS_MY_FILES . $_SESSION['company'] . '/phreeform/', $paper_size);
 		  	}
 		}
 		if (!$error) { // input admin username record, clear the tables first

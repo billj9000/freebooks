@@ -231,7 +231,7 @@ function admin_add_report_folder($parent_id, $doc_title, $doc_group, $doc_ext) {
   return $error;
 }
 
-function admin_add_reports($module, $save_path = PF_DIR_MY_REPORTS) {
+function admin_add_reports($module, $save_path = PF_DIR_MY_REPORTS, $paper_size = '') {
   $error = false;
   if (!is_dir(DIR_FS_MODULES . $module)) return $error;
   if (file_exists(DIR_FS_MODULES . $module . '/language/' . $_SESSION['language'] . '/reports/')) {
@@ -243,7 +243,7 @@ function admin_add_reports($module, $save_path = PF_DIR_MY_REPORTS) {
   }
   $files = scandir($read_path);
   foreach ($files as $file) if (strtolower(substr($file, -4)) == '.xml') {
-    if (!ImportReport('', $file, $read_path, $save_path)) $error = true;
+    if (!ImportReport('', $file, $read_path, $save_path, $paper_size)) $error = true;
   }
   return $error;
 }

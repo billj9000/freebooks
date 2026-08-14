@@ -19,6 +19,12 @@ define('PF_DEFAULT_MARGIN_TEXT','Especifica a margem de página padrão para uso
 define('PF_DEFAULT_TITLE1_TEXT','Especifica o texto de título padrão para imprimir como cabeçalho nos relatórios (padrão: %reportname%)');
 define('PF_DEFAULT_TITLE2_TEXT','Especifica o texto de título padrão para imprimir como cabeçalho 2 nos relatórios  (padrão: Relatóreio Gerado em %date%)');
 define('PF_DEFAULT_PAPERSIZE_TEXT','Especifica o tamanho de página padrão para uso em relatórios e formulários (padrão: Carta)');
+define('PHREEFORM_TOOLS_RESTAMP_TITLE','Re-stamp Paper Size');
+define('PHREEFORM_TOOLS_RESTAMP_DESC','Re-target every stored report and form onto the current default paper size (%s). Element positions are not moved, so a form drawn for a wider page will sit closer to the right edge on a narrower one. Any file whose page setting cannot be located is left untouched and counted.');
+define('PHREEFORM_TOOLS_RESTAMP_SUBMIT','Re-stamp all reports and forms');
+define('PHREEFORM_TOOLS_RESTAMP_CONFIRM','This rewrites the page size of every stored report and form. Continue?');
+define('PHREEFORM_RESTAMP_DONE','Re-stamped %d report(s) and form(s) onto %s.');
+define('PHREEFORM_RESTAMP_SKIPPED','%d file(s) were left untouched because their page setting could not be located.');
 define('PF_DEFAULT_ORIENTATION_TEXT','Especifica a orientação de página padrão para uso em relatórios e formulários (padrão: Retrato)');
 define('PF_DEFAULT_TRIM_LENGTH_TEXT','Especifica a abreviaçãode nomes de relatórios e formulários ao listar em formato de diretório (padrão: 25)');
 define('PF_DEFAULT_ROWSPACE_TEXT','Especifica a separação entre as linhas de cabeçalho para relatórios (padrão: 2)');

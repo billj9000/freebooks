@@ -31,7 +31,13 @@
  * my_files are deliberately NOT read: they are the customer's, and several
  * legitimately differ.
  *
- *     php docs/tools/verify_report_page_widths.php
+ * The install now asks which paper to seed (PF_DEFAULT_PAPERSIZE), so the
+ * question is no longer "do these fit?" but "do these fit on the paper this
+ * install chose?". Pass a paper name to check that one; pass none to check each
+ * definition on the paper it declares, and to print the comparison.
+ *
+ *     php docs/tools/verify_report_page_widths.php          # as declared, plus comparison
+ *     php docs/tools/verify_report_page_widths.php A4       # as if seeded onto A4
  */
 
 // Paper the definitions use, in mm, portrait. Stored in each file as
@@ -62,8 +68,20 @@ $cdata = static function (string $xml, string $tag): ?string {
     return preg_match('#<' . $tag . '><!\[CDATA\[(.*?)\]\]></' . $tag . '>#s', $xml, $m) ? $m[1] : null;
 };
 
+// The paper to test against, standing in for the install's PF_DEFAULT_PAPERSIZE.
+// Omitted means "whatever each definition declares", which is how the shipped
+// files are actually stored.
+$override = $argv[1] ?? '';
+if ($override !== '' && !isset(PAPER[$override])) {
+    fwrite(STDERR, "Unknown paper '$override'. Known: " . implode(', ', array_keys(PAPER)) . "\n");
+    exit(1);
+}
+if ($override !== '') echo "Checking as if every report were seeded onto $override.\n\n";
+
 $failures = $checked = $skipped = $scaled = 0;
 $landscape = 0;
+/** @var array<string,array{fit:int,total:int}> widths per paper, for the comparison */
+$comparison = [];
 
 foreach ($files as $file) {
     $xml  = (string)file_get_contents($file);
@@ -73,7 +91,7 @@ foreach ($files as $file) {
     if (($cdata($xml, 'reporttype') ?? '') !== 'rpt') { $skipped++; continue; }
 
     $size        = $cdata($xml, 'size') ?? 'A4';
-    $paper       = explode(':', $size)[0];
+    $paper       = $override !== '' ? $override : explode(':', $size)[0];
     $orientation = strtoupper($cdata($xml, 'orientation') ?? 'P');
     if (!isset(PAPER[$paper])) {
         printf("  [--] %-40s unknown paper '%s'\n", $name, $paper);
@@ -108,6 +126,15 @@ foreach ($files as $file) {
     $checked++;
     if ($orientation === 'L') $landscape++;
 
+    // Same arithmetic against every paper we know, so the choice the installer
+    // offers can be judged on measurements rather than on intuition.
+    foreach (PAPER as $candidate => [$candShort, $candLong]) {
+        $candWidth = ($orientation === 'L' ? $candLong : $candShort) - $left - $right;
+        $comparison[$candidate]['total'] = ($comparison[$candidate]['total'] ?? 0) + 1;
+        $comparison[$candidate]['fit']   = ($comparison[$candidate]['fit'] ?? 0)
+                                         + ($needed <= $candWidth + 0.01 ? 1 : 0);
+    }
+
     if ($needed <= $printable + 0.01) continue;
 
     // Two different situations, and only one is a defect in the definition.
@@ -130,6 +157,13 @@ foreach ($files as $file) {
 
 printf("\n%d report definition(s) checked (%d landscape), %d skipped as forms,"
      . " %d scaled at render time.\n", $checked, $landscape, $skipped, $scaled);
+
+// The installer's choice, measured. Only the sizes a real install would pick.
+echo "\nHow many of the $checked reports fit, by seeded paper:\n";
+foreach (['Letter', 'Legal', 'A4', 'A3'] as $candidate) {
+    if (!isset($comparison[$candidate])) continue;
+    printf("  %-8s %2d of %2d\n", $candidate, $comparison[$candidate]['fit'], $comparison[$candidate]['total']);
+}
 echo $failures === 0
     ? "PASS - no shipped report is portrait where landscape would fit it.\n"
     : "FAIL - $failures definition(s) would be clipped on print.\n";

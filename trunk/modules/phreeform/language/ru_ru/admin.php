@@ -19,6 +19,12 @@ define('PF_DEFAULT_MARGIN_TEXT','Sets the default page margin to use for reports
 define('PF_DEFAULT_TITLE1_TEXT','Sets the default title text to print as heading 1 for reports (default: %reportname%)');
 define('PF_DEFAULT_TITLE2_TEXT','Sets the default title text to print as heading 2 for reports (default: Report Generated %date%)');
 define('PF_DEFAULT_PAPERSIZE_TEXT','Sets the default papersize to use for reports and forms (default: Letter)');
+define('PHREEFORM_TOOLS_RESTAMP_TITLE','Re-stamp Paper Size');
+define('PHREEFORM_TOOLS_RESTAMP_DESC','Re-target every stored report and form onto the current default paper size (%s). Element positions are not moved, so a form drawn for a wider page will sit closer to the right edge on a narrower one. Any file whose page setting cannot be located is left untouched and counted.');
+define('PHREEFORM_TOOLS_RESTAMP_SUBMIT','Re-stamp all reports and forms');
+define('PHREEFORM_TOOLS_RESTAMP_CONFIRM','This rewrites the page size of every stored report and form. Continue?');
+define('PHREEFORM_RESTAMP_DONE','Re-stamped %d report(s) and form(s) onto %s.');
+define('PHREEFORM_RESTAMP_SKIPPED','%d file(s) were left untouched because their page setting could not be located.');
 define('PF_DEFAULT_ORIENTATION_TEXT','Sets the default page orientation for reports and forms (default: Portrait)');
 define('PF_DEFAULT_TRIM_LENGTH_TEXT','Sets the trim length of report and form names when listing in directory format (default: 25)');
 define('PF_DEFAULT_ROWSPACE_TEXT','Sets the separation between the heading rows for reports (default: 2)');

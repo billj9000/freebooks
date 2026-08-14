@@ -152,6 +152,12 @@ switch ($_REQUEST['action']) {
 	$db_user   = db_prepare_input($_POST['db_user']);
 	$db_pw     = db_prepare_input($_POST['db_pw']);
 	$co_name   = db_prepare_input($_POST['co_name']);
+	// Paper for the reports this company will be seeded with. Only reaches the
+	// modules set to core/demo — a module set to 'data' has its report files
+	// copied verbatim from the source company, definitions and paper included,
+	// which is what cloning a company should do.
+	$paper_size = db_prepare_input($_POST['papersize'] ?? '');
+	if (!isset($PaperSizes[$paper_size])) $paper_size = defined('PF_DEFAULT_PAPERSIZE') ? PF_DEFAULT_PAPERSIZE : '';
 	// error check company name and company full name
 	if (!$db_name || !$co_name)           $error = $messageStack->add(SETUP_CO_MGR_ERROR_EMPTY_FIELD,'error');
 	if ($db_name == $_SESSION['company']) $error = $messageStack->add(SETUP_CO_MGR_DUP_DB_NAME,'error');
@@ -184,7 +190,10 @@ switch ($_REQUEST['action']) {
 		require_once (DIR_FS_MODULES . $entry . '/classes/install.php');
 		$classname   = $entry . '_admin';
 		$install_mod = new $classname;
-	    $task        = $_POST[$entry . '_action']; 
+		// Seed the NEW company's stored setting with the chosen paper. write_configure()
+		// writes into $db, which now points at the new database.
+		if ($entry == 'phreeform' && $paper_size <> '') $install_mod->keys['PF_DEFAULT_PAPERSIZE'] = $paper_size;
+	    $task        = $_POST[$entry . '_action'];
 		if ($entry == 'phreedom') $task = 'data'; // force complete copy of phreedom module
 	    switch ($task) {
 		  case 'core':
@@ -226,7 +235,7 @@ switch ($_REQUEST['action']) {
 	  }
 	  // install reports now that categories are set up
 	  if ($_POST['phreeform_action'] <> 'data') { // if=data reports have been copied, else load basic reports
-	    foreach ($copy_modules as $entry) admin_add_reports($entry, DIR_FS_MY_FILES . $db_name . '/phreeform/');
+	    foreach ($copy_modules as $entry) admin_add_reports($entry, DIR_FS_MY_FILES . $db_name . '/phreeform/', $paper_size);
 	  }
 	}
 	if (!$error && $_POST['phreebooks_action'] <> 'data') { // install fiscal year if the phreebooks data is not copied

@@ -90,6 +90,7 @@ define('SETUP_CO_MGR_DUP_DB_NAME','Error - De database naam kan niet dezelfde zi
 define('SETUP_CO_MGR_ERROR_EMPTY_FIELD','Database naam en bedrijfsnaam kunnen niet leeg zijn!');
 define('SETUP_CO_MGR_MOD_SELECT','Selecteer de module om te kopieeren / maken met de data.');
 define('SETUP_CO_MGR_CO_NAME','Volledige Bedrijfsnaam ');
+define('SETUP_CO_MGR_PAPER_SIZE','Paper size for newly installed reports and forms ');
 define('SETUP_CO_MGR_DB_PW','Database Wachtwoord ');
 define('SETUP_CO_MGR_DB_USER','Database gebruikers Naam ');
 define('SETUP_CO_MGR_DB_NAME','Database Naam ');

@@ -58,6 +58,8 @@ define('TEXT_DB_USER','Voer de database gebruikersnaam in');
 define('TEXT_DB_PASSWORD','Voer de database wachtwoord in');
 define('TEXT_FY_MONTH_INFO','Selecteer een start maand om in te stellen als uw eerste boekhoud periode. PhreeBooks zal standaard beginnen aan op de eerste dag van de maand.');
 define('TEXT_FY_YEAR_INFO','Selecteer een start jaar om als uw eerste Boek jaar in te stellen. Er kunnen dan geen boekingen gemaakt worden eerder dan de geselecteerde jaar en maand.');
+define('TEXT_PRINTING_INFO','Printing Information');
+define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
 define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','De bedrijfsnaam is leeg');
 define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY','Admin gebruikersnaam is leeg');
 define('ERROR_TEXT_ADMIN_EMAIL_ISEMPTY','Admin email leeg');

@@ -197,6 +197,7 @@ define('SETUP_CO_MGR_DB_NAME','Database Name ');
 define('SETUP_CO_MGR_DB_USER','Database User Name ');
 define('SETUP_CO_MGR_DB_PW','Database Password ');
 define('SETUP_CO_MGR_CO_NAME','Company Full Name ');
+define('SETUP_CO_MGR_PAPER_SIZE','Paper size for newly installed reports and forms ');
 define('SETUP_CO_MGR_MOD_SELECT','Please select the modules to copy/create and the data to copy:');
 define('SETUP_CO_MGR_ERROR_EMPTY_FIELD','Database name and company name cannot be blank!');
 define('SETUP_CO_MGR_DUP_DB_NAME','Error - The database name cannot be the same as the current database name!');

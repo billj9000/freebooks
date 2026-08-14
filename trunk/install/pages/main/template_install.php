@@ -126,6 +126,12 @@
 	<td><?php echo html_pull_down_menu('fy_year', $sel_fy_year, $_POST['fy_year'] ?? date('Y')); ?></td>
    </tr>
 
+   <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_PRINTING_INFO; ?></th></tr>
+   <tr>
+	<td><?php echo TEXT_PAPER_SIZE_INFO; ?></td>
+	<td><?php echo html_pull_down_menu('papersize', gen_build_pull_down($PaperSizes), $_POST['papersize'] ?? 'A4:210:297'); ?></td>
+   </tr>
+
    <tr>
 	<td colspan="2" align="right"><?php echo html_submit_field('btn_install', TEXT_CONTINUE, 'onclick="showLoading()"'); ?></td>
    </tr>

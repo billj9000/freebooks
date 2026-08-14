@@ -87,6 +87,7 @@ define('SETUP_CO_MGR_DUP_DB_NAME','Erro - O nome da Base Dados não pode ser o m
 define('SETUP_CO_MGR_ERROR_EMPTY_FIELD','Nome Base Dados e nome empresa não podem ser brancos!');
 define('SETUP_CO_MGR_MOD_SELECT','Por favor, selecione os módulos para copiar/criar e dados para copiar. Para criar uma nova empresa, selecione Dados Básicos ou Dados Demo:');
 define('SETUP_CO_MGR_CO_NAME','Empresa Nome Completo ');
+define('SETUP_CO_MGR_PAPER_SIZE','Paper size for newly installed reports and forms ');
 define('SETUP_CO_MGR_DB_USER','Database Usuário ');
 define('SETUP_CO_MGR_DB_PW','Database Senha ');
 define('SETUP_CO_MGR_DB_NAME','Base Dados Nome ');

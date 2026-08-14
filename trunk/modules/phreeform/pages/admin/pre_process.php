@@ -40,6 +40,39 @@ switch ($_REQUEST['action']) {
 	$messageStack->add(GENERAL_CONFIG_SAVED, 'success');
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
     break;
+  case 'restamp':
+	// Re-target every stored report and form onto PF_DEFAULT_PAPERSIZE.
+	//
+	// Reports are seeded on the paper the install chose, but an installation that
+	// predates that choice — or one that answered it wrongly — has definitions on
+	// the wrong paper and no way to fix them short of editing each by hand.
+	//
+	// The size is substituted textually rather than by parsing the file into an
+	// object and writing it back out. A round trip through xml_to_object() /
+	// object_to_xml() re-serialises the whole definition, and any element those
+	// two disagree about would be quietly lost; a definition is the user's work
+	// and this action has no business rewriting the parts it was not asked about.
+	//
+	// The pattern is anchored on the <orientation> that follows the page size, so
+	// it cannot match one of the many font <size> elements. A file that does not
+	// match exactly once is left alone and reported rather than guessed at.
+	validate_security($security_level, 3);
+	$stamped = $skipped = 0;
+	$pattern = '#(<size><!\[CDATA\[)[^\]]*(\]\]></size>\s*<orientation>)#';
+	foreach (scandir(PF_DIR_MY_REPORTS) as $report) {
+	  if (substr($report, 0, 3) <> 'pf_') continue;
+	  $file     = PF_DIR_MY_REPORTS . $report;
+	  $contents = file_get_contents($file);
+	  if ($contents === false || preg_match_all($pattern, $contents) <> 1) { $skipped++; continue; }
+	  $updated = preg_replace($pattern, '${1}' . PF_DEFAULT_PAPERSIZE . '${2}', $contents, 1);
+	  if ($updated === null || $updated === $contents) { $skipped++; continue; }
+	  if (file_put_contents($file, $updated) === false) { $skipped++; continue; }
+	  $stamped++;
+	}
+	$messageStack->add(sprintf(PHREEFORM_RESTAMP_DONE, $stamped, PF_DEFAULT_PAPERSIZE), 'success');
+	if ($skipped) $messageStack->add(sprintf(PHREEFORM_RESTAMP_SKIPPED, $skipped), 'caution');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
+    break;
   case 'fix':
 	// drop the database
 	$db->Execute("truncate ".TABLE_PHREEFORM);

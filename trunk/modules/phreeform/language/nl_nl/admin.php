@@ -19,6 +19,12 @@ define('PF_DEFAULT_MARGIN_TEXT','Stelt de standaard pagina marge in voor rapport
 define('PF_DEFAULT_TITLE1_TEXT','Stelt standaard de eerste koptekst in af voor de rapporten (standaard: %rapportnaam%)');
 define('PF_DEFAULT_TITLE2_TEXT','Stelt standaard de tweede koptekst in voor rapporten (standaard: rapport gegenereerd %date%)');
 define('PF_DEFAULT_PAPERSIZE_TEXT','Stelt de standaard papierformaat in voor rapporten en formulieren (standaard: Letter)');
+define('PHREEFORM_TOOLS_RESTAMP_TITLE','Re-stamp Paper Size');
+define('PHREEFORM_TOOLS_RESTAMP_DESC','Re-target every stored report and form onto the current default paper size (%s). Element positions are not moved, so a form drawn for a wider page will sit closer to the right edge on a narrower one. Any file whose page setting cannot be located is left untouched and counted.');
+define('PHREEFORM_TOOLS_RESTAMP_SUBMIT','Re-stamp all reports and forms');
+define('PHREEFORM_TOOLS_RESTAMP_CONFIRM','This rewrites the page size of every stored report and form. Continue?');
+define('PHREEFORM_RESTAMP_DONE','Re-stamped %d report(s) and form(s) onto %s.');
+define('PHREEFORM_RESTAMP_SKIPPED','%d file(s) were left untouched because their page setting could not be located.');
 define('PF_DEFAULT_ORIENTATION_TEXT','Stelt het standaard afdrukstand in voor rapporten en formulieren (standaard: Portret)');
 define('PF_DEFAULT_TRIM_LENGTH_TEXT','Stelt de trim lengte in van rapport en formulier namen bij het opsommen in directory-indeling (standaard: 25)');
 define('PF_DEFAULT_ROWSPACE_TEXT','Stelt de scheiding in tussen de koptekst rijen voor rapporten (standaard: 2)');

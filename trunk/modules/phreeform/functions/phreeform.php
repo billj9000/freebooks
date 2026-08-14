@@ -272,7 +272,7 @@ function get_report_details($id) {
   return $report;
 }
 
-function ImportReport($RptName = '', $RptFileName = '', $import_path = PF_DIR_DEF_REPORTS, $save_path = PF_DIR_MY_REPORTS) {
+function ImportReport($RptName = '', $RptFileName = '', $import_path = PF_DIR_DEF_REPORTS, $save_path = PF_DIR_MY_REPORTS, $paper_size = '') {
 	global $db, $messageStack;
 	$rID = '';
 	if ($RptFileName <> '') { // then a locally stored report was chosen
@@ -294,6 +294,22 @@ function ImportReport($RptName = '', $RptFileName = '', $import_path = PF_DIR_DE
 	  if (is_object($report->PhreeformReport)) $report = $report->PhreeformReport; // remove container tag
 	}
 	if ($RptName <> '') $report->title = $RptName; // replace the title if provided
+	// Every shipped definition names Letter, so a non-US install seeded reports it
+	// could not print on its own paper. PF_DEFAULT_PAPERSIZE already existed and
+	// was honoured by default_report() for reports drawn in the designer; it was
+	// never applied to the ones imported at install, which is nearly all of them.
+	//
+	// $paper_size wins over the constant because the constant cannot be trusted
+	// when seeding a DIFFERENT company than the one this process opened: creating
+	// a company writes PF_DEFAULT_PAPERSIZE into the new database, but the PHP
+	// constant was already defined from the current company and define() will not
+	// replace it. Callers that know which company they are seeding say so.
+	//
+	// Size only, deliberately: PF_DEFAULT_ORIENTATION is NOT applied here. Most of
+	// the shipped reports choose landscape on purpose, and overriding that would
+	// squeeze them onto a portrait page.
+	if ($paper_size == '' && defined('PF_DEFAULT_PAPERSIZE')) $paper_size = PF_DEFAULT_PAPERSIZE;
+	if ($paper_size <> '' && isset($report->page->size)) $report->page->size = $paper_size;
 	// error check
 	$result = $db->Execute("select id from " . TABLE_PHREEFORM . "
 	  where doc_title = '" . addslashes($report->title) . "' and doc_type <> '0'");

@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.04">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Paper Size">
+<meta name="doc_index_2" content="Printing.Paper Size">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Paper Size">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Paper Size</title>
+</head>
+
+<body>
+
+<h1 align="center">Paper Size</h1>
+
+<p>FreeBooks ships its reports and forms drawn for US Letter. Installations outside North America
+generally print on A4, which is 6mm narrower and 18mm taller, so the paper a company uses is chosen
+once and applied to every report and form that gets installed.</p>
+
+<h3>Choosing the paper</h3>
+
+<p>The paper size is asked for in two places, both of them at the moment reports are about to be
+installed:</p>
+
+<ul>
+  <li><strong>During installation</strong> &mdash; under <em>Printing Information</em> on the main
+      install form, alongside the fiscal year settings.</li>
+  <li><strong>When creating a company</strong> &mdash; on the Company Manager tab, with the current
+      company's setting offered as the default.</li>
+</ul>
+
+<p>Whichever is chosen becomes the company's default paper size, visible afterwards under the
+General tab of the Reports and Forms settings. Every report and form copied in during that install
+is stamped onto it, and any report drawn later in the designer starts on it too.</p>
+
+<p>Only the paper <em>size</em> is applied. Orientation is left exactly as each report declares it,
+because most of the shipped reports are landscape by design and turning them portrait would squeeze
+their columns off the page.</p>
+
+<h3>Changing it afterwards</h3>
+
+<p>Changing the default under the General tab affects reports created from that point on; it does
+not reach back into the reports already installed. To move those, use <strong>Re-stamp Paper
+Size</strong> on the Tools tab, which rewrites the page size of every stored report and form to the
+current default in one pass.</p>
+
+<p>Re-stamping changes the paper and nothing else. It does not move anything drawn on the page, so
+a form laid out for a wider sheet will sit closer to the right edge on a narrower one; if that
+matters, the affected elements need nudging in the designer. Any file whose page setting cannot be
+located is left untouched and counted in the message shown afterwards, so nothing is silently
+rewritten or lost.</p>
+
+<h3>When a report is wider than its paper</h3>
+
+<p>A report whose columns add up to more than the printable width of its page is turned landscape
+automatically at print time, and if it is too wide even then, it is scaled down to fit. Nothing is
+clipped. If a report prints noticeably small, its columns are wider than the paper can hold and the
+fix is to narrow a column in the designer, or to move that report to a larger sheet.</p>
+
+<h3>Pre-printed stock</h3>
+
+<p>Cheques and deposit slips are positioned to match pre-printed bank stationery. Their element
+positions were drawn for US stock, so changing the paper size will not make them line up with
+stationery from another country &mdash; those forms need their positions adjusted in the designer to
+match whatever stock is actually being used.</p>
+
+<h3>Related Links</h3>
+<p><a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a><br>
+<a href="02-Designing.html" target="mainFrame">Designing Reports and Forms</a></p>
+</body>
+</html>
