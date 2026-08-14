@@ -442,6 +442,7 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `verify_forms_delivery.php` | Delivery hygiene (§2): header injection, path traversal, overwrite, staged-attachment cleanup, refusal after output has started | no | **PASS — 45 checks** |
 | `verify_forms_dataset_map.php` | Every shipped report resolves to the dataset a passing row-set run proved | yes | **PASS — 33 mappings, 0 wrong** |
 | `verify_forms_app.php` | The application's own path — route, render, deliver — over every definition in the catalog | yes | **PASS** — `demo` 47 documents, `production` 40, both as PDF and CSV |
+| `verify_forms_custom_datasets.php` | The admin-defined tier (§3.2, §3.3): hostile input refused by name, sensitive tables unreachable, stored rows re-validated on load, tier limits enforced in the constructor | yes | **PASS — 40 checks** (`demo`; needs the `forms_datasets` table) |
 | `diff_forms_provider.php` | Semantic-diff a provider against the baseline |
 | `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
@@ -901,7 +902,45 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
     answering by hand — and getting wrong: `pf_84` is the Audit Log on `audit_trail`, `pf_62` is the
     General Ledger report but reads `transactions`. The mapping is now code, and
     `verify_forms_dataset_map.php` asserts all 33 proven answers.
-15. Remaining: custom datasets in the admin UI.
+15. **Custom datasets in the admin UI (done 2026-08-14).** The last step, and the one that
+    reintroduces the capability PhreeForm was replaced for having — so it is worth being exact
+    about what is and is not given back.
+
+    `SchemaInspector` reads the live schema in one `information_schema` query and is the only
+    source of the names the UI offers: unprefixed, sensitive tables already removed, with a value
+    type guessed from each column's SQL type so a money column does not silently default to text.
+    `CustomDatasetStore` validates a submitted definition against that inspector and stores it as
+    JSON in `forms_datasets`. The editor at `?module=forms&page=datasets` is three dependent
+    selects per join — left table, left column, right column — plus an `INNER`/`LEFT` enum. There
+    is no textbox anywhere on it that accepts a fragment of SQL, because that box is PhreeForm's
+    `<relationship>` field and it is the whole of §1.1.
+
+    Four properties hold, and `verify_forms_custom_datasets.php` asserts each adversarially:
+
+    - **Refused by name, not escaped.** `id' OR '1'='1`, `journal_main; drop table contacts`,
+      `id union select password from users`, a qualified `journal_main.id`, a `-- ` comment — all
+      rejected at the boundary because they are not names the schema has.
+    - **The sensitive set is unreachable** as a base table and as a join, and the check is in
+      `Dataset`'s constructor, so no caller can bypass it. The inspector also filters them from
+      every listing, which is convenience rather than the guarantee.
+    - **A stored row is untrusted on the way out.** Loading re-validates exactly as saving does,
+      because a row is reachable by anything with database access and by a restore of an older
+      backup. Forged definitions — a sensitive base table, a column carrying SQL, unreadable JSON —
+      are skipped with a named reason, and one bad row does not take the catalog down with it.
+    - **A stored row cannot shadow a shipped dataset**, which would be a way to redefine a trusted
+      dataset, with its expression powers, from the database.
+
+    Two structural rules stop definitions that are valid SQL but not valid datasets: a join's left
+    side must be a table already in the dataset (otherwise a join can quietly widen the FROM
+    clause), and a join with no conditions is refused rather than becoming a cross product.
+
+    The residual risk is the one §3.3 predicted and accepted: a careless author can expose a table
+    they should not have. That is a data-exposure problem — auditable, reversible, and gated behind
+    its own security id.
+16. The nine `special_class` ports, the catalog, both renderers, the delivery layer, the module
+    surface and the dataset authoring UI are done. What is left before 1.0.0 is the forms path from
+    the documents that own them (§10.3), migration of any customised installs (§8.2), and
+    retiring PhreeForm once the two have run side by side long enough to be sure.
 
 ---
 
@@ -1154,7 +1193,8 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 15: custom datasets in the admin UI.
+Per §11, step 16: printing forms from the documents that own them, migrating customised
+installs, and retiring PhreeForm.
 
 Forms is now reachable from the menu and runs the shipped catalog end to end. `verify_forms_app.php`
 drives the application's own path over every definition: on `demo` 47 documents run and render as

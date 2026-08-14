@@ -19,12 +19,16 @@
 /**
  * Module installer for Forms.
  *
- * Creates nothing. Forms reads the definitions already in the PhreeForm catalog,
- * so enabling the module makes every stored report runnable through the new
- * engine without a migration and without touching the old one — which is what
- * lets the two coexist during the transition (design §9, decisions C and D).
+ * Creates one table. Report DEFINITIONS are left where they are — Forms reads
+ * the existing PhreeForm catalog, so enabling the module makes every stored
+ * report runnable through the new engine without a migration and without
+ * touching the old one, which is what lets the two coexist during the
+ * transition (design §9, decisions C and D).
  *
- * The definition and custom-dataset tables arrive with the authoring UI.
+ * What is new is `forms_datasets`: the join graphs an admin defines through the
+ * UI (§3.2). One row per dataset holding the whole definition as JSON — it is
+ * read and written whole and never queried into, and keeping it as a document
+ * means a change to the definition format is not a database migration.
  */
 
 class forms_admin {
@@ -41,16 +45,47 @@ class forms_admin {
     );
     $this->keys    = array();
     $this->dirlist = array();
-    $this->tables  = array();
-    $this->notes   = array(
+    $this->tables  = array(
+      TABLE_FORMS_DATASETS => "CREATE TABLE " . TABLE_FORMS_DATASETS . " (
+          id          varchar(64)  NOT NULL,
+          label       varchar(128) NOT NULL DEFAULT '',
+          description varchar(255) NOT NULL DEFAULT '',
+          definition  text         NOT NULL,
+          create_date datetime     NULL,
+          last_update datetime     NULL,
+          PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+    );
+    $this->notes = array(
       'Forms runs the existing report catalog; PhreeForm is unaffected and stays available.',
+      'Defining datasets is a separate privilege from running or writing reports.',
     );
   }
 
-  function install($module)      { return false; }
-  function initialize($module)   { return false; }
-  function update($module)       { return false; }
-  function remove($module)       { return false; }
+  function install($module) {
+    global $db;
+    $error = false;
+    foreach ($this->tables as $table => $create_table_sql) {
+      if (!db_table_exists($table)) if (!$db->Execute($create_table_sql)) $error = true;
+    }
+    return $error;
+  }
+
+  function initialize($module) { return false; }
+
+  function update($module) {
+    // The same path as install: the table is created if it is missing, which is
+    // what an installation enabled before custom datasets existed needs.
+    return $this->install($module);
+  }
+
+  function remove($module) {
+    // Deliberately keeps the table. Dropping it would destroy dataset
+    // definitions that reports still depend on, and a module can be disabled
+    // to try something and enabled again.
+    return false;
+  }
+
   function load_reports($module) { return false; }
   function load_demo()           { return false; }
 }

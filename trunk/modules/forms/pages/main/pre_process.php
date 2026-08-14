@@ -33,12 +33,18 @@ require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{DocumentRunner, RunPlan};
-use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
+use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Deliver\HttpDelivery;
 use FreeBooks\Forms\Render\{CsvRenderer, Formatter, TablePdfRenderer};
 
+// Shipped first, then the admin-defined ones: a stored dataset may not shadow a
+// shipped name, and registering in this order is what makes that so.
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
+$forms_custom = new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORMS_DATASETS);
+$forms_custom->registerAll($catalog);
+foreach ($forms_custom->problems() as $problem) $messageStack->add($problem, 'caution');
+
 $runner  = new DocumentRunner($db, $catalog);
 
 $docID   = isset($_GET['docID']) ? (int)$_GET['docID'] : 0;

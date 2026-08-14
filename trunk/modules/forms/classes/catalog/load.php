@@ -27,3 +27,5 @@ require_once(__DIR__ . '/date_range.php');
 require_once(__DIR__ . '/app_fiscal_calendar.php');
 require_once(__DIR__ . '/query_builder.php');
 require_once(__DIR__ . '/shipped_datasets.php');
+require_once(__DIR__ . '/schema_inspector.php');
+require_once(__DIR__ . '/custom_datasets.php');

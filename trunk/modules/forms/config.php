@@ -33,10 +33,10 @@ define('SECURITY_ID_FORMS_RUN',      8);  // run and print documents
 define('SECURITY_ID_FORMS_AUTHOR',   9);  // write a report inside a dataset
 define('SECURITY_ID_FORMS_DATASETS', 10); // define which tables join, and how
 
-// No table of its own yet. Forms reads the existing PhreeForm catalog so that
-// every stored definition works from the day the module is enabled, with no
-// migration; the definition and custom-dataset tables arrive with the authoring
-// UI (design §8, decision B).
+// Datasets defined through the admin UI (design §3.2). Report DEFINITIONS still
+// live in the PhreeForm catalog, so enabling Forms needs no migration and both
+// engines keep working on the same definitions; only this is new.
+define('TABLE_FORMS_DATASETS', DB_PREFIX . 'forms_datasets');
 
 if (defined('MODULE_FORMS_STATUS')) {
   gen_pull_language('forms');
@@ -46,6 +46,17 @@ if (defined('MODULE_FORMS_STATUS')) {
     'text'                   => BOX_FORMS_DOCUMENTS,
     'security_id'            => SECURITY_ID_FORMS_RUN,
     'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=main', 'SSL'),
+    'show_in_users_settings' => true,
+    'params'                 => '',
+  );
+
+  // Its own key, and a rare one to hold. Defining which tables join is the
+  // dangerous privilege of the three (§3.1); running a report is not.
+  $mainmenu['tools']['submenu']['forms_datasets'] = array(
+    'order'                  => 27,
+    'text'                   => BOX_FORMS_DATASETS,
+    'security_id'            => SECURITY_ID_FORMS_DATASETS,
+    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=datasets', 'SSL'),
     'show_in_users_settings' => true,
     'params'                 => '',
   );
