@@ -472,6 +472,17 @@ final class ReportConverter
      */
     public function convertFilters(object $report, Dataset $dataset): array
     {
+        // Usable on its own, not only after convertColumns().
+        //
+        // The field map is built there because that is where a report starts,
+        // but a FORM never calls it — a form's elements are converted by
+        // TemplateConverter — and its invisible filters are exactly the ones
+        // that make a Purchase Order a purchase order. Without this the map is
+        // empty, every filter reports "no dataset field", and the form prints
+        // against every journal row on file. Set only when empty, so a report's
+        // existing warnings and resolved columns are untouched.
+        if ($this->fieldMap === []) $this->fieldMap = TemplateConverter::mapFor($dataset);
+
         $filters = [];
         foreach ($this->entries($report->filterlist ?? null) as $entry) {
             $mode = $this->scalar($entry->default ?? null);

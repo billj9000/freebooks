@@ -1794,8 +1794,14 @@ function validate_ajax_user($token = 0) {
         $mail->Sender = $mail->From;
       }
       // Note: $attachments_list array requires that the 'file' portion contains the full path to the file to be attached
+      // An optional 'name' is the filename the RECIPIENT sees. Without it
+      // PHPMailer falls back to basename($path), which is wrong whenever the
+      // file was staged under a generated name — Forms stages each attachment
+      // uniquely so two people emailing the same invoice cannot overwrite each
+      // other, and the result arrived as "Invoice-fdaec59de5bc-pdf" with no
+      // extension. Callers passing only 'file' are unaffected.
       if (gen_not_null($attachments_list)) {
-        $mail->addAttachment($attachments_list['file']);
+        $mail->addAttachment($attachments_list['file'], $attachments_list['name'] ?? '');
       }
       if (EMAIL_USE_HTML && trim($email_html) != '' && ADMIN_EXTRA_EMAIL_FORMAT == 'HTML') {
         $mail->isHTML(true);

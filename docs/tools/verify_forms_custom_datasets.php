@@ -67,6 +67,14 @@ function refuses(CustomDatasetStore $store, string $what, array $input, string $
     }
 }
 
+// Forms is installed per company, so its table constant is not defined on one
+// that has not enabled it. Skipping says so; the fatal this replaces said
+// "Undefined constant TABLE_FORMS_DATASETS" and read like a broken tool.
+if (!defined('TABLE_FORMS_DATASETS')) {
+    echo "  [--] Forms is not installed on this company; there are no custom datasets to check.\n";
+    exit(0);
+}
+
 $schema = new SchemaInspector($db);
 $store  = new CustomDatasetStore($db, $schema, TABLE_FORMS_DATASETS);
 

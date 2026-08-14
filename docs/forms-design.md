@@ -1322,6 +1322,46 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 Per §11, step 16: printing forms from the documents that own them, migrating customised
 installs, and retiring PhreeForm.
 
+**The forms path now runs, and has a page (2026-08-14).** `?module=forms&page=print` answers on
+PhreeForm's own popup contract — `gID`/`rID`, `xfld`/`xcr`/`xmin`/`xmax`, `date` — so pointing a
+Print button at Forms is a URL change and nothing else. It names the form and the records it is
+about to print, then offers View, Download and Email; email goes through `EmailDelivery`, which
+stages to a temp file and always removes it. `verify_forms_pages.php` gained two modes, `print`
+(the screen) and `printrun` (the delivered bytes), and drives them from a (form, record) pair
+`verify_forms_forms.php` has already proven renders.
+
+**The Print buttons still point at PhreeForm.** Repointing them switches production printing to
+Forms, which §11.16 says should happen only after the two have run side by side — so it is a
+separate, deliberate step, not part of building the page.
+
+`FormRunner`
+routes a form definition to one of the five providers and builds its `LayoutDocument`;
+`RecordSelector` translates the four URL parameters every Print button already sends
+(`xfld`/`xcr`/`xmin`/`xmax`) into the record ids a provider takes. `verify_forms_forms.php` drives
+both over the whole catalog: on `demo` **all 18 forms** run and render as PDF (9 by provider, 9 by
+dataset); on `production` 12 render, 5 have no data, and 1 is declined — see below. What is missing is
+the page that calls them, and the change to the Print buttons that would point at it.
+
+Three things were found by making it run, and all three are recorded because each was invisible
+until a form was actually built:
+
+- **A form's `record_ids` are not always primary keys.** The Deposit Slip breaks on
+  `purchase_invoice_id`, so handing it `journal_main.id` values selects nothing and returns an
+  empty document rather than an error. `FormPlan::$recordKey` now states the column, and a caller
+  that ignores it gets silence — hence the field, and hence the test.
+- **A legacy filter value can be a LIST.** The Deposit Slip's journal filter holds the single
+  string `"2, 18, 19"`. A first cut converted every form filter with `Filter::equals`, which
+  matched nothing; worse, in MySQL comparing an integer column to that string casts it to `2`, so
+  the *fixture* query silently selected from the wrong journal. `ReportConverter::convertFilters()`
+  already handled every legacy mode, so forms now use it rather than a second, weaker copy — it
+  needed only to build its field map when called without `convertColumns()` first.
+- **A customised definition can be genuinely unservable.** `production`' Purchase Order (`pf_73`)
+  joins `inventory_purchase_details` and prints a field whose *name* is
+  `IF(inventory_purchase_details.vendor_sku <> '', …, SUBSTRING_INDEX(…))`. That is §1.1 exactly —
+  the report author writing SQL — and Forms declines it by design rather than executing it. It is
+  the first real §8.2 case, and it needs a decision: extend a shipped dataset with a vendor-SKU
+  field, define a custom dataset and a plain column, or leave that one form on PhreeForm.
+
 Forms is now reachable from the menu and runs the shipped catalog end to end. `verify_forms_app.php`
 drives the application's own path over every definition: on `demo` 47 documents run and render as
 both PDF and CSV (43 by dataset, 4 by provider, 10 honestly declined), on `production` 40 (six more

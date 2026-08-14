@@ -42,10 +42,11 @@
  *       /opt/repo/docs/tools/verify_forms_pages.php [company] [page]
  */
 
-// 'run' is not a page: it is the main page's action=run branch, driven through
-// a URL taken from the rendered markup. Listing it here means the suite exercises
-// what clicking PDF actually does, rather than only that the button is wired.
-const FORMS_PAGES = ['main', 'datasets', 'run'];
+// 'run' and 'printrun' are not pages: they are the action branches of 'main' and
+// 'print', driven through parameters taken from what was actually rendered or
+// proven elsewhere. Listing them means the suite exercises what clicking the
+// button does, rather than only that the button is wired.
+const FORMS_PAGES = ['main', 'datasets', 'print', 'printgroup', 'run', 'printrun'];
 
 if (!isset($argv[2])) {
     $failed = 0;
@@ -63,7 +64,7 @@ if (!isset($argv[2])) {
 // has begun, which is right of it (a document appended to a half-rendered page
 // is a corrupt download), and in a CLI that means the harness's own chatter
 // would look like the run branch failing. It did, twice.
-if (($argv[2] ?? '') === 'run') ob_start();
+if (in_array($argv[2] ?? '', ['run', 'printrun'], true)) ob_start();
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 // No phreeform: a page must load whatever it uses, which is how the missing
@@ -86,8 +87,12 @@ if (!defined('MODULE_FORMS_STATUS')) {
 // ── stand up what index.php gives a page ─────────────────────────────────────
 $module = 'forms';
 define('DIR_FS_WORKING', DIR_FS_MODULES . $module . '/');
-$RUNNING = $PAGE === 'run';
-if ($RUNNING) $PAGE = 'main';
+$RUNNING  = $PAGE === 'run';
+$PRINTING = $PAGE === 'printrun';
+$CHOOSING = $PAGE === 'printgroup';
+if ($RUNNING)  $PAGE = 'main';
+if ($PRINTING) $PAGE = 'print';
+if ($CHOOSING) $PAGE = 'print';
 
 // Every security id at full rights: this checks that a page RUNS, not who may
 // open it. Permission is asserted separately, by reading the id each page
@@ -96,6 +101,41 @@ $_SESSION['admin_security'] = array_fill(0, 1000, 4);
 $_SESSION['admin_id']       = 1;
 $_SESSION['admin_display']  = 'check';
 $_GET = $_POST = $_REQUEST = [];
+
+// The print page is opened FROM a document, so with no parameters it correctly
+// says nothing was asked for. The parameters come from verify_forms_forms.php,
+// which publishes one (form, record) pair it has already rendered — so what is
+// driven here is a pair known to produce a document, and a failure is this
+// page's rather than a fixture's.
+$printTarget = sys_get_temp_dir() . '/forms-print-target';
+if ($PAGE === 'print') {
+    // Self-sufficient: a suite that only passes when another tool ran first is a
+    // suite that fails for the wrong reason and gets ignored. If the pair is not
+    // published yet, publish it — by running the tool that owns that knowledge,
+    // rather than by keeping a second copy of it here.
+    if (!file_exists($printTarget)) {
+        exec(sprintf('%s %s %s 2>/dev/null',
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg(__DIR__ . '/verify_forms_forms.php'),
+            escapeshellarg((string)($argv[1] ?? ''))));
+    }
+    if (!file_exists($printTarget)) {
+        echo "  [--] no form on this company produced a record; nothing to print\n";
+        exit(0);
+    }
+    $source = $CHOOSING ? sys_get_temp_dir() . '/forms-print-group' : $printTarget;
+    if (!file_exists($source)) {
+        echo "  [--] no multi-form group on this company; nothing to choose between\n";
+        exit(0);
+    }
+    parse_str((string)file_get_contents($source), $printParams);
+    $_GET = $_REQUEST = $printParams;
+    // module and page are part of a real request, and gen_get_all_get_params()
+    // reads $_GET — a link built without them points at the default page.
+    $_GET['module'] = $_REQUEST['module'] = 'forms';
+    $_GET['page']   = $_REQUEST['page']   = 'print';
+    if ($PRINTING) $_REQUEST['action'] = $_GET['action'] = 'view';
+}
 
 gen_pull_language('phreedom');          // TEXT_CANCEL etc., used by the toolbar
 $toolbar = new toolbar();
@@ -115,6 +155,32 @@ set_error_handler(function (int $no, string $message, string $file, int $line)
     if ($isOurs) $problems[] = $where; else $inherited[$where] = true;
     return true;   // keep going: one page usually has more than one thing wrong
 });
+
+// Printing a form ends the same way: bytes, then exit(). Same shutdown-handler
+// shape as the run branch below, and for the same reason.
+if ($PRINTING) {
+    register_shutdown_function(function () use (&$problems) {
+        $delivered = (string)ob_get_clean();
+        echo "\n=== the print page delivers a form ===\n";
+        ok('it delivered bytes', $delivered !== '', 'nothing was sent');
+        ok('the bytes are a PDF', str_starts_with($delivered, '%PDF'),
+           'first bytes: ' . var_export(substr($delivered, 0, 24), true));
+        ok('the PDF is substantial', strlen($delivered) > 2000, strlen($delivered) . ' bytes');
+        ok('Forms\' own files emitted nothing while printing', $problems === [],
+           implode(' | ', array_slice($problems, 0, 4)));
+        global $failures;
+        echo "\n" . ($failures === 0 ? "  printrun: ok\n" : "  printrun: FAILED $failures check(s)\n");
+        exit($failures === 0 ? 0 : 1);
+    });
+
+    ob_clean();   // drop the bootstrap's chatter, keep the buffer open
+    require(DIR_FS_WORKING . 'pages/print/pre_process.php');   // delivers, then exits
+    ob_end_clean();
+    ok('the print page delivered rather than falling through to the screen', false,
+       'it rendered the screen instead of sending a document');
+    echo "\n  printrun: FAILED $failures check(s)\n";
+    exit(1);
+}
 
 // Running a document ends in exit(), after the bytes have been delivered — so
 // the assertions live in a shutdown handler, which is the only thing that runs
@@ -190,7 +256,9 @@ if ($inherited) {
 }
 ok('it produces markup', strlen($output) > 500, strlen($output) . ' bytes');
 ok('the toolbar rendered', str_contains($output, 'tb_main_'), 'no toolbar in the output');
-ok('the page heading rendered', str_contains($output, '<h1>'));
+// '<h1' rather than '<h1>': a heading carrying Bootstrap classes is still a
+// heading, and requiring the bare tag made a correctly-styled page fail.
+ok('the page heading rendered', str_contains($output, '<h1'));
 
 // ── the contract template_index.php imposes, which this render does not ──────
 $source = (string)file_get_contents(DIR_FS_WORKING . 'pages/' . $PAGE . '/pre_process.php');
@@ -264,6 +332,45 @@ if ($PAGE === 'main') {
 // through a file rather than re-including the page in the run process: a second
 // include re-defines the page's constants, and the noise buries what is being
 // checked.
+if ($CHOOSING) {
+    // The chooser branch. Its links were built by concatenating 'rID=' onto
+    // gen_get_all_get_params(), which returns no trailing separator — so the id
+    // fused with the previous value, never arrived, and clicking simply
+    // re-rendered this page. Nothing else in the suite touched it, because
+    // every other check drives rID directly.
+    $links = $xpath->query("//a[contains(@class,'btn')]");
+    ok('it offers a choice of forms', $links->length > 1, $links->length . ' link(s)');
+    $bad = [];
+    foreach ($links as $link) {
+        $href = html_entity_decode((string)$link->getAttribute('href'));
+        $query = [];
+        parse_str((string)parse_url($href, PHP_URL_QUERY), $query);
+        if (!filter_var($href, FILTER_VALIDATE_URL)
+            || ($query['module'] ?? '') !== 'forms'
+            || ($query['page'] ?? '') !== 'print'
+            || !ctype_digit((string)($query['rID'] ?? ''))
+            || !ctype_digit((string)($query['xmin'] ?? ''))) {
+            $bad[] = substr($href, -70);
+        }
+    }
+    ok('every choice links to this page with a numeric rID, and leaves xmin intact',
+       $bad === [], implode(' | ', array_slice($bad, 0, 3)));
+}
+
+if ($PAGE === 'print' && !$CHOOSING) {
+    // The page's job is to say what it is about to print and offer a way to
+    // print it. An empty selection here would mean RecordSelector failed on the
+    // very parameters a Print button sends.
+    ok('it names the form it will print', str_contains($output, '<h1'));
+    ok('it reports a non-empty record selection',
+       !str_contains($output, FORMS_PRINT_NO_RECORDS),
+       'the page says nothing was selected');
+    foreach (['view', 'download', 'email'] as $action) {
+        ok("it offers the $action action", str_contains($output, "formsPrint('$action')"));
+    }
+    ok('the form posts back to itself', (bool)preg_match('/<form[^>]+name="forms_print"/', $output));
+}
+
 if ($PAGE === 'main' && $controls->length > 0) {
     file_put_contents(sys_get_temp_dir() . '/forms-run-url',
         (string)$controls->item(0)->getAttribute('data-url'));
@@ -318,5 +425,9 @@ foreach ($toolbar->icon_list as $name => $icon) {
 ok('every toolbar entry is complete, so none was invented by assignment',
    $complete, 'missing: ' . implode(', ', $missing));
 
-echo "\n" . ($failures === 0 ? "  $PAGE: ok\n" : "  $PAGE: FAILED $failures check(s)\n");
+// The mode as invoked, not the page it resolved to: 'print' and 'printgroup'
+// both render pages/print, and reporting both as "print" made the suite look
+// like it had run the same check twice.
+$label = (string)$argv[2];
+echo "\n" . ($failures === 0 ? "  $label: ok\n" : "  $label: FAILED $failures check(s)\n");
 exit($failures === 0 ? 0 : 1);

@@ -46,6 +46,27 @@ define('FORMS_ERROR_GL_REQUIRED',  'Choose a GL account before running the recon
 define('FORMS_WARN_CONVERSION',    'This report converted with warnings: %s');
 define('FORMS_NO_DOCUMENTS',       'No documents are defined.');
 
+/***** printing a form from the document that owns it (?module=forms&page=print) *****/
+define('FORMS_PRINT_TITLE',        'Print Document');
+define('FORMS_PRINT_CHOOSE',       'Choose a form');
+define('FORMS_PRINT_CHOOSE_BTN',   'Use this form');
+define('FORMS_PRINT_WHAT',         'What will be printed');
+define('FORMS_PRINT_RECORDS',      'Records selected');
+define('FORMS_PRINT_DELIVER',      'Deliver');
+define('FORMS_PRINT_BTN_VIEW',     'View PDF');
+define('FORMS_PRINT_BTN_DOWNLOAD', 'Download PDF');
+define('FORMS_PRINT_BTN_EMAIL',    'Send email');
+define('FORMS_PRINT_EMAIL',        'Email it instead');
+define('FORMS_PRINT_EMAIL_TO',     'To address');
+define('FORMS_PRINT_EMAIL_NAME',   'To name');
+define('FORMS_PRINT_EMAIL_SUBJECT','Subject');
+define('FORMS_PRINT_EMAIL_MESSAGE','Message');
+define('FORMS_PRINT_EMAIL_BODY',   'Please find attached your %s from %s.');
+define('FORMS_PRINT_EMAIL_NO_ADDRESS', 'Enter an address to send it to.');
+define('FORMS_PRINT_NO_FORMS',     'No forms are defined in group %s.');
+define('FORMS_PRINT_NOTHING_ASKED','No form was named. This page is opened from the document being printed.');
+define('FORMS_PRINT_NO_RECORDS',   'Nothing was selected to print.');
+
 // ── Dataset authoring (design §3.2, §3.3) ────────────────────────────────────
 define('BOX_FORMS_DATASETS',        'Report Datasets');
 define('FORMS_DS_TITLE',            'Report Datasets');
