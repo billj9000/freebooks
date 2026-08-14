@@ -18,7 +18,10 @@
 //
 use FreeBooks\Forms\App\RunPlan;
 
-$toolbar->icon_list['new']['show']    = false;
+// Only the five the toolbar defines are addressed by key. 'new' is not one of
+// them — inventing an entry gives it no 'order', and build_toolbar() sorts with
+// array_multisort(), which is fatal when the key arrays differ in length. An
+// icon that is not a default has to come from add_icon().
 $toolbar->icon_list['open']['show']   = false;
 $toolbar->icon_list['save']['show']   = false;
 $toolbar->icon_list['delete']['show'] = false;
@@ -37,17 +40,17 @@ echo $toolbar->build_toolbar();
       <div class="col-md-4">
         <label class="form-label mb-1" for="forms_dates"><?php echo FORMS_DATE_RANGE; ?></label>
         <?php echo html_pull_down_menu('forms_dates', $forms_date_choices, 'a',
-                                       'id="forms_dates" class="form-select form-select-sm"'); ?>
+                                       'class="form-select form-select-sm"'); ?>
       </div>
       <div class="col-md-4">
         <label class="form-label mb-1" for="forms_period"><?php echo FORMS_PERIOD; ?></label>
         <?php echo html_pull_down_menu('forms_period', $forms_periods, $forms_current_period,
-                                       'id="forms_period" class="form-select form-select-sm"'); ?>
+                                       'class="form-select form-select-sm"'); ?>
       </div>
       <div class="col-md-4">
         <label class="form-label mb-1" for="forms_gl"><?php echo FORMS_GL_ACCOUNT; ?></label>
         <?php echo html_pull_down_menu('forms_gl', $forms_gl_accounts, '',
-                                       'id="forms_gl" class="form-select form-select-sm"'); ?>
+                                       'class="form-select form-select-sm"'); ?>
       </div>
     </div>
   </div>
@@ -87,13 +90,22 @@ echo $toolbar->build_toolbar();
               <?php echo htmlspecialchars($document['served']); ?>
             </td>
             <td class="text-end text-nowrap">
-<?php   if ($runnable) { ?>
-              <button type="button" class="btn btn-primary btn-sm"
-                      onclick="formsRun(<?php echo json_encode($base); ?>, 'pdf', <?php echo $plan->needsGlAccount ? 'true' : 'false'; ?>)">
+<?php   if ($runnable) {
+          // Data attributes and one delegated listener, not an inline handler.
+          // An onclick carrying a URL has to survive both PHP and HTML quoting:
+          // json_encode() emits double quotes, the attribute is delimited by
+          // double quotes, and the browser drops the handler at the first one —
+          // which is a button that highlights and does nothing. An attribute
+          // VALUE escapes cleanly with htmlspecialchars and cannot break out.
+          $runAttributes = sprintf('data-url="%s" data-needs-gl="%d"',
+              htmlspecialchars($base, ENT_QUOTES), $plan->needsGlAccount ? 1 : 0);
+?>
+              <button type="button" class="btn btn-primary btn-sm fb-run"
+                      <?php echo $runAttributes; ?> data-format="pdf">
                 <?php echo FORMS_BTN_PDF; ?>
               </button>
-              <button type="button" class="btn btn-primary btn-sm"
-                      onclick="formsRun(<?php echo json_encode($base); ?>, 'csv', <?php echo $plan->needsGlAccount ? 'true' : 'false'; ?>)">
+              <button type="button" class="btn btn-primary btn-sm fb-run"
+                      <?php echo $runAttributes; ?> data-format="csv">
                 <?php echo FORMS_BTN_CSV; ?>
               </button>
 <?php   } else { ?>

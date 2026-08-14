@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <PhreeformReport>
 	<title><![CDATA[Audit Log]]></title>
-	<description><![CDATA[User audit log. Captures all activities by users. format: Letter, Portrait]]></description>
+	<description><![CDATA[User audit log. Captures all activities by users. format: Letter, Landscape]]></description>
 	<datefield><![CDATA[audit_log.action_date]]></datefield>
 	<datelist><![CDATA[abcdfhjl]]></datelist>
 	<datedefault><![CDATA[c]]></datedefault>
@@ -77,7 +77,7 @@
 	</grouplist>
 	<page>
 		<size><![CDATA[Letter:216:282]]></size>
-		<orientation><![CDATA[P]]></orientation>
+		<orientation><![CDATA[L]]></orientation>
 		<margin>
 			<top><![CDATA[8]]></top>
 			<bottom><![CDATA[12]]></bottom>

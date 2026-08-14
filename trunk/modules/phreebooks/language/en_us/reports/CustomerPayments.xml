@@ -3,10 +3,10 @@
 	<reporttype><![CDATA[rpt]]></reporttype>
 	<title><![CDATA[Customer Payments]]></title>
 	<groupname><![CDATA[bnk]]></groupname>
-	<description><![CDATA[Lists the customer payments. Format: Letter, Portrait]]></description>
+	<description><![CDATA[Lists the customer payments. Format: Letter, Landscape]]></description>
 <page>
 	<size><![CDATA[Letter:216:282]]></size>
-	<orientation><![CDATA[P]]></orientation>
+	<orientation><![CDATA[L]]></orientation>
 	<margin>
 		<top><![CDATA[8]]></top>
 		<bottom><![CDATA[8]]></bottom>

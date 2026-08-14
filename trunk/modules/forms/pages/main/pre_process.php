@@ -28,6 +28,15 @@
 $security_level = validate_user(SECURITY_ID_FORMS_RUN);
 
 require(DIR_FS_WORKING . 'defaults.php');
+// Report definitions are still read from the PhreeForm catalog, so its own
+// bootstrap has to happen first and IN THIS ORDER, at file scope:
+//   - its language file defines the PF_FONT_* constants defaults.php reads;
+//   - defaults.php defines PF_DIR_MY_REPORTS, which get_report_details() needs,
+//     and loads each module's pf_process_* hooks behind `isset($loaded_modules)`
+//     — a global it can only see from file scope, so this must not move inside
+//     a function.
+gen_pull_language('phreeform');
+require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');   // get_report_details()
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
@@ -39,6 +48,10 @@ use FreeBooks\Forms\Render\{CsvRenderer, Formatter, TablePdfRenderer};
 
 // Shipped first, then the admin-defined ones: a stored dataset may not shadow a
 // shipped name, and registering in this order is what makes that so.
+// Required of every page by includes/template_index.php, which renders it as
+// the browser <title>. A page that omits it is a fatal, not an untitled page.
+define('PAGE_TITLE', FORMS_PAGE_TITLE);
+
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 $forms_custom = new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORMS_DATASETS);

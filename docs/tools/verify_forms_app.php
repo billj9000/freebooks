@@ -72,7 +72,7 @@ $glAccount = (string)($db->Execute("select i.gl_account from " . TABLE_JOURNAL_I
 printf("run dialog: period %d, gl account '%s'\n\n", $period, $glAccount);
 
 $counts = ['dataset' => 0, 'provider' => 0, 'unsupported' => 0];
-$ran    = $empty = 0;
+$ran    = $empty = $fitted = $landscape = 0;
 
 $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM
     . " where doc_type <> '0' order by id");
@@ -120,6 +120,30 @@ foreach ($documents as $id => $title) {
     $pdfOut = $pdf->render($document);
     $csvOut = $csv->render($document);
 
+    // The table must end inside the right margin. PhreeForm let bands run past
+    // it and TCPDF clipped whatever fell outside, so a report wider than its
+    // page lost the tail of its last column silently — 28 of the 43 shipped
+    // dataset reports are wider than the page they declare. The renderer scales
+    // the bands to fit; this is what proves it did.
+    //
+    // Read by reflection deliberately: the band positions are an implementation
+    // detail, and widening the renderer's public API so a dev tool can look at
+    // them would be the wrong trade.
+    $edges  = (new \ReflectionProperty($pdf, 'bandX'))->getValue($pdf);
+    // The right edge the renderer itself used, on the orientation it chose: a
+    // report too wide for its page is now given a landscape one, so measuring
+    // against the DECLARED page would fail every report that was correctly
+    // turned — and TCPDF reports a width of zero once the document is closed.
+    $limit = (float)(new \ReflectionProperty($pdf, 'pageRight'))->getValue($pdf);
+    $edge   = is_array($edges) ? (float)end($edges) : 0.0;
+    if ($edge > $limit + 0.01) {
+        ok("pf_$id ($title) fits between its margins", false,
+           sprintf('table ends at %.1fmm, right margin is at %.1fmm', $edge, $limit));
+        continue;
+    }
+    if ($limit > 210.0) $landscape++;   // wider than a portrait A4/Letter body
+    $fitted++;
+
     $sane = str_starts_with($pdfOut->bytes, '%PDF')
          && $pdfOut->size() > 500
          && $csvOut->size() > 0
@@ -134,6 +158,8 @@ foreach ($documents as $id => $title) {
     $ran++;
 }
 ok(sprintf('%d document(s) ran and rendered as both PDF and CSV', $ran), $ran > 0);
+ok(sprintf('every rendered table fits between its margins (%d checked)', $fitted), $fitted === $ran);
+printf("  %d printed landscape, %d portrait\n", $landscape, $fitted - $landscape);
 printf("  routing: %d by dataset, %d by provider, %d not served by Forms; %d ran empty\n",
     $counts['dataset'], $counts['provider'], $counts['unsupported'], $empty);
 

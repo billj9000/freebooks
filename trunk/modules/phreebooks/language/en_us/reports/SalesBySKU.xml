@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <PhreeformReport>
 	<title><![CDATA[Sales By SKU]]></title>
-	<description><![CDATA[Lists sales for a given period at the SKU level. Format: Letter, Portrait]]></description>
+	<description><![CDATA[Lists sales for a given period at the SKU level. Format: Letter, Landscape]]></description>
 	<datefield><![CDATA[journal_main.post_date]]></datefield>
 	<datelist><![CDATA[abcdefghijkl]]></datelist>
 	<datedefault><![CDATA[c]]></datedefault>
@@ -272,7 +272,7 @@
 	</grouplist>
 	<page>
 		<size><![CDATA[Letter:216:282]]></size>
-		<orientation><![CDATA[P]]></orientation>
+		<orientation><![CDATA[L]]></orientation>
 		<margin>
 			<top><![CDATA[8]]></top>
 			<bottom><![CDATA[8]]></bottom>

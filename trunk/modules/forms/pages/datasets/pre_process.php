@@ -40,6 +40,12 @@
 $security_level = validate_user(SECURITY_ID_FORMS_DATASETS);
 
 require(DIR_FS_WORKING . 'defaults.php');
+// At file scope, and before anything calls get_report_details(): PF_DIR_MY_REPORTS
+// lives in phreeform/defaults.php, and that file reads $loaded_modules, which it
+// can only see from here. forms_datasets_in_use() below relies on both.
+gen_pull_language('phreeform');
+require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
+require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
 
@@ -136,6 +142,13 @@ if ($forms_ds_editing) {
   }
 }
 
+// Required of every page by includes/template_index.php, which renders it as the
+// browser <title>. Set after the editing state settles, because loading a
+// missing dataset turns an edit back into the list.
+define('PAGE_TITLE', $forms_ds_editing
+    ? (!empty($forms_ds_record['existing']) ? FORMS_DS_EDIT : FORMS_DS_NEW)
+    : FORMS_DS_TITLE);
+
 // Offered choices. Every one of these comes from the live schema, with the
 // sensitive tables already filtered out (§3.3).
 $forms_ds_tables = array();
@@ -173,7 +186,6 @@ function forms_datasets_in_use($datasetId) {
   static $counts = null;
   if ($counts === null) {
     $counts = array();
-    require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
     require_once(DIR_FS_MODULES . 'forms/classes/legacy/dataset_resolver.php');
 
     $catalog = new \FreeBooks\Forms\Catalog\Catalog();

@@ -59,7 +59,7 @@
 namespace FreeBooks\Forms\Render;
 
 use FreeBooks\Forms\Document\{
-    Align, Document, Format, FormsRenderer, RenderedOutput, RenderOptions, ReportColumn,
+    Align, Document, Format, FormsRenderer, PageSetup, RenderedOutput, RenderOptions, ReportColumn,
     ReportStyle, Row, RowKind, Style, TableDocument, TypedValue,
     UnsupportedDocumentException
 };
@@ -92,6 +92,9 @@ final class TablePdfRenderer implements FormsRenderer
     /** Bottom of the printable area. */
     private float $pageBottom = 0.0;
 
+    /** Right edge of the printable area, on the orientation actually chosen. */
+    private float $pageRight = 0.0;
+
     public function __construct(
         private readonly Formatter $formatter,
         private readonly string    $defaultFont      = 'helvetica',
@@ -123,7 +126,19 @@ final class TablePdfRenderer implements FormsRenderer
         $page  = $doc->pageSetup();
         $style = $doc->style();
 
-        $pdf = new PdfCanvas($page->orientation, 'mm', $page->size, true, 'UTF-8', false);
+        // Orientation is decided before the canvas exists, because it cannot be
+        // changed afterwards. A report whose columns do not fit the page it
+        // declares is printed landscape rather than clipped: PhreeForm let the
+        // bands run past the right margin and TCPDF cut whatever fell outside,
+        // silently losing the tail of the last column. 25 of the 43 shipped
+        // dataset reports declare more width than their portrait page.
+        //
+        // The designer's WIDTHS are never overridden to achieve this — turning
+        // the paper is a change to the paper, not to the report. Only a table
+        // too wide even for landscape is scaled, and then only by the little it
+        // is over (the three that need it are 8–10 mm past a 277 mm page).
+        $orientation = $this->orientationFor($doc, $page);
+        $pdf = new PdfCanvas($orientation, 'mm', $page->size, true, 'UTF-8', false);
         $pdf->SetCellPadding(0);
         $pdf->SetMargins($page->marginLeft, $page->marginTop, $page->marginRight);
         // Off deliberately: this renderer decides where rows break, using the
@@ -141,7 +156,8 @@ final class TablePdfRenderer implements FormsRenderer
 
         $this->pdf        = $pdf;
         $this->pageBottom = $pdf->getPageHeight() - $page->marginBottom;
-        $this->layOutColumns($doc, $page->marginLeft);
+        $this->pageRight  = $pdf->getPageWidth() - $page->marginRight;
+        $this->layOutColumns($doc, $page->marginLeft, $this->pageRight);
 
         // The furniture repeats on every page, so it lives in the header
         // callback — the one TCPDF hook that fires per page.
@@ -159,28 +175,90 @@ final class TablePdfRenderer implements FormsRenderer
     // ── layout ───────────────────────────────────────────────────────────────
 
     /**
+     * Portrait as declared, or landscape if that is what it takes to fit.
+     *
+     * Never the other way round: a report that asks for landscape keeps it even
+     * if it would fit portrait, because the author chose it and a wide page is
+     * not a defect.
+     */
+    private function orientationFor(TableDocument $doc, PageSetup $page): string
+    {
+        $declared = strtoupper($page->orientation) === 'L' ? 'L' : 'P';
+        if ($declared === 'L') return 'L';
+
+        $needed = $this->naturalWidth($doc);
+        foreach (['P', 'L'] as $candidate) {
+            $probe     = new PdfCanvas($candidate, 'mm', $page->size, true, 'UTF-8', false);
+            $printable = $probe->getPageWidth() - $page->marginLeft - $page->marginRight;
+            if ($needed <= $printable + 0.01) return $candidate;
+        }
+        // Wider than any orientation of this paper. Take the widest one anyway,
+        // so the scaling that follows is the smallest it can be: the five
+        // shipped reports in this position are 8-10 mm past a 277 mm landscape
+        // page, where portrait would have meant shrinking them to two thirds.
+        return 'L';
+    }
+
+    /** The width the columns ask for, before any fitting. */
+    private function naturalWidth(TableDocument $doc): float
+    {
+        $edges = $this->bandEdges($doc, 0.0);
+        return (float)end($edges);
+    }
+
+    /**
+     * Band right-edges, from the columns alone.
+     *
+     * @return list<float>
+     */
+    private function bandEdges(TableDocument $doc, float $left): array
+    {
+        $edges = [$left];
+        $band  = 1;
+        foreach ($doc->columns as $column) {
+            $width = $column->width ?? $this->defaultColumnWidth;
+            $edges[$band] = max($edges[$band] ?? 0.0, $edges[$band - 1] + $width);
+            if ($column->pageBreak) $band++;
+        }
+        // A trailing band with no closing column still needs a right edge.
+        if (!isset($edges[$band])) {
+            $edges[$band] = $edges[$band - 1] + $this->defaultColumnWidth;
+        }
+        return $edges;
+    }
+
+    /**
      * Resolve columns into x bands.
      *
      * Columns stack downward within a band; a column flagged `pageBreak` closes
      * its band. A band is as wide as the widest column in it, which is why the
      * running maximum is taken rather than simply summing.
+     *
+     * Scaling here is the LAST resort, and normally does nothing: a table too
+     * wide for its page has already been given a landscape one by
+     * orientationFor(). What reaches this is a table too wide for any
+     * orientation of its paper, where the choice is between narrowing the bands
+     * — which wraps text — and PhreeForm's behaviour of running past the right
+     * margin and letting TCPDF cut whatever fell outside.
      */
-    private function layOutColumns(TableDocument $doc, float $left): void
+    private function layOutColumns(TableDocument $doc, float $left, float $rightLimit): void
     {
-        $this->bandX      = [$left];
+        $this->bandX      = $this->bandEdges($doc, $left);
         $this->columnBand = [];
 
         $band = 1;
         foreach ($doc->columns as $index => $column) {
-            $width = $column->width ?? $this->defaultColumnWidth;
-            $edge  = $this->bandX[$band - 1] + $width;
-            $this->bandX[$band] = max($this->bandX[$band] ?? 0.0, $edge);
             $this->columnBand[$index] = $band;
             if ($column->pageBreak) $band++;
         }
-        // A trailing band with no closing column still needs a right edge.
-        if (!isset($this->bandX[$band])) {
-            $this->bandX[$band] = $this->bandX[$band - 1] + $this->defaultColumnWidth;
+
+        $rightEdge = (float)end($this->bandX);
+        $available = $rightLimit - $left;
+        if ($available > 0 && $rightEdge - $left > $available) {
+            $scale = $available / ($rightEdge - $left);
+            foreach ($this->bandX as $index => $x) {
+                $this->bandX[$index] = $left + (($x - $left) * $scale);
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <PhreeformReport>
 	<title><![CDATA[Inventory List]]></title>
-	<description><![CDATA[Lists inventory items. Format: Letter, Portrait]]></description>
+	<description><![CDATA[Lists inventory items. Format: Letter, Landscape]]></description>
 	<datedefault><![CDATA[a]]></datedefault>
 	<security><![CDATA[u:0;g:0]]></security>
 	<reporttype><![CDATA[rpt]]></reporttype>
@@ -119,7 +119,7 @@
 	</grouplist>
 	<page>
 		<size><![CDATA[Letter:216:282]]></size>
-		<orientation><![CDATA[P]]></orientation>
+		<orientation><![CDATA[L]]></orientation>
 		<margin>
 			<top><![CDATA[10]]></top>
 			<bottom><![CDATA[10]]></bottom>

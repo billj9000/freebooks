@@ -67,7 +67,7 @@ function formsSelect(name, options, selected, onChange) {
 
 /** Tables already in the dataset: the base table plus every join above this row. */
 function formsTablesInScope(uptoRow) {
-  const tables = [document.getElementById('ds_base').value];
+  const tables = [document.getElementById('baseTable').value];
   document.querySelectorAll('#ds_joins .ds-join').forEach(row => {
     if (uptoRow !== undefined && Number(row.dataset.index) >= uptoRow) return;
     const table = row.querySelector('.ds-join-table');
@@ -252,7 +252,7 @@ function formsRefreshFields() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('ds_base').addEventListener('change', function () {
+  document.getElementById('baseTable').addEventListener('change', function () {
     document.querySelectorAll('.ds-join .ds-condition').forEach(line => {
       const select = line.querySelector('select');
       const chosen = select.value;

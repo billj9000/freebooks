@@ -21,11 +21,16 @@ use FreeBooks\Forms\Catalog\DatasetTier;
 $toolbar->icon_list['open']['show']   = false;
 $toolbar->icon_list['print']['show']  = false;
 $toolbar->icon_list['delete']['show'] = false;
-$toolbar->icon_list['new']['show']    = !$forms_ds_editing;
 $toolbar->icon_list['save']['show']   = $forms_ds_editing;
-$toolbar->icon_list['new']['params']  = 'onclick="location.href = \''
-    . html_href_link(FILENAME_DEFAULT, 'module=forms&page=datasets&action=new', 'SSL') . '\'"';
 $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'forms_ds_form\').submit()"';
+// add_icon() rather than assigning into icon_list: 'new' is not one of the five
+// the toolbar defines, and an invented entry carries no 'order' — which
+// build_toolbar() feeds to array_multisort(), fatally, when the key arrays end
+// up different lengths.
+if (!$forms_ds_editing) {
+  $toolbar->add_icon('new', 'onclick="location.href = \''
+      . html_href_link(FILENAME_DEFAULT, 'module=forms&page=datasets&action=new', 'SSL') . '\'"', 2);
+}
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, $forms_ds_editing ? 'module=forms&page=datasets' : '', 'SSL') . '\'"';
 echo $toolbar->build_toolbar();
@@ -143,9 +148,9 @@ echo $toolbar->build_toolbar();
     <p class="text-muted small mb-2"><?php echo FORMS_DS_NO_SQL_NOTE; ?></p>
     <div class="row g-2 mb-3">
       <div class="col-md-4">
-        <label class="form-label mb-1" for="ds_base"><?php echo FORMS_DS_BASE_TABLE; ?></label>
+        <label class="form-label mb-1" for="baseTable"><?php echo FORMS_DS_BASE_TABLE; ?></label>
         <?php echo html_pull_down_menu('baseTable', $forms_ds_tables, $record['baseTable'],
-            'id="ds_base" class="form-select form-select-sm" required'); ?>
+            'class="form-select form-select-sm" required'); ?>
       </div>
     </div>
 

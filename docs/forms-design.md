@@ -443,6 +443,8 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `verify_forms_dataset_map.php` | Every shipped report resolves to the dataset a passing row-set run proved | yes | **PASS — 33 mappings, 0 wrong** |
 | `verify_forms_app.php` | The application's own path — route, render, deliver — over every definition in the catalog | yes | **PASS** — `demo` 47 documents, `production` 40, both as PDF and CSV |
 | `verify_forms_custom_datasets.php` | The admin-defined tier (§3.2, §3.3): hostile input refused by name, sensitive tables unreachable, stored rows re-validated on load, tier limits enforced in the constructor | yes | **PASS — 40 checks** (`demo`; needs the `forms_datasets` table) |
+| `verify_forms_pages.php` | Renders each Forms page as index.php would, parses the markup it emits, follows a rendered run link through to a delivered PDF, and fails on any warning from Forms' own files | yes | **PASS** (skips a company where Forms is not installed) |
+| `verify_report_page_widths.php` | Every shipped report definition fits the page it declares, or is reported as needing more paper than exists | no | **PASS — 39 definitions, 9 listed as scaled** |
 | `diff_forms_provider.php` | Semantic-diff a provider against the baseline |
 | `verify_forms_seam.php` | Assert the seam holds (no DB needed) |
 | `verify_forms_formatter.php` | Assert `Formatter` parity with `ProcessData()`/`AddSep()` |
@@ -979,6 +981,112 @@ real coverage. All seven datasets are now non-vacuously verified.
 > cannot. With one task, Forms could only emit one group and the divergence was unobservable. It
 > was never a defect. Three tasks across four work orders made it pass.
 
+### 12.1.1 A defect the suite could not see
+
+`Tools -> Documents (Forms)` was fatal on first open — `Undefined constant "PF_DIR_MY_REPORTS"` —
+while every tool in the table above reported green. The reason is worth recording, because it is a
+property of the harness rather than of the code.
+
+`get_report_details()` reads report definitions out of `PF_DIR_MY_REPORTS`, which
+`phreeform/defaults.php` defines. Every tool bootstraps through `fb_bootstrap()`, which loads that
+file for its own reasons; the page did not, and `application_top.php` does not load it either. So
+the tools were exercising a path the application could not reach — including
+`verify_forms_app.php`, which was written specifically to drive "the application's own path" and
+still missed it, because it inherited the harness's bootstrap instead of a page's.
+
+That was the first of three, and the first two fixes each revealed the next — which is the real
+lesson. A missing `PAGE_TITLE`, which `template_index.php` echoes unguarded. Then a toolbar entry
+created by assigning into `$toolbar->icon_list['new']`, leaving it without the `order` key that
+`build_toolbar()` feeds to `array_multisort()`: `ValueError: Array sizes are inconsistent`. Both
+live in the page BODY, so no amount of checking a page's *requires* would have found either.
+
+`verify_forms_pages.php` therefore does what `index.php` does — sets `DIR_FS_WORKING`, includes
+`pre_process.php`, `template_main.php` and `js_include.php`, and fails on anything raised. Four
+things it had to get right to be worth having, each found by testing the test:
+
+- **One page per process.** The first version replayed both pages into one interpreter and asserted
+  at the end, so the datasets page satisfied assertions the main page's deletion should have broken
+  — it passed against code known to be broken. A constant cannot be undefined once set, so the
+  isolation has to be a process boundary.
+- **Warnings attributed by file.** Rendering a Forms page walks through PhreeForm and three
+  modules' language files, which carry 17 warnings of their own that predate this work. Failing on
+  those makes the output something to skim rather than act on, so only warnings from
+  `modules/forms/` fail; the rest are reported as inherited.
+- **What the page NAMES, not what it runs.** The datasets page calls `get_report_details()` only
+  when deleting, so its list view rendered perfectly with the PhreeForm bootstrap missing and would
+  have broken on the first delete. Rendering alone gave a false pass; the check now scans the page
+  for the symbols it references and asserts each is defined.
+- **Scanned over tokens, not text.** That scan first flagged `PF_FONT_*` out of a comment
+  explaining why `PF_FONT_*` matters. Comments and string literals are not references.
+
+A fourth defect then arrived that all of the above still missed, because it was not a fatal: the
+page rendered perfectly and emitted
+
+```
+onclick="formsRun("http://localhost/index.php?...", 'pdf', false)">
+```
+
+`json_encode()` produces double quotes, the attribute is delimited by double quotes, and the browser
+discards the handler at the first one. The result is a button that highlights and does nothing. So
+"it rendered" is not the claim worth making; the output is now PARSED, and three things asserted of
+it — no malformed attribute, no inline handler truncated by its own quoting, and one run control per
+runnable document each carrying a valid URL and format. The fix removes the hazard rather than
+escaping it: the URL moved to a `data-` attribute with a single delegated listener, where HTML
+escaping is sufficient and cannot break out.
+
+That check immediately found a second, quieter fault in the same markup — `html_pull_down_menu()`
+already emits `id="<name>"`, so the `id=` passed through its `$parameters` produced a duplicate on
+every select.
+
+Finally, the suite follows a run link end to end: it takes a `data-url` out of the rendered page,
+replays it as `$_GET`, and asserts a PDF comes back. Getting that honest took two goes, both of
+which looked like the page failing and were the harness: `HttpDelivery` refuses to deliver once
+output has started — correctly, since a document appended to a half-rendered page is a corrupt
+download — and in a CLI the harness's own chatter counts as output. Buffering now starts before the
+bootstrap prints anything.
+
+The PhreeForm require must also be at FILE scope: `phreeform/defaults.php` guards its hook-loading
+loop with `isset($loaded_modules)`, so from inside a function it would quietly skip every module's
+`pf_process_*` hook — a wrong report rather than an error.
+
+One thing observed and deliberately not changed: `index.php` dispatches to any module page whose
+file exists, without consulting `MODULE_<NAME>_STATUS`. On a company where Forms is not installed,
+`?module=forms&page=main` therefore reaches the page and dies on an undefined `SECURITY_ID_FORMS_RUN`
+rather than refusing politely. Nothing leaks — `validate_user()` is never reached — and the
+behaviour is identical for every uninstalled module, so it is a framework question rather than a
+Forms one.
+
+### 12.1.2 Reports wider than the page they declare
+
+Twenty-eight of the forty-three shipped dataset reports ask for more column width than their paper
+holds — Vendor Ledger wants 287 mm on a 190 mm portrait body, Customer List 275 mm. PhreeForm let
+the bands run past the right margin and TCPDF clipped whatever fell outside, so those reports have
+been losing the tail of their last column on every print since they were written. It surfaced only
+because a three-letter currency code lost its third letter, which is visible in a way a truncated
+customer name is not.
+
+The fix is in two halves, because report definitions live per company in
+`my_files/{company}/phreeform/pf_NN`, seeded at install — so editing the shipped XML reaches new
+installations only.
+
+- **At render time**, `TablePdfRenderer` chooses the orientation: the declared one if the columns
+  fit, landscape if that is what it takes, and only then scaling. The designer's WIDTHS are never
+  overridden to achieve this — turning the paper is a change to the paper, not to the report. A
+  report that declares landscape keeps it even if it would fit portrait, because that was a choice.
+  On `demo`, 28 of 47 documents now print landscape and every one fits between its margins.
+- **In the shipped definitions**, twenty-two reports were set to `<orientation>L</orientation>` so a
+  fresh install is right rather than rescued. Nine already declared landscape and it was the
+  per-company copies that had drifted, which is exactly why the render-time half is needed.
+
+Nine remain wider than Letter landscape (263 mm printable), by 2–24 mm. Those are scaled at render
+time to 92–99%, which is mild, and `verify_report_page_widths.php` lists them every run rather than
+passing over them: each is fixed properly by a column width or a larger sheet, and that is a
+judgement about paper stock rather than something to decide in code.
+
+`verify_forms_app.php` asserts the drawn table ends inside the right margin for every document, and
+`verify_report_page_widths.php` reads the shipped XML directly — no database, no company — so the
+artefact in the repository is checked rather than one installation's copy of it.
+
 ### 12.2 Reproducing it
 
 The tools resolve the seam **relative to their own location** (`../../trunk/modules/forms/`), so
@@ -1152,6 +1260,24 @@ into both queries unbound.
 This makes **two shipped reports found dead rather than merely wrong** — this one and `pf_64` above.
 Both had been unrunnable long enough that nobody noticed, which is the strongest argument in the
 document for driving the whole shipped set through a harness rather than spot-checking it.
+
+**A report has never shown the currency a record was posted in.** `BuildDataArray()` sets
+`$posted_currencies` to the HOME currency once, at the top, and never per row — so a `posted_cur`
+column on a report prints the home amount with the home symbol, and a payment taken in EUR reads as
+sterling. Only the forms path sets it per record.
+
+That is not the arithmetic error it first looks like, and the difference matters: the stored
+`total_amount` IS the home-currency figure, so £ 46.62 is correct and € 46.62 would not be — the
+posted-currency equivalent is € 57.11. The column is also usually totalled, and a total of mixed
+currencies means nothing, so home-currency amounts are what make it addable. The vocabulary does
+distinguish the two (`def_cur` is home, `posted_cur` is posted; nine shipped reports use the former
+and nineteen the latter), so the designer did ask for something the engine never delivered.
+
+**Not fixed, deliberately.** Forms briefly appended a Currency column automatically and it was
+reverted: redesigning a shipped report is not the engine's decision. The information is one field
+away — `journal_main.currencies_code` is in the transactions dataset and selectable in PhreeForm's
+designer — so anyone who wants that column can add it to the definition both engines read. What
+Forms owes here is faithful rendering and the field being available, and both hold.
 
 One deliberate divergence remains: a **bound that is not in database format** is dropped rather
 than guessed. `gen_db_date()` substitutes TODAY for anything it cannot parse, so a mistyped date

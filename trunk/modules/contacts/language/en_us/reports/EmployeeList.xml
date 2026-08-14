@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <PhreeformReport>
 	<title><![CDATA[Employee List]]></title>
-	<description><![CDATA[Lists Employees address information. format: Letter, Portrait]]></description>
+	<description><![CDATA[Lists Employees address information. format: Letter, Landscape]]></description>
 	<datelist><![CDATA[a]]></datelist>
 	<datedefault><![CDATA[a]]></datedefault>
 	<truncate><![CDATA[0]]></truncate>
@@ -173,7 +173,7 @@
 	</grouplist>
 	<page>
 		<size><![CDATA[Letter:216:282]]></size>
-		<orientation><![CDATA[P]]></orientation>
+		<orientation><![CDATA[L]]></orientation>
 		<margin>
 			<top><![CDATA[8]]></top>
 			<bottom><![CDATA[8]]></bottom>
