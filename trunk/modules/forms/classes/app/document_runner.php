@@ -22,16 +22,20 @@
  * Everything below this class had been driven only by `docs/tools/`. This is the
  * wiring the application needs: given a definition and the run dialog's answers,
  * pick the provider, hand it a converted definition, and return a Document. It
- * is deliberately the only place that knows the three routes a definition can
- * take, so a page never has to.
+ * is deliberately the only place that knows the routes a definition can take, so
+ * a page never has to.
  *
  *   dataset      — the ordinary query-driven path, via ReportDocumentProvider
  *   provider     — a special_class Forms serves in code (§5, §11)
+ *   form         — served, but by FormRunner and the print page, not here
  *   unsupported  — a definition Forms cannot yet serve, named and explained
  *
- * The last case matters. PhreeForm and Forms coexist through the transition, so
- * a page has to be able to say "this one still runs on the old engine" rather
- * than produce an empty report and let the user believe it.
+ * The last two matter for opposite reasons. PhreeForm and Forms coexist through
+ * the transition, so a page has to be able to say "this one still runs on the
+ * old engine" rather than produce an empty report and let the user believe it.
+ * And a form is not a report: it has no columns and no grouping, so running one
+ * here yields a plausible page of rows that is not the document anyone asked
+ * for — which is what the document list did until `form` existed.
  *
  * This class sits ABOVE the seam and freely reads the database and application
  * settings. What it returns is a Document, which is free of both.
@@ -52,6 +56,7 @@ final readonly class RunPlan
 {
     public const DATASET     = 'dataset';
     public const PROVIDER    = 'provider';
+    public const FORM        = 'form';
     public const UNSUPPORTED = 'unsupported';
 
     /** @param list<string> $notes */
@@ -64,7 +69,19 @@ final readonly class RunPlan
         public bool   $needsGlAccount = false,
     ) {}
 
-    public function runnable(): bool { return $this->kind !== self::UNSUPPORTED; }
+    /** Can DocumentRunner produce a table from this? A form is printed, not run. */
+    public function runnable(): bool
+    {
+        return $this->kind !== self::UNSUPPORTED && $this->kind !== self::FORM;
+    }
+
+    /**
+     * It is a form: Forms serves it, but through FormRunner and the print page.
+     *
+     * Distinct from UNSUPPORTED because the two need opposite things said to the
+     * user — "Forms cannot do this" against "printing this is over there".
+     */
+    public function isForm(): bool { return $this->kind === self::FORM; }
 }
 
 final class DocumentRunner
@@ -106,6 +123,18 @@ final class DocumentRunner
     {
         $special = trim((string)($report->special_class ?? ''));
 
+        // A FORM is not a table, and asking first is what stops it being served
+        // as one. Only the four special_class forms were being declined here;
+        // the nine query-driven ones carry no special_class at all, so they fell
+        // through to the dataset route and the document list offered PDF and CSV
+        // buttons that rendered an invoice as rows and columns. Reporttype is
+        // the definition's own answer to the question, and it covers both.
+        if (($report->reporttype ?? '') === 'frm') {
+            return new RunPlan(RunPlan::FORM, $special,
+                ['This is a form. Forms prints it, but a form is per record, so printing one'
+                 . ' is driven from the document it belongs to rather than from this list.']);
+        }
+
         if (isset(self::STRUCTURAL[$special])) {
             return new RunPlan(RunPlan::PROVIDER, $special,
                 needsPeriod: true,
@@ -113,13 +142,14 @@ final class DocumentRunner
         }
 
         if ($special !== '' && !in_array($special, self::DATASET_SERVED, true)) {
-            // A form provider exists for these, but the forms path runs through
-            // LayoutDocument and its own record selection, which this page does
-            // not yet drive. Saying so beats rendering an empty table.
+            // Reached only by a definition that names a FORM's special class
+            // while calling itself a report — the reporttype check above takes
+            // every well-formed form. Kept because a customised install can hold
+            // that combination, and serving it as a table would be worse than
+            // saying where it belongs.
             if (in_array($special, self::FORM_PROVIDERS, true)) {
-                return new RunPlan(RunPlan::UNSUPPORTED, $special,
-                    ['This is a form. Forms renders it, but printing one is driven from the'
-                     . ' document it belongs to rather than from this list.']);
+                return new RunPlan(RunPlan::FORM, $special,
+                    ['This names a form builder, so it is printed rather than run as a table.']);
             }
             return new RunPlan(RunPlan::UNSUPPORTED, $special,
                 ["No class named '$special' is registered, so this definition cannot run."]);
@@ -152,6 +182,10 @@ final class DocumentRunner
         $report = unserialize(serialize($report));
         $plan   = $this->plan($report);
 
+        if ($plan->isForm()) {
+            throw new \RuntimeException('This is a form, not a report. Forms prints it through'
+                . ' FormRunner and the print page, which need the records to print.');
+        }
         if (!$plan->runnable()) {
             throw new \RuntimeException(implode(' ', $plan->notes)
                 ?: 'Forms cannot serve this definition.');

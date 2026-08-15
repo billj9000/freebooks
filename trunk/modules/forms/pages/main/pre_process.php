@@ -150,11 +150,14 @@ while (!$result->EOF) {
       'title'    => (string)$result->fields['doc_title'],
       'group'    => (string)$result->fields['doc_group'],
       'plan'     => $plan,
-      'served'   => $plan->kind === RunPlan::DATASET
-                      ? sprintf(FORMS_SERVED_DATASET, $plan->name)
-                      : ($plan->kind === RunPlan::PROVIDER
-                          ? sprintf(FORMS_SERVED_PROVIDER, $plan->name)
-                          : FORMS_SERVED_NOT_YET),
+      'served'   => match (true) {
+                      $plan->kind === RunPlan::DATASET  => sprintf(FORMS_SERVED_DATASET, $plan->name),
+                      $plan->kind === RunPlan::PROVIDER => sprintf(FORMS_SERVED_PROVIDER, $plan->name),
+                      // A form is served, just not from this list — it needs
+                      // records, which only the document that owns it knows.
+                      $plan->isForm()                   => FORMS_SERVED_FORM,
+                      default                           => FORMS_SERVED_NOT_YET,
+                    },
     );
   }
   $result->MoveNext();

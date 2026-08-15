@@ -29,6 +29,8 @@ define('FORMS_COL_ACTIONS',        'Run');
 define('FORMS_SERVED_DATASET',     'dataset: %s');
 define('FORMS_SERVED_PROVIDER',    'built in code: %s');
 define('FORMS_SERVED_NOT_YET',     'not yet served by Forms');
+define('FORMS_SERVED_FORM',        'a form — printed from a document');
+define('FORMS_BTN_PRINT',          'Print…');
 
 define('FORMS_LEGEND_OPTIONS',     'Run options');
 define('FORMS_DATE_RANGE',         'Date range');
@@ -66,6 +68,7 @@ define('FORMS_PRINT_EMAIL_NO_ADDRESS', 'Enter an address to send it to.');
 define('FORMS_PRINT_NO_FORMS',     'No forms are defined in group %s.');
 define('FORMS_PRINT_NOTHING_ASKED','No form was named. This page is opened from the document being printed.');
 define('FORMS_PRINT_NO_RECORDS',   'Nothing was selected to print.');
+define('FORMS_PRINT_OPEN_FROM_DOCUMENT', 'A form prints one record at a time, so it is opened from the document it belongs to — open the order, invoice or statement and use its Print button.');
 
 // ── Dataset authoring (design §3.2, §3.3) ────────────────────────────────────
 define('BOX_FORMS_DATASETS',        'Report Datasets');

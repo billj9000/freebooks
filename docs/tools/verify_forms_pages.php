@@ -310,10 +310,22 @@ $xpath    = new \DOMXPath($dom);
 $controls = $xpath->query("//*[contains(@class,'fb-run')]");
 if ($PAGE === 'main') {
     $runnable = 0;
-    foreach ($forms_documents as $document) if ($document['plan']->runnable()) $runnable++;
+    $printable = 0;
+    foreach ($forms_documents as $document) {
+        if ($document['plan']->runnable())  $runnable++;
+        if ($document['plan']->isForm())    $printable++;
+    }
     ok(sprintf('every runnable document offers PDF and CSV (%d documents, %d controls)',
                $runnable, $controls->length),
        $controls->length === $runnable * 2);
+
+    // A form is listed too, but it is printed rather than run: it gets one link
+    // to the print page instead of two format buttons. Asserting the count
+    // stops a regression that quietly turns forms back into tables.
+    $printLinks = $xpath->query("//a[contains(@href,'page=print')]");
+    ok(sprintf('every form offers a print link instead (%d forms, %d links)',
+               $printable, $printLinks->length),
+       $printLinks->length === $printable);
 
     $bad = [];
     foreach ($controls as $control) {

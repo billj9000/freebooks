@@ -113,11 +113,20 @@ if ($forms_report) {
   if (!$forms_plan->runnable()) {
     $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, implode(' ', $forms_plan->notes)), 'error');
   } else {
-    $forms_selection = $selector->resolve(
-      $forms_plan->recordTable, $forms_xfld, $forms_xcr,
-      $forms_xmin, $forms_xmax, $forms_plan->recordKey
-    );
-    foreach ($forms_selection->notes as $note) $messageStack->add($note, 'caution');
+    if ($forms_xmin === '' && $forms_xmax === '') {
+      // Reached by opening the form from the document list, which knows which
+      // form but not which record — a form is per record and only the document
+      // that owns it can say which. Saying so beats "nothing was selected",
+      // which is true and unhelpful.
+      $messageStack->add(FORMS_PRINT_OPEN_FROM_DOCUMENT, 'caution');
+      $forms_selection = null;
+    } else {
+      $forms_selection = $selector->resolve(
+        $forms_plan->recordTable, $forms_xfld, $forms_xcr,
+        $forms_xmin, $forms_xmax, $forms_plan->recordKey
+      );
+      foreach ($forms_selection->notes as $note) $messageStack->add($note, 'caution');
+    }
   }
 }
 

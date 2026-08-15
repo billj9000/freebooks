@@ -108,6 +108,17 @@ echo $toolbar->build_toolbar();
                       <?php echo $runAttributes; ?> data-format="csv">
                 <?php echo FORMS_BTN_CSV; ?>
               </button>
+<?php   } elseif ($plan->isForm()) {
+          // A form needs records, which this list cannot know — so it links to
+          // the print page rather than offering PDF and CSV. Before this, a
+          // query-driven form had no special_class, planned as an ordinary
+          // dataset, and the buttons here rendered an invoice as a table.
+?>
+              <a class="btn btn-primary btn-sm"
+                 href="<?php echo htmlspecialchars(html_href_link(FILENAME_DEFAULT,
+                     'module=forms&amp;page=print&amp;rID=' . $document['id'], 'SSL'), ENT_QUOTES); ?>">
+                <?php echo FORMS_BTN_PRINT; ?>
+              </a>
 <?php   } else { ?>
               <span class="text-muted">&mdash;</span>
 <?php   } ?>

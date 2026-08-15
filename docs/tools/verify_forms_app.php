@@ -71,7 +71,7 @@ $glAccount = (string)($db->Execute("select i.gl_account from " . TABLE_JOURNAL_I
     ->fields['gl_account'] ?? '');
 printf("run dialog: period %d, gl account '%s'\n\n", $period, $glAccount);
 
-$counts = ['dataset' => 0, 'provider' => 0, 'unsupported' => 0];
+$counts = ['dataset' => 0, 'provider' => 0, 'form' => 0, 'unsupported' => 0];
 $ran    = $empty = $fitted = $landscape = 0;
 
 $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM
@@ -160,8 +160,23 @@ foreach ($documents as $id => $title) {
 ok(sprintf('%d document(s) ran and rendered as both PDF and CSV', $ran), $ran > 0);
 ok(sprintf('every rendered table fits between its margins (%d checked)', $fitted), $fitted === $ran);
 printf("  %d printed landscape, %d portrait\n", $landscape, $fitted - $landscape);
-printf("  routing: %d by dataset, %d by provider, %d not served by Forms; %d ran empty\n",
-    $counts['dataset'], $counts['provider'], $counts['unsupported'], $empty);
+printf("  routing: %d by dataset, %d by provider, %d forms (printed, not run),"
+     . " %d not served by Forms; %d ran empty\n",
+    $counts['dataset'], $counts['provider'], $counts['form'], $counts['unsupported'], $empty);
+
+// A form must never be routed as a table. It has no columns and no grouping, so
+// serving it here produces a plausible-looking page of rows that is not the
+// document anyone asked for — which is exactly what the list did until the
+// reporttype check was added.
+$formsAsTables = [];
+foreach ($documents as $id => $title) {
+    $definition = get_report_details($id);
+    if (!$definition || ($definition->reporttype ?? '') !== 'frm') continue;
+    $plan = $runner->plan($definition);
+    if ($plan->runnable()) $formsAsTables[] = "pf_$id ($title) as {$plan->kind}/{$plan->name}";
+}
+ok('no form is routed as a report', $formsAsTables === [],
+   implode(' | ', array_slice($formsAsTables, 0, 4)));
 
 // An empty document is not a failure — a report can legitimately select nothing
 // on this company — but a company where EVERYTHING is empty proves nothing at
@@ -170,10 +185,16 @@ ok('the run produced substantive documents, not a set of empty ones',
    $ran > $empty, "$ran with rows, $empty empty");
 
 echo "\n=== a definition Forms cannot serve is declined, not faked ===\n";
+// UNSUPPORTED specifically. A form is also not runnable here, but it IS served
+// — by FormRunner and the print page — so treating it as the example of
+// something Forms cannot do would test the wrong thing.
 $declined = null;
 foreach ($documents as $id => $title) {
     $definition = get_report_details($id);
-    if ($definition && !$runner->plan($definition)->runnable()) { $declined = [$id, $title, $definition]; break; }
+    if ($definition && $runner->plan($definition)->kind === RunPlan::UNSUPPORTED) {
+        $declined = [$id, $title, $definition];
+        break;
+    }
 }
 if ($declined === null) {
     echo "  [--] every definition is served; nothing to decline\n";
@@ -185,6 +206,26 @@ if ($declined === null) {
     ok("pf_$id ($title) is refused rather than run to an empty document", $threw);
     ok('...and says why', $plan->notes !== [], 'no explanation was offered');
     if ($plan->notes) echo "      " . implode(' ', $plan->notes) . "\n";
+}
+
+echo "\n=== a form is sent to the print path, not run as a table ===\n";
+$formExample = null;
+foreach ($documents as $id => $title) {
+    $definition = get_report_details($id);
+    if ($definition && $runner->plan($definition)->isForm()) { $formExample = [$id, $title, $definition]; break; }
+}
+if ($formExample === null) {
+    echo "  [--] no form in this catalog\n";
+} else {
+    [$id, $title, $definition] = $formExample;
+    $plan  = $runner->plan($definition);
+    ok("pf_$id ($title) is planned as a form", $plan->isForm());
+    ok('...and is not offered as runnable', !$plan->runnable());
+    $threw = '';
+    try { $runner->run($definition); } catch (\RuntimeException $e) { $threw = $e->getMessage(); }
+    ok('...and running it says where to print it instead',
+       str_contains(strtolower($threw), 'form'), $threw ?: 'it did not throw');
+    ok('...and the plan explains itself for the list', $plan->notes !== []);
 }
 
 echo "\n=== the run dialog's answers are required where they matter ===\n";
