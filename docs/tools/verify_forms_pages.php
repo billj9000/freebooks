@@ -467,6 +467,24 @@ if ($PAGE === 'main') {
                $printable, $printLinks->length),
        $printLinks->length === $printable);
 
+    // Emailing a report: the card, its five recipient fields, and one Email
+    // button per runnable document. PhreeForm offered this and Forms did not,
+    // so a missing control here is a report the user can only download.
+    foreach (['from_email', 'to_email', 'to_name', 'cc_email', 'bcc_email',
+              'subject', 'message_body'] as $field) {
+        ok("the email card draws $field",
+           $xpath->query("//form[@id='forms_run_form']//*[@name='" . $field . "']")->length === 1);
+    }
+    $emailButtons = $xpath->query("//*[contains(@class,'fb-email')]");
+    ok(sprintf('every runnable document offers Email (%d documents, %d buttons)',
+               $runnable, $emailButtons->length),
+       $emailButtons->length === $runnable);
+    $missingId = [];
+    foreach ($emailButtons as $button) {
+        if (!ctype_digit((string)$button->getAttribute('data-doc-id'))) $missingId[] = 'one button';
+    }
+    ok('every Email button names the document it would send', $missingId === []);
+
     $bad = [];
     foreach ($controls as $control) {
         $url = (string)$control->getAttribute('data-url');
@@ -522,6 +540,12 @@ if ($PAGE === 'print' && !$CHOOSING) {
     }
     ok('the form posts back to itself', (bool)preg_match('/<form[^>]+name="forms_print"/', $output));
 
+    // The same recipients the document list offers. Two email forms in one
+    // module that differ in who can be copied is a difference nobody can
+    // explain to a user.
+    foreach (['from_email', 'to_email', 'to_name', 'cc_email', 'bcc_email'] as $field) {
+        ok("it offers $field", $xpath->query("//*[@name='" . $field . "']")->length === 1);
+    }
 }
 
 if ($PAGE === 'admin') {

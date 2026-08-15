@@ -44,7 +44,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 use FreeBooks\Forms\App\{DocumentRunner, RunPlan};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader};
-use FreeBooks\Forms\Deliver\HttpDelivery;
+use FreeBooks\Forms\Deliver\{EmailDelivery, HttpDelivery};
 use FreeBooks\Forms\Render\{CsvRenderer, Formatter, TablePdfRenderer};
 
 // Shipped first, then the admin-defined ones: a stored dataset may not shadow a
@@ -67,13 +67,23 @@ $runner  = new DocumentRunner($db, $catalog);
 // edited report.
 $loader  = new DefinitionLoader($catalog);
 
-$docID   = isset($_GET['docID']) ? (int)$_GET['docID'] : 0;
-$format  = isset($_GET['format']) ? (string)$_GET['format'] : 'pdf';
-$inline  = !empty($_GET['inline']);
+// $_REQUEST, not $_GET: a download is a navigation and arrives as a query
+// string, while emailing posts the message with it.
+$docID   = isset($_REQUEST['docID'])  ? (int)$_REQUEST['docID'] : 0;
+$format  = isset($_REQUEST['format']) ? (string)$_REQUEST['format'] : 'pdf';
+$inline  = !empty($_REQUEST['inline']);
 
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action'] ?? '') {
+  case 'email':
   case 'run':
+    $emailing = ($_REQUEST['action'] ?? '') === 'email';
+    // Checked BEFORE the report is built: running a large ledger and then
+    // saying "you forgot the address" spends a minute to report a typo.
+    if ($emailing && trim((string)($_POST['to_email'] ?? '')) === '') {
+      $messageStack->add(FORMS_PRINT_EMAIL_NO_ADDRESS, 'error');
+      break;
+    }
     try {
       $report = $loader->load($docID);
     } catch (DefinitionException $e) {
@@ -96,9 +106,9 @@ switch ($_REQUEST['action'] ?? '') {
 
     try {
       $document = $runner->runDefinition($report, array(
-        'dates'      => isset($_GET['dates'])  ? (string)$_GET['dates'] : '',
-        'period'     => isset($_GET['period']) ? (int)$_GET['period']   : 0,
-        'gl_account' => isset($_GET['gl_account']) ? (string)$_GET['gl_account'] : '',
+        'dates'      => isset($_REQUEST['dates'])  ? (string)$_REQUEST['dates'] : '',
+        'period'     => isset($_REQUEST['period']) ? (int)$_REQUEST['period']   : 0,
+        'gl_account' => isset($_REQUEST['gl_account']) ? (string)$_REQUEST['gl_account'] : '',
       ));
     } catch (\Throwable $e) {
       $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, $e->getMessage()), 'error');
@@ -131,8 +141,47 @@ switch ($_REQUEST['action'] ?? '') {
     }
 
     $output = $renderer->render($document);
-    // Delivery is its own call, and its own layer: the same bytes go to a
+
+    // Delivery is its own call, and its own layer: the SAME bytes go to a
     // download, an email attachment or a file without the renderer knowing.
+    // Emailing a report is that sentence being true rather than aspirational —
+    // no second render path, and CSV attaches exactly as PDF does.
+    if ($emailing) {
+      $to_email = trim((string)$_POST['to_email']);
+      $to_name  = trim((string)($_POST['to_name'] ?? '')) ?: $to_email;
+      $subject  = trim((string)($_POST['subject'] ?? '')) !== ''
+                ? (string)$_POST['subject']
+                : $report->title . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
+      $body     = trim((string)($_POST['message_body'] ?? '')) !== ''
+                ? (string)$_POST['message_body']
+                : ($report->emailMessage !== '' ? TextReplace($report->emailMessage)
+                   : sprintf(FORMS_PRINT_EMAIL_BODY, $report->title, COMPANY_NAME));
+
+      $block = forms_email_block($_POST);
+      [$from_name, $from_email] = forms_email_sender(
+          (string)($_POST['from_email'] ?? ''), (string)($_POST['from_name'] ?? ''));
+
+      $result = (new EmailDelivery(
+          function (string $path, string $filename, $rendered)
+              use ($to_name, $to_email, $subject, $body, $from_name, $from_email, $block): bool {
+            return (bool)validate_send_mail(
+              $to_name, $to_email, $subject, $body, $from_name, $from_email,
+              $block, array('file' => $path, 'name' => $filename)
+            );
+          },
+          DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/'
+      ))->deliver($output);
+
+      if (!$result->ok) {
+        $messageStack->add(sprintf(FORMS_ERROR_DELIVERY, $result->detail), 'error');
+        break;
+      }
+      // No exit(): nothing was sent to the browser, so the list is redrawn with
+      // the outcome on it. A download exits because the response IS the file.
+      $messageStack->add(EMAIL_SEND_SUCCESS, 'success');
+      break;
+    }
+
     $result = (new HttpDelivery($inline ? HttpDelivery::INLINE : HttpDelivery::ATTACHMENT))
         ->deliver($output);
     if (!$result->ok) {
@@ -208,6 +257,21 @@ $forms_current_period = gen_calculate_period(date('Y-m-d'), false);
 // Whether to offer Edit at all. Running a document and authoring one are
 // different permissions (decision F), and this page is gated on the first —
 // so holding it says nothing about the second.
+$forms_can_author = ($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) > 2;
+
+// What the email card shows. Redisplayed after a refused send so a mistyped
+// address does not cost the user everything else they typed.
+$forms_email = array(
+  'to_email'  => (string)($_POST['to_email']  ?? ''),
+  'to_name'   => (string)($_POST['to_name']   ?? ''),
+  'cc_email'  => (string)($_POST['cc_email']  ?? ''),
+  'bcc_email' => (string)($_POST['bcc_email'] ?? ''),
+  'subject'   => (string)($_POST['subject']   ?? ''),
+  'body'      => (string)($_POST['message_body'] ?? ''),
+);
+[$forms_email['from_name'], $forms_email['from_email']] = forms_email_sender(
+    (string)($_POST['from_email'] ?? ''), (string)($_POST['from_name'] ?? ''));
+
 $forms_gl_accounts = array();
 $result = $db->Execute("select id, description from " . TABLE_CHART_OF_ACCOUNTS . "
   where account_type = 0 order by id");
@@ -218,7 +282,5 @@ while (!$result->EOF) {
   );
   $result->MoveNext();
 }
-
-$forms_can_author = ($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) > 2;
 
 $use_bootstrap_nav = true;

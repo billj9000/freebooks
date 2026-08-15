@@ -448,6 +448,34 @@ foreach ($topics as $topic) {
 ok('the help topic the toolbar points at (11.06) exists', $hasTopic);
 
 // ─────────────────────────────────────────────────────────────────────────────
+echo "\n=== the extra recipients reach the mailer ===\n";
+
+// validate_send_mail() takes To, subject and body as arguments but reads CC and
+// BCC out of its $block array — a shape nobody would guess, and a wrong key
+// drops a recipient in silence rather than failing. One place builds it, so
+// this is the one place it has to be right.
+$block = forms_email_block(['cc_email' => 'cc@example.test', 'cc_name' => 'CC Person',
+                            'bcc_email' => 'bcc@example.test']);
+ok('CC travels as EMAIL_CC_ADDRESS', ($block['EMAIL_CC_ADDRESS'] ?? '') === 'cc@example.test');
+ok('CC carries its name',            ($block['EMAIL_CC_NAME'] ?? '') === 'CC Person');
+ok('BCC travels as EMAIL_BCC_ADDRESS', ($block['EMAIL_BCC_ADDRESS'] ?? '') === 'bcc@example.test');
+ok('a BCC with no name omits the name key', !array_key_exists('EMAIL_BCC_NAME', $block));
+
+// PHPMailer's addCC('') raises an invalid-address error and the WHOLE message
+// fails, so a blank box must contribute no key at all — otherwise leaving CC
+// empty means no email is sent to anyone.
+ok('an empty CC contributes nothing at all',
+   forms_email_block(['cc_email' => '', 'bcc_email' => '   ']) === []);
+ok('no recipient fields at all is an empty block', forms_email_block([]) === []);
+
+[$name, $address] = forms_email_sender('', '');
+ok('the sender defaults to the signed-in user',
+   $address === (string)($_SESSION['admin_email'] ?? ''));
+[$name, $address] = forms_email_sender('  someone@example.test  ', ' A Name ');
+ok('a typed sender is used, trimmed',
+   $address === 'someone@example.test' && $name === 'A Name');
+
+// ─────────────────────────────────────────────────────────────────────────────
 echo "\n=== every permission the module defines can actually be granted ===\n";
 
 // phreedom's roles page builds itself by walking $mainmenu, so a security id

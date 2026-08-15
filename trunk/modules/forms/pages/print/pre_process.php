@@ -237,16 +237,24 @@ switch ($_REQUEST['action'] ?? '') {
     $body    = (string)($_POST['message_body'] ?? '');
     $to_name = trim((string)($_POST['to_name'] ?? '')) ?: $to_email;
 
+    // CC and BCC travel in validate_send_mail()'s $block, which is not a shape
+    // anyone would guess; forms_email_block() is where that mapping lives so a
+    // wrong key cannot silently drop a recipient on one page and not another.
+    $block = forms_email_block($_POST);
+    [$from_name, $from_email] = forms_email_sender(
+        (string)($_POST['from_email'] ?? ''), (string)($_POST['from_name'] ?? ''));
+
     $result = (new EmailDelivery(
         // $filename is the name the RECIPIENT should see, and it is separate
         // from $path on purpose: the staged file carries a unique suffix so two
         // people emailing the same invoice cannot overwrite each other. Passing
         // only the path attaches "Invoice-fdaec59de5bc-pdf", with no extension.
-        function (string $path, string $filename, $rendered) use ($to_name, $to_email, $subject, $body): bool {
+        function (string $path, string $filename, $rendered)
+            use ($to_name, $to_email, $subject, $body, $from_name, $from_email, $block): bool {
           return (bool)validate_send_mail(
             $to_name, $to_email, $subject, $body,
-            $_SESSION['display_name'] ?? '', $_SESSION['admin_email'] ?? '',
-            array(), array('file' => $path, 'name' => $filename)
+            $from_name, $from_email,
+            $block, array('file' => $path, 'name' => $filename)
           );
         },
         DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/'
@@ -271,6 +279,12 @@ switch ($_REQUEST['action'] ?? '') {
 // user typed wins, and so does the journal.
 $forms_to_email = (string)($_POST['to_email'] ?? '');
 $forms_to_name  = (string)($_POST['to_name']  ?? '');
+// Redisplayed after a refused send, so a mistyped address does not cost the
+// author the other five fields.
+$forms_cc_email   = (string)($_POST['cc_email']   ?? '');
+$forms_bcc_email  = (string)($_POST['bcc_email']  ?? '');
+[$forms_from_name, $forms_from_email] = forms_email_sender(
+    (string)($_POST['from_email'] ?? ''), (string)($_POST['from_name'] ?? ''));
 if ($forms_to_email === '' && $forms_selection && !$forms_selection->isEmpty()
     && $forms_plan && $forms_plan->recordTable === 'journal_main'
     && $forms_plan->recordKey === 'id') {

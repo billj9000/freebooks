@@ -48,4 +48,54 @@ document.addEventListener('click', function (event) {
   if (gl     && gl.value)     url.searchParams.set('gl_account', gl.value);
   window.location.href = url.toString();
 });
+
+// Emailing is a POST, not a navigation: the message travels with the request.
+// The run options are read from the same three selects, so a report emailed and
+// the same report downloaded cover the same period — reading them here rather
+// than duplicating them inside the email card is what keeps that true.
+document.addEventListener('click', function (event) {
+  const button = event.target.closest('.fb-email');
+  if (!button) return;
+
+  const form = document.getElementById('forms_run_form');
+  const to   = document.getElementById('to_email');
+  const gl   = document.getElementById('forms_gl');
+  if (!form) return;
+
+  if (button.dataset.needsGl === '1' && (!gl || !gl.value)) {
+    alert(<?php echo json_encode(FORMS_ERROR_GL_REQUIRED); ?>);
+    if (gl) gl.focus();
+    return;
+  }
+  // Asked for before the report is built, and the panel opened so the field is
+  // actually reachable — a validation message pointing at a collapsed box is a
+  // dead end.
+  if (!to || to.value.trim() === '') {
+    const details = document.getElementById('forms_email_details');
+    if (details) details.classList.add('show');
+    alert(<?php echo json_encode(FORMS_PRINT_EMAIL_NO_ADDRESS); ?>);
+    if (to) to.focus();
+    return;
+  }
+
+  document.getElementById('forms_doc_id').value = button.dataset.docId;
+  document.getElementById('forms_format').value = 'pdf';
+  ['forms_dates', 'forms_period', 'forms_gl'].forEach(function (id) {
+    const source = document.getElementById(id);
+    if (!source || !source.value) return;
+    // The selects are OUTSIDE nothing — they are in the same form — but they
+    // are named for the page, not for the request, so the request names are
+    // added as hidden fields rather than renaming the controls.
+    const name = id === 'forms_gl' ? 'gl_account' : id.replace('forms_', '');
+    let hidden = form.querySelector('input[type=hidden][name="' + name + '"]');
+    if (!hidden) {
+      hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = name;
+      form.appendChild(hidden);
+    }
+    hidden.value = source.value;
+  });
+  form.submit();
+});
 </script>

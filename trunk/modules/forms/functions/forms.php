@@ -76,3 +76,46 @@ function forms_report_context(): \FreeBooks\Forms\Document\Context
     }
     return new \FreeBooks\Forms\Document\Context($values, $_SESSION['language'] ?? 'en_us');
 }
+
+/**
+ * The extra recipients, as validate_send_mail() wants them.
+ *
+ * That function takes To, subject and body as arguments but reads CC and BCC out
+ * of its `$block` array — a shape nobody would guess, and getting a key wrong
+ * drops a recipient silently rather than failing. It is built in one place, and
+ * tested in one place, for exactly that reason.
+ *
+ * Empty entries are OMITTED rather than passed as '': PHPMailer's addCC('')
+ * raises an invalid-address error and the whole message fails to send, so a user
+ * who left CC blank would get no email at all.
+ *
+ * @param array<string,string> $fields cc_email, cc_name, bcc_email, bcc_name
+ * @return array<string,string>
+ */
+function forms_email_block(array $fields): array
+{
+    $block = array();
+    foreach (array('CC' => 'cc', 'BCC' => 'bcc') as $key => $prefix) {
+        $address = trim((string)($fields[$prefix . '_email'] ?? ''));
+        if ($address === '') continue;
+        $block['EMAIL_' . $key . '_ADDRESS'] = $address;
+        $name = trim((string)($fields[$prefix . '_name'] ?? ''));
+        if ($name !== '') $block['EMAIL_' . $key . '_NAME'] = $name;
+    }
+    return $block;
+}
+
+/**
+ * Who the message is from, defaulting to the signed-in user.
+ *
+ * PhreeForm offers this and it matters: a report emailed by the bookkeeper
+ * should come back to the bookkeeper, not to the company's generic address.
+ *
+ * @return array{0: string, 1: string} name, address
+ */
+function forms_email_sender(string $address = '', string $name = ''): array
+{
+    $address = trim($address) !== '' ? trim($address) : (string)($_SESSION['admin_email'] ?? '');
+    $name    = trim($name)    !== '' ? trim($name)    : (string)($_SESSION['display_name'] ?? '');
+    return array($name, $address);
+}

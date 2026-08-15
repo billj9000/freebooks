@@ -220,3 +220,13 @@ define('FORMS_FILTER_GROUPED_BY',   'Grouped by: %s');
 define('FORMS_FILTER_SORTED_BY',    'Sorted by: %s');
 define('FORMS_FILTER_DATE_RANGE',   'Date range: %s to %s');
 define('FORMS_FILTER_PERIOD',       'Accounting period: %s');
+
+// Emailing a document — the run options card on the document list, and the
+// extra recipients on the form print page.
+define('FORMS_BTN_EMAIL',      'Email');
+define('FORMS_EMAIL_LEGEND',   'Email a report');
+define('FORMS_EMAIL_SHOW',     'Show / hide');
+define('FORMS_EMAIL_NOTE',     'Fill these in, then use the Email button beside the report you want sent. It is emailed as a PDF, over the same date range and period chosen above.');
+define('FORMS_EMAIL_FROM',     'From');
+define('FORMS_EMAIL_CC',       'CC');
+define('FORMS_EMAIL_BCC',      'BCC');

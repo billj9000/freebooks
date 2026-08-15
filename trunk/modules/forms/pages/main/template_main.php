@@ -33,6 +33,13 @@ echo $toolbar->build_toolbar();
 <h1><?php echo FORMS_PAGE_TITLE; ?></h1>
 <p class="text-muted"><?php echo FORMS_PAGE_INTRO; ?></p>
 
+<?php // One form around the whole page: PDF and CSV navigate away with a query
+      // string, but emailing has to POST the message with the request, and the
+      // run options belong to both. html_form() rather than a hand-written tag,
+      // because index.php refuses any POST without its csrf_token. ?>
+<?php echo html_form('forms_run_form', FILENAME_DEFAULT, 'module=forms&page=main&action=email'); ?>
+<input type="hidden" name="docID"  id="forms_doc_id"  value="">
+<input type="hidden" name="format" id="forms_format"  value="pdf">
 
 <div class="card fb-card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo FORMS_LEGEND_OPTIONS; ?></div>
@@ -52,6 +59,59 @@ echo $toolbar->build_toolbar();
         <label class="form-label mb-1" for="forms_gl"><?php echo FORMS_GL_ACCOUNT; ?></label>
         <?php echo html_pull_down_menu('forms_gl', $forms_gl_accounts, '',
                                        'class="form-select form-select-sm"'); ?>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header d-flex justify-content-between align-items-center">
+    <span><?php echo FORMS_EMAIL_LEGEND; ?></span>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse"
+            data-bs-target="#forms_email_details" aria-expanded="<?php echo $forms_email['to_email'] !== '' ? 'true' : 'false'; ?>"
+            aria-controls="forms_email_details"><?php echo FORMS_EMAIL_SHOW; ?></button>
+  </div>
+  <?php // Open already when a send was refused, so the user can see what to fix
+        // rather than having to go looking for their own typed values. ?>
+  <div class="collapse<?php echo $forms_email['to_email'] !== '' ? ' show' : ''; ?>" id="forms_email_details">
+    <div class="card-body py-2">
+      <p class="text-muted small mb-2"><?php echo FORMS_EMAIL_NOTE; ?></p>
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="from_email"><?php echo FORMS_EMAIL_FROM; ?></label>
+          <input type="email" class="form-control form-control-sm" id="from_email" name="from_email"
+                 value="<?php echo htmlspecialchars($forms_email['from_email']); ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="to_email"><?php echo FORMS_PRINT_EMAIL_TO; ?></label>
+          <input type="email" class="form-control form-control-sm" id="to_email" name="to_email"
+                 value="<?php echo htmlspecialchars($forms_email['to_email']); ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="to_name"><?php echo FORMS_PRINT_EMAIL_NAME; ?></label>
+          <input type="text" class="form-control form-control-sm" id="to_name" name="to_name"
+                 value="<?php echo htmlspecialchars($forms_email['to_name']); ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="cc_email"><?php echo FORMS_EMAIL_CC; ?></label>
+          <input type="email" class="form-control form-control-sm" id="cc_email" name="cc_email"
+                 value="<?php echo htmlspecialchars($forms_email['cc_email']); ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="bcc_email"><?php echo FORMS_EMAIL_BCC; ?></label>
+          <input type="email" class="form-control form-control-sm" id="bcc_email" name="bcc_email"
+                 value="<?php echo htmlspecialchars($forms_email['bcc_email']); ?>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label mb-1" for="subject"><?php echo FORMS_PRINT_EMAIL_SUBJECT; ?></label>
+          <input type="text" class="form-control form-control-sm" id="subject" name="subject"
+                 value="<?php echo htmlspecialchars($forms_email['subject']); ?>">
+        </div>
+        <div class="col-12">
+          <label class="form-label mb-1" for="message_body"><?php echo FORMS_PRINT_EMAIL_MESSAGE; ?></label>
+          <textarea class="form-control form-control-sm" id="message_body" name="message_body"
+                    rows="3"><?php echo htmlspecialchars($forms_email['body']); ?></textarea>
+        </div>
       </div>
     </div>
   </div>
@@ -109,6 +169,13 @@ echo $toolbar->build_toolbar();
                       <?php echo $runAttributes; ?> data-format="csv">
                 <?php echo FORMS_BTN_CSV; ?>
               </button>
+              <?php // Emailing posts the form rather than navigating, so it
+                    // carries a document id instead of a URL. ?>
+              <button type="button" class="btn btn-primary btn-sm fb-email"
+                      data-doc-id="<?php echo (int)$document['id']; ?>"
+                      data-needs-gl="<?php echo $plan->needsGlAccount ? 1 : 0; ?>">
+                <?php echo FORMS_BTN_EMAIL; ?>
+              </button>
 <?php   } elseif ($plan->isForm()) {
           // A form needs records, which this list cannot know — so it links to
           // the print page rather than offering PDF and CSV. Before this, a
@@ -148,3 +215,4 @@ echo $toolbar->build_toolbar();
     </div>
   </div>
 </div>
+</form>

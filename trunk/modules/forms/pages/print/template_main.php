@@ -123,12 +123,24 @@ echo html_hidden_field('action', '') . chr(10);
       <table class="table table-borderless table-sm mb-0">
         <tbody>
           <tr>
-            <td style="width:25%"><?php echo FORMS_PRINT_EMAIL_TO; ?></td>
+            <td style="width:25%"><?php echo FORMS_EMAIL_FROM; ?></td>
+            <td><?php echo html_input_field('from_email', $forms_from_email, 'class="form-control form-control-sm"'); ?></td>
+          </tr>
+          <tr>
+            <td><?php echo FORMS_PRINT_EMAIL_TO; ?></td>
             <td><?php echo html_input_field('to_email', $forms_to_email, 'class="form-control form-control-sm"'); ?></td>
           </tr>
           <tr>
             <td><?php echo FORMS_PRINT_EMAIL_NAME; ?></td>
             <td><?php echo html_input_field('to_name', $forms_to_name, 'class="form-control form-control-sm"'); ?></td>
+          </tr>
+          <tr>
+            <td><?php echo FORMS_EMAIL_CC; ?></td>
+            <td><?php echo html_input_field('cc_email', $forms_cc_email, 'class="form-control form-control-sm"'); ?></td>
+          </tr>
+          <tr>
+            <td><?php echo FORMS_EMAIL_BCC; ?></td>
+            <td><?php echo html_input_field('bcc_email', $forms_bcc_email, 'class="form-control form-control-sm"'); ?></td>
           </tr>
           <tr>
             <td><?php echo FORMS_PRINT_EMAIL_SUBJECT; ?></td>
