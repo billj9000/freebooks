@@ -127,6 +127,36 @@ User-facing documentation lives in the **phreehelp** manual. When a change affec
 - **Context-sensitive help:** a page wires its toolbar Help button with `$toolbar->add_help('NN.NN')`, where the argument is the target topic's `doc_pos`. Pre-auth pages (login/password reset) have no toolbar, so their topics are reached via browse/search only.
 - **Manual HTML files are content, not source code** — they do **not** take the FreeBooks copyright header block (see File Header Policy); match the existing topic files.
 
+## No Private Names in Anything Committed
+
+Everything in this repository is public. Git history is permanent — a name committed once stays
+recoverable even after it is removed — so the check happens **before** the commit, not after.
+
+Never commit private or identifying details, in **any** file type: source, comments, documentation,
+help topics, dev tools, test fixtures, commit messages. Specifically:
+
+- **Company and database names** of real installations. The Forms design doc and its tools refer to
+  two companies as **`demo`** (a stock installation with demonstration data) and **`production`**
+  (a real installation, large volume, carrying customised definitions). Use that pairing, or a
+  similarly neutral one, rather than the actual company directory names.
+- **Customer, vendor, employee and contact names**, real SKUs, invoice or order numbers, addresses,
+  telephone numbers and email addresses taken from live data. Invent plainly fictional stand-ins.
+- **Hostnames, IP addresses, container names, absolute local paths, credentials and API keys.**
+  Use a placeholder — `<c>` for the container name, as the existing tool docs already do.
+
+This applies to *measured* output too, which is where it usually slips in: a verification tool's
+sample rows, a quoted error message, a worked example in a design document. Quote the shape and the
+figures, not the identities.
+
+**The author is not private.** Copyright statements, licence blocks, the `Copyright(c) 2026 Bill
+Jones` line required by the File Header Policy below, authorship credits, and the git committer
+identity are all deliberate attributions and must stay exactly as they are. Removing them would
+misstate authorship and, for the licence text, breach the terms. The same goes for upstream authors
+in third-party files.
+
+Scratch files, throwaway scripts and Artifacts are not committed and are not covered by this — but
+anything under `docs/`, `trunk/` or `extensions/` is.
+
 ## File Header Policy
 
 This policy applies to **FreeBooks' own source files only** — see "Third-party code" below for the exclusion.

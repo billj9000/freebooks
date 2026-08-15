@@ -429,6 +429,12 @@ Four things the capture harness must handle — each one silently produces wrong
 Use `BuildForm($report, 'S')` — delivery method `S` returns the bytes instead of emitting HTTP
 headers and calling `exit()`.
 
+Two companies are named throughout, because the suite is run against both and neither alone is
+sufficient: **`demo`** is a stock installation with the shipped chart and demonstration data —
+broad in feature coverage, small in volume; **`production`** is a real installation on a
+`DB_PREFIX` database — large in volume, narrow in feature use, and the only one carrying
+customised definitions. Substitute your own; the pairing is the point.
+
 A sixth trap sits outside the harness: **company auto-detection**. A baseline taken from the wrong
 database still renders plausible-looking output and exits 0 — an early run silently captured `demo`
 instead of `production`. The bootstrap always echoes the company it resolved and warns when it guessed.
@@ -464,8 +470,8 @@ translation problem: `<relationship>` must map to a *dataset*, and `fieldname` t
 
 Two facts make this tractable:
 
-1. The definitions are overwhelmingly **product-shipped** (~56 files across 7 modules; the live
-   production set is essentially the stock set). The bulk of conversion is a one-time authoring job we
+1. The definitions are overwhelmingly **product-shipped** (~56 files across 7 modules; the set on
+   a live installation is essentially the stock set). The bulk of conversion is a one-time authoring job we
    do at the source — those become the new module's shipped definitions.
 2. **The existing definitions are the specification for the catalog** (§6), so the shipped set
    converts by construction.
@@ -494,7 +500,7 @@ engines by shrinking the item table on a copy of `pf_91` (`make_forms_proving_te
 data, same geometry, two renderers. Those scratch definitions live in `my_files/`, are not committed,
 and must be removed afterwards or they appear in the reports UI.
 
-Results (2026-08-11, production test data):
+Results (2026-08-11, against the `production` company):
 
 | Form | Records | Pages | Text | Pixels |
 |---|---|---|---|---|
@@ -940,9 +946,11 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
     they should not have. That is a data-exposure problem — auditable, reversible, and gated behind
     its own security id.
 16. The nine `special_class` ports, the catalog, both renderers, the delivery layer, the module
-    surface and the dataset authoring UI are done. What is left before 1.0.0 is the forms path from
-    the documents that own them (§10.3), migration of any customised installs (§8.2), and
-    retiring PhreeForm once the two have run side by side long enough to be sure.
+    surface, the dataset authoring UI and the print path from the documents that own the forms are
+    done, and §8.2 migration has its first worked case (`pf_73`, §12.4). What is left before 1.0.0
+    is **the designer** — see §13, which supersedes this step and carries its own plan. PhreeForm
+    is retired by that work rather than separately: deleting it would otherwise take the only
+    editor with it.
 
 ---
 
@@ -1142,7 +1150,7 @@ Compare content, never page counts.
 **2. Totals sum the data, not the printed text.** PhreeForm accumulated totals by formatting each
 value for display and then parsing the formatting back off
 (`clean_value(ProcessData(...))`), so its total is the sum of the *rounded* values. Forms sums the
-raw typed values. On `pf_56` (Customer Payments, production, all dates) the difference is 4p, and the
+raw typed values. On `pf_56` (Customer Payments, `production`, all dates) the difference is 4p, and the
 database settles which is right:
 
 | Source | Total |
@@ -1319,8 +1327,9 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 16: retiring PhreeForm. Printing forms from the documents that own them is done, and
-migrating a customised install has its first worked case (`pf_73`, below).
+Per §11, step 16: **the designer, and with it the retirement of PhreeForm** — planned in §13.
+Printing forms from the documents that own them is done, and migrating a customised install has its
+first worked case (`pf_73`, below).
 
 **The forms path now runs, and has a page (2026-08-14).** `?module=forms&page=print` answers on
 PhreeForm's own popup contract — `gID`/`rID`, `xfld`/`xcr`/`xmin`/`xmax`, `date` — so pointing a
@@ -1403,7 +1412,7 @@ until a form was actually built:
   already handled every legacy mode, so forms now use it rather than a second, weaker copy — it
   needed only to build its field map when called without `convertColumns()` first.
 - **A customised definition can be genuinely unservable — and that is how §8.2 migration works.**
-  `production`' Purchase Order (`pf_73`) joins `inventory_purchase_details` and prints a field whose
+  The `production` company's Purchase Order (`pf_73`) joins `inventory_purchase_details` and prints a field whose
   *name* is `IF(inventory_purchase_details.vendor_sku <> '', …, SUBSTRING_INDEX(…))`. That is §1.1
   exactly — the report author writing SQL — and Forms declined it rather than executing it.
 
@@ -1412,7 +1421,7 @@ until a form was actually built:
   `(journal_item.sku, journal_main.bill_acct_id)`, carrying the same arithmetic as a computed field
   with the legacy string in `legacyNames`. The definition needs no edit: `DatasetResolver` picks the
   narrowest dataset covering its tables, so `pf_73` lands on `purchasing` and every other document
-  keeps `transactions`. Confirmed: only `pf_73` on `production` uses it, `demo`'s uncustomised Purchase
+  keeps `transactions`. Confirmed: only `pf_73` on `production` uses it, the `demo` company's uncustomised Purchase
   Order still resolves to `transactions`, and `production` now declines nothing.
 
   A separate dataset rather than extending `transactions`, because that one is behind 44 documents
@@ -1466,3 +1475,188 @@ best covered of the three: five contacts across both companies, customer and ven
 records re-run under three date preferences. **Neither company holds a single non-zero budget
 row**, so when `is_budget` is ported, one of the three reports it serves (`IncomeStatementw_Budget`)
 can only be verified structurally until budget figures exist.
+
+---
+
+## 13. The designer
+
+PhreeForm's `popup_build` is the last thing Forms does not replace. Everything else — the nine
+providers, both renderers, delivery, the catalog, the print path — is done and measured above, but
+the definitions themselves are still authored in the old engine, and both engines read the same
+files precisely so that they can be. That is why retiring PhreeForm has stayed open-ended: not
+because printing is unproven, but because deleting it would take the only editor with it.
+
+`popup_build` is 2,422 lines across twelve files and does four jobs in one modal: pick tables and
+joins, pick criteria, pick fields, set the page. Forms needs three of them. The first is gone —
+join graphs belong to the Datasets page, behind `SECURITY_ID_FORMS_DATASETS` (§3.2, decision A) —
+which is why this is a smaller tool than the one it replaces rather than a port of it.
+
+### 13.1 Two editors, not one
+
+Measured on `demo`, 2026-08-15:
+
+| | Definitions | Shape | Size |
+|---|---|---|---|
+| Reports (`rpt`) | 39 | ordered column list (`columnwidth`, `align`, `total`) | avg 9 columns, max 20 |
+| Forms (`frm`) | 18 | positioned boxes (`abscissa`/`ordinate`, mm) | avg 42 elements, max 72 |
+
+Only the second wants a canvas. A report is a column list with grouping, sorting and filters;
+dragging boxes around one would be theatre. It gets a grid and the same live preview, rendered
+through `TablePdfRenderer` on the rows its own filters return.
+
+Element types actually in use across all 18 forms, which is the vocabulary the canvas must handle:
+`Text` 322, `Data` 213, `Line` 64, `CDta` 51, `TBlk` 26, `Rect` 19, `Tbl` 18, `CBlk` 15, `Img` 14,
+`PgNum` 11, `Ttl` 8 — and exactly one each of `TDup`, `ImgLink` and `BarCode`. The long tail is
+three elements in the entire shipped set, which is worth knowing before anyone builds a general
+solution for it.
+
+### 13.2 The page underneath is the real page
+
+The requirement is that an author sees how the form will look while editing it. Three ways to do
+that, and the difference between them is where the fidelity comes from:
+
+| | Approach | Cost |
+|---|---|---|
+| A | Absolutely-positioned HTML in mm | Cheap, draggable — but browser font metrics are not TCPDF's, so text wrap and overflow are wrong exactly where it matters |
+| B | Edit boxes on one side, PDF preview on the other | Honest, but the author compares two pictures by eye |
+| **C** | **Render the real PDF through `LayoutPdfRenderer`, rasterize it in the browser, and put the element boxes on a transparent layer above it** | **The author drags against the true output** |
+
+C, and the constraint that decides *how* C is done: the container has **no Imagick, no Ghostscript
+and no `pdftoppm`** (checked 2026-08-15; only `gd`). Server-side rasterizing would mean a new
+system dependency on every deployment target. Rasterizing in the browser needs none, which makes
+vendoring **pdf.js** into `trunk/ext/pdfjs/` the route — self-contained, no build step, alongside
+`bootstrap5` and `htmx.min.js` exactly as those are.
+
+The preview binds to a **real record** via `RecordSelector`, and falls back to generated sample
+values — visibly marked as such — where the form's table is empty on this company. A fresh install
+with no invoices must still be able to lay out an invoice.
+
+Rulers, grid, margin box and inspector all read in **mm**, because that is the unit the definition
+stores and the unit paper is sold in. No pixel reaches the file.
+
+### 13.3 One format, one migration
+
+Forms reads PhreeForm's XML today and would keep working if it kept doing so. It will not, because
+a format Forms cannot extend is a ceiling on every feature after 1.0.0.
+
+The naive reading of that is a permanent dual-format world: read either, write native, convert each
+definition when someone first edits it. That was the plan for about an hour, and it is worse than
+it looks — a format discriminator, a format-aware loader, a mixed catalog that never resolves, and
+a per-document backup file, all carried forever to serve a distinction no user can perceive. A
+definition nobody edits prints the same either way; a definition somebody edits needs a new file
+regardless.
+
+**So the conversion is bulk, once, in the database upgrade, and PhreeForm is deleted in the same
+release.** Afterwards there is exactly one format and the loader is a file read. `TemplateConverter`
+stops being a runtime path.
+
+Three conditions on that, each of which is the difference between a migration and a data loss:
+
+1. **It refuses to run while any definition is unconvertible, and names them.** Not hypothetical:
+   The `production` company's `pf_73` was exactly that until the `purchasing` dataset was added for it (§12.4).
+   Converting 56 of 57 and dropping one is unacceptable once no engine can read the leftover. Check
+   all, block, list, let the admin fix or discard, then run.
+2. **Legacy files are moved, not deleted** — `my_files/{co}/phreeform/` becomes
+   `phreeform.pre-forms/`, kept for one release. Nothing reads it. It exists for the one customer
+   whose customised invoice converted subtly wrong, and it costs a rename.
+3. **It ships in the release that has the designer.** The moment PhreeForm goes, `popup_build` goes
+   with it. Shipping the migration first would leave an installation that prints everything and can
+   edit nothing.
+
+The converter survives in one place: **"Import a PhreeForm definition"** in the designer. Same
+code, no longer a loader branch, and it is the upgrade path for a definition that turns up on a USB
+stick two years from now.
+
+A consequence worth recording so it is not mistaken for a permanent feature: `MODULE_FORMS_PRINT_BUTTONS`,
+the PhreeForm branch of `gen_print_form_url()` and the row on the Forms settings page are all
+**scaffolding for the transition**, and are deleted in the same release. There is nothing to switch
+to once PhreeForm is gone.
+
+### 13.4 What the palette may offer
+
+The field palette is the whole authoring vocabulary, and it is drawn from the resolved dataset:
+`Record`, line-item, `Context` and aggregate scopes, each listing the fields that dataset declares.
+There is no table picker and nowhere to type an expression.
+
+That is not a simplification, it is §1.1 and §3 restated as a UI. PhreeForm's designer opened with
+a bare `SHOW TABLES` and let an author put SQL in a field *name*, which is why any report author
+was a database-wide read primitive. An author who can only pick declared identifiers cannot reach a
+table the dataset does not name.
+
+Gated on `SECURITY_ID_FORMS_AUTHOR` (id 9) — defined in `forms/config.php` since 1.00, used
+nowhere, reserved for this. It is the middle tier of decision F, and it has been empty until now.
+
+### 13.5 A new company ships native
+
+52 `.xml` definitions ship under `modules/{contacts,inventory,phreebooks,phreedom,phreepos}/language/en_us/reports/`
+and are copied per company by `admin_add_reports()` → `ImportReport()`. A new install or new
+company gets native definitions from the start, which means generating native equivalents once,
+committing them, and teaching the installer to seed those instead.
+
+Three traps in that, all of which fail silently:
+
+- **`ImportReport()` is where the paper size is stamped** (§11 paper-size work, commit `5d0b56d`).
+  A native seeding path that does not do the same loses the installer's Letter/A4 choice on exactly
+  the installs that just made it. **Re-stamp has the same hole**: it is a textual substitution on
+  XML and would skip every native file.
+- **Seeding is locale-aware** — `language/{locale}/reports/` with an `en_us` fallback. Native files
+  follow that convention or a non-US-English install seeds nothing.
+- **A fresh install has nothing PhreeForm can read**, so on a fresh install
+  `MODULE_FORMS_PRINT_BUTTONS` defaults **on** while an upgrade keeps it **off**. The installer
+  sets it differently; no new mechanism is needed, which is what that switch was built for.
+
+This is why 13.5 is late in the order below despite being the first thing anyone asks for: seeding
+native before the designer exists gives a fresh install documents nobody can edit.
+
+### 13.6 Decisions
+
+Continuing §9.
+
+| # | Decision | Rationale |
+|---|---|---|
+| G | Two editors — a canvas for forms, a column grid for reports | The two document types have different shapes; 39 reports averaging 9 columns do not want dragging |
+| H | The real rendered PDF as the canvas underlay, rasterized client-side by a vendored pdf.js | The only zero-dependency route to true fidelity: no Imagick or Ghostscript on the deployment targets |
+| I | Read legacy XML, write native — and convert everything **in bulk** at upgrade, deleting PhreeForm in the same release | A permanent dual-format world buys a distinction no user can perceive |
+| J | The migration blocks on any unconvertible definition rather than skipping it | After it, nothing can read what was skipped |
+| K | New installs and new companies seed native definitions; upgrades convert | An upgrade is one event, not an ongoing state |
+| L | The converter survives as an **Import** feature, not a loader branch | Keeps the upgrade path without keeping the second format |
+
+### 13.7 Steps
+
+1. **Native format, converter, format-aware loader.** A JSON serialization of `Template` — already
+   `readonly` value objects, so close to mechanical — plus the proof that carries everything after
+   it: all 57 definitions on both companies convert and render byte-comparable to the legacy path.
+   Nothing user-visible ships here.
+2. **Report editor.** Columns, group, sort, filter, page setup, live preview through the existing
+   `DocumentRunner` → `TablePdfRenderer`. The smaller half, and it exercises load and save end to
+   end before any canvas exists.
+3. **Form canvas, read-only.** pdf.js underlay with element outlines drawn on top from the
+   `Template`. No dragging. This proves the mm-to-pixel alignment, page size, margins and
+   orientation — the part most likely to be subtly wrong, and the cheapest point at which to
+   abandon approach C if it is.
+4. **Form editing.** Drag, resize, snap, add and delete, z-order, and an element inspector for
+   font, size, alignment, colour, border and binding.
+5. **Native shipping set.** Generated, committed, seeded by the installer, with paper-size stamping
+   and a re-stamp that understands the native format.
+6. **Migration, and delete PhreeForm** — including `MODULE_FORMS_PRINT_BUTTONS`, the helper's
+   PhreeForm branch, and the settings row.
+
+During steps 2–5 the loader tries native then legacy, so development and testing work against a
+mixed tree. Step 6 deletes that branch; it is a few lines, not an architecture.
+
+### 13.8 Open risks
+
+Not yet validated.
+
+1. **mm-to-pixel alignment between pdf.js and `LayoutPdfRenderer`.** The underlay is only worth
+   having if a box drawn at 140 mm sits over the text rendered at 140 mm, across page sizes,
+   orientations and zoom levels. Step 3 exists to find out early.
+2. **The three long-tail element types.** `TDup`, `ImgLink` and `BarCode` appear once each in the
+   shipped set. `TDup` was *eliminated* rather than mapped when the vocabulary was collapsed to
+   nine (§4.2), so its single instance is the one definition most likely to block the migration
+   under condition 1.
+3. **Editing a definition served by a provider.** Nine forms are built by a `DocumentProvider`
+   rather than a dataset query, and their available fields come from the provider's own contract,
+   not from a dataset the palette can enumerate. What the palette offers for those is unresolved.
+4. **pdf.js weight.** Roughly 1 MB vendored, on a repository that commits its dependencies by
+   design. Acceptable, but it is the largest single front-end asset added so far.
