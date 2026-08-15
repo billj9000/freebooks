@@ -34,7 +34,8 @@ namespace FreeBooks\Forms\Legacy;
 
 use FreeBooks\Forms\Provider\IncomeStatementDocumentProvider;
 use FreeBooks\Forms\Catalog\{
-    CatalogException, Dataset, DateRange, FieldExpression, Filter, FilterOperator, Sort, SortDirection
+    CatalogException, Dataset, DateRange, DateRangeFilters, FieldExpression, Filter, FilterOperator,
+    Sort, SortDirection
 };
 use FreeBooks\Forms\Document\{Align, Colour, Format, PageSetup, ReportColumn, ReportStyle, Style};
 
@@ -406,59 +407,28 @@ final class ReportConverter
      */
     public function convertDateFilters(object $report, Dataset $dataset, DateRange $range): array
     {
-        // A partly-resolved range still narrows the report, and narrowing is the
-        // safe direction: an unfiltered report whose header claims a quarter is
-        // the outcome to avoid. So the note is reported and whatever bounds
-        // exist are applied.
-        if ($range->unresolved !== null) $this->warnings[] = "date range: {$range->unresolved}";
-        if ($range->isOpen()) return [];
-
-        // "By period" compares a period number, not a date, so it needs the
-        // dataset's period field rather than the report's date field. Three of
-        // the seven shipped datasets have no period at all; there the range is
-        // dropped with a warning, since the alternative is a report that
-        // silently covers all time while claiming a period in its header.
-        if ($range->period !== null) {
-            $periodKey = $this->periodKey($dataset);
-            if ($periodKey === null) {
-                $this->warnings[] = "the '{$dataset->id}' dataset has no accounting period field,"
-                                  . " so the by-period range was not applied.";
-                return [];
+        return DateRangeFilters::build($dataset, function () use ($report): ?string {
+            $legacy = $this->scalar($report->datefield ?? null);
+            $key    = $this->mapName($legacy);
+            if ($key === null) {
+                $this->warnings[] = "the date range applies to '$legacy', which this dataset does not"
+                                  . " provide; the report is not date-filtered.";
             }
-            return [Filter::equals($periodKey, $range->period)];
-        }
-
-        $legacy = $this->scalar($report->datefield ?? null);
-        $key    = $this->mapName($legacy);
-        if ($key === null) {
-            $this->warnings[] = "the date range applies to '$legacy', which this dataset does not"
-                              . " provide; the report is not date-filtered.";
-            return [];
-        }
-
-        $filters = [];
-        if ($range->start !== null) {
-            $filters[] = new Filter($key, FilterOperator::GreaterEqual, [$range->start]);
-        }
-        if ($range->endExclusive !== null) {
-            $filters[] = new Filter($key, FilterOperator::LessThan, [$range->endExclusive]);
-        }
-        return $filters;
+            return $key;
+        }, $range, $this->warnings);
     }
 
     /**
-     * The dataset field holding an accounting period, if it has one.
+     * The dataset field key the date range applies to, for a native definition.
      *
-     * Matched on the column rather than the key, because the datasets name it
-     * differently — `period` on transactions, `history_period` on general
-     * ledger — and both are `<table>.period` underneath.
+     * Same mapping as convertDateFilters() performs, but stored rather than
+     * applied: the range itself depends on today's date and so must stay a run
+     * time question, while WHICH field it constrains is settled at conversion.
      */
-    private function periodKey(Dataset $dataset): ?string
+    public function convertDateField(object $report, Dataset $dataset): ?string
     {
-        foreach ($dataset->fields as $key => $field) {
-            if ($field->column === 'period') return $key;
-        }
-        return null;
+        if ($this->fieldMap === []) $this->fieldMap = TemplateConverter::mapFor($dataset);
+        return $this->mapName($this->scalar($report->datefield ?? null));
     }
 
     /**

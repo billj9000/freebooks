@@ -43,7 +43,8 @@
 
 namespace FreeBooks\Forms\App;
 
-use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver};
+use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeFilters, DateRangeResolver};
+use FreeBooks\Forms\Definition\Definition;
 use FreeBooks\Forms\Document\Document;
 use FreeBooks\Forms\Legacy\{DatasetResolver, ReportConverter};
 use FreeBooks\Forms\Provider\{
@@ -200,6 +201,117 @@ final class DocumentRunner
         return $plan->kind === RunPlan::PROVIDER
             ? $this->runProvider($report, $plan, $params)
             : $this->runDataset($report, $plan);
+    }
+
+    // ── the native format ────────────────────────────────────────────────────
+    //
+    // The same two routes, taken from a Definition instead of from PhreeForm
+    // XML. They sit ALONGSIDE the legacy pair rather than replacing it, for the
+    // length of one release: that is what lets verify_forms_native.php render
+    // the same definition both ways and hold the two to a byte comparison. Step
+    // 6 deletes plan(), run() and everything above this line.
+
+    /**
+     * How a native definition will be served.
+     *
+     * Shorter than plan() by everything the conversion already settled. There
+     * is no DatasetResolver call, because the definition names its dataset;
+     * and no DATASET_SERVED exception list, because a deleted special class
+     * leaves no trace in a native file to except.
+     */
+    public function planDefinition(Definition $definition): RunPlan
+    {
+        if ($definition->isForm()) {
+            return new RunPlan(RunPlan::FORM, (string)$definition->provider,
+                ['This is a form. Forms prints it, but a form is per record, so printing one'
+                 . ' is driven from the document it belongs to rather than from this list.']);
+        }
+
+        if ($definition->hasProvider()) {
+            $special = (string)$definition->provider;
+            if (!isset(self::STRUCTURAL[$special])) {
+                return new RunPlan(RunPlan::UNSUPPORTED, $special,
+                    ["No class named '$special' is registered, so this definition cannot run."]);
+            }
+            return new RunPlan(RunPlan::PROVIDER, $special,
+                needsPeriod: true,
+                needsGlAccount: $special === 'acct_recon');
+        }
+
+        if ($definition->datasetId === null) {
+            return new RunPlan(RunPlan::UNSUPPORTED, '',
+                ['This definition names no dataset, so nothing can serve it.']);
+        }
+        return new RunPlan(RunPlan::DATASET, $definition->datasetId);
+    }
+
+    /**
+     * Build the Document from a native definition.
+     *
+     * A Definition is immutable, so unlike run() this needs no defensive clone:
+     * the run-dialog answers are read as parameters rather than written back
+     * onto the definition, which is the mutation that made cloning necessary.
+     *
+     * @param array<string,mixed> $params `dates`, `period`, `gl_account`
+     */
+    public function runDefinition(Definition $definition, array $params = []): Document
+    {
+        $this->warnings = [];
+        $plan = $this->planDefinition($definition);
+
+        if ($plan->isForm()) {
+            throw new \RuntimeException('This is a form, not a report. Forms prints it through'
+                . ' FormRunner and the print page, which need the records to print.');
+        }
+        if (!$plan->runnable()) {
+            throw new \RuntimeException(implode(' ', $plan->notes)
+                ?: 'Forms cannot serve this definition.');
+        }
+
+        $period = (int)($params['period'] ?? 0) > 0 ? (int)$params['period'] : $definition->period;
+
+        if ($plan->kind === RunPlan::PROVIDER) {
+            $arguments = [
+                'db'      => $this->db,
+                'columns' => $definition->columns,
+                'period'  => $period,
+                'title'   => $definition->title !== '' ? $definition->title : 'Report',
+            ];
+            if ($plan->needsGlAccount) $arguments['glAccount'] = (string)($params['gl_account'] ?? '');
+            return (new (self::STRUCTURAL[$plan->name])(...$arguments))->build([]);
+        }
+
+        $dataset = $this->catalog->get($plan->name);
+
+        // The one part of a definition that cannot be converted in advance:
+        // "this quarter" is a question about today. The FIELD it constrains was
+        // settled at conversion, so all that happens here is resolving the
+        // preference and applying it.
+        $preference = (string)($params['dates'] ?? '') !== ''
+            ? (string)$params['dates'] : $definition->dateDefault;
+        $range = (new DateRangeResolver(new AppFiscalCalendar($this->db)))->resolve($preference);
+        $filters = array_merge($definition->filters,
+            DateRangeFilters::build($dataset, fn() => $definition->dateField, $range, $this->warnings));
+
+        // Deliberately the same arguments runDataset() passes, and no more.
+        // The definition also carries its page setup, its band styling and its
+        // group format, and this drops all three — because the LEGACY path
+        // drops them too, and step 1's whole claim is that the two paths are
+        // byte-identical. Passing them here would be an improvement smuggled in
+        // as a refactor: it moves every report onto its declared paper size,
+        // which is a change to what prints and wants its own verification.
+        return (new ReportDocumentProvider(
+            db:              $this->db,
+            catalog:         $this->catalog,
+            datasetId:       $dataset->id,
+            columns:         $definition->columns,
+            title:           $definition->title !== '' ? $definition->title : 'Report',
+            groupBy:         $definition->groupBy,
+            filters:         $filters,
+            sorts:           $definition->sorts,
+            resolvedColumns: $definition->resolvedColumns,
+            totalsOnly:      $definition->totalsOnly,
+        ))->build([]);
     }
 
     /** @param array<string,mixed> $params */

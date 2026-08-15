@@ -41,7 +41,8 @@
 namespace FreeBooks\Forms\App;
 
 use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver, Filter};
-use FreeBooks\Forms\Document\{Context, Document, Field, FieldBlock, Scope, TypedValue};
+use FreeBooks\Forms\Definition\Definition;
+use FreeBooks\Forms\Document\{Context, Document, Field, FieldBlock, Scope, Template, TypedValue};
 use FreeBooks\Forms\Legacy\{DatasetResolver, ReportConverter, TemplateConverter};
 use FreeBooks\Forms\Provider\{
     EntryDocumentProvider, PosDocumentProvider, QueryDocumentProvider,
@@ -221,6 +222,115 @@ final class FormRunner
             : $this->codeProvider($report, $plan, $template, $context, $title, $page);
 
         return $provider->build(['record_ids' => array_values($recordIds)]);
+    }
+
+    // ── the native format ────────────────────────────────────────────────────
+    //
+    // The same two routes taken from a Definition, alongside the legacy pair
+    // rather than in place of it, so verify_forms_native.php can render one
+    // definition both ways and compare the bytes. Step 6 deletes plan(), run()
+    // and everything above this line.
+
+    /**
+     * How a native form will be served.
+     *
+     * The one question a Definition cannot answer, and the reason this is not
+     * just a property read: whether the module a provider belongs to is
+     * INSTALLED. The Work Order's definition ships in the catalog whether or
+     * not the extension does, and without this check it plans as runnable and
+     * then dies on an undefined constant deep inside the provider.
+     */
+    public function planDefinition(Definition $definition): FormPlan
+    {
+        if (!$definition->isForm()) {
+            return new FormPlan(FormPlan::UNSUPPORTED, '',
+                ['This is a report, not a form. DocumentRunner serves it.']);
+        }
+
+        if ($definition->hasProvider()) {
+            $special = (string)$definition->provider;
+            if (!isset(self::PROVIDERS[$special])) {
+                return new FormPlan(FormPlan::UNSUPPORTED, $special,
+                    ["No provider is registered for '$special', so this form cannot run."]);
+            }
+            foreach (self::REQUIRES[$special] ?? [] as $constant) {
+                if (!defined($constant)) {
+                    return new FormPlan(FormPlan::UNSUPPORTED, $special,
+                        ['This form belongs to a module that is not installed on this company.']);
+                }
+            }
+            return new FormPlan(FormPlan::PROVIDER, $special,
+                recordTable: $definition->recordTable !== ''
+                    ? $definition->recordTable : (self::RECORD_TABLE[$special] ?? ''));
+        }
+
+        if ($definition->datasetId === null) {
+            return new FormPlan(FormPlan::UNSUPPORTED, '',
+                ['This form names no dataset, so nothing can serve it.']);
+        }
+        return new FormPlan(FormPlan::DATASET, $definition->datasetId,
+            recordTable: $definition->recordTable,
+            recordKey:   $definition->recordKey);
+    }
+
+    /**
+     * Build the LayoutDocument for the given records, from a native definition.
+     *
+     * No clone, because a Definition is immutable — the run-dialog answers are
+     * parameters here rather than fields written back onto the definition.
+     *
+     * @param list<int|string>    $recordIds
+     * @param array<string,mixed> $params
+     */
+    public function runDefinition(Definition $definition, array $recordIds, array $params = []): Document
+    {
+        $this->warnings = [];
+        $plan = $this->planDefinition($definition);
+
+        if (!$plan->runnable()) {
+            throw new \RuntimeException(implode(' ', $plan->notes)
+                ?: 'Forms cannot serve this form definition.');
+        }
+
+        $template = $definition->template ?? new Template();
+        $context  = $this->contextFor($template);
+        $title    = $definition->title !== '' ? $definition->title : 'Document';
+        $page     = $definition->page;
+
+        if ($plan->kind === FormPlan::DATASET) {
+            $provider = new QueryDocumentProvider(
+                db:         $this->db,
+                catalog:    $this->catalog,
+                datasetId:  $this->catalog->get($plan->name)->id,
+                template:   $template,
+                breakField: $definition->breakField,
+                context:    $context,
+                title:      $title,
+                page:       $page,
+                filters:    $definition->filters,
+            );
+            return $provider->build(['record_ids' => array_values($recordIds)]);
+        }
+
+        $class = self::PROVIDERS[$plan->name];
+
+        // Only the statement providers need a period: a statement covers a date
+        // range, where an invoice is simply itself.
+        if ($class === StatementDocumentProvider::class) {
+            $preference = (string)($params['dates'] ?? '') !== ''
+                ? (string)$params['dates'] : $definition->dateDefault;
+            $provider = new StatementDocumentProvider(
+                db: $this->db, template: $template,
+                range: (new DateRangeResolver(new AppFiscalCalendar($this->db)))->resolve($preference),
+                context: $context, title: $title, page: $page,
+            );
+            return $provider->build(['record_ids' => array_values($recordIds)]);
+        }
+
+        return (new $class(
+            db: $this->db, template: $template,
+            context: $context, title: $title, page: $page,
+        ))->build(['record_ids' => array_values($recordIds)]);
     }
 
     /**

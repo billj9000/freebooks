@@ -151,6 +151,92 @@ final readonly class DateRange
 }
 
 /**
+ * A resolved DateRange, applied to a dataset as ordinary bound filters.
+ *
+ * Shared rather than duplicated, and the sharing is the point. A date
+ * preference is resolved at RUN time — "this quarter" depends on today and on
+ * the accounting calendar — so it is the one part of a definition that cannot
+ * be converted once and stored. Both the legacy converter and the native
+ * runner therefore have to turn the same DateRange into the same filters, and
+ * two implementations of that would be two different reports.
+ *
+ * The only thing the legacy side does first is map its stored `datefield` name
+ * onto a dataset field key; from there the work is identical.
+ */
+final class DateRangeFilters
+{
+    /**
+     * The dataset field holding an accounting period, if it has one.
+     *
+     * Matched on the column rather than the key, because the datasets name it
+     * differently — `period` on transactions, `history_period` on general
+     * ledger — and both are `<table>.period` underneath.
+     */
+    public static function periodKey(Dataset $dataset): ?string
+    {
+        foreach ($dataset->fields as $key => $field) {
+            if ($field->column === 'period') return $key;
+        }
+        return null;
+    }
+
+    /**
+     * The range as filters, or none.
+     *
+     * The range is emitted as `>= start` AND `< endExclusive`, never as a
+     * BETWEEN — see DateRange. A preference that constrains nothing returns no
+     * filters at all rather than a pair of always-true comparisons.
+     *
+     * The date field arrives as a CALLABLE, not a string, and that is not
+     * ceremony: the by-period branch never looks at it, and the legacy caller
+     * warns when it cannot map the stored name. Resolving eagerly would emit
+     * that warning on reports where the field is irrelevant, and emit it before
+     * the unresolved-range note rather than after.
+     *
+     * @param callable(): ?string $dateFieldKey the dataset field the range
+     *   applies to; null means the definition names one this dataset cannot serve
+     * @param list<string>       &$warnings     appended to, never replaced
+     * @return list<Filter>
+     */
+    public static function build(Dataset $dataset, callable $dateFieldKey, DateRange $range, array &$warnings): array
+    {
+        // A partly-resolved range still narrows the report, and narrowing is the
+        // safe direction: an unfiltered report whose header claims a quarter is
+        // the outcome to avoid. So the note is reported and whatever bounds
+        // exist are applied.
+        if ($range->unresolved !== null) $warnings[] = "date range: {$range->unresolved}";
+        if ($range->isOpen()) return [];
+
+        // "By period" compares a period number, not a date, so it needs the
+        // dataset's period field rather than the report's date field. Three of
+        // the seven shipped datasets have no period at all; there the range is
+        // dropped with a warning, since the alternative is a report that
+        // silently covers all time while claiming a period in its header.
+        if ($range->period !== null) {
+            $periodKey = self::periodKey($dataset);
+            if ($periodKey === null) {
+                $warnings[] = "the '{$dataset->id}' dataset has no accounting period field,"
+                            . " so the by-period range was not applied.";
+                return [];
+            }
+            return [Filter::equals($periodKey, $range->period)];
+        }
+
+        $key = $dateFieldKey();
+        if ($key === null) return [];
+
+        $filters = [];
+        if ($range->start !== null) {
+            $filters[] = new Filter($key, FilterOperator::GreaterEqual, [$range->start]);
+        }
+        if ($range->endExclusive !== null) {
+            $filters[] = new Filter($key, FilterOperator::LessThan, [$range->endExclusive]);
+        }
+        return $filters;
+    }
+}
+
+/**
  * Where the accounting calendar comes from.
  *
  * An interface because the fiscal cases are the only ones that need the

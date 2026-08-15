@@ -971,6 +971,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_dates.php` | `DateRangeResolver` parity with `gen_build_sql_date()`, and boundary arithmetic on pinned days | yes | **PASS — 72 checks** |
 | `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 106,146 rows |
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
+| `verify_forms_native.php` | Every definition converts to the native format, re-encodes byte-stably, loads back as native, and renders **identical PDF bytes** through it (§13.7 step 1) | yes | **PASS both companies** — 56 of 57 convert, 56/56 byte-identical on `demo`, 51/51 on `production` |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -1623,10 +1624,10 @@ Continuing §9.
 
 ### 13.7 Steps
 
-1. **Native format, converter, format-aware loader.** A JSON serialization of `Template` — already
-   `readonly` value objects, so close to mechanical — plus the proof that carries everything after
-   it: all 57 definitions on both companies convert and render byte-comparable to the legacy path.
-   Nothing user-visible ships here.
+1. ~~**Native format, converter, format-aware loader.**~~ **DONE — see §13.9.** A JSON
+   serialization of `Template` — already `readonly` value objects, so close to mechanical — plus
+   the proof that carries everything after it: all 57 definitions on both companies convert and
+   render byte-comparable to the legacy path. Nothing user-visible ships here.
 2. **Report editor.** Columns, group, sort, filter, page setup, live preview through the existing
    `DocumentRunner` → `TablePdfRenderer`. The smaller half, and it exercises load and save end to
    end before any canvas exists.
@@ -1660,3 +1661,72 @@ Not yet validated.
    not from a dataset the palette can enumerate. What the palette offers for those is unresolved.
 4. **pdf.js weight.** Roughly 1 MB vendored, on a repository that commits its dependencies by
    design. Acceptable, but it is the largest single front-end asset added so far.
+
+### 13.9 Step 1, measured
+
+Built, and measured against both companies on 2026-08-15.
+
+| | |
+|---|---|
+| The format | JSON, in the same `my_files/{co}/phreeform/pf_<id>` slot the XML occupies |
+| Detection | by CONTENT — a native definition is a JSON object, a PhreeForm one is XML |
+| Converted | **56 of 57** on each company; `pf_64` is declined, and the legacy runner declines it too |
+| Re-encode | byte-stable for all 56 — opening and closing an unedited definition leaves no diff |
+| Rendered | **56 of 56 byte-identical** on `demo`, **51 of 51** on `production` |
+
+The classes are `modules/forms/classes/definition/`: `Definition` (the value object), `DefinitionCodec`
+(the format), `DefinitionBuilder` (PhreeForm XML in, native out) and `DefinitionLoader` (the
+format-aware read). `DocumentRunner` and `FormRunner` each gained `planDefinition()` and
+`runDefinition()` **alongside** the legacy pair rather than in place of it — that is what lets one
+definition be rendered both ways in one process and held to a byte comparison, and step 6 deletes
+the older half.
+
+**What a Definition is:** already converted. Its fields, filters, sorts and bindings are dataset
+field KEYS, its elements are the nine document types, and its route is stated rather than inferred
+from a table list. Two things deliberately stay out, because they are not properties of the
+definition: the resolved date RANGE (`dateDefault` is a preference, and what "this quarter" means
+depends on today), and the Context (a form's company block is read back off its own template at run
+time, so a stored `COMPANY_NAME` cannot go stale).
+
+`DateRangeFilters` in `catalog/date_range.php` is new and shared: the legacy converter and the
+native runner must turn the same `DateRange` into the same filters, and two implementations of that
+would be two different reports. It takes the date field as a callable, because the by-period branch
+never reads it and the legacy caller warns when it cannot map the stored name — resolving eagerly
+would emit that warning on reports where the field is irrelevant.
+
+#### Three things the byte comparison caught that reading the code did not
+
+1. **An all-default `Style` is not the same as no `Style`.** The encoder omitted empty objects, as
+   an encoder should. But `Table` resolves its heading row as `$element->headerStyle ?? $element->style`,
+   so a headerStyle specifying *nothing* still wins over the element's own style where a null one
+   falls back to it. Collapsing the two changed the heading font of every converted table — 68
+   bytes per form, on 14 forms, and invisible in the object graph. The format now writes `{}`.
+2. **TCPDF is not a function of its document.** Every render stamps six varying fields: the Info
+   dictionary's `/CreationDate` and `/ModDate`, a `/ID` derived from them, a random uuid in the XMP
+   packet as DocumentID *and* InstanceID, a `/LastModified` on **every page**, and a `/M` on every
+   link annotation. The per-page one is the instructive one: it only differs when two renders
+   straddle a second boundary, so missing it failed the four LARGEST documents and passed the rest
+   — which reads exactly like a defect in whatever those four have in common. They had nothing in
+   common except taking over a second to render. The tool now renders one document twice **a second
+   apart** as a control, and separately proves that a document which really differs still compares
+   different: a normaliser that strips too much passes everything, including the broken.
+3. **`serialize()` is the wrong comparison.** It encodes object identity as well as value, so two
+   structurally identical documents compare unequal purely because one shared a `Style` instance
+   between elements where the other built two. It reported differences on 14 definitions that had
+   none. The tool walks the graph instead.
+
+#### Two things now visible that were not
+
+- **Five definitions carry conversion warnings**, so §13.3 condition 1 would block the migration on
+  them today: `pf_51` needs a second `Table` on the same source (the single `TDup` — open risk 2,
+  now confirmed rather than suspected) and names two fields no dataset covers; `pf_57`, `pf_77` and
+  `pf_80` each want `credit_amount / qty`. These are not new — the same converters produce the same
+  warnings at every run today — but nothing was reading them. The §8.2 pattern applies: name the
+  arithmetic in a shipped dataset, as `pf_73` was fixed.
+- **The application's report path drops the page setup and the band styling.** `DocumentRunner::runDataset()`
+  passes neither to `ReportDocumentProvider`, though `render_forms_report.php` does and every
+  definition carries them — so a report renders on the `PageSetup` defaults rather than on its
+  declared paper. A `Definition` carries all three, and `runDefinition()` deliberately drops them
+  too, because step 1's whole claim is that the two paths are byte-identical. Passing them is an
+  improvement, it moves every report onto its declared paper size, and it wants its own change and
+  its own verification rather than being smuggled in as a refactor.
