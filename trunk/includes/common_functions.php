@@ -504,6 +504,61 @@
     return implode('&amp;', $output);
   }
 
+  /**
+   * Where a Print button should send the browser.
+   *
+   * Every Print button in FreeBooks opens the same popup with the same six
+   * parameters and a different form group. Forms answers that contract exactly
+   * (modules/forms/pages/print/), so which engine prints is a choice about the
+   * URL and nothing else — which is why it is made here, once, rather than in
+   * nine call sites that would drift apart.
+   *
+   * Three things have to be true before a button opens Forms:
+   *
+   *   - the module is installed (MODULE_FORMS_STATUS), because the page does
+   *     not exist otherwise;
+   *   - MODULE_FORMS_PRINT_BUTTONS is on. It ships OFF, so installing Forms to
+   *     look at the document list does not silently retire PhreeForm. Design
+   *     §11.16 asks for the two to run side by side first, and an admin who
+   *     wants that has to say so;
+   *   - and the person clicking holds SECURITY_ID_FORMS_RUN. Printing and
+   *     running documents were never the same permission, so a warehouse user
+   *     who prints packing lists may well not have the second. Without this
+   *     they would get a popup that bounces to the dashboard; with it they keep
+   *     printing on PhreeForm until their role is granted the key. The Forms
+   *     settings tab says so, because a per-user fallback nobody mentions is
+   *     just a mystery.
+   *
+   * $xmin comes last in the query string on purpose: most callers are inside a
+   * window.open() and append the id in JavaScript, so they pass '' and
+   * concatenate. $xmax is placed before it for the same reason.
+   *
+   * @param string $gID  form group, e.g. 'cust:inv'
+   * @param string $xfld column the caller selects on, qualified
+   * @param string $xcr  EQUAL, IN_LIST or RANGE
+   * @param string $xmin the value, a comma list, or the low end of a range
+   * @param string $xmax the high end of a range
+   * @param string $date a date preference letter, for the statement forms
+   */
+  function gen_print_form_url($gID = '', $xfld = 'journal_main.id', $xcr = 'EQUAL', $xmin = '', $xmax = '', $date = 'a') {
+    $use_forms = defined('MODULE_FORMS_STATUS')
+              && defined('MODULE_FORMS_PRINT_BUTTONS') && MODULE_FORMS_PRINT_BUTTONS == '1'
+              && defined('SECURITY_ID_FORMS_RUN')
+              && in_array($_SESSION['admin_security'][SECURITY_ID_FORMS_RUN] ?? 0, array(1,2,3,4));
+    // FILENAME_DEFAULT is 'index', without the extension — html_href_link()
+    // adds it, and a relative URL that omits it is a 404. Same guard as there.
+    $page = FILENAME_DEFAULT;
+    if (!strstr($page, '.php')) $page .= '.php';
+    $url = $page . '?'
+         . ($use_forms ? 'module=forms&page=print' : 'module=phreeform&page=popup_gen')
+         . '&gID='  . urlencode($gID)
+         . '&date=' . urlencode($date)
+         . '&xfld=' . urlencode($xfld)
+         . '&xcr='  . urlencode($xcr);
+    if ($xmax <> '') $url .= '&xmax=' . urlencode($xmax);
+    return $url . '&xmin=' . urlencode($xmin);
+  }
+
   function js_get_all_get_params($exclude_array = '') { // for use within javascript language validator
     global $_GET;
     if ($exclude_array == '') $exclude_array = array();

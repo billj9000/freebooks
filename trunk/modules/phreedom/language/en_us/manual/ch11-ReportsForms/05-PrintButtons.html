@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.05">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Print Buttons">
+<meta name="doc_index_2" content="Printing.Choosing the Engine">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Which Engine the Print Buttons Use">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Which Engine the Print Buttons Use</title>
+</head>
+
+<body>
+
+<h1 align="center">Which Engine the Print Buttons Use</h1>
+
+<p>FreeBooks has two printing engines while the newer one is being proven: the original, and the
+<strong>Forms</strong> module. Both read the same stored form definitions, so an invoice looks the
+same whichever prints it. Until you say otherwise, every Print button keeps using the original.</p>
+
+<h3>Turning it on</h3>
+
+<p>Go to <em>Company &rarr; Module Administration</em>, click the properties icon beside
+<strong>Forms Module</strong>, and set <strong>Print buttons open Forms</strong> to
+<em>Yes</em>.</p>
+
+<p>The setting is per company, and it takes effect immediately &mdash; the next Print button you
+click opens Forms. Setting it back to <em>No</em> restores the original engine just as quickly.
+Nothing is converted or moved either way, so there is no cost to trying it and no work to undo.</p>
+
+<p>It affects every Print button in the program at once: sales orders, quotes, invoices, credit
+memos, purchase orders, bills, cheques, deposits, POS receipts and work orders.</p>
+
+<h3>Who it applies to</h3>
+
+<p>Printing through Forms requires the <strong>Forms &mdash; run and print documents</strong>
+permission. Anyone whose role does not grant it carries on printing through the original engine,
+even with the setting on, so nobody loses the ability to print. If you turn the setting on and some
+staff still see the old print window, that permission is the reason &mdash; grant it to their role
+under <em>Company &rarr; User Security</em>.</p>
+
+<h3>What is different</h3>
+
+<p>The Forms print window asks the same thing of you and offers the same three choices: view the
+document, download it, or email it to the customer. Two differences are worth knowing about:</p>
+
+<ul>
+  <li>Where a document type has several forms &mdash; several invoice layouts, say &mdash; Forms
+      lists them and you pick one, rather than pre-selecting a layout for you.</li>
+  <li>If part of a form cannot be produced, Forms says so at the top of the window instead of
+      printing the document with a field silently missing.</li>
+</ul>
+
+<h3>Before you switch everyone over</h3>
+
+<p>Print one of each document you rely on and compare it with the same document printed the old
+way. Invoices, purchase orders and anything on pre-printed stationery are the ones to check, since
+those are the documents most likely to have been customised for your business.</p>
+
+<h3>Related Links</h3>
+<p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>
+<a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a><br>
+<a href="04-PaperSize.html" target="mainFrame">Paper Size</a></p>
+</body>
+</html>

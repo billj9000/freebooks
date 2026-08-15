@@ -43,7 +43,13 @@ class forms_admin {
       'phreedom'   => 3.6,
       'phreebooks' => 3.7,
     );
-    $this->keys    = array();
+    $this->keys    = array(
+      // Whether the Print buttons on orders, bills, status and the POS open
+      // Forms or PhreeForm (gen_print_form_url()). OFF on purpose: installing
+      // Forms should let an admin look at it, not silently move production
+      // printing onto it. Design §11.16 wants the two side by side first.
+      'MODULE_FORMS_PRINT_BUTTONS' => '0',
+    );
     $this->dirlist = array();
     $this->tables  = array(
       TABLE_FORMS_DATASETS => "CREATE TABLE " . TABLE_FORMS_DATASETS . " (
@@ -74,8 +80,19 @@ class forms_admin {
   function initialize($module) { return false; }
 
   function update($module) {
-    // The same path as install: the table is created if it is missing, which is
-    // what an installation enabled before custom datasets existed needs.
+    // Only keys that are MISSING, never keys that are set. Module Administration
+    // does not write keys on update at all, so an installation enabled before a
+    // key existed would never get its row; but rewriting every key with its
+    // shipped default would silently undo the admin's own choices on each
+    // update, and one of these keys decides where the Print buttons point.
+    // An absent constant is exactly an absent row — application_top defines one
+    // per configuration row — so `defined()` is the test.
+    foreach ($this->keys as $key => $value) {
+      if (!defined($key)) write_configure($key, $value);
+    }
+    // Otherwise the same path as install: the table is created if it is
+    // missing, which is what an installation enabled before custom datasets
+    // existed needs.
     return $this->install($module);
   }
 

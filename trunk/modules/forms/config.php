@@ -19,8 +19,12 @@
 // Release History
 // 1.00 => 2026-08-14 - Initial release: runs the shipped report catalog through
 //                      the Forms engine, alongside PhreeForm.
+// 1.01 => 2026-08-15 - Print buttons can be pointed at Forms, per company, from
+//                      the module's own settings page. Adds the configuration
+//                      key MODULE_FORMS_PRINT_BUTTONS, which an already
+//                      installed company picks up by running Update.
 
-define('MODULE_FORMS_VERSION', 1.00);
+define('MODULE_FORMS_VERSION', 1.01);
 
 // Security IDs.
 //

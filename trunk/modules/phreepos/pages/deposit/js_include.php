@@ -46,7 +46,7 @@ function init() {
 ?>
 <?php if ($post_success && $_REQUEST['action'] == 'print'): ?>
   ClearForm();
-  var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=<?php echo POPUP_FORM_TYPE; ?>&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=<?php echo $oID; ?>", "popup_gen", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL', $oID); ?>", "popup_gen", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
   printWin.focus();
 <?php endif; ?>
 }

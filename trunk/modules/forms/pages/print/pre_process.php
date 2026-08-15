@@ -249,6 +249,11 @@ switch ($_REQUEST['action'] ?? '') {
 // Who the document is for, so the email field arrives filled in. Read from the
 // journal the same way popup_gen reads it, and only when the selection is on a
 // journal — a statement is per contact and has no bill_email of its own.
+//
+// rEmail/rName are the caller's own answer, used where the journal has none:
+// the work order button sends them because wo_journal_main is not journal_main
+// and the lookup below cannot reach it. Hints, not authority — anything the
+// user typed wins, and so does the journal.
 $forms_to_email = (string)($_POST['to_email'] ?? '');
 $forms_to_name  = (string)($_POST['to_name']  ?? '');
 if ($forms_to_email === '' && $forms_selection && !$forms_selection->isEmpty()
@@ -261,6 +266,10 @@ if ($forms_to_email === '' && $forms_selection && !$forms_selection->isEmpty()
     $forms_to_email = (string)$result->fields['bill_email'];
     $forms_to_name  = (string)$result->fields['bill_primary_name'];
   }
+}
+if ($forms_to_email === '') {   // still nothing: take what the caller offered
+  $forms_to_email = (string)($_REQUEST['rEmail'] ?? '');
+  $forms_to_name  = (string)($_REQUEST['rName']  ?? '');
 }
 
 $forms_subject = (string)($_POST['subject'] ?? '');

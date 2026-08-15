@@ -302,7 +302,7 @@ class square_terminal extends payment {
       . '  var returnUrl    = sessionStorage.getItem("sqTermReturnUrl");' . "\n"
       . '  if (pendingPrint) {' . "\n"
       . '    sessionStorage.removeItem("sqTermPrintInvId");' . "\n"
-      . '    var printUrl = "index.php?module=phreeform&page=popup_gen&gID=cust:inv&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=" + encodeURIComponent(pendingPrint);' . "\n"
+      . '    var printUrl = "' . gen_print_form_url('cust:inv', 'journal_main.id', 'EQUAL') . '" + encodeURIComponent(pendingPrint);' . "\n"
       . '    if (sqTermAutoPrint === "On") printUrl += "&autoprint=1";' . "\n"
       . '    var printWin = window.open(printUrl, "reportFilter", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");' . "\n"
       . '    if (printWin) printWin.focus();' . "\n"

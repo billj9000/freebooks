@@ -46,7 +46,7 @@
 // 'print', driven through parameters taken from what was actually rendered or
 // proven elsewhere. Listing them means the suite exercises what clicking the
 // button does, rather than only that the button is wired.
-const FORMS_PAGES = ['main', 'datasets', 'print', 'printgroup', 'run', 'printrun'];
+const FORMS_PAGES = ['main', 'datasets', 'admin', 'print', 'printgroup', 'run', 'printrun'];
 
 if (!isset($argv[2])) {
     $failed = 0;
@@ -69,7 +69,7 @@ if (in_array($argv[2] ?? '', ['run', 'printrun'], true)) ob_start();
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 // No phreeform: a page must load whatever it uses, which is how the missing
 // PF_DIR_MY_REPORTS went unseen while every other tool reported green.
-fb_bootstrap(($argv[1] ?? '') !== '' ? $argv[1] : null, false);
+$company = fb_bootstrap(($argv[1] ?? '') !== '' ? $argv[1] : null, false);
 $PAGE = (string)$argv[2];
 
 $failures = 0;
@@ -107,7 +107,9 @@ $_GET = $_POST = $_REQUEST = [];
 // which publishes one (form, record) pair it has already rendered — so what is
 // driven here is a pair known to produce a document, and a failure is this
 // page's rather than a fixture's.
-$printTarget = sys_get_temp_dir() . '/forms-print-target';
+// Per company: the ids inside are only meaningful against the database they
+// were taken from (see verify_forms_forms.php, where they are published).
+$printTarget = sys_get_temp_dir() . '/forms-print-target-' . $company;
 if ($PAGE === 'print') {
     // Self-sufficient: a suite that only passes when another tool ran first is a
     // suite that fails for the wrong reason and gets ignored. If the pair is not
@@ -123,7 +125,7 @@ if ($PAGE === 'print') {
         echo "  [--] no form on this company produced a record; nothing to print\n";
         exit(0);
     }
-    $source = $CHOOSING ? sys_get_temp_dir() . '/forms-print-group' : $printTarget;
+    $source = $CHOOSING ? sys_get_temp_dir() . '/forms-print-group-' . $company : $printTarget;
     if (!file_exists($source)) {
         echo "  [--] no multi-form group on this company; nothing to choose between\n";
         exit(0);
@@ -381,6 +383,33 @@ if ($PAGE === 'print' && !$CHOOSING) {
         ok("it offers the $action action", str_contains($output, "formsPrint('$action')"));
     }
     ok('the form posts back to itself', (bool)preg_match('/<form[^>]+name="forms_print"/', $output));
+}
+
+if ($PAGE === 'admin') {
+    // The settings page is only worth having if the control it draws is the one
+    // the application reads. A select named for a different key, or one whose
+    // options are not the values gen_print_form_url() tests for, is a switch
+    // that appears to work and changes nothing — the failure this whole page
+    // exists to make impossible.
+    $select = $xpath->query("//select[@name='module_forms_print_buttons']");
+    ok('it draws the print-button setting', $select->length === 1,
+       $select->length . ' matching control(s)');
+    if ($select->length === 1) {
+        $values = [];
+        foreach ($xpath->query(".//option", $select->item(0)) as $option) {
+            $values[] = (string)$option->getAttribute('value');
+        }
+        sort($values);
+        ok("it offers exactly the two values the helper tests for", $values === ['0', '1'],
+           implode(',', $values));
+
+        // The installer's key list is what the save branch iterates, so a key
+        // present in one and not the other is a setting that cannot be saved.
+        require_once(DIR_FS_MODULES . 'forms/classes/install.php');
+        $keys = array_keys((new forms_admin())->keys);
+        ok('the setting is in the installer key list, so saving it works',
+           in_array('MODULE_FORMS_PRINT_BUTTONS', $keys, true), implode(',', $keys));
+    }
 }
 
 if ($PAGE === 'main' && $controls->length > 0) {

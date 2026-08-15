@@ -1319,8 +1319,8 @@ shape, as the POS receipt's payment lines do, so a missing key is not a missing 
 
 ### 12.4 What remains
 
-Per §11, step 16: printing forms from the documents that own them, migrating customised
-installs, and retiring PhreeForm.
+Per §11, step 16: retiring PhreeForm. Printing forms from the documents that own them is done, and
+migrating a customised install has its first worked case (`pf_73`, below).
 
 **The forms path now runs, and has a page (2026-08-14).** `?module=forms&page=print` answers on
 PhreeForm's own popup contract — `gID`/`rID`, `xfld`/`xcr`/`xmin`/`xmax`, `date` — so pointing a
@@ -1330,9 +1330,56 @@ stages to a temp file and always removes it. `verify_forms_pages.php` gained two
 (the screen) and `printrun` (the delivered bytes), and drives them from a (form, record) pair
 `verify_forms_forms.php` has already proven renders.
 
-**The Print buttons still point at PhreeForm.** Repointing them switches production printing to
-Forms, which §11.16 says should happen only after the two have run side by side — so it is a
-separate, deliberate step, not part of building the page.
+**The Print buttons can now be pointed at Forms, per company (2026-08-15).** Not repointed —
+*pointable*, which is the difference §11.16 asks for. All eleven call sites (orders, bills, status,
+bulk_bills, three in the POS, the Square Terminal return, and the work order button in the
+`work_orders` extension) call one helper, `gen_print_form_url()` in `common_functions.php`, and it
+opens Forms only when three things are true:
+
+- Forms is installed. Otherwise the page does not exist, and a hard repoint would have broken
+  printing outright on every install that has not enabled it — which is why this is a helper and
+  not a URL edit.
+- `MODULE_FORMS_PRINT_BUTTONS` is `1`. It ships `0`, so installing Forms to *look* at it does not
+  silently retire PhreeForm. It is set on the module's own settings page
+  (`?module=forms&page=admin`, reached from Module Administration), and flipping it back is a
+  pull-down rather than a deploy.
+- The person clicking holds `SECURITY_ID_FORMS_RUN`. Printing a document and running one were never
+  the same permission — a warehouse user who prints packing lists may well not have the second —
+  and without this check they would get a popup that redirects to the dashboard. They keep printing
+  on PhreeForm until their role is granted the key, and the settings page says so, because a
+  per-user fallback nobody mentions is just a mystery.
+
+`verify_forms_print_buttons.php` holds both halves. It exercises the permission gate in both
+directions (the one an admin cannot see, since it depends on who clicked), asserts `xmin` is the
+last parameter so a caller can append the record id in JavaScript, and then does the part that
+makes flipping the switch *safe* rather than merely reversible: it harvests every form group the
+source can send — from `POPUP_FORM_TYPE` and from the literals passed to the helper, so a Print
+button added later is covered without anyone remembering — and checks each one resolves to a form
+Forms will serve. On both companies, eleven groups, none declined. `bnk:rcpt` holds no form on
+either, which is a gap on *both* engines and predates this.
+
+Two defects it caught immediately, each of which would have shipped as "the Print button does
+nothing":
+
+- `FILENAME_DEFAULT` is `'index'`, not `'index.php'` — `html_href_link()` is where the extension
+  normally gets added, and a helper building its own relative URL has to do the same. Every button
+  would have 404'd.
+- The `work_orders` extension has an eleventh Print button that names no `POPUP_FORM_TYPE` and
+  writes `gID=inv:wo` into the URL directly. Grepping `trunk/` for the constant would have missed
+  it; the tool scans the **deployed** tree for the engine's page name instead, which is also what
+  keeps it honest about what the web server is actually running.
+
+Forms answers two things it did not before, both for parity with what the buttons already send:
+`&autoprint=1` (Square Terminal, so the till operator gets the receipt without a dialog) presses
+View once the page has resolved a single form — where the group holds several, the chooser stays
+up, because printing the wrong document unasked is worse than waiting for a click; and
+`rEmail`/`rName` prefill the email field where the journal lookup cannot reach, which is the work
+order case, since `wo_journal_main` is not `journal_main`.
+
+A harness bug surfaced in passing and is fixed: the (form, record) fixture `verify_forms_forms.php`
+publishes for `verify_forms_pages.php` was named without the company, so running two companies in
+sequence printed one company's record against the other's database. It reported the print path
+broken when it was not — and could as easily have reported it working when it was not.
 
 `FormRunner`
 routes a form definition to one of the five providers and builds its `LayoutDocument`;

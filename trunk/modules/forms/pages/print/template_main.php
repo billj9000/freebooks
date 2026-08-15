@@ -114,7 +114,7 @@ echo html_hidden_field('action', '') . chr(10);
   <div class="card-header py-1 fb-widget-header"><?php echo FORMS_PRINT_DELIVER; ?></div>
   <div class="card-body">
     <p>
-      <button type="button" class="btn btn-primary btn-sm" onclick="formsPrint('view')"><?php echo FORMS_PRINT_BTN_VIEW; ?></button>
+      <button type="button" id="forms_print_view" class="btn btn-primary btn-sm" onclick="formsPrint('view')"><?php echo FORMS_PRINT_BTN_VIEW; ?></button>
       <button type="button" class="btn btn-primary btn-sm" onclick="formsPrint('download')"><?php echo FORMS_PRINT_BTN_DOWNLOAD; ?></button>
     </p>
 

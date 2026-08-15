@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -118,12 +119,15 @@ function printWOrder(id) { // request funtion
 function fillwoDetail(xml) { // call back function
   if (!xml) return;
   var id = xmlText(xml, "id");
-  var details = "&gID=inv:wo&date=a&xfld=wo_journal_main.id&xcr=EQUAL&xmin="+id;
+  // gen_print_form_url() decides which engine prints and ends the query string
+  // at "xmin=", so the id and the email hints append the same way they always
+  // did. The hints have to come after it for that reason.
+  var details = "<?php echo gen_print_form_url('inv:wo', 'wo_journal_main.id', 'EQUAL'); ?>"+id;
   if (xmlText(xml, "sEmail")) details += "&sEmail="+xmlText(xml, "sEmail");
   if (xmlText(xml, "sName"))  details += "&sName=" +xmlText(xml, "sName");
   if (xmlText(xml, "rEmail")) details += "&rEmail="+xmlText(xml, "rEmail");
   if (xmlText(xml, "rName"))  details += "&rName=" +xmlText(xml, "rName");
-  var printWin = window.open("index.php?module=phreeform&page=popup_gen"+details,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open(details,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
   printWin.focus();
 }
 

@@ -154,7 +154,7 @@ function init() {
   if (!$error && $_REQUEST['action'] == 'print') {
     echo '  force_clear = true;' . "\n";
 	echo '  ClearForm();' . "\n";
-	echo '  var printWin = window.open("index.php?module=phreeform&page=popup_gen&gID=' . POPUP_FORM_TYPE . '&date=a&xfld=journal_main.id&xcr=EQUAL&xmin=' . $order->id . '","popup_gen","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");' . "\n";
+	echo '  var printWin = window.open("' . gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL', $order->id) . '","popup_gen","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");' . "\n";
     echo '  printWin.focus();' . "\n";
   }
   if (!$error && $_REQUEST['action'] == 'email') {

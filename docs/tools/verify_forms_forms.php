@@ -219,11 +219,17 @@ foreach ($forms as $id => $title) {
     // A group holding SEVERAL forms, so the page check can drive the chooser
     // branch — the one a caller reaches by clicking Print on an invoice, and
     // the one whose links were broken while every rID-driven check passed.
-    if (!file_exists(sys_get_temp_dir() . '/forms-print-group')) {
+    // Named for the company. The record ids in these files mean nothing outside
+    // the database they came from, and an unqualified name let a demo invoice be
+    // printed against production on the next run: the page correctly selected no
+    // records, and the suite reported the print path broken. A fixture that
+    // crosses companies can fail for the wrong reason, and can as easily pass
+    // for one.
+    if (!file_exists(sys_get_temp_dir() . '/forms-print-group-' . $company)) {
         $group = $db->Execute("select doc_group, count(*) n from " . TABLE_PHREEFORM . "
             where doc_ext = 'frm' group by doc_group having n > 1 order by n desc limit 1");
         if ($group && !$group->EOF) {
-            file_put_contents(sys_get_temp_dir() . '/forms-print-group',
+            file_put_contents(sys_get_temp_dir() . '/forms-print-group-' . $company,
                 http_build_query([
                     'gID'  => (string)$group->fields['doc_group'],
                     'xfld' => $plan->recordTable . '.' . $plan->recordKey,
@@ -238,8 +244,8 @@ foreach ($forms as $id => $title) {
     // the print page with. Passed through a file for the same reason the main
     // page's run URL is: the page check runs one page per process, and a pair
     // discovered here is one that is known to produce a document.
-    if (!file_exists(sys_get_temp_dir() . '/forms-print-target')) {
-        file_put_contents(sys_get_temp_dir() . '/forms-print-target',
+    if (!file_exists(sys_get_temp_dir() . '/forms-print-target-' . $company)) {
+        file_put_contents(sys_get_temp_dir() . '/forms-print-target-' . $company,
             http_build_query([
                 'rID'  => $id,
                 'xfld' => $plan->recordTable . '.' . $plan->recordKey,
