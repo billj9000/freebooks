@@ -41,6 +41,7 @@ final class ShippedDatasets
     public static function registerAll(Catalog $catalog): void
     {
         $catalog->register(self::transactions());
+        $catalog->register(self::purchasing());
         $catalog->register(self::generalLedger());
         $catalog->register(self::inventory());
         $catalog->register(self::auditTrail());
@@ -719,6 +720,104 @@ final class ShippedDatasets
                 new FieldDefinition('maintenance_date','Maintenance Due','assets','maintenance_date', ValueType::Date),
                 new FieldDefinition('terminal_date','Disposed',     'assets', 'terminal_date',    ValueType::Date),
             ],
+        );
+    }
+
+    /**
+     * Transactions, plus what a vendor calls the thing being bought.
+     *
+     * ── Why this exists as its own dataset ───────────────────────────────────
+     * A purchase order often has to show the SUPPLIER's part number rather than
+     * ours, and `inventory_purchase_details` is where that lives. It is not in
+     * `transactions` and deliberately stays out: that dataset is behind 44
+     * documents, its join is one-to-many on (sku, vendor_id), and those columns
+     * are not unique — `production` has a duplicate pair today — so adding it there
+     * would put an extra row into unrelated reports to serve one form.
+     *
+     * DatasetResolver picks the NARROWEST dataset that covers a definition's
+     * tables, so every existing report keeps resolving to `transactions` and
+     * only a definition that names `inventory_purchase_details` lands here.
+     *
+     * ── The customisation this replaces (§1.1, §8.2) ─────────────────────────
+     * `production` had already solved this the PhreeForm way: its Purchase Order
+     * declares the extra table with a hand-written `<relationship>` and prints a
+     * column whose FIELD NAME is
+     *
+     *     IF(inventory_purchase_details.vendor_sku <> '',
+     *        inventory_purchase_details.vendor_sku,
+     *        SUBSTRING_INDEX(inventory_purchase_details.description_purchase, ' ', 1))
+     *
+     * — a report author writing SQL, which is the whole of §1.1 and the reason
+     * Forms exists. Forms declined that definition rather than executing it.
+     * Naming the expression here as a shipped field, with the legacy string in
+     * `legacyNames`, converts the customisation instead of running it: the same
+     * document prints, and the arithmetic is now the catalog's rather than the
+     * report's. That is what §8.2 migration looks like in practice.
+     */
+    public static function purchasing(): Dataset
+    {
+        $base = self::transactions();
+
+        return new Dataset(
+            id:        'purchasing',
+            label:     'Purchasing',
+            baseTable: $base->baseTable,
+            description: 'Transactions and their line items, with the vendor\'s own part number '
+                       . 'and purchase description for each line.',
+            joins: [
+                ...$base->joins,
+                // Both conditions matter. On sku alone every vendor's record for
+                // that part would match; on vendor alone every part that vendor
+                // sells would. LEFT so a line with no purchase record still
+                // prints — an INNER join here would silently drop lines from the
+                // purchase order, which is the worst outcome available.
+                new Join('inventory_purchase_details', [
+                    new JoinCondition('journal_item', 'sku', 'inventory_purchase_details', 'sku'),
+                    new JoinCondition('journal_main', 'bill_acct_id', 'inventory_purchase_details', 'vendor_id'),
+                ], JoinType::Left),
+            ],
+            fields: [
+                ...array_values($base->fields),
+
+                // Grain, not provenance: `table` on a computed field states
+                // whether the value varies per line or per record, and the
+                // consumer folds rows on exactly that. These vary per LINE —
+                // each line has its own sku — so they name journal_item, which
+                // is the table QueryDocumentProvider treats as line-grain.
+                // Naming inventory_purchase_details here would make them header
+                // fields and every line would show the first line's vendor SKU.
+                new FieldDefinition(
+                    key: 'vendor_sku', label: 'Vendor SKU',
+                    table: 'journal_item', type: ValueType::Text,
+                    expression: "IF(inventory_purchase_details.vendor_sku <> '',"
+                              . " inventory_purchase_details.vendor_sku,"
+                              . " SUBSTRING_INDEX(inventory_purchase_details.description_purchase, ' ', 1))",
+                    // The stored form names the whole expression as its field.
+                    // Matching is whitespace-insensitive, so the two need not
+                    // agree on spacing — only on the text.
+                    legacyNames: [
+                        "IF(inventory_purchase_details.vendor_sku <> '',"
+                        . " inventory_purchase_details.vendor_sku,"
+                        . " SUBSTRING_INDEX(inventory_purchase_details.description_purchase, ' ', 1))",
+                    ],
+                ),
+                new FieldDefinition(
+                    key: 'vendor_sku_only', label: 'Vendor SKU (blank if unset)',
+                    table: 'journal_item', type: ValueType::Text,
+                    expression: 'inventory_purchase_details.vendor_sku',
+                    legacyNames: ['inventory_purchase_details.vendor_sku'],
+                ),
+                new FieldDefinition(
+                    key: 'vendor_description', label: 'Vendor Description',
+                    table: 'journal_item', type: ValueType::Text,
+                    expression: 'inventory_purchase_details.description_purchase',
+                    legacyNames: ['inventory_purchase_details.description_purchase'],
+                ),
+            ],
+            // The aging fields come across with the transaction fields, and they
+            // are the reason this cannot be a bare field list: their expressions
+            // read {{param:...}} placeholders that only these values satisfy.
+            params: $base->params,
         );
     }
 }

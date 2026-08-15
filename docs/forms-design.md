@@ -1355,12 +1355,29 @@ until a form was actually built:
   the *fixture* query silently selected from the wrong journal. `ReportConverter::convertFilters()`
   already handled every legacy mode, so forms now use it rather than a second, weaker copy — it
   needed only to build its field map when called without `convertColumns()` first.
-- **A customised definition can be genuinely unservable.** `production`' Purchase Order (`pf_73`)
-  joins `inventory_purchase_details` and prints a field whose *name* is
-  `IF(inventory_purchase_details.vendor_sku <> '', …, SUBSTRING_INDEX(…))`. That is §1.1 exactly —
-  the report author writing SQL — and Forms declines it by design rather than executing it. It is
-  the first real §8.2 case, and it needs a decision: extend a shipped dataset with a vendor-SKU
-  field, define a custom dataset and a plain column, or leave that one form on PhreeForm.
+- **A customised definition can be genuinely unservable — and that is how §8.2 migration works.**
+  `production`' Purchase Order (`pf_73`) joins `inventory_purchase_details` and prints a field whose
+  *name* is `IF(inventory_purchase_details.vendor_sku <> '', …, SUBSTRING_INDEX(…))`. That is §1.1
+  exactly — the report author writing SQL — and Forms declined it rather than executing it.
+
+  **Resolved 2026-08-15 by converting the customisation, not by running it.** A new shipped dataset
+  `purchasing` is `transactions` plus a LEFT JOIN to `inventory_purchase_details` on both
+  `(journal_item.sku, journal_main.bill_acct_id)`, carrying the same arithmetic as a computed field
+  with the legacy string in `legacyNames`. The definition needs no edit: `DatasetResolver` picks the
+  narrowest dataset covering its tables, so `pf_73` lands on `purchasing` and every other document
+  keeps `transactions`. Confirmed: only `pf_73` on `production` uses it, `demo`'s uncustomised Purchase
+  Order still resolves to `transactions`, and `production` now declines nothing.
+
+  A separate dataset rather than extending `transactions`, because that one is behind 44 documents
+  and `(sku, vendor_id)` is **not unique** — `production` has a duplicate pair — so the join would have
+  put an extra row into unrelated reports to serve one form. The provider's de-duplication on
+  `item_id` absorbs the duplicate; `verify_forms_vendor_sku.php` asserts that, and compares the
+  computed field against the legacy SQL line by line: **40 purchase orders, 797 lines, zero
+  mismatches**. Removing the fallback branch from the expression makes it fail, which is what says
+  the comparison is real.
+
+  The pattern generalises: a customisation that reaches for SQL is migrated by naming its arithmetic
+  in a shipped dataset, keyed to the legacy string, so the stored definition converts untouched.
 
 Forms is now reachable from the menu and runs the shipped catalog end to end. `verify_forms_app.php`
 drives the application's own path over every definition: on `demo` 47 documents run and render as
