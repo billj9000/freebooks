@@ -43,6 +43,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{DocumentRunner, RunPlan};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
+use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader};
 use FreeBooks\Forms\Deliver\HttpDelivery;
 use FreeBooks\Forms\Render\{CsvRenderer, Formatter, TablePdfRenderer};
 
@@ -59,6 +60,12 @@ $forms_custom->registerAll($catalog);
 foreach ($forms_custom->problems() as $problem) $messageStack->add($problem, 'caution');
 
 $runner  = new DocumentRunner($db, $catalog);
+// Definitions are read through the format-aware loader, never through
+// get_report_details(): once the report editor has saved one, it is a native
+// file and the legacy XML reader hands back a string. plan() then dies on
+// "must be of type object, string given", which is a whole page lost to one
+// edited report.
+$loader  = new DefinitionLoader($catalog);
 
 $docID   = isset($_GET['docID']) ? (int)$_GET['docID'] : 0;
 $format  = isset($_GET['format']) ? (string)$_GET['format'] : 'pdf';
@@ -67,13 +74,14 @@ $inline  = !empty($_GET['inline']);
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action'] ?? '') {
   case 'run':
-    $report = $docID ? get_report_details($docID) : false;
-    if (!$report) {
+    try {
+      $report = $loader->load($docID);
+    } catch (DefinitionException $e) {
       $messageStack->add(sprintf(FORMS_ERROR_NOT_FOUND, $docID), 'error');
       break;
     }
 
-    $plan = $runner->plan($report);
+    $plan = $runner->planDefinition($report);
     if (!$plan->runnable()) {
       $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, implode(' ', $plan->notes)), 'error');
       break;
@@ -87,7 +95,7 @@ switch ($_REQUEST['action'] ?? '') {
     }
 
     try {
-      $document = $runner->run($report, array(
+      $document = $runner->runDefinition($report, array(
         'dates'      => isset($_GET['dates'])  ? (string)$_GET['dates'] : '',
         'period'     => isset($_GET['period']) ? (int)$_GET['period']   : 0,
         'gl_account' => isset($_GET['gl_account']) ? (string)$_GET['gl_account'] : '',
@@ -113,8 +121,8 @@ switch ($_REQUEST['action'] ?? '') {
       case 'csv': $renderer = new CsvRenderer(); break;
       case 'pdf': $renderer = new TablePdfRenderer(
                       formatter:          $formatter,
-                      groupTotalLabel:    defined('TEXT_GROUP_TOTAL')  ? TEXT_GROUP_TOTAL  : 'Group Total For:',
-                      reportTotalLabel:   defined('TEXT_REPORT_TOTAL') ? TEXT_REPORT_TOTAL : 'Report Total For:',
+                      groupTotalLabel:    defined('TEXT_GROUP_TOTAL_FOR')  ? TEXT_GROUP_TOTAL_FOR  : 'Group Total For:',
+                      reportTotalLabel:   defined('TEXT_REPORT_TOTAL_FOR') ? TEXT_REPORT_TOTAL_FOR : 'Report Total For:',
                       defaultColumnWidth: (float)FORMS_DEFAULT_COLUMN_WIDTH,
                   ); break;
       default:
@@ -142,9 +150,18 @@ $forms_documents = array();
 $result = $db->Execute("select id, doc_title, doc_group, doc_type from " . TABLE_PHREEFORM . "
   where doc_type <> '0' order by doc_group, doc_title");
 while (!$result->EOF) {
-  $definition = get_report_details($result->fields['id']);
+  // A definition Forms cannot serve is still LISTED, marked with the reason —
+  // it is what the user is looking for when a document they expect is missing.
+  // Dropping the row instead would answer "we cannot run this" with silence,
+  // which is the PhreeForm habit the whole module exists to break.
+  try {
+    $definition = $loader->load($result->fields['id']);
+    $plan       = $runner->planDefinition($definition);
+  } catch (DefinitionException $e) {
+    $definition = true;
+    $plan       = new RunPlan(RunPlan::UNSUPPORTED, '', array($e->getMessage()));
+  }
   if ($definition) {
-    $plan = $runner->plan($definition);
     $forms_documents[] = array(
       'id'       => (int)$result->fields['id'],
       'title'    => (string)$result->fields['doc_title'],
@@ -188,6 +205,9 @@ while (!$result->EOF) {
 }
 $forms_current_period = gen_calculate_period(date('Y-m-d'), false);
 
+// Whether to offer Edit at all. Running a document and authoring one are
+// different permissions (decision F), and this page is gated on the first —
+// so holding it says nothing about the second.
 $forms_gl_accounts = array();
 $result = $db->Execute("select id, description from " . TABLE_CHART_OF_ACCOUNTS . "
   where account_type = 0 order by id");
@@ -198,5 +218,7 @@ while (!$result->EOF) {
   );
   $result->MoveNext();
 }
+
+$forms_can_author = ($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) > 2;
 
 $use_bootstrap_nav = true;

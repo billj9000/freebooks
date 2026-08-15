@@ -36,6 +36,7 @@ require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{DocumentRunner, RunPlan};
+use FreeBooks\Forms\Definition\DefinitionLoader;
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
 use FreeBooks\Forms\Deliver\{DeliveryResult, HttpDelivery};
 use FreeBooks\Forms\Document\TableDocument;
@@ -51,6 +52,9 @@ function ok(string $what, bool $cond, string $detail = ''): void {
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 $runner = new DocumentRunner($db, $catalog);
+// Through the loader, as the page does: a definition the report editor has
+// saved is native, and get_report_details() cannot read one.
+$loader = new DefinitionLoader($catalog);
 
 $formatter = new Formatter(
     currencies:      $currencies,
@@ -72,6 +76,7 @@ $glAccount = (string)($db->Execute("select i.gl_account from " . TABLE_JOURNAL_I
 printf("run dialog: period %d, gl account '%s'\n\n", $period, $glAccount);
 
 $counts = ['dataset' => 0, 'provider' => 0, 'form' => 0, 'unsupported' => 0];
+$unconvertible = [];   // named, not silently skipped — the page lists these too
 $ran    = $empty = $fitted = $landscape = 0;
 
 $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM
@@ -84,10 +89,18 @@ while (!$result->EOF) {
 
 echo "=== every definition is routed, and every route runs ===\n";
 foreach ($documents as $id => $title) {
-    $definition = get_report_details($id);
+    // The page lists an unconvertible definition rather than dropping it, so
+    // the tool has to reach the same verdict by the same route.
+    try {
+        $definition = $loader->load($id);
+    } catch (\FreeBooks\Forms\Definition\DefinitionException $e) {
+        $counts['unsupported']++;
+        $unconvertible[] = "pf_$id ($title): " . $e->getMessage();
+        continue;
+    }
     if (!$definition) continue;
 
-    $plan = $runner->plan($definition);
+    $plan = $runner->planDefinition($definition);
     $counts[$plan->kind]++;
     if (!$plan->runnable()) continue;
 
@@ -98,7 +111,7 @@ foreach ($documents as $id => $title) {
     $before = serialize($definition);
 
     try {
-        $document = $runner->run($definition, [
+        $document = $runner->runDefinition($definition, [
             'dates'      => 'a',
             'period'     => $period,
             'gl_account' => $glAccount,
@@ -170,9 +183,9 @@ printf("  routing: %d by dataset, %d by provider, %d forms (printed, not run),"
 // reporttype check was added.
 $formsAsTables = [];
 foreach ($documents as $id => $title) {
-    $definition = get_report_details($id);
-    if (!$definition || ($definition->reporttype ?? '') !== 'frm') continue;
-    $plan = $runner->plan($definition);
+    try { $definition = $loader->load($id); } catch (\Throwable) { continue; }
+    if (!$definition->isForm()) continue;
+    $plan = $runner->planDefinition($definition);
     if ($plan->runnable()) $formsAsTables[] = "pf_$id ($title) as {$plan->kind}/{$plan->name}";
 }
 ok('no form is routed as a report', $formsAsTables === [],
@@ -190,19 +203,38 @@ echo "\n=== a definition Forms cannot serve is declined, not faked ===\n";
 // something Forms cannot do would test the wrong thing.
 $declined = null;
 foreach ($documents as $id => $title) {
-    $definition = get_report_details($id);
-    if ($definition && $runner->plan($definition)->kind === RunPlan::UNSUPPORTED) {
+    // A definition that cannot even be CONVERTED never reaches a plan, so it is
+    // not the example wanted here: this looks for one that loads and is then
+    // declined on its merits.
+    try { $definition = $loader->load($id); } catch (\Throwable) { continue; }
+    if ($definition && $runner->planDefinition($definition)->kind === RunPlan::UNSUPPORTED) {
         $declined = [$id, $title, $definition];
         break;
     }
 }
+// A definition that cannot be CONVERTED never reaches a plan at all — it is
+// refused by the loader, with the reason. That is where "declined, not faked"
+// now lives for those, so it is asserted here rather than quietly lost when the
+// plan-level example stopped existing.
+if ($unconvertible) {
+    ok('an unconvertible definition is refused with a reason, not served',
+       (bool)preg_match('/\w/', (string)$unconvertible[0]));
+    echo "         " . $unconvertible[0] . "\n";
+    // And the LIST still shows it: the page turns that refusal into an
+    // unsupported row rather than dropping the document.
+    $listSource = (string)file_get_contents(DIR_FS_MODULES . 'forms/pages/main/pre_process.php');
+    ok('the document list still lists what it cannot serve',
+       str_contains($listSource, 'RunPlan::UNSUPPORTED'),
+       'a refused definition would vanish from the list');
+}
+
 if ($declined === null) {
-    echo "  [--] every definition is served; nothing to decline\n";
+    echo "  [--] every definition that loads is served; nothing to decline at plan level\n";
 } else {
     [$id, $title, $definition] = $declined;
-    $plan  = $runner->plan($definition);
+    $plan  = $runner->planDefinition($definition);
     $threw = false;
-    try { $runner->run($definition); } catch (\RuntimeException $e) { $threw = true; }
+    try { $runner->runDefinition($definition); } catch (\RuntimeException $e) { $threw = true; }
     ok("pf_$id ($title) is refused rather than run to an empty document", $threw);
     ok('...and says why', $plan->notes !== [], 'no explanation was offered');
     if ($plan->notes) echo "      " . implode(' ', $plan->notes) . "\n";
@@ -211,18 +243,18 @@ if ($declined === null) {
 echo "\n=== a form is sent to the print path, not run as a table ===\n";
 $formExample = null;
 foreach ($documents as $id => $title) {
-    $definition = get_report_details($id);
-    if ($definition && $runner->plan($definition)->isForm()) { $formExample = [$id, $title, $definition]; break; }
+    try { $definition = $loader->load($id); } catch (\Throwable) { continue; }
+    if ($runner->planDefinition($definition)->isForm()) { $formExample = [$id, $title, $definition]; break; }
 }
 if ($formExample === null) {
     echo "  [--] no form in this catalog\n";
 } else {
     [$id, $title, $definition] = $formExample;
-    $plan  = $runner->plan($definition);
+    $plan  = $runner->planDefinition($definition);
     ok("pf_$id ($title) is planned as a form", $plan->isForm());
     ok('...and is not offered as runnable', !$plan->runnable());
     $threw = '';
-    try { $runner->run($definition); } catch (\RuntimeException $e) { $threw = $e->getMessage(); }
+    try { $runner->runDefinition($definition); } catch (\RuntimeException $e) { $threw = $e->getMessage(); }
     ok('...and running it says where to print it instead',
        str_contains(strtolower($threw), 'form'), $threw ?: 'it did not throw');
     ok('...and the plan explains itself for the list', $plan->notes !== []);
@@ -231,19 +263,21 @@ if ($formExample === null) {
 echo "\n=== the run dialog's answers are required where they matter ===\n";
 $recon = null;
 foreach ($documents as $id => $title) {
-    $definition = get_report_details($id);
-    if ($definition && ($definition->special_class ?? '') === 'acct_recon') { $recon = [$id, $definition]; break; }
+    try { $definition = $loader->load($id); } catch (\Throwable) { continue; }
+    // A native definition NAMES the class that serves it, where the legacy one
+    // carried a special_class the runner had to interpret.
+    if ($definition->provider === 'acct_recon') { $recon = [$id, $definition]; break; }
 }
 if ($recon === null) {
     echo "  [--] no reconciliation definition on this company\n";
 } else {
     [$id, $definition] = $recon;
-    $plan = $runner->plan($definition);
+    $plan = $runner->planDefinition($definition);
     ok("pf_$id declares that it needs a GL account", $plan->needsGlAccount);
     ok("pf_$id declares that it needs a period", $plan->needsPeriod);
     // Without the account it must produce nothing rather than reconcile whichever
     // account sorted first, which is what reading filterlist[0] amounted to.
-    $withoutAccount = $runner->run($definition, ['period' => $period]);
+    $withoutAccount = $runner->runDefinition($definition, ['period' => $period]);
     ok('without a GL account it produces an empty document, not a wrong one',
        $withoutAccount instanceof TableDocument && count($withoutAccount->rows) === 0,
        'it produced ' . ($withoutAccount instanceof TableDocument ? count($withoutAccount->rows) : '?') . ' rows');
@@ -252,9 +286,9 @@ if ($recon === null) {
 echo "\n=== delivery ===\n";
 $definition = null;
 foreach ($documents as $id => $title) {
-    $candidate = get_report_details($id);
-    if (!$candidate || !$runner->plan($candidate)->runnable()) continue;
-    $document = $runner->run($candidate, ['dates' => 'a', 'period' => $period, 'gl_account' => $glAccount]);
+    try { $candidate = $loader->load($id); } catch (\Throwable) { continue; }
+    if (!$runner->planDefinition($candidate)->runnable()) continue;
+    $document = $runner->runDefinition($candidate, ['dates' => 'a', 'period' => $period, 'gl_account' => $glAccount]);
     if ($document instanceof TableDocument && count($document->rows) > 0) { $definition = $document; break; }
 }
 if ($definition === null) {

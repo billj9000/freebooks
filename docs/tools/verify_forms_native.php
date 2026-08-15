@@ -253,12 +253,21 @@ printf("run dialog: period %d, gl account '%s'\n\n", $period, $glAccount);
 // ─────────────────────────────────────────────────────────────────────────────
 echo "=== every definition converts, or is declined for the same reason ===\n";
 
+$alreadyNative = [];    // id => true, stored natively already: nothing to compare
 $converted = [];        // id => Definition, read back off disk
 $declined  = [];        // id => why
 $warned    = [];        // id => list<string>
 $stable    = $sniffed = 0;
 
 foreach ($catalogRows as $id => $row) {
+    // A definition the report editor has already saved is NATIVE on disk, so
+    // there is no legacy side to convert or compare against. That is a normal
+    // state for a partly-migrated company, not a failure, and calling it "could
+    // not be read" — which is what the legacy reader's refusal looks like from
+    // here — would send someone looking for a corrupt file.
+    $stored = (string)@file_get_contents($source->path($id));
+    if ($stored !== '' && DefinitionLoader::isNative($stored)) { $alreadyNative[$id] = true; continue; }
+
     $legacy = get_report_details($id);
     if (!$legacy) { $declined[$id] = 'the stored file could not be read'; continue; }
 
@@ -308,8 +317,13 @@ foreach ($catalogRows as $id => $row) {
     $sniffed++;
 }
 
-ok(sprintf('%d of %d definition(s) convert', count($converted), count($catalogRows)),
-    count($converted) + count($declined) === count($catalogRows));
+ok(sprintf('%d of %d definition(s) convert', count($converted),
+        count($catalogRows) - count($alreadyNative)),
+    count($converted) + count($declined) + count($alreadyNative) === count($catalogRows));
+if ($alreadyNative) {
+    printf("  [--] %d definition(s) are already stored natively; nothing to compare for those:\n         %s\n",
+        count($alreadyNative), implode(', ', array_map(fn($k) => "pf_$k", array_keys($alreadyNative))));
+}
 ok('re-encoding is byte-stable for every one of them', $stable === count($converted),
     "$stable of " . count($converted));
 ok('the loader reads every one of them back as native', $sniffed === count($converted),

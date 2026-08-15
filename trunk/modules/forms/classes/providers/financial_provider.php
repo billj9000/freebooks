@@ -617,7 +617,7 @@ final class AccountReconciliationDocumentProvider extends FinancialStatementProv
      * — a point-of-sale entry recording the sale, its payment and the till
      * total all against the cash account — kept only whichever line the driver
      * returned last, while the running totals had already counted all of them.
-     * The observed effect on demo was a reconciliation listing two of its six
+     * The observed effect on `demo` was a reconciliation listing two of its six
      * cleared transactions underneath totals covering all six: a bank
      * reconciliation that does not show the transactions it is totalling.
      *

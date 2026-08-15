@@ -186,22 +186,30 @@ function forms_datasets_in_use($datasetId) {
   static $counts = null;
   if ($counts === null) {
     $counts = array();
-    require_once(DIR_FS_MODULES . 'forms/classes/legacy/dataset_resolver.php');
+    require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
     $catalog = new \FreeBooks\Forms\Catalog\Catalog();
     \FreeBooks\Forms\Catalog\ShippedDatasets::registerAll($catalog);
     $schema = new \FreeBooks\Forms\Catalog\SchemaInspector($db);
     (new \FreeBooks\Forms\Catalog\CustomDatasetStore($db, $schema, TABLE_FORMS_DATASETS))
         ->registerAll($catalog);
-    $resolver = new \FreeBooks\Forms\Legacy\DatasetResolver($catalog);
+    // The loader, not get_report_details(): a native definition NAMES its
+    // dataset, so nothing has to be inferred from a table list — and the legacy
+    // reader cannot parse one at all.
+    $loader = new \FreeBooks\Forms\Definition\DefinitionLoader($catalog);
 
     $result = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_type <> '0'");
     while (!$result->EOF) {
-      $definition = get_report_details($result->fields['id']);
+      $id = $result->fields['id'];
       $result->MoveNext();
-      if (!$definition) continue;
-      $dataset = $resolver->resolve($definition);
-      if ($dataset) $counts[$dataset->id] = ($counts[$dataset->id] ?? 0) + 1;
+      try {
+        $definition = $loader->load($id);
+      } catch (\Throwable $e) {
+        continue;   // counting what is in use must not fail on one bad file
+      }
+      if ($definition->datasetId !== null) {
+        $counts[$definition->datasetId] = ($counts[$definition->datasetId] ?? 0) + 1;
+      }
     }
   }
   return $counts[$datasetId] ?? 0;

@@ -259,7 +259,18 @@ function get_report_details($id) {
   $contents = fread($handle, filesize($filename));
   fclose($handle);
   if (!$report = xml_to_object($contents)) return false;
-  if (is_object($report->PhreeformReport)) $report = $report->PhreeformReport; // remove container tag
+  // A definition saved by the Forms report editor is JSON, not XML, and
+  // xml_to_object() hands back a STRING for it rather than failing. Every caller
+  // then dies on "must be of type object, string given" — a fatal, from a file
+  // that is perfectly valid, just not this engine's. Refusing it here turns that
+  // into an error message on the page, which is what should happen while the two
+  // engines coexist: Forms can read both formats, PhreeForm only ever this one.
+  if (!is_object($report)) {
+    $messageStack->add('This report or form is stored in the Forms format, which this'
+        . ' report engine cannot open. Open it in Forms instead.', 'error');
+    return false;
+  }
+  if (isset($report->PhreeformReport) && is_object($report->PhreeformReport)) $report = $report->PhreeformReport; // remove container tag
   // fix some special cases
   if (isset($report->tables)     && is_object($report->tables))     $report->tables     = array($report->tables);
   if (isset($report->grouplist)  && is_object($report->grouplist))  $report->grouplist  = array($report->grouplist);

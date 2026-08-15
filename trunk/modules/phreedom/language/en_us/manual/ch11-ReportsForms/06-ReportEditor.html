@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.06">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Editing a Report">
+<meta name="doc_index_2" content="Reports.Columns and Filters">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<meta name="doc_glossary_1" content="Dataset:The named set of tables and fields a report may draw on. A report can only use fields its dataset declares.">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Editing a Report">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Editing a Report</title>
+</head>
+
+<body>
+
+<h1 align="center">Editing a Report</h1>
+
+<p>The report editor changes what a report shows: which columns appear and in what order, how the
+rows are grouped, sorted and filtered, and how the page is laid out. Open it from
+<em>Tools &rarr; Documents (Forms)</em> and click <strong>Edit</strong> beside a report.</p>
+
+<p>Editing requires the <strong>Forms &mdash; write a report</strong> permission, which is separate
+from the one that lets someone run a report. If you can run reports but see no Edit button, that is
+the reason; the permission is granted per role under <em>Company &rarr; User Security</em>.</p>
+
+<h3>Columns</h3>
+
+<p>Each row in the Columns table is one column of the finished report. The <strong>Field</strong>
+list offers everything the report's dataset provides and nothing else &mdash; a report drawn from
+customer transactions can reach customer and transaction fields, and cannot reach anything the
+dataset does not name. Use the arrows to reorder columns and the &times; to remove one.</p>
+
+<p><strong>Width</strong> is in millimetres. Leaving it empty lets the report choose, which is
+usually what you want; set it when a particular column needs more room than it is being given.
+<strong>Total</strong> adds that column up at each group break and at the end of the report.</p>
+
+<h3>Grouping, sorting and filters</h3>
+
+<p>Grouping on a field breaks the report wherever that field's value changes and prints a total for
+the group. <em>Show group totals only</em> hides the individual rows and leaves just those totals,
+which turns a detailed report into a summary one.</p>
+
+<p>Filters decide which rows appear at all. Pick a field, pick a comparison, and give it a value.
+A few comparisons behave differently from the rest:</p>
+
+<ul>
+  <li><em>is one of</em> takes several values separated by commas.</li>
+  <li><em>is between</em> uses both value boxes.</li>
+  <li><em>is empty</em> and <em>is not empty</em> need no value.</li>
+</ul>
+
+<p>Some reports carry a filter that compares one column with others &mdash; the re-order worksheet
+asks for stock below its minimum plus what is already on order. Those are shown but cannot be
+changed here; they are left exactly as they are when you save.</p>
+
+<h3>Dates covered</h3>
+
+<p><em>Dates covered</em> is the period the report defaults to when someone runs it, and
+<em>Date range applies to</em> is the field that period is measured against. A report about
+invoices usually measures the invoice date; one about payments, the payment date.</p>
+
+<h3>The preview</h3>
+
+<p>The preview on the right renders the report exactly as it will print, using your real data and
+including changes you have not saved yet. It does not refresh by itself &mdash; click
+<strong>Refresh the preview</strong> when you want to see the effect of what you have changed. A
+large report over several years takes a few seconds.</p>
+
+<p>If the preview says the report returned no rows, the filters or the dates covered are excluding
+everything. That is worth resolving before saving.</p>
+
+<h3>Saving</h3>
+
+<p>Saving rewrites the report in the Forms format. If the report was still stored in the older
+format you will see a note saying so before you save: after saving, the original print engine can
+no longer open that report, and a copy of the original file is kept alongside it in case you need
+to go back. Reports you never edit are untouched and keep working in both engines.</p>
+
+<p>The editor only saves what it can show you. If a field name is not one the dataset offers, it is
+not saved and you are told which one and why &mdash; a report that quietly keeps a column it cannot
+fill is worse than one that tells you.</p>
+
+<h3>Related Links</h3>
+<p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>
+<a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a><br>
+<a href="04-PaperSize.html" target="mainFrame">Paper Size</a><br>
+<a href="05-PrintButtons.html" target="mainFrame">Which Engine the Print Buttons Use</a></p>
+</body>
+</html>

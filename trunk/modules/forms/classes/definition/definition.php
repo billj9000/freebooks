@@ -92,6 +92,16 @@ final readonly class Definition
         public string       $title       = '',
         public string       $description = '',
         public string       $group       = '',
+        /**
+         * How the document is DELIVERED, which is part of the definition and
+         * not of the run: the download name a form prefers, and the covering
+         * message it is emailed with. Both were read straight off the legacy
+         * object by the print page, so a native definition that dropped them
+         * would silently rename every downloaded invoice and send it with a
+         * generated message in place of the one the company wrote.
+         */
+        public string       $filenamePrefix = '',
+        public string       $emailMessage   = '',
         public ?string      $provider    = null,
         public ?string      $datasetId   = null,
         public PageSetup    $page        = new PageSetup(),

@@ -33,6 +33,7 @@ echo $toolbar->build_toolbar();
 <h1><?php echo FORMS_PAGE_TITLE; ?></h1>
 <p class="text-muted"><?php echo FORMS_PAGE_INTRO; ?></p>
 
+
 <div class="card fb-card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo FORMS_LEGEND_OPTIONS; ?></div>
   <div class="card-body py-2">
@@ -114,13 +115,29 @@ echo $toolbar->build_toolbar();
           // query-driven form had no special_class, planned as an ordinary
           // dataset, and the buttons here rendered an invoice as a table.
 ?>
+              <?php // NOT wrapped in htmlspecialchars(): html_href_link() already
+                    // emits &amp; between parameters, and encoding that again gives
+                    // &amp;amp; — which the browser reads back as a parameter called
+                    // "amp;page". `page` is then absent, index.php defaults to
+                    // 'main', and the button lands on this very list. ?>
               <a class="btn btn-primary btn-sm"
-                 href="<?php echo htmlspecialchars(html_href_link(FILENAME_DEFAULT,
-                     'module=forms&amp;page=print&amp;rID=' . $document['id'], 'SSL'), ENT_QUOTES); ?>">
+                 href="<?php echo html_href_link(FILENAME_DEFAULT,
+                     'module=forms&amp;page=print&amp;rID=' . $document['id'], 'SSL'); ?>">
                 <?php echo FORMS_BTN_PRINT; ?>
               </a>
 <?php   } else { ?>
               <span class="text-muted">&mdash;</span>
+<?php   }
+        // Authoring is a separate permission from running (decision F), so the
+        // Edit button appears for the users who hold it and for nobody else.
+        // Only for reports: a form is laid out on a page, and the canvas that
+        // edits one is a later step.
+        if ($forms_can_author && !$plan->isForm()) { ?>
+              <a class="btn btn-primary btn-sm"
+                 href="<?php echo html_href_link(FILENAME_DEFAULT,
+                     'module=forms&amp;page=design&amp;rID=' . $document['id'], 'SSL'); ?>">
+                <?php echo FORMS_DESIGN_EDIT; ?>
+              </a>
 <?php   } ?>
             </td>
           </tr>

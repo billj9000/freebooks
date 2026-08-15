@@ -23,8 +23,12 @@
 //                      the module's own settings page. Adds the configuration
 //                      key MODULE_FORMS_PRINT_BUTTONS, which an already
 //                      installed company picks up by running Update.
+// 1.02 => 2026-08-15 - The report editor, at ?module=forms&page=design, behind
+//                      SECURITY_ID_FORMS_AUTHOR. Saving rewrites a definition in
+//                      the Forms format and keeps the original beside it. No new
+//                      configuration keys or tables.
 
-define('MODULE_FORMS_VERSION', 1.01);
+define('MODULE_FORMS_VERSION', 1.02);
 
 // Security IDs.
 //
@@ -54,10 +58,28 @@ if (defined('MODULE_FORMS_STATUS')) {
     'params'                 => '',
   );
 
+  // The report editor. It is normally reached from the Edit button on the
+  // document list rather than from here, and with no report chosen it says so —
+  // but it needs a menu entry all the same, and that is not a convenience.
+  //
+  // phreedom's roles page builds itself by walking $mainmenu: a security id with
+  // no menu entry appears nowhere on it, so nobody can grant it, so the page it
+  // guards is unreachable for every user including the one who installed the
+  // module. An entry here is the only way SECURITY_ID_FORMS_AUTHOR can be given
+  // to a role at all.
+  $mainmenu['tools']['submenu']['forms_design'] = array(
+    'order'                  => 27,
+    'text'                   => BOX_FORMS_DESIGN,
+    'security_id'            => SECURITY_ID_FORMS_AUTHOR,
+    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=design', 'SSL'),
+    'show_in_users_settings' => true,
+    'params'                 => '',
+  );
+
   // Its own key, and a rare one to hold. Defining which tables join is the
   // dangerous privilege of the three (§3.1); running a report is not.
   $mainmenu['tools']['submenu']['forms_datasets'] = array(
-    'order'                  => 27,
+    'order'                  => 28,
     'text'                   => BOX_FORMS_DATASETS,
     'security_id'            => SECURITY_ID_FORMS_DATASETS,
     'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=datasets', 'SSL'),

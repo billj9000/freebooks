@@ -51,3 +51,28 @@ function forms_formatter_lookups(): array
         'cvt_cntry' => $pluck($arrLocales, 'name'),
     ];
 }
+
+/**
+ * The document-wide values a report's page furniture is drawn from.
+ *
+ * PhreeForm read COMPANY_NAME straight from a global inside its render loop.
+ * Passing it explicitly is what lets a renderer be tested without booting the
+ * application (§4), and it is the reason the company name appears on a report
+ * at all: TablePdfRenderer draws the heading band from `context`, so a Document
+ * built without one prints a blank line where the company should be.
+ *
+ * A name that is not defined is left OUT rather than blanked, so the renderer's
+ * own missing-value handling decides what to draw.
+ */
+function forms_report_context(): \FreeBooks\Forms\Document\Context
+{
+    $values = array();
+    foreach (array('COMPANY_NAME', 'COMPANY_ADDRESS1', 'COMPANY_ADDRESS2', 'COMPANY_CITY_TOWN',
+                   'COMPANY_STATE_PROVINCE', 'COMPANY_POSTAL_CODE', 'COMPANY_COUNTRY',
+                   'COMPANY_TELEPHONE1', 'COMPANY_EMAIL') as $name) {
+        if (defined($name) && (string)constant($name) !== '') {
+            $values[$name] = \FreeBooks\Forms\Document\TypedValue::text((string)constant($name));
+        }
+    }
+    return new \FreeBooks\Forms\Document\Context($values, $_SESSION['language'] ?? 'en_us');
+}

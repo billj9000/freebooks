@@ -972,6 +972,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_prefix.php` | Datasets behave identically on a `DB_PREFIX` install | yes | **PASS** — `production` 188,195 rows; `demo` 106,146 rows |
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
 | `verify_forms_native.php` | Every definition converts to the native format, re-encodes byte-stably, loads back as native, and renders **identical PDF bytes** through it (§13.7 step 1) | yes | **PASS both companies** — 56 of 57 convert, 56/56 byte-identical on `demo`, 51/51 on `production` |
+| `verify_forms_designer.php` | Opening a report in the editor and saving it untouched returns the same definition and prints the same bytes; a field the dataset does not declare is refused; the original is kept on first save (§13.7 step 2) | yes | **PASS both companies** — 38 of 38 reports survive an untouched save |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -1628,9 +1629,9 @@ Continuing §9.
    serialization of `Template` — already `readonly` value objects, so close to mechanical — plus
    the proof that carries everything after it: all 57 definitions on both companies convert and
    render byte-comparable to the legacy path. Nothing user-visible ships here.
-2. **Report editor.** Columns, group, sort, filter, page setup, live preview through the existing
-   `DocumentRunner` → `TablePdfRenderer`. The smaller half, and it exercises load and save end to
-   end before any canvas exists.
+2. ~~**Report editor.**~~ **DONE — see §13.10.** Columns, group, sort, filter, page setup, live
+   preview through the existing `DocumentRunner` → `TablePdfRenderer`. The smaller half, and it
+   exercises load and save end to end before any canvas exists.
 3. **Form canvas, read-only.** pdf.js underlay with element outlines drawn on top from the
    `Template`. No dragging. This proves the mm-to-pixel alignment, page size, margins and
    orientation — the part most likely to be subtly wrong, and the cheapest point at which to
@@ -1730,3 +1731,125 @@ would emit that warning on reports where the field is irrelevant.
   too, because step 1's whole claim is that the two paths are byte-identical. Passing them is an
   improvement, it moves every report onto its declared paper size, and it wants its own change and
   its own verification rather than being smuggled in as a refactor.
+
+### 13.10 Step 2, measured
+
+The report editor, built and measured against both companies on 2026-08-15.
+
+`?module=forms&page=design&rID=<id>`, reached from an **Edit** button on the document list, gated on
+**`SECURITY_ID_FORMS_AUTHOR`** — defined since 1.00 and unused until now. It is the middle tier of
+decision F, and the reason it exists: running a document, authoring one and defining which tables
+may join are three different privileges, and PhreeForm granted all three with one key.
+
+| | |
+|---|---|
+| Edits | title, description, columns (order, heading, width, alignment, format, total, column break), grouping, totals-only, sorting, filters, paper, orientation, margins, date preference and field, the six style bands and both title lines |
+| Empty | a report returning no rows is filled with SAMPLE rows in the real layout, marked as such in the filter band (§13.2) — a fresh install has no data and must still be able to lay a report out |
+| Palette | the resolved dataset's fields, and nothing else (§13.4) |
+| Preview | the real PDF, through `DocumentRunner::runDefinition()` → `TablePdfRenderer`, of the definition **as edited** rather than as stored, over a date range chosen for the preview alone |
+| Saves | the native format, keeping the PhreeForm original as `pf_<id>.pre-forms` |
+
+**`DefinitionForm` is the whole of it**, and the reason it is a class rather than page code: the
+preview endpoint and the save must build the definition the same way. A preview assembled by
+different code is a preview of a different report, and it would agree often enough to be trusted.
+Being a class also means it can be held to a round trip, which is what `verify_forms_designer.php`
+does — **all 38 reports survive an untouched save unchanged, and print identical bytes afterwards.**
+That property is the one an editor most easily loses: anything it cannot represent disappears on the
+first save, silently.
+
+The preview posts the editor's own form through `formaction`/`formtarget` into an iframe. Not a
+second form, and not an XHR: a second form cannot be guaranteed to carry the same fields, and a PDF
+cannot be swapped into the DOM.
+
+**Every field name is checked against the dataset on the way in**, because the selects on the page
+are a convenience and the POST is whatever the browser chooses to send. The harness attacks it:
+an undeclared column, SQL in a column name, a filter and a sort on tables the dataset does not
+reach, and a hand-edited field expression are each dropped and reported — with a control proving an
+allowed change still applies, since an editor that ignores everything would pass the other five.
+
+#### Three defects found while building it
+
+1. **The datasets page could never save.** Its form was written as a hand-rolled `<form method="post">`
+   rather than through `html_form()`, so it carried no `csrf_token` — and `index.php` answers a POST
+   without one with a bare 403. It had never been caught because `verify_forms_pages.php` rendered
+   the datasets LIST, and the form lives in the editor branch. Fixed, and the suite now renders that
+   branch (`datasetsnew`) and asserts a token on **every posting form on every page**, which is the
+   shape of the defect rather than the instance.
+2. **The preview endpoint would have been fatal on its last line.** A module's `defaults.php` is not
+   loaded for you — a page requires its own, and an ajax op has no `DIR_FS_WORKING` to require it
+   from — so `FORMS_DEFAULT_COLUMN_WIDTH` was undefined *after* the report had already been queried
+   and built.
+3. **Group and report totals have always printed in English.** `main/pre_process.php` guarded on
+   `TEXT_GROUP_TOTAL` and `TEXT_REPORT_TOTAL`; the constants are `TEXT_GROUP_TOTAL_FOR` and
+   `TEXT_REPORT_TOTAL_FOR`, which every locale defines. The guard could only ever take its English
+   fallback. Found by a scan the new tool runs for a different reason — an undefined constant is
+   fatal on first open — which now reports guarded constants that exist nowhere as a separate,
+   softer finding, since a guard that can never succeed is a translation that can never be reached.
+
+#### Four more defects the first browser session found
+
+The editor rendered, parsed and passed every check before anyone opened it. Then it was opened.
+
+1. **`SECURITY_ID_FORMS_AUTHOR` could not be granted by anyone.** phreedom's roles page builds
+   itself by walking `$mainmenu`, so a security id with no menu entry appears nowhere on it — and
+   the editor is reached from an Edit button, not a menu. The permission was ungrantable, so the
+   page was unreachable for every user including the one who installed the module, and it failed as
+   a redirect to the dashboard, which reads like a missing page. It now has a menu entry (which is
+   also a usable report chooser), and the suite asserts every Forms permission is grantable.
+2. **Double-encoded links.** `html_href_link()` already separates parameters with `&amp;`;
+   wrapping it in `htmlspecialchars()` encodes that again, so the browser requested a parameter
+   named `amp;page`, `page` was absent, and `index.php` defaulted to the document list. The **Print**
+   link had shipped with this too. The old check counted links matching `page=print` — and a
+   double-encoded href still *contains* that text, so counting could never see it. The suite now
+   parses every href and `data-url`.
+3. **A form control named `page`.** `index.php` picks the file to run from `$_POST['page']` before
+   it reads the query string, and the page-setup group was `page[size]`, `page[margin][top]` — so
+   `$_POST['page']` was an ARRAY and the router looked for `pages/Array/pre_process.php`. It broke
+   the preview and the save together. Renamed to `paper[…]`; the suite now rejects any control named
+   `module` or `page` (but not `action`, which is the framework's own submit idiom).
+4. **A missing control silently flattened every report.** The columns of the Sales Report each carry
+   `columnbreak='1'` — "end this column, start the next across the page" — and the template rendered
+   no control for it. An unchecked box posts NOTHING, so an untouched save cleared the flag on every
+   column and all five collapsed into one stacked band.
+
+Defect 4 is the one worth keeping, because of what it says about the harness.
+`verify_forms_designer.php` round-trips `DefinitionForm::toRequest()` through `apply()` and asserts
+the definition comes back — and it passed, because `toRequest()` had the value and the **form** did
+not. That is the class checked against itself. The page suite now builds the POST **from the
+rendered controls**, the way a browser does — an unchecked box contributes nothing, a select
+contributes its selected option — and requires that to rebuild the definition that was loaded.
+
+The general lesson, and it cost four rounds to learn: **anything asserted by counting or by
+substring is a check that will pass a broken page.** Every one of these rendered correct-looking
+markup and failed somewhere downstream of it — in a browser decoding an entity, in a router reading
+POST before GET, in a form omitting a field. Each fix moved a check from "does the output contain
+this" to "does the output still mean this when something else reads it".
+
+#### The report path was printing less than the definition said
+
+Two of the above were mine. The comparison against PhreeForm exposed two that were not, both in the
+shipping report path and both recorded in §13.9 as known-but-deferred:
+
+- **`DocumentRunner` passed columns, filters and sorts and nothing else.** No `Context`, so the
+  company-name band was blank; no `ReportStyle`, so the titles and the filter line never drew; no
+  `PageSetup`, so every report printed on the defaults rather than its own paper and margins. Both
+  run paths now pass everything the definition carries, which is what keeps them byte-identical to
+  each other. The filter line is generated from the definition — grouping, sorting and the resolved
+  range — and reads the column HEADINGS, because "Grouped by: post_date" is the right sentence
+  written in the storage layer's language.
+- **A phantom band in `TablePdfRenderer`.** When the LAST column breaks — the ordinary side-by-side
+  grid, so most of the library — `bandEdges()` added a closing edge for a band nothing occupied, one
+  default width wide. The table then measured wider than it was and the scaling step shrank every
+  band to fit a width nothing used. On the Sales Report: 7 edges and a 92% scale, against 6 edges
+  and none.
+
+#### What it deliberately does not do
+
+- **Field expressions are carried, not edited.** A filter comparing a column to other columns — the
+  re-order worksheet's `quantity_on_hand < (minimum + on order)` — is shown as read-only and passed
+  through as its token list, re-validated by `FieldExpression` on the way back in. An expression
+  editor is not step 2, and dropping the filter instead would change which rows the report returns.
+- **The dataset cannot be changed.** Repointing a report at another dataset is a different operation
+  from editing one, and every column, filter and sort would have to be re-resolved.
+- **No new reports.** This edits what the catalog holds. Creating one needs a group, a document type
+  and a catalog row, which is its own piece of work.

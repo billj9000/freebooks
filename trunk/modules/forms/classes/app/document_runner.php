@@ -43,7 +43,7 @@
 
 namespace FreeBooks\Forms\App;
 
-use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeFilters, DateRangeResolver};
+use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, Dataset, DateRange, DateRangeFilters, DateRangeResolver};
 use FreeBooks\Forms\Definition\Definition;
 use FreeBooks\Forms\Document\Document;
 use FreeBooks\Forms\Legacy\{DatasetResolver, ReportConverter};
@@ -293,13 +293,13 @@ final class DocumentRunner
         $filters = array_merge($definition->filters,
             DateRangeFilters::build($dataset, fn() => $definition->dateField, $range, $this->warnings));
 
-        // Deliberately the same arguments runDataset() passes, and no more.
-        // The definition also carries its page setup, its band styling and its
-        // group format, and this drops all three — because the LEGACY path
-        // drops them too, and step 1's whole claim is that the two paths are
-        // byte-identical. Passing them here would be an improvement smuggled in
-        // as a refactor: it moves every report onto its declared paper size,
-        // which is a change to what prints and wants its own verification.
+        // Everything the definition carries, and not a subset of it. This used
+        // to pass columns, filters and sorts only — matching runDataset(), which
+        // was itself incomplete — so a report printed with no company name, no
+        // titles, no filter description, on default A4 margins, in the
+        // renderer's own fonts. It looked like a report; it was not the report
+        // the author had drawn. §13.9 recorded that gap; the editor's preview
+        // is what made it impossible to leave.
         return (new ReportDocumentProvider(
             db:              $this->db,
             catalog:         $this->catalog,
@@ -307,10 +307,15 @@ final class DocumentRunner
             columns:         $definition->columns,
             title:           $definition->title !== '' ? $definition->title : 'Report',
             groupBy:         $definition->groupBy,
+            groupFormat:     $definition->groupFormat,
             filters:         $filters,
             sorts:           $definition->sorts,
-            resolvedColumns: $definition->resolvedColumns,
             totalsOnly:      $definition->totalsOnly,
+            context:         forms_report_context(),
+            page:            $definition->page,
+            filterText:      $this->describe($definition, $range, $dataset),
+            resolvedColumns: $definition->resolvedColumns,
+            style:           $definition->style,
         ))->build([]);
     }
 
@@ -350,6 +355,17 @@ final class DocumentRunner
 
         $this->warnings = $converter->warnings();
 
+        // Kept in step with runDefinition() deliberately: the two paths are held
+        // to a byte comparison by verify_forms_native.php, so a value passed by
+        // one and not the other is a failure there rather than a surprise later.
+        $definition = new Definition(
+            title:   (string)($report->title ?? 'Report'),
+            page:    $converter->convertPageSetup($report),
+            columns: $columns,          // describe() reads their headings
+            groupBy: $group,
+            sorts:   $sorts,
+        );
+
         return (new ReportDocumentProvider(
             db:              $this->db,
             catalog:         $this->catalog,
@@ -357,11 +373,58 @@ final class DocumentRunner
             columns:         $columns,
             title:           (string)($report->title ?? 'Report'),
             groupBy:         $group,
+            groupFormat:     $converter->convertGroupFormat($report),
             filters:         $filters,
             sorts:           $sorts,
-            resolvedColumns: $converter->resolvedColumns(),
             totalsOnly:      $converter->convertTotalsOnly($report),
+            context:         forms_report_context(),
+            page:            $converter->convertPageSetup($report),
+            filterText:      $this->describe($definition, $range, $dataset),
+            resolvedColumns: $converter->resolvedColumns(),
+            style:           $converter->convertStyle($report),
         ))->build([]);
+    }
+
+    /**
+     * The line under the titles saying what the report was narrowed to.
+     *
+     * PhreeForm prints "Report Filters:Grouped by: …; Sorted by: …; Date Range:
+     * …;" and the band is drawn whether or not there is text for it, so leaving
+     * this null prints a rule with nothing above it. Built from the definition
+     * rather than from the SQL: what an author wants to read back is the
+     * grouping and the period, not a WHERE clause.
+     */
+    private function describe(Definition $definition, DateRange $range, ?Dataset $dataset = null): ?string
+    {
+        // A field KEY is how the definition stores it; a heading is what the
+        // author called it. PhreeForm printed "Grouped by: Post Date", and
+        // "Grouped by: post_date" is the same line written in the wrong
+        // language — the storage layer's, not the reader's.
+        $label = function (string $key) use ($definition, $dataset): string {
+            foreach ($definition->columns as $column) {
+                if ($column->key === $key && trim($column->heading) !== '') return trim($column->heading);
+            }
+            $field = $dataset?->field($key);
+            if ($field !== null && trim($field->label) !== '') return trim($field->label);
+            return $key;   // a sort on a field the report does not show and the dataset cannot name
+        };
+
+        $parts = [];
+        if ($definition->groupBy !== null && $definition->groupBy !== '') {
+            $parts[] = sprintf(FORMS_FILTER_GROUPED_BY, $label($definition->groupBy));
+        }
+        if ($definition->sorts) {
+            $names = array_map(fn($sort) => $label($sort->fieldKey), $definition->sorts);
+            $parts[] = sprintf(FORMS_FILTER_SORTED_BY, implode(', ', $names));
+        }
+        if ($range->start !== null || $range->endExclusive !== null) {
+            $parts[] = sprintf(FORMS_FILTER_DATE_RANGE,
+                $range->start !== null ? gen_locale_date($range->start) : '',
+                $range->endInclusive() !== null ? gen_locale_date((string)$range->endInclusive()) : '');
+        } elseif ($range->period !== null) {
+            $parts[] = sprintf(FORMS_FILTER_PERIOD, $range->period);
+        }
+        return $parts ? FORMS_FILTER_PREFIX . implode('; ', $parts) : null;
     }
 
     /** @var list<string> */

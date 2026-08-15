@@ -113,8 +113,10 @@ echo $toolbar->build_toolbar();
   // ── the editor ────────────────────────────────────────────────────────────
   $record = $forms_ds_record;
 ?>
-<form id="forms_ds_form" method="post" action="<?php
-  echo html_href_link(FILENAME_DEFAULT, 'module=forms&page=datasets&action=save', 'SSL'); ?>">
+<?php // html_form() rather than a hand-written <form>: index.php rejects any POST
+      // without a csrf_token, and that helper is where the hidden field comes
+      // from. Written out by hand, this form could only ever 403. ?>
+<?php echo html_form('forms_ds_form', FILENAME_DEFAULT, 'module=forms&page=datasets&action=save'); ?>
 <input type="hidden" name="existing" value="<?php echo $record['existing'] ? '1' : ''; ?>">
 
 <div class="card fb-card mb-3">

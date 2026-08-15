@@ -35,3 +35,4 @@ require_once(__DIR__ . '/definition.php');
 require_once(__DIR__ . '/codec.php');
 require_once(__DIR__ . '/legacy_import.php');
 require_once(__DIR__ . '/loader.php');
+require_once(__DIR__ . '/definition_form.php');

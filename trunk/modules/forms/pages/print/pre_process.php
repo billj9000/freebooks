@@ -53,6 +53,7 @@ require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{FormPlan, FormRunner, RecordSelector};
+use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Deliver\{EmailDelivery, HttpDelivery};
 use FreeBooks\Forms\Document\{LayoutDocument, RenderOptions};
@@ -68,6 +69,21 @@ $forms_custom = new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORM
 $forms_custom->registerAll($catalog);
 
 $runner   = new FormRunner($db, $catalog);
+// Through the format-aware loader, never get_report_details(): a definition the
+// report editor has saved is native, and the legacy XML reader returns a string
+// for it — which reaches plan() as "must be of type object, string given".
+$loader   = new DefinitionLoader($catalog);
+
+/** The definition behind an id, or false with the reason on the stack. */
+function forms_print_load($id) {
+  global $loader, $messageStack;
+  try {
+    return $loader->load($id);
+  } catch (DefinitionException $e) {
+    $messageStack->add(sprintf(FORMS_ERROR_NOT_FOUND, $id), 'error');
+    return false;
+  }
+}
 $selector = new RecordSelector($db);
 
 // ── what the caller asked for ────────────────────────────────────────────────
@@ -86,8 +102,7 @@ $forms_selection = null;
 
 // ── which form ───────────────────────────────────────────────────────────────
 if ($forms_rID) {
-  $forms_report = get_report_details($forms_rID);
-  if (!$forms_report) $messageStack->add(sprintf(FORMS_ERROR_NOT_FOUND, $forms_rID), 'error');
+  $forms_report = forms_print_load($forms_rID);
 } elseif ($forms_gID !== '') {
   // Forms only. A group can hold reports too, and a Print button on an order
   // means the form, not the listing.
@@ -99,7 +114,7 @@ if ($forms_rID) {
   }
   if (count($forms_choices) === 1) {
     $forms_rID    = $forms_choices[0]['id'];
-    $forms_report = get_report_details($forms_rID);
+    $forms_report = forms_print_load($forms_rID);
   } elseif ($forms_choices === []) {
     $messageStack->add(sprintf(FORMS_PRINT_NO_FORMS, $forms_gID), 'error');
   }
@@ -109,7 +124,7 @@ if ($forms_rID) {
 
 // ── which records ────────────────────────────────────────────────────────────
 if ($forms_report) {
-  $forms_plan = $runner->plan($forms_report);
+  $forms_plan = $runner->planDefinition($forms_report);
   if (!$forms_plan->runnable()) {
     $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, implode(' ', $forms_plan->notes)), 'error');
   } else {
@@ -147,7 +162,7 @@ function forms_print_render(): ?object
   }
 
   try {
-    $document = $runner->run($forms_report, $forms_selection->ids,
+    $document = $runner->runDefinition($forms_report, $forms_selection->ids,
       array('dates' => $forms_date));
   } catch (\Throwable $e) {
     $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, $e->getMessage()), 'error');
@@ -184,10 +199,10 @@ function forms_print_render(): ?object
 }
 
 /** The download name, from the definition's own prefix where it has one. */
-function forms_print_filename(object $report): string
+function forms_print_filename(\FreeBooks\Forms\Definition\Definition $definition): string
 {
-  $prefix = trim((string)($report->filenameprefix ?? ''));
-  $base   = $prefix !== '' ? $prefix : (string)($report->title ?? 'document');
+  $prefix = trim($definition->filenamePrefix);
+  $base   = $prefix !== '' ? $prefix : ($definition->title !== '' ? $definition->title : 'document');
   return $base . '.pdf';
 }
 
@@ -218,7 +233,7 @@ switch ($_REQUEST['action'] ?? '') {
     // this closure is only the send, so the mailer stays out of the module.
     $subject = trim((string)($_POST['subject'] ?? '')) !== ''
              ? (string)$_POST['subject']
-             : (string)($forms_report->title ?? '') . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
+             : $forms_report->title . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
     $body    = (string)($_POST['message_body'] ?? '');
     $to_name = trim((string)($_POST['to_name'] ?? '')) ?: $to_email;
 
@@ -274,13 +289,13 @@ if ($forms_to_email === '') {   // still nothing: take what the caller offered
 
 $forms_subject = (string)($_POST['subject'] ?? '');
 if ($forms_subject === '' && $forms_report) {
-  $forms_subject = (string)($forms_report->title ?? '') . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
+  $forms_subject = $forms_report->title . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
 }
 $forms_body = (string)($_POST['message_body'] ?? '');
 if ($forms_body === '' && $forms_report) {
-  $forms_body = !empty($forms_report->emailmessage)
-              ? TextReplace($forms_report->emailmessage)
-              : sprintf(FORMS_PRINT_EMAIL_BODY, (string)($forms_report->title ?? ''), COMPANY_NAME);
+  $forms_body = $forms_report->emailMessage !== ''
+              ? TextReplace($forms_report->emailMessage)
+              : sprintf(FORMS_PRINT_EMAIL_BODY, $forms_report->title, COMPANY_NAME);
 }
 
 // A popup: the surrounding chrome belongs to the window that opened it.

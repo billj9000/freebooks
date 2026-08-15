@@ -72,6 +72,7 @@ define('FORMS_PRINT_OPEN_FROM_DOCUMENT', 'A form prints one record at a time, so
 
 // ── Dataset authoring (design §3.2, §3.3) ────────────────────────────────────
 define('BOX_FORMS_DATASETS',        'Report Datasets');
+define('BOX_FORMS_DESIGN',          'Report Editor');
 define('FORMS_DS_TITLE',            'Report Datasets');
 define('FORMS_DS_INTRO',            'A dataset is the set of tables a report author may draw fields from. Defining one is a separate privilege from writing or running reports, because it decides what data becomes reachable.');
 define('FORMS_DS_SHIPPED_NOTE',     'Datasets shipped with FreeBooks are defined in code and cannot be edited here.');
@@ -115,3 +116,107 @@ define('FORMS_DS_NOT_FOUND',        "There is no custom dataset named '%s'.");
 define('FORMS_DS_IN_USE',           "Dataset '%s' cannot be deleted: %d report(s) still use it.");
 define('FORMS_DS_CONFIRM_DELETE',   'Delete this dataset? Reports that use it will stop working.');
 define('FORMS_DS_PROBLEM',          '%s');
+
+// ── the report editor (design §13.7 step 2) ──────────────────────────────────
+define('FORMS_DESIGN_TITLE',        'Report Editor');
+define('FORMS_DESIGN_TITLE_FOR',    'Report Editor — %s');
+define('FORMS_DESIGN_NO_REPORT',    'No report was chosen to edit.');
+define('FORMS_DESIGN_PICK_ONE',     'Choose a report to edit. You can also reach this from the Edit button beside a report on the document list.');
+define('FORMS_DESIGN_CHOOSE',       'Reports you can edit');
+define('FORMS_DESIGN_BACK_TO_LIST', 'Back to the document list');
+define('FORMS_DESIGN_EDIT',         'Edit');
+define('FORMS_DESIGN_IS_FORM',      'This is a form, not a report. Forms are laid out on a page rather than in columns, and are edited in the form designer.');
+define('FORMS_DESIGN_DENIED',       'You do not have permission to author reports.');
+define('FORMS_DESIGN_CONVERT_WARNING', 'This report is still stored in the old format. Saving it here rewrites it in the Forms format, and the old report engine will no longer be able to open it. A copy of the original is kept alongside it.');
+define('FORMS_DESIGN_SAVED',        "Report '%s' saved.");
+define('FORMS_DESIGN_ERROR',        'Report not saved: %s');
+
+define('FORMS_DESIGN_ABOUT',        'Report');
+define('FORMS_DESIGN_NAME',         'Name');
+define('FORMS_DESIGN_DESCRIPTION',  'Description');
+define('FORMS_DESIGN_FROM_DATASET', 'Fields come from the %s dataset (%s). Only fields it declares can be used.');
+define('FORMS_DESIGN_FROM_PROVIDER','This report is built by the %s calculation, so its columns are fixed and no new ones can be added.');
+
+define('FORMS_DESIGN_COLUMNS',      'Columns');
+define('FORMS_DESIGN_COL_FIELD',    'Field');
+define('FORMS_DESIGN_COL_HEADING',  'Heading');
+define('FORMS_DESIGN_COL_WIDTH',    'Width');
+define('FORMS_DESIGN_COL_ALIGN',    'Align');
+define('FORMS_DESIGN_COL_FORMAT',   'Format');
+define('FORMS_DESIGN_COL_TOTAL',    'Total');
+define('FORMS_DESIGN_ADD_COLUMN',   'Add a column');
+define('FORMS_DESIGN_COL_BREAK',    'Break');
+define('FORMS_DESIGN_COLUMNS_NOTE', 'Width is in millimetres; leave it empty to let the report decide. Break: ticked, the next field starts a new column across the page; unticked, it is printed underneath this one in the same column.');
+
+define('FORMS_DESIGN_ALIGN_DEFAULT','Automatic');
+define('FORMS_DESIGN_ALIGN_LEFT',   'Left');
+define('FORMS_DESIGN_ALIGN_CENTER', 'Centre');
+define('FORMS_DESIGN_ALIGN_RIGHT',  'Right');
+
+define('FORMS_DESIGN_GROUPING',     'Grouping and totals');
+define('FORMS_DESIGN_GROUP_BY',     'Group on');
+define('FORMS_DESIGN_GROUP_NONE',   '(none)');
+define('FORMS_DESIGN_GROUP_FORMAT', 'Group label format');
+define('FORMS_DESIGN_TOTALS_ONLY',  'Show group totals only');
+define('FORMS_DESIGN_GROUP_BREAK',  'Start a new page after each group');
+
+define('FORMS_DESIGN_SORTING',      'Sorting');
+define('FORMS_DESIGN_ADD_SORT',     'Add a sort');
+define('FORMS_DESIGN_ASCENDING',    'Ascending');
+define('FORMS_DESIGN_DESCENDING',   'Descending');
+
+define('FORMS_DESIGN_FILTERS',      'Filters');
+define('FORMS_DESIGN_FILTER_IS',    'Comparison');
+define('FORMS_DESIGN_FILTER_VALUE', 'Value');
+define('FORMS_DESIGN_FILTER_AND',   'and');
+define('FORMS_DESIGN_FILTER_EXPRESSION', 'Compared against other columns. This filter is kept as it is; it cannot be edited here yet.');
+define('FORMS_DESIGN_ADD_FILTER',   'Add a filter');
+define('FORMS_DESIGN_FILTERS_NOTE', 'For "is one of", separate the values with commas.');
+
+define('FORMS_DESIGN_PAGE',         'Page');
+define('FORMS_DESIGN_PAPER',        'Paper');
+define('FORMS_DESIGN_ORIENTATION',  'Orientation');
+define('FORMS_DESIGN_PORTRAIT',     'Portrait');
+define('FORMS_DESIGN_LANDSCAPE',    'Landscape');
+define('FORMS_DESIGN_MARGINS',      'Margins');
+define('FORMS_DESIGN_TOP',          'Top');
+define('FORMS_DESIGN_BOTTOM',       'Bottom');
+define('FORMS_DESIGN_LEFT',         'Left');
+define('FORMS_DESIGN_RIGHT',        'Right');
+define('FORMS_DESIGN_MM',           'Millimetres.');
+define('FORMS_DESIGN_DATE_RANGE',   'Dates covered');
+define('FORMS_DESIGN_DATE_FIELD',   'Date range applies to');
+define('FORMS_DESIGN_TRUNCATE',     'Clip text to the column width');
+
+define('FORMS_DESIGN_HEADINGS',     'Headings and styling');
+define('FORMS_DESIGN_TITLE1',       'First title line');
+define('FORMS_DESIGN_TITLE2',       'Second title line');
+define('FORMS_DESIGN_TITLE_TOKENS', 'The title lines may contain %reportname% and %date%.');
+define('FORMS_DESIGN_BAND',         'Part of the page');
+define('FORMS_DESIGN_SHOWN',        'Shown');
+define('FORMS_DESIGN_STYLED',       'Styled');
+define('FORMS_DESIGN_FONT',         'Font');
+define('FORMS_DESIGN_SIZE',         'Size');
+define('FORMS_DESIGN_COLOUR',       'Colour');
+define('FORMS_DESIGN_BAND_HEADING', 'Company name');
+define('FORMS_DESIGN_BAND_TITLE1',  'First title');
+define('FORMS_DESIGN_BAND_TITLE2',  'Second title');
+define('FORMS_DESIGN_BAND_FILTER',  'Filter description');
+define('FORMS_DESIGN_BAND_DATA',    'Columns and rows');
+define('FORMS_DESIGN_BAND_TOTALS',  'Total rows');
+
+define('FORMS_DESIGN_PREVIEW',      'Preview');
+define('FORMS_DESIGN_PREVIEW_NOTE', 'The preview renders what is on this page, including changes you have not saved.');
+define('FORMS_DESIGN_REFRESH',      'Refresh the preview');
+define('FORMS_DESIGN_PREVIEW_EMPTY','This report returned no rows, so there is nothing to preview. Check the filters and the dates covered.');
+define('FORMS_DESIGN_PREVIEW_DATES', 'Preview covering');
+define('FORMS_DESIGN_PREVIEW_AS_SET','As the report is set');
+define('FORMS_DESIGN_PREVIEW_SAMPLE','SAMPLE DATA — this report returned no rows, so the figures below are invented to show the layout.');
+
+// The filter description drawn under a report's titles. PhreeForm printed the
+// same line, which is why the band exists at all.
+define('FORMS_FILTER_PREFIX',       'Report Filters: ');
+define('FORMS_FILTER_GROUPED_BY',   'Grouped by: %s');
+define('FORMS_FILTER_SORTED_BY',    'Sorted by: %s');
+define('FORMS_FILTER_DATE_RANGE',   'Date range: %s to %s');
+define('FORMS_FILTER_PERIOD',       'Accounting period: %s');

@@ -45,6 +45,7 @@ require_once(__DIR__ . '/../providers/statement_provider.php');
 require_once(__DIR__ . '/../providers/pos_provider.php');
 require_once(__DIR__ . '/../providers/work_order_provider.php');
 require_once(__DIR__ . '/../definition/load.php');
+require_once(__DIR__ . '/sample_data.php');
 require_once(__DIR__ . '/record_selector.php');
 require_once(__DIR__ . '/form_runner.php');
 require_once(__DIR__ . '/document_runner.php');

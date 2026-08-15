@@ -215,13 +215,21 @@ final class TablePdfRenderer implements FormsRenderer
     {
         $edges = [$left];
         $band  = 1;
+        $open  = false;   // a band has been started and not yet closed by a break
         foreach ($doc->columns as $column) {
             $width = $column->width ?? $this->defaultColumnWidth;
             $edges[$band] = max($edges[$band] ?? 0.0, $edges[$band - 1] + $width);
+            $open = !$column->pageBreak;
             if ($column->pageBreak) $band++;
         }
-        // A trailing band with no closing column still needs a right edge.
-        if (!isset($edges[$band])) {
+        // A trailing band with no closing column still needs a right edge — but
+        // ONLY when one is actually open. When the last column breaks (which is
+        // the ordinary side-by-side grid, and most of the library), $band has
+        // already moved past the last band in use, and adding an edge here
+        // invented an empty column one default-width wide. The table then
+        // measured wider than it was, and layOutColumns() scaled every band down
+        // to fit a width nothing occupied — shrinking reports that fitted.
+        if ($open && !isset($edges[$band])) {
             $edges[$band] = $edges[$band - 1] + $this->defaultColumnWidth;
         }
         return $edges;

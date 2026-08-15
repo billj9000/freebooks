@@ -107,6 +107,8 @@ final class DefinitionCodec
         ];
         $this->put($out, 'description', $definition->description, '');
         $this->put($out, 'group',       $definition->group,       '');
+        $this->put($out, 'filenamePrefix', $definition->filenamePrefix, '');
+        $this->put($out, 'emailMessage',   $definition->emailMessage,   '');
         $this->put($out, 'provider',    $definition->provider,    null);
         $this->put($out, 'dataset',     $definition->datasetId,   null);
 
@@ -383,6 +385,8 @@ final class DefinitionCodec
             title:       (string)($data['title']       ?? ''),
             description: (string)($data['description'] ?? ''),
             group:       (string)($data['group']       ?? ''),
+            filenamePrefix: (string)($data['filenamePrefix'] ?? ''),
+            emailMessage:   (string)($data['emailMessage']   ?? ''),
             provider:    isset($data['provider']) ? (string)$data['provider']  : null,
             datasetId:   isset($data['dataset'])  ? (string)$data['dataset']   : null,
             page:        $this->pageFromArray((array)($data['page'] ?? [])),

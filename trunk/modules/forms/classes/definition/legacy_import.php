@@ -108,6 +108,10 @@ final class DefinitionBuilder
             'group'       => (string)($report->groupname   ?? ''),
             'dateDefault' => (string)($report->datedefault ?? ''),
             'period'      => (int)($report->period ?? 0),
+            // Read by the print page rather than by any renderer, which is
+            // exactly why they are easy to lose in a format change.
+            'filenamePrefix' => (string)($report->filenameprefix ?? ''),
+            'emailMessage'   => (string)($report->emailmessage   ?? ''),
         ];
 
         return ($report->reporttype ?? '') === 'frm'
