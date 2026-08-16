@@ -32,6 +32,19 @@
  * Answers with a PDF, or with a readable HTML page: pdf.js reports a failed
  * fetch as an opaque parse error, so an error that arrives as JSON or as an XML
  * envelope shows up in the canvas as nothing at all.
+ *
+ * ## Re-rendering while editing
+ *
+ * POST the canvas's elements and the page is drawn from THOSE rather than from
+ * what is stored — nothing is saved. Without it the underlay is the last saved
+ * version, so the second change an author makes is judged against a picture
+ * that no longer matches the first, and every change after that is worth less
+ * than the one before.
+ *
+ * It applies them through TemplateForm, which is the class the SAVE uses. That
+ * is the same rule the report editor's preview keeps: a picture built by
+ * different code is a picture of a different form, and it would agree often
+ * enough to be trusted.
  */
 
 /**************   Check user security   *****************************/
@@ -58,6 +71,7 @@ require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{FormRunner, RecordSelector, SampleData};
+use FreeBooks\Forms\Definition\TemplateForm;
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\DefinitionLoader;
 use FreeBooks\Forms\Deliver\HttpDelivery;
@@ -84,7 +98,23 @@ try {
 if (!$definition->isForm()) forms_canvas_fail(FORMS_CANVAS_IS_REPORT);
 
 $runner = new FormRunner($db, $catalog);
-$plan   = $runner->planDefinition($definition);
+
+// The canvas as it stands, if it sent one. Applied BEFORE the plan is taken:
+// the plan reads the definition, and the definition being drawn is the edited
+// one.
+$forms_canvas_warnings = array();
+if (!empty($_POST['element'])) {
+  $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+  try {
+    $definition = $binding->apply($definition, $_POST,
+        forms_binding_names($definition, $runner, $catalog, $db));
+    $forms_canvas_warnings = $binding->warnings();
+  } catch (\Throwable $e) {
+    forms_canvas_fail($e->getMessage());
+  }
+}
+
+$plan = $runner->planDefinition($definition);
 if (!$plan->runnable()) forms_canvas_fail(implode(' ', $plan->notes));
 
 /**
@@ -176,10 +206,18 @@ $renderer = new LayoutPdfRenderer(
   continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
   pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
   imageDirectory: PF_DIR_MY_REPORTS . 'images',
+  linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
 );
 
 // Whether the page is looking at real data is the author's business, and a
 // header carries it without disturbing the bytes pdf.js is about to parse.
+// The warnings travel the same way: a binding the form cannot supply is refused
+// here exactly as it would be on save, and an author who only finds that out
+// when they save has been editing something that was never going to be kept.
 header('X-Forms-Sampled: ' . ($sampled ? '1' : '0'));
+if ($forms_canvas_warnings) {
+  header('X-Forms-Warnings: ' . str_replace(array("\r", "\n"), ' ',
+      substr(implode(' ', $forms_canvas_warnings), 0, 500)));
+}
 (new HttpDelivery(HttpDelivery::INLINE))
     ->deliver($renderer->render($document, new RenderOptions(filename: 'canvas.pdf')));

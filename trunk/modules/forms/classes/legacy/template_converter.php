@@ -329,7 +329,13 @@ final class TemplateConverter
                     $this->warnings[] = "[$index] ImgLink '$label' has no boxfield; skipped.";
                     return null;
                 }
-                return new Image(Binding::record($this->scalar($boxfield->fieldname ?? null)), $box, $style, $visible, $label);
+                // `text` is the FOLDER the linked file lives in, relative to the
+                // company's files — "inventory/images/" on the Work Order — and
+                // the boxfield supplies the filename. FormImgLink() concatenates
+                // the two; dropping the folder leaves a path that resolves to
+                // nothing and an image that never draws.
+                return new Image(Binding::record($this->scalar($boxfield->fieldname ?? null)),
+                    $box, $style, $visible, $label, $this->scalar($f->text ?? null));
 
             case 'Line':
                 return $this->convertLine($f, $visible, $label);

@@ -30,7 +30,10 @@
  * approach C if the alignment does not hold, which is why it comes before
  * anything can be moved.
  *
- * Nothing here writes. The page has no save, and the overlay has no drag.
+ * Step 4 added the editing: drag, resize, snap, add, delete, z-order and an
+ * inspector. What did not change is where the picture comes from — the boxes
+ * are still drawn over the real rendered PDF, which is the whole reason the
+ * positions can be trusted while they are being moved.
  */
 
 $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
@@ -46,8 +49,8 @@ require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{CanvasLayout, FormRunner};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
-use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader};
-use FreeBooks\Forms\Document\Template;
+use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader, TemplateForm};
+use FreeBooks\Forms\Document\{Align, Template, Visibility};
 
 $forms_canvas_id = isset($_REQUEST['rID']) ? (int)$_REQUEST['rID'] : 0;
 
@@ -61,6 +64,7 @@ $runner = new FormRunner($db, $catalog);
 $forms_canvas_definition = null;
 $forms_canvas_plan       = null;
 $forms_canvas_boxes      = array();
+$forms_canvas_values     = array();
 
 // Arriving with nothing chosen is the ordinary way in from the menu, so the
 // page answers with a list rather than with an error.
@@ -89,9 +93,109 @@ if ($forms_canvas_definition !== null) {
   $forms_canvas_boxes = CanvasLayout::boxes(
       $forms_canvas_definition->template ?? new Template(),
       PF_DIR_MY_REPORTS . 'images');
+  // The editable values, in the same order as the boxes, so the canvas can put
+  // an element in the inspector without asking the server for it.
+  $forms_canvas_values = TemplateForm::toRequest(
+      $forms_canvas_definition->template ?? new Template());
   if (!$forms_canvas_plan->runnable()) {
     $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, implode(' ', $forms_canvas_plan->notes)), 'error');
   }
+}
+
+/**
+ * Keep the PhreeForm original beside the native file, once.
+ *
+ * §13.3 condition 2, a definition at a time. Only the FIRST save moves
+ * anything: a second would overwrite the original with a native file and lose
+ * the very thing this keeps.
+ */
+function forms_canvas_keep_original($path) {
+  $kept = $path . '.pre-forms';
+  if (file_exists($kept) || !file_exists($path)) return;
+  @copy($path, $kept);
+}
+
+$forms_canvas_bindings = array();
+if ($forms_canvas_definition !== null) {
+  $forms_canvas_bindings = forms_binding_names($forms_canvas_definition, $runner, $catalog, $db);
+}
+
+if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save') {
+  if ($security_level < 3) {
+    $messageStack->add(FORMS_DESIGN_DENIED, 'error');
+  } else {
+    $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+    try {
+      $edited = $binding->apply($forms_canvas_definition, $_POST, $forms_canvas_bindings);
+      foreach ($binding->warnings() as $warning) {
+        $messageStack->add(sprintf(FORMS_WARN_CONVERSION, $warning), 'caution');
+      }
+
+      forms_canvas_keep_original($loader->path($forms_canvas_id));
+      $loader->save($edited, $forms_canvas_id);
+
+      // The catalog row carries the title the document list shows.
+      $db->Execute("update " . TABLE_PHREEFORM . " set doc_title = '"
+          . $db->prepare_input($edited->title) . "' where id = " . (int)$forms_canvas_id);
+
+      $messageStack->add(sprintf(FORMS_DESIGN_SAVED, $edited->title), 'success');
+      gen_redirect(html_href_link(FILENAME_DEFAULT,
+          'module=forms&page=canvas&rID=' . $forms_canvas_id, 'SSL'));
+    } catch (\Throwable $e) {
+      $messageStack->add(sprintf(FORMS_DESIGN_ERROR, $e->getMessage()), 'error');
+    }
+  }
+}
+
+// The images an author may choose between: what is actually in the folder, and
+// nothing else. Uploading one is its own piece of work — a file arriving from a
+// browser into the web root is a security surface, not a text field — so this
+// offers what is there and says where to put more.
+$forms_canvas_images = array(array('id' => '', 'text' => FORMS_DESIGN_GROUP_NONE));
+foreach (glob(PF_DIR_MY_REPORTS . 'images/*.{png,jpg,jpeg,gif,PNG,JPG,JPEG,GIF}', GLOB_BRACE) ?: array() as $file) {
+  $forms_canvas_images[] = array('id' => basename($file), 'text' => basename($file));
+}
+
+// The palette, and the choices the inspector offers.
+$forms_canvas_palette = array();
+foreach (array_keys($forms_canvas_bindings) as $name) {
+  $forms_canvas_palette[] = array('id' => $name, 'text' => $name);
+}
+sort($forms_canvas_palette);
+
+// The faces on offer, plus whatever this form already uses. A definition may
+// name a face this list does not carry — a customised install, an older
+// PhreeForm — and a select with no option for it would restyle the element on
+// the first save, silently.
+$forms_canvas_fonts = array(array('id' => '', 'text' => FORMS_CANVAS_FONT_DEFAULT));
+foreach (forms_font_names() as $name => $label) {
+  $forms_canvas_fonts[] = array('id' => $name, 'text' => $label);
+}
+$forms_canvas_known = forms_font_names();
+foreach ($forms_canvas_definition?->template?->elements ?? array() as $element) {
+  $used = $element->style?->font;
+  if ($used !== null && $used !== '' && !isset($forms_canvas_known[$used])) {
+    $forms_canvas_known[$used] = $used;
+    $forms_canvas_fonts[] = array('id' => $used, 'text' => sprintf(FORMS_CANVAS_FONT_OTHER, $used));
+  }
+}
+
+$forms_canvas_aligns = array(
+  array('id' => '',                   'text' => FORMS_DESIGN_ALIGN_DEFAULT),
+  array('id' => Align::Left->value,   'text' => FORMS_DESIGN_ALIGN_LEFT),
+  array('id' => Align::Center->value, 'text' => FORMS_DESIGN_ALIGN_CENTER),
+  array('id' => Align::Right->value,  'text' => FORMS_DESIGN_ALIGN_RIGHT),
+);
+$forms_canvas_visibility = array(
+  array('id' => 'all',       'text' => FORMS_CANVAS_VIS_ALL),
+  array('id' => 'first',     'text' => FORMS_CANVAS_VIS_FIRST),
+  array('id' => 'last',      'text' => FORMS_CANVAS_VIS_LAST),
+  array('id' => 'continued', 'text' => FORMS_CANVAS_VIS_CONTINUED),
+);
+$forms_canvas_addable = array();
+foreach (TemplateForm::ADDABLE as $kind) {
+  $forms_canvas_addable[] = array('id' => $kind, 'text' => constant('FORMS_CANVAS_ADD_'
+      . strtoupper($kind)));
 }
 
 define('PAGE_TITLE', $forms_canvas_definition !== null

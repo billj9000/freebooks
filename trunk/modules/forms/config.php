@@ -31,8 +31,11 @@
 //                      rendered PDF with the element boxes over it, read-only.
 //                      Emailing a report from the document list, with From, CC
 //                      and BCC. Vendors pdf.js under ext/pdfjs/.
+// 1.04 => 2026-08-16 - The canvas edits: drag, resize, snap, add, delete,
+//                      z-order and an element inspector. Saving writes the
+//                      Forms format and keeps the original beside it.
 
-define('MODULE_FORMS_VERSION', 1.03);
+define('MODULE_FORMS_VERSION', 1.04);
 
 // Security IDs.
 //

@@ -55,8 +55,8 @@
 namespace FreeBooks\Forms\App;
 
 use FreeBooks\Forms\Document\{
-    Barcode, Element, Field, FieldBlock, Image, Line, PageNumber, Rect, Scope, StaticText, Table,
-    Template, Visibility
+    Barcode, Binding, Element, Field, FieldBlock, Image, Line, PageNumber, Rect, Scope, StaticText,
+    Table, Template, Visibility
 };
 
 final class CanvasLayout
@@ -151,10 +151,30 @@ final class CanvasLayout
                 'grows'   => in_array($kind, ['text', 'field', 'block', 'pagenum'], true),
                 // The box is a guess: the drawn size could not be worked out.
                 'unmeasured' => $unmeasured,
+                // The box as DRAWN: normalised, measured, always positive.
                 'x'       => round($x, 3),
                 'y'       => round($y, 3),
                 'width'   => round($width, 3),
                 'height'  => round($height, 3),
+                // The box as STORED, which is not always the same thing — a
+                // Line's sides are a signed offset to its end point, and an
+                // Image usually has no height at all. The canvas positions with
+                // the first and edits the second by the same delta, so a form
+                // opened and saved untouched returns exactly what was loaded,
+                // nulls included, rather than a normalised approximation.
+                'store'   => [
+                    'x' => round($box->x, 3),
+                    'y' => round($box->y, 3),
+                    'w' => $box->width  === null ? null : round($box->width, 3),
+                    'h' => $box->height === null ? null : round($box->height, 3),
+                ],
+                // An Image is one of two different things wearing one name: a
+                // fixed FILE, or a path that arrives with the record (what
+                // PhreeForm called an ImgLink). They need opposite controls —
+                // one picks a file, the other picks a value — so the canvas is
+                // told which it has rather than guessing from the label.
+                'source'  => $element instanceof Image
+                                ? ($element->src instanceof Binding ? 'bound' : 'file') : '',
                 'label'   => self::describe($element),
                 'visible' => self::keyFor(self::VISIBILITY, $element->visible) ?? 'all',
             ];

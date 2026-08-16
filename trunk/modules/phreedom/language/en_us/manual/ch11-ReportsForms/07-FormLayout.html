@@ -6,21 +6,21 @@
 <meta name="doc_pos" content="11.07">
 <!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
 <meta name="doc_index_1" content="Reports and Forms.Form Layout">
-<meta name="doc_index_2" content="Forms.Checking the Layout">
+<meta name="doc_index_2" content="Forms.Changing the Layout">
 <!-- glossay items - used to build glossary (zero or more)-->
 <!-- glossary terms are imploded with a colon separator -->
 <meta name="doc_glossary_1" content="Element:One item on a form - a piece of fixed text, a value from the record, a line, a box, an image or the table of line items.">
 <!-- Title - Used as the table of contents and index reference title (one required)-->
-<meta name="doc_title" content="Checking a Form's Layout">
+<meta name="doc_title" content="Changing a Form's Layout">
 <!-- End of meta tags -->
 
 <link rel="stylesheet" type="text/css" href="../stylesheet.css">
-<title>Checking a Form's Layout</title>
+<title>Changing a Form's Layout</title>
 </head>
 
 <body>
 
-<h1 align="center">Checking a Form's Layout</h1>
+<h1 align="center">Changing a Form's Layout</h1>
 
 <p>A form &mdash; an invoice, a purchase order, a statement, a cheque &mdash; is a set of items
 placed at particular positions on the page, rather than a list of columns like a report. The
@@ -79,10 +79,78 @@ yet, for instance &mdash; the page is filled with made-up values so that there i
 at, and a note at the top says so. The <em>layout</em> is the real one; only the data is not. Your
 company name and address are still real, because those are settings rather than data.</p>
 
-<h3>What you cannot do here yet</h3>
+<h3>Moving things</h3>
 
-<p>Nothing on this page can be moved. It shows the layout so that it can be checked; changing it
-comes next. Until then, a form is still altered in the old report designer.</p>
+<p>Drag an element to move it, or drag its bottom-right corner to make it wider or taller. The page
+redraws itself each time you finish a change, so what you see is the document as it would really
+print. Nothing is saved by redrawing.</p>
+
+<p>It redraws when you let go of an element, not while you are dragging it &mdash; there is no point
+producing a page you are covering with the pointer. Typing in the panel on the right redraws a
+moment after you stop.</p>
+
+<p>If it feels slow, untick <strong>Auto redraw</strong> and use the <strong>Redraw the
+page</strong> button instead. That choice is remembered on this computer. With redrawing off,
+remember that after the first change the picture no longer matches what you have, and every change
+after that is being judged against a page further out of date.</p>
+
+<p><strong>Snap to</strong> rounds every move to the nearest half, one or five millimetres, which is
+how you get a column of fields lined up exactly. Set it to <em>Off</em> for fine adjustments.</p>
+
+<p>Everything can also be typed. Select an element and the panel on the right shows its exact
+position and size in millimetres, its font, size, colour and alignment, its border, and which page
+it appears on. Typing there is the way to make two elements agree precisely.</p>
+
+<p>On a text element the height box is labelled <strong>Line height</strong>, because that is what it
+is: the height of one line, not of the whole element. See the note about dashed edges above.</p>
+
+<h3>Borders</h3>
+
+<p>Border width is in points, and <strong>0 does not mean "no border"</strong> &mdash; it means a
+hairline, the thinnest line the printer can manage. Anything below about 0.25 comes out looking the
+same as 0 on paper. 1 is the usual thin rule, and is what is used when no width is set.</p>
+
+<p><strong>Draw it</strong> is what turns a border on and off, and it only appears for the elements
+that have one to turn off: text, values, address blocks, page numbers, the line-item table and
+barcodes. A box and a line <em>are</em> an outline &mdash; they always draw one &mdash; so their
+width and colour are the only settings that apply.</p>
+
+<p>The border has its own colour, separate from the text. Leave it and the border follows the text
+colour; set it and the two are independent, which is how the shipped invoice draws black text inside
+a silver rule.</p>
+
+<h3>Adding, removing and overlapping</h3>
+
+<p><strong>Add an element</strong> offers text, a value, a line or a box. New elements appear near
+the top-left corner &mdash; drag them where you want them. A value must be given something to show,
+chosen from the list of values this form can supply; nothing else can be typed in.</p>
+
+<p>The arrows beside a selected element bring it forward or send it backward. That matters where two
+elements overlap: a filled box drawn after a piece of text hides it.</p>
+
+<p><strong>Delete</strong> removes the selected element.</p>
+
+<h3>Undo</h3>
+
+<p><strong>Undo</strong> steps back through your changes one at a time, and <strong>Redo</strong>
+puts one back. <em>Ctrl+Z</em> and <em>Ctrl+Y</em> do the same. A drag counts as one change however
+far you moved the element, so undoing returns it to where it started rather than partway.</p>
+
+<p>Inside a text box, Ctrl+Z is the box's own undo for the text you are typing, as usual.</p>
+
+<p>Undo covers the changes you have made since opening the form, and that history is lost when you
+leave the page. It does not undo a save: to go back further than this, leave without saving and open
+the form again.</p>
+
+<h3>Saving</h3>
+
+<p>Save rewrites the form in the Forms format. If it was still in the older format you will see a
+note before you save: afterwards the original print engine can no longer open that form, and a copy
+of the original is kept alongside it.</p>
+
+<p>The editor only saves what it can show you. Parts of a form it has no controls for &mdash; the
+individual lines of an address block, the columns of the line-item table &mdash; are kept exactly as
+they were.</p>
 
 <h3>Related Links</h3>
 <p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>

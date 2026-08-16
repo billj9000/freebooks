@@ -526,7 +526,12 @@ final class TablePdfRenderer implements FormsRenderer
 
     private function applyStyle(?Style $style, float $fallbackSize, string $weight = ''): void
     {
-        $this->pdf->SetFont($style?->font ?: $this->defaultFont, $weight, $style?->size ?: $fallbackSize);
+        // The band's own weight wins over the caller's default: a caller asks
+        // for bold because the company heading is conventionally bold, and an
+        // author who says otherwise has said otherwise.
+        $this->pdf->SetFont($style?->font ?: $this->defaultFont,
+            ($style !== null && $style->fontStyle() !== '') ? $style->fontStyle() : $weight,
+            $style?->size ?: $fallbackSize);
         $colour = $style?->colour;
         $this->pdf->SetTextColor($colour?->r ?? 0, $colour?->g ?? 0, $colour?->b ?? 0);
     }

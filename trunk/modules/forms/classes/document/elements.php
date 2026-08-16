@@ -186,6 +186,15 @@ final readonly class Rect extends Element
 /**
  * An image. `src` is either a literal filename (PhreeForm's Img) or a Binding
  * resolving to one (its ImgLink) — one element type, two sources.
+ *
+ * The two are looked for in DIFFERENT places, which is why `pathPrefix` exists.
+ * A literal filename is a form's own furniture and lives with the report
+ * images. A bound one is a path to business data — the Work Order shows the
+ * product photo of the SKU being built — and the legacy stored the folder it
+ * lives in on the element, as `inventory/images/`, with the record supplying
+ * only the filename. Dropping that prefix makes the renderer look for a product
+ * photo among the logos, find nothing, and draw nothing: the element is
+ * present, the binding resolves, and the picture is simply absent.
  */
 final readonly class Image extends Element
 {
@@ -195,6 +204,8 @@ final readonly class Image extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        /** Folder, relative to the company's files, for a BOUND src only. */
+        public string $pathPrefix = '',
     ) {
         parent::__construct($box, $style, $visible, $label);
     }

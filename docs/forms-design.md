@@ -973,7 +973,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
 | `verify_forms_native.php` | Every definition converts to the native format, re-encodes byte-stably, loads back as native, and renders **identical PDF bytes** through it (§13.7 step 1) | yes | **PASS both companies** — 56 of 57 convert, 56/56 byte-identical on `demo`, 51/51 on `production` |
 | `verify_forms_designer.php` | Opening a report in the editor and saving it untouched returns the same definition and prints the same bytes; a field the dataset does not declare is refused; the original is kept on first save (§13.7 step 2) | yes | **PASS both companies** — 38 of 38 reports survive an untouched save |
-| `verify_forms_canvas.php` | The geometry the canvas overlay rests on, read back out of the PDF content stream: page size, absolute (not margin-relative) placement, both orientations, five paper sizes (§13.7 step 3) | yes | **PASS both companies** — 39 checks; found `Letter` rendering as A4 |
+| `verify_forms_canvas.php` | The geometry the canvas overlay rests on, read back out of the PDF content stream: page size, absolute (not margin-relative) placement, both orientations, five paper sizes; and that a form opened and saved untouched is unchanged (§13.7 steps 3–4) | yes | **PASS both companies** — 61 checks; found `Letter` rendering as A4 |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -1637,8 +1637,8 @@ Continuing §9.
    drawn on top from the `Template`. No dragging. This proves the mm-to-pixel alignment, page size,
    margins and orientation — the part most likely to be subtly wrong, and the cheapest point at
    which to abandon approach C if it is.
-4. **Form editing.** Drag, resize, snap, add and delete, z-order, and an element inspector for
-   font, size, alignment, colour, border and binding.
+4. ~~**Form editing.**~~ **DONE — see §13.12.** Drag, resize, snap, add and delete, z-order, and an
+   element inspector for font, size, alignment, colour, border and binding.
 5. **Native shipping set.** Generated, committed, seeded by the installer, with paper-size stamping
    and a re-stamp that understands the native format.
 6. **Migration, and delete PhreeForm** — including `MODULE_FORMS_PRINT_BUTTONS`, the helper's
@@ -1659,9 +1659,11 @@ Not yet validated.
    shipped set. `TDup` was *eliminated* rather than mapped when the vocabulary was collapsed to
    nine (§4.2), so its single instance is the one definition most likely to block the migration
    under condition 1.
-3. **Editing a definition served by a provider.** Nine forms are built by a `DocumentProvider`
-   rather than a dataset query, and their available fields come from the provider's own contract,
-   not from a dataset the palette can enumerate. What the palette offers for those is unresolved.
+3. ~~**Editing a definition served by a provider.**~~ **SETTLED — §13.12.** A provider declares
+   nothing, so it is asked the only way it can be: the form is run once and the keys are read back
+   off the `Record`. `entry_builder` supplies 76 names, `pos_builder` 70, `statement_builder` 26,
+   `wo_builder` 25. Measured, not declared, and it is the same contract the renderer resolves
+   against.
 4. ~~**pdf.js weight.**~~ **MEASURED: 1.8 MB**, not the 1 MB estimated — `pdf.min.mjs` 504 KB and
    `pdf.worker.min.mjs` 1.3 MB, both from the `legacy` build of pdfjs-dist 6.2.108. Still the
    largest single front-end asset in the repository by some margin. Accepted.
@@ -1944,3 +1946,87 @@ second-guess it, but a definition naming a size nobody has heard of prints on A4
 
 Dragging, resizing, snapping, z-order and an element inspector. The alignment they all depend on is
 now measured rather than hoped for, which was the point of doing this first.
+
+### 13.12 Step 4, measured
+
+Editing on the canvas. Built and measured on 2026-08-16; module version 1.04.
+
+Drag to move, drag the corner to resize, snap to 0.5/1/5 mm or off, click to select, an inspector
+for exact position, size, text, binding, font, size, colour, alignment, border and visibility,
+add (text, value, line, box), delete, and forward/backward for z-order. Saving writes the native
+format and keeps `pf_<id>.pre-forms`, exactly as the report editor does.
+
+**`TemplateForm` is the whole of it**, and it keeps DefinitionForm's two rules for the same two
+reasons. The base matters: a `FieldBlock`'s parts, a `Table`'s columns and source, a bound image
+filename, a `Line`'s type and a `Barcode`'s symbology are carried across untouched, because the
+canvas draws no control for them and a form that could only submit what it can draw would delete
+them on the first save. And an author names only what exists.
+
+**All 18 forms survive an untouched save and print identically afterwards** — the property an editor
+loses first, since anything it cannot represent disappears silently.
+
+#### Open risk 3 is settled, by asking the provider
+
+Nine forms are built by a `DocumentProvider` and a provider **declares nothing**, so there was no
+palette to offer. It turns out the contract is observable: run the form once and read the keys off
+the `Record` it produced. Measured — `entry_builder` 76 names, `pos_builder` 70,
+`statement_builder` 26, `wo_builder` 25 — and it is the same contract the renderer will resolve
+against, which is what makes it the right list rather than merely a list. A query-driven form uses
+its dataset's fields as before, and in both cases the template's own bindings are always allowed, or
+a form would lose a field the moment its record table went empty.
+
+#### Geometry is submitted as STORED, not as drawn
+
+The two findings from step 3 are what make this possible at all. A `Line`'s sides are a **signed
+offset** to its end point; an `Image` usually stores a **width and no height**. So the canvas
+carries both boxes — the drawn one it positions with, and the stored one it edits by the same delta
+and submits. An untouched save then returns exactly what was loaded, **nulls included**, rather than
+a normalised approximation of it.
+
+That is not theoretical. Reading a blank height as `0` would pin every logo to nothing on the first
+save of a form nobody meant to change, and normalising a line's box would rewrite 64 elements across
+the shipped set. Both are asserted.
+
+A text element's height box is labelled **Line height** in the inspector, because that is what
+`MultiCell` takes and calling it "height" would be the same misstatement the dashed edge exists to
+correct.
+
+#### A check that could not fail
+
+Step 3 asserted the canvas was read-only with `!str_contains($output, 'tb_main_save')`. The toolbar
+numbers its icons — `tb_main_0` — so that string was never in the output and the assertion passed
+without testing anything. It is replaced by checks against things that exist: the form, the hidden
+field holder, the serializer the Save button calls, the snap control, ten inspector controls, and
+that every name the palette offers is one the form can supply.
+
+That is the fourth time in this work a check phrased as counting or substring-matching has proved
+vacuous. The pattern is now explicit: **assert against something that must be present, never against
+something that must be absent.**
+
+The add buttons moved to a data attribute and one delegated listener for the same reason the
+document list did — an inline handler carrying a quoted string renders as `&quot;text&quot;`, which
+is correct and unsearchable, so the check had to read the DOM rather than the markup.
+
+#### What step 4 deliberately does not do
+
+- **Undo and redo**, by whole-state snapshot rather than a reversible command per action. The state
+  is two small arrays — 72 elements at the largest — so a snapshot is cheap and cannot drift, where
+  a command that knows how to reverse itself is one more thing to get wrong every time an edit is
+  added, and getting it wrong leaves the form in a state the author never made. One snapshot per
+  DRAG, taken as it begins, not one per pointermove. Bounded at 60 and cleared on leaving: this
+  undoes edits, not saves. Deferred at first with "leaving without saving is the way back", which
+  was too glib once a long edit was possible — one wrong move should not cost the session.
+- **No editing of sub-structure.** A block's individual parts and a table's columns are carried, not
+  edited; adding is limited to the four kinds that need none.
+- **The underlay redraws on every completed change**, with a per-browser switch and the button kept
+  for a slow machine. Three things make that safe: it fires on drag END rather than on pointermove
+  (a page under the pointer is not worth a PDF per pixel); a burst of typing is coalesced into one
+  render; and a superseded request is ABANDONED, because a slow answer landing after a fast one
+  paints an older page over a newer and looks like a rendering bug rather than a race.
+- **Redraw the page** remains, on demand.
+  Live re-rendering on every drag would mean a PDF per pointer move; without any redraw at all the
+  picture goes stale on the FIRST change and every change after that is judged against a page
+  further out of date, which the first person to use it said within minutes. The endpoint applies
+  the posted canvas through `TemplateForm` — the class the save uses — so the picture and the save
+  agree by construction, and anything the redraw refuses is reported in a header and shown, rather
+  than discovered when the author saves.

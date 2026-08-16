@@ -228,6 +228,8 @@ final class DefinitionCodec
         $this->put($out, 'borderColour', $this->colourToArray($style->borderColour), null);
         $this->put($out, 'borderShow',   $style->borderShow, false);
         $this->put($out, 'truncate',     $style->truncate,   false);
+        $this->put($out, 'bold',         $style->bold,       false);
+        $this->put($out, 'italic',       $style->italic,     false);
         return $out ?: new \stdClass();
     }
 
@@ -307,6 +309,7 @@ final class DefinitionCodec
                 $out['src'] = $element->src instanceof Binding
                     ? ['bind' => $this->bindingToArray($element->src)]
                     : $element->src;
+                $this->put($out, 'pathPrefix', $element->pathPrefix, '');
                 break;
 
             case $element instanceof PageNumber:
@@ -511,6 +514,8 @@ final class DefinitionCodec
             borderColour: $this->colourFromArray($data['borderColour'] ?? null),
             borderShow:   (bool)($data['borderShow'] ?? false),
             truncate:     (bool)($data['truncate']   ?? false),
+            bold:         (bool)($data['bold']       ?? false),
+            italic:       (bool)($data['italic']     ?? false),
         );
     }
 
@@ -612,7 +617,7 @@ final class DefinitionCodec
                 $src = $data['src'] ?? '';
                 return new Image(
                     is_array($src) ? $this->bindingFromArray($src['bind'] ?? null) : (string)$src,
-                    $box, $style, $visible, $label);
+                    $box, $style, $visible, $label, (string)($data['pathPrefix'] ?? ''));
 
             case 'pagenum':
                 return new PageNumber($box, (string)($data['pattern'] ?? '{page} / {pages}'),

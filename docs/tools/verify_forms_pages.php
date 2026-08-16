@@ -393,6 +393,34 @@ if (preg_match_all('/\bon[a-z]+="([^"]*)"/i', $output, $matches)) {
 ok('no inline handler was truncated by its own quoting', $rawHandlers === [],
    implode(' | ', array_slice($rawHandlers, 0, 3)));
 
+// Every function an inline handler NAMES must be reachable from global scope.
+//
+// A <script type="module"> has its own scope: nothing declared inside it is
+// global, so `onclick="doThing()"` finds no such function and the button does
+// NOTHING — no error on the page, no clue. The canvas is a module because
+// pdf.js is one, and its Save, Delete and z-order buttons were all dead on
+// arrival; the suite rendered the markup, never ran it, and reported the page
+// as fine.
+//
+// This is a static check because the harness cannot execute JavaScript. It
+// asks the only question it can: if the handler's script is a module, is the
+// function put on `window` somewhere in the same output?
+$unreachable = [];
+if (preg_match('/<script[^>]*\btype\s*=\s*"module"/i', $output)) {
+    if (preg_match_all('/\bon[a-z]+="\s*([A-Za-z_$][\w$]*)\s*\(/i', $output, $named)) {
+        foreach (array_unique($named[1]) as $function) {
+            // Anything the application defines elsewhere is fine; only a
+            // function this page declares can be trapped in its module.
+            if (!preg_match('/\bfunction\s+' . preg_quote($function, '/') . '\s*\(/', $output)) continue;
+            if (!preg_match('/\bwindow\.' . preg_quote($function, '/') . '\s*=/', $output)) {
+                $unreachable[] = $function;
+            }
+        }
+    }
+}
+ok('every function an inline handler names can be reached from it', $unreachable === [],
+   implode(', ', $unreachable) . ' — declared inside a module, so the handler sees nothing');
+
 // index.php refuses ANY post without a csrf_token, so a form built by hand
 // instead of through html_form() is a save that can only ever 403 — which is
 // how it fails: not a wrong value, a whole page whose Save button does nothing.
@@ -722,10 +750,144 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
     ok('it passes the elements to the page in millimetres',
        $forms_canvas_boxes !== [] && isset($forms_canvas_boxes[0]['x'], $forms_canvas_boxes[0]['y']),
        count($forms_canvas_boxes) . ' box(es)');
-    // Read-only is the point of this step. A save control would promise an edit
-    // that does not exist.
-    ok('it offers no save', !str_contains($output, 'tb_main_save'));
-    ok('it says it is read-only', str_contains($output, FORMS_CANVAS_READ_ONLY));
+    // The editing controls (§13.7 step 4). Asserted against things that exist:
+    // an earlier version of this check tested for the ABSENCE of 'tb_main_save'
+    // to prove the canvas was read-only, and passed the whole time because the
+    // toolbar numbers its icons — tb_main_0 — so the string was never there to
+    // find. A check that cannot fail is not a check.
+    ok('the canvas posts its elements back through a form',
+       $xpath->query("//form[@id='forms_canvas_form']")->length === 1
+       && $xpath->query("//*[@id='forms_canvas_fields']")->length === 1);
+    ok('the save is wired to the canvas serializer',
+       str_contains($output, 'formsCanvasSave()'),
+       'the toolbar Save must submit what was dragged, not the loaded values');
+    ok('it offers a snap setting', $xpath->query("//select[@name='forms_canvas_snap']")->length === 1);
+
+    // The underlay is the last version DRAWN, so it goes stale the moment
+    // anything moves — which is when it is most needed. Redrawing posts the
+    // canvas as it stands and renders from that.
+    ok('it offers to redraw the page',
+       $xpath->query("//*[@id='forms_canvas_render']")->length === 1);
+    ok('redrawing posts the canvas rather than fetching the stored form',
+       str_contains($output, 'load(true)') && str_contains($output, "method: 'POST'"));
+    // index.php refuses every POST without a token, so a redraw that did not
+    // carry one could only ever 403 — and pdf.js reports that as an opaque
+    // parse failure, which shows up as a blank page and no reason.
+    ok('the redraw carries a CSRF token',
+       str_contains($output, "input[name=csrf_token]"));
+    ok('it can report what the redraw refused',
+       $xpath->query("//*[@id='forms_canvas_warnings']")->length === 1);
+
+    // Undo. Essential once editing is real: without it one wrong move means
+    // abandoning a long edit and starting again.
+    ok('it offers undo and redo',
+       $xpath->query("//*[@id='forms_canvas_undo']")->length === 1
+       && $xpath->query("//*[@id='forms_canvas_redo']")->length === 1);
+    ok('both start disabled, because nothing has happened yet',
+       $xpath->query("//*[@id='forms_canvas_undo'][@disabled]")->length === 1
+       && $xpath->query("//*[@id='forms_canvas_redo'][@disabled]")->length === 1);
+
+    // EVERY mutation must snapshot, or undo skips the one edit the author most
+    // wants back — and skipping is silent: the button still works, it just
+    // steps over that change.
+    foreach (['formsCanvasZ', 'formsCanvasDelete', 'formsCanvasAdd', 'inspectorChanged'] as $action) {
+        ok("a change through $action is remembered first",
+           (bool)preg_match('/function ' . $action . '\b[\s\S]{0,600}?\bremember\(\)/', $output),
+           'undo would step over this change');
+    }
+    // A drag is ONE state, snapshotted as it begins. Remembering on pointermove
+    // would fill the history with a hundred states nobody meant to make.
+    $downAt = strpos($output, "'pointerdown'");
+    ok('a drag is remembered once, as it starts',
+       $downAt !== false && str_contains(substr($output, $downAt, 600), 'remember()'));
+    $moveStart = strpos($output, "'pointermove'");
+    $moveEnd   = $moveStart === false ? 0 : strpos($output, 'addEventListener', $moveStart + 10);
+    ok('and not on every pointer move',
+       $moveStart !== false
+       && !str_contains(substr($output, $moveStart, $moveEnd - $moveStart), 'remember()'));
+
+    // Ctrl+Z inside a text box is the browser's own undo; taking it over would
+    // make typing feel broken to solve a problem it does not have.
+    ok('the keyboard shortcut leaves text boxes alone',
+       (bool)preg_match('/INPUT\|TEXTAREA\|SELECT/', $output));
+    ok('a new edit abandons the redo path',
+       str_contains($output, 'future.length = 0'));
+
+    // Redrawing as the author works, with the button kept for a slow machine.
+    ok('it offers to redraw as the author works',
+       $xpath->query("//*[@id='forms_canvas_live']")->length === 1);
+    // Every change has to reach the scheduler, or the switch is on and some
+    // edits still leave the picture stale — worse than no live redraw at all,
+    // because the author stops checking.
+    foreach (['formsCanvasZ', 'formsCanvasDelete', 'formsCanvasAdd', 'inspectorChanged'] as $action) {
+        ok("a change through $action schedules a redraw",
+           (bool)preg_match('/function ' . $action . '\b.*?\btouched\s*\(/s', $output),
+           'the switch would be on and this change would not show');
+    }
+    // A drag redraws on RELEASE. Firing on pointermove would spend a PDF per
+    // pixel to redraw a page that is under the pointer.
+    // Bounded to the handler's OWN body. A single regex with /s searches to the
+    // end of the file, so "pointermove … touched(" matched the release handler
+    // further down and the check failed on correct code.
+    $moveAt = strpos($output, "'pointermove'");
+    $moveBody = '';
+    if ($moveAt !== false) {
+        $nextAt   = strpos($output, 'addEventListener', $moveAt + 10);
+        $moveBody = substr($output, $moveAt, ($nextAt === false ? strlen($output) : $nextAt) - $moveAt);
+    }
+    ok('a drag redraws when the pointer is released, not while it moves',
+       $moveAt !== false && !str_contains($moveBody, 'touched(')
+       && (bool)preg_match("/'pointerup'[\s\S]{0,400}?touched\(0\)/", $output),
+       'redrawing on every pointermove would spend a PDF per pixel');
+    // An older answer must not paint over a newer one.
+    ok('a superseded redraw is abandoned rather than allowed to land',
+       str_contains($output, 'AbortController') && str_contains($output, "'AbortError'"));
+    ok('it draws the inspector', $xpath->query("//*[@id='forms_canvas_inspector']")->length === 1);
+    foreach (['ins_x', 'ins_y', 'ins_w', 'ins_h', 'ins_bind', 'ins_font', 'ins_size',
+              'ins_colour', 'ins_bordercolour', 'ins_align', 'ins_visible',
+              'ins_bold', 'ins_italic'] as $control) {
+        ok("the inspector draws $control", $xpath->query("//*[@id='" . $control . "']")->length === 1);
+    }
+
+    // The font is a stored token, not a name to be typed. A free-text box gives
+    // an author no way to know that the default face is spelled "freeserif".
+    $fontOptions = [];
+    foreach ($xpath->query("//select[@id='ins_font']/option") as $option) {
+        $fontOptions[] = (string)$option->getAttribute('value');
+    }
+    ok('the font is chosen from a list, not typed',
+       $xpath->query("//select[@id='ins_font']")->length === 1);
+    ok('the list offers the faces the document can be drawn in',
+       array_diff(array_keys(forms_font_names()), $fontOptions) === [],
+       implode(', ', array_diff(array_keys(forms_font_names()), $fontOptions)));
+    ok('and an empty option, for the report default', in_array('', $fontOptions, true));
+
+    // The palette is the whole of §13.4 for a form: an author picks a declared
+    // name or nothing. An option naming something the form cannot supply would
+    // be the page inviting exactly what TemplateForm then refuses.
+    $offered = [];
+    foreach ($xpath->query("//select[@id='ins_bind']/option") as $option) {
+        $value = (string)$option->getAttribute('value');
+        if ($value !== '') $offered[] = $value;
+    }
+    ok('the binding palette offers something', $offered !== [], count($offered) . ' name(s)');
+    $strangers = array_diff($offered, array_keys($forms_canvas_bindings));
+    ok('every name the palette offers is one this form can supply', $strangers === [],
+       implode(', ', array_slice($strangers, 0, 5)));
+
+    // Adding is limited to the kinds that need no sub-structure: a Table or a
+    // FieldBlock created here would have no columns and no parts.
+    require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
+    // Read through the DOM, which decodes entities exactly as a browser does.
+    // Searching the raw output for the kind name found nothing, because a
+    // correctly escaped attribute is not the string that was written.
+    $addable = [];
+    foreach ($xpath->query("//*[contains(@class,'fb-canvas-add')]") as $button) {
+        $addable[] = (string)$button->getAttribute('data-add');
+    }
+    foreach (\FreeBooks\Forms\Definition\TemplateForm::ADDABLE as $kind) {
+        ok("it offers to add a '$kind'", in_array($kind, $addable, true));
+    }
 
     // The PDF comes from the endpoint by URL, so a page naming the wrong op
     // renders an empty white rectangle and no error.

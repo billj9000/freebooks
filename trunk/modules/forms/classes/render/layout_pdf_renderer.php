@@ -86,6 +86,17 @@ final class LayoutPdfRenderer implements FormsRenderer
         private readonly string    $continuedLabel = 'Continued',
         private readonly string    $pageOfLabel    = 'of',
         private readonly ?string   $imageDirectory = null,
+        /**
+         * Where a BOUND image's path is resolved from — the company's files.
+         *
+         * A different root from $imageDirectory, and deliberately so. A literal
+         * filename is the form's own furniture and lives with the report
+         * images; a bound one is a path into business data, and the element
+         * carries the folder (Image::$pathPrefix). Resolving both against the
+         * report images made the Work Order look for a product photo among the
+         * logos and silently draw nothing.
+         */
+        private readonly ?string   $linkedImageDirectory = null,
     ) {}
 
     public function supports(Document $doc): bool
@@ -355,15 +366,27 @@ final class LayoutPdfRenderer implements FormsRenderer
 
     private function drawImage(Image $element): void
     {
-        $src = $element->src;
-        if ($src instanceof Binding) {
+        $bound = $element->src instanceof Binding;
+        $src   = $element->src;
+        if ($bound) {
             $value = $this->resolve($src);
             $src   = $value === null ? '' : (string)$value->raw;
         }
         if ($src === '') return;
 
-        $path = $this->imageDirectory !== null ? rtrim($this->imageDirectory, '/') . '/' . $src : $src;
-        if (!is_file($path)) return;      // a missing logo must not abort the document
+        // Two sources, two roots — see the constructor. basename() on the bound
+        // one because the value is data: a filename arriving from a record is
+        // still a filename, and "../.." in one would otherwise reach out of the
+        // company's own files.
+        if ($bound) {
+            $root = $this->linkedImageDirectory;
+            $path = $root === null ? '' : rtrim($root, '/') . '/'
+                  . trim(str_replace('..', '', $element->pathPrefix), '/') . '/' . basename($src);
+        } else {
+            $path = $this->imageDirectory === null ? $src
+                  : rtrim($this->imageDirectory, '/') . '/' . basename($src);
+        }
+        if ($path === '' || !is_file($path)) return;   // a missing image must not abort the document
 
         $box = $element->box;
         $this->pdf->Image($path, $box->x, $box->y, $box->width ?? 0, $box->height ?? 0);
@@ -376,16 +399,33 @@ final class LayoutPdfRenderer implements FormsRenderer
         if ($text === '') return;
 
         $box    = $element->box;
-        $colour = $element->style?->colour;
+        $style  = $element->style;
+        $colour = $style?->colour;
+
+        // 'position' MUST be empty. TCPDF reads 'L' as "align to the left
+        // MARGIN" and throws away the x it was given, so a barcode positioned
+        // at 118 mm printed at 8 mm — measured, on the only barcode in the
+        // shipped set. The legacy FormBarCode() passes '' for exactly this
+        // reason; the port did not, and nothing noticed because a barcode's
+        // data is right wherever the ink lands.
+        //
+        // The rest matches FormBarCode() too: the human-readable code is
+        // printed beneath the bars in the element's own font, and 'fitwidth'
+        // shrinks the reserved width back to the bars' natural width so a
+        // barcode with no stored width does not stretch across the page.
         $this->pdf->write1DBarcode($text, $element->symbology, $box->x, $box->y,
             $box->width ?? 0, $box->height ?? 0, 0.4, [
-                'position'    => 'L',
-                'border'      => false,
-                'padding'     => 0,
+                'position'    => '',
+                'border'      => (bool)($style?->borderShow),
                 'fgcolor'     => $colour ? [$colour->r, $colour->g, $colour->b] : [0, 0, 0],
                 'bgcolor'     => false,
-                'text'        => false,
-            ]);
+                'text'        => true,
+                'font'        => $style?->font ?: $this->defaultFont,
+                'fontsize'    => $style?->size ?: 8,
+                'stretchtext' => 1,
+                'stretch'     => false,
+                'fitwidth'    => true,
+            ], 'N');
     }
 
     // ── tables ───────────────────────────────────────────────────────────────
@@ -633,7 +673,8 @@ final class LayoutPdfRenderer implements FormsRenderer
 
     private function applyFont(?Style $style): void
     {
-        $this->pdf->SetFont($style?->font ?: $this->defaultFont, '', $style?->size ?: 10);
+        $this->pdf->SetFont($style?->font ?: $this->defaultFont,
+            $style?->fontStyle() ?? '', $style?->size ?: 10);
     }
 
     private function applyTextColour(?Style $style): void

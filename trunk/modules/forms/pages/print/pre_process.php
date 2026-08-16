@@ -191,6 +191,7 @@ function forms_print_render(): ?object
     continuedLabel: defined('TEXT_CONTINUED')     ? TEXT_CONTINUED            : 'Continued',
     pageOfLabel:    defined('TEXT_OF')            ? TEXT_OF                   : 'of',
     imageDirectory: PF_DIR_MY_REPORTS . 'images',
+  linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
   );
 
   return $renderer->render($document, new RenderOptions(

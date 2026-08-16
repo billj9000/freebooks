@@ -188,7 +188,24 @@ final readonly class Style
         public ?Colour  $borderColour = null,
         public bool     $borderShow = false,
         public bool     $truncate   = false,
+        /**
+         * Weight and slant, as TCPDF's font style.
+         *
+         * New in Forms: PhreeForm passed '' for the style on every SetFont it
+         * ever made, and no shipped definition carries a tag for either — so
+         * this is not a setting that was lost in the port but one the old
+         * format could not express. It is the first thing the native format
+         * exists to allow (§13.3).
+         */
+        public bool     $bold       = false,
+        public bool     $italic     = false,
     ) {}
+
+    /** TCPDF's style string: '', 'B', 'I' or 'BI'. */
+    public function fontStyle(): string
+    {
+        return ($this->bold ? 'B' : '') . ($this->italic ? 'I' : '');
+    }
 }
 
 /** The currency a record was posted in, needed to format its monetary values. */

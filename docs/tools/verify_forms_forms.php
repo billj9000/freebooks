@@ -65,6 +65,7 @@ $renderer = new LayoutPdfRenderer(
     continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
     pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
     imageDirectory: PF_DIR_MY_REPORTS . 'images',
+  linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
 );
 
 /**
@@ -220,8 +221,8 @@ foreach ($forms as $id => $title) {
     // branch — the one a caller reaches by clicking Print on an invoice, and
     // the one whose links were broken while every rID-driven check passed.
     // Named for the company. The record ids in these files mean nothing outside
-    // the database they came from, and an unqualified name let a demo invoice be
-    // printed against production on the next run: the page correctly selected no
+    // the database they came from, and an unqualified name let one company's
+    // invoice be printed against another on the next run: the page selected no
     // records, and the suite reported the print path broken. A fixture that
     // crosses companies can fail for the wrong reason, and can as easily pass
     // for one.

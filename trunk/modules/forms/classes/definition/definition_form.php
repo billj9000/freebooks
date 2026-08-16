@@ -243,6 +243,11 @@ final class DefinitionForm
             'colour' => $band?->colour === null ? ''
                         : sprintf('#%02x%02x%02x', $band->colour->r, $band->colour->g, $band->colour->b),
             'align'  => $band?->align?->value ?? '',
+            // No control draws these on the report editor, so they travel
+            // through the form rather than being rebuilt from nothing — the
+            // same reason the band's border colour does.
+            'bold'   => $band?->bold   ? '1' : '',
+            'italic' => $band?->italic ? '1' : '',
         ];
     }
 
@@ -400,6 +405,8 @@ final class DefinitionForm
                 size:   $size === '' || !is_numeric($size) ? null : (float)$size,
                 colour: self::colour($colour),
                 align:  Align::tryFrom((string)($values['align'] ?? '')),
+                bold:   !empty($values['bold']),
+                italic: !empty($values['italic']),
             );
         };
 

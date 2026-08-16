@@ -91,6 +91,7 @@ $layoutPdf = new LayoutPdfRenderer(
     continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
     pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
     imageDirectory: PF_DIR_MY_REPORTS . 'images',
+  linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
 );
 
 /**

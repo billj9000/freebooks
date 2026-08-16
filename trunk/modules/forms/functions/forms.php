@@ -119,3 +119,95 @@ function forms_email_sender(string $address = '', string $name = ''): array
     $name    = trim($name)    !== '' ? trim($name)    : (string)($_SESSION['display_name'] ?? '');
     return array($name, $address);
 }
+
+/**
+ * The binding names a form can actually supply.
+ *
+ * A query-driven form has a dataset, and the dataset declares its fields. The
+ * nine served by a provider declare NOTHING — design §13.8 risk 3 — so the
+ * provider is asked the only way it can be: the form is run once and the keys
+ * are read back off the Record it produced. Measured rather than assumed, and
+ * it is the same contract the renderer will resolve against.
+ *
+ * Shared by the canvas page and by the render endpoint deliberately. They must
+ * agree on what an author may name, or the picture would accept an edit the
+ * save then refuses.
+ *
+ * The template's own bindings are always allowed, whatever the answer, or a
+ * form would lose a field the moment its record table went empty.
+ *
+ * @return array<string,true>
+ */
+function forms_binding_names($definition, $runner, $catalog, $db): array
+{
+    $allowed = array();
+
+    foreach ($definition->template?->elements ?? array() as $element) {
+        if (($element instanceof \FreeBooks\Forms\Document\Field
+             || $element instanceof \FreeBooks\Forms\Document\Barcode)
+            && $element->bind->scope !== \FreeBooks\Forms\Document\Scope::Context) {
+            $allowed[$element->bind->name] = true;
+        }
+        if ($element instanceof \FreeBooks\Forms\Document\Image
+            && $element->src instanceof \FreeBooks\Forms\Document\Binding) {
+            $allowed[$element->src->name] = true;
+        }
+        if ($element instanceof \FreeBooks\Forms\Document\Table) {
+            foreach ($element->columns as $column) $allowed[$column->bind->name] = true;
+        }
+    }
+
+    if ($definition->datasetId !== null && $catalog->has($definition->datasetId)) {
+        foreach (array_keys($catalog->get($definition->datasetId)->fields) as $key) $allowed[$key] = true;
+        return $allowed;
+    }
+
+    $plan = $runner->planDefinition($definition);
+    if (!$plan->runnable() || $plan->recordTable === ''
+        || !preg_match('/^[a-z_][a-z0-9_]*$/i', $plan->recordKey)) {
+        return $allowed;
+    }
+
+    $rows = $db->Execute("select distinct `" . $plan->recordKey . "` from `"
+        . (defined('DB_PREFIX') ? DB_PREFIX : '') . $plan->recordTable . "`
+        order by `" . $plan->recordKey . "` desc limit 5");
+    while ($rows && !$rows->EOF) {
+        $id = (string)$rows->fields[$plan->recordKey];
+        $rows->MoveNext();
+        try {
+            $document = $runner->runDefinition($definition, array($id),
+                array('dates' => $definition->dateDefault));
+        } catch (\Throwable $e) { continue; }
+        if (!($document instanceof \FreeBooks\Forms\Document\LayoutDocument)
+            || count($document->records) === 0) continue;
+
+        $record = $document->records[0];
+        foreach (array_keys($record->values) as $key) $allowed[$key] = true;
+        foreach ($record->tables as $lines) {
+            foreach ($lines as $line) foreach (array_keys($line) as $key) $allowed[$key] = true;
+            break;
+        }
+        break;
+    }
+    return $allowed;
+}
+
+/**
+ * The fonts a document may be drawn in.
+ *
+ * PhreeForm's own list, from its defaults.php — helvetica, courier, times and,
+ * on TCPDF, freeserif. It is short because these are the faces the PDF layer
+ * can be relied on to have; a name TCPDF cannot find is not a fallback but an
+ * error, raised from inside the renderer with the document half built.
+ *
+ * The keys are what a definition stores and the values are what a person reads.
+ * They are not the same thing, which is the whole reason the canvas offers a
+ * list: nobody would guess that the default face is spelled "freeserif".
+ *
+ * @return array<string,string> stored name => label
+ */
+function forms_font_names(): array
+{
+    $fonts = $GLOBALS['Fonts'] ?? array();
+    return is_array($fonts) ? $fonts : array();
+}

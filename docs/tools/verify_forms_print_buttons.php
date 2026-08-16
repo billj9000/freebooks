@@ -155,6 +155,7 @@ printf("  %d group(s): %s\n", count($groups), implode(', ', $groups));
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 $runner = new FormRunner($db, $catalog);
+$loader = new \FreeBooks\Forms\Definition\DefinitionLoader($catalog);
 
 $empty = $declined = 0;
 foreach ($groups as $group) {
@@ -167,12 +168,21 @@ foreach ($groups as $group) {
     }
     $lines = array();
     while (!$result->EOF) {
-        $id         = (int)$result->fields['id'];
-        $definition = get_report_details($id);
-        $plan       = $definition ? $runner->plan($definition) : null;
+        $id = (int)$result->fields['id'];
+        // Through the format-aware loader, not get_report_details(): a form the
+        // canvas has saved is native, and the legacy reader refuses it — which
+        // this tool reported as "no readable definition" on a file that reads
+        // perfectly well.
+        try {
+            $definition = $loader->load($id);
+            $plan       = $runner->planDefinition($definition);
+        } catch (\FreeBooks\Forms\Definition\DefinitionException $e) {
+            $definition = null;
+            $plan       = null;
+        }
         if (!$definition) {
             $declined++;
-            $lines[] = sprintf('pf_%d has no readable definition', $id);
+            $lines[] = sprintf('pf_%d cannot be read: %s', $id, $e->getMessage());
         } elseif (!$plan->runnable()) {
             $declined++;
             $lines[] = sprintf('pf_%d (%s) DECLINED: %s', $id,
