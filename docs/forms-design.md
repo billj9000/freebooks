@@ -1598,7 +1598,7 @@ committing them, and teaching the installer to seed those instead.
 
 Three traps in that, all of which fail silently:
 
-- **`ImportReport()` is where the paper size is stamped** (§11 paper-size work, commit `5d0b56d`).
+- **`ImportReport()` is where the paper size is stamped** (§11 paper-size work, commit `5db3ccd`).
   A native seeding path that does not do the same loses the installer's Letter/A4 choice on exactly
   the installs that just made it. **Re-stamp has the same hole**: it is a textual substitution on
   XML and would skip every native file.
