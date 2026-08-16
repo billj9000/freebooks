@@ -253,7 +253,19 @@ class backup {
   function db_executeSql($sql_file, $table_prefix = '') {
 //echo 'start SQL execute';
     global $db;
+    // All four are built by appending inside the loop below, and $errors is
+    // appended to ONLY when a query fails — so on a clean run it stayed
+    // undefined and this returned array('errors' => null). PHP 8 made
+    // count(null) fatal, which meant copy_db_table() died on the SUCCESS path:
+    // creating or copying a company failed with "count(): Argument #1 must be
+    // of type Countable|array, null given" precisely when nothing had gone
+    // wrong. $results and $string are the same shape of bug one step behind:
+    // a run with no executed statement returns null and '' respectively.
     $ignored_count = 0;
+    $errors        = array();
+    $return_output = array();
+    $results       = 0;
+    $string        = '';
     // prepare for upgrader processing
     if (!get_cfg_var('safe_mode')) {
       @set_time_limit(1200);

@@ -142,7 +142,7 @@ HTML;
         } catch (PDOException $e) {
             $page = $_POST['page'] ?? $_GET['page'] ?? '';
             if ($page === 'ajax') {
-                if (method_exists($messageStack, 'debug')) {
+                if (is_object($messageStack) && method_exists($messageStack, 'debug')) {
                     $messageStack->debug("\n\nThe failing sql was: " . $zf_sql);
                     $messageStack->debug("\n\nPDO returned: " . $e->getCode() . ' ' . $e->getMessage());
                     if (defined('FILENAME_DEFAULT')) $messageStack->write_debug();
@@ -150,7 +150,7 @@ HTML;
                 echo createXmlHeader() . xmlEntry('error', 'There was a SQL Error: ' . $e->getMessage()) . createXmlFooter();
                 die();
             }
-            if (method_exists($messageStack, 'debug')) {
+            if (is_object($messageStack) && method_exists($messageStack, 'debug')) {
                 $messageStack->debug("\n\nThe failing sql was: " . $zf_sql);
                 $messageStack->debug("\n\nPDO returned: " . $e->getCode() . ' ' . $e->getMessage());
                 if (defined('FILENAME_DEFAULT')) {
@@ -162,7 +162,9 @@ HTML;
                     die;
                 }
             } else {
-                echo str_replace("\n", '<br />', $messageStack->debug_info ?? $e->getMessage());
+                echo str_replace("\n", '<br />',
+                    is_object($messageStack) ? ($messageStack->debug_info ?? $e->getMessage())
+                                             : $e->getMessage());
                 die;
             }
         }
@@ -211,7 +213,7 @@ HTML;
             $obj->result     = $stmt->columnCount() > 0 ? $stmt->fetchAll() : [];
             $obj->_load_cursor();
         } catch (PDOException $e) {
-            if (method_exists($messageStack, 'debug')) {
+            if (is_object($messageStack) && method_exists($messageStack, 'debug')) {
                 $messageStack->debug("\n\nThe failing sql was: " . $zf_sql);
                 $messageStack->debug("\n\nPDO returned: " . $e->getCode() . ' ' . $e->getMessage());
             }

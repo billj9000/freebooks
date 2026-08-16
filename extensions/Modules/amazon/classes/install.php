@@ -35,7 +35,19 @@ class amazon_admin {
   function install($module) {
       global $db;
       // add field amazon_confirm
-      if (!db_field_exists(TABLE_SHIPPING_LOG, 'amazon_confirm')) $db->Execute("ALTER TABLE ".TABLE_SHIPPING_LOG." ADD amazon_confirm ENUM('0', '1') NOT NULL DEFAULT '0'");
+      //
+      // shipping_log belongs to the SHIPPING module, and this runs before that
+      // module has created it: creating a company installs the optional modules
+      // in directory order, so 'amazon' is reached long before 'shipping'.
+      // db_field_exists() then describes a table that is not there, which halts
+      // the whole company creation on a query that was only ever asking a
+      // question. Guarded by existence rather than by ordering, because the
+      // order is scandir's and not ours to rely on — and a company that never
+      // installs shipping is entitled to install this.
+      if (db_table_exists(TABLE_SHIPPING_LOG)
+          && !db_field_exists(TABLE_SHIPPING_LOG, 'amazon_confirm')) {
+          $db->Execute("ALTER TABLE ".TABLE_SHIPPING_LOG." ADD amazon_confirm ENUM('0', '1') NOT NULL DEFAULT '0'");
+      }
       if (!db_field_exists(TABLE_INVENTORY, 'amazon')) { // setup new tab in table inventory
           $result = $db->Execute("SELECT id FROM ".TABLE_EXTRA_TABS." WHERE tab_name='Amazon'");
           if ($result->RecordCount() == 0) {

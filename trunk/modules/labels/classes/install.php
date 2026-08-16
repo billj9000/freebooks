@@ -54,4 +54,11 @@ class labels_admin {
   function load_reports($module) {
     return false;
   }
+
+  // Every install class is expected to answer this: the company manager and the
+  // installer call it unconditionally when the new company is asked for demo
+  // data, and its absence was a fatal there rather than a skipped step.
+  function load_demo() {
+    return false;
+  }
 }

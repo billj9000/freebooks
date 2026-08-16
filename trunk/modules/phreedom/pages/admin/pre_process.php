@@ -93,8 +93,11 @@ switch ($_REQUEST['action']) {
 	    write_configure('MODULE_' . strtoupper($method) . '_STATUS', constant('MODULE_' . strtoupper($method) . '_VERSION'));
 	    // Load the remaining configuration constants
 	    foreach ($mInstall->keys as $key => $value) write_configure($key, $value);
-	    if ($demo) $error = $mInstall->load_demo(); // load demo data
-		$mInstall->load_reports($method);
+	    // method_exists, because these are OPTIONAL on an install class and a
+	    // module that omits one used to fatal the whole operation rather than
+	    // simply having nothing to contribute.
+	    if ($demo && method_exists($mInstall, 'load_demo')) $error = $mInstall->load_demo();
+		if (method_exists($mInstall, 'load_reports')) $mInstall->load_reports($method);
 		admin_add_reports($method);
 	  }
 	  if ($mInstall->install($method)) $error = true; // install any special stuff
@@ -207,8 +210,15 @@ switch ($_REQUEST['action']) {
 			  write_configure('MODULE_' . strtoupper($entry) . '_STATUS', constant('MODULE_' . strtoupper($entry) . '_VERSION'));
 			  // Load the remaining configuration constants
 			  foreach ($install_mod->keys as $key => $value) write_configure($key, $value);
-			  if ($task == 'demo') if ($install_mod->load_demo()) $error = true; // load demo data
-			  if ($entry <> 'phreedom') $install_mod->load_reports($entry);
+			  // Optional on an install class: 'labels' has never had load_demo(),
+			  // and calling it unconditionally made creating a company with demo
+			  // data die on a module that simply has no demo data to load.
+			  if ($task == 'demo' && method_exists($install_mod, 'load_demo')) {
+			    if ($install_mod->load_demo()) $error = true;
+			  }
+			  if ($entry <> 'phreedom' && method_exists($install_mod, 'load_reports')) {
+			    $install_mod->load_reports($entry);
+			  }
 			  if ($entry == 'phreeform') {
 			  	$temp_mod = new phreedom_admin;
 	  			$temp_mod->load_reports('phreedom');
@@ -244,7 +254,24 @@ switch ($_REQUEST['action']) {
 	  $dates = gen_get_dates();
 	  validate_fiscal_year($dates['ThisYear'], '1', $dates['ThisYear'] . '-' . $dates['ThisMonth'] . '-01');
 	  build_and_check_account_history_records();
-	  gen_auto_update_period(false);
+	  // NOT gen_auto_update_period(): it asks gen_calculate_period(), which
+	  // short-circuits on CURRENT_ACCOUNTING_PERIOD_START/END — constants that
+	  // belong to the company THIS PROCESS opened, not the one being created.
+	  // When the source company's current period happens to span today (a
+	  // 14-period fiscal year reaching into this month, say), it returns that
+	  // period number, gen_auto_update_period() concludes nothing has changed,
+	  // and the new company is left pointing at a period it does not have. The
+	  // first page that reads it then builds SQL from an empty fiscal year.
+	  //
+	  // Asked of the NEW database instead, which is what $db is here.
+	  $today  = date('Y-m-d');
+	  $period = $db->Execute("select period, start_date, end_date from " . TABLE_ACCOUNTING_PERIODS . "
+	    where start_date <= '" . $today . "' and end_date >= '" . $today . "'");
+	  if ($period->RecordCount() == 1) {
+	    write_configure('CURRENT_ACCOUNTING_PERIOD',       $period->fields['period']);
+	    write_configure('CURRENT_ACCOUNTING_PERIOD_START', $period->fields['start_date']);
+	    write_configure('CURRENT_ACCOUNTING_PERIOD_END',   $period->fields['end_date']);
+	  }
 	}
 	if (!$error) { // reset SESSION['company'] to new company and redirect to install->store_setup
 	  $db->Execute("update " . TABLE_CONFIGURATION . " set configuration_value = '" . db_input($co_name) . "'

@@ -596,7 +596,10 @@ class inventory_admin {
 	");
 
 	// copy the demo images
-	require(DIR_FS_MODULES . 'phreedom/classes/backup.php');
+	// require_once, not require: the company manager has already loaded this
+	// class before it calls load_demo(), and a second bare require redeclares
+	// it — a fatal, on the one path that seeds demo data into a new company.
+	require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
 	$backups = new backup;
 	if (!is_dir(DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images/demo')) {
 		if (!@mkdir(DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images/demo')) $error = true;

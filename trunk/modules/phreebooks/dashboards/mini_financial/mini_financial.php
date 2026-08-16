@@ -138,9 +138,15 @@ class mini_financial extends ctl_panel {
 		global $db;
 		$contents = '';
 		// find the period range within the fiscal year from the first period to current requested period
-		$result = $db->Execute("select fiscal_year from " . TABLE_ACCOUNTING_PERIODS . " where period = " . $period);
-		$fiscal_year = $result->fields['fiscal_year'];
-		$result = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . " where fiscal_year = " . $fiscal_year . " order by period limit 1");
+		$result = $db->Execute("select fiscal_year from " . TABLE_ACCOUNTING_PERIODS . " where period = " . (int)$period);
+		// A period that is not in this company's calendar yields no fiscal year,
+		// and the next query then reads "where fiscal_year =  order by" — a
+		// syntax error rather than an empty dashboard. A new company can be in
+		// exactly that state, carrying a current period copied from the company
+		// it was created from.
+		$fiscal_year = $result->fields['fiscal_year'] ?? '';
+		if ($fiscal_year === '' || $fiscal_year === null) return $contents;
+		$result = $db->Execute("select period from " . TABLE_ACCOUNTING_PERIODS . " where fiscal_year = " . (int)$fiscal_year . " order by period limit 1");
 		$first_period = $result->fields['period'];
 		// build revenues
 		$cur_year  = $this->add_income_stmt_data(30, $first_period, $period, $negate = true); // Income account_type

@@ -304,8 +304,14 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 			    		write_configure('MODULE_' . strtoupper($entry) . '_STATUS', constant('MODULE_' . strtoupper($entry) . '_VERSION'));
 			    		// Load the remaining configuration constants
 			    		foreach ($install_mod->keys as $key => $value) write_configure($key, $value);
-			    		if ($company_demo) if ($install_mod->load_demo()) $error = true; // load demo data
-			    		if ($entry <> 'phreedom') $install_mod->load_reports($entry);
+			    		// Both are optional on an install class; calling one a module
+			    		// does not define fataled the install (see 'labels').
+			    		if ($company_demo && method_exists($install_mod, 'load_demo')) {
+			    		  if ($install_mod->load_demo()) $error = true;
+			    		}
+			    		if ($entry <> 'phreedom' && method_exists($install_mod, 'load_reports')) {
+			    		  $install_mod->load_reports($entry);
+			    		}
 			    	}
 			    	if ($install_mod->install($entry)) $error = true; // install any special stuff
 			    	if ($error) $messageStack->add(sprintf(MSG_ERROR_MODULE_INSTALL, $entry), 'error');
@@ -344,8 +350,10 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 			    			write_configure('MODULE_' . strtoupper($entry) . '_STATUS', constant('MODULE_' . strtoupper($entry) . '_VERSION'));
 			    			// 	Load the remaining configuration constants
 			    			foreach ($install_mod->keys as $key => $value) write_configure($key, $value);
-			    			if ($company_demo) if ($install_mod->load_demo()) $error = true; // load demo data
-			    			$install_mod->load_reports($entry);
+			    			if ($company_demo && method_exists($install_mod, 'load_demo')) {
+			    			  if ($install_mod->load_demo()) $error = true;
+			    			}
+			    			if (method_exists($install_mod, 'load_reports')) $install_mod->load_reports($entry);
 			    		}
 			    		if ($install_mod->install($entry)) $error = true; // install any special stuff
 			    		if ($error) $messageStack->add(sprintf(MSG_ERROR_MODULE_INSTALL, $entry), 'error');

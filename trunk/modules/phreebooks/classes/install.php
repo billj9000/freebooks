@@ -301,7 +301,7 @@ class phreebooks_admin {
 	$error = false;
 	$db_version = defined('MODULE_PHREEBOOKS_STATUS') ? MODULE_PHREEBOOKS_STATUS : false;
 	if (!$db_version || $db_version < 2.1 || $db_version < '2.1') { // For PhreeBooks release 2.1 or lower to update to Phreedom structure
-	  require(DIR_FS_MODULES . 'phreebooks/functions/updater.php');
+	  require_once(DIR_FS_MODULES . 'phreebooks/functions/updater.php');
 	  if(db_table_exists(TABLE_PROJECT_VERSION)){
 		  $result = $db->Execute("select * from " . TABLE_PROJECT_VERSION . " WHERE project_version_key = 'PhreeBooks Database'");
 		  $db_version = $result->fields['project_version_major'] . '.' . $result->fields['project_version_minor'];
