@@ -83,6 +83,23 @@ foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
         continue;
     }
 
+    // A SERIAL form is not a page — it is character-cell text for a receipt
+    // printer. PhreeForm routes it to BuildSeq(), where `width` counts columns
+    // and `rowbreak` ends a line; there are no coordinates at all, which is why
+    // converting one produces a template with every element at 0,0.
+    //
+    // Forms has no renderer for that kind yet (§13.16), so shipping a native
+    // copy would leave a NEW install unable to print a receipt with either
+    // engine: Forms would draw nonsense and PhreeForm cannot read the format.
+    // Left as xml, which the seeder falls back to and PhreeForm still prints.
+    if (preg_match('#<serialform><!\[CDATA\[([^\]]*)\]\]>#', $contents, $serial)
+        && trim($serial[1]) !== '' && trim($serial[1]) !== '0') {
+        $native = preg_replace('/\.xml$/i', '.json', $path);
+        if (is_file($native) && $write) { @unlink($native); echo "  [remove] " . str_replace(DIR_FS_MODULES, 'modules/', $native) . " (serial form)\n"; }
+        echo "  [--] " . $shown . " is a serial (receipt) form; it stays xml\n";
+        continue;
+    }
+
     $builder = new DefinitionBuilder($catalog);
     try {
         // No id: a shipped file is not yet in any catalog, and the id it will

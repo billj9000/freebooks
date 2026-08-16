@@ -148,6 +148,15 @@ final class ReportConverter
                 width:     $this->number($field->columnwidth ?? $field->width ?? null),
                 align:     $this->align($this->scalar($field->align ?? null)),
                 format:    $hint === '' ? null : new Format($hint),
+                // A structural report's columns break and total exactly as any
+                // other report's do — the provider decides where the ROWS come
+                // from, not how the page is laid out. Omitting these let both
+                // default to false, so every column of every provider-backed
+                // report stacked into a single band down the left of the page
+                // and no column carried a total. The dataset builder above has
+                // always read them; this one simply never did.
+                total:     $this->truthy($field->total ?? null),
+                pageBreak: $this->truthy($field->columnbreak ?? null),
             );
             $index++;
         }
