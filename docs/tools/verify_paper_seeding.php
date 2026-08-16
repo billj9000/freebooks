@@ -67,11 +67,43 @@ function ok(string $what, bool $cond, string $detail = ''): void {
  * what it did on the first run of this tool.
  */
 function pageOf(string $file): array {
-    $xml = (string)file_get_contents($file);
+    $text = (string)file_get_contents($file);
+
+    // Native definitions seed as JSON now, and a definition that ships in both
+    // formats is written in whichever one the seeder preferred. A tool that
+    // only read XML would report every native seeding as having no paper at
+    // all — which is what it did the moment the shipped set gained .json files.
+    if (str_starts_with(ltrim($text), '{')) {
+        $native = json_decode($text, true);
+        return [
+            'size'        => (string)($native['page']['size']        ?? ''),
+            'orientation' => (string)($native['page']['orientation'] ?? ''),
+        ];
+    }
     return [
-        'size'        => preg_match('#<size><!\[CDATA\[([^\]]*)\]\]></size>\s*<orientation>#', $xml, $m) ? $m[1] : '',
-        'orientation' => preg_match('#<orientation><!\[CDATA\[([^\]]*)\]\]>#', $xml, $m) ? $m[1] : '',
+        'size'        => preg_match('#<size><!\[CDATA\[([^\]]*)\]\]></size>\s*<orientation>#', $text, $m) ? $m[1] : '',
+        'orientation' => preg_match('#<orientation><!\[CDATA\[([^\]]*)\]\]>#', $text, $m) ? $m[1] : '',
     ];
+}
+
+/**
+ * A paper compared by NAME.
+ *
+ * The legacy format stores "A4:210:297" and the native one "A4" — the same
+ * paper, spelled for two different readers. Everything here is asked "is this
+ * the paper we requested", never "is this the same string".
+ */
+function paperName(string $size): string {
+    return explode(':', $size)[0];
+}
+
+/** The title a written definition carries, in whichever format it is in. */
+function titleOf(string $file): string {
+    $text = (string)file_get_contents($file);
+    if (str_starts_with(ltrim($text), '{')) {
+        return (string)(json_decode($text, true)['title'] ?? '');
+    }
+    return preg_match('#<title><!\[CDATA\[(.*?)\]\]></title>#s', $text, $m) ? $m[1] : '';
 }
 
 // The module whose reports we seed. phreebooks carries the widest spread —
@@ -91,9 +123,17 @@ $tempRoot  = sys_get_temp_dir() . '/fb_paper_' . getmypid() . '/';
 
 $cleanup = function () use ($db, $highWater, $tempRoot) {
     $db->Execute("delete from " . TABLE_PHREEFORM . " where id > " . (int)$highWater);
-    foreach (glob($tempRoot . '*/*') ?: [] as $f) @unlink($f);
-    foreach (glob($tempRoot . '*') ?: [] as $d) @rmdir($d);
-    @rmdir($tempRoot);
+    // Recursive: seeding now also copies the IMAGES a definition names into an
+    // images/ subdirectory beside the files, and a two-level sweep left it
+    // behind — reported as "the temp directory was removed" failing, which is
+    // this tool noticing its own tidying rather than a defect in the seeding.
+    $sweep = function (string $dir) use (&$sweep): void {
+        foreach (glob($dir . '/*') ?: [] as $path) {
+            is_dir($path) ? $sweep($path) : @unlink($path);
+        }
+        @rmdir($dir);
+    };
+    $sweep(rtrim($tempRoot, '/'));
 };
 
 try {
@@ -111,10 +151,29 @@ try {
         $files = glob($savePath . 'pf_*') ?: [];
         ok(sprintf('%d definition(s) were written', count($files)), count($files) > 0);
 
+        // WHICH FORMAT was written, which every other check here is blind to.
+        // The point of the shipping set (§13.5) is that a new company gets
+        // NATIVE definitions; a seeder that quietly fell back to xml would
+        // satisfy every paper assertion below and ship the thing step 5 exists
+        // to replace. Counted against the sources that HAVE a native file, so
+        // a module shipping only xml is not reported as a failure.
+        $expectNative = 0;
+        foreach ($sources as $source) {
+            if (file_exists($readPath . substr($source, 0, -4) . '.json')) $expectNative++;
+        }
+        $native = 0;
+        foreach ($files as $file) {
+            if (str_starts_with(ltrim((string)file_get_contents($file)), '{')) $native++;
+        }
+        ok(sprintf('the %d definition(s) that ship native were seeded native', $expectNative),
+           $expectNative > 0 && $native === $expectNative, "$native of $expectNative");
+
         $wrongSize = $wrongOrientation = [];
         foreach ($files as $file) {
             $page = pageOf($file);
-            if ($page['size'] !== $paper) $wrongSize[] = basename($file) . " has '{$page['size']}'";
+            if (paperName($page['size']) !== paperName($paper)) {
+                $wrongSize[] = basename($file) . " has '{$page['size']}'";
+            }
         }
         ok('every definition carries the requested paper', $wrongSize === [],
            implode('; ', array_slice($wrongSize, 0, 3)));
@@ -123,8 +182,8 @@ try {
         // filename is a database id rather than the original name.
         $byTitle = [];
         foreach ($files as $file) {
-            $xml = (string)file_get_contents($file);
-            if (preg_match('#<title><!\[CDATA\[(.*?)\]\]></title>#s', $xml, $m)) $byTitle[$m[1]] = $file;
+            $title = titleOf($file);
+            if ($title !== '') $byTitle[$title] = $file;
         }
         foreach ($sources as $source) {
             $xml = (string)file_get_contents($readPath . $source);
@@ -151,8 +210,11 @@ try {
         $twin = $letter . basename($file);
         if (!file_exists($twin)) continue;
         $pairs++;
-        $left  = str_replace('A4:210:297',     '@PAPER@', (string)file_get_contents($file));
-        $right = str_replace('Letter:216:282', '@PAPER@', (string)file_get_contents($twin));
+        // Normalised by NAME, so the comparison holds whichever format the
+        // seeder wrote: the legacy token carries dimensions, the native one
+        // does not, and neither is the thing under test here.
+        $left  = str_replace(['A4:210:297', '"A4"'],         '@PAPER@', (string)file_get_contents($file));
+        $right = str_replace(['Letter:216:282', '"Letter"'], '@PAPER@', (string)file_get_contents($twin));
         if ($left !== $right) $differ[] = basename($file);
     }
     ok(sprintf('%d definition pair(s) compared', $pairs), $pairs > 0);
@@ -170,7 +232,7 @@ try {
     foreach (glob($again . 'pf_*') ?: [] as $file) {
         $page = pageOf($file);
         $seen++;
-        if ($page['size'] === 'A4:210:297') $same++;
+        if (paperName($page['size']) === 'A4') $same++;
     }
     ok('a second seeding onto the same paper produces the same paper',
        $seen > 0 && $same === $seen, "$same of $seen");
@@ -186,7 +248,7 @@ try {
     admin_add_reports($module, $override, $other);
     $files    = glob($override . 'pf_*') ?: [];
     $honoured = 0;
-    foreach ($files as $file) if (pageOf($file)['size'] === $other) $honoured++;
+    foreach ($files as $file) if (paperName(pageOf($file)['size']) === paperName($other)) $honoured++;
     ok('the argument is used, not the constant',
        $files !== [] && $honoured === count($files), "$honoured of " . count($files));
 
@@ -196,9 +258,9 @@ try {
     // for something else and getting Letter back is the failure this proves is
     // detectable.
     echo "\n=== the check can actually fail ===\n";
-    $shipped = array_unique(array_column($declared, 'size'));
+    $shipped = array_unique(array_map('paperName', array_column($declared, 'size')));
     ok('the shipped definitions declare a paper that is NOT what we asked for',
-       !in_array($other, $shipped, true) && !in_array('A4:210:297', $shipped, true),
+       !in_array(paperName($other), $shipped, true) && !in_array('A4', $shipped, true),
        'shipped sizes: ' . implode(', ', $shipped) . ' — the assertions would pass without the feature');
 } finally {
     $cleanup();

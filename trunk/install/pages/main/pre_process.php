@@ -368,6 +368,18 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		  		// install reports now that categories are set up
 		  		if ($entry <> '.' && $entry <> '..' ) admin_add_reports($entry, DIR_FS_MY_FILES . $_SESSION['company'] . '/phreeform/', $paper_size);
 		  	}
+			// A FRESH install seeds native definitions (design §13.5), and
+			// PhreeForm cannot read one — its own loader refuses the format by
+			// design. So a new company whose Print buttons still pointed at
+			// PhreeForm would have a Print button that errors on every
+			// document it has. The key ships OFF so that INSTALLING Forms on an
+			// existing company changes nothing; a new company has nothing to
+			// preserve and everything to lose by leaving it off.
+			//
+			// No new mechanism: it is the same per-company switch the settings
+			// page offers, set differently at the one moment the difference is
+			// knowable.
+			if (defined('MODULE_FORMS_STATUS')) write_configure('MODULE_FORMS_PRINT_BUTTONS', '1');
 		}
 		if (!$error) { // input admin username record, clear the tables first
 			if (DEBUG) $messageStack->debug("\n  installing users");

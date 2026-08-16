@@ -1,0 +1,332 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "frm",
+    "title": "Deposit Slip",
+    "description": "Bank Deposit Slip; Top form, bottom listing; Portrait; Letter",
+    "group": "bnk:deps",
+    "dataset": "transactions",
+    "page": {
+        "size": "Letter",
+        "orientation": "P",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "a"
+    },
+    "filters": [
+        {
+            "field": "journal_id",
+            "operator": "in",
+            "values": [
+                "2",
+                "18",
+                "19"
+            ]
+        }
+    ],
+    "form": {
+        "elements": [
+            {
+                "type": "field",
+                "box": {
+                    "x": 35,
+                    "y": 40,
+                    "width": 30,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "post_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Deposit Date"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 140,
+                    "y": 20,
+                    "width": 30,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "closed",
+                    "scope": "aggregate",
+                    "sumOf": [
+                        "closed"
+                    ]
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "visible": "continued",
+                "label": "Number of Items"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 140,
+                    "y": 42,
+                    "width": 30,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "total_amount",
+                    "scope": "aggregate",
+                    "sumOf": [
+                        "total_amount"
+                    ]
+                },
+                "format": "posted_cur",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "visible": "continued",
+                "label": "Total Deposit"
+            },
+            {
+                "type": "table",
+                "box": {
+                    "x": 8,
+                    "y": 100,
+                    "width": 200,
+                    "height": 150
+                },
+                "source": "items",
+                "columns": [
+                    {
+                        "bind": {
+                            "name": "bill_primary_name"
+                        },
+                        "heading": "Payment From",
+                        "width": 120,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "purch_order_id"
+                        },
+                        "heading": "Reference",
+                        "width": 40,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "total_amount"
+                        },
+                        "heading": "Amount",
+                        "width": 40,
+                        "align": "R",
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R"
+                        }
+                    }
+                ],
+                "headerStyle": {
+                    "font": "helvetica",
+                    "size": 8,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Deposit Table"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 128,
+                    "y": 251,
+                    "width": 40,
+                    "height": 4.5
+                },
+                "text": "Total Deposit:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Text - Total Deposit"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 168,
+                    "y": 251,
+                    "width": 40,
+                    "height": 4.5
+                },
+                "bind": {
+                    "name": "total_amount",
+                    "scope": "aggregate",
+                    "sumOf": [
+                        "total_amount"
+                    ]
+                },
+                "format": "posted_cur",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "visible": "continued",
+                "label": "Data - Total"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 8,
+                    "y": 251,
+                    "width": 40,
+                    "height": 4.5
+                },
+                "bind": {
+                    "name": "post_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Date"
+            }
+        ],
+        "breakField": "purchase_invoice_id",
+        "recordTable": "journal_main",
+        "recordKey": "purchase_invoice_id"
+    }
+}

@@ -59,9 +59,21 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, 3);
 	$stamped = $skipped = 0;
 	$pattern = '#(<size><!\[CDATA\[)[^\]]*(\]\]></size>\s*<orientation>)#';
+	// A definition saved by Forms is JSON, and this substitution is anchored on
+	// XML — so a native file matched nothing and was counted as skipped. Every
+	// document is native after the migration, which would leave this feature
+	// applying to none of them. Forms owns that half, in a function that
+	// outlives this page.
+	$native = DIR_FS_MODULES . 'forms/functions/seed.php';
+	if (defined('MODULE_FORMS_STATUS') && file_exists($native)) require_once($native);
 	foreach (scandir(PF_DIR_MY_REPORTS) as $report) {
 	  if (substr($report, 0, 3) <> 'pf_') continue;
 	  $file     = PF_DIR_MY_REPORTS . $report;
+	  if (function_exists('forms_restamp_native')) {
+	    $done = forms_restamp_native($file, PF_DEFAULT_PAPERSIZE);
+	    if ($done === true)  { $stamped++; continue; }
+	    if ($done === false) { $skipped++; continue; }
+	  }
 	  $contents = file_get_contents($file);
 	  if ($contents === false || preg_match_all($pattern, $contents) <> 1) { $skipped++; continue; }
 	  $updated = preg_replace($pattern, '${1}' . PF_DEFAULT_PAPERSIZE . '${2}', $contents, 1);

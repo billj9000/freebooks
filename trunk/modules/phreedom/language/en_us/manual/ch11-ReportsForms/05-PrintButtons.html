@@ -23,7 +23,18 @@
 
 <p>FreeBooks has two printing engines while the newer one is being proven: the original, and the
 <strong>Forms</strong> module. Both read the same stored form definitions, so an invoice looks the
-same whichever prints it. Until you say otherwise, every Print button keeps using the original.</p>
+same whichever prints it.</p>
+
+<p>Which one you start on depends on how the company began:</p>
+
+<ul>
+  <li>A company created by a <strong>new installation</strong> starts on <strong>Forms</strong>. Its
+      reports and forms are installed in the Forms format, which the original engine cannot open, so
+      there would be nothing for the original to print.</li>
+  <li>An <strong>existing company</strong> that installs the Forms module keeps using the original
+      until you say otherwise. Installing Forms is meant to let you look at it, not to move your
+      printing without asking.</li>
+</ul>
 
 <h3>Turning it on</h3>
 
@@ -34,6 +45,11 @@ same whichever prints it. Until you say otherwise, every Print button keeps usin
 <p>The setting is per company, and it takes effect immediately &mdash; the next Print button you
 click opens Forms. Setting it back to <em>No</em> restores the original engine just as quickly.
 Nothing is converted or moved either way, so there is no cost to trying it and no work to undo.</p>
+
+<p>The one exception is a document that has been <strong>saved in the Forms editor</strong>, or that
+arrived with a new installation: those are stored in the Forms format, and the original engine says
+so plainly rather than printing something wrong. Turning the setting back off leaves the rest of
+your documents printing exactly as before.</p>
 
 <p>It affects every Print button in the program at once: sales orders, quotes, invoices, credit
 memos, purchase orders, bills, cheques, deposits, POS receipts and work orders.</p>

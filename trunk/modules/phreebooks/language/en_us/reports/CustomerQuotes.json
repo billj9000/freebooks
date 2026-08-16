@@ -1,0 +1,1467 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "frm",
+    "title": "Customer Quotes",
+    "description": "Customer Quote. Format: Letter, Portrait",
+    "group": "cust:quot",
+    "filenamePrefix": "Quote-",
+    "dataset": "transactions",
+    "page": {
+        "size": "Letter",
+        "orientation": "P",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "c"
+    },
+    "filters": [
+        {
+            "field": "journal_id",
+            "operator": "eq",
+            "values": [
+                "9"
+            ]
+        },
+        {
+            "field": "item_gl_type",
+            "operator": "eq",
+            "values": [
+                "soo"
+            ]
+        },
+        {
+            "field": "address_type",
+            "operator": "eq",
+            "values": [
+                "cm"
+            ]
+        }
+    ],
+    "form": {
+        "elements": [
+            {
+                "type": "image",
+                "box": {
+                    "x": 8,
+                    "y": 8,
+                    "width": 25
+                },
+                "src": "freebooks_compact_logo.png",
+                "style": {},
+                "label": "Logo"
+            },
+            {
+                "type": "block",
+                "box": {
+                    "x": 50,
+                    "y": 8,
+                    "width": 60,
+                    "height": 4.5
+                },
+                "parts": [
+                    {
+                        "bind": {
+                            "name": "COMPANY_NAME",
+                            "scope": "context"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_ADDRESS1",
+                            "scope": "context"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_ADDRESS2",
+                            "scope": "context"
+                        },
+                        "separator": "del-nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_CITY_TOWN",
+                            "scope": "context"
+                        },
+                        "separator": "com-sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_ZONE",
+                            "scope": "context"
+                        },
+                        "separator": "2sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_POSTAL_CODE",
+                            "scope": "context"
+                        }
+                    }
+                ],
+                "style": {
+                    "font": "helvetica",
+                    "size": 14,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Address"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 21,
+                    "y": 27,
+                    "width": 25,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "COMPANY_TELEPHONE1",
+                    "scope": "context"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Telephone"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 21,
+                    "y": 31,
+                    "width": 25,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "COMPANY_FAX",
+                    "scope": "context"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Fax"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 63,
+                    "y": 27,
+                    "width": 50,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "COMPANY_EMAIL",
+                    "scope": "context"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Email"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 63,
+                    "y": 31,
+                    "width": 50,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "COMPANY_WEBSITE",
+                    "scope": "context"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Website"
+            },
+            {
+                "type": "block",
+                "box": {
+                    "x": 8,
+                    "y": 45,
+                    "width": 80,
+                    "height": 4.5
+                },
+                "parts": [
+                    {
+                        "bind": {
+                            "name": "bill_primary_name"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_address1"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_address2"
+                        },
+                        "separator": "del-nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_city_town"
+                        },
+                        "separator": "com-sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_state_province"
+                        },
+                        "separator": "2sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_postal_code"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_country_code"
+                        }
+                    }
+                ],
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Bill To Address"
+            },
+            {
+                "type": "block",
+                "box": {
+                    "x": 120,
+                    "y": 45,
+                    "width": 80,
+                    "height": 4.5
+                },
+                "parts": [
+                    {
+                        "bind": {
+                            "name": "ship_primary_name"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_address1"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_address2"
+                        },
+                        "separator": "del-nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_city_town"
+                        },
+                        "separator": "com-sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_state_province"
+                        },
+                        "separator": "2sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_postal_code"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_country_code"
+                        }
+                    }
+                ],
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "ShipTo Address"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 21,
+                    "y": 73,
+                    "width": 40,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "address_telephone1"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Data - Bill Phone"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 78,
+                    "y": 73,
+                    "width": 40,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "address_telephone3"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Data - Bill Fax"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 155,
+                    "y": 18,
+                    "width": 50,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "purchase_invoice_id"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Data - Quote Number"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 155,
+                    "y": 28,
+                    "width": 50,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "post_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Data - Issue Date"
+            },
+            {
+                "type": "pagenum",
+                "box": {
+                    "x": 155,
+                    "y": 38,
+                    "width": 50,
+                    "height": 5
+                },
+                "pattern": "{page} {of} {pages}",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Data - Page Num"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 9,
+                    "y": 83,
+                    "width": 38,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "contact_short_name"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Customer ID"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 169,
+                    "y": 83,
+                    "width": 38,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "terminal_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Exp Date"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 49,
+                    "y": 83,
+                    "width": 38,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "rep_id_name"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Sales Rep"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 89,
+                    "y": 83,
+                    "width": 38,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "store_id_name"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Branch"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 129,
+                    "y": 83,
+                    "width": 38,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "shipper_code"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Ship Method"
+            },
+            {
+                "type": "table",
+                "box": {
+                    "x": 8,
+                    "y": 92,
+                    "width": 200,
+                    "height": 140
+                },
+                "source": "items",
+                "columns": [
+                    {
+                        "bind": {
+                            "name": "item_qty"
+                        },
+                        "heading": "Qty",
+                        "width": 20,
+                        "align": "R",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "item_sku"
+                        },
+                        "heading": "SKU",
+                        "width": 35,
+                        "align": "C",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "item_description"
+                        },
+                        "heading": "Description",
+                        "width": 85,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "item_unit_price_credit"
+                        },
+                        "heading": "Unit Price",
+                        "width": 30,
+                        "align": "R",
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "item_credit"
+                        },
+                        "heading": "Extension",
+                        "width": 30,
+                        "align": "R",
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R"
+                        }
+                    }
+                ],
+                "headerStyle": {},
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Data Table - Items"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 178,
+                    "y": 232,
+                    "width": 30,
+                    "height": 7
+                },
+                "bind": {
+                    "name": "item_credit",
+                    "scope": "aggregate",
+                    "sumOf": [
+                        "item_credit"
+                    ]
+                },
+                "format": "posted_cur",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "visible": "continued",
+                "label": "Data - Subtotal"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 178,
+                    "y": 239,
+                    "width": 30,
+                    "height": 7
+                },
+                "bind": {
+                    "name": "sales_tax"
+                },
+                "format": "posted_cur",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Data - Sales Tax"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 178,
+                    "y": 246,
+                    "width": 30,
+                    "height": 7
+                },
+                "bind": {
+                    "name": "freight"
+                },
+                "format": "posted_cur",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Data - Shipping"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 178,
+                    "y": 253,
+                    "width": 30,
+                    "height": 7
+                },
+                "bind": {
+                    "name": "total_amount"
+                },
+                "format": "posted_cur",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Data - Total"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 165,
+                    "y": 8,
+                    "width": 42,
+                    "height": 6
+                },
+                "text": "Quote",
+                "style": {
+                    "font": "helvetica",
+                    "size": 14,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Quote"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 155,
+                    "y": 13,
+                    "width": 50,
+                    "height": 5
+                },
+                "text": "Quote Number",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Quote Number"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 155,
+                    "y": 23,
+                    "width": 50,
+                    "height": 5
+                },
+                "text": "Date Issued",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Date Issued"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 155,
+                    "y": 33,
+                    "width": 50,
+                    "height": 5
+                },
+                "text": "Page #",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Page Num"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 40,
+                    "width": 25,
+                    "height": 5
+                },
+                "text": "Sold To:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Sold To"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 120,
+                    "y": 40,
+                    "width": 30,
+                    "height": 5
+                },
+                "text": "Ship To:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Ship To"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 27,
+                    "width": 13,
+                    "height": 4
+                },
+                "text": "Phone:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Co Phone"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 31,
+                    "width": 13,
+                    "height": 4
+                },
+                "text": "Fax:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Co Fax"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 50,
+                    "y": 27,
+                    "width": 13,
+                    "height": 4
+                },
+                "text": "Email:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Co Email"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 50,
+                    "y": 31,
+                    "width": 13,
+                    "height": 4
+                },
+                "text": "Web:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Co Website"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 73,
+                    "width": 20,
+                    "height": 4
+                },
+                "text": "Phone:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Phone"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 65,
+                    "y": 73,
+                    "width": 20,
+                    "height": 4
+                },
+                "text": "Fax:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Fax"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 9,
+                    "y": 78,
+                    "width": 38,
+                    "height": 4
+                },
+                "text": "Customer ID",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Customer ID"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 169,
+                    "y": 78,
+                    "width": 38,
+                    "height": 4
+                },
+                "text": "Quote Expires",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Exp Due"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 49,
+                    "y": 78,
+                    "width": 38,
+                    "height": 4
+                },
+                "text": "Sales Rep",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Sales Rep"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 89,
+                    "y": 78,
+                    "width": 38,
+                    "height": 4
+                },
+                "text": "Store ID",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Branch"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 129,
+                    "y": 78,
+                    "width": 38,
+                    "height": 4
+                },
+                "text": "Shipment Method",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Ship Method"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 151,
+                    "y": 232,
+                    "width": 27,
+                    "height": 7
+                },
+                "text": "Subtotal",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Subtotal"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 151,
+                    "y": 239,
+                    "width": 27,
+                    "height": 7
+                },
+                "text": "Sales Tax",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Sales Tax"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 151,
+                    "y": 246,
+                    "width": 27,
+                    "height": 7
+                },
+                "text": "Shipping",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Shipping"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 151,
+                    "y": 253,
+                    "width": 27,
+                    "height": 7
+                },
+                "text": "Quote Total",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Total"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 8,
+                    "y": 77,
+                    "width": 200,
+                    "height": 11
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - General Info"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 8,
+                    "y": 82,
+                    "width": 200,
+                    "height": 0
+                },
+                "lineType": "H",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Horiz 1"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 48,
+                    "y": 77,
+                    "width": 0,
+                    "height": 11
+                },
+                "lineType": "V",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Vert 1"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 88,
+                    "y": 77,
+                    "width": 0,
+                    "height": 11
+                },
+                "lineType": "V",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Vert 2"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 128,
+                    "y": 77,
+                    "width": 0,
+                    "height": 11
+                },
+                "lineType": "V",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Vert 3"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 168,
+                    "y": 77,
+                    "width": 0,
+                    "height": 11
+                },
+                "lineType": "V",
+                "style": {
+                    "borderSize": 0
+                },
+                "label": "Line - Gen Vert 4"
+            }
+        ],
+        "recordTable": "journal_main"
+    }
+}

@@ -1,0 +1,142 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "rpt",
+    "title": "Inventory Transfer Report",
+    "description": "This report lists the item transferred between branches. format Letter, portrait",
+    "group": "inv",
+    "filenamePrefix": "XFR-",
+    "dataset": "transactions",
+    "page": {
+        "size": "Letter",
+        "orientation": "P",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "c",
+        "field": "post_date"
+    },
+    "filters": [
+        {
+            "field": "item_gl_type",
+            "operator": "eq",
+            "values": [
+                "adj"
+            ]
+        }
+    ],
+    "report": {
+        "columns": [
+            {
+                "key": "post_date",
+                "heading": "Date",
+                "width": 20,
+                "align": "L",
+                "format": "date",
+                "pageBreak": true
+            },
+            {
+                "key": "store_id_name",
+                "heading": "Store ID",
+                "width": 25,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "item_sku",
+                "heading": "SKU",
+                "width": 25,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "item_qty",
+                "heading": "Qty",
+                "width": 10,
+                "align": "R",
+                "total": true,
+                "pageBreak": true
+            },
+            {
+                "key": "item_description",
+                "heading": "Description",
+                "width": 75,
+                "align": "L",
+                "pageBreak": true
+            }
+        ],
+        "groupBy": "store_id_name",
+        "resolved": {
+            "store_id_name": "store_id"
+        },
+        "style": {
+            "heading": {
+                "font": "helvetica",
+                "size": 12,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "title1": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "title2": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "filter": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "data": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "totals": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "title1Text": "%reportname%",
+            "title2Text": "Report Generated %date%"
+        }
+    }
+}

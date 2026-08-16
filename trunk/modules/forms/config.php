@@ -45,8 +45,15 @@
 //                      catalogue. Both group by the folder NAMES the catalog
 //                      already carries rather than by the doc_group code. An
 //                      editor's Cancel returns to its own list.
+// 1.07 => 2026-08-16 - The shipped definitions ship in the Forms format too,
+//                      and a new install seeds those: 56 native files beside
+//                      the xml, the installer's paper size stamped onto them,
+//                      and the Report Settings re-stamp taught to read them.
+//                      A FRESH install turns MODULE_FORMS_PRINT_BUTTONS on,
+//                      because a new company has only native definitions and
+//                      PhreeForm cannot open one.
 
-define('MODULE_FORMS_VERSION', 1.06);
+define('MODULE_FORMS_VERSION', 1.07);
 
 // Security IDs.
 //

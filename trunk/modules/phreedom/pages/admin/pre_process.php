@@ -246,6 +246,16 @@ switch ($_REQUEST['action']) {
 	  // install reports now that categories are set up
 	  if ($_POST['phreeform_action'] <> 'data') { // if=data reports have been copied, else load basic reports
 	    foreach ($copy_modules as $entry) admin_add_reports($entry, DIR_FS_MY_FILES . $db_name . '/phreeform/', $paper_size);
+	    // Those are NATIVE definitions now (design §13.5), and PhreeForm cannot
+	    // open one — so a new company whose Print buttons pointed at PhreeForm
+	    // would have a Print button that errors on every document it owns. The
+	    // configuration table is copied from the company this was created from,
+	    // so without this the new company inherits whatever that one chose,
+	    // which has nothing to do with what its own definitions are in.
+	    //
+	    // $db is the NEW company's connection from the top of this branch, so
+	    // this writes where the definitions went.
+	    if (defined('MODULE_FORMS_STATUS')) write_configure('MODULE_FORMS_PRINT_BUTTONS', '1');
 	  }
 	}
 	if (!$error && $_POST['phreebooks_action'] <> 'data') { // install fiscal year if the phreebooks data is not copied

@@ -241,8 +241,55 @@ function admin_add_reports($module, $save_path = PF_DIR_MY_REPORTS, $paper_size 
   } else {
     return $error; // nothing to import
   }
+  // A native definition BESIDE the xml wins (design §13.5, decision K): a new
+  // install and a new company get Forms definitions from the start, rather than
+  // legacy ones converted afresh on every load. The xml stays because it is
+  // what Import reads and what an older company already has, and because an
+  // extension module may ship only xml — which is why this is per FILE and not
+  // per directory.
+  // Only where Forms is actually installed. A company without it cannot read a
+  // native definition at all, so seeding one would hand it a catalog of
+  // documents nothing on the system can open. The installer defines every
+  // MODULE_*_STATUS before it seeds reports, so this is true there too.
+  $native = DIR_FS_MODULES . 'forms/functions/seed.php';
+  if (defined('MODULE_FORMS_STATUS') && file_exists($native)) require_once($native);
+
+  // The IMAGES those definitions name, into the company they are being seeded
+  // into. phreebooks_admin::install() copies the logo to
+  // DIR_FS_MY_FILES . $_SESSION['company'] — the company the ADMIN is logged
+  // into, not the one being created — so a new company got a form whose logo
+  // box pointed at a file it did not have, and every invoice printed with an
+  // empty rectangle. Silently, because that copy is a @copy.
+  //
+  // Driven by what the definitions actually reference, so a module that ships a
+  // form with its own logo is covered without anything being listed twice.
+  $images = array();
+  foreach (scandir($read_path) as $file) {
+    if (!in_array(strtolower(substr($file, -4)), array('.xml', 'json'))) continue;
+    if (preg_match_all('/<filename><!\[CDATA\[([^\]]+)\]\]>|"src"\s*:\s*"([^"]+)"/',
+        (string)file_get_contents($read_path . $file), $found, PREG_SET_ORDER)) {
+      foreach ($found as $match) {
+        $name = basename(trim($match[2] ?? '') !== '' ? $match[2] : $match[1]);
+        if ($name !== '') $images[$name] = true;
+      }
+    }
+  }
+  if ($images) {
+    $image_dest = $save_path . 'images/';
+    if (!is_dir($image_dest)) @mkdir($image_dest, 0777, true);
+    foreach (array_keys($images) as $name) {
+      $source = DIR_FS_MODULES . $module . '/images/' . $name;
+      if (is_file($source) && !file_exists($image_dest . $name)) @copy($source, $image_dest . $name);
+    }
+  }
+
   $files = scandir($read_path);
   foreach ($files as $file) if (strtolower(substr($file, -4)) == '.xml') {
+    $json = substr($file, 0, -4) . '.json';
+    if (function_exists('forms_seed_native') && file_exists($read_path . $json)) {
+      if (!forms_seed_native($read_path . $json, $save_path, $paper_size)) $error = true;
+      continue;
+    }
     if (!ImportReport('', $file, $read_path, $save_path, $paper_size)) $error = true;
   }
   return $error;

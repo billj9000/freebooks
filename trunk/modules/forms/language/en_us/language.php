@@ -47,6 +47,7 @@ define('FORMS_ERROR_DELIVERY',     'The document was built but could not be sent
 define('FORMS_ERROR_GL_REQUIRED',  'Choose a GL account before running the reconciliation.');
 define('FORMS_WARN_CONVERSION',    'This report converted with warnings: %s');
 define('FORMS_NO_DOCUMENTS',       'No documents are defined.');
+define('FORMS_SEED_UNREADABLE',    'The shipped definition %s could not be read, so it was not installed.');
 define('FORMS_ROW_IS_FORM',        'a form — laid out under Tools → Form Layout');
 
 /***** printing a form from the document that owns it (?module=forms&page=print) *****/

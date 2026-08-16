@@ -1,0 +1,143 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "rpt",
+    "title": "Inventory Valuation - Branch",
+    "description": "Inventory valuation report with branch information. Format Letter, Landscape.",
+    "group": "inv",
+    "dataset": "inventory",
+    "page": {
+        "size": "Letter",
+        "orientation": "L",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "filters": [
+        {
+            "field": "history_remaining",
+            "operator": "ne",
+            "values": [
+                "0"
+            ]
+        }
+    ],
+    "report": {
+        "columns": [
+            {
+                "key": "history_store_id",
+                "heading": "Branch ID",
+                "width": 30,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "history_sku",
+                "heading": "SKU",
+                "width": 35,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "history_remaining",
+                "heading": "Qty",
+                "width": 15,
+                "align": "R",
+                "total": true,
+                "pageBreak": true
+            },
+            {
+                "key": "item_description",
+                "heading": "Description",
+                "width": 60,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "history_unit_cost",
+                "heading": "Unit Cost",
+                "width": 30,
+                "align": "R",
+                "format": "rnd2d",
+                "pageBreak": true
+            },
+            {
+                "key": "history_value",
+                "heading": "Total Value",
+                "width": 30,
+                "align": "R",
+                "format": "rnd2d",
+                "total": true,
+                "pageBreak": true
+            }
+        ],
+        "groupBy": "history_store_id",
+        "groupFormat": "0",
+        "style": {
+            "heading": {
+                "font": "helvetica",
+                "size": 12,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "title1": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "title2": {
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "filter": {
+                "font": "helvetica",
+                "size": 8,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "data": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "totals": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "title1Text": "%reportname%",
+            "title2Text": "Report Generated %date%"
+        }
+    }
+}

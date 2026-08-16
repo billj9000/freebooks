@@ -1,0 +1,1192 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "frm",
+    "title": "Request for Quote",
+    "description": "Request for Quote. Format: Letter, Portrait",
+    "group": "vend:quot",
+    "filenamePrefix": "RFQ-",
+    "dataset": "transactions",
+    "page": {
+        "size": "Letter",
+        "orientation": "P",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "c"
+    },
+    "filters": [
+        {
+            "field": "item_gl_type",
+            "operator": "eq",
+            "values": [
+                "poo"
+            ]
+        },
+        {
+            "field": "journal_id",
+            "operator": "eq",
+            "values": [
+                "3"
+            ]
+        },
+        {
+            "field": "address_type",
+            "operator": "eq",
+            "values": [
+                "vm"
+            ]
+        }
+    ],
+    "form": {
+        "elements": [
+            {
+                "type": "image",
+                "box": {
+                    "x": 8,
+                    "y": 13,
+                    "width": 25
+                },
+                "src": "freebooks_compact_logo.png",
+                "style": {},
+                "label": "Logo"
+            },
+            {
+                "type": "block",
+                "box": {
+                    "x": 50,
+                    "y": 12,
+                    "width": 60,
+                    "height": 5
+                },
+                "parts": [
+                    {
+                        "bind": {
+                            "name": "COMPANY_NAME",
+                            "scope": "context"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_ADDRESS1",
+                            "scope": "context"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_ADDRESS2",
+                            "scope": "context"
+                        },
+                        "separator": "del-nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_CITY_TOWN",
+                            "scope": "context"
+                        },
+                        "separator": "com-sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_ZONE",
+                            "scope": "context"
+                        },
+                        "separator": "2sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "COMPANY_POSTAL_CODE",
+                            "scope": "context"
+                        }
+                    }
+                ],
+                "style": {
+                    "font": "helvetica",
+                    "size": 14,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Address"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 21,
+                    "y": 32,
+                    "width": 25,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "COMPANY_TELEPHONE1",
+                    "scope": "context"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Telephone"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 59,
+                    "y": 32,
+                    "width": 25,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "COMPANY_FAX",
+                    "scope": "context"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Company Fax"
+            },
+            {
+                "type": "block",
+                "box": {
+                    "x": 8,
+                    "y": 45,
+                    "width": 80,
+                    "height": 4.5
+                },
+                "parts": [
+                    {
+                        "bind": {
+                            "name": "bill_primary_name"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_address1"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_address2"
+                        },
+                        "separator": "del-nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_city_town"
+                        },
+                        "separator": "com-sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_state_province"
+                        },
+                        "separator": "2sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "bill_postal_code"
+                        }
+                    }
+                ],
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Bill To Address"
+            },
+            {
+                "type": "block",
+                "box": {
+                    "x": 120,
+                    "y": 45,
+                    "width": 80,
+                    "height": 4.5
+                },
+                "parts": [
+                    {
+                        "bind": {
+                            "name": "ship_primary_name"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_address1"
+                        },
+                        "separator": "nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_address2"
+                        },
+                        "separator": "del-nl"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_city_town"
+                        },
+                        "separator": "com-sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_state_province"
+                        },
+                        "separator": "2sp"
+                    },
+                    {
+                        "bind": {
+                            "name": "ship_postal_code"
+                        }
+                    }
+                ],
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "ShipTo Address"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 21,
+                    "y": 73,
+                    "width": 25,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "address_telephone1"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Data - Bill Phone"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 68,
+                    "y": 73,
+                    "width": 25,
+                    "height": 4
+                },
+                "bind": {
+                    "name": "address_telephone3"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Data - Bill Fax"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 155,
+                    "y": 19,
+                    "width": 50,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "purchase_invoice_id"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Data - Quote Number"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 155,
+                    "y": 29,
+                    "width": 50,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "post_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Data - Issue Date"
+            },
+            {
+                "type": "pagenum",
+                "box": {
+                    "x": 155,
+                    "y": 39,
+                    "width": 50,
+                    "height": 5
+                },
+                "pattern": "{page} {of} {pages}",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Data - Page Num"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 9,
+                    "y": 89,
+                    "width": 38,
+                    "height": 6
+                },
+                "bind": {
+                    "name": "terminal_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Good Thru"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 49,
+                    "y": 89,
+                    "width": 38,
+                    "height": 6
+                },
+                "bind": {
+                    "name": "shipper_code"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Ship Via"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 89,
+                    "y": 89,
+                    "width": 38,
+                    "height": 6
+                },
+                "bind": {
+                    "name": "contact_account_number"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Account Num"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 129,
+                    "y": 89,
+                    "width": 38,
+                    "height": 6
+                },
+                "bind": {
+                    "name": "terms"
+                },
+                "format": "terms",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Terms"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 169,
+                    "y": 89,
+                    "width": 38,
+                    "height": 6
+                },
+                "bind": {
+                    "name": "admin_id_name"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Data - Buyer"
+            },
+            {
+                "type": "table",
+                "box": {
+                    "x": 8,
+                    "y": 100,
+                    "width": 200,
+                    "height": 160
+                },
+                "source": "items",
+                "columns": [
+                    {
+                        "bind": {
+                            "name": "item_qty"
+                        },
+                        "heading": "Quantity",
+                        "width": 35,
+                        "align": "C",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "item_sku"
+                        },
+                        "heading": "SKU",
+                        "width": 35,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "item_description"
+                        },
+                        "heading": "Description",
+                        "width": 130,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    }
+                ],
+                "headerStyle": {},
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Data Table - Items"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 8,
+                    "width": 60,
+                    "height": 5
+                },
+                "text": "REQUESTED BY:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Requested By"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 32,
+                    "width": 15,
+                    "height": 4
+                },
+                "text": "Phone:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Co Phone"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 50,
+                    "y": 32,
+                    "width": 15,
+                    "height": 4
+                },
+                "text": "Fax:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Co Fax"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 135,
+                    "y": 8,
+                    "width": 70,
+                    "height": 6
+                },
+                "text": "Request For Quote",
+                "style": {
+                    "font": "helvetica",
+                    "size": 16,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - RFQ"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 155,
+                    "y": 14,
+                    "width": 50,
+                    "height": 5
+                },
+                "text": "Quote Number",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Quote Number"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 155,
+                    "y": 24,
+                    "width": 50,
+                    "height": 5
+                },
+                "text": "Date Issued",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Date Issued"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 175,
+                    "y": 34,
+                    "width": 30,
+                    "height": 5
+                },
+                "text": "Page Number",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1
+                },
+                "label": "Text - Page Num"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 40,
+                    "width": 15,
+                    "height": 5
+                },
+                "text": "To:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - To"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 120,
+                    "y": 40,
+                    "width": 30,
+                    "height": 5
+                },
+                "text": "Ship To:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Ship To"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 73,
+                    "width": 20,
+                    "height": 4
+                },
+                "text": "Phone:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Phone"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 60,
+                    "y": 73,
+                    "width": 20,
+                    "height": 4
+                },
+                "text": "Fax:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Fax"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 9,
+                    "y": 81,
+                    "width": 38,
+                    "height": 6
+                },
+                "text": "Good Thru",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Good Thru"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 49,
+                    "y": 81,
+                    "width": 38,
+                    "height": 6
+                },
+                "text": "Ship Via",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Ship Via"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 89,
+                    "y": 81,
+                    "width": 38,
+                    "height": 6
+                },
+                "text": "Account Number",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Account Number"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 129,
+                    "y": 81,
+                    "width": 38,
+                    "height": 6
+                },
+                "text": "Payment Terms",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Terms"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 169,
+                    "y": 81,
+                    "width": 38,
+                    "height": 6
+                },
+                "text": "Buyer",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1
+                },
+                "label": "Text - Buyer"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 8,
+                    "y": 80,
+                    "width": 200,
+                    "height": 16
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - General Info"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 8,
+                    "y": 88,
+                    "width": 200,
+                    "height": 0
+                },
+                "lineType": "H",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Horizontal"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 48,
+                    "y": 80,
+                    "width": 0,
+                    "height": 16
+                },
+                "lineType": "V",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Vert 1"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 88,
+                    "y": 80,
+                    "width": 0,
+                    "height": 16
+                },
+                "lineType": "V",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Vert 2"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 128,
+                    "y": 80,
+                    "width": 0,
+                    "height": 16
+                },
+                "lineType": "V",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Gen Vert 3"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 168,
+                    "y": 80,
+                    "width": 0,
+                    "height": 16
+                },
+                "lineType": "V",
+                "style": {
+                    "borderSize": 0
+                },
+                "label": "Line - Gen Vert 4"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 263,
+                    "width": 60,
+                    "height": 6
+                },
+                "text": "Revised:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 16,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Revised"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 50,
+                    "y": 263,
+                    "width": 60,
+                    "height": 6
+                },
+                "text": "Revision Date:",
+                "style": {
+                    "font": "helvetica",
+                    "size": 16,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1
+                },
+                "label": "Text - Rev Date"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 37,
+                    "y": 263,
+                    "width": 5,
+                    "height": 5
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - Rev Chk Box"
+            },
+            {
+                "type": "line",
+                "box": {
+                    "x": 90,
+                    "y": 269,
+                    "width": 50,
+                    "height": 0
+                },
+                "lineType": "H",
+                "style": {
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderSize": 0,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Line - Rev Date"
+            }
+        ],
+        "recordTable": "journal_main"
+    }
+}
