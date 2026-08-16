@@ -349,6 +349,26 @@ ok('the toolbar rendered', str_contains($output, 'tb_main_'), 'no toolbar in the
 // heading, and requiring the bare tag made a correctly-styled page fail.
 ok('the page heading rendered', str_contains($output, '<h1'));
 
+// An editor's Cancel goes back to the list of things IT edits — the canvas to
+// the forms it lays out, the report editor to the reports it edits. Both used
+// to point at the document list, which is right only if that is where the
+// author came from; from Tools -> Form Layout it threw the author out of the
+// section they were working in. Read from the rendered toolbar, because that
+// is the markup the browser acts on.
+// Anchored on the icon rather than on `location.href`: the handler is written
+// onclick="location.href = '…'", so a pattern that refuses quote characters
+// stops dead at the opening one and reports a correct page as broken. It did.
+if (in_array($PAGE, ['canvas', 'design'], true) && !$CANVASPICK && !$PICKING) {
+    preg_match('/tb_icon_cancel[^>]*/', $output, $cancel);
+    $target = $cancel[0] ?? '';
+    ok('Cancel returns to this editor\'s own list',
+       str_contains($target, 'page=' . $PAGE) && !str_contains($target, 'page=main'),
+       $target === '' ? 'no cancel icon in the toolbar' : $target);
+    // Back to the LIST, not to the document just left — that would be a Cancel
+    // that cancels nothing.
+    ok('and not to the document it was editing', !str_contains($target, 'rID='));
+}
+
 // ── the contract template_index.php imposes, which this render does not ──────
 $source = (string)file_get_contents(DIR_FS_WORKING . 'pages/' . $PAGE . '/pre_process.php');
 ok('the page defines PAGE_TITLE', defined('PAGE_TITLE') || str_contains($source, "define('PAGE_TITLE'"),
@@ -539,6 +559,99 @@ if ($PAGE === 'main') {
     }
     ok('every run control carries a valid run URL and a format', $bad === [],
        implode(' | ', array_slice($bad, 0, 3)));
+}
+
+// ── the split: reports here, forms on the canvas, nothing lost between ───────
+//
+// Documents used to list both. A form had no action on it that worked — Print
+// needs a record, which a list cannot supply, so it always landed on an
+// explanation — and the Layout button duplicated the canvas's own chooser. The
+// risk of splitting a list in two is a document that falls down the crack, so
+// what is checked is COVERAGE, against the catalogue itself.
+//
+// The forms half is checked on the CHOOSER render, not on the editing one: with
+// an rID the canvas shows one open form and no list at all, and a first version
+// of this check asked the editor to list every form and called it a failure.
+$listing = $CANVASPICK ? 'frm' : ($PAGE === 'main' && !$RUNNING ? 'rpt' : '');
+if ($listing !== '') {
+    // Read the TITLE CELL of each row, not the page text. Substring matching
+    // over the whole render reported four forms as leaking onto the reports
+    // page, because a report named "Purchase Orders by Vendor" contains the
+    // form title "Purchase Order". Cells compare as whole values.
+    $shown = [];
+    foreach ($xpath->query('//tbody/tr') as $tr) {
+        $cells = $xpath->query('./td', $tr);
+        // One cell means a folder heading, which spans the row.
+        if ($cells->length < 2) continue;
+        $title = trim((string)$cells->item(0)->textContent);
+        if ($title !== '') $shown[$title] = true;
+    }
+
+    $expected = $strays = [];
+    $rows = $db->Execute("select doc_title, doc_ext from " . TABLE_PHREEFORM . "
+      where doc_type <> '0' and doc_ext in ('rpt', 'frm')");
+    while ($rows && !$rows->EOF) {
+        $title = (string)$rows->fields['doc_title'];
+        if ($rows->fields['doc_ext'] === $listing) $expected[$title] = true;
+        $rows->MoveNext();
+    }
+    // A company may name a report and a form alike, and that is not a leak — so
+    // only titles belonging to the other kind ALONE can be judged.
+    $rows = $db->Execute("select doc_title from " . TABLE_PHREEFORM . "
+      where doc_type <> '0' and doc_ext = '" . ($listing === 'rpt' ? 'frm' : 'rpt') . "'");
+    while ($rows && !$rows->EOF) {
+        $title = (string)$rows->fields['doc_title'];
+        if (!isset($expected[$title]) && isset($shown[$title])) $strays[] = $title;
+        $rows->MoveNext();
+    }
+
+    $missing = array_keys(array_diff_key($expected, $shown));
+    ok(sprintf('every %s in the catalogue is listed (%d)',
+               $listing === 'rpt' ? 'report' : 'form', count($expected)),
+       $expected !== [] && $missing === [], implode(' | ', array_slice($missing, 0, 4)));
+    ok('and nothing of the other kind', $strays === [], implode(' | ', array_slice($strays, 0, 4)));
+
+    // The codes are the reason this work happened: `cust:inv` sorted the list
+    // and was printed as its own label, so an ordered page looked unordered.
+    // Checked against the HEADING CELLS rather than the page text: a two-letter
+    // code like `gl` occurs inside ordinary words, and matching those would fail
+    // on prose rather than on a heading.
+    $headings = [];
+    foreach ($xpath->query('//tbody/tr') as $tr) {
+        $cells = $xpath->query('./td', $tr);
+        if ($cells->length !== 1) continue;        // a heading spans the row
+        $text = trim((string)$cells->item(0)->textContent);
+        if ($text !== '') $headings[] = $text;
+    }
+    ok('the list is grouped under headings', $headings !== [], 'none found');
+
+    // Which groups CAN be named, and which have no folder row to name them.
+    $named = $orphans = [];
+    $rows = $db->Execute("select doc_group, doc_title from " . TABLE_PHREEFORM . "
+      where doc_type = '0'");
+    while ($rows && !$rows->EOF) {
+        $named[(string)$rows->fields['doc_title']] = true;
+        $rows->MoveNext();
+    }
+    $rows = $db->Execute("select distinct d.doc_group from " . TABLE_PHREEFORM . " d
+      where d.doc_type <> '0' and d.doc_ext = '" . $listing . "'
+        and not exists (select 1 from " . TABLE_PHREEFORM . " f
+                        where f.doc_type = '0' and f.doc_group = d.doc_group)");
+    while ($rows && !$rows->EOF) { $orphans[] = (string)$rows->fields['doc_group']; $rows->MoveNext(); }
+
+    // A heading is either a folder's name, or the raw group of a document filed
+    // where no folder was ever created. The second is a gap in the CATALOGUE —
+    // `asset` holds a report and has no folder row on either company — and the
+    // page shows the code because inventing a name would be a guess. Reported
+    // rather than failed: the fix is a row of data, not a line of code.
+    $unexplained = array_values(array_filter($headings,
+        fn($h) => !isset($named[$h]) && !in_array($h, $orphans, true)));
+    ok('every heading is a folder name, or a group with no folder row',
+       $unexplained === [], implode(' | ', array_slice($unexplained, 0, 4)));
+    if ($orphans) {
+        printf("  [--] %d group(s) with documents but no folder row, shown by code: %s\n",
+            count($orphans), implode(', ', $orphans));
+    }
 }
 
 // The URL the 'run' mode follows, taken from what this render produced. Passed

@@ -209,16 +209,27 @@ define('PAGE_TITLE', $forms_canvas_definition !== null
 // With nothing chosen, the forms this user could look at.
 $forms_canvas_choices = array();
 if ($forms_canvas_definition === null) {
+  // This is the forms catalogue, not merely a chooser: with Documents now
+  // listing reports alone, every form in the company is reached from here.
+  // Folder NAMES, not the doc_group codes it used to print — `cust:inv` is an
+  // internal key, and a list sorted by one looks unsorted to the person reading
+  // the other.
+  $forms_canvas_folders = forms_folder_titles($db);
   $result = $db->Execute("select id, doc_title, doc_group from " . TABLE_PHREEFORM . "
     where doc_type <> '0' and doc_ext = 'frm' order by doc_group, doc_title");
   while (!$result->EOF) {
     $forms_canvas_choices[] = array(
-      'id'    => (int)$result->fields['id'],
-      'title' => (string)$result->fields['doc_title'],
-      'group' => (string)$result->fields['doc_group'],
+      'id'     => (int)$result->fields['id'],
+      'title'  => (string)$result->fields['doc_title'],
+      'group'  => (string)$result->fields['doc_group'],
+      'folder' => forms_folder_for((string)$result->fields['doc_group'], true,
+                                   $forms_canvas_folders),
     );
     $result->MoveNext();
   }
+  usort($forms_canvas_choices, function ($a, $b) {
+    return strcasecmp($a['folder'], $b['folder']) ?: strcasecmp($a['title'], $b['title']);
+  });
 }
 
 $use_bootstrap_nav = true;

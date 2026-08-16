@@ -1642,10 +1642,69 @@ Continuing §9.
 5. **Native shipping set.** Generated, committed, seeded by the installer, with paper-size stamping
    and a re-stamp that understands the native format.
 6. **Migration, and delete PhreeForm** — including `MODULE_FORMS_PRINT_BUTTONS`, the helper's
-   PhreeForm branch, and the settings row.
+   PhreeForm branch, the settings row, and the four render-to-string call sites below.
 
 During steps 2–5 the loader tries native then legacy, so development and testing work against a
 mixed tree. Step 6 deletes that branch; it is a few lines, not an architecture.
+
+#### Step 6 must also move the four render-to-string call sites
+
+`gen_print_form_url()` switches a Print BUTTON, which is a choice about a URL. Four places instead
+render a form to PDF **bytes in-process**, and every one of them calls `get_report_details()` and
+`BuildForm($report, 'S')` — PhreeForm, unconditionally, with no Forms branch and no reference to
+`MODULE_FORMS_PRINT_BUTTONS`:
+
+| Call site | What it prints |
+|---|---|
+| `extensions/…/zencart/functions/zencart.php` | the VAT invoice emailed to a customer, from the sync cron |
+| `trunk/modules/payment/ajax/paypal_email_link.php` | an invoice emailed with a PayPal link |
+| `trunk/modules/phreepos/ajax/save_main.php` | the POS receipt, on save |
+| `trunk/modules/phreepos/ajax/print_previous.php` | a POS reprint |
+
+**This is a live trap, not merely untidiness.** `get_report_details()` refuses a native definition
+by design (§13.9) — the alternative was a fatal from a perfectly valid file. So the moment one of
+these configured forms is opened and saved in the Forms editor, its call site stops producing a
+document: the ZenCart cron logs "configured form (id N) could not be loaded" to STDERR, skips the
+email and returns false, and the order still posts. It fails safe and it fails **silently**, which
+on the two emailing paths means a customer simply never receives their invoice.
+
+A company can already be in the state that makes this easy to walk into: `MODULE_FORMS_PRINT_BUTTONS`
+on, so the invoice prints through Forms from the screen and through PhreeForm from the cron. An
+author would edit the form, watch it print correctly, and never learn the emails had stopped.
+
+What step 6 needs is the render-to-string counterpart of the URL helper — `FormRunner` →
+`LayoutPdfRenderer` → bytes, which the print page already does behind an HTTP delivery — and these
+four switched onto it. Until then, treat "do not open a form named in one of these settings in the
+Forms canvas" as a standing caution; the POS pair announce themselves immediately, the two email
+paths do not.
+
+#### Step 6 must also give Forms a way to CREATE and DELETE a document
+
+Recorded 2026-08-16. Forms has three actions — `email`, `save`, `view`. Both editors open an
+existing `rID` and nothing else. There is **no New, no Copy, no Delete, and no Rename for a form**
+(the report editor has an editable title field, so a report can be renamed incidentally; the canvas
+posts the form's title as a hidden field, so a form cannot).
+
+All of it lives in PhreeForm today: `popup_build` creates and edits, `doc_operation.php` deletes,
+and its main page carries Copy, Rename and Export. So the current answer to "how do I make a new
+form?" is "copy one in PhreeForm, then edit the copy in Forms".
+
+**That makes it a blocker for step 6 rather than a nice-to-have**: deleting PhreeForm removes the
+only way to create or delete a document, and a report engine that cannot add a report is not a
+replacement. What is needed:
+
+- **Copy** — the valuable one, and nearly free: duplicate a definition under a new title and open it
+  in the right editor. Starting from a blank page is the rare case; starting from the invoice that
+  is nearly right is the normal one.
+- **New** — a catalogue row plus a definition. For a report, a chosen dataset; for a form, an empty
+  template.
+- **Delete** — the catalogue row, the definition, and its `.pre-forms` backup, at level 4. It needs
+  a guard against deleting a form that a SETTING names — the ZenCart VAT invoice form, the POS
+  receipt form — or it breaks exactly the call sites above.
+- **Rename a form** — the canvas's hidden title becomes a field.
+
+§13.14 settles where these belong: New and Copy on the Reports page for reports, on Form Layout for
+forms, each beside the list of the thing it creates.
 
 ### 13.8 Open risks
 
@@ -2080,6 +2139,7 @@ ink is not.
 **The file input carries no `name`.** It sits inside the urlencoded form that saves the whole
 canvas, and a named file input posts its filename as a stray field on every save.
 
+
 #### An image becomes addable
 
 Uploading answered "how do I change this logo", not "how do I give this form one". `ADDABLE` was
@@ -2129,3 +2189,69 @@ paths already carried it. Two things it has to get right:
   `CanvasLayout::describe()`'s output per box as `described` when the boxes arrive, and falls back to
   that. Reimplementing `describe()` in JavaScript would be a second rule for the same question, and
   the two would drift the first time either changed.
+
+
+### 13.14 Reports and forms are two lists, not one
+
+Built 2026-08-16. `?module=forms&page=main` listed all 57 documents ordered by `doc_group` — an
+internal code — and printed that code as the Group column. So a page that WAS ordered looked
+unordered, and "Employees" sorted between "General Ledger" and "Inventory" because its code is `hr`.
+
+The first instinct was a tree, as PhreeForm had. What the data showed instead is that the depth was
+an artefact of mixing two things:
+
+|  | Actions | Count | Depth once separated |
+|---|---|---|---|
+| Report | PDF · CSV · Email · Edit | 39 in 9 categories | one level |
+| Form | Print… · Layout | 18 in 12 named folders | one level |
+
+**They share no action at all**, and the template already forked completely on `$plan->isForm()`.
+Worse, neither of a form's two buttons was worth having here: **Print… could never work**, because
+the print page needs a record and a list has none — it always landed on "a form is opened from the
+document it belongs to" — and **Layout duplicated the canvas's own chooser**, which is already a
+forms list, already in the menu as Form Layout. So the forms half of this page had no action that
+both worked and was not already somewhere better.
+
+The result is subtraction: Documents becomes **Reports (Forms)**, and the canvas's chooser becomes
+the **forms catalogue**, author-gated (a run-only user loses nothing, because every action on a form
+is either authoring or belongs on the document that owns it). The catalogue is now rendered twice for
+its two real purposes rather than four times.
+
+#### The names were in the data all along
+
+The folder titles are rows in the same table — `doc_type = '0'`, which the list explicitly excluded.
+`doc_ext = '0'` is a category (`cust` → "Customers"), `'fr'` its reports folder, `'ff'` a named forms
+folder (`cust:inv` → "Invoices/Packing Slips"). A report is filed under its CATEGORY, because every
+report in one shares a folder called "Reports" and a page of headings reading "Reports" says nothing;
+a form is filed under its own folder, whose name already identifies it. That asymmetry is in the
+data, not invented. `forms_folder_titles()` and `forms_folder_for()` are the whole mechanism — no
+tree, no jsTree, no selection state.
+
+Headings are driven by the DOCUMENTS, so a folder holding nothing gets none; five of the twelve are
+empty in a stock install.
+
+**It found a gap in the shipped catalogue.** Group `asset` holds the Asset List report and has no
+folder row at all, on either company — so the fallback shows the raw code, because inventing "Assets"
+would be a guess. `verify_forms_pages.php` reports it as a `[--]` note rather than failing: the fix
+is a row of data, and it belongs with the shipping set in step 5.
+
+#### Cancel went to the wrong place, in both editors
+
+Both hardcoded `page=main`, so Cancel always landed on Documents — right only if that is where the
+author came from, and wrong from Tools → Form Layout, which threw them out of the section they were
+working in. Cancel now returns to the list of things that editor edits.
+
+#### Two checks that failed on correct code first
+
+Both worth recording, because both are the same mistake in different clothes — a check that looked
+right and tested something else:
+
+- the Cancel check matched `location\.href[^"\']*page=canvas`, and the handler is written
+  `onclick="location.href = '…'"`. The character class stops dead at the opening quote, so a correct
+  page reported as broken. Anchored on the icon instead.
+- the coverage check compared TITLES against the whole page text, and reported four forms as leaking
+  onto the reports page — because a report named "Purchase Orders by Vendor" contains the form title
+  "Purchase Order". It now reads the title CELL of each row, so values compare whole.
+
+Coverage is the property that matters when a list is split in two: 39 + 18 = 57, each on exactly one
+page, checked against the catalogue itself on both companies.

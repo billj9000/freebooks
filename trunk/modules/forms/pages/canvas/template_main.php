@@ -21,8 +21,15 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 $toolbar->icon_list['save']['show']   = $forms_canvas_definition !== null && $security_level > 2;
 $toolbar->icon_list['save']['params'] = 'onclick="formsCanvasSave()"';
+// Back to the list of FORMS, not to the document list. Cancel means "stop
+// editing this one", and the useful destination is the others — which is also
+// where the author came from if they arrived by Tools -> Form Layout. Sending
+// them to Documents was wrong from that door and right only by accident from
+// the other. With nothing open this page IS that list, so Cancel then leaves
+// the editing side altogether.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
-    . html_href_link(FILENAME_DEFAULT, 'module=forms&page=main', 'SSL') . '\'"';
+    . html_href_link(FILENAME_DEFAULT, $forms_canvas_definition !== null
+        ? 'module=forms&page=canvas' : 'module=forms&page=main', 'SSL') . '\'"';
 $toolbar->add_help('11.07');
 echo $toolbar->build_toolbar();
 
@@ -35,19 +42,25 @@ if ($forms_canvas_definition === null) { ?>
   <div class="card-body p-0">
     <table class="table table-borderless table-hover table-sm mb-0">
       <thead class="table-dark">
+        <?php // No Group column: the folder is the heading above each block, and
+              // the raw code it used to print here is not a name. ?>
         <tr>
           <th><?php echo FORMS_COL_TITLE; ?></th>
-          <th><?php echo FORMS_COL_GROUP; ?></th>
           <th class="text-end">&nbsp;</th>
         </tr>
       </thead>
       <tbody>
 <?php if (!$forms_canvas_choices) { ?>
-        <tr><td colspan="3" class="text-muted p-2"><?php echo FORMS_NO_DOCUMENTS; ?></td></tr>
-<?php } else { $row = 0; foreach ($forms_canvas_choices as $choice) { ?>
+        <tr><td colspan="2" class="text-muted p-2"><?php echo FORMS_NO_DOCUMENTS; ?></td></tr>
+<?php } else { $row = 0; $folder = null; foreach ($forms_canvas_choices as $choice) {
+        // Only folders holding a form get a heading — five of the twelve in a
+        // stock install are empty, and a heading over nothing is furniture.
+        if ($choice['folder'] !== $folder) { $folder = $choice['folder']; $row = 0; ?>
+        <tr><td colspan="2" class="fw-bold text-muted pt-2"><?php
+          echo htmlspecialchars($folder); ?></td></tr>
+<?php   } ?>
         <tr class="<?php echo ($row++ % 2) ? 'odd' : 'even'; ?>">
           <td><?php echo htmlspecialchars($choice['title']); ?></td>
-          <td class="text-muted"><?php echo htmlspecialchars($choice['group']); ?></td>
           <td class="text-end">
             <a class="btn btn-primary btn-sm" href="<?php echo html_href_link(FILENAME_DEFAULT,
               'module=forms&amp;page=canvas&amp;rID=' . $choice['id'], 'SSL'); ?>">

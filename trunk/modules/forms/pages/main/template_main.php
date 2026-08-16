@@ -123,19 +123,35 @@ echo $toolbar->build_toolbar();
     <div class="table-responsive">
       <table class="table table-borderless table-hover table-sm mb-0">
         <thead class="table-dark">
+          <?php // No Group column: the group is the heading each block sits
+                // under now, and printing the raw code beside every row was
+                // what made an ordered list look unordered. ?>
           <tr>
             <th><?php echo FORMS_COL_TITLE; ?></th>
-            <th><?php echo FORMS_COL_GROUP; ?></th>
             <th><?php echo FORMS_COL_SERVED_BY; ?></th>
             <th class="text-end"><?php echo FORMS_COL_ACTIONS; ?></th>
           </tr>
         </thead>
         <tbody>
 <?php if (!$forms_documents) { ?>
-          <tr><td colspan="4" class="text-muted p-2"><?php echo FORMS_NO_DOCUMENTS; ?></td></tr>
+          <tr><td colspan="3" class="text-muted p-2"><?php echo FORMS_NO_DOCUMENTS; ?></td></tr>
 <?php } else {
   $row = 0;
+  $folder = null;
   foreach ($forms_documents as $document) {
+    // A heading when the folder changes. Only folders that HOLD something get
+    // one, which is the whole reason it is driven by the documents rather than
+    // by the folder list: five folders in a stock install are empty.
+    if ($document['folder'] !== $folder) {
+      $folder = $document['folder'];
+      $row    = 0;
+?>
+          <tr class="fb-forms-folder">
+            <td colspan="3" class="fw-bold text-muted pt-2"><?php
+              echo htmlspecialchars($folder); ?></td>
+          </tr>
+<?php
+    }
     $plan     = $document['plan'];
     $runnable = $plan->runnable();
     // The run link is assembled in JavaScript from the selects above, so the
@@ -145,7 +161,6 @@ echo $toolbar->build_toolbar();
 ?>
           <tr class="<?php echo ($row++ % 2) ? 'odd' : 'even'; ?>">
             <td><?php echo htmlspecialchars($document['title']); ?></td>
-            <td class="text-muted"><?php echo htmlspecialchars($document['group']); ?></td>
             <td class="<?php echo $runnable ? 'text-muted' : 'text-warning-emphasis'; ?>"
                 <?php if ($plan->notes) { ?>title="<?php echo htmlspecialchars(implode(' ', $plan->notes)); ?>"<?php } ?>>
               <?php echo htmlspecialchars($document['served']); ?>
@@ -177,30 +192,15 @@ echo $toolbar->build_toolbar();
                 <?php echo FORMS_BTN_EMAIL; ?>
               </button>
 <?php   } elseif ($plan->isForm()) {
-          // A form needs records, which this list cannot know — so it links to
-          // the print page rather than offering PDF and CSV. Before this, a
-          // query-driven form had no special_class, planned as an ordinary
-          // dataset, and the buttons here rendered an invoice as a table.
+          // This page lists doc_ext='rpt', so a form should not reach here —
+          // but isForm() is decided by the DEFINITION, not by the catalogue
+          // row, and the two disagreed once already: a query-driven form with
+          // no special_class planned as an ordinary dataset and rendered an
+          // invoice as a table. So the case is kept, and it says where the
+          // document actually lives rather than offering a button that cannot
+          // work from a list with no record in it.
 ?>
-              <?php // NOT wrapped in htmlspecialchars(): html_href_link() already
-                    // emits &amp; between parameters, and encoding that again gives
-                    // &amp;amp; — which the browser reads back as a parameter called
-                    // "amp;page". `page` is then absent, index.php defaults to
-                    // 'main', and the button lands on this very list. ?>
-              <a class="btn btn-primary btn-sm"
-                 href="<?php echo html_href_link(FILENAME_DEFAULT,
-                     'module=forms&amp;page=print&amp;rID=' . $document['id'], 'SSL'); ?>">
-                <?php echo FORMS_BTN_PRINT; ?>
-              </a>
-<?php     // A form is laid out on a page rather than in columns, so an author
-          // edits it on the canvas rather than in the report grid.
-          if ($forms_can_author) { ?>
-              <a class="btn btn-primary btn-sm"
-                 href="<?php echo html_href_link(FILENAME_DEFAULT,
-                     'module=forms&amp;page=canvas&amp;rID=' . $document['id'], 'SSL'); ?>">
-                <?php echo FORMS_CANVAS_OPEN; ?>
-              </a>
-<?php     } ?>
+              <span class="text-muted small"><?php echo FORMS_ROW_IS_FORM; ?></span>
 <?php   } else { ?>
               <span class="text-muted">&mdash;</span>
 <?php   }

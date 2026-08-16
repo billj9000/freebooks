@@ -55,7 +55,26 @@
 <h3>Viewing vs. emailing</h3>
 <p>Output can be viewed/downloaded directly in the browser, or emailed. When emailing, the subject and body default to a template that can include the report or form's own title, the current date, and your company name, and both are editable before sending.</p>
 
-<p>To email a <strong>report</strong>, open <em>Tools &rarr; Documents (Forms)</em>, expand
+<h3>Where the Forms engine lists things</h3>
+
+<p>The Forms engine keeps reports and forms on two separate pages, because almost nothing you can
+do to one applies to the other.</p>
+
+<ul>
+  <li><em>Tools &rarr; Reports (Forms)</em> lists <strong>reports</strong>, which you run as a PDF
+      or a CSV, email, and edit. They are grouped under the area they belong to &mdash; Customers,
+      Vendors, General Ledger, Inventory and so on.</li>
+  <li><em>Tools &rarr; Form Layout</em> lists <strong>forms</strong>, grouped by folder:
+      Invoices/Packing Slips, Purchase Orders, Customer Statements, Bank Checks. That page is for
+      laying a form out, so it needs permission to write documents.</li>
+</ul>
+
+<p>A form is not run from a list at all. It prints one record at a time, so you open it from the
+document it belongs to &mdash; the order, invoice or statement &mdash; and use that document's own
+Print button. Listing forms beside reports only ever offered a button that could not know which
+record you meant.</p>
+
+<p>To email a <strong>report</strong>, open <em>Tools &rarr; Reports (Forms)</em>, expand
 <strong>Email a report</strong>, fill in the recipients, then use the <strong>Email</strong> button
 beside the report you want sent. It goes as a PDF attachment, over the same dates and period chosen
 in the run options above &mdash; so a report emailed and the same report downloaded always cover

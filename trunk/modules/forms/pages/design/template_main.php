@@ -21,8 +21,13 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 $toolbar->icon_list['save']['show']   = $forms_design_definition !== null && $security_level > 2;
 $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'forms_design_form\').submit()"';
+// Back to the list of REPORTS this editor edits, for the same reason the canvas
+// goes back to its own list: Cancel means "stop editing this one", and that is
+// the same destination whichever door the author came in by. With nothing open
+// this page IS that list, so Cancel then leaves the editing side altogether.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
-    . html_href_link(FILENAME_DEFAULT, 'module=forms&page=main', 'SSL') . '\'"';
+    . html_href_link(FILENAME_DEFAULT, $forms_design_definition !== null
+        ? 'module=forms&page=design' : 'module=forms&page=main', 'SSL') . '\'"';
 $toolbar->add_help('11.06');
 echo $toolbar->build_toolbar();
 

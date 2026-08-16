@@ -40,8 +40,13 @@
 //                      An image element can also be ADDED to a form, so one
 //                      that shipped without a logo can be given one, and any
 //                      element can be given a name of the author's own.
+// 1.06 => 2026-08-16 - Reports and forms are listed separately: Documents
+//                      becomes Reports, and Form Layout is the forms
+//                      catalogue. Both group by the folder NAMES the catalog
+//                      already carries rather than by the doc_group code. An
+//                      editor's Cancel returns to its own list.
 
-define('MODULE_FORMS_VERSION', 1.05);
+define('MODULE_FORMS_VERSION', 1.06);
 
 // Security IDs.
 //

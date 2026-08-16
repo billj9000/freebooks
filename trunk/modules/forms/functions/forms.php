@@ -211,3 +211,55 @@ function forms_font_names(): array
     $fonts = $GLOBALS['Fonts'] ?? array();
     return is_array($fonts) ? $fonts : array();
 }
+
+/**
+ * The folder names the catalogue already carries.
+ *
+ * The document list used to sort by `doc_group` and print it — `cust:inv`,
+ * `vend:po`, `bnk:chk` — which is an internal code, so the page looked
+ * unordered when in fact it was ordered by something nobody can read.
+ *
+ * The names exist, in the same table, as rows with `doc_type = '0'` that the
+ * list deliberately excludes. There are three kinds of them:
+ *
+ *   - `doc_ext = '0'`  a category:      `cust` => "Customers"
+ *   - `doc_ext = 'fr'` its reports:     `cust` => "Reports"
+ *   - `doc_ext = 'ff'` a forms folder:  `cust:inv` => "Invoices/Packing Slips"
+ *
+ * A REPORT is filed under its category, because every report in a category
+ * shares one folder called "Reports" and a page full of headers reading
+ * "Reports" would say nothing. A FORM is filed under its own folder, whose name
+ * already identifies it. That asymmetry is in the data, not invented here.
+ *
+ * @return array{category: array<string,string>, form: array<string,string>}
+ *   both keyed by doc_group
+ */
+function forms_folder_titles($db): array
+{
+    $titles = array('category' => array(), 'form' => array());
+    $result = $db->Execute("select doc_group, doc_ext, doc_title from " . TABLE_PHREEFORM . "
+      where doc_type = '0' and doc_ext in ('0', 'ff')");
+    while ($result && !$result->EOF) {
+        $group = (string)$result->fields['doc_group'];
+        $where = $result->fields['doc_ext'] === '0' ? 'category' : 'form';
+        $titles[$where][$group] = (string)$result->fields['doc_title'];
+        $result->MoveNext();
+    }
+    return $titles;
+}
+
+/**
+ * Which folder heading a document belongs under.
+ *
+ * Falls back to the raw group when a folder row is missing — a company can have
+ * documents in a group nobody named, and a heading reading `cust:inv` is poor
+ * but truthful, where dropping the row would hide a document completely.
+ *
+ * @param array{category: array<string,string>, form: array<string,string>} $titles
+ */
+function forms_folder_for(string $group, bool $isForm, array $titles): string
+{
+    if ($isForm) return $titles['form'][$group] ?? $group;
+    // A report's group IS its category; a form's is the category plus a folder.
+    return $titles['category'][$group] ?? $titles['category'][explode(':', $group)[0]] ?? $group;
+}

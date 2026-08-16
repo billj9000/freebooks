@@ -17,9 +17,9 @@
 //  Path: /modules/forms/language/en_us/language.php
 //
 
-define('BOX_FORMS_DOCUMENTS',      'Documents (Forms)');
-define('FORMS_PAGE_TITLE',         'Documents');
-define('FORMS_PAGE_INTRO',         'Reports and forms, rendered by the Forms engine. PhreeForm continues to run alongside it.');
+define('BOX_FORMS_DOCUMENTS',      'Reports (Forms)');
+define('FORMS_PAGE_TITLE',         'Reports');
+define('FORMS_PAGE_INTRO',         'Reports rendered by the Forms engine. Forms — invoices, orders, statements — are printed from the document that owns them, and laid out under Tools &rarr; Form Layout.');
 
 define('FORMS_COL_TITLE',          'Document');
 define('FORMS_COL_GROUP',          'Group');
@@ -47,6 +47,7 @@ define('FORMS_ERROR_DELIVERY',     'The document was built but could not be sent
 define('FORMS_ERROR_GL_REQUIRED',  'Choose a GL account before running the reconciliation.');
 define('FORMS_WARN_CONVERSION',    'This report converted with warnings: %s');
 define('FORMS_NO_DOCUMENTS',       'No documents are defined.');
+define('FORMS_ROW_IS_FORM',        'a form — laid out under Tools → Form Layout');
 
 /***** printing a form from the document that owns it (?module=forms&page=print) *****/
 define('FORMS_PRINT_TITLE',        'Print Document');
@@ -235,7 +236,8 @@ define('FORMS_EMAIL_BCC',      'BCC');
 define('BOX_FORMS_CANVAS',        'Form Layout');
 define('FORMS_CANVAS_TITLE',      'Form Layout');
 define('FORMS_CANVAS_TITLE_FOR',  'Form Layout — %s');
-define('FORMS_CANVAS_PICK_ONE',   'Choose a form to look at. You can also reach this from the Layout button beside a form on the document list.');
+define('FORMS_CANVAS_PICK_ONE',  'Every form this company has. Choose one to see where its elements sit on the printed page, and to move them. A form is printed from the document it belongs to — an order, an invoice, a statement — not from here.');
+define('FORMS_CANVAS_FOLDER',     'Folder');
 define('FORMS_CANVAS_CHOOSE',     'Forms you can look at');
 define('FORMS_CANVAS_OPEN',       'Layout');
 define('FORMS_CANVAS_IS_REPORT',  'This is a report, not a form. Reports are made of columns rather than positioned boxes, and are changed in the report editor.');

@@ -195,9 +195,15 @@ switch ($_REQUEST['action'] ?? '') {
 // The catalog is PhreeForm's, deliberately: enabling Forms must not require a
 // migration, and a definition has to be runnable by both engines while the two
 // coexist.
+// REPORTS only. A form has no action on this page that works: it cannot be run
+// from here — it needs a record, which only the document that owns it knows, so
+// the Print button always landed on an explanation — and laying one out is what
+// Tools -> Form Layout is for. Listing forms here offered two buttons, one that
+// could not work and one that duplicated another page.
+$forms_folders   = forms_folder_titles($db);
 $forms_documents = array();
 $result = $db->Execute("select id, doc_title, doc_group, doc_type from " . TABLE_PHREEFORM . "
-  where doc_type <> '0' order by doc_group, doc_title");
+  where doc_type <> '0' and doc_ext = 'rpt' order by doc_group, doc_title");
 while (!$result->EOF) {
   // A definition Forms cannot serve is still LISTED, marked with the reason —
   // it is what the user is looking for when a document they expect is missing.
@@ -215,6 +221,7 @@ while (!$result->EOF) {
       'id'       => (int)$result->fields['id'],
       'title'    => (string)$result->fields['doc_title'],
       'group'    => (string)$result->fields['doc_group'],
+      'folder'   => forms_folder_for((string)$result->fields['doc_group'], false, $forms_folders),
       'plan'     => $plan,
       'served'   => match (true) {
                       $plan->kind === RunPlan::DATASET  => sprintf(FORMS_SERVED_DATASET, $plan->name),
@@ -228,6 +235,13 @@ while (!$result->EOF) {
   }
   $result->MoveNext();
 }
+
+// Sorted by the name shown, not by the code sorted on. Ordering by doc_group put
+// Employees between General Ledger and Inventory, because the code is `hr` —
+// which is exactly the kind of "why is this here?" the codes caused.
+usort($forms_documents, function ($a, $b) {
+  return strcasecmp($a['folder'], $b['folder']) ?: strcasecmp($a['title'], $b['title']);
+});
 
 // The same preference letters a definition stores, so a report run here and one
 // run through PhreeForm resolve to the same range. Required at top level: this
