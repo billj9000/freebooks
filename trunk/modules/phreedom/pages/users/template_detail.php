@@ -186,10 +186,19 @@ foreach ($mainmenu as $key => $menu_heading) {
 <?php
 function create_row($array) {
   global $odd, $settings;
+  // One row per PERMISSION, not per menu entry. The radios are named
+  // sID_<security_id>, so two entries sharing an id become a single radio group
+  // in the browser: choosing a level on one row cleared the other, and neither
+  // row looked authoritative. Report Editor and Form Layout share
+  // SECURITY_ID_FORMS_AUTHOR on purpose — both are "write a document" — and any
+  // module may do the same. The first entry to claim an id keeps the row.
+  static $drawn = array();
   if (!empty($array['submenu']) && $array['text'] != BOX_HEADING_CONFIGURATION) foreach ($array['submenu'] as $menu_item) {
     create_row($menu_item);
   } else {
     if ($array['security_id'] == '') return;
+    if (isset($drawn[$array['security_id']])) return;
+    $drawn[$array['security_id']] = true;
     $checked = array();
     if ($array['show_in_users_settings'] === false) {
       return;
