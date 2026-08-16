@@ -164,6 +164,27 @@ final class ShippedDatasets
                 new FieldDefinition('item_gl_account',  'GL Account',       'journal_item', 'gl_account'),
                 new FieldDefinition('item_taxable',     'Taxable',          'journal_item', 'taxable',       ValueType::Integer),
                 new FieldDefinition('item_serialize',   'Serialized',       'journal_item', 'serialize',     ValueType::Boolean),
+
+                // The serial itself, not the flag beside it. `item_serialize`
+                // says WHETHER a line is serialized; this is the number, and
+                // the three-part cheque prints it on the stub. A real column
+                // the dataset simply never declared, so the definition that
+                // asked for it bound to a name no record supplies.
+                new FieldDefinition('item_serial_number', 'Serial Number',  'journal_item', 'serialize_number'),
+
+                // What the line is worth, whichever side of the entry it sits
+                // on. Distinct from item_net (credit MINUS debit, a movement
+                // that can be negative) and from the two raw sides: a payment
+                // stub wants the amount, and only one of the two columns is
+                // ever populated on a given line.
+                new FieldDefinition(
+                    key:        'item_amount',
+                    label:      'Line Amount',
+                    table:      'journal_item',
+                    type:       ValueType::Money,
+                    expression: '(journal_item.credit_amount + journal_item.debit_amount)',
+                    legacyNames: ['journal_item.credit_amount + journal_item.debit_amount'],
+                ),
                 new FieldDefinition('item_date_1',      'Item Date',        'journal_item', 'date_1',        ValueType::Date),
 
                 // A computed field: the per-unit price the line worked out to.
@@ -182,6 +203,35 @@ final class ShippedDatasets
                     // against division by zero is new: PhreeForm's raw
                     // expression divides regardless.
                     legacyNames: ['journal_item.debit_amount / journal_item.qty'],
+                ),
+
+                // The same price read off the OTHER side of the entry, and it
+                // has to exist separately for the same reason item_net_debit
+                // does: a journal line carries its amount on the side its
+                // account takes. A sales order line is qty 8, debit 0, credit
+                // 20.40 — so the debit-side expression above computes 0 for it,
+                // and pointing the credit-side definitions at that field would
+                // print 0.00 where a price belongs. A wrong number is worse
+                // than a blank, because it looks right.
+                //
+                // Four shipped definitions write this inline — Sales Order,
+                // Customer Quotes, Vendor Credit Memo and the three-part Bank
+                // Check — and until this field existed their unit-price column
+                // bound to a name no record supplies and printed nothing at all.
+                //
+                // Named with the side as a SUFFIX rather than matching the
+                // net pair's convention (where the bare name is the credit
+                // one): `item_unit_price` is already stored in converted
+                // definitions and cannot be re-pointed without changing what
+                // they print.
+                new FieldDefinition(
+                    key:        'item_unit_price_credit',
+                    label:      'Unit Price (Credit Side)',
+                    table:      'journal_item',
+                    type:       ValueType::Money,
+                    expression: '(CASE WHEN journal_item.qty = 0 THEN 0 ELSE journal_item.credit_amount / journal_item.qty END)',
+                    sortable:   true,
+                    legacyNames: ['journal_item.credit_amount / journal_item.qty'],
                 ),
 
                 // Net movement on the line. The sales reports total this, and

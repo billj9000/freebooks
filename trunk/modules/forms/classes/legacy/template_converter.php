@@ -86,6 +86,9 @@ final class TemplateConverter
     /** @var array<string,string> legacy "table.column" => dataset field key */
     private array $fieldMap = [];
 
+    /** The last Table converted, for a TDup to repeat. Reset per document. */
+    private ?Table $lastTable = null;
+
     /** @var array<string,true> legacy names no dataset field covers */
     private array $unmapped = [];
 
@@ -99,9 +102,10 @@ final class TemplateConverter
      */
     public function convert(object $report, ?Dataset $dataset = null): Template
     {
-        $this->warnings = [];
-        $this->unmapped = [];
-        $this->fieldMap = $dataset === null ? [] : self::mapFor($dataset);
+        $this->warnings  = [];
+        $this->unmapped  = [];
+        $this->lastTable = null;
+        $this->fieldMap  = $dataset === null ? [] : self::mapFor($dataset);
 
         $elements = [];
         foreach ((array)($report->fieldlist ?? []) as $index => $field) {
@@ -288,7 +292,8 @@ final class TemplateConverter
                     $this->warnings[] = "[$index] Tbl '$label' has no columns; skipped.";
                     return null;
                 }
-                return new Table(
+                // Kept so a TDup after it can repeat it; see that case.
+                return $this->lastTable = new Table(
                     source:      'items',
                     columns:     $columns,
                     box:         $box,
@@ -355,12 +360,38 @@ final class TemplateConverter
                 return new Barcode(Binding::record($this->scalar($boxfield->fieldname ?? null)), $box, 'C128', $style, $visible, $label);
 
             case 'TDup':
-                // A second copy of the table at new coordinates. The model drops
-                // the concept (§4.3) — it is a second Table on the same source —
-                // but only one definition in the whole library uses it, so it is
-                // reported rather than silently converted.
-                $this->warnings[] = "[$index] TDup '$label' needs a second Table on the same source; not converted.";
-                return null;
+                // "Draw that table again, here." It carries a position and
+                // NOTHING else — no columns, no width, no height — which is
+                // why reading it as a table with its own field list found none.
+                //
+                // §4.3 dropped the CONCEPT because the model has no duplicate
+                // element, not because the shape cannot be expressed: two
+                // Tables on one source is exactly what it means, and
+                // LayoutPdfRenderer draws EVERY Table rather than the first, so
+                // the second one already renders. The only definition that uses
+                // it is the three-part cheque, where the repeat is the
+                // remittance stub — the part the payee keeps.
+                //
+                // Everything but the position comes from the table it repeats,
+                // so a TDup before any table has nothing to copy and is
+                // reported rather than guessed at.
+                if ($this->lastTable === null) {
+                    $this->warnings[] = "[$index] TDup '$label' repeats a table, and none comes before it; skipped.";
+                    return null;
+                }
+                return new Table(
+                    source:      $this->lastTable->source,
+                    columns:     $this->lastTable->columns,
+                    // Its own x and y, the size of what it repeats: the legacy
+                    // element stores no width or height, so $box carries zeros.
+                    box:         new Box($box->x, $box->y,
+                                         $this->lastTable->box->width,
+                                         $this->lastTable->box->height),
+                    headerStyle: $this->lastTable->headerStyle,
+                    style:       $this->lastTable->style,
+                    visible:     $visible,
+                    label:       $label ?? $this->lastTable->label,
+                );
 
             case 'LtrTpl':
             case 'LtrData':
