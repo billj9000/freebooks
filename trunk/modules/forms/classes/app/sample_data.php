@@ -47,7 +47,8 @@ namespace FreeBooks\Forms\App;
 
 use FreeBooks\Forms\Catalog\Dataset;
 use FreeBooks\Forms\Document\{
-    ReportColumn, Row, RowKind, TableDocument, TypedValue, ValueType
+    Barcode, Binding, Field, FieldBlock, Record, ReportColumn, Row, RowKind, Scope, Table,
+    TableDocument, Template, TypedValue, ValueType
 };
 
 final class SampleData
@@ -112,6 +113,102 @@ final class SampleData
             afterRender: [],   // never fire a hook for data that does not exist
             style:       $document->style,
         );
+    }
+
+    /**
+     * One invented record, for a form whose own table has nothing to print.
+     *
+     * The canvas is only worth looking at if there is TEXT under the element
+     * outlines: a form rendered against an empty record draws its static labels
+     * and its rules and nothing else, and an author cannot judge whether a box
+     * sits over its value when there is no value. §13.2 requires this — a fresh
+     * install has no invoices and must still be able to lay an invoice out.
+     *
+     * Every binding the template names is filled, including the line-item
+     * table, so what the author checks is the geometry of a full page rather
+     * than of a page with the middle missing.
+     *
+     * @param int $lines rows for each of the template's tables
+     */
+    public static function record(Template $template, ?Dataset $dataset, int $lines = 6): Record
+    {
+        $values = [];
+        $tables = [];
+
+        foreach ($template->elements as $element) {
+            if ($element instanceof Field) {
+                // A Context binding is a real company constant and is resolved
+                // for real; inventing one would put "Sample COMPANY_NAME" where
+                // the company's own name belongs.
+                if ($element->bind->scope === Scope::Context) continue;
+                $values[$element->bind->name] = self::forBinding($element->bind, $dataset, 0);
+                foreach ($element->bind->aggregateFields() as $summed) {
+                    $values[$summed] ??= self::forBinding(Binding::record($summed), $dataset, 0);
+                }
+                continue;
+            }
+            if ($element instanceof FieldBlock) {
+                foreach ($element->parts as $index => $part) {
+                    if ($part->bind->scope === Scope::Context) continue;
+                    $values[$part->bind->name] = self::forBinding($part->bind, $dataset, $index);
+                }
+                continue;
+            }
+            if ($element instanceof Barcode) {
+                $values[$element->bind->name] = TypedValue::text('SAMPLE-0001');
+                continue;
+            }
+            if ($element instanceof Table) {
+                $rows = [];
+                for ($line = 0; $line < $lines; $line++) {
+                    $row = [];
+                    foreach ($element->columns as $column) {
+                        $row[$column->bind->name] = self::forBinding($column->bind, $dataset, $line);
+                    }
+                    $rows[] = $row;
+                }
+                $tables[$element->source] = $rows;
+            }
+        }
+
+        return new Record($values, $tables, null, 'sample');
+    }
+
+    /** A value of the right TYPE for one binding, named so it can be recognised. */
+    private static function forBinding(Binding $binding, ?Dataset $dataset, int $line): TypedValue
+    {
+        $field = $dataset?->field($binding->name);
+        $type  = $field?->type ?? self::guessType($binding->name);
+        $label = $field !== null && trim($field->label) !== '' ? trim($field->label) : $binding->name;
+
+        return match ($type) {
+            ValueType::Money, ValueType::Decimal => new TypedValue(self::money($line, null), $type),
+            ValueType::Integer => TypedValue::int($line + 1),
+            ValueType::Boolean => TypedValue::bool($line % 2 === 0),
+            ValueType::Date    => TypedValue::date(date('Y-m-d', strtotime('-' . ($line * 3) . ' days'))),
+            default            => TypedValue::text($label . ' ' . ($line + 1)),
+        };
+    }
+
+    /**
+     * What a field is, from its NAME, when no dataset declares it.
+     *
+     * Every form served by a provider is in that position: its values come from
+     * the provider's own contract, not from a dataset the canvas can consult.
+     * A guess is right often enough to be useful and is never load-bearing —
+     * this data is invented either way, and the page says so.
+     */
+    private static function guessType(string $name): ValueType
+    {
+        $name = strtolower($name);
+        return match (true) {
+            str_contains($name, 'date')                              => ValueType::Date,
+            str_contains($name, 'qty'), str_contains($name, 'count') => ValueType::Integer,
+            str_contains($name, 'amount'), str_contains($name, 'total'),
+            str_contains($name, 'price'),  str_contains($name, 'cost'),
+            str_contains($name, 'debit'),  str_contains($name, 'credit') => ValueType::Money,
+            default                                                  => ValueType::Text,
+        };
     }
 
     /**

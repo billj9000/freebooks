@@ -46,7 +46,7 @@
 // 'print', driven through parameters taken from what was actually rendered or
 // proven elsewhere. Listing them means the suite exercises what clicking the
 // button does, rather than only that the button is wired.
-const FORMS_PAGES = ['main', 'datasets', 'datasetsnew', 'admin', 'design', 'designpick', 'print', 'printgroup', 'run', 'printrun'];
+const FORMS_PAGES = ['main', 'datasets', 'datasetsnew', 'admin', 'design', 'designpick', 'canvas', 'canvaspick', 'print', 'printgroup', 'run', 'printrun'];
 
 if (!isset($argv[2])) {
     $failed = 0;
@@ -99,11 +99,14 @@ $DEFINING = $PAGE === 'datasetsnew';
 // way in — the menu entry exists so the permission can be granted at all — and
 // it is a different branch from the editor proper.
 $PICKING  = $PAGE === 'designpick';
+// The form canvas, and the same page reached from the menu with nothing chosen.
+$CANVASPICK = $PAGE === 'canvaspick';
 if ($RUNNING)  $PAGE = 'main';
 if ($PRINTING) $PAGE = 'print';
 if ($CHOOSING) $PAGE = 'print';
 if ($DEFINING) $PAGE = 'datasets';
 if ($PICKING)  $PAGE = 'design';
+if ($CANVASPICK) $PAGE = 'canvas';
 
 // Every security id at full rights: this checks that a page RUNS, not who may
 // open it. Permission is asserted separately, by reading the id each page
@@ -159,7 +162,19 @@ if ($PAGE === 'print') {
 // was chosen — which would render a page that proves nothing. The id comes from
 // the catalog rather than being hard-coded: a fixture id that no longer exists
 // is a check that reports a green nothing.
-if ($PAGE === 'design' && $PICKING) {
+if ($PAGE === 'canvas' && $CANVASPICK) {
+    $_GET = $_REQUEST = ['module' => 'forms', 'page' => 'canvas'];
+    $_SESSION['messageToStack'] = [];
+} elseif ($PAGE === 'canvas') {
+    // A FORM, not a report: the canvas declines a report on purpose.
+    $row = $db->Execute("select id from " . TABLE_PHREEFORM
+        . " where doc_type <> '0' and doc_ext = 'frm' order by id limit 1");
+    if (!$row || $row->EOF) {
+        echo "  [--] no form definition on this company; nothing to lay out\n";
+        exit(0);
+    }
+    $_GET = $_REQUEST = ['module' => 'forms', 'page' => 'canvas', 'rID' => (string)$row->fields['id']];
+} elseif ($PAGE === 'design' && $PICKING) {
     // No rID at all: what a menu click sends.
     $_GET = $_REQUEST = ['module' => 'forms', 'page' => 'design'];
     $_SESSION['messageToStack'] = [];
@@ -692,6 +707,55 @@ if ($PAGE === 'design' && !$PICKING) {
        str_contains($output, 'formtarget="forms_design_preview"')
        && str_contains($output, 'name="forms_design_preview"'));
 
+}
+
+if ($PAGE === 'canvas' && !$CANVASPICK) {
+    // The canvas is a stack: a rasterized page, and boxes over it at the same
+    // origin and scale. Both halves have to be there, and the boxes have to
+    // carry millimetres — a box list in pixels would be right at one zoom.
+    ok('it draws the page canvas', $xpath->query("//canvas[@id='forms_canvas_page']")->length === 1);
+    ok('it draws the overlay layer', $xpath->query("//*[@id='forms_canvas_boxes']")->length === 1);
+    ok('the overlay sits inside the same stack as the canvas',
+       $xpath->query("//*[@id='forms_canvas_stack']//canvas[@id='forms_canvas_page']")->length === 1
+       && $xpath->query("//*[@id='forms_canvas_stack']//*[@id='forms_canvas_boxes']")->length === 1);
+
+    ok('it passes the elements to the page in millimetres',
+       $forms_canvas_boxes !== [] && isset($forms_canvas_boxes[0]['x'], $forms_canvas_boxes[0]['y']),
+       count($forms_canvas_boxes) . ' box(es)');
+    // Read-only is the point of this step. A save control would promise an edit
+    // that does not exist.
+    ok('it offers no save', !str_contains($output, 'tb_main_save'));
+    ok('it says it is read-only', str_contains($output, FORMS_CANVAS_READ_ONLY));
+
+    // The PDF comes from the endpoint by URL, so a page naming the wrong op
+    // renders an empty white rectangle and no error.
+    ok('it points at the canvas PDF endpoint',
+       str_contains($output, 'op=canvas_pdf'));
+    ok('the endpoint exists', is_file(DIR_FS_MODULES . 'forms/ajax/canvas_pdf.php'));
+}
+
+if ($CANVASPICK) {
+    $errors = [];
+    foreach ((array)($_SESSION['messageToStack'] ?? []) as $message) {
+        if (($message['type'] ?? '') === 'error') $errors[] = strip_tags((string)$message['text']);
+    }
+    ok('opening the canvas from the menu raises no error', $errors === [],
+       implode(' | ', array_slice($errors, 0, 3)));
+    $links = $xpath->query("//a[contains(@href,'page=canvas') and contains(@href,'rID=')]");
+    ok('it offers the forms it can lay out', $links->length > 0, $links->length . ' link(s)');
+
+    // Only forms. A report chosen here would land on a page that declines it.
+    $offered = [];
+    foreach ($links as $link) {
+        $query = [];
+        parse_str((string)parse_url(html_entity_decode((string)$link->getAttribute('href')),
+            PHP_URL_QUERY), $query);
+        if (isset($query['rID'])) $offered[] = (int)$query['rID'];
+    }
+    $reportIds = [];
+    $rows = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_ext <> 'frm'");
+    while ($rows && !$rows->EOF) { $reportIds[] = (int)$rows->fields['id']; $rows->MoveNext(); }
+    ok('no report is offered in the form chooser', array_intersect($offered, $reportIds) === []);
 }
 
 if ($PAGE === 'main' && $controls->length > 0) {

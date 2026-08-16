@@ -51,6 +51,30 @@ namespace FreeBooks\Forms\Render;
  */
 final class PdfCanvas extends \TCPDF
 {
+    /**
+     * A paper name TCPDF will actually recognise.
+     *
+     * TCPDF::getPageSizeFromFormat() looks the name up in a table keyed in
+     * UPPERCASE and, finding nothing, silently returns A4. Definitions store
+     * "Letter" — that is what PhreeForm's `Letter:216:282` reduces to — so every
+     * Letter document was being printed on A4: 210 × 297 mm instead of
+     * 215.9 × 279.4, which is 6 mm narrower and 18 mm longer. Nothing failed;
+     * the page was simply the wrong size, and only a US install would notice.
+     *
+     * A4, A5 and the rest of the ISO names pass through unchanged because they
+     * are already uppercase, which is why this went unseen: the shipped
+     * definitions on a European install were right by accident.
+     *
+     * An unknown name still falls back to A4 inside TCPDF. That is its choice to
+     * make and this does not second-guess it — but it is worth knowing that a
+     * definition naming a paper size nobody has heard of prints on A4 in
+     * silence.
+     */
+    public static function paperFormat(mixed $size): mixed
+    {
+        return is_string($size) ? strtoupper(trim($size)) : $size;
+    }
+
     /** Callback drawing everything that repeats on every page. */
     private $headerCallback = null;
 

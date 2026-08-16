@@ -973,6 +973,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
 | `verify_forms_native.php` | Every definition converts to the native format, re-encodes byte-stably, loads back as native, and renders **identical PDF bytes** through it (§13.7 step 1) | yes | **PASS both companies** — 56 of 57 convert, 56/56 byte-identical on `demo`, 51/51 on `production` |
 | `verify_forms_designer.php` | Opening a report in the editor and saving it untouched returns the same definition and prints the same bytes; a field the dataset does not declare is refused; the original is kept on first save (§13.7 step 2) | yes | **PASS both companies** — 38 of 38 reports survive an untouched save |
+| `verify_forms_canvas.php` | The geometry the canvas overlay rests on, read back out of the PDF content stream: page size, absolute (not margin-relative) placement, both orientations, five paper sizes (§13.7 step 3) | yes | **PASS both companies** — 39 checks; found `Letter` rendering as A4 |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -1632,10 +1633,10 @@ Continuing §9.
 2. ~~**Report editor.**~~ **DONE — see §13.10.** Columns, group, sort, filter, page setup, live
    preview through the existing `DocumentRunner` → `TablePdfRenderer`. The smaller half, and it
    exercises load and save end to end before any canvas exists.
-3. **Form canvas, read-only.** pdf.js underlay with element outlines drawn on top from the
-   `Template`. No dragging. This proves the mm-to-pixel alignment, page size, margins and
-   orientation — the part most likely to be subtly wrong, and the cheapest point at which to
-   abandon approach C if it is.
+3. ~~**Form canvas, read-only.**~~ **DONE — see §13.11.** pdf.js underlay with element outlines
+   drawn on top from the `Template`. No dragging. This proves the mm-to-pixel alignment, page size,
+   margins and orientation — the part most likely to be subtly wrong, and the cheapest point at
+   which to abandon approach C if it is.
 4. **Form editing.** Drag, resize, snap, add and delete, z-order, and an element inspector for
    font, size, alignment, colour, border and binding.
 5. **Native shipping set.** Generated, committed, seeded by the installer, with paper-size stamping
@@ -1650,9 +1651,10 @@ mixed tree. Step 6 deletes that branch; it is a few lines, not an architecture.
 
 Not yet validated.
 
-1. **mm-to-pixel alignment between pdf.js and `LayoutPdfRenderer`.** The underlay is only worth
-   having if a box drawn at 140 mm sits over the text rendered at 140 mm, across page sizes,
-   orientations and zoom levels. Step 3 exists to find out early.
+1. ~~**mm-to-pixel alignment between pdf.js and `LayoutPdfRenderer`.**~~ **SETTLED — §13.11.** The
+   conversion is exact and is now pinned by `verify_forms_canvas.php` against the PDF's own content
+   stream. One millimetre is 72/25.4 points, y is measured down from the page top, and placement is
+   absolute rather than margin-relative — measured, not assumed.
 2. **The three long-tail element types.** `TDup`, `ImgLink` and `BarCode` appear once each in the
    shipped set. `TDup` was *eliminated* rather than mapped when the vocabulary was collapsed to
    nine (§4.2), so its single instance is the one definition most likely to block the migration
@@ -1660,8 +1662,9 @@ Not yet validated.
 3. **Editing a definition served by a provider.** Nine forms are built by a `DocumentProvider`
    rather than a dataset query, and their available fields come from the provider's own contract,
    not from a dataset the palette can enumerate. What the palette offers for those is unresolved.
-4. **pdf.js weight.** Roughly 1 MB vendored, on a repository that commits its dependencies by
-   design. Acceptable, but it is the largest single front-end asset added so far.
+4. ~~**pdf.js weight.**~~ **MEASURED: 1.8 MB**, not the 1 MB estimated — `pdf.min.mjs` 504 KB and
+   `pdf.worker.min.mjs` 1.3 MB, both from the `legacy` build of pdfjs-dist 6.2.108. Still the
+   largest single front-end asset in the repository by some margin. Accepted.
 
 ### 13.9 Step 1, measured
 
@@ -1853,3 +1856,91 @@ shipping report path and both recorded in §13.9 as known-but-deferred:
   from editing one, and every column, filter and sort would have to be re-resolved.
 - **No new reports.** This edits what the catalog holds. Creating one needs a group, a document type
   and a catalog row, which is its own piece of work.
+
+### 13.11 Step 3, measured
+
+The form canvas, read-only. Built and measured on 2026-08-16.
+
+`?module=forms&page=canvas&rID=<id>`, reached from a **Layout** button beside each form on the
+document list or from **Tools → Form Layout**, behind `SECURITY_ID_FORMS_AUTHOR`. The real rendered
+PDF, rasterized by pdf.js, with every element outlined on a transparent layer above it — colour per
+type, an element list beside it, hover in either direction, and the outlines switchable off so the
+page can be seen on its own. Zoom and page controls, and no save: this step proves the alignment
+before anything can be moved.
+
+#### Open risk 1 is settled, by measurement
+
+The overlay converts with one line — `pixels = mm × scale × 72/25.4` — and it carries no page size,
+no margins and no orientation. That is deliberate: those are three things to get wrong, and not
+having them means there is nothing to get wrong. What makes it legitimate is that a `Box` is
+millimetres from the page's **top-left**, which is what `LayoutPdfRenderer` hands TCPDF's `SetXY`
+and `Rect` — absolute page coordinates. pdf.js rasterizes at `scale` pixels per point from the same
+corner with y pointing the same way, so the two agree by construction.
+
+`verify_forms_canvas.php` does not take that on trust. It renders documents and reads the numbers
+back out of the **PDF content stream** — inflating the compressed page streams, because reading the
+bytes as text finds nothing and would make every assertion vacuously true. A Rect at (20, 30, 50 × 10) mm
+on A4 emits
+
+```
+56.692913 756.850630 141.732283 -28.346457 re
+```
+
+on a MediaBox of 595.276 × 841.890 pt: 20 mm across, 841.890 − 30 mm up from the bottom, 50 × 10 mm
+in size. Checked on A4 portrait and landscape, Letter, Legal and A5 landscape — a wrong axis passes
+on a square page and on nothing else — plus a control proving a 25 mm margin does **not** move an
+element, which is the failure that would look like a form drawn slightly low rather than like a
+defect.
+
+#### And it immediately found one: every `Letter` document was printing on A4
+
+`TCPDF::getPageSizeFromFormat()` looks the paper name up in a table keyed in **UPPERCASE** and,
+finding nothing, returns **A4 without complaint**. Definitions store `Letter` — that is what
+PhreeForm's `Letter:216:282` reduces to, and it is what every shipped definition says — so every
+Letter form and report rendered by Forms came out 210 × 297 mm instead of 215.9 × 279.4: 6 mm
+narrower and 18 mm longer. `A4` and `A5` were right by accident, being uppercase already, which is
+why a European install would never have noticed.
+
+Fixed in `PdfCanvas::paperFormat()`, in front of all three canvas constructions. It is worth being
+clear about how this was missed for so long: **every byte-comparison in the suite compares Forms
+against Forms**, and both sides were equally wrong. Only a check against an external truth — the
+declared page size in millimetres — could see it, and this is the first such check.
+
+An unknown paper name still falls back to A4 inside TCPDF. That is its choice and this does not
+second-guess it, but a definition naming a size nobody has heard of prints on A4 in silence.
+
+#### The rest of what step 3 pins
+
+- **763 elements across 18 forms** all become boxes, none unknown, none with a negative position or
+  size: text 322, field 272, block 41, line 64, rect 19, image 15, table 18, pagenum 11, barcode 1.
+- **A `Line`'s box is not a rectangle.** `convertLine()` stores the END POINT as a signed offset, so
+  a line drawn upward has a negative height — and a browser renders a negative-size box as nothing,
+  silently, for exactly the elements that happen to point that way. 64 of the shipped elements are
+  lines. `CanvasLayout` normalises them and the tool checks both directions.
+- **A text element's box is one LINE, not the whole element.** `drawText()` goes through TCPDF's
+  `MultiCell`, whose height argument is the height of each line rather than of the cell, so the text
+  grows downward and the box does not describe where it ends — an address block stores 4.5 mm and
+  prints six lines. Raised by the first person to look at the canvas, which is the point of building
+  it read-only first. The stored box is still what an author positions, so that is what is drawn,
+  but with a **dashed lower edge** and a note; how far the text really reaches depends on the record
+  and changes with it, which is why it cannot simply be drawn larger.
+- **An image stores a WIDTH and no height** — every logo in the shipped set — because TCPDF works
+  the other side out from the file's aspect ratio. Passing that 0 to the browser drew the logo as a
+  two-pixel sliver: not a wrong box so much as an absent one, on the element an author most wants to
+  see the edges of. Raised by the same first look as the block question. Unlike text this really is
+  knowable — it depends on the FILE, not the record — so `CanvasLayout` measures it, and the tool
+  checks the answer against the `cm` transform in the content stream rather than against the
+  arithmetic that produced it. What genuinely cannot be measured (a missing file, or an `ImgLink`
+  whose name is data) is dashed all round and said to be indicative.
+- **A form with no printable record** falls back to invented values (§13.2) so there is text to
+  align against — a form rendered against an empty record draws its labels and its rules and
+  nothing else, which is precisely the case where an author cannot judge a box. Company constants
+  are still resolved for real: "Sample COMPANY_NAME" would misjudge the width of the one block
+  whose width is fixed.
+- **pdf.js is 1.8 MB**, vendored at `trunk/ext/pdfjs/` with its Apache-2.0 licence and a README
+  recording version and provenance. It keeps its own licence banner and takes no FreeBooks header.
+
+#### What is left for step 4
+
+Dragging, resizing, snapping, z-order and an element inspector. The alignment they all depend on is
+now measured rather than hoped for, which was the point of doing this first.

@@ -138,7 +138,7 @@ final class TablePdfRenderer implements FormsRenderer
         // too wide even for landscape is scaled, and then only by the little it
         // is over (the three that need it are 8–10 mm past a 277 mm page).
         $orientation = $this->orientationFor($doc, $page);
-        $pdf = new PdfCanvas($orientation, 'mm', $page->size, true, 'UTF-8', false);
+        $pdf = new PdfCanvas($orientation, 'mm', PdfCanvas::paperFormat($page->size), true, 'UTF-8', false);
         $pdf->SetCellPadding(0);
         $pdf->SetMargins($page->marginLeft, $page->marginTop, $page->marginRight);
         // Off deliberately: this renderer decides where rows break, using the
@@ -188,7 +188,7 @@ final class TablePdfRenderer implements FormsRenderer
 
         $needed = $this->naturalWidth($doc);
         foreach (['P', 'L'] as $candidate) {
-            $probe     = new PdfCanvas($candidate, 'mm', $page->size, true, 'UTF-8', false);
+            $probe     = new PdfCanvas($candidate, 'mm', PdfCanvas::paperFormat($page->size), true, 'UTF-8', false);
             $printable = $probe->getPageWidth() - $page->marginLeft - $page->marginRight;
             if ($needed <= $printable + 0.01) return $candidate;
         }

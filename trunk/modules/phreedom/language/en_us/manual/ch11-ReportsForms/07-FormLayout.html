@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.07">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Form Layout">
+<meta name="doc_index_2" content="Forms.Checking the Layout">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<meta name="doc_glossary_1" content="Element:One item on a form - a piece of fixed text, a value from the record, a line, a box, an image or the table of line items.">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Checking a Form's Layout">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Checking a Form's Layout</title>
+</head>
+
+<body>
+
+<h1 align="center">Checking a Form's Layout</h1>
+
+<p>A form &mdash; an invoice, a purchase order, a statement, a cheque &mdash; is a set of items
+placed at particular positions on the page, rather than a list of columns like a report. The
+<strong>Form Layout</strong> view shows you where each of those items sits, drawn on top of the
+real printed page.</p>
+
+<p>Open it from <em>Tools &rarr; Form Layout</em>, or with the <strong>Layout</strong> button beside
+a form on <em>Tools &rarr; Documents (Forms)</em>. It needs the same permission as the report
+editor: <strong>Forms &mdash; write a report</strong>.</p>
+
+<h3>What you are looking at</h3>
+
+<p>The page in the middle is the form as it will actually print &mdash; the same page the Print
+button produces, not a preview drawn to look like it. Over it sits a coloured outline around every
+element, with a different colour for each kind: fixed text, a value from the record, an address
+block, the table of line items, lines, boxes, images, page numbers and barcodes.</p>
+
+<p>Point at an outline and it thickens, and the matching entry in the <strong>Elements</strong> list
+on the right highlights. Point at a row in that list and the outline on the page highlights instead,
+which is the quicker way round when you are hunting for one particular field on a crowded form.
+Resting on an outline also shows its position and size in millimetres.</p>
+
+<p>Untick <strong>Show the elements</strong> to take the outlines away and see the page on its own.
+That is the way to check that a box really is over its text rather than merely near it.</p>
+
+<h3>Boxes with a dashed lower edge</h3>
+
+<p>An address block encloses only its first line, and that is correct rather than a fault. What is
+stored for a block of text is where it starts and how tall <em>one line</em> is; the rest of the
+address flows on below, and how far it reaches depends on the address &mdash; a customer with a
+company name and a county needs more lines than one without.</p>
+
+<p>Those boxes are drawn with a <strong>dashed lower edge</strong> to show that the text continues
+past them. It applies to any text that can run to more than one line: address and company blocks
+always, and an ordinary field whenever its value is too long for the width given.</p>
+
+<p>This matters when you come to move things. The space an address block needs on the page is not
+the box you can see, so leaving room underneath it is part of positioning it.</p>
+
+<p>A box drawn with a dashed edge <em>all the way round</em> means something different: the size
+could not be worked out at all. That happens when a form takes its logo from the record rather than
+naming a fixed file, or when the image file is missing. The position is right; the size is only
+indicative.</p>
+
+<h3>Zoom and pages</h3>
+
+<p>The <strong>+</strong> and <strong>&minus;</strong> buttons zoom, and the arrows move between
+pages on a form long enough to need more than one. The outlines follow the zoom exactly; if they
+ever drift away from the text underneath at some zoom levels, that is worth reporting, because they
+are calculated from the same measurements the printer uses.</p>
+
+<h3>When the figures look invented</h3>
+
+<p>If your company has no record this form would print &mdash; a new installation with no invoices
+yet, for instance &mdash; the page is filled with made-up values so that there is something to look
+at, and a note at the top says so. The <em>layout</em> is the real one; only the data is not. Your
+company name and address are still real, because those are settings rather than data.</p>
+
+<h3>What you cannot do here yet</h3>
+
+<p>Nothing on this page can be moved. It shows the layout so that it can be checked; changing it
+comes next. Until then, a form is still altered in the old report designer.</p>
+
+<h3>Related Links</h3>
+<p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>
+<a href="04-PaperSize.html" target="mainFrame">Paper Size</a><br>
+<a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a></p>
+</body>
+</html>

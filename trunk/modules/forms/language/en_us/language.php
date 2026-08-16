@@ -230,3 +230,23 @@ define('FORMS_EMAIL_NOTE',     'Fill these in, then use the Email button beside 
 define('FORMS_EMAIL_FROM',     'From');
 define('FORMS_EMAIL_CC',       'CC');
 define('FORMS_EMAIL_BCC',      'BCC');
+
+// ── the form canvas (design §13.7 step 3) ────────────────────────────────────
+define('BOX_FORMS_CANVAS',        'Form Layout');
+define('FORMS_CANVAS_TITLE',      'Form Layout');
+define('FORMS_CANVAS_TITLE_FOR',  'Form Layout — %s');
+define('FORMS_CANVAS_PICK_ONE',   'Choose a form to look at. You can also reach this from the Layout button beside a form on the document list.');
+define('FORMS_CANVAS_CHOOSE',     'Forms you can look at');
+define('FORMS_CANVAS_OPEN',       'Layout');
+define('FORMS_CANVAS_IS_REPORT',  'This is a report, not a form. Reports are made of columns rather than positioned boxes, and are changed in the report editor.');
+define('FORMS_CANVAS_READ_ONLY',  'This shows where each element sits on the printed page. Nothing here can be moved yet — the layout is shown so it can be checked, and editing comes next.');
+define('FORMS_CANVAS_SAMPLED',    'There is no record on this company that this form would print, so the figures below are invented. The layout is the real one; only the data is not.');
+define('FORMS_CANVAS_PAGE',       'The printed page');
+define('FORMS_CANVAS_SHOW_BOXES', 'Show the elements');
+define('FORMS_CANVAS_ELEMENTS',   'Elements');
+define('FORMS_CANVAS_ELEMENT_COUNT', 'on this form. Point at one to find it on the page.');
+define('FORMS_CANVAS_LOADING',    'Rendering the page…');
+define('FORMS_CANVAS_FAILED',     'The page could not be rendered.');
+define('FORMS_CANVAS_GROWS',      'The text continues below this box.');
+define('FORMS_CANVAS_DASHED',     'A box with a dashed lower edge holds text that flows on below it — an address block, or any value long enough to wrap. The box marks where the text starts and how tall one line is, not where it ends.');
+define('FORMS_CANVAS_UNMEASURED', 'The size of this box could not be worked out, so it is only indicative.');

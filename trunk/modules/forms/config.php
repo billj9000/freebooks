@@ -27,8 +27,12 @@
 //                      SECURITY_ID_FORMS_AUTHOR. Saving rewrites a definition in
 //                      the Forms format and keeps the original beside it. No new
 //                      configuration keys or tables.
+// 1.03 => 2026-08-16 - The form canvas, at ?module=forms&page=canvas: the real
+//                      rendered PDF with the element boxes over it, read-only.
+//                      Emailing a report from the document list, with From, CC
+//                      and BCC. Vendors pdf.js under ext/pdfjs/.
 
-define('MODULE_FORMS_VERSION', 1.02);
+define('MODULE_FORMS_VERSION', 1.03);
 
 // Security IDs.
 //
@@ -76,10 +80,23 @@ if (defined('MODULE_FORMS_STATUS')) {
     'params'                 => '',
   );
 
+  // The form canvas. Shares SECURITY_ID_FORMS_AUTHOR with the report editor:
+  // both are "write a document", and the two exist separately because a form is
+  // positioned boxes and a report is a column list (§13.1), not because they are
+  // different privileges.
+  $mainmenu['tools']['submenu']['forms_canvas'] = array(
+    'order'                  => 28,
+    'text'                   => BOX_FORMS_CANVAS,
+    'security_id'            => SECURITY_ID_FORMS_AUTHOR,
+    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=canvas', 'SSL'),
+    'show_in_users_settings' => true,
+    'params'                 => '',
+  );
+
   // Its own key, and a rare one to hold. Defining which tables join is the
   // dangerous privilege of the three (§3.1); running a report is not.
   $mainmenu['tools']['submenu']['forms_datasets'] = array(
-    'order'                  => 28,
+    'order'                  => 29,
     'text'                   => BOX_FORMS_DATASETS,
     'security_id'            => SECURITY_ID_FORMS_DATASETS,
     'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=datasets', 'SSL'),

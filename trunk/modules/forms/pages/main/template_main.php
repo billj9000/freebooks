@@ -192,6 +192,15 @@ echo $toolbar->build_toolbar();
                      'module=forms&amp;page=print&amp;rID=' . $document['id'], 'SSL'); ?>">
                 <?php echo FORMS_BTN_PRINT; ?>
               </a>
+<?php     // A form is laid out on a page rather than in columns, so an author
+          // edits it on the canvas rather than in the report grid.
+          if ($forms_can_author) { ?>
+              <a class="btn btn-primary btn-sm"
+                 href="<?php echo html_href_link(FILENAME_DEFAULT,
+                     'module=forms&amp;page=canvas&amp;rID=' . $document['id'], 'SSL'); ?>">
+                <?php echo FORMS_CANVAS_OPEN; ?>
+              </a>
+<?php     } ?>
 <?php   } else { ?>
               <span class="text-muted">&mdash;</span>
 <?php   }

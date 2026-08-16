@@ -102,7 +102,7 @@ final class LayoutPdfRenderer implements FormsRenderer
 
         $this->document = $doc;
         $page           = $doc->pageSetup();
-        $pdf            = new PdfCanvas($page->orientation, 'mm', $page->size, true, 'UTF-8', false);
+        $pdf            = new PdfCanvas($page->orientation, 'mm', PdfCanvas::paperFormat($page->size), true, 'UTF-8', false);
 
         $pdf->SetCellPadding(0);
         $pdf->SetMargins($page->marginLeft, $page->marginTop, $page->marginRight);
