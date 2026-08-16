@@ -659,6 +659,102 @@ if ($victim === null) {
        count($added) === count($victim->template->elements) + 1
        && end($added) instanceof Rect && $warnings === []);
 
+    // A name of the author's own. Without one an element is described by what
+    // it is, which reads well for text and for a value and not at all for a
+    // picture — two images on one form are both "image".
+    [$named, $warnings] = $edit(function (array $r): array {
+        $r['element'][0]['label'] = 'Ship to';
+        return $r;
+    });
+    ok('an element can be named', $named->template->elements[0]->label === 'Ship to'
+       && $warnings === [], var_export($named->template->elements[0]->label, true));
+
+    $codec  = new DefinitionCodec();
+    $reread = $codec->decode($codec->encode($named), $named->id);
+    ok('and the name survives being saved', $reread->template->elements[0]->label === 'Ship to');
+
+    // Blank is NO name, not an empty one: describe() falls back on null, and an
+    // empty string would leave the row in the list with nothing in it at all.
+    [$cleared, ] = $edit(function (array $r): array {
+        $r['element'][0]['label'] = '   ';
+        return $r;
+    });
+    ok('a blank name is no name rather than an empty one',
+       $cleared->template->elements[0]->label === null,
+       var_export($cleared->template->elements[0]->label, true));
+    ok('and such an element is described by what it is',
+       CanvasLayout::boxes(new Template([$cleared->template->elements[0]]), null)[0]['label'] !== '',
+       CanvasLayout::boxes(new Template([$cleared->template->elements[0]]), null)[0]['label']);
+
+    // A new element can be named as it is added — the same field, on the create
+    // path rather than the rebuild one.
+    [$freshName, $warnings] = $edit(function (array $r): array {
+        $r['element'][] = ['index' => '', 'kind' => 'text', 'x' => '5', 'y' => '5',
+                           'w' => '20', 'h' => '10', 'text' => 'Paid', 'label' => 'Paid stamp'];
+        return $r;
+    });
+    $drawn = $freshName->template->elements;
+    ok('a new element can be named as it is added', end($drawn)->label === 'Paid stamp'
+       && $warnings === [], var_export(end($drawn)->label, true));
+
+    // An image IS addable, now that the canvas can put a file in the folder
+    // (§13.13). Added with nothing chosen yet, because the file is picked or
+    // uploaded a moment later — and the renderer skips an empty src rather than
+    // failing, so the page it is being placed on keeps drawing meanwhile.
+    [$withImage, $warnings] = $edit(function (array $r): array {
+        $r['element'][] = ['index' => '', 'kind' => 'image', 'x' => '12', 'y' => '9',
+                           'w' => '40', 'h' => ''];
+        return $r;
+    });
+    $drawn = $withImage->template->elements;
+    $new   = end($drawn);
+    ok('an image element can be added', $new instanceof \FreeBooks\Forms\Document\Image
+       && $warnings === [], implode(' ', $warnings));
+    ok('it is added with no file yet', $new instanceof \FreeBooks\Forms\Document\Image
+       && $new->src === '', var_export($new->src ?? null, true));
+    // The whole point of a null height: the shape comes from whatever picture
+    // is chosen. A 5 mm default here would squash the first logo put in it.
+    ok('and with no height, so the file decides its shape',
+       $new->box->height === null && $new->box->width === 40.0,
+       var_export($new->box->height, true));
+
+    // It has to survive being written and read back, or it would be an element
+    // that exists until the page is reopened.
+    $codec    = new DefinitionCodec();
+    $reloaded = $codec->decode($codec->encode($withImage), $withImage->id);
+    $back     = $reloaded->template->elements[count($drawn) - 1];
+    ok('an added image survives the file it is saved in',
+       $back instanceof \FreeBooks\Forms\Document\Image && $back->src === ''
+       && $back->box->height === null && $back->box->x === 12.0);
+
+    // Same gate as an existing image: a filename is a path, and one that names
+    // nothing prints a form with a hole in it and no error.
+    [$invented, $warnings] = $edit(function (array $r): array {
+        $r['element'][] = ['index' => '', 'kind' => 'image', 'x' => '12', 'y' => '9',
+                           'w' => '40', 'h' => '', 'src' => '../../../etc/passwd'];
+        return $r;
+    });
+    $drawn = $invented->template->elements;
+    $new   = end($drawn);
+    ok('a new image naming a file that is not in the images folder keeps no name',
+       $new instanceof \FreeBooks\Forms\Document\Image && $new->src === '' && $warnings !== [],
+       var_export($new->src ?? null, true));
+
+    // And the other half: a name that IS there is kept, or the check above
+    // would pass on an editor that refused every filename.
+    if ($file !== null) {
+        [$named, $warnings] = $edit(function (array $r) use ($file): array {
+            $r['element'][] = ['index' => '', 'kind' => 'image', 'x' => '12', 'y' => '9',
+                               'w' => '40', 'h' => '', 'src' => basename($file)];
+            return $r;
+        });
+        $drawn = $named->template->elements;
+        $new   = end($drawn);
+        ok('a new image naming a file that is there keeps it',
+           $new instanceof \FreeBooks\Forms\Document\Image && $new->src === basename($file)
+           && $warnings === [], var_export($new->src ?? null, true));
+    }
+
     // A kind with sub-structure cannot be conjured: a Table with no columns
     // draws nothing and cannot be repaired on this page.
     [$refused, $warnings] = $edit(function (array $r): array {

@@ -64,8 +64,19 @@ use FreeBooks\Forms\Document\{
 
 final class TemplateForm
 {
-    /** What an author may add. Deliberately the four that need no sub-structure. */
-    public const ADDABLE = ['text', 'field', 'line', 'rect'];
+    /**
+     * What an author may add.
+     *
+     * The kinds whose whole content the canvas can supply. A Table created here
+     * would arrive with no columns and a FieldBlock with no parts, and neither
+     * could be repaired on that page — so they are not offered.
+     *
+     * An image was excluded for the same reason until the canvas could put a
+     * file in the images folder; its "sub-structure" is one filename, and there
+     * was no way to set it. There is now (§13.13), so it joins the list. A form
+     * that ships without a logo can be given one.
+     */
+    public const ADDABLE = ['text', 'field', 'line', 'rect', 'image'];
 
     private const VISIBILITY = [
         'all'       => Visibility::AllPages,
@@ -290,7 +301,13 @@ final class TemplateForm
             return null;
         }
 
-        $box     = $this->box($row, new Box(10.0, 10.0, 40.0, 5.0));
+        // An image's fallback height is NULL, not 5 mm: TCPDF works the missing
+        // side out from the file, which is how every logo in the shipped set is
+        // stored. Giving a new one a height would fix its shape to whatever the
+        // default happened to be and squash the first picture put in it.
+        $box     = $this->box($row, $kind === 'image'
+                                      ? new Box(10.0, 10.0, 40.0, null)
+                                      : new Box(10.0, 10.0, 40.0, 5.0));
         $style   = $this->style($row, null);
         $visible = $this->visibility($row, Visibility::AllPages);
         $label   = trim((string)($row['label'] ?? '')) ?: null;
@@ -300,6 +317,13 @@ final class TemplateForm
             'text'  => new StaticText((string)($row['text'] ?? ''), $box, $style, $visible, $label),
             'rect'  => new Rect($box, $style, $visible, $label),
             'line'  => new Line($box, 'H', $style, $visible, $label),
+
+            // Kept even with no file chosen yet. The renderer skips an image
+            // whose src is empty or missing — deliberately, so that a missing
+            // picture cannot abort a document — so an element added now and
+            // filled in a moment later draws nothing in between rather than
+            // breaking the page it is being placed on.
+            'image' => new Image($this->imageFile($row, '', $what), $box, $style, $visible, $label),
             'field' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label): ?Element {
                 $name = trim((string)($row['bind'] ?? ''));
                 if ($name === '' || !isset($allowed[$name])) {

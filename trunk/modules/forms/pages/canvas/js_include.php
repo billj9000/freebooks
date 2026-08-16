@@ -52,6 +52,13 @@ const boxes  = <?php echo json_encode($forms_canvas_boxes,  JSON_UNESCAPED_SLASH
 // written to the file, and for a Line or an Image those are not the same numbers
 // (see CanvasLayout).
 const values = <?php echo json_encode($forms_canvas_values, JSON_UNESCAPED_SLASHES); ?>;
+// What each element is called when it has no name of its own. CanvasLayout
+// describes an unnamed element by what it IS — its text, its binding, its table
+// source — and that description is worth keeping, because an author who types a
+// name and then clears it should get back what was there rather than a blank
+// row or a second guess at the same rule written in JavaScript.
+boxes.forEach(function (box) { box.described = box.label; });
+
 const canEdit = <?php echo $security_level > 2 ? 'true' : 'false'; ?>;
 const source = <?php echo json_encode(html_href_link(FILENAME_DEFAULT,
     'module=forms&page=ajax&op=canvas_pdf&rID=' . (int)$forms_canvas_id, 'SSL')); ?>;
@@ -353,6 +360,7 @@ function select(index) {
     ? <?php echo json_encode(FORMS_CANVAS_LINE_HEIGHT); ?>
     : <?php echo json_encode(FORMS_CANVAS_H); ?>;
 
+  set('ins_label', value.label);
   set('ins_x', value.x); set('ins_y', value.y); set('ins_w', value.w); set('ins_h', value.h);
   set('ins_text', value.text); set('ins_font', value.font); set('ins_size', value.size);
   set('ins_border', value.borderSize);
@@ -409,6 +417,14 @@ function inspectorChanged() {
     }
   });
 
+  // The name, and what the list falls back to without one. `described` is the
+  // server's own description, kept from when the boxes arrived, so clearing the
+  // name puts back exactly what CanvasLayout::describe() said rather than a
+  // second guess at it written here.
+  value.label = document.getElementById('ins_label').value.trim();
+  box.label   = value.label || box.described;
+  document.getElementById('forms_canvas_what').textContent = box.label;
+
   value.text       = document.getElementById('ins_text').value;
   value.font       = document.getElementById('ins_font').value.trim();
   value.size       = document.getElementById('ins_size').value.trim();
@@ -463,17 +479,31 @@ function formsCanvasDelete() {
 
 function formsCanvasAdd(kind) {
   remember();
+
+  // An image stores a width and NO height — the shape comes from the file — so
+  // a new one submits a blank height and is drawn at the same placeholder size
+  // CanvasLayout uses for an image it cannot measure. Choosing a file replaces
+  // both numbers with the real ones.
+  const image  = kind === 'image';
+  const height = image ? '' : (kind === 'line' ? '0' : '5');
+  const drawn  = image ? 25 : (kind === 'line' ? 0 : 5);
+
   // Dropped at a fixed spot rather than under the pointer: the author is about
   // to drag it anyway, and a new element hidden under the one they clicked is
   // worse than one they can see.
   const box = { index: boxes.length, kind: kind, x: 20, y: 20,
-                width: kind === 'line' ? 40 : 40, height: kind === 'line' ? 0 : 5,
-                label: <?php echo json_encode(FORMS_CANVAS_NEW); ?>, visible: 'all',
-                grows: (kind === 'text' || kind === 'field'), unmeasured: false,
-                store: { x: 20, y: 20, w: 40, h: kind === 'line' ? 0 : 5 } };
+                width: 40, height: drawn,
+                label: <?php echo json_encode(FORMS_CANVAS_NEW); ?>,
+                described: <?php echo json_encode(FORMS_CANVAS_NEW); ?>, visible: 'all',
+                grows: (kind === 'text' || kind === 'field'), unmeasured: image,
+                // Which of the two image controls the inspector offers. A new
+                // one always names a file: binding it to the record needs a
+                // path prefix and a value, neither of which is set here.
+                source: image ? 'file' : '',
+                store: { x: 20, y: 20, w: 40, h: height } };
   boxes.push(box);
   values.push({ index: '', kind: kind, x: '20', y: '20', w: '40',
-                h: kind === 'line' ? '0' : '5', bind: '', text: '', visible: 'all',
+                h: height, bind: '', text: '', visible: 'all',
                 label: '', font: '', size: '', colour: '', borderColour: '', align: '',
                 borderSize: '', borderShow: '', truncate: '', bold: '', italic: '', src: '' });
   place(); rebuildList(); select(boxes.length - 1);
@@ -495,6 +525,102 @@ function formsCanvasSave() {
     });
   });
   document.getElementById('forms_canvas_form').submit();
+}
+
+// ── adding an image ─────────────────────────────────────────────────────────
+//
+// The element can point at a file; this is how a file gets there. The server
+// decides the NAME — it is derived from the type actually read out of the
+// bytes, and numbered if it collides — so the answer is read back rather than
+// assumed, and the whole list comes with it.
+
+const uploadTo = <?php echo json_encode(html_href_link(FILENAME_DEFAULT,
+    'module=forms&page=ajax&op=canvas_image', 'SSL')); ?>;
+
+/**
+ * How big the image will be DRAWN, given what the element stores.
+ *
+ * The same rule as CanvasLayout::imageSize, because it is the same question and
+ * a second answer would put the outline somewhere the ink is not. An Image
+ * usually stores a width and no height — TCPDF derives the rest — so changing
+ * the file changes the shape, which is why an upload has to do this at all.
+ */
+function imageDrawn(storeW, storeH, pixelW, pixelH) {
+  const w = storeW === '' || isNaN(parseFloat(storeW)) ? 0 : parseFloat(storeW);
+  const h = storeH === '' || isNaN(parseFloat(storeH)) ? 0 : parseFloat(storeH);
+  if (w > 0 && h > 0) return [w, h];
+  if (!pixelW || !pixelH) return [w || 25, h || 25];
+  const ratio = pixelH / pixelW;
+  if (w > 0) return [w, w * ratio];
+  if (h > 0) return [h / ratio, h];
+  // Neither given: TCPDF's natural size, pixels read as 72 dpi.
+  return [pixelW * 25.4 / 72, pixelH * 25.4 / 72];
+}
+
+/** Rebuild the file menu from what the SERVER has, keeping the choice made. */
+function fillImages(names, chosen) {
+  const menu = document.getElementById('ins_src');
+  if (!menu) return;
+  // Option 0 is the "none" entry, written by the page. Everything after it is
+  // the folder, so the folder is what gets replaced.
+  while (menu.options.length > 1) menu.remove(1);
+  names.forEach(function (name) {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    menu.appendChild(option);
+  });
+  menu.value = chosen || '';
+}
+
+async function formsCanvasUpload() {
+  const chooser = document.getElementById('ins_upload');
+  const says    = document.getElementById('ins_upload_says');
+  if (!chooser || !chooser.files || !chooser.files.length) {
+    says.textContent = <?php echo json_encode(FORMS_UPLOAD_NOTHING); ?>;
+    says.className = 'small mt-1 text-danger';
+    return;
+  }
+
+  const body  = new FormData();
+  const token = document.querySelector('#forms_canvas_form input[name=csrf_token]');
+  if (token) body.append('csrf_token', token.value);
+  body.append('image', chooser.files[0]);
+
+  says.textContent = <?php echo json_encode(FORMS_CANVAS_UPLOADING); ?>;
+  says.className = 'small mt-1 text-muted';
+  try {
+    const response = await fetch(uploadTo,
+        { method: 'POST', body: body, credentials: 'same-origin' });
+    // Every answer is JSON, refusals included — so the message shown is the
+    // server's own sentence about which check failed, not a status code.
+    const answer = await response.json();
+    if (!response.ok) throw new Error(answer.error || ('HTTP ' + response.status));
+
+    fillImages(answer.images || [], answer.name);
+    says.textContent = <?php echo json_encode(FORMS_CANVAS_UPLOADED); ?>
+        .replace('%s', answer.name);
+    says.className = 'small mt-1 text-success';
+    chooser.value = '';
+
+    // The selected element takes the new file, and changes shape with it: the
+    // stored height is usually blank, so the outline has to be re-measured
+    // here or it keeps the proportions of the file that was there before.
+    if (selected !== null && values[selected] !== undefined) {
+      remember();
+      values[selected].src = answer.name;
+      const drawn = imageDrawn(values[selected].w, values[selected].h,
+                               answer.width, answer.height);
+      boxes[selected].width      = Math.round(drawn[0] * 1000) / 1000;
+      boxes[selected].height     = Math.round(drawn[1] * 1000) / 1000;
+      boxes[selected].unmeasured = false;
+      place(); rebuildList(); select(selected);
+      touched(0);
+    }
+  } catch (error) {
+    says.textContent = error.message || <?php echo json_encode(FORMS_UPLOAD_FAILED); ?>;
+    says.className = 'small mt-1 text-danger';
+  }
 }
 
 // Drag to move, drag the corner to resize. One pointer handler for both: the
@@ -561,7 +687,7 @@ window.formsCanvasAdd    = formsCanvasAdd;
 window.formsCanvasUndo   = formsCanvasUndo;
 window.formsCanvasRedo   = formsCanvasRedo;
 
-['ins_x','ins_y','ins_w','ins_h','ins_text','ins_font','ins_size','ins_border',
+['ins_label','ins_x','ins_y','ins_w','ins_h','ins_text','ins_font','ins_size','ins_border',
  'ins_align','ins_visible','ins_bordershow','ins_colour','ins_bordercolour',
  'ins_bold','ins_italic','ins_bind','ins_src'].forEach(function (id) {
   const control = document.getElementById(id);
@@ -632,6 +758,11 @@ document.getElementById('forms_canvas_render').addEventListener('click', functio
   clearTimeout(timer);
   load(true);
 });
+
+// Only present when this author may write: the control is not rendered at all
+// below level 3, and the endpoint refuses at the same level.
+const uploadGo = document.getElementById('ins_upload_go');
+if (uploadGo) uploadGo.addEventListener('click', formsCanvasUpload);
 
 document.getElementById('forms_canvas_undo').addEventListener('click', formsCanvasUndo);
 document.getElementById('forms_canvas_redo').addEventListener('click', formsCanvasRedo);

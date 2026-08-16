@@ -34,8 +34,14 @@
 // 1.04 => 2026-08-16 - The canvas edits: drag, resize, snap, add, delete,
 //                      z-order and an element inspector. Saving writes the
 //                      Forms format and keeps the original beside it.
+// 1.05 => 2026-08-16 - An image can be uploaded from the canvas, into the
+//                      company's own reports images folder. The type is read
+//                      from the file and decides the name it is stored under.
+//                      An image element can also be ADDED to a form, so one
+//                      that shipped without a logo can be given one, and any
+//                      element can be given a name of the author's own.
 
-define('MODULE_FORMS_VERSION', 1.04);
+define('MODULE_FORMS_VERSION', 1.05);
 
 // Security IDs.
 //

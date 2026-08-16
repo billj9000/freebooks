@@ -101,6 +101,21 @@ how you get a column of fields lined up exactly. Set it to <em>Off</em> for fine
 position and size in millimetres, its font, size, colour and alignment, its border, and which page
 it appears on. Typing there is the way to make two elements agree precisely.</p>
 
+<h3>Naming an element</h3>
+
+<p>The <strong>Name</strong> box at the top of the panel is what the element is called in the
+<strong>Elements</strong> list. It is optional: leave it empty and the element is described by what
+it is &mdash; a piece of text by its words, a value by the field it shows, the line-item table by
+its source.</p>
+
+<p>That description is enough for most things and no help at all for a picture, because every image
+is simply called <em>image</em>. On a form with a logo and a signature, naming them is what lets you
+pick the right one out of the list. Names are worth giving to anything you will come back to: an
+address block called <em>Ship to</em> is found instantly on a form carrying seventy elements.</p>
+
+<p>Clearing the name puts the description back. The name is only a label &mdash; it is never printed
+on the document.</p>
+
 <p>On a text element the height box is labelled <strong>Line height</strong>, because that is what it
 is: the height of one line, not of the whole element. See the note about dashed edges above.</p>
 
@@ -121,14 +136,45 @@ a silver rule.</p>
 
 <h3>Adding, removing and overlapping</h3>
 
-<p><strong>Add an element</strong> offers text, a value, a line or a box. New elements appear near
-the top-left corner &mdash; drag them where you want them. A value must be given something to show,
-chosen from the list of values this form can supply; nothing else can be typed in.</p>
+<p><strong>Add an element</strong> offers text, a value, a line, a box or an image. New elements
+appear near the top-left corner &mdash; drag them where you want them. A value must be given
+something to show, chosen from the list of values this form can supply; nothing else can be typed
+in.</p>
+
+<p>A new image starts out empty and draws nothing until you give it a picture, which is the next
+section. Its height is left unset on purpose, so that the shape comes from whatever picture you
+choose rather than from the size it happened to be added at.</p>
 
 <p>The arrows beside a selected element bring it forward or send it backward. That matters where two
 elements overlap: a filled box drawn after a piece of text hides it.</p>
 
 <p><strong>Delete</strong> removes the selected element.</p>
+
+<h3>Logos and other images</h3>
+
+<p>Select an image element &mdash; either one the form already has, or one you have just added
+&mdash; and the panel offers the images this company already has, and an <strong>Add an image</strong>
+box for putting a new one there. Choose the file, click <strong>Upload</strong>, and the selected
+element uses it straight away &mdash; the page redraws so you can see how it sits.</p>
+
+<p>So a form that was never given a logo can be given one: add an image, drag it into the corner,
+and upload the file.</p>
+
+<p>PNG, JPEG and GIF are accepted, up to 4&nbsp;MB. Anything else is refused, and so is a file that
+merely <em>ends</em> in <em>.png</em> without being one. The image belongs to this company alone;
+other companies on the same installation do not see it.</p>
+
+<p>The name it is stored under may not be quite the name you chose. Unusual characters are removed,
+the ending is set from what the file actually is, and if that name is already taken a number is
+added rather than the existing image being replaced &mdash; another form may be using it.</p>
+
+<p>Most images are stored with a width and no height, so that the shape always comes from the file.
+Uploading a differently proportioned image therefore changes how tall the element is. Set both a
+width and a height if you need the space it occupies to stay fixed.</p>
+
+<p>Some forms take their image from the record rather than from a fixed file &mdash; a signature or
+a logo that differs per customer. Those offer a value to show instead of a file, and there is
+nothing to upload.</p>
 
 <h3>Undo</h3>
 

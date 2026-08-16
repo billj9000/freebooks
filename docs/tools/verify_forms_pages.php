@@ -843,7 +843,7 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
     ok('a superseded redraw is abandoned rather than allowed to land',
        str_contains($output, 'AbortController') && str_contains($output, "'AbortError'"));
     ok('it draws the inspector', $xpath->query("//*[@id='forms_canvas_inspector']")->length === 1);
-    foreach (['ins_x', 'ins_y', 'ins_w', 'ins_h', 'ins_bind', 'ins_font', 'ins_size',
+    foreach (['ins_label', 'ins_x', 'ins_y', 'ins_w', 'ins_h', 'ins_bind', 'ins_font', 'ins_size',
               'ins_colour', 'ins_bordercolour', 'ins_align', 'ins_visible',
               'ins_bold', 'ins_italic'] as $control) {
         ok("the inspector draws $control", $xpath->query("//*[@id='" . $control . "']")->length === 1);
@@ -894,6 +894,32 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
     ok('it points at the canvas PDF endpoint',
        str_contains($output, 'op=canvas_pdf'));
     ok('the endpoint exists', is_file(DIR_FS_MODULES . 'forms/ajax/canvas_pdf.php'));
+
+    // An image element can be pointed at a file, and the file has to be able to
+    // get there. Shown only to an author who may save — the endpoint refuses at
+    // the same level — so the two are checked together rather than separately.
+    // Read from the session rather than from the page's own $security_level:
+    // that variable belongs to the scope pre_process ran in, and a check that
+    // silently read null would call every level "may not save" and pass.
+    $mayEdit = (int)($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) > 2;
+    $chooser = $xpath->query("//input[@type='file' and @id='ins_upload']");
+    ok('an author who may save is offered a way to add an image',
+       !$mayEdit || $chooser->length === 1, (string)$chooser->length);
+    // The other direction — that a lower level is NOT offered it — cannot be
+    // checked here: this harness renders every page at level 4, so the test
+    // would pass without ever running. What matters anyway is the endpoint
+    // rather than the button, and verify_forms_image_upload.php calls that at
+    // level 1 and watches it refuse.
+    if ($chooser->length === 1) {
+        // Nameless on purpose: it sits inside the urlencoded form that saves the
+        // canvas, and a named file input posts its FILENAME as a stray field on
+        // every save. The upload builds its own FormData.
+        ok('the file input is not part of the save',
+           !$chooser->item(0)->hasAttribute('name'));
+        ok('it points at the upload endpoint', str_contains($output, 'op=canvas_image'));
+        ok('the upload endpoint exists',
+           is_file(DIR_FS_MODULES . 'forms/ajax/canvas_image.php'));
+    }
 }
 
 if ($CANVASPICK) {

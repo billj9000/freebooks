@@ -156,6 +156,17 @@ if ($forms_canvas_definition === null) { ?>
             <p class="small mb-2"><strong id="forms_canvas_what">&nbsp;</strong>
                <span class="text-muted" id="forms_canvas_kind"></span></p>
 
+            <div class="mb-2">
+              <?php // What the element is CALLED, in the list and in the heading
+                    // above. An element with no name is described by what it is,
+                    // which reads well for text and for a value and not at all
+                    // for a picture: two images on one form are both "image". ?>
+              <label class="form-label mb-0 small" for="ins_label"><?php
+                echo FORMS_CANVAS_LABEL; ?></label>
+              <input type="text" class="form-control form-control-sm" id="ins_label">
+              <div class="form-text"><?php echo FORMS_CANVAS_LABEL_NOTE; ?></div>
+            </div>
+
             <div class="row g-1 mb-2">
               <div class="col-6">
                 <label class="form-label mb-0 small" for="ins_x"><?php echo FORMS_CANVAS_X; ?></label>
@@ -189,6 +200,25 @@ if ($forms_canvas_definition === null) { ?>
               <?php echo html_pull_down_menu('ins_src', $forms_canvas_images, '',
                   'class="form-select form-select-sm"'); ?>
               <div class="form-text"><?php echo FORMS_CANVAS_IMAGE_NOTE; ?></div>
+<?php if ($security_level > 2) { ?>
+              <?php // Deliberately NAMELESS. It sits inside the form that saves
+                    // the whole canvas, and that form is urlencoded — a named
+                    // file input would post its filename as a stray field on
+                    // every save. The upload builds its own FormData instead. ?>
+              <label class="form-label mb-0 small mt-2" for="ins_upload"><?php
+                echo FORMS_CANVAS_UPLOAD; ?></label>
+              <div class="input-group input-group-sm">
+                <input type="file" class="form-control form-control-sm" id="ins_upload"
+                       accept="image/png,image/jpeg,image/gif">
+                <button type="button" class="btn btn-primary btn-sm" id="ins_upload_go"><?php
+                  echo FORMS_CANVAS_UPLOAD_GO; ?></button>
+              </div>
+              <?php // The cap comes from the class that enforces it, so the
+                    // sentence cannot drift away from the rule. ?>
+              <div class="form-text"><?php echo sprintf(FORMS_CANVAS_UPLOAD_NOTE,
+                $forms_canvas_max_mb); ?></div>
+              <div class="small mt-1" id="ins_upload_says"></div>
+<?php } ?>
             </div>
 
             <div class="mb-2" id="ins_bind_row">

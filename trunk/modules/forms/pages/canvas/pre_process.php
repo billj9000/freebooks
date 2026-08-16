@@ -47,7 +47,7 @@ require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
-use FreeBooks\Forms\App\{CanvasLayout, FormRunner};
+use FreeBooks\Forms\App\{CanvasLayout, FormRunner, ImageStore};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader, TemplateForm};
 use FreeBooks\Forms\Document\{Align, Template, Visibility};
@@ -148,13 +148,17 @@ if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save')
 }
 
 // The images an author may choose between: what is actually in the folder, and
-// nothing else. Uploading one is its own piece of work — a file arriving from a
-// browser into the web root is a security surface, not a text field — so this
-// offers what is there and says where to put more.
+// nothing else. Listed by ImageStore rather than by a glob here, because that is
+// also the class an upload goes through — a lister and a writer that disagree
+// about which files count leave the folder holding images nobody can choose.
 $forms_canvas_images = array(array('id' => '', 'text' => FORMS_DESIGN_GROUP_NONE));
-foreach (glob(PF_DIR_MY_REPORTS . 'images/*.{png,jpg,jpeg,gif,PNG,JPG,JPEG,GIF}', GLOB_BRACE) ?: array() as $file) {
-  $forms_canvas_images[] = array('id' => basename($file), 'text' => basename($file));
+foreach ((new ImageStore(PF_DIR_MY_REPORTS . 'images'))->names() as $name) {
+  $forms_canvas_images[] = array('id' => $name, 'text' => $name);
 }
+// Taken from the class that enforces it: a template saying "4 MB" beside code
+// that allows something else is the kind of drift nobody notices until an
+// upload is refused for a reason the page denied.
+$forms_canvas_max_mb = ImageStore::MAX_BYTES >> 20;
 
 // The palette, and the choices the inspector offers.
 $forms_canvas_palette = array();

@@ -2030,3 +2030,102 @@ is correct and unsearchable, so the check had to read the DOM rather than the ma
   the posted canvas through `TemplateForm` — the class the save uses — so the picture and the save
   agree by construction, and anything the redraw refuses is reported in a header and shown, rather
   than discovered when the author saves.
+
+### 13.13 Adding an image
+
+Built and measured on 2026-08-16. The canvas could point an image element at a file and never put
+one there: the only way into `my_files/{co}/phreeform/images/` was the file system, which the person
+laying out an invoice does not have. `ImageStore` and one ajax op close that.
+
+It was held back from step 4 on purpose. A file arriving from a browser is the only input on the
+page that the server keeps and later hands back, so it is the one place where being wrong is not a
+cosmetic problem.
+
+**The extension is the check that matters.** The type is read out of the bytes with
+`getimagesize()`, and the extension the file is STORED under comes from that type — not from what
+was uploaded. A name is the only part of an upload a web server acts on, so the name is not the
+uploader's to choose: `logo.php` carrying a valid GIF header comes to rest as `logo.gif`. The rest
+of the name is reduced to letters, digits, dash, underscore and dot and capped at 60, which is what
+disposes of `..`, of directory separators, of a NUL and of a name long enough to break the file
+system. `.htaccess` survives as nothing at all, because `pathinfo()` reads a leading dot as all
+extension and no name — the right answer for it.
+
+**Nothing is overwritten.** The folder is shared by every form in the company, so a name already
+taken gets a number rather than new contents; replacing it would change a document whose author
+never opened it.
+
+**One class decides what is written AND what is listed.** The page used to glob for six extensions
+of its own; a lister and a writer that disagree leave the folder holding files nobody can choose.
+`names()` reads each candidate with `getimagesize()` too, so a `README.txt` in there is not offered.
+
+**The gate is level 3, the level that saves** — not level 1, which is all that
+`validate_ajax_user()` proves. Note what that function returns with no argument: `1`, for anybody
+signed in. An endpoint that asked IT for the level would refuse everybody, which fails safe only by
+accident, so the level is read from the session directly.
+
+**The uploaded-file test is substitutable, and separately pinned.** There is no upload in a command
+line, so `is_uploaded_file`/`move_uploaded_file` sit behind one closure the harness can replace —
+whole, never half, because half a gate reads as a check. `verify_forms_image_upload.php` supplies
+its own for the naming and collision tests and then holds the DEFAULT to refusing a file that was
+never uploaded, so substituting it cannot quietly remove it. The permission gate is tested by
+RUNNING the endpoint in a child process at level 1 and at level 3 — an ajax op ends in `die()`, so
+it cannot be exercised in the same process as anything after it — rather than by searching the
+source for the constant, which would pass on a file that named it in a branch that never ran.
+
+**An upload changes the drawn height**, because an image stores a width and no height (§13.11). So
+the endpoint answers with the stored name and the pixel size, and the canvas re-measures the outline
+with the same rule `CanvasLayout::imageSize()` uses. A second rule would put the outline where the
+ink is not.
+
+**The file input carries no `name`.** It sits inside the urlencoded form that saves the whole
+canvas, and a named file input posts its filename as a stray field on every save.
+
+#### An image becomes addable
+
+Uploading answered "how do I change this logo", not "how do I give this form one". `ADDABLE` was
+`text`, `field`, `line`, `rect` — the kinds whose whole content the canvas can supply — and an image
+was excluded because its one piece of sub-structure, the filename, had no control that could set it.
+The upload IS that control, so `image` joins the list and a form that shipped without a logo can be
+given one.
+
+Two details decide whether it works rather than merely appears:
+
+- **A new image is created with a NULL height**, not the 5 mm the other kinds default to. The shape
+  has to come from the file (§13.11), and a height fixed at the moment of adding would squash the
+  first picture put into it.
+- **It is kept with an empty `src`.** `drawImage()` already returns early on an empty or missing
+  source — deliberately, so a missing picture cannot abort a document — so an element added now and
+  filled in a moment later draws nothing in between rather than breaking the page it is being placed
+  on. That early return is what made this a small change instead of a staged one.
+
+The filename gate is the same `imageFile()` an existing image goes through: a name that is not in
+the folder is refused and the element keeps none, so a new image cannot be pointed at a path by a
+request that simply names one. A bound image — filename from the record — stays unaddable; it needs
+a path prefix and a record value, neither of which the canvas asks for.
+
+The add-button check in `verify_forms_pages.php` walks `ADDABLE`, so it picked the new kind up on its
+own — which is what that loop was for.
+
+#### And a name to call it by
+
+Adding an image made a gap in step 4 visible: `Element::$label` was read and written by `apply()`
+and `create()` from the start, and `toRequest()` emitted it, but the inspector had **no control for
+it** — so nothing could ever set one. A new element showed as "New element" while it was being
+placed, and as **"image"** the moment the form was reopened, because that is what
+`CanvasLayout::describe()` falls back to.
+
+For most kinds the fallback reads well: text describes itself by its words, a field by its binding,
+a table by its source. For a picture it does not describe anything — a form with a logo and a
+signature lists two elements both called "image", and the only way to tell them apart is to click
+each one and watch which outline lights up.
+
+So the inspector gained a **Name** field. It is UI only; the model, the codec and both `TemplateForm`
+paths already carried it. Two things it has to get right:
+
+- **Blank is NO name, not an empty one.** `trim() ?: null` was already correct in `TemplateForm`;
+  what is asserted now is that it stays that way, because an empty string would leave the row in the
+  Elements list with nothing in it while `describe()` was standing by with a perfectly good answer.
+- **Clearing it restores the server's description, not a second guess at one.** The canvas keeps
+  `CanvasLayout::describe()`'s output per box as `described` when the boxes arrive, and falls back to
+  that. Reimplementing `describe()` in JavaScript would be a second rule for the same question, and
+  the two would drift the first time either changed.
