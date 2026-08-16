@@ -255,11 +255,13 @@ define('FORMS_CANVAS_DASHED',     'A box with a dashed lower edge holds text tha
 define('FORMS_CANVAS_UNMEASURED', 'The size of this box could not be worked out, so it is only indicative.');
 
 // ── editing on the canvas (design §13.7 step 4) ──────────────────────────────
-define('FORMS_CANVAS_INTRO',      'Drag an element to move it, or drag its bottom-right corner to resize it. Everything can also be typed exactly, on the right. The page redraws itself as you work; turn Auto redraw off if it feels slow, and use Redraw the page instead.');
+define('FORMS_CANVAS_INTRO',      'Drag an element to move it, or drag one of its edges or corners to resize it. Everything can also be typed exactly, on the right. The page redraws itself as you work; turn Auto redraw off if it feels slow, and use Redraw the page instead.');
+define('FORMS_CANVAS_GROUPING',   'To move several elements together, shift-click each one, or drag a box around them across empty space. They keep their positions relative to one another.');
 define('FORMS_CANVAS_SNAP',       'Snap to');
 define('FORMS_CANVAS_SNAP_OFF',   'Off');
 define('FORMS_CANVAS_SELECTED',   'Selected element');
 define('FORMS_CANVAS_NOTHING',    'Click an element on the page, or a row in the list below.');
+define('FORMS_CANVAS_MANY',       '%d elements are selected. Dragging, Delete and the order arrows apply to all of them; the boxes below describe the one named above.');
 define('FORMS_CANVAS_X',          'Across (mm)');
 define('FORMS_CANVAS_Y',          'Down (mm)');
 define('FORMS_CANVAS_W',          'Width (mm)');
@@ -280,6 +282,7 @@ define('FORMS_CANVAS_VIS_CONTINUED', 'The last page, "Continued" before it');
 define('FORMS_CANVAS_FORWARD',    'Bring forward');
 define('FORMS_CANVAS_BACKWARD',   'Send backward');
 define('FORMS_CANVAS_CONFIRM_DELETE', 'Remove this element from the form?');
+define('FORMS_CANVAS_CONFIRM_DELETE_MANY', 'Remove these %d elements from the form?');
 define('FORMS_CANVAS_ADD',        'Add an element');
 define('FORMS_CANVAS_ADD_TEXT',   'Text');
 define('FORMS_CANVAS_ADD_FIELD',  'Value');

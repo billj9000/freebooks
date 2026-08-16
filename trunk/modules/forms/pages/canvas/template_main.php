@@ -88,6 +88,7 @@ if ($forms_canvas_definition === null) { ?>
 
 <div class="alert alert-info py-2 px-3 small mb-2">
   <?php echo FORMS_CANVAS_INTRO; ?>
+  <br><?php echo FORMS_CANVAS_GROUPING; ?>
   <br><?php echo FORMS_CANVAS_DASHED; ?>
 </div>
 <div class="alert alert-warning py-2 px-3 small mb-2 d-none" id="forms_canvas_sampled">
@@ -153,7 +154,14 @@ if ($forms_canvas_definition === null) { ?>
           <?php // The stack: the rasterized page, then a transparent layer of
                 // absolutely positioned boxes. Same origin, same scale, so a
                 // box at 140 mm lands on the text drawn at 140 mm. ?>
+          <?php // user-select is off across the whole stack: a shift-click is
+                // how a group is built here, and the browser's own meaning for
+                // it is "extend the text selection", which paints a blue
+                // swathe over the page and hides the thing that did happen.
+                // Nothing on this stack is text worth selecting anyway — it is
+                // a rasterized picture with outlines over it. ?>
           <div id="forms_canvas_stack" style="position:relative;margin:0 auto;width:max-content;
+                      user-select:none;-webkit-user-select:none;
                       box-shadow:0 1px 6px rgba(0,0,0,.3);background:#fff">
             <canvas id="forms_canvas_page" style="display:block"></canvas>
             <div id="forms_canvas_boxes" style="position:absolute;inset:0"></div>
@@ -168,6 +176,15 @@ if ($forms_canvas_definition === null) { ?>
           <div id="forms_canvas_inspector" class="d-none">
             <p class="small mb-2"><strong id="forms_canvas_what">&nbsp;</strong>
                <span class="text-muted" id="forms_canvas_kind"></span></p>
+
+            <?php // Only when more than one element is selected. The inspector
+                  // still describes ONE of them — the one last clicked — because
+                  // a mixed selection has no single position, and a control that
+                  // showed one element's numbers while a typed change went to
+                  // all of them would be the worst of both. What the group DOES
+                  // share is the drag, the delete and the order arrows, so that
+                  // is what the sentence names. ?>
+            <p class="small text-muted mb-2 d-none" id="forms_canvas_many"></p>
 
             <div class="mb-2">
               <?php // What the element is CALLED, in the list and in the heading
@@ -354,7 +371,8 @@ if ($forms_canvas_definition === null) { ?>
         <div class="fb-fieldset">
           <div class="fb-fieldset-legend"><?php echo FORMS_CANVAS_ELEMENTS; ?></div>
           <p class="text-muted small mb-2" id="forms_canvas_count">&nbsp;</p>
-          <div style="max-height:34vh;overflow:auto">
+          <?php // Same reason as the stack: these rows take a shift-click too. ?>
+          <div style="max-height:34vh;overflow:auto;user-select:none;-webkit-user-select:none">
             <table class="table table-borderless table-hover table-sm mb-0">
               <tbody id="forms_canvas_list"></tbody>
             </table>

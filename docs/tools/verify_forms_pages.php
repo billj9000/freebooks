@@ -79,6 +79,36 @@ function ok(string $what, bool $cond, string $detail = ''): void {
     else { $failures++; echo "  [FAIL] $what" . ($detail ? " — $detail" : '') . "\n"; }
 }
 
+/**
+ * The body of the event handler registered at $from, and nothing after it.
+ *
+ * Every check that reads a handler has to be bounded to that handler, or it
+ * quietly reads the rest of the file: an unbounded `[\s\S]*` finds the thing it
+ * is looking for in the NEXT handler and reports the code correct, while a
+ * fixed character window finds nothing and reports correct code broken. Both
+ * have already happened here.
+ *
+ * Braces are matched from the first one after $from, skipping quoted strings so
+ * a brace inside a CSS or JSON literal cannot close the body early.
+ */
+function handlerBody(string $js, int $from): string
+{
+    $open = strpos($js, '{', $from);
+    if ($open === false) return '';
+    $depth = 0;
+    $n = strlen($js);
+    for ($i = $open; $i < $n; $i++) {
+        $c = $js[$i];
+        if ($c === '"' || $c === "'" || $c === '`') {
+            for ($i++; $i < $n && $js[$i] !== $c; $i++) if ($js[$i] === '\\') $i++;
+            continue;
+        }
+        if ($c === '{') $depth++;
+        elseif ($c === '}' && --$depth === 0) return substr($js, $open, $i - $open + 1);
+    }
+    return substr($js, $open);
+}
+
 if (!defined('MODULE_FORMS_STATUS')) {
     echo "  [--] Forms is not installed on this company; nothing to render.\n";
     exit(0);
@@ -859,6 +889,14 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
     ok('the overlay sits inside the same stack as the canvas',
        $xpath->query("//*[@id='forms_canvas_stack']//canvas[@id='forms_canvas_page']")->length === 1
        && $xpath->query("//*[@id='forms_canvas_stack']//*[@id='forms_canvas_boxes']")->length === 1);
+    // A shift-click builds a group here, and the browser's own meaning for it
+    // is "extend the text selection" — which paints a blue swathe over the
+    // canvas and buries the selection that did happen. Half the fix is in the
+    // handler; this is the other half, and it is markup, so it is checked here.
+    $stackStyle = $xpath->query("//*[@id='forms_canvas_stack']")->length
+        ? $xpath->query("//*[@id='forms_canvas_stack']")->item(0)->getAttribute('style') : '';
+    ok('the stack does not let a shift-click select text',
+       str_contains(str_replace(' ', '', $stackStyle), 'user-select:none'), $stackStyle);
 
     ok('it passes the elements to the page in millimetres',
        $forms_canvas_boxes !== [] && isset($forms_canvas_boxes[0]['x'], $forms_canvas_boxes[0]['y']),
@@ -908,16 +946,25 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
            (bool)preg_match('/function ' . $action . '\b[\s\S]{0,600}?\bremember\(\)/', $output),
            'undo would step over this change');
     }
-    // A drag is ONE state, snapshotted as it begins. Remembering on pointermove
-    // would fill the history with a hundred states nobody meant to make.
+    // A drag is ONE state, snapshotted at the first MOVEMENT — not on the press,
+    // because a click that merely selects an element is not a change, and not on
+    // every pointermove, which would fill the history with a hundred states
+    // nobody meant to make. So the snapshot sits behind the same flag that says
+    // whether this drag has moved anything yet.
     $downAt = strpos($output, "'pointerdown'");
-    ok('a drag is remembered once, as it starts',
-       $downAt !== false && str_contains(substr($output, $downAt, 600), 'remember()'));
-    $moveStart = strpos($output, "'pointermove'");
-    $moveEnd   = $moveStart === false ? 0 : strpos($output, 'addEventListener', $moveStart + 10);
+    $downBody = $downAt === false ? '' : handlerBody($output, $downAt);
+    ok('a press that only selects makes no undo state',
+       $downAt !== false && !str_contains($downBody, 'remember()'),
+       'clicking about would fill the history with states nobody made');
+
+    $moveAt   = strpos($output, "'pointermove'");
+    $moveBody = $moveAt === false ? '' : handlerBody($output, $moveAt);
+    ok('a drag is remembered once, at the first movement',
+       $moveAt !== false
+       && (bool)preg_match('/if \(!dragging\.moved\) \{ remember\(\); dragging\.moved = true; \}/',
+                           $moveBody));
     ok('and not on every pointer move',
-       $moveStart !== false
-       && !str_contains(substr($output, $moveStart, $moveEnd - $moveStart), 'remember()'));
+       $moveAt !== false && substr_count($moveBody, 'remember()') === 1);
 
     // Ctrl+Z inside a text box is the browser's own undo; taking it over would
     // make typing feel broken to solve a problem it does not have.
@@ -939,18 +986,17 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
     }
     // A drag redraws on RELEASE. Firing on pointermove would spend a PDF per
     // pixel to redraw a page that is under the pointer.
-    // Bounded to the handler's OWN body. A single regex with /s searches to the
-    // end of the file, so "pointermove … touched(" matched the release handler
-    // further down and the check failed on correct code.
-    $moveAt = strpos($output, "'pointermove'");
-    $moveBody = '';
-    if ($moveAt !== false) {
-        $nextAt   = strpos($output, 'addEventListener', $moveAt + 10);
-        $moveBody = substr($output, $moveAt, ($nextAt === false ? strlen($output) : $nextAt) - $moveAt);
-    }
+    //
+    // Both halves are bounded to the handler's OWN body. A single regex with /s
+    // searches to the end of the file, so "pointermove … touched(" matched the
+    // release handler further down and the check failed on correct code; and a
+    // fixed character window around 'pointerup' failed the same way as soon as
+    // the release handler grew a second branch.
+    $upAt   = strpos($output, "'pointerup'");
+    $upBody = $upAt === false ? '' : handlerBody($output, $upAt);
     ok('a drag redraws when the pointer is released, not while it moves',
        $moveAt !== false && !str_contains($moveBody, 'touched(')
-       && (bool)preg_match("/'pointerup'[\s\S]{0,400}?touched\(0\)/", $output),
+       && $upAt !== false && str_contains($upBody, 'touched(0)'),
        'redrawing on every pointermove would spend a PDF per pixel');
     // An older answer must not paint over a newer one.
     ok('a superseded redraw is abandoned rather than allowed to land',

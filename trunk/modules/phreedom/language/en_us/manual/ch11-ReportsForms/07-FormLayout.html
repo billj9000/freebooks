@@ -86,9 +86,21 @@ company name and address are still real, because those are settings rather than 
 
 <h3>Moving things</h3>
 
-<p>Drag an element to move it, or drag its bottom-right corner to make it wider or taller. The page
-redraws itself each time you finish a change, so what you see is the document as it would really
-print. Nothing is saved by redrawing.</p>
+<p>Drag an element to move it. To change its size, take hold of one of its <strong>edges</strong> or
+<strong>corners</strong>: a corner changes the width and the height together, and an edge changes
+only the side you are pulling, leaving the opposite one where it is. The pointer tells you which
+you have &mdash; a double-headed arrow, straight or diagonal, wherever a drag will resize rather
+than move. Each corner carries a small mark.</p>
+
+<p>Pulling the top or left edge moves the element as well as resizing it, which is what you want
+when it is the bottom or the right that has to stay put.</p>
+
+<p>A very thin element &mdash; a horizontal rule is only a line thick &mdash; offers no grip on the
+side it has no thickness on, so that it can still be picked up and moved. Drag its ends to make it
+longer or shorter, and type in the panel on the right for anything else.</p>
+
+<p>The page redraws itself each time you finish a change, so what you see is the document as it
+would really print. Nothing is saved by redrawing.</p>
 
 <p>It redraws when you let go of an element, not while you are dragging it &mdash; there is no point
 producing a page you are covering with the pointer. Typing in the panel on the right redraws a
@@ -105,6 +117,34 @@ how you get a column of fields lined up exactly. Set it to <em>Off</em> for fine
 <p>Everything can also be typed. Select an element and the panel on the right shows its exact
 position and size in millimetres, its font, size, colour and alignment, its border, and which page
 it appears on. Typing there is the way to make two elements agree precisely.</p>
+
+<h3>Moving several at once</h3>
+
+<p>Most tidying moves a group rather than a single item: a caption and the value beneath it, an
+address and its heading, the several parts of a cheque stub. Moved one at a time they drift out of
+line with each other, so it is worth selecting them together.</p>
+
+<p>There are two ways to do it. Hold <em>Shift</em> and click each element in turn &mdash; on the
+page or in the <strong>Elements</strong> list &mdash; and each click adds one to the selection, or
+takes it out again if it was already in. Or drag across an empty part of the page: a dashed box
+follows the pointer and everything it touches is selected when you let go. An element only has to be
+<em>touched</em> by the box, not wholly enclosed by it, so a full-width rule is caught without
+having to sweep the entire page.</p>
+
+<p>Then drag any one of them and they all move together, keeping their positions relative to one
+another exactly. <strong>Delete</strong> and the forward and backward arrows apply to the whole
+selection too.</p>
+
+<p>A selected element is drawn with a dark ring around it. The one the panel on the right is
+describing &mdash; the last one you clicked &mdash; has a solid ring; the others are dashed. Typing
+in the panel changes only the one with the solid ring, and when more than one is selected the panel
+says so.</p>
+
+<p>Click any element without holding Shift to go back to having just that one selected, or click an
+empty part of the page to select nothing.</p>
+
+<p>Resizing always applies to the single element whose edge you took hold of, even when several are
+selected.</p>
 
 <h3>Naming an element</h3>
 
@@ -151,9 +191,11 @@ section. Its height is left unset on purpose, so that the shape comes from whate
 choose rather than from the size it happened to be added at.</p>
 
 <p>The arrows beside a selected element bring it forward or send it backward. That matters where two
-elements overlap: a filled box drawn after a piece of text hides it.</p>
+elements overlap: a filled box drawn after a piece of text hides it. With several elements selected
+they all move a step together, keeping their order among themselves; if any one of them is already
+at the end, none of them moves.</p>
 
-<p><strong>Delete</strong> removes the selected element.</p>
+<p><strong>Delete</strong> removes everything selected, and says how many before it does.</p>
 
 <h3>Logos and other images</h3>
 
@@ -174,8 +216,10 @@ the ending is set from what the file actually is, and if that name is already ta
 added rather than the existing image being replaced &mdash; another form may be using it.</p>
 
 <p>Most images are stored with a width and no height, so that the shape always comes from the file.
-Uploading a differently proportioned image therefore changes how tall the element is. Set both a
-width and a height if you need the space it occupies to stay fixed.</p>
+Uploading a differently proportioned image therefore changes how tall the element is, and dragging
+its left or right edge changes the height along with the width, keeping the picture in proportion.
+Set both a width and a height if you need the space it occupies to stay fixed &mdash; dragging the
+top or bottom edge does exactly that, since it fixes a height that was not set before.</p>
 
 <p>Some forms take their image from the record rather than from a fixed file &mdash; a signature or
 a logo that differs per customer. Those offer a value to show instead of a file, and there is
@@ -185,7 +229,11 @@ nothing to upload.</p>
 
 <p><strong>Undo</strong> steps back through your changes one at a time, and <strong>Redo</strong>
 puts one back. <em>Ctrl+Z</em> and <em>Ctrl+Y</em> do the same. A drag counts as one change however
-far you moved the element, so undoing returns it to where it started rather than partway.</p>
+far you moved the element &mdash; and however many elements you moved &mdash; so undoing returns
+them to where they started rather than partway.</p>
+
+<p>Selecting things is not a change and is not recorded, but undoing does put back the selection you
+had at the time, so you can carry on where you were.</p>
 
 <p>Inside a text box, Ctrl+Z is the box's own undo for the text you are typing, as usual.</p>
 

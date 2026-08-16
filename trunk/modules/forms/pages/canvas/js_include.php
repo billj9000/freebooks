@@ -202,9 +202,14 @@ function place() {
       + 'height:' + Math.max(px(box.height), 2).toFixed(2) + 'px;'
       + sides + 'background:' + colour + '14;'
       + (canEdit ? 'cursor:move;' : '')
-      // The resize corner is a visual affordance only; the pointer handler
-      // decides by position, so there is nothing to keep in step.
-      + (canEdit ? 'box-shadow:inset -6px -6px 0 -5px ' + colour + ';' : '');
+      // A mark in each corner, so the box says where it can be taken hold of.
+      // All four resize, as do the four edges between them; the pointer handler
+      // decides by position and the cursor changes to match, so this is an
+      // affordance and never the rule.
+      + (canEdit ? 'box-shadow:inset  6px  6px 0 -5px ' + colour + ','
+                 +            'inset -6px  6px 0 -5px ' + colour + ','
+                 +            'inset  6px -6px 0 -5px ' + colour + ','
+                 +            'inset -6px -6px 0 -5px ' + colour + ';' : '');
     div.title = box.label + '  (' + box.x + ', ' + box.y + ') '
               + box.width + ' × ' + box.height + ' mm'
               + (box.grows ? '\n' + <?php echo json_encode(FORMS_CANVAS_GROWS); ?> : '')
@@ -221,7 +226,23 @@ function place() {
 // Deleting splices both; adding pushes to both. The array ORDER is the drawing
 // order, which is what the up/down buttons change.
 
+// ── what is selected ────────────────────────────────────────────────────────
+//
+// TWO things, not one, and the difference matters at every call site.
+//
+// `chosen` is the whole selection — what a drag moves, what Delete removes,
+// what the order arrows shuffle. `selected` is the ANCHOR: the one element the
+// inspector describes and types back into, and the one a snapped drag is
+// measured against. The anchor is always a member of the set.
+//
+// The inspector deliberately stays single. A mixed selection has no position,
+// no font and no binding, so it would have to blank them; and a typed change
+// applying to every member is a different and much larger promise than "these
+// move together", which is what was asked for. Everything that IS shared — the
+// drag, the delete, the z-order — acts on the set.
+
 let selected = null;
+const chosen = new Set();
 
 // ── redrawing as the author works ───────────────────────────────────────────
 //
@@ -253,7 +274,8 @@ const history = [];
 const future  = [];
 
 function state() {
-  return JSON.stringify({ boxes: boxes, values: values, selected: selected });
+  return JSON.stringify({ boxes: boxes, values: values,
+                          selected: selected, chosen: Array.from(chosen) });
 }
 
 /** Remember where we were. Called BEFORE a change, never after. */
@@ -275,10 +297,16 @@ function restore(snapshot) {
   values.length = 0;
   was.values.forEach(function (value) { values.push(value); });
   selected = was.selected;
+  // Restored, not rebuilt from the anchor: undoing a group drag should hand
+  // back the group, or the next undo moves one element where the last moved
+  // six. Older snapshots predate the set and carry only the anchor.
+  chosen.clear();
+  (was.chosen || (was.selected === null ? [] : [was.selected]))
+      .forEach(function (index) { chosen.add(index); });
 
   place();
   rebuildList();
-  select(selected);
+  describeSelection();
   updateHistoryButtons();
   touched(0);
 }
@@ -324,32 +352,181 @@ function rounded(mm) {
   return Math.round(value * 1000) / 1000;
 }
 
-/** Move an element by a delta in millimetres, drawn box and stored box alike. */
-function shift(index, dx, dy) {
-  boxes[index].x = rounded(boxes[index].x + dx);
-  boxes[index].y = rounded(boxes[index].y + dy);
-  values[index].x = String(rounded(parseFloat(values[index].x || 0) + dx));
-  values[index].y = String(rounded(parseFloat(values[index].y || 0) + dy));
+/** Three decimal places, which is what the server rounds boxes to. */
+function fine(mm) { return Math.round(mm * 1000) / 1000; }
+
+/**
+ * Where each member of a drag started.
+ *
+ * A drag is applied to the position the elements had when it BEGAN, plus the
+ * total delta — never to their current position plus the last increment. With
+ * snapping on, an increment smaller than the step rounds away to nothing, so
+ * the incremental form loses every slow movement: an author dragging carefully
+ * across a 1 mm grid moves the element not at all. Measured from the origin,
+ * the same slow drag crosses each step exactly once.
+ *
+ * @return object index -> the drawn box and the stored box, as they were
+ */
+function origins(indexes) {
+  const was = {};
+  indexes.forEach(function (index) {
+    was[index] = { x: boxes[index].x, y: boxes[index].y,
+                   width: boxes[index].width, height: boxes[index].height,
+                   storeX: values[index].x, storeY: values[index].y,
+                   storeW: values[index].w, storeH: values[index].h };
+  });
+  return was;
 }
 
-/** Resize by a delta. A blank stored side stays blank unless it is dragged. */
-function stretch(index, dw, dh) {
-  boxes[index].width  = Math.max(rounded(boxes[index].width  + dw), 0);
-  boxes[index].height = Math.max(rounded(boxes[index].height + dh), 0);
-  const w = values[index].w === '' ? null : parseFloat(values[index].w);
-  const h = values[index].h === '' ? null : parseFloat(values[index].h);
-  // Dragging a side is an author asking for that size, so a derived height —
-  // every logo has one — becomes explicit at that moment and not before.
-  values[index].w = String(Math.max(rounded((w === null ? boxes[index].width  - dw : w) + dw), 0));
-  values[index].h = String(Math.max(rounded((h === null ? boxes[index].height - dh : h) + dh), 0));
+/**
+ * Move every member of a drag by one delta, in millimetres.
+ *
+ * The delta is snapped ONCE, against the element the author actually grabbed,
+ * and then applied to every member unrounded. Rounding each member separately
+ * is what would pull a group apart: two elements 0.3 mm apart on a 1 mm grid
+ * land either on the same line or a whole millimetre away from each other, and
+ * the block the author was trying to keep together is precisely what gets bent.
+ * Snapping the anchor keeps the grid meaningful; applying its delta to the rest
+ * keeps the group rigid.
+ */
+function moveBy(was, anchor, dx, dy) {
+  const from = was[anchor];
+  const byX = rounded(from.x + dx) - from.x;
+  const byY = rounded(from.y + dy) - from.y;
+
+  Object.keys(was).forEach(function (key) {
+    const index = Number(key), start = was[key];
+    boxes[index].x = fine(start.x + byX);
+    boxes[index].y = fine(start.y + byY);
+    // The STORED position, moved by the same delta — a Line's origin is its
+    // start point and may sit at either end of the drawn box (§13.11), so this
+    // is not always the number above.
+    values[index].x = String(fine(parseFloat(start.storeX || 0) + byX));
+    values[index].y = String(fine(parseFloat(start.storeY || 0) + byY));
+  });
 }
 
-function select(index) {
-  selected = index === null ? null : Number(index);
+/**
+ * Resize one element by dragging a side or a corner.
+ *
+ * This works on the DRAWN box and derives the stored one from the result,
+ * rather than adding the delta to the stored numbers. That is what makes a Line
+ * behave. Its sides are a signed offset to the END POINT, so on a line drawn
+ * leftward the drawn WEST edge is the stored origin and the drawn east edge is
+ * the end: adding dx to the stored width there would stretch the wrong end and
+ * the outline would part company with the ink. Deriving instead means the
+ * direction is preserved by construction and there is no case to remember.
+ *
+ * @param zone one or two of n/s/e/w — which side or corner is being dragged
+ */
+function resize(index, zone, was, dx, dy) {
+  const box = boxes[index], value = values[index], from = was[index];
+  let x = from.x, y = from.y;
+  let right = from.x + from.width, bottom = from.y + from.height;
+
+  // A side that is not being dragged does not move, which is the whole point of
+  // dragging a side rather than a corner. So the MOVING edge is what gets
+  // snapped, and the fixed one is left exactly where it was. Snapping the width
+  // instead would slide the far side about while the author was adjusting the
+  // near one, on every element that does not already start on the grid — which,
+  // after twenty years of hand-typed coordinates, is most of them.
+  //
+  // The moving edge is stopped at the fixed one rather than allowed through it:
+  // a drag should not turn a box inside out, and a negative side means
+  // something quite different on a Line.
+  if (zone.indexOf('e') >= 0) right  = Math.max(rounded(right  + dx), x);
+  if (zone.indexOf('w') >= 0) x      = Math.min(rounded(x      + dx), right);
+  if (zone.indexOf('s') >= 0) bottom = Math.max(rounded(bottom + dy), y);
+  if (zone.indexOf('n') >= 0) y      = Math.min(rounded(y      + dy), bottom);
+
+  let w = Math.max(fine(right - x), 0);
+  let h = Math.max(fine(bottom - y), 0);
+
+  const sideways = zone.indexOf('e') >= 0 || zone.indexOf('w') >= 0;
+  const upright  = zone.indexOf('n') >= 0 || zone.indexOf('s') >= 0;
+
+  // An image stores a width and NO height, because TCPDF works the other side
+  // out from the file (§13.11). Dragging its left or right edge is therefore
+  // not silence about the height — it changes the height, by the file's aspect
+  // ratio — so the OUTLINE has to follow, or it stops describing where the ink
+  // lands the moment the width changes. The stored side stays blank: nothing
+  // the author did said anything about it.
+  if (!upright && from.storeH === '' && from.width > 0 && !box.unmeasured) {
+    h = fine(from.height * (w / from.width));
+  }
+  if (!sideways && from.storeW === '' && from.height > 0 && !box.unmeasured) {
+    w = fine(from.width * (h / from.height));
+  }
+
+  box.x = x; box.y = y; box.width = w; box.height = h;
+
+  // The stored box, read back off the drawn one. A negative stored side means
+  // the element is drawn from the far corner, so its origin follows that corner
+  // and the sign is kept.
+  const flipW = parseFloat(from.storeW) < 0;
+  const flipH = parseFloat(from.storeH) < 0;
+  // Taken as they are and never snapped again: the drawn edges have already
+  // been put on the grid above, and re-rounding the far one here would move the
+  // very side the author was holding still — the FIXED edge, on a line whose
+  // origin happens to sit at that end.
+  if (sideways) {
+    value.x = String(fine(flipW ? x + w : x));
+    // Dragging a side is an author asking for that size, so a derived height —
+    // every logo has one — becomes explicit at that moment and not before.
+    value.w = String(flipW ? -w : w);
+  }
+  if (upright) {
+    value.y = String(fine(flipH ? y + h : y));
+    value.h = String(flipH ? -h : h);
+  }
+}
+
+/**
+ * Choose an element.
+ *
+ * With `add` — shift, control or command held — the element joins the selection
+ * or leaves it again, and the one just clicked becomes the anchor. Without it,
+ * the selection becomes that element alone.
+ */
+function select(index, add) {
+  if (index === null) {
+    chosen.clear();
+    selected = null;
+  } else {
+    const which = Number(index);
+    if (!add) {
+      chosen.clear();
+      chosen.add(which);
+      selected = which;
+    } else if (chosen.has(which)) {
+      chosen.delete(which);
+      // The anchor has left the selection, so the inspector follows whatever is
+      // still in it rather than describing an element nothing else acts on.
+      if (selected === which) {
+        selected = chosen.size ? chosen.values().next().value : null;
+      }
+    } else {
+      chosen.add(which);
+      selected = which;
+    }
+  }
+  describeSelection();
+}
+
+/** The inspector, filled from the anchor. Selection is decided above. */
+function describeSelection() {
   const has = selected !== null && values[selected] !== undefined;
   document.getElementById('forms_canvas_inspector').classList.toggle('d-none', !has);
   document.getElementById('forms_canvas_none').classList.toggle('d-none', has);
   if (!has) { highlight(null); return; }
+
+  // Said only when it is true, and said in the inspector rather than on the
+  // page, because the surprise a group selection can cause is a typed change
+  // going somewhere the author did not expect.
+  const many = document.getElementById('forms_canvas_many');
+  many.classList.toggle('d-none', chosen.size < 2);
+  many.textContent = chosen.size < 2 ? ''
+      : <?php echo json_encode(FORMS_CANVAS_MANY); ?>.replace('%d', chosen.size);
 
   const box = boxes[selected], value = values[selected];
   document.getElementById('forms_canvas_what').textContent = box.label;
@@ -454,25 +631,51 @@ function inspectorChanged() {
   touched();
 }
 
+/**
+ * Move the whole selection one place through the drawing order.
+ *
+ * The members are stepped in the direction of travel — nearest the destination
+ * first — so each swap is with an element that is not itself moving, and the
+ * order WITHIN the selection is preserved. If any member would fall off the
+ * end, nothing moves at all: sliding the rest past the one that is stuck is how
+ * a block quietly rearranges itself.
+ */
 function formsCanvasZ(by) {
-  if (selected === null) return;
-  const to = selected + by;
-  if (to < 0 || to >= boxes.length) return;
+  if (!chosen.size) return;
+  const order = Array.from(chosen).sort(function (a, b) { return by < 0 ? a - b : b - a; });
+  if (order.some(function (index) {
+        const to = index + by;
+        return to < 0 || to >= boxes.length;
+      })) return;
+
   remember();
-  [boxes[selected], boxes[to]]   = [boxes[to], boxes[selected]];
-  [values[selected], values[to]] = [values[to], values[selected]];
-  selected = to;
-  place(); rebuildList(); highlight(selected);
+  order.forEach(function (index) {
+    const to = index + by;
+    [boxes[index], boxes[to]]   = [boxes[to], boxes[index]];
+    [values[index], values[to]] = [values[to], values[index]];
+  });
+  const moved = order.map(function (index) { return index + by; });
+  chosen.clear();
+  moved.forEach(function (index) { chosen.add(index); });
+  selected = selected === null ? null : selected + by;
+
+  place(); rebuildList(); describeSelection();
   touched(0);
 }
 
 function formsCanvasDelete() {
-  if (selected === null) return;
-  if (!confirm(<?php echo json_encode(FORMS_CANVAS_CONFIRM_DELETE); ?>)) return;
+  if (!chosen.size) return;
+  const asked = chosen.size > 1
+    ? <?php echo json_encode(FORMS_CANVAS_CONFIRM_DELETE_MANY); ?>.replace('%d', chosen.size)
+    : <?php echo json_encode(FORMS_CANVAS_CONFIRM_DELETE); ?>;
+  if (!confirm(asked)) return;
+
   remember();
-  boxes.splice(selected, 1);
-  values.splice(selected, 1);
-  selected = null;
+  // Highest index first, or every splice moves the ones still to come.
+  Array.from(chosen).sort(function (a, b) { return b - a; }).forEach(function (index) {
+    boxes.splice(index, 1);
+    values.splice(index, 1);
+  });
   place(); rebuildList(); select(null);
   touched(0);
 }
@@ -614,7 +817,7 @@ async function formsCanvasUpload() {
       boxes[selected].width      = Math.round(drawn[0] * 1000) / 1000;
       boxes[selected].height     = Math.round(drawn[1] * 1000) / 1000;
       boxes[selected].unmeasured = false;
-      place(); rebuildList(); select(selected);
+      place(); rebuildList(); describeSelection();
       touched(0);
     }
   } catch (error) {
@@ -623,52 +826,231 @@ async function formsCanvasUpload() {
   }
 }
 
-// Drag to move, drag the corner to resize. One pointer handler for both: the
-// difference is only which numbers the delta is added to.
+// ── the pointer ─────────────────────────────────────────────────────────────
+//
+// Three gestures through one pair of handlers. Press a box and drag: the whole
+// selection moves. Press one of its edges or corners: that element resizes.
+// Press empty page and drag: a band sweeps up everything it touches.
+
+/**
+ * Which part of a box the pointer is over — '' for the middle, or one or two of
+ * n/s/e/w for a side or a corner.
+ *
+ * The grip is never more than a third of the side it sits on, and an axis with
+ * less than THIN pixels to give has no grip at all. A horizontal rule is drawn
+ * two pixels tall: a grip at each end of that swallows the middle, so the
+ * element could be resized and never moved — and on a Line, worse than that.
+ * Its stored height is the y offset of its END POINT, so a drag the author
+ * meant as a move would turn the rule into a diagonal.
+ */
+const GRIP = 6;
+const THIN = 8;
+
+function zoneAt(div, clientX, clientY) {
+  const rect = div.getBoundingClientRect();
+  const gx = rect.width  < THIN ? 0 : Math.min(GRIP, rect.width  / 3);
+  const gy = rect.height < THIN ? 0 : Math.min(GRIP, rect.height / 3);
+  let zone = '';
+  // A zero grip means NO grip, so the comparison has to be guarded: a pointer
+  // landing exactly on the edge would otherwise still resize.
+  if (gy > 0) {
+    if      (clientY <= rect.top    + gy) zone += 'n';
+    else if (clientY >= rect.bottom - gy) zone += 's';
+  }
+  if (gx > 0) {
+    if      (clientX <= rect.left   + gx) zone += 'w';
+    else if (clientX >= rect.right  - gx) zone += 'e';
+  }
+  return zone;
+}
+
+// The conventional cursors: a diagonal double arrow on a corner, named for the
+// axis it lies along, and a straight one on a side.
+const CURSORS = {
+  '':   'move',
+  n:    'ns-resize',   s:  'ns-resize',
+  e:    'ew-resize',   w:  'ew-resize',
+  nw:   'nwse-resize', se: 'nwse-resize',
+  ne:   'nesw-resize', sw: 'nesw-resize'
+};
+
+/**
+ * Hold one cursor over the whole page while a drag is in progress.
+ *
+ * Each box carries its own, so without this a resize that carried the pointer
+ * across a neighbour would show that neighbour's — the cursor reporting a
+ * gesture nobody is making.
+ */
+function dragCursor(cursor) {
+  stack.style.cursor = cursor;
+  layer.querySelectorAll('.fb-canvas-box').forEach(function (div) {
+    div.style.cursor = cursor || 'move';
+  });
+}
+
 let dragging = null;
+let band     = null;
 
 layer.addEventListener('pointerdown', function (event) {
   if (!canEdit) return;
+  // The PRIMARY button only. A right-click otherwise begins a drag or a band
+  // that the context menu immediately interrupts, leaving the canvas holding a
+  // gesture the author cannot finish.
+  if (event.button !== 0) return;
+
   const div = event.target.closest('.fb-canvas-box');
-  if (!div) return;
+  const add = event.shiftKey || event.ctrlKey || event.metaKey;
+
+  if (!div) {
+    // Empty page. A band, unless the author is only clearing the selection —
+    // which is what a press and release in the same place turns out to be.
+    const at = layer.getBoundingClientRect();
+    band = { x: event.clientX - at.left, y: event.clientY - at.top,
+             add: add, was: Array.from(chosen), div: null, swept: false };
+    layer.setPointerCapture(event.pointerId);
+    stack.style.cursor = 'crosshair';
+    event.preventDefault();
+    return;
+  }
+
   const index = Number(div.dataset.index);
-  select(index);
+  if (add) {
+    // The default action of a shift-click is to EXTEND THE DOCUMENT'S TEXT
+    // SELECTION. Left alone it paints a blue swathe across the canvas, which
+    // is what an author sees the first time they try to build a group — the
+    // element does join the selection, but the browser's own behaviour buries
+    // the evidence. Refusing it here, and `user-select: none` on the stack,
+    // are the two halves of the same fix.
+    event.preventDefault();
+    // Building a selection, not moving one: a modified click adds or removes
+    // and stops there, so the element it just removed cannot be dragged by the
+    // same gesture that took it out.
+    select(index, true);
+    return;
+  }
+  // Pressing a member of a group keeps the group — otherwise a group could
+  // never be dragged, because grabbing it would collapse it first. The anchor
+  // follows the press so the inspector describes what is under the pointer.
+  if (!chosen.has(index)) select(index, false);
+  else if (selected !== index) { selected = index; describeSelection(); }
 
-  // One snapshot per DRAG, taken as it starts — not one per pointermove, which
-  // would fill the history with a hundred states nobody meant to make.
-  remember();
-
-  const rect    = div.getBoundingClientRect();
-  const corner  = (event.clientX > rect.right - 10) && (event.clientY > rect.bottom - 10);
-  dragging = { index: index, startX: event.clientX, startY: event.clientY,
-               resize: corner, lastX: event.clientX, lastY: event.clientY };
-  div.setPointerCapture(event.pointerId);
+  const zone = zoneAt(div, event.clientX, event.clientY);
+  // A resize acts on the element whose handle was grabbed, a move on all of
+  // them. Scaling a group from one corner is a different feature with different
+  // questions — what happens to a text element's line height, to a line's
+  // direction — and guessing at it here would be the wrong place to answer them.
+  dragging = { index: index, zone: zone, moved: false,
+               startX: event.clientX, startY: event.clientY,
+               was: origins(zone === '' ? Array.from(chosen) : [index]) };
+  layer.setPointerCapture(event.pointerId);
+  dragCursor(CURSORS[zone] || 'move');
   event.preventDefault();
 });
 
 layer.addEventListener('pointermove', function (event) {
-  if (!dragging) return;
-  const dx = toMm(event.clientX - dragging.lastX);
-  const dy = toMm(event.clientY - dragging.lastY);
-  if (dx === 0 && dy === 0) return;
-  dragging.lastX = event.clientX;
-  dragging.lastY = event.clientY;
-  if (dragging.resize) stretch(dragging.index, dx, dy);
-  else                 shift(dragging.index, dx, dy);
+  if (band) {
+    const at = layer.getBoundingClientRect();
+    sweep(event.clientX - at.left, event.clientY - at.top);
+    return;
+  }
+
+  if (!dragging) {
+    // Nothing under way: the cursor is the only thing that has to keep up, and
+    // it is how an author discovers the sides can be dragged at all.
+    if (!canEdit) return;
+    const over = event.target.closest('.fb-canvas-box');
+    if (over) over.style.cursor = CURSORS[zoneAt(over, event.clientX, event.clientY)] || 'move';
+    return;
+  }
+
+  const dx = toMm(event.clientX - dragging.startX);
+  const dy = toMm(event.clientY - dragging.startY);
+
+  // The snapshot is taken on the first MOVEMENT rather than on the press: a
+  // click that selects an element is not a change, and recording one would fill
+  // the history with states nobody meant to make. Still one per drag — nothing
+  // has been altered yet at this point, so it is still "before".
+  if (!dragging.moved) { remember(); dragging.moved = true; }
+
+  if (dragging.zone === '') moveBy(dragging.was, dragging.index, dx, dy);
+  else                      resize(dragging.index, dragging.zone, dragging.was, dx, dy);
+
   place();
-  if (selected === dragging.index) select(selected);
+  // place() builds the boxes afresh, each with the plain move cursor written
+  // into its style, so the drag cursor has to be put back or a resize reverts
+  // to reporting a move the moment the element is redrawn under the pointer.
+  dragCursor(CURSORS[dragging.zone] || 'move');
+  describeSelection();
   highlight(dragging.index);
 });
 
 ['pointerup', 'pointercancel'].forEach(function (name) {
-  layer.addEventListener(name, function () {
+  layer.addEventListener(name, function (event) {
+    if (band) {
+      if (band.div) band.div.remove();
+      // A press and release with no sweep between them is a click on the page,
+      // and on the page there is nothing to select.
+      if (!band.swept && !band.add) select(null);
+      band = null;
+      stack.style.cursor = '';
+      rebuildList();
+      return;
+    }
     if (!dragging) return;
+    // A press that never moved is a click. On a member of a group that means
+    // "just this one" — the ordinary way back out of a selection.
+    if (!dragging.moved && chosen.size > 1) select(dragging.index, false);
+    const wasMoved = dragging.moved;
     dragging = null;
+    dragCursor('');
+    if (!wasMoved) { rebuildList(); return; }
     rebuildList();
     // On release, not on move: the page is under the pointer during a drag.
     touched(0);
   });
 });
+
+/**
+ * The rubber band: draw it, and select everything it touches.
+ *
+ * Touching rather than enclosing, because half of what is on a form is a rule
+ * or a full-width heading — a band that had to contain them would mean dragging
+ * across the whole page to pick up a line the author can see they have covered.
+ */
+function sweep(toX, toY) {
+  const x1 = Math.min(band.x, toX), x2 = Math.max(band.x, toX);
+  const y1 = Math.min(band.y, toY), y2 = Math.max(band.y, toY);
+  if (x2 - x1 < 3 && y2 - y1 < 3) return;
+  band.swept = true;
+
+  if (!band.div) {
+    band.div = document.createElement('div');
+    band.div.style.cssText = 'position:absolute;pointer-events:none;z-index:3;'
+      + 'border:1px dashed #0d6efd;background:#0d6efd14';
+    layer.appendChild(band.div);
+  }
+  band.div.style.left   = x1 + 'px';
+  band.div.style.top    = y1 + 'px';
+  band.div.style.width  = (x2 - x1) + 'px';
+  band.div.style.height = (y2 - y1) + 'px';
+
+  // Rebuilt from what the band covers on every move, plus whatever was already
+  // held if the author is adding to a selection. Recomputing rather than
+  // accumulating is what lets the band be made SMALLER again: an element the
+  // author has dragged back off should leave, and one that only ever grew a set
+  // would keep it.
+  chosen.clear();
+  if (band.add) band.was.forEach(function (index) { chosen.add(index); });
+  boxes.forEach(function (box, index) {
+    const bx = px(box.x), by = px(box.y);
+    const bw = Math.max(px(box.width), 2), bh = Math.max(px(box.height), 2);
+    if (bx < x2 && bx + bw > x1 && by < y2 && by + bh > y1) chosen.add(index);
+  });
+  if (selected === null || !chosen.has(selected)) {
+    selected = chosen.size ? chosen.values().next().value : null;
+  }
+  describeSelection();
+}
 
 document.addEventListener('click', function (event) {
   const button = event.target.closest('.fb-canvas-add');
@@ -694,14 +1076,44 @@ window.formsCanvasRedo   = formsCanvasRedo;
   if (control) control.addEventListener('change', inspectorChanged);
 });
 
+/**
+ * Thicken what is selected, and whatever the pointer is resting on.
+ *
+ * `index` is the hover, which is not the selection: pointing at a row in the
+ * list should find that element on the page without disturbing the six the
+ * author has spent a minute gathering. So both are drawn, and the ANCHOR — the
+ * one the inspector is describing — is ringed as well, because in a group of
+ * six otherwise identical outlines there is nothing else to say which one the
+ * numbers on the right belong to.
+ */
 function highlight(index) {
   layer.querySelectorAll('.fb-canvas-box').forEach(function (div) {
-    const on = String(div.dataset.index) === String(index);
-    div.style.borderWidth = on ? '2px' : '1px';
-    div.style.zIndex      = on ? '2' : '1';
+    const which = Number(div.dataset.index);
+    const held  = chosen.has(which);
+    const hovered = String(which) === String(index);
+    div.style.borderWidth = (held || hovered) ? '2px' : '1px';
+    // Raised by the HOVER only, never by being selected. Lifting a selected box
+    // above its neighbours changes which one a click lands on, so on a form
+    // where elements overlap — the cheque does — shift-clicking to add a second
+    // element keeps hitting the first and toggles it straight back off. That
+    // reads as "the modifier does nothing". The ring below is what makes a
+    // selection visible; it does not need to be on top to be seen.
+    div.style.zIndex = hovered ? '2' : '1';
+    // A ring, not a slightly thicker border. Every outline on this page is
+    // already coloured and 1 px, so "2 px instead of 1" is not a signal an
+    // author can read at a glance — and a selection they cannot see is one
+    // they will not believe they made. SOLID on the anchor, DASHED on the
+    // others: everything ringed is selected, and the solid one is the element
+    // the inspector on the right is describing.
+    div.style.outline = held
+        ? (which === selected ? '2px solid #212529' : '2px dashed #212529')
+        : '';
+    div.style.outlineOffset = '1px';
   });
   Array.from(listing.rows).forEach(function (row) {
-    row.classList.toggle('table-active', String(row.dataset.index) === String(index));
+    const which = Number(row.dataset.index);
+    row.classList.toggle('table-active',
+        chosen.has(which) || String(which) === String(index));
   });
 }
 
@@ -721,7 +1133,11 @@ function fillList() {
       + '<td class="small text-muted text-end text-nowrap">'
       + box.x + ', ' + box.y + '</td>';
     row.addEventListener('mouseenter', function () { highlight(index); });
-    row.addEventListener('click', function () { select(index); });
+    // The same modifiers as the page, so a group can be gathered from the list
+    // — which is the only way to reach an element sitting under another one.
+    row.addEventListener('click', function (event) {
+      select(index, event.shiftKey || event.ctrlKey || event.metaKey);
+    });
   });
   document.getElementById('forms_canvas_count').textContent =
       boxes.length + ' <?php echo addslashes(FORMS_CANVAS_ELEMENT_COUNT); ?>';

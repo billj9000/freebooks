@@ -2010,7 +2010,8 @@ now measured rather than hoped for, which was the point of doing this first.
 
 Editing on the canvas. Built and measured on 2026-08-16; module version 1.04.
 
-Drag to move, drag the corner to resize, snap to 0.5/1/5 mm or off, click to select, an inspector
+Drag to move, drag to resize (the bottom-right corner at first; every side and corner from §13.17),
+snap to 0.5/1/5 mm or off, click to select, an inspector
 for exact position, size, text, binding, font, size, colour, alignment, border and visibility,
 add (text, value, line, box), delete, and forward/backward for z-order. Saving writes the native
 format and keeps `pf_<id>.pre-forms`, exactly as the report editor does.
@@ -2082,6 +2083,8 @@ is correct and unsearchable, so the check had to read the DOM rather than the ma
   (a page under the pointer is not worth a PDF per pixel); a burst of typing is coalesced into one
   render; and a superseded request is ABANDONED, because a slow answer landing after a fast one
   paints an older page over a newer and looks like a rendering bug rather than a race.
+- **No group selection, and only the bottom-right corner resizes.** Both were asked for on
+  2026-08-16 and both are **now built — see §13.17.**
 - **Redraw the page** remains, on demand.
   Live re-rendering on every drag would mean a PDF per pointer move; without any redraw at all the
   picture goes stale on the FIRST change and every change after that is judged against a page
@@ -2365,3 +2368,149 @@ CSV and the delivery layer — before the migration can run. The seam already su
 form is a `Document` whose renderer emits text rather than bytes of PDF, and the flow model
 (`width` in columns, `rowbreak`) is simple enough to express as its own document kind rather than
 being forced into `Template`.
+
+### 13.17 Selecting several, and taking hold of any side
+
+Asked for on 2026-08-16 and 2026-08-17, and built on 2026-08-17. Two requests, one piece of work:
+they meet in the pointer handler and in the same drag state.
+
+**Why the group drag matters more than it sounds.** It is the tool the form-tidying work needs. A
+layout fix almost never moves one element — it moves a *block*: a label and its value, an address
+and its heading, the six elements of a cheque stub. Moved singly they drift out of alignment with
+each other, so a tidy-up creates exactly the untidiness it set out to remove.
+
+Shift-, control- or command-click adds an element to the selection or takes it out again; a drag
+across empty page sweeps up everything the band **touches**, rather than everything it encloses,
+because half of what is on a form is a rule or a full-width heading and requiring containment would
+mean dragging across the whole page to catch a line you can already see is covered. The same
+modifiers work on the Elements list, which is the only way to reach an element sitting underneath
+another one.
+
+#### One delta, snapped once
+
+This is the finding, and it is not obvious until it is written down: **rounding each member
+separately is what pulls a group apart.** Two elements 0.3 mm apart, dragged 2.4 mm on a 1 mm grid,
+land on 22 and 23 — the gap between them changed from 0.3 mm to 1 mm, and the block whose spacing
+the author was preserving is precisely what got bent.
+
+So the delta is snapped **once**, against the element the author actually grabbed, and then applied
+to every member unrounded. The grid stays meaningful, because the thing under the pointer lands on
+it; the group stays rigid, because everything else moves by the same amount.
+
+The same change fixed a fault the single-element drag already had. A drag used to be applied
+incrementally — current position plus the delta since the last pointer event — and with snapping on,
+an increment smaller than the step rounds away to nothing. An author dragging carefully across a
+1 mm grid moved the element **not at all**, and only a fast flick crossed a step. Measured from the
+position the drag *began* at, the same slow drag crosses each step exactly once.
+
+Two smaller consequences of holding the origin: the undo snapshot moved from the press to the first
+movement (a click that only selects is not a change, and was filling the history with states nobody
+made), and the pointer is now captured by the **layer** rather than by the box. The box is destroyed
+and rebuilt by `place()` on every move, which silently released the capture it was holding.
+
+#### The conventional cursors, and what the sides mean
+
+Every side and every corner resizes: `nwse-resize` and `nesw-resize` on the diagonals, `ns-resize`
+and `ew-resize` on the sides, `move` in the middle. The grip is 6 px, never more than **a third** of
+the side it sits on, and **nothing at all** on an axis with fewer than 8 px to give. A horizontal
+rule is drawn two pixels tall: a grip at each end of that swallows the middle, so the element could
+be resized and never moved — and on a `Line` it is worse than an annoyance, because the stored
+height is the y offset of its *end point*, so the drag the author meant as a move would turn the
+rule into a diagonal. All four corners now carry a mark, drawn as four inset box-shadows on the same
+element, so the affordance matches the rule.
+
+**The moving edge is what gets snapped; the fixed edge is left exactly where it was.** Snapping the
+*width* instead would slide the far side about while the author was adjusting the near one, on every
+element that does not already start on the grid — which, after twenty years of hand-typed
+coordinates, is most of them.
+
+#### Resizing works on the drawn box and derives the stored one
+
+Dragging a north or west side changes the origin **and** the size in one gesture, which is where
+§13.11's two findings bite. A `Line`'s sides are a signed offset to its end point, so on a line drawn
+leftward the drawn *west* edge is the stored origin and the drawn *east* edge is the end: adding the
+delta to the stored width there stretches the wrong end, and the outline parts company with the ink.
+
+So `resize()` computes the new **drawn** rectangle and reads the stored box back off it, keeping the
+sign. The direction is then preserved by construction and there is no case to remember. Two things
+follow from getting this wrong quietly rather than loudly, and both are now asserted in
+`verify_forms_canvas.php`: that a side drag can move the origin and the size in one save, and that a
+**negative** side survives that save — a clamp at zero would flatten a leftward line to nothing, and
+the author would watch it vanish rather than be told.
+
+An image is the other half of §13.11: it stores a width and no height, because TCPDF works the rest
+out from the file. Dragging its left or right edge is therefore not silence about the height — it
+*changes* the height, by the file's aspect ratio — so the outline follows, while the stored side
+stays blank. Nothing the author did said anything about it. Dragging a side that IS the blank one
+makes it explicit at that moment and not before, which is the rule step 4 already used.
+
+#### What it deliberately does not do
+
+- **The inspector stays single.** It describes the anchor — the element last clicked, ringed on the
+  page so a group of six otherwise identical outlines says which one the numbers belong to. A mixed
+  selection has no position, no font and no binding, so the fields would have to blank themselves;
+  and a typed change applying to every member is a far larger promise than "these move together",
+  which is what was asked for. Everything that *is* shared — the drag, Delete, the order arrows —
+  acts on the whole set, and the inspector says so in a sentence when there is more than one.
+- **A group does not scale from one corner.** A resize acts on the element whose handle was grabbed.
+  Scaling a group asks its own questions — what happens to a text element's line height, to a line's
+  direction — and answering them by guess inside a pointer handler is the wrong place.
+- **No alignment or distribution helpers.** The obvious next thing once a group can be selected, and
+  not asked for.
+
+#### The modified click did nothing, and three reasons why
+
+Reported the moment it reached a browser: the band worked, the group drag worked, shift-control-click
+did not. The handler was right — `chosen` gained the element every time. Three other things buried it.
+
+1. **A shift-click's own meaning is "extend the text selection."** Left unrefused it paints a blue
+   swathe across the canvas, which is what the author sees instead of a selection. Fixed in both
+   halves: `event.preventDefault()` on the modified click, and `user-select: none` on the stack and
+   on the Elements list. Nothing on the stack is text worth selecting — it is a rasterized picture
+   with outlines over it.
+2. **A selection was drawn as one extra pixel of border.** Every outline on the page is already
+   coloured and 1 px, so "2 px instead of 1" is not a signal anyone reads at a glance — and a
+   selection an author cannot see is one they will not believe they made. It is now a ring: solid on
+   the anchor, dashed on the rest. Everything ringed is selected; the solid one is what the inspector
+   describes.
+3. **Being selected raised the box above its neighbours** (`zIndex: 2`), which changes what a click
+   lands on. On a form where elements overlap — the cheque does — the second shift-click keeps
+   hitting the first element and toggles it straight back off, which reads exactly like a modifier
+   that does nothing. The z-index now follows the HOVER only.
+
+A fourth thing was wrong without being reported: **no button check**, so a right-click began a drag
+or a band that the context menu then interrupted, leaving the canvas mid-gesture. Primary button
+only.
+
+The lesson is not about any of the three. It is that **the handler being correct is not the feature
+working**, and none of the three could have been caught by anything in this suite — the first two are
+what a browser does with the event afterwards, and the third is a hit-test on overlapping geometry.
+All four are now asserted, but they were found by using it.
+
+#### A script with no engine to check it
+
+There is no JavaScript engine on the development machine or in the container, and the canvas is the
+one page in Forms whose whole behaviour lives in a script. A mis-nested brace there raises nothing
+anybody sees: the module fails to parse, every listener goes unbound, and the editor comes up as a
+picture of a page that cannot be edited — which reads as a rendering problem rather than a syntax
+one. `docs/tools/render_canvas_js.php` renders the script as the page emits it and checks that every
+language constant resolved, that no PHP notice landed in the middle of it, and that its delimiters
+balance. It is a scanner rather than a parser, and a guard rather than a proof.
+
+The gesture checks in `verify_forms_canvas.php` can only assert that what the browser needs is
+**present**, which is worth having for the same reason: each names a thing whose absence is silent —
+a cursor that never changes, a selection that quietly collapses to one — rather than a thing that
+throws.
+
+#### Two checks that failed on correct code, for the fourth and fifth time
+
+`verify_forms_pages.php` asserted that a drag is remembered inside the `pointerdown` handler, and
+that the release handler calls `touched(0)` within 400 characters of `'pointerup'`. Moving the
+snapshot to the first movement broke the first; growing the release handler by one branch broke the
+second. Both were bounded by a character count or by "the next `addEventListener`", which is the
+same fragility in two disguises.
+
+They are now bounded by `handlerBody()`, which brace-matches the handler's own body, and phrased
+against what must be **present**: the guard `if (!dragging.moved)`, and exactly one `remember()` in
+the move handler. The pattern set out in §13.12 holds and now has a corollary — **never bound a
+check by counting characters**, because the thing being measured is the one thing an edit changes.

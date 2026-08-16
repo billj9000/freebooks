@@ -52,8 +52,12 @@
 //                      A FRESH install turns MODULE_FORMS_PRINT_BUTTONS on,
 //                      because a new company has only native definitions and
 //                      PhreeForm cannot open one.
+// 1.08 => 2026-08-17 - The canvas gains a group: shift-click or sweep a band
+//                      to select several elements and move them together,
+//                      keeping their spacing exactly. Every side and corner
+//                      resizes, with the conventional double-arrow cursors.
 
-define('MODULE_FORMS_VERSION', 1.07);
+define('MODULE_FORMS_VERSION', 1.08);
 
 // Security IDs.
 //

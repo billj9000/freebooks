@@ -331,6 +331,55 @@ $canvasJs = (string)file_get_contents(DIR_FS_MODULES . 'forms/pages/canvas/js_in
 ok('the canvas draws a growing box with a dashed lower edge',
    str_contains($canvasJs, "border-bottom:1px dashed"));
 
+// ── the gestures (§13.17) ────────────────────────────────────────────────────
+//
+// There is no JavaScript engine here or in the container, so these can only
+// assert that what the browser needs is PRESENT. They are worth having anyway:
+// each names a thing whose absence is silent — a cursor that never changes, a
+// selection that quietly collapses to one — rather than a thing that throws.
+// docs/tools/render_canvas_js.php is what proves the file parses at all.
+
+foreach (['nwse-resize'  => 'a corner offers the diagonal double arrow',
+          'nesw-resize'  => 'and the other diagonal on the other pair',
+          'ns-resize'    => 'a top or bottom side offers the vertical double arrow',
+          'ew-resize'    => 'a left or right side offers the horizontal one'] as $cursor => $what) {
+    ok($what, str_contains($canvasJs, "'" . $cursor . "'"));
+}
+ok('all four sides and all four corners are hit-tested',
+   preg_match_all("/zone \\+= '[nsew]'/", $canvasJs) === 4);
+
+ok('the selection is a set rather than one index', str_contains($canvasJs, 'const chosen = new Set()'));
+ok('and the anchor is kept apart from it, for the inspector',
+   str_contains($canvasJs, 'let selected = null'));
+// The point of the whole feature: one delta, applied to every member. Snapping
+// each member separately is what would bend the block being kept together.
+ok('a group drag snaps once and applies the same delta to every member',
+   str_contains($canvasJs, 'const byX = rounded(from.x + dx) - from.x')
+   && str_contains($canvasJs, 'boxes[index].x = fine(start.x + byX)'));
+ok('a drag is measured from where it began, not from the last event',
+   str_contains($canvasJs, 'toMm(event.clientX - dragging.startX)'));
+ok('undo restores the whole selection, not just the anchor',
+   str_contains($canvasJs, 'chosen: Array.from(chosen)'));
+ok('delete splices from the highest index down',
+   str_contains($canvasJs, 'sort(function (a, b) { return b - a; })'));
+// A shift-click's own meaning is "extend the text selection". Left alone it
+// paints a blue swathe over the canvas and hides the selection that DID happen,
+// which is exactly how the feature reads as broken.
+// Asserted by ORDER rather than by a character window: the branch is mostly
+// comment, and a window wide enough to clear it is wide enough to match the
+// next handler down — the same fragility that has now broken two checks here.
+$addAt     = strpos($canvasJs, 'if (add) {');
+$preventAt = $addAt === false ? false : strpos($canvasJs, 'event.preventDefault();', $addAt);
+$selectAt  = $addAt === false ? false : strpos($canvasJs, 'select(index, true);', $addAt);
+ok('a modified click refuses the browser\'s own text selection',
+   $addAt !== false && $preventAt !== false && $selectAt !== false && $preventAt < $selectAt);
+ok('only the primary button begins a gesture',
+   str_contains($canvasJs, 'if (event.button !== 0) return;'));
+// Being selected must not change which element a click lands on, or on a form
+// with overlapping elements the second shift-click keeps hitting the first.
+ok('selection does not raise a box above its neighbours',
+   str_contains($canvasJs, "div.style.zIndex = hovered ? '2' : '1';"));
+
 ok('a line drawn upward becomes a positive box', $upward[0]['height'] === 50.0
    && $upward[0]['y'] === 150.0, json_encode($upward[0]));
 ok('a line drawn leftward becomes a positive box', $upward[1]['width'] === 30.0
@@ -605,6 +654,60 @@ if ($victim === null) {
     });
     ok('a moved element moves', $moved->template->elements[0]->box->x === 123.5
        && $moved->template->elements[0]->box->y === 45.25 && $warnings === []);
+
+    // Dragging the NORTH or WEST side moves the origin and changes the size in
+    // the same gesture — the two arrive together or the element grows out of
+    // the wrong corner.
+    [$grown, $warnings] = $edit(function (array $r): array {
+        $r['element'][0]['x'] = '30';
+        $r['element'][0]['y'] = '40';
+        $r['element'][0]['w'] = '55';
+        $r['element'][0]['h'] = '12';
+        return $r;
+    });
+    ok('a side drag moves the origin and the size at once',
+       $grown->template->elements[0]->box->x === 30.0
+       && $grown->template->elements[0]->box->y === 40.0
+       && $grown->template->elements[0]->box->width  === 55.0
+       && $grown->template->elements[0]->box->height === 12.0 && $warnings === []);
+
+    // A Line's sides are a SIGNED offset to its end point (§13.11), so a line
+    // drawn leftward or upward stores a negative one. The canvas keeps the sign
+    // when it resizes; a save that clamped it at zero would flatten the line to
+    // nothing, and the author would see it vanish rather than be refused.
+    [$signed, $warnings] = $edit(function (array $r): array {
+        $r['element'][0]['w'] = '-40';
+        $r['element'][0]['h'] = '-15';
+        return $r;
+    });
+    ok('a negative side survives a save, so a line keeps its direction',
+       $signed->template->elements[0]->box->width  === -40.0
+       && $signed->template->elements[0]->box->height === -15.0 && $warnings === []);
+
+    // A group drag moves every member by ONE delta. What the save has to
+    // guarantee is only that it takes them all in a single post — the canvas
+    // computes the delta once precisely so the numbers arrive already agreeing.
+    if (count($victim->template->elements) >= 3) {
+        $before = [];
+        foreach ($victim->template->elements as $index => $element) {
+            $before[$index] = [$element->box->x, $element->box->y];
+        }
+        [$together, $warnings] = $edit(function (array $r) use ($before): array {
+            foreach (array_slice(array_keys($before), 0, 3) as $index) {
+                $r['element'][$index]['x'] = (string)($before[$index][0] + 7.5);
+                $r['element'][$index]['y'] = (string)($before[$index][1] + 7.5);
+            }
+            return $r;
+        });
+        $rigid = true;
+        foreach (array_slice(array_keys($before), 0, 3) as $index) {
+            $box = $together->template->elements[$index]->box;
+            if (abs($box->x - ($before[$index][0] + 7.5)) > 0.0005
+                || abs($box->y - ($before[$index][1] + 7.5)) > 0.0005) $rigid = false;
+        }
+        ok('three elements moved by one delta keep their spacing exactly',
+           $rigid && $warnings === []);
+    }
 
     // A blank side is "let the renderer decide", not zero. Every logo stores a
     // null height, and reading blank as 0 would pin it to nothing on the first
