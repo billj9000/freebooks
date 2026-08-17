@@ -188,7 +188,13 @@ $same = $wouldWrite = $written = $blocked = $skipped = 0;
 $notes = [];
 
 foreach (scandir($dir) ?: [] as $file) {
-    if (substr($file, 0, 3) !== 'pf_') continue;
+    // `pf_` AND DIGITS, nothing else. Forms keeps the original beside a
+    // definition it rewrites, as `pf_<id>.pre-forms`, and that name also begins
+    // `pf_` — so a looser test reads the PRE-TIDY copy as if it were a document.
+    // Being native JSON with the same title, it would match the same master, and
+    // whichever the directory listing reached last would win: the tool run to
+    // capture a tidy could quietly write the version from before it.
+    if (!preg_match('/^pf_\d+$/', $file)) continue;
     $raw = (string)file_get_contents($dir . $file);
 
     // A company that has not been through the migration still has XML here, and

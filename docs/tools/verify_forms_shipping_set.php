@@ -331,6 +331,38 @@ foreach ($shipped as $xml) {
 ok('no column loses its break or its total in conversion', $lost === [],
    count($lost) . ' lost: ' . implode(' | ', array_slice($lost, 0, 5)));
 
+echo "\n=== a stored definition is `pf_` AND DIGITS, everywhere it is walked ===\n";
+// Forms keeps the original beside a definition it rewrites, as
+// `pf_<id>.pre-forms`. That name begins `pf_` too, so `substr($f, 0, 3) == 'pf_'`
+// picks up the BACKUP as if it were a document — and the three loops that walk
+// the directory each do something destructive with what they find. The Rebuild
+// catalogues and RENAMES, so a company that had used Forms came out of one with
+// its list close to doubled and its backups gone; the adopt tool would have
+// matched the pre-tidy copy to the same master and, being second in the
+// directory listing, written the version from BEFORE the tidy over it.
+$walkers = [
+    'the paper re-stamp'   => DIR_FS_MODULES . 'phreeform/pages/admin/pre_process.php',
+    'the catalog rebuild'  => DIR_FS_MODULES . 'phreeform/pages/admin/pre_process.php',
+    'adopt_forms_layouts'  => __DIR__ . '/adopt_forms_layouts.php',
+];
+$loose = [];
+foreach (array_unique($walkers) as $path) {
+    if (!is_file($path)) { $loose[] = basename($path) . ' (missing)'; continue; }
+    $source = (string)file_get_contents($path);
+    // The old test, in either spelling. Its absence is the claim.
+    if (preg_match('/substr\(\s*\$\w+\s*,\s*0\s*,\s*3\s*\)\s*(<>|!==|==|===)\s*.pf_./', $source)) {
+        $loose[] = basename($path);
+    }
+}
+ok('no walker matches on the first three characters', $loose === [],
+   implode(' | ', $loose) . " — a `.pre-forms` backup begins `pf_` as well");
+$gates = substr_count((string)file_get_contents(
+    DIR_FS_MODULES . 'phreeform/pages/admin/pre_process.php'), "preg_match('/^pf_\\d+$/'");
+ok('both admin loops gate on the exact name', $gates === 2, "found $gates, expected 2");
+ok('and so does the adopt tool',
+   str_contains((string)file_get_contents(__DIR__ . '/adopt_forms_layouts.php'),
+                "preg_match('/^pf_\\d+$/'"));
+
 echo "\n=== a native definition can be re-stamped ===\n";
 // The re-stamp is the feature that fails silently on native files: its pattern
 // is anchored on XML, so before this existed it counted them as skipped.

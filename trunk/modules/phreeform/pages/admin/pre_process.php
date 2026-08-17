@@ -67,7 +67,10 @@ switch ($_REQUEST['action']) {
 	$native = DIR_FS_MODULES . 'forms/functions/seed.php';
 	if (defined('MODULE_FORMS_STATUS') && file_exists($native)) require_once($native);
 	foreach (scandir(PF_DIR_MY_REPORTS) as $report) {
-	  if (substr($report, 0, 3) <> 'pf_') continue;
+	  // `pf_` AND DIGITS. Forms keeps the original beside a definition it
+	  // rewrites, as `pf_<id>.pre-forms`, and that begins `pf_` too — so a
+	  // looser test re-stamps the backups as well and counts them in the total.
+	  if (!preg_match('/^pf_\d+$/', $report)) continue;
 	  $file     = PF_DIR_MY_REPORTS . $report;
 	  if (function_exists('forms_restamp_native')) {
 	    $done = forms_restamp_native($file, PF_DEFAULT_PAPERSIZE);
@@ -118,7 +121,13 @@ switch ($_REQUEST['action']) {
 	$name_map = array();
 	$reports  = scandir(PF_DIR_MY_REPORTS);
 	foreach ($reports as $report) {
-	  if (substr($report, 0, 3) <> 'pf_') continue;
+	  // `pf_` AND DIGITS, as the catalog reads them. `pf_<id>.pre-forms` — the
+	  // copy Forms keeps of a definition it has rewritten — begins `pf_` as well,
+	  // and this loop CATALOGUES and RENAMES what it walks: a looser test turns
+	  // every backup into a second document with the same title and destroys the
+	  // backup in the act. A company that has used Forms would come out of a
+	  // rebuild with its document list close to doubled.
+	  if (!preg_match('/^pf_\d+$/', $report)) continue;
 	  $rpt_id   = substr($report, 3);
 	  $contents = (string)file_get_contents(PF_DIR_MY_REPORTS.$report);
 
