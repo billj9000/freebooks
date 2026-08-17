@@ -104,29 +104,65 @@ switch ($_REQUEST['action']) {
 	  }
 	}
 	// load the files, parse, insert into db
+	//
+	// BOTH FORMATS. A definition saved by Forms is JSON, and xml_to_object() hands
+	// a JSON string straight back rather than failing: every field then read off it
+	// is NULL — a warning, not an error — so this tool used to rebuild a native
+	// company into a catalogue of nameless documents, file them all under
+	// Miscellaneous, rename each file to a fresh id, and report success. It is also
+	// the first thing anyone reaches for after a restore has left the list wrong,
+	// which is exactly when a company is likeliest to hold a mixture of the two.
 	$rpt_cnt  = 0;
 	$orph_cnt = 0;
+	$skip_cnt = 0;
 	$name_map = array();
 	$reports  = scandir(PF_DIR_MY_REPORTS);
 	foreach ($reports as $report) {
 	  if (substr($report, 0, 3) <> 'pf_') continue;
-	  $rpt_id = substr($report, 3);
-	  $rpt = xml_to_object(file_get_contents(PF_DIR_MY_REPORTS.$report));
-	  if ($rpt->PhreeformReport) $rpt = $rpt->PhreeformReport; // lose the container
-	  if ($rpt->security == 'u:-1;g:-1') $rpt->security = 'u:'.$_SESSION['admin_id'].'g:-1'; // orphaned, set so current user can access
-	  $result = $db->Execute("select id from ".TABLE_PHREEFORM." where doc_group = '".$rpt->groupname."' and doc_type = '0'");
+	  $rpt_id   = substr($report, 3);
+	  $contents = (string)file_get_contents(PF_DIR_MY_REPORTS.$report);
+
+	  if (substr(ltrim($contents), 0, 1) == '{') { // native
+	    $native = json_decode($contents);
+	    if (!$native instanceof stdClass || !isset($native->title) || !isset($native->type)) {
+	      $skip_cnt++;
+	      continue;
+	    }
+	    $title = (string)$native->title;
+	    $group = (string)($native->group ?? '');
+	    $type  = (string)$native->type;
+	    // A native definition carries no per-document ACL. PhreeForm's was replaced
+	    // by the three SECURITY_ID_FORMS_* keys, and 'u:0;g:0' — unrestricted — is
+	    // what that field means now; it is what forms_seed_native() writes.
+	    $security = 'u:0;g:0';
+	  } else {                                     // PhreeForm xml
+	    $rpt = xml_to_object($contents);
+	    if (!is_object($rpt)) { $skip_cnt++; continue; }
+	    if (isset($rpt->PhreeformReport) && is_object($rpt->PhreeformReport)) {
+	      $rpt = $rpt->PhreeformReport; // lose the container
+	    }
+	    $title    = $rpt->title ?? '';
+	    $group    = $rpt->groupname ?? '';
+	    $type     = $rpt->reporttype ?? '';
+	    $security = $rpt->security ?? '';
+	    // orphaned, set so current user can access
+	    if ($security == 'u:-1;g:-1') $security = 'u:'.$_SESSION['admin_id'].'g:-1';
+	  }
+
+	  $result = $db->Execute("select id from ".TABLE_PHREEFORM."
+	    where doc_group = '".$db->prepare_input($group)."' and doc_type = '0'");
 	  if ($result->RecordCount() == 0) { // orphaned put into misc category
 	  	$orph_cnt++;
-	  	$search_type = $rpt->reporttype=='frm'?'misc:misc':'misc'; // put in misc
+	  	$search_type = $type=='frm'?'misc:misc':'misc'; // put in misc
 	    $result = $db->Execute("select id from ".TABLE_PHREEFORM." where doc_group = '".$search_type."' and doc_type = '0'");
 	  }
 	  $sql_array = array(
 	    'parent_id'   => $result->fields['id'],
 	    'doc_type'    => 's', // make them all standard reports for now
-	    'doc_title'   => $rpt->title,
-	    'doc_group'   => $rpt->groupname,
-	    'doc_ext'     => $rpt->reporttype,
-	    'security'    => $rpt->security,
+	    'doc_title'   => $title,
+	    'doc_group'   => $group,
+	    'doc_ext'     => $type,
+	    'security'    => $security,
 	    'create_date' => date('Y-m-d'),
 	  );
 	  db_perform(TABLE_PHREEFORM, $sql_array);
@@ -140,6 +176,10 @@ switch ($_REQUEST['action']) {
 	}
 	gen_add_audit_log(PHREEFORM_TOOLS_REBUILD_TITLE);
 	$messageStack->add(sprintf(PHREEFORM_TOOLS_REBUILD_SUCCESS, $rpt_cnt, $orph_cnt), 'success');
+	// Named rather than passed over. A file this tool cannot read is one whose
+	// document has just vanished from the list, and the tool has already
+	// truncated the table it would have been listed in.
+	if ($skip_cnt) $messageStack->add(sprintf(PHREEFORM_TOOLS_REBUILD_SKIPPED, $skip_cnt), 'caution');
   	break;
 
 /*** BOF - Added by PhreeSoft to convert PhreeBooks reports to phreeform format *************/

@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -48,4 +48,5 @@ define('PHREEFORM_TOOLS_REBUILD_TITLE','PhreeForm Stucture Verification / Rebuil
 define('PHREEFORM_TOOLS_REBUILD_DESC','This tool verifies, and rebuilds the report and form structure. It will re-load the folder structure, make sure there are no orphaned reports and clean out any phreefom table entries that don\'t have a report/form file associated with it');
 define('PHREEFORM_TOOLS_REBUILD_SUBMIT','Start Structure Verify/Rebuild');
 define('PHREEFORM_TOOLS_REBUILD_SUCCESS','Successfully rebuilt report table. The number of reports rebuilt was %s. %s orphaned reports were placed in the Miscellaneous folder.');
+define('PHREEFORM_TOOLS_REBUILD_SKIPPED','%s file(s) could not be read as either a report or a form and were left where they are. They are not in the rebuilt list.');
 ?>

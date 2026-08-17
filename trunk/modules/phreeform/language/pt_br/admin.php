@@ -1,12 +1,26 @@
 <?php
 // +-----------------------------------------------------------------+
-// Arquivo Tradução Idioma  Phreedom 
-// Generated: 2013-10-22 05:28:46
-// Module/Method: phreeform
-// ISO Language: pt_br
-// Version: 3.6
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// Path: /modules/phreeform/language/pt_br/admin.php
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+ // Arquivo Tradução Idioma  Phreedom 
+ // Generated: 2013-10-22 05:28:46
+ // Module/Method: phreeform
+ // ISO Language: pt_br
+ // Version: 3.6
+ // Path: /modules/phreeform/language/pt_br/admin.php
 
 define('MODULE_PHREEFORM_TITLE','Módulo Relatórios');
 define('MODULE_PHREEFORM_DESCRIPTION','O Módulo Relatórios contém todas as ferramentas e formulários para imprimir relatórios em  formato PDF ou HTML. <b>ATENÇÃO: Este é um módulo central e não deve ser removido!</b>');
@@ -33,5 +47,6 @@ define('PHREEFORM_TOOLS_REBUILD_TITLE','PhreeForm Verificação Estrutura / Reco
 define('PHREEFORM_TOOLS_REBUILD_DESC','Este ferramente verifica e reconstrói a estrutura de relatórios e formulários. Vai recarregar a estrutura da pasta, certificar-se de que não há relatórios órfãos e limpar qualquer entrada na tabela que não tenha um relatório/formulário associado a ela');
 define('PHREEFORM_TOOLS_REBUILD_SUBMIT','Iniciar Verificação Estrutura / Reconstruir');
 define('PHREEFORM_TOOLS_REBUILD_SUCCESS','Reconstrução de tabela de relatórios bem sucedida. O número de relatórios reconstruido foi %s. %s relatórios órfãos foram colocados na pasta Miscellaneous.');
+define('PHREEFORM_TOOLS_REBUILD_SKIPPED','%s file(s) could not be read as either a report or a form and were left where they are. They are not in the rebuilt list.');
 
 ?>
