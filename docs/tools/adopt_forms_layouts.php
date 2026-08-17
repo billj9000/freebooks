@@ -77,7 +77,10 @@
  *
  * Without --write it reports what would change and touches nothing. The files it
  * writes are in the DEPLOYED tree, so copy them back into the repository
- * afterwards — the paths it prints are relative to `trunk/`.
+ * afterwards — the paths it prints are relative to `trunk/`. Nothing needs
+ * copying the other way: the build context holds `docs/` and this module only, so
+ * there are no report directories in it to copy into. The full procedure is in
+ * design §13.18.
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');

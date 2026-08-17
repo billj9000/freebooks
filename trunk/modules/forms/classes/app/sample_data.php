@@ -174,21 +174,115 @@ final class SampleData
         return new Record($values, $tables, null, 'sample');
     }
 
-    /** A value of the right TYPE for one binding, named so it can be recognised. */
+    /** A value of the right TYPE for one binding, and of a believable LENGTH. */
     private static function forBinding(Binding $binding, ?Dataset $dataset, int $line): TypedValue
     {
         $field = $dataset?->field($binding->name);
         $type  = $field?->type ?? self::guessType($binding->name);
-        $label = $field !== null && trim($field->label) !== '' ? trim($field->label) : $binding->name;
 
         return match ($type) {
             ValueType::Money, ValueType::Decimal => new TypedValue(self::money($line, null), $type),
             ValueType::Integer => TypedValue::int($line + 1),
             ValueType::Boolean => TypedValue::bool($line % 2 === 0),
             ValueType::Date    => TypedValue::date(date('Y-m-d', strtotime('-' . ($line * 3) . ' days'))),
-            default            => TypedValue::text($label . ' ' . ($line + 1)),
+            default            => TypedValue::text(self::plausible($binding->name, $line)),
         };
     }
+
+    /**
+     * Invented text of a believable length for the field it stands in.
+     *
+     * This used to be the field's own NAME plus a line number, on the reasoning
+     * that a value saying `bill_primary_name 1` tells an author which box they
+     * are looking at. It does — and it also lies about the one thing a layout is
+     * judged on. A field name is longer than the data it stands for, near enough
+     * always, so a narrow box bound to a long name WRAPPED in the preview and
+     * would not have wrapped in life: `purchase_invoice_id 1` measures 35 mm at
+     * 10 pt where a real `INV-1043` measures 15, and the second line landed on
+     * the row below. The cheque looked broken and was not.
+     *
+     * Identification is not lost, because the canvas never depended on it: every
+     * box is outlined and coloured by kind, carries its label and coordinates in
+     * a tooltip, is named in the Elements list, and is described in the inspector
+     * when selected. Only the drawn text changes here.
+     *
+     * The lists carry a SPREAD of lengths rather than one typical value, so a few
+     * rows show what a long entry does. That is strictly more informative than a
+     * column of identical field names: the near-worst case is visible, and it is
+     * a real near-worst case rather than an artefact of how the field was named.
+     *
+     * Fictional throughout, and deliberately so — invented businesses, the
+     * reserved `example.com` domain and Ofcom's reserved 01632 960xxx range.
+     */
+    private static function plausible(string $name, int $line): string
+    {
+        $samples = self::SAMPLES[self::kindOf($name)];
+        // Offset by the NAME as well as the line, or every field of a kind draws
+        // the same entry and the bill-to block comes out identical to the
+        // ship-to one — which reads as a fault in the preview rather than as
+        // invented data. crc32 is stable, so two previews still agree, which is
+        // what matters when an author is nudging a box and comparing.
+        return $samples[(int)(($line + crc32($name)) % count($samples))];
+    }
+
+    /**
+     * Which sort of text a field holds, from its name.
+     *
+     * Ordered most specific first: `bill_address1` must not be caught by the
+     * `id` test, and `ship_city_town` must not be caught by `ship`.
+     */
+    private static function kindOf(string $name): string
+    {
+        $name = strtolower($name);
+        return match (true) {
+            str_contains($name, 'email')                                  => 'email',
+            str_contains($name, 'telephone'), str_contains($name, 'phone'),
+            str_contains($name, 'fax')                                    => 'phone',
+            str_contains($name, 'postal'), str_contains($name, 'zip')     => 'postcode',
+            str_contains($name, 'country')                                => 'country',
+            str_contains($name, 'state'), str_contains($name, 'province'),
+            str_contains($name, 'county')                                 => 'county',
+            str_contains($name, 'city'), str_contains($name, 'town')      => 'city',
+            str_contains($name, 'address')                                => 'address',
+            str_contains($name, 'sku'), str_contains($name, 'upc')        => 'sku',
+            str_contains($name, 'description'), str_contains($name, 'notes'),
+            str_contains($name, 'comment')                                => 'description',
+            str_contains($name, 'terms')                                  => 'terms',
+            str_contains($name, 'currency')                               => 'currency',
+            str_contains($name, 'contact'), str_contains($name, 'rep'),
+            str_contains($name, 'attention')                              => 'person',
+            str_contains($name, 'name'), str_contains($name, 'company')   => 'company',
+            str_contains($name, 'id'), str_contains($name, 'num'),
+            str_contains($name, 'ref'), str_contains($name, 'code')       => 'reference',
+            default                                                       => 'word',
+        };
+    }
+
+    /**
+     * The invented values, by kind, with a spread of lengths in each list.
+     *
+     * @var array<string, list<string>>
+     */
+    private const SAMPLES = [
+        'company'     => ['Ashcroft Ltd', 'Meridian Supplies', 'Bellweather Trading Company',
+                          'Kingsholm Engineering', 'Ravensworth & Co'],
+        'person'      => ['J Aldridge', 'Marta Feltham', 'C Okonkwo-Bright', 'Sam Rees'],
+        'address'     => ['12 Fenwick Street', 'Unit 4, Cranby Industrial Estate',
+                          'The Old Granary', 'Suite 210, Harbour Point'],
+        'city'        => ['Harport', 'Kentridge', 'Ashby-under-Wold', 'Marley'],
+        'county'      => ['Devonshire', 'West Riding', 'Ayrshire', 'Kent'],
+        'postcode'    => ['XY1 4RT', 'AB12 3CD', 'ZZ9 9ZZ', 'QW10 8LM'],
+        'country'     => ['United Kingdom', 'Ireland', 'Netherlands', 'United States'],
+        'email'       => ['orders@example.com', 'a.feltham@example.com', 'sales@example.org'],
+        'phone'       => ['01632 960123', '01632 960987', '07700 900412'],
+        'sku'         => ['BRK-1042', 'CMP-77B', 'ASSY-300-XL', 'NUT-M6'],
+        'description' => ['Brass hinge, 75 mm', 'Replacement drive belt',
+                          'Stainless fixing kit, 12 piece, boxed', 'Carriage'],
+        'terms'       => ['Net 30', 'Due on receipt', '2% 10 Net 30', 'Net 60'],
+        'currency'    => ['GBP', 'EUR', 'USD'],
+        'reference'   => ['INV-1043', 'PO-20871', 'SO-4412', 'CRD-908'],
+        'word'        => ['Standard', 'Pending', 'Carriage paid', 'Warehouse 2'],
+    ];
 
     /**
      * What a field is, from its NAME, when no dataset declares it.
@@ -203,7 +297,12 @@ final class SampleData
         $name = strtolower($name);
         return match (true) {
             str_contains($name, 'date')                              => ValueType::Date,
-            str_contains($name, 'qty'), str_contains($name, 'count') => ValueType::Integer,
+            // On a word boundary, not anywhere in the string. `count` is a
+            // substring of COUNTRY, COUNTY, ACCOUNT and DISCOUNT, so
+            // `bill_country_code` was typed as an integer and previewed as "8".
+            // Harmless while every sample read as its own field name; visible
+            // the moment the samples started standing in for real values.
+            (bool)preg_match('/(^|_)(qty|quantity|count)(_|$)/', $name) => ValueType::Integer,
             str_contains($name, 'amount'), str_contains($name, 'total'),
             str_contains($name, 'price'),  str_contains($name, 'cost'),
             str_contains($name, 'debit'),  str_contains($name, 'credit') => ValueType::Money,
@@ -308,15 +407,23 @@ final class SampleData
     }
 
     /**
-     * Text that names the column it is in.
+     * Text of a believable length for the column it is in.
      *
-     * "Sample Customer 3" under a Customer heading tells the author which column
-     * they are looking at while they resize it; a row of "lorem ipsum" does not.
+     * This named its own column — "Customer 3" under a Customer heading — so that
+     * an author resizing a column could tell which one they were looking at. The
+     * heading is drawn directly above the cell, so that was never the only clue;
+     * and the width it produced was the length of the HEADING, which is what an
+     * author is trying to judge against and is not evidence of anything. Worse
+     * here than on a form, because a heading is usually SHORTER than the data
+     * under it: the column looked comfortable and overflowed in life.
+     *
+     * The key is what the kind is guessed from, being the field name rather than
+     * the author's caption for it; the heading is the fallback when a resolved
+     * column has no key of its own.
      */
     private static function text(ReportColumn $column, int $line, ?int $group): string
     {
-        $label = trim($column->heading) !== '' ? trim($column->heading) : $column->key;
-        if ($group !== null) return $label . ' ' . ($group + 1) . '.' . ($line % self::PER_GROUP + 1);
-        return $label . ' ' . ($line + 1);
+        $name = trim($column->key) !== '' ? $column->key : trim($column->heading);
+        return self::plausible($name, $group !== null ? $group * self::PER_GROUP + $line : $line);
     }
 }

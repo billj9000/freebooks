@@ -58,8 +58,13 @@
 //                      corner resizes, with the conventional double-arrow
 //                      cursors. A click takes the smallest element under the
 //                      pointer, so a field inside a frame can be selected.
+// 1.09 => 2026-08-17 - Sample values, which stand in where a form or report has
+//                      no data, are invented but believable in LENGTH instead of
+//                      being the field's own name. A name is longer than the
+//                      data it stands for, so a narrow box wrapped in the
+//                      preview and would not have wrapped in life.
 
-define('MODULE_FORMS_VERSION', 1.08);
+define('MODULE_FORMS_VERSION', 1.09);
 
 // Security IDs.
 //

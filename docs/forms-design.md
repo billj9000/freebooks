@@ -1532,7 +1532,8 @@ vendoring **pdf.js** into `trunk/ext/pdfjs/` the route — self-contained, no bu
 
 The preview binds to a **real record** via `RecordSelector`, and falls back to generated sample
 values — visibly marked as such — where the form's table is empty on this company. A fresh install
-with no invoices must still be able to lay out an invoice.
+with no invoices must still be able to lay out an invoice. Those values are invented but believable
+in LENGTH, which they were not at first and which turns out to be the whole point of them: see §13.18.
 
 Rulers, grid, margin box and inspector all read in **mm**, because that is the unit the definition
 stores and the unit paper is sold in. No pixel reaches the file.
@@ -2570,16 +2571,86 @@ answer and the wrong one — the next sentence anybody writes has the same apost
 ### 13.18 Adopting a tidied layout back into the shipping set
 
 Asked for on 2026-08-17, once the canvas was good enough to tidy a form on. The shipped layouts were
-inherited from PhreeBooks and several are genuinely untidy — the invoice's framed block, the cheque's
-overlapping stub. Nobody is going to fix a layout by editing coordinates in XML, so the work is done
-on the canvas, in a company, and has to travel back. This is the return leg:
-`docs/tools/adopt_forms_layouts.php`.
+inherited from PhreeBooks and were never revisited. Nobody is going to fix a layout by editing
+coordinates in XML, so the work is done on the canvas, in a company, and has to travel back. This is
+the return leg: `docs/tools/adopt_forms_layouts.php`.
 
-**It is a file copy, and that is worth stating because it did not have to be.** A definition saved by
-the editor and one shipped in the repository are written by the same encoder with the same flags, and
-a native definition holds nothing company-specific: no id, no path, no key. Measured on a fresh
-install of 54 documents, every one of them round-trips through the codec to bytes identical to its
-committed master. So the tool exists to make the copy *safe*, not to make it work.
+#### What the canvas shows where there is no data, and what it used to show
+
+A form previewed with no record behind it is filled by `SampleData` (§13.2), and until 2026-08-17
+every text value was **the field's own name** plus a line number — `ship_state_province 6` drawn
+where *Devon* would be. The reasoning was that a value naming its own field tells an author which box
+they are looking at. It does, and it also lies about the one thing a layout is judged on: a field
+name is longer than the data it stands for, near enough always, so a narrow box bound to a long name
+wrapped in the preview and would not have wrapped in life. A text element's stored height is one line
+and it grows downward, so the overflow landed on whatever sat below and the form looked broken.
+
+**The cheque is the worked example, and it cost this document a wrong claim.** An earlier draft
+recorded its stub as overlapping the line-item table "in the source definition". Measured:
+
+| | declared |
+|---|---|
+| the three stub rows | y = 8, 12, 16, each 5 mm tall — a 1 mm nominal overlap between rows, which is only the line height being taller than the spacing |
+| the table below them | y = 25, i.e. **9 mm clear** of the last row |
+
+Nothing collided. What collided was one field's *text*: `purchase_invoice_id 1` measures **35.1 mm at
+10 pt in a 30 mm box**, so it wrapped onto `post_date` 4 mm below. A real invoice number — `INV-1043`
+— measures 14.9 mm and leaves half the box empty. Reported by the user before starting the tidying,
+and confirmed by measurement rather than taken on trust.
+
+So the sample values are now **invented but believable in length**: the kind is guessed from the
+field name (email, phone, postcode, city, county, address, sku, description, terms, reference,
+company, person) and each kind carries a SPREAD of lengths, so a few rows show what a long entry
+does. That is strictly more informative than a column of identical field names — the near-worst case
+is visible, and it is a real one rather than an artefact of how the field was named. Everything is
+fictional, using the reserved `example.com` domain and Ofcom's reserved `01632 960xxx` range. The
+cheque now fits in every box.
+
+Report columns changed with them, where the old behaviour was worse rather than better: the value was
+the length of the **heading**, which is what the author is trying to judge the column against, and a
+heading is usually *shorter* than the data beneath it — so a column looked comfortable and overflowed
+in life. Identification survives in both places: a report draws its headings, and the canvas outlines
+every box, colours it by kind, names it in a tooltip and in the Elements list, and describes it in
+the inspector.
+
+**The rule that outlives all of this:** judge an overlap by whether the BOXES overlap, not by whether
+the preview looks wrong, and leave a form alone when the only fault is invented text. The adopt tool
+reports such a form as `unchanged` and commits nothing for it, which is the correct outcome rather
+than a missed one. No sample can tell you what a long customer name will do to a narrow box; only
+real records can.
+
+#### The procedure
+
+1. **Tidy** in a company whose definitions are stock, on the paper the masters ship
+   (`?module=forms&page=canvas`, or Forms → Form Layout from the menu, which lists every `frm`).
+   Saving is the whole handoff: there is nothing to export.
+2. **See what would change**, which writes nothing:
+
+       docker exec <c> php /opt/repo/docs/tools/adopt_forms_layouts.php <company>
+
+   Read any `[CONTENT]` line before reaching for `--allow-content`.
+3. **Write the masters** with `--write`, narrowing with `--only="<Title>"` to land one at a time.
+4. **Copy them into the repository** — the files the tool names, and `docs/forms-adopted.json` with
+   them. Without the manifest the generator reverts the work on its next run and the verifier fails
+   the file as stale.
+5. **Verify**: `verify_forms_shipping_set.php` reports the adopted files as sound rather than stale,
+   and `generate_forms_shipping_set.php` says `[adopted] … left alone`.
+6. **Prove the seeding.** `verify_paper_seeding.php` drives the real `admin_add_reports()` into a
+   temporary directory, and that is the installer's own function — it prefers the native file, so a
+   pass means a new install gets the tidied layout.
+7. **Commit** the masters and the manifest. The xml is deliberately not touched.
+
+**There is no step for copying anything back INTO the container**, and a first draft of this had one.
+`/opt/repo` is a partial build context — `docs/` and `trunk/modules/forms/`, nothing else — so the
+report directories are not there to copy into, and the `docker cp` simply fails. The deployed tree
+already holds the written files, because that is where the tool writes them; the manifest is already
+under `/opt/repo/docs/`, because that is where the tool keeps it. Only the repository needs feeding.
+
+Rehearsed end to end on one form before any real tidying (2026-08-17): two elements moved and saved
+through `DefinitionLoader::save()`, the same call the page makes. The master's diff was **four lines
+of a 54 KB file** — the two coordinates and nothing else — and seeding it through
+`admin_add_reports()` into a temp directory read back the moved boxes, identical to the master. Then
+reverted.
 
 #### The two things it puts back, and the one it refuses
 
