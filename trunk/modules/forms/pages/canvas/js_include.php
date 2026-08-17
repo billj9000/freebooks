@@ -830,7 +830,7 @@ async function formsCanvasUpload() {
 //
 // Three gestures through one pair of handlers. Press a box and drag: the whole
 // selection moves. Press one of its edges or corners: that element resizes.
-// Press empty page and drag: a band sweeps up everything it touches.
+// Press empty page and drag: a band sweeps up everything it encloses.
 
 /**
  * Which part of a box the pointer is over — '' for the middle, or one or two of
@@ -1011,11 +1011,17 @@ layer.addEventListener('pointermove', function (event) {
 });
 
 /**
- * The rubber band: draw it, and select everything it touches.
+ * The rubber band: draw it, and select everything it wholly encloses.
  *
- * Touching rather than enclosing, because half of what is on a form is a rule
- * or a full-width heading — a band that had to contain them would mean dragging
- * across the whole page to pick up a line the author can see they have covered.
+ * Enclosing, not touching. A form is a dense thing — a band drawn across the
+ * middle of a page brushes the rules above and below it, the full-width heading
+ * it passes under and the table border it ends inside, and the author gets a
+ * selection they did not ask for and cannot see the edges of. Requiring
+ * containment costs a longer drag for a wide element and gives an exact answer:
+ * what is inside the band is what is selected.
+ *
+ * The 2 px floor is the one the boxes are DRAWN with (see place()), so a rule
+ * with no height is judged by the line the author can see, not by a zero.
  */
 function sweep(toX, toY) {
   const x1 = Math.min(band.x, toX), x2 = Math.max(band.x, toX);
@@ -1034,7 +1040,7 @@ function sweep(toX, toY) {
   band.div.style.width  = (x2 - x1) + 'px';
   band.div.style.height = (y2 - y1) + 'px';
 
-  // Rebuilt from what the band covers on every move, plus whatever was already
+  // Rebuilt from what the band encloses on every move, plus whatever was already
   // held if the author is adding to a selection. Recomputing rather than
   // accumulating is what lets the band be made SMALLER again: an element the
   // author has dragged back off should leave, and one that only ever grew a set
@@ -1044,7 +1050,7 @@ function sweep(toX, toY) {
   boxes.forEach(function (box, index) {
     const bx = px(box.x), by = px(box.y);
     const bw = Math.max(px(box.width), 2), bh = Math.max(px(box.height), 2);
-    if (bx < x2 && bx + bw > x1 && by < y2 && by + bh > y1) chosen.add(index);
+    if (bx >= x1 && bx + bw <= x2 && by >= y1 && by + bh <= y2) chosen.add(index);
   });
   if (selected === null || !chosen.has(selected)) {
     selected = chosen.size ? chosen.values().next().value : null;

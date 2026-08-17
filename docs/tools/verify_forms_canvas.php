@@ -358,6 +358,12 @@ ok('a group drag snaps once and applies the same delta to every member',
    && str_contains($canvasJs, 'boxes[index].x = fine(start.x + byX)'));
 ok('a drag is measured from where it began, not from the last event',
    str_contains($canvasJs, 'toMm(event.clientX - dragging.startX)'));
+// The band ENCLOSES. Touching was the first answer and it swept up the rules
+// above and below anything drawn across the middle of a form; four >= / <=
+// against the band's own edges is what makes the answer exact.
+ok('the band selects only what it wholly encloses',
+   str_contains($canvasJs,
+       'if (bx >= x1 && bx + bw <= x2 && by >= y1 && by + bh <= y2) chosen.add(index);'));
 ok('undo restores the whole selection, not just the anchor',
    str_contains($canvasJs, 'chosen: Array.from(chosen)'));
 ok('delete splices from the highest index down',

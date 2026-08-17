@@ -2380,11 +2380,18 @@ and its heading, the six elements of a cheque stub. Moved singly they drift out 
 each other, so a tidy-up creates exactly the untidiness it set out to remove.
 
 Shift-, control- or command-click adds an element to the selection or takes it out again; a drag
-across empty page sweeps up everything the band **touches**, rather than everything it encloses,
-because half of what is on a form is a rule or a full-width heading and requiring containment would
-mean dragging across the whole page to catch a line you can already see is covered. The same
-modifiers work on the Elements list, which is the only way to reach an element sitting underneath
-another one.
+across empty page sweeps up everything the band **wholly encloses**. The same modifiers work on the
+Elements list, which is the only way to reach an element sitting underneath another one.
+
+Enclosing was the second answer. The band first swept up everything it *touched*, on the reasoning
+that a form is full of rules and full-width headings and containment would mean dragging the length
+of the page to catch a line you can see is covered. In use that reasoning inverts: a form is a
+**dense** thing, so a band drawn across the middle of one brushes the rule above it, the rule below
+it, the heading it passes under and the table border it happens to end inside — and the author gets
+a selection they did not ask for, whose extent they cannot see, and which then moves as a block.
+Containment costs a longer drag on a wide element and buys an exact answer, which on a canvas whose
+next job is nudging blocks by a millimetre is the better trade. Changed on 2026-08-17 at the user's
+request, after the touching version had been used.
 
 #### One delta, snapped once
 

@@ -256,7 +256,7 @@ define('FORMS_CANVAS_UNMEASURED', 'The size of this box could not be worked out,
 
 // ── editing on the canvas (design §13.7 step 4) ──────────────────────────────
 define('FORMS_CANVAS_INTRO',      'Drag an element to move it, or drag one of its edges or corners to resize it. Everything can also be typed exactly, on the right. The page redraws itself as you work; turn Auto redraw off if it feels slow, and use Redraw the page instead.');
-define('FORMS_CANVAS_GROUPING',   'To move several elements together, shift-click each one, or drag a box around them across empty space. They keep their positions relative to one another.');
+define('FORMS_CANVAS_GROUPING',   'To move several elements together, shift-click each one, or start on empty space and drag a box that completely surrounds them. They keep their positions relative to one another.');
 define('FORMS_CANVAS_SNAP',       'Snap to');
 define('FORMS_CANVAS_SNAP_OFF',   'Off');
 define('FORMS_CANVAS_SELECTED',   'Selected element');
