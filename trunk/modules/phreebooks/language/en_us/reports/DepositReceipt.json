@@ -129,7 +129,7 @@
                 "type": "field",
                 "box": {
                     "x": 21,
-                    "y": 32,
+                    "y": 51,
                     "width": 25,
                     "height": 4
                 },
@@ -159,7 +159,7 @@
                 "type": "field",
                 "box": {
                     "x": 63,
-                    "y": 32,
+                    "y": 51,
                     "width": 25,
                     "height": 4
                 },
@@ -189,7 +189,7 @@
                 "type": "block",
                 "box": {
                     "x": 8,
-                    "y": 45,
+                    "y": 64,
                     "width": 80,
                     "height": 4.5
                 },
@@ -258,7 +258,7 @@
                 "type": "field",
                 "box": {
                     "x": 21,
-                    "y": 73,
+                    "y": 92,
                     "width": 40,
                     "height": 4
                 },
@@ -346,9 +346,9 @@
                 "type": "table",
                 "box": {
                     "x": 8,
-                    "y": 80,
+                    "y": 100,
                     "width": 200,
-                    "height": 130
+                    "height": 110
                 },
                 "source": "items",
                 "columns": [
@@ -578,7 +578,7 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 40,
+                    "y": 59,
                     "width": 25,
                     "height": 5
                 },
@@ -605,8 +605,8 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 32,
-                    "width": 15,
+                    "y": 51,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Phone:",
@@ -632,8 +632,8 @@
                 "type": "text",
                 "box": {
                     "x": 50,
-                    "y": 32,
-                    "width": 15,
+                    "y": 51,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Fax:",
@@ -659,8 +659,8 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 73,
-                    "width": 20,
+                    "y": 92,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Phone:",

@@ -123,8 +123,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 21,
-                    "y": 32,
+                    "x": 22,
+                    "y": 52,
                     "width": 25,
                     "height": 4
                 },
@@ -148,8 +148,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 59,
-                    "y": 32,
+                    "x": 60,
+                    "y": 52,
                     "width": 25,
                     "height": 4
                 },
@@ -173,8 +173,8 @@
             {
                 "type": "block",
                 "box": {
-                    "x": 8,
-                    "y": 45,
+                    "x": 9,
+                    "y": 65,
                     "width": 80,
                     "height": 4.5
                 },
@@ -231,8 +231,8 @@
             {
                 "type": "block",
                 "box": {
-                    "x": 120,
-                    "y": 45,
+                    "x": 121,
+                    "y": 65,
                     "width": 80,
                     "height": 4.5
                 },
@@ -295,8 +295,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 21,
-                    "y": 73,
+                    "x": 22,
+                    "y": 89,
                     "width": 25,
                     "height": 4
                 },
@@ -319,8 +319,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 68,
-                    "y": 73,
+                    "x": 70,
+                    "y": 89,
                     "width": 25,
                     "height": 4
                 },
@@ -415,7 +415,7 @@
                 "type": "field",
                 "box": {
                     "x": 9,
-                    "y": 89,
+                    "y": 107,
                     "width": 38,
                     "height": 6
                 },
@@ -440,7 +440,7 @@
                 "type": "field",
                 "box": {
                     "x": 49,
-                    "y": 89,
+                    "y": 107,
                     "width": 38,
                     "height": 6
                 },
@@ -464,7 +464,7 @@
                 "type": "field",
                 "box": {
                     "x": 89,
-                    "y": 89,
+                    "y": 107,
                     "width": 38,
                     "height": 6
                 },
@@ -488,7 +488,7 @@
                 "type": "field",
                 "box": {
                     "x": 129,
-                    "y": 89,
+                    "y": 107,
                     "width": 38,
                     "height": 6
                 },
@@ -513,7 +513,7 @@
                 "type": "field",
                 "box": {
                     "x": 169,
-                    "y": 89,
+                    "y": 107,
                     "width": 38,
                     "height": 6
                 },
@@ -537,9 +537,9 @@
                 "type": "table",
                 "box": {
                     "x": 8,
-                    "y": 100,
+                    "y": 118,
                     "width": 200,
-                    "height": 160
+                    "height": 142
                 },
                 "source": "items",
                 "columns": [
@@ -643,9 +643,9 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 8,
-                    "y": 32,
-                    "width": 15,
+                    "x": 9,
+                    "y": 52,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Phone:",
@@ -665,9 +665,9 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 50,
-                    "y": 32,
-                    "width": 15,
+                    "x": 51,
+                    "y": 52,
+                    "width": 9,
                     "height": 4
                 },
                 "text": "Fax:",
@@ -775,8 +775,8 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 8,
-                    "y": 40,
+                    "x": 9,
+                    "y": 60,
                     "width": 15,
                     "height": 5
                 },
@@ -797,8 +797,8 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 120,
-                    "y": 40,
+                    "x": 121,
+                    "y": 60,
                     "width": 30,
                     "height": 5
                 },
@@ -819,9 +819,9 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 8,
-                    "y": 73,
-                    "width": 20,
+                    "x": 9,
+                    "y": 89,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Phone:",
@@ -841,9 +841,9 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 60,
-                    "y": 73,
-                    "width": 20,
+                    "x": 61,
+                    "y": 89,
+                    "width": 9,
                     "height": 4
                 },
                 "text": "Fax:",
@@ -864,7 +864,7 @@
                 "type": "text",
                 "box": {
                     "x": 9,
-                    "y": 81,
+                    "y": 99,
                     "width": 38,
                     "height": 6
                 },
@@ -886,7 +886,7 @@
                 "type": "text",
                 "box": {
                     "x": 49,
-                    "y": 81,
+                    "y": 99,
                     "width": 38,
                     "height": 6
                 },
@@ -908,7 +908,7 @@
                 "type": "text",
                 "box": {
                     "x": 89,
-                    "y": 81,
+                    "y": 99,
                     "width": 38,
                     "height": 6
                 },
@@ -930,7 +930,7 @@
                 "type": "text",
                 "box": {
                     "x": 129,
-                    "y": 81,
+                    "y": 99,
                     "width": 38,
                     "height": 6
                 },
@@ -952,7 +952,7 @@
                 "type": "text",
                 "box": {
                     "x": 169,
-                    "y": 81,
+                    "y": 99,
                     "width": 38,
                     "height": 6
                 },
@@ -974,7 +974,7 @@
                 "type": "rect",
                 "box": {
                     "x": 8,
-                    "y": 80,
+                    "y": 98,
                     "width": 200,
                     "height": 16
                 },
@@ -993,7 +993,7 @@
                 "type": "line",
                 "box": {
                     "x": 8,
-                    "y": 88,
+                    "y": 106,
                     "width": 200,
                     "height": 0
                 },
@@ -1017,7 +1017,7 @@
                 "type": "line",
                 "box": {
                     "x": 48,
-                    "y": 80,
+                    "y": 98,
                     "width": 0,
                     "height": 16
                 },
@@ -1041,7 +1041,7 @@
                 "type": "line",
                 "box": {
                     "x": 88,
-                    "y": 80,
+                    "y": 98,
                     "width": 0,
                     "height": 16
                 },
@@ -1065,7 +1065,7 @@
                 "type": "line",
                 "box": {
                     "x": 128,
-                    "y": 80,
+                    "y": 98,
                     "width": 0,
                     "height": 16
                 },
@@ -1089,7 +1089,7 @@
                 "type": "line",
                 "box": {
                     "x": 168,
-                    "y": 80,
+                    "y": 98,
                     "width": 0,
                     "height": 16
                 },

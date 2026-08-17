@@ -106,7 +106,7 @@
                 "type": "field",
                 "box": {
                     "x": 21,
-                    "y": 27,
+                    "y": 49,
                     "width": 25,
                     "height": 4
                 },
@@ -136,7 +136,7 @@
                 "type": "field",
                 "box": {
                     "x": 21,
-                    "y": 31,
+                    "y": 53,
                     "width": 25,
                     "height": 4
                 },
@@ -166,7 +166,7 @@
                 "type": "field",
                 "box": {
                     "x": 63,
-                    "y": 27,
+                    "y": 49,
                     "width": 50,
                     "height": 4
                 },
@@ -196,7 +196,7 @@
                 "type": "field",
                 "box": {
                     "x": 63,
-                    "y": 31,
+                    "y": 53,
                     "width": 50,
                     "height": 4
                 },
@@ -226,7 +226,7 @@
                 "type": "block",
                 "box": {
                     "x": 8,
-                    "y": 45,
+                    "y": 67,
                     "width": 80,
                     "height": 4.5
                 },
@@ -301,7 +301,7 @@
                 "type": "field",
                 "box": {
                     "x": 21,
-                    "y": 73,
+                    "y": 88,
                     "width": 40,
                     "height": 4
                 },
@@ -330,7 +330,7 @@
                 "type": "field",
                 "box": {
                     "x": 85,
-                    "y": 73,
+                    "y": 88,
                     "width": 40,
                     "height": 4
                 },
@@ -535,9 +535,9 @@
                 "type": "table",
                 "box": {
                     "x": 8,
-                    "y": 82,
+                    "y": 97,
                     "width": 200,
-                    "height": 182
+                    "height": 167
                 },
                 "source": "items",
                 "columns": [
@@ -1015,7 +1015,7 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 27,
+                    "y": 49,
                     "width": 13,
                     "height": 4
                 },
@@ -1042,7 +1042,7 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 31,
+                    "y": 53,
                     "width": 13,
                     "height": 4
                 },
@@ -1069,7 +1069,7 @@
                 "type": "text",
                 "box": {
                     "x": 50,
-                    "y": 27,
+                    "y": 49,
                     "width": 13,
                     "height": 4
                 },
@@ -1096,7 +1096,7 @@
                 "type": "text",
                 "box": {
                     "x": 50,
-                    "y": 31,
+                    "y": 53,
                     "width": 13,
                     "height": 4
                 },
@@ -1123,8 +1123,8 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 73,
-                    "width": 20,
+                    "y": 88,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Phone:",
@@ -1150,7 +1150,7 @@
                 "type": "text",
                 "box": {
                     "x": 65,
-                    "y": 73,
+                    "y": 88,
                     "width": 20,
                     "height": 4
                 },

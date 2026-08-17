@@ -1,4 +1,18 @@
 {
     "comment": "Shipped definitions whose layout was tidied by hand and is no longer generated from the xml. See docs/tools/adopt_forms_layouts.php.",
-    "adopted": []
+    "adopted": [
+        "phreebooks/language/en_us/reports/CustomerCreditMemo.json",
+        "phreebooks/language/en_us/reports/CustomerQuotes.json",
+        "phreebooks/language/en_us/reports/CustomerStatement.json",
+        "phreebooks/language/en_us/reports/DepositReceipt.json",
+        "phreebooks/language/en_us/reports/Invoice-VAT.json",
+        "phreebooks/language/en_us/reports/Invoice.json",
+        "phreebooks/language/en_us/reports/Invoice_PackingSlip.json",
+        "phreebooks/language/en_us/reports/PackingSlip.json",
+        "phreebooks/language/en_us/reports/PurchaseOrder.json",
+        "phreebooks/language/en_us/reports/RequestforQuote.json",
+        "phreebooks/language/en_us/reports/SalesOrder.json",
+        "phreebooks/language/en_us/reports/VendorCreditMemo.json",
+        "phreebooks/language/en_us/reports/VendorStatement.json"
+    ]
 }

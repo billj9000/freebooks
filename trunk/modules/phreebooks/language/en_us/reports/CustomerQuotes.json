@@ -123,8 +123,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 21,
-                    "y": 27,
+                    "x": 22,
+                    "y": 49,
                     "width": 25,
                     "height": 4
                 },
@@ -148,8 +148,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 21,
-                    "y": 31,
+                    "x": 22,
+                    "y": 53,
                     "width": 25,
                     "height": 4
                 },
@@ -173,8 +173,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 63,
-                    "y": 27,
+                    "x": 64,
+                    "y": 49,
                     "width": 50,
                     "height": 4
                 },
@@ -198,8 +198,8 @@
             {
                 "type": "field",
                 "box": {
-                    "x": 63,
-                    "y": 31,
+                    "x": 64,
+                    "y": 53,
                     "width": 50,
                     "height": 4
                 },
@@ -224,7 +224,7 @@
                 "type": "block",
                 "box": {
                     "x": 8,
-                    "y": 45,
+                    "y": 66,
                     "width": 80,
                     "height": 4.5
                 },
@@ -288,7 +288,7 @@
                 "type": "block",
                 "box": {
                     "x": 120,
-                    "y": 45,
+                    "y": 66,
                     "width": 80,
                     "height": 4.5
                 },
@@ -358,7 +358,7 @@
                 "type": "field",
                 "box": {
                     "x": 21,
-                    "y": 73,
+                    "y": 94,
                     "width": 40,
                     "height": 4
                 },
@@ -382,7 +382,7 @@
                 "type": "field",
                 "box": {
                     "x": 78,
-                    "y": 73,
+                    "y": 94,
                     "width": 40,
                     "height": 4
                 },
@@ -477,7 +477,7 @@
                 "type": "field",
                 "box": {
                     "x": 9,
-                    "y": 83,
+                    "y": 104,
                     "width": 38,
                     "height": 5
                 },
@@ -501,7 +501,7 @@
                 "type": "field",
                 "box": {
                     "x": 169,
-                    "y": 83,
+                    "y": 104,
                     "width": 38,
                     "height": 5
                 },
@@ -526,7 +526,7 @@
                 "type": "field",
                 "box": {
                     "x": 49,
-                    "y": 83,
+                    "y": 104,
                     "width": 38,
                     "height": 5
                 },
@@ -550,7 +550,7 @@
                 "type": "field",
                 "box": {
                     "x": 89,
-                    "y": 83,
+                    "y": 104,
                     "width": 38,
                     "height": 5
                 },
@@ -574,7 +574,7 @@
                 "type": "field",
                 "box": {
                     "x": 129,
-                    "y": 83,
+                    "y": 104,
                     "width": 38,
                     "height": 5
                 },
@@ -598,9 +598,9 @@
                 "type": "table",
                 "box": {
                     "x": 8,
-                    "y": 92,
+                    "y": 114,
                     "width": 200,
-                    "height": 140
+                    "height": 118
                 },
                 "source": "items",
                 "columns": [
@@ -938,7 +938,7 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 40,
+                    "y": 61,
                     "width": 25,
                     "height": 5
                 },
@@ -960,7 +960,7 @@
                 "type": "text",
                 "box": {
                     "x": 120,
-                    "y": 40,
+                    "y": 61,
                     "width": 30,
                     "height": 5
                 },
@@ -981,8 +981,8 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 8,
-                    "y": 27,
+                    "x": 9,
+                    "y": 49,
                     "width": 13,
                     "height": 4
                 },
@@ -1003,8 +1003,8 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 8,
-                    "y": 31,
+                    "x": 9,
+                    "y": 53,
                     "width": 13,
                     "height": 4
                 },
@@ -1025,8 +1025,8 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 50,
-                    "y": 27,
+                    "x": 51,
+                    "y": 49,
                     "width": 13,
                     "height": 4
                 },
@@ -1047,8 +1047,8 @@
             {
                 "type": "text",
                 "box": {
-                    "x": 50,
-                    "y": 31,
+                    "x": 51,
+                    "y": 53,
                     "width": 13,
                     "height": 4
                 },
@@ -1070,8 +1070,8 @@
                 "type": "text",
                 "box": {
                     "x": 8,
-                    "y": 73,
-                    "width": 20,
+                    "y": 94,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Phone:",
@@ -1092,8 +1092,8 @@
                 "type": "text",
                 "box": {
                     "x": 65,
-                    "y": 73,
-                    "width": 20,
+                    "y": 94,
+                    "width": 13,
                     "height": 4
                 },
                 "text": "Fax:",
@@ -1114,7 +1114,7 @@
                 "type": "text",
                 "box": {
                     "x": 9,
-                    "y": 78,
+                    "y": 99,
                     "width": 38,
                     "height": 4
                 },
@@ -1136,7 +1136,7 @@
                 "type": "text",
                 "box": {
                     "x": 169,
-                    "y": 78,
+                    "y": 99,
                     "width": 38,
                     "height": 4
                 },
@@ -1158,7 +1158,7 @@
                 "type": "text",
                 "box": {
                     "x": 49,
-                    "y": 78,
+                    "y": 99,
                     "width": 38,
                     "height": 4
                 },
@@ -1180,7 +1180,7 @@
                 "type": "text",
                 "box": {
                     "x": 89,
-                    "y": 78,
+                    "y": 99,
                     "width": 38,
                     "height": 4
                 },
@@ -1202,7 +1202,7 @@
                 "type": "text",
                 "box": {
                     "x": 129,
-                    "y": 78,
+                    "y": 99,
                     "width": 38,
                     "height": 4
                 },
@@ -1336,7 +1336,7 @@
                 "type": "rect",
                 "box": {
                     "x": 8,
-                    "y": 77,
+                    "y": 98,
                     "width": 200,
                     "height": 11
                 },
@@ -1355,7 +1355,7 @@
                 "type": "line",
                 "box": {
                     "x": 8,
-                    "y": 82,
+                    "y": 103,
                     "width": 200,
                     "height": 0
                 },
@@ -1379,7 +1379,7 @@
                 "type": "line",
                 "box": {
                     "x": 48,
-                    "y": 77,
+                    "y": 98,
                     "width": 0,
                     "height": 11
                 },
@@ -1403,7 +1403,7 @@
                 "type": "line",
                 "box": {
                     "x": 88,
-                    "y": 77,
+                    "y": 98,
                     "width": 0,
                     "height": 11
                 },
@@ -1427,7 +1427,7 @@
                 "type": "line",
                 "box": {
                     "x": 128,
-                    "y": 77,
+                    "y": 98,
                     "width": 0,
                     "height": 11
                 },
@@ -1451,7 +1451,7 @@
                 "type": "line",
                 "box": {
                     "x": 168,
-                    "y": 77,
+                    "y": 98,
                     "width": 0,
                     "height": 11
                 },
