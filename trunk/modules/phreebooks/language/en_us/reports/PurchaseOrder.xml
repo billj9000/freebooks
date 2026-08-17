@@ -19,6 +19,10 @@
 		<tablename><![CDATA[address_book]]></tablename>
 		<relationship><![CDATA[contacts.id = address_book.ref_id]]></relationship>
 	</tables>
+	<tables>
+		<tablename><![CDATA[inventory_purchase_details]]></tablename>
+		<relationship><![CDATA[journal_item.sku = inventory_purchase_details.sku AND journal_main.bill_acct_id = inventory_purchase_details.vendor_id]]></relationship>
+	</tables>
 	<filterlist>
 		<fieldname><![CDATA[journal_main.purchase_invoice_id]]></fieldname>
 		<description><![CDATA[PO Number]]></description>
@@ -401,13 +405,23 @@
 		<show><![CDATA[1]]></show>
 	</boxfield>
 	<boxfield>
+		<fieldname><![CDATA[IF(inventory_purchase_details.vendor_sku <> '', inventory_purchase_details.vendor_sku, SUBSTRING_INDEX(inventory_purchase_details.description_purchase, ' ', 1))]]></fieldname>
+		<description><![CDATA[Vendor SKU]]></description>
+		<font><![CDATA[helvetica]]></font>
+		<size><![CDATA[12]]></size>
+		<align><![CDATA[L]]></align>
+		<color><![CDATA[0:0:0]]></color>
+		<width><![CDATA[28]]></width>
+		<show><![CDATA[1]]></show>
+	</boxfield>
+	<boxfield>
 		<fieldname><![CDATA[journal_item.description]]></fieldname>
 		<description><![CDATA[Description]]></description>
 		<font><![CDATA[helvetica]]></font>
 		<size><![CDATA[12]]></size>
 		<align><![CDATA[L]]></align>
 		<color><![CDATA[0:0:0]]></color>
-		<width><![CDATA[86]]></width>
+		<width><![CDATA[58]]></width>
 		<show><![CDATA[1]]></show>
 	</boxfield>
 	<boxfield>

@@ -6,7 +6,7 @@
     "description": "Vendor purchase order. Format: Letter, Portrait",
     "group": "vend:po",
     "filenamePrefix": "PO-",
-    "dataset": "transactions",
+    "dataset": "purchasing",
     "page": {
         "size": "Letter",
         "orientation": "P",
@@ -570,10 +570,28 @@
                     },
                     {
                         "bind": {
+                            "name": "vendor_sku"
+                        },
+                        "heading": "Vendor SKU",
+                        "width": 28,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    },
+                    {
+                        "bind": {
                             "name": "item_description"
                         },
                         "heading": "Description",
-                        "width": 86,
+                        "width": 58,
                         "align": "L",
                         "style": {
                             "font": "helvetica",

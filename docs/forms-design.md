@@ -2786,3 +2786,87 @@ the unreadable file left where it was.
 The mirror-image risk is worth stating and is not fixable here: **a native company's backup restored
 into a company without Forms** is dead, because PhreeForm cannot read a native definition at all.
 That is an argument for step 6 rather than against seeding native.
+
+### 13.20 The shipped Purchase Order prints the supplier's part number
+
+Asked for on 2026-08-17: *"I want to add a Vendor SKU column to the Purchase Order table."* Worth
+recording because almost none of the work was new — and because the one part that could not be done
+in the UI is now the clearest gap in the canvas.
+
+**The data was already built.** §8.2 added a `purchasing` dataset for exactly this: `transactions`
+plus a LEFT join to `inventory_purchase_details` on **both** sku and vendor, carrying `vendor_sku`
+(the supplier's number, falling back to the first word of the purchase description),
+`vendor_sku_only` and `vendor_description`. It was written to migrate a customisation that already
+existed, and it holds that customisation's SQL as a `legacyName`.
+
+**So the change is the XML, and the generator does the rest.** Three edits to
+`PurchaseOrder.xml`: a `<tables>` block naming `inventory_purchase_details` with the join condition,
+a `<boxfield>` whose field name is that SQL expression, and Description giving up 28 mm so the
+columns still total the table's 200. Then `generate_forms_shipping_set.php --write`, and the
+conversion did the interesting parts by itself:
+
+- `DatasetResolver` picked `purchasing` over `transactions`, because that is the narrowest dataset
+  covering the tables the definition names;
+- the SQL field name matched the `legacyName` and came out bound to **`vendor_sku`**, not left as raw
+  SQL — which is the whole point of §1.1 and the reason those `legacyNames` are there.
+
+Editing the XML rather than the JSON is deliberate: this change is expressible by the converter, so
+both formats stay in step, the byte check still applies, and it needs no entry in
+`docs/forms-adopted.json` (§13.18). Adopt the JSON only for what the converter cannot say — layout.
+
+Proved by rendering: the shipped definition seeded into a company as a temporary document, a real
+purchase order printed through `FormRunner`, and the column read back out of the PDF text between SKU
+and Description with the supplier's part number in it. Catalogue row and file removed afterwards.
+
+**The caveat, accepted deliberately.** That join is one-to-many on (sku, vendor_id) and those columns
+are not unique, so a duplicate purchase record can duplicate a line on a printed order. It is a LEFT
+join, so no line is ever dropped — the worse failure. This is why the fields were kept out of
+`transactions`, where they would have reached 44 unrelated documents; on the purchase order, where
+the supplier's number is the point, the risk is the user's to accept and was accepted.
+
+An existing company keeps the purchase order it was seeded with. Nothing in the UI adds a column to
+it, which is the next section.
+
+### 13.21 Scope: editing a table's columns on the canvas
+
+Not built. Scoped on 2026-08-17, when adding one column to one shipped form turned out to need a
+developer, an XML edit and a regeneration.
+
+**What is missing.** `TemplateForm::apply()` rebuilds a `Table` from `$original->source,
+$original->columns` — the canvas moves it and resizes it and cannot touch what is inside it. So a
+table is the one element on the page whose content is beyond the editor, and a table's column list is
+exactly the sort of thing an author wants to change: add the supplier's part number, drop a column
+nobody reads, widen a description.
+
+**What already exists to build on.** The report editor (§13.10) edits a column list already — order,
+heading, width, alignment, format, totals, column break — for reports. A form table's columns are
+the same shape (`ReportColumn`), so this is the same control in a different host, not a new idea.
+
+**The work, in the order it would be done:**
+
+1. **The palette has to include line-grain fields.** `forms_binding_names()` returns what the
+   document can supply, and a table column binds per LINE. The dataset knows which fields are
+   line-grain (`FieldDefinition::$table` against the provider's line table) — that distinction
+   already exists and is load-bearing, because naming the wrong table makes a per-line value a header
+   value and every row shows the first row's. A column palette must offer only the line-grain half.
+2. **A repeating control in the inspector.** One row per column: bind, heading, width, alignment,
+   format, total. Add, remove and reorder. The report editor's markup is the model.
+3. **`TemplateForm` has to accept columns**, which is where the care goes. Every submitted binding
+   through the same gate as a field (`$allowed`, with a warning and the old value kept on a name the
+   form cannot supply); widths validated as numbers; and the sum of the widths reconciled with the
+   table's own width — a table whose columns total more than its box is how the legacy reports ended
+   up clipped (§13.9).
+4. **Changing the DATASET is a separate question, and the harder one.** A new column may need a field
+   the current dataset does not have — which is exactly what the Vendor SKU needed. Resolution today
+   is automatic and by tables named; letting an author change it by hand means letting them widen a
+   join, which is the privilege §3.1 deliberately separated into `SECURITY_ID_FORMS_DATASETS`. The
+   honest first version is: offer the fields the resolved dataset supplies, and say plainly when a
+   wanted field is in another one. Not "silently join more tables".
+5. **Verification.** A column added, saved and reloaded byte-identically; a bad binding refused with
+   the old column intact; widths that overflow the table reported; and a rendered PDF showing the new
+   column with data in it, which is the only proof that the palette's grain was right.
+
+**Risks, in the order they will bite.** A column bound to a header field (silently repeating the
+first row) — mitigated by the grain rule in step 1. Widths that no longer fit — mitigated by step 3.
+And the dataset question in step 4, which is where this could quietly turn into "let an author write
+a join" if nobody holds the line.
