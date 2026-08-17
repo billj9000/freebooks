@@ -2494,6 +2494,42 @@ working**, and none of the three could have been caught by anything in this suit
 what a browser does with the event afterwards, and the third is a hit-test on overlapping geometry.
 All four are now asserted, but they were found by using it.
 
+#### The frame in front took every click
+
+Reported from use on 2026-08-17, on the sales invoice: clicking any of the sixteen fields inside the
+frame drawn around them selected **the frame**, every time. There was no way in from the page at all.
+
+The cause is two facts meeting. Every box on the overlay is a filled surface, not an outline —
+`place()` gives each one `background: colour + '14'` so it can be grabbed anywhere — and the array
+order is the drawing order, so a frame added after the fields it surrounds is drawn over all of them.
+`event.target` is the **uppermost** element at a point, and uppermost is the wrong answer on a form: a
+container is essentially never what someone is pointing at when they point inside it.
+
+So the hit-test is now `boxAt()`, which takes the **smallest** box containing the point. It reads the
+intent directly and costs the frame nothing, because a frame is mostly empty — it is still grabbed
+anywhere no smaller box covers, and always from the Elements list. Stacking no longer decides
+anything, which incidentally makes the hover `z-index` from the fix above safe: it is now purely
+something to look at.
+
+One exception, or the fix would take away a gesture it had just given: **a box already selected keeps
+the pointer while the pointer is on one of its handles.** Without it, selecting a frame and then
+reaching for its corner hands back whichever field stands in front of that corner, and a resize
+becomes a drag of something else.
+
+Two consequences that were not obvious, and are the reason this was more than one line:
+
+- **The cursor is shaped by one box and written on another.** The zone, and so the arrow, belong to
+  the box that *would* be resized; but the cursor has to be set on the **topmost** box, because that
+  is the one the browser consults. Written on the box behind, the frame's own `cursor: move` goes on
+  showing and the pointer describes a gesture nobody can make.
+- **The hover highlight had to move off `mouseover`.** That event fires on entering a *div*, and the
+  div entered is the frame: inside one frame the pointer crosses a dozen fields without a single
+  `mouseover`, so the highlight would name the frame throughout. It is driven from `pointermove` now,
+  guarded on a change of index because `highlight()` walks every box and every row in the list.
+
+The Elements list stays the way to reach an element **completely** covered by another, which is what
+it was already for.
+
 #### A script with no engine to check it
 
 There is no JavaScript engine on the development machine or in the container, and the canvas is the
@@ -2521,3 +2557,12 @@ They are now bounded by `handlerBody()`, which brace-matches the handler's own b
 against what must be **present**: the guard `if (!dragging.moved)`, and exactly one `remember()` in
 the move handler. The pattern set out in §13.12 holds and now has a corollary — **never bound a
 check by counting characters**, because the thing being measured is the one thing an edit changes.
+
+**And a sixth, from a third direction.** `handlerBody()` skipped quoted strings so that a brace in a
+CSS literal could not close a body early — but it did not skip *comments*, and it treated `'` as a
+quote wherever it found one. An ordinary English possessive in a new comment (`the frame's own`)
+opened a string that ran to the next quote in the source, the brace count went wrong, the returned
+body ran on into the handler below, and the release-handler check failed on correct code. The fix is
+in the tool, not in the prose: comments are now skipped, because a comment is not code and an
+apostrophe in a sentence is not a syntax error. Rewording the comment would have been the cheaper
+answer and the wrong one — the next sentence anybody writes has the same apostrophe in it.

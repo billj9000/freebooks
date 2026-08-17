@@ -364,6 +364,31 @@ ok('a drag is measured from where it began, not from the last event',
 ok('the band selects only what it wholly encloses',
    str_contains($canvasJs,
        'if (bx >= x1 && bx + bw <= x2 && by >= y1 && by + bh <= y2) chosen.add(index);'));
+
+// Overlap. Every box is a filled surface and the array order is the drawing
+// order, so the UPPERMOST box at a point is the frame drawn around a block, and
+// `event.target` is the one answer that can never reach the fields inside it.
+ok('a press asks boxAt() rather than the browser',
+   str_contains($canvasJs, 'const div = boxAt(event.clientX, event.clientY);')
+   && !preg_match('/const div = event\.target\.closest/', $canvasJs));
+ok('and boxAt() takes the smallest box containing the point',
+   str_contains($canvasJs, 'if (area < bestArea) { best = div; bestArea = area; }'));
+ok('a held box still keeps the pointer on its own handles',
+   str_contains($canvasJs, 'return held || best;')
+   && str_contains($canvasJs, "&& zoneAt(div, clientX, clientY) !== '' && area < heldArea"));
+// The cursor SHAPE comes from the box that would be resized; the cursor itself
+// has to be written on the topmost box, because that is the one the browser
+// consults. Writing it on the box behind leaves the frame's own showing.
+ok('the hover cursor is shaped by one box and written on another',
+   str_contains($canvasJs, "const top = event.target.closest('.fb-canvas-box') || over;")
+   && str_contains($canvasJs,
+       "top.style.cursor = CURSORS[zoneAt(over, event.clientX, event.clientY)] || 'move';"));
+// mouseover fires on entering a DIV, and inside one frame the pointer crosses a
+// dozen fields without entering anything: the highlight would name the frame
+// throughout. Driven from pointermove now, guarded so it only redraws on change.
+ok('the hover highlight follows the pointer, not the divs it enters',
+   !str_contains($canvasJs, "layer.addEventListener('mouseover'")
+   && str_contains($canvasJs, 'if (over.dataset.index !== hovering) {'));
 ok('undo restores the whole selection, not just the anchor',
    str_contains($canvasJs, 'chosen: Array.from(chosen)'));
 ok('delete splices from the highest index down',

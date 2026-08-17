@@ -56,7 +56,8 @@
 //                      around them, to select several elements and move them
 //                      together, keeping their spacing exactly. Every side and
 //                      corner resizes, with the conventional double-arrow
-//                      cursors.
+//                      cursors. A click takes the smallest element under the
+//                      pointer, so a field inside a frame can be selected.
 
 define('MODULE_FORMS_VERSION', 1.08);
 

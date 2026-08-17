@@ -160,7 +160,7 @@ foreach (['formsCanvasSave', 'formsCanvasZ', 'formsCanvasDelete', 'formsCanvasAd
        && str_contains($js, 'window.' . $exported));
 }
 foreach (['select', 'describeSelection', 'highlight', 'place', 'origins', 'moveBy',
-          'resize', 'zoneAt', 'sweep', 'dragCursor', 'fine', 'rounded'] as $helper) {
+          'resize', 'boxAt', 'zoneAt', 'sweep', 'dragCursor', 'fine', 'rounded'] as $helper) {
     ok("$helper is defined", preg_match('/function\s+' . $helper . '\s*\(/', $js) === 1);
 }
 

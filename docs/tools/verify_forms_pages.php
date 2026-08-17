@@ -89,7 +89,12 @@ function ok(string $what, bool $cond, string $detail = ''): void {
  * have already happened here.
  *
  * Braces are matched from the first one after $from, skipping quoted strings so
- * a brace inside a CSS or JSON literal cannot close the body early.
+ * a brace inside a CSS or JSON literal cannot close the body early — and skipping
+ * COMMENTS, because prose is not code. An apostrophe in an ordinary English
+ * possessive opened a string that ran to the next quote in real source, the
+ * matcher lost count of the braces, the body ran on into the handler below, and a
+ * correct file was reported broken. That is the same failure as the two above,
+ * from a third direction: the bound was wrong, not the code.
  */
 function handlerBody(string $js, int $from): string
 {
@@ -99,6 +104,17 @@ function handlerBody(string $js, int $from): string
     $n = strlen($js);
     for ($i = $open; $i < $n; $i++) {
         $c = $js[$i];
+        if ($c === '/' && $i + 1 < $n && $js[$i + 1] === '/') {
+            $i = strpos($js, "\n", $i);
+            if ($i === false) break;
+            continue;
+        }
+        if ($c === '/' && $i + 1 < $n && $js[$i + 1] === '*') {
+            $end = strpos($js, '*/', $i + 2);
+            if ($end === false) break;
+            $i = $end + 1;
+            continue;
+        }
         if ($c === '"' || $c === "'" || $c === '`') {
             for ($i++; $i < $n && $js[$i] !== $c; $i++) if ($js[$i] === '\\') $i++;
             continue;

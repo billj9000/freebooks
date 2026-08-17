@@ -831,6 +831,9 @@ async function formsCanvasUpload() {
 // Three gestures through one pair of handlers. Press a box and drag: the whole
 // selection moves. Press one of its edges or corners: that element resizes.
 // Press empty page and drag: a band sweeps up everything it encloses.
+//
+// Which box a press lands on is decided by boxAt(), NOT by what the browser puts
+// under the pointer — see the note there.
 
 /**
  * Which part of a box the pointer is over — '' for the middle, or one or two of
@@ -864,6 +867,48 @@ function zoneAt(div, clientX, clientY) {
   return zone;
 }
 
+/**
+ * Which box a pointer at this point is aimed at: the SMALLEST one containing it.
+ *
+ * Not `event.target.closest()`, which is the uppermost one, and uppermost is the
+ * wrong answer on a form. Every box is a filled surface (see place()), and the
+ * array order is the drawing order, so a frame drawn around a block of fields
+ * covers all of them: clicking any field inside it selected the frame instead,
+ * every time, with no way in from the page at all. Reported from use, and the
+ * reason the Elements list had to be the answer.
+ *
+ * Smallest-wins reads the author's intent directly — a container is essentially
+ * never what someone is pointing at when they point inside it — and costs the
+ * frame nothing, because a frame is mostly empty: it is still grabbed anywhere
+ * no smaller box covers, and always from the list.
+ *
+ * The exception is a grip on something already selected. Without it, selecting a
+ * frame and then reaching for its corner hands back a field standing in front of
+ * that corner, and the resize the author aimed at silently becomes a drag of
+ * something else. A held box keeps the pointer while the pointer is on a handle.
+ *
+ * Stacking no longer decides anything here, which is what makes the hover z-index
+ * bump in highlight() safe: it is now purely something to look at.
+ */
+function boxAt(clientX, clientY) {
+  let best = null, bestArea = Infinity;
+  let held = null, heldArea = Infinity;
+  layer.querySelectorAll('.fb-canvas-box').forEach(function (div) {
+    const rect = div.getBoundingClientRect();
+    if (clientX < rect.left || clientX > rect.right
+     || clientY < rect.top  || clientY > rect.bottom) return;
+    // Never zero: a rule is drawn two pixels tall and one pixel wide would still
+    // have to be comparable against the block sitting over it.
+    const area = Math.max(rect.width, 1) * Math.max(rect.height, 1);
+    if (chosen.has(Number(div.dataset.index))
+        && zoneAt(div, clientX, clientY) !== '' && area < heldArea) {
+      held = div; heldArea = area;
+    }
+    if (area < bestArea) { best = div; bestArea = area; }
+  });
+  return held || best;
+}
+
 // The conventional cursors: a diagonal double arrow on a corner, named for the
 // axis it lies along, and a straight one on a side.
 const CURSORS = {
@@ -890,6 +935,10 @@ function dragCursor(cursor) {
 
 let dragging = null;
 let band     = null;
+// Which box the pointer was last over, so the hover highlight is only redrawn
+// when the answer changes. Cleared whenever something else has taken it over —
+// a drag, or a row in the Elements list — so the next movement redraws.
+let hovering = null;
 
 layer.addEventListener('pointerdown', function (event) {
   if (!canEdit) return;
@@ -897,8 +946,10 @@ layer.addEventListener('pointerdown', function (event) {
   // that the context menu immediately interrupts, leaving the canvas holding a
   // gesture the author cannot finish.
   if (event.button !== 0) return;
+  // A gesture owns the highlight from here until it ends.
+  hovering = null;
 
-  const div = event.target.closest('.fb-canvas-box');
+  const div = boxAt(event.clientX, event.clientY);
   const add = event.shiftKey || event.ctrlKey || event.metaKey;
 
   if (!div) {
@@ -955,11 +1006,33 @@ layer.addEventListener('pointermove', function (event) {
   }
 
   if (!dragging) {
-    // Nothing under way: the cursor is the only thing that has to keep up, and
-    // it is how an author discovers the sides can be dragged at all.
+    // Nothing under way: the cursor and the highlight are what have to keep up,
+    // and the cursor is how an author discovers the sides can be dragged at all.
     if (!canEdit) return;
-    const over = event.target.closest('.fb-canvas-box');
-    if (over) over.style.cursor = CURSORS[zoneAt(over, event.clientX, event.clientY)] || 'move';
+    // The box a PRESS would take, which is not the one the browser has under the
+    // pointer. Two different divs, and each is needed for a different half:
+    //
+    //  - the zone, and so the cursor shape, belong to the box that would be
+    //    resized — `over`;
+    //  - the cursor has to be WRITTEN on the topmost box, because that is the
+    //    one the browser consults. Writing it on `over` while a frame stands in
+    //    front leaves the frame's own `cursor: move` showing, and the pointer
+    //    then describes a gesture nobody can make.
+    const over = boxAt(event.clientX, event.clientY);
+    // Off everything: the highlight goes out. What is SELECTED keeps its ring —
+    // highlight() reads that from `chosen`, not from the pointer.
+    if (!over) {
+      if (hovering !== null) { hovering = null; highlight(null); }
+      return;
+    }
+    const top = event.target.closest('.fb-canvas-box') || over;
+    top.style.cursor = CURSORS[zoneAt(over, event.clientX, event.clientY)] || 'move';
+    // Only on a change: this runs on every mouse movement across the page, and
+    // highlight() walks every box and every row in the list.
+    if (over.dataset.index !== hovering) {
+      hovering = over.dataset.index;
+      highlight(hovering);
+    }
     return;
   }
 
@@ -986,6 +1059,7 @@ layer.addEventListener('pointermove', function (event) {
 
 ['pointerup', 'pointercancel'].forEach(function (name) {
   layer.addEventListener(name, function (event) {
+    hovering = null;
     if (band) {
       if (band.div) band.div.remove();
       // A press and release with no sweep between them is a click on the page,
@@ -1138,7 +1212,9 @@ function fillList() {
       + '<td class="small">' + escapeHtml(box.label) + '</td>'
       + '<td class="small text-muted text-end text-nowrap">'
       + box.x + ', ' + box.y + '</td>';
-    row.addEventListener('mouseenter', function () { highlight(index); });
+    // Clearing `hovering` too: the canvas highlight has been taken over from
+    // here, so returning the pointer to the box it was already on must redraw.
+    row.addEventListener('mouseenter', function () { hovering = null; highlight(index); });
     // The same modifiers as the page, so a group can be gathered from the list
     // — which is the only way to reach an element sitting under another one.
     row.addEventListener('click', function (event) {
@@ -1155,10 +1231,11 @@ function escapeHtml(text) {
   return node.innerHTML;
 }
 
-layer.addEventListener('mouseover', function (event) {
-  const box = event.target.closest('.fb-canvas-box');
-  if (box) highlight(box.dataset.index);
-});
+// The hover highlight is driven from pointermove, not from `mouseover`, because
+// the two now disagree: mouseover fires on entering a DIV, and the div entered is
+// the frame in front. Inside one frame the pointer can cross a dozen fields
+// without a single mouseover, so the highlight would name the frame throughout.
+layer.addEventListener('pointerleave', function () { hovering = null; });
 
 document.getElementById('forms_canvas_show').addEventListener('change', function () {
   layer.style.display = this.checked ? '' : 'none';
