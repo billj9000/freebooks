@@ -454,7 +454,15 @@ final class TemplateForm
     {
         $name = trim((string)($row['bind'] ?? ''));
         if ($name === '' || $name === $current->name) return $current;
-        if ($current->scope === Scope::Context)       return $current;
+        // Refused, and SAID so. This used to return quietly, which was safe and
+        // silent — the canvas sends nothing for a context element, so the only
+        // way here is a stale page or a hand-made post, and both deserve an
+        // answer rather than an edit that appears to work and does not.
+        if ($current->scope === Scope::Context) {
+            $this->warnings[] = "$what is one of the company's own details, so it cannot be pointed"
+                              . " at '$name'; it was left as it was.";
+            return $current;
+        }
 
         if (!isset($allowed[$name])) {
             $this->warnings[] = "$what names '$name', which this form cannot supply; it was left as it was.";

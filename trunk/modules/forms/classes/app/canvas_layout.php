@@ -175,6 +175,16 @@ final class CanvasLayout
                 // told which it has rather than guessing from the label.
                 'source'  => $element instanceof Image
                                 ? ($element->src instanceof Binding ? 'bound' : 'file') : '',
+                // Bound to a COMPANY CONSTANT rather than to a field of the
+                // record — the company's own phone number, address, tax number.
+                // The palette does not offer these (`forms_binding_names()`
+                // skips them) because they are not the record's to supply, so
+                // the inspector's list has no entry to select and showed an
+                // empty control on an element that is bound perfectly well. It
+                // says so in words instead, and offers nothing to change:
+                // TemplateForm::binding() refuses to retarget one anyway.
+                'context' => ($element instanceof Field || $element instanceof Barcode)
+                                && $element->bind->scope === Scope::Context,
                 'label'   => self::describe($element),
                 'visible' => self::keyFor(self::VISIBILITY, $element->visible) ?? 'all',
             ];

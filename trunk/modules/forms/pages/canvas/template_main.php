@@ -259,6 +259,18 @@ if ($forms_canvas_definition === null) { ?>
               <div class="form-text"><?php echo FORMS_CANVAS_BIND_NOTE; ?></div>
             </div>
 
+            <!--
+              A company constant is bound but not choosable: the palette holds
+              what the RECORD can supply, and this is not the record's. The
+              select above would show an empty box on an element that is bound
+              perfectly well, so it is swapped for the name in words.
+            -->
+            <div class="mb-2 d-none" id="ins_bind_fixed_row">
+              <label class="form-label mb-0 small"><?php echo FORMS_CANVAS_BIND; ?></label>
+              <div class="form-control form-control-sm bg-body-secondary" id="ins_bind_fixed"></div>
+              <div class="form-text"><?php echo FORMS_CANVAS_BIND_COMPANY; ?></div>
+            </div>
+
             <div class="row g-1 mb-2">
               <div class="col-7">
                 <label class="form-label mb-0 small" for="ins_font"><?php echo FORMS_DESIGN_FONT; ?></label>

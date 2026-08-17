@@ -62,7 +62,9 @@
 //                      no data, are invented but believable in LENGTH instead of
 //                      being the field's own name. A name is longer than the
 //                      data it stands for, so a narrow box wrapped in the
-//                      preview and would not have wrapped in life.
+//                      preview and would not have wrapped in life. An element
+//                      bound to a company detail says so in the inspector
+//                      instead of showing an empty list it cannot be set from.
 
 define('MODULE_FORMS_VERSION', 1.09);
 

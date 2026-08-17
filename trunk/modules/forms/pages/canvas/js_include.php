@@ -568,8 +568,20 @@ function describeSelection() {
        ['text', 'field', 'block', 'pagenum', 'table', 'barcode'].indexOf(box.kind) >= 0);
   show('ins_table_note', box.kind === 'table');
   show('ins_src_row',  box.kind === 'image' && box.source === 'file');
-  show('ins_bind_row', box.kind === 'field' || box.kind === 'barcode'
-                       || (box.kind === 'image' && box.source === 'bound'));
+  // A binding the author can retarget, and one they cannot. A company constant
+  // — the company's own phone number or tax number — is not in the palette,
+  // because the palette holds what the RECORD supplies; so the select had no
+  // option to match and showed an empty box on an element that is bound
+  // perfectly well. It reads as a fault and is not one. The name goes in as
+  // words instead, and nothing is offered to change: TemplateForm::binding()
+  // refuses to retarget a context binding whatever is posted.
+  const bindable = box.kind === 'field' || box.kind === 'barcode'
+                   || (box.kind === 'image' && box.source === 'bound');
+  show('ins_bind_row',       bindable && !box.context);
+  show('ins_bind_fixed_row', bindable && !!box.context);
+  if (box.context) {
+    document.getElementById('ins_bind_fixed').textContent = value.bind || box.label;
+  }
   highlight(selected);
 }
 
@@ -620,7 +632,13 @@ function inspectorChanged() {
   if (colour !== (value.colour || '#000000')) value.colour = colour;
   const borderColour = document.getElementById('ins_bordercolour').value;
   if (borderColour !== (value.borderColour || '#000000')) value.borderColour = borderColour;
-  const bind = document.getElementById('ins_bind').value;
+  // Never from a context element: its control is not the one on screen, and the
+  // select still holds whatever the last record-bound element put there. Today
+  // that select reads empty for a company constant anyway — the palette has no
+  // matching option — but relying on a control being empty because nothing
+  // matches it is exactly the kind of accident that stops being true when the
+  // palette changes.
+  const bind = box.context ? '' : document.getElementById('ins_bind').value;
   if (bind !== '') value.bind = bind;
   const src = document.getElementById('ins_src').value;
   if (src !== '') value.src = src;
