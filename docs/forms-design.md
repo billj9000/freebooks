@@ -2566,3 +2566,152 @@ body ran on into the handler below, and the release-handler check failed on corr
 in the tool, not in the prose: comments are now skipped, because a comment is not code and an
 apostrophe in a sentence is not a syntax error. Rewording the comment would have been the cheaper
 answer and the wrong one — the next sentence anybody writes has the same apostrophe in it.
+
+### 13.18 Adopting a tidied layout back into the shipping set
+
+Asked for on 2026-08-17, once the canvas was good enough to tidy a form on. The shipped layouts were
+inherited from PhreeBooks and several are genuinely untidy — the invoice's framed block, the cheque's
+overlapping stub. Nobody is going to fix a layout by editing coordinates in XML, so the work is done
+on the canvas, in a company, and has to travel back. This is the return leg:
+`docs/tools/adopt_forms_layouts.php`.
+
+**It is a file copy, and that is worth stating because it did not have to be.** A definition saved by
+the editor and one shipped in the repository are written by the same encoder with the same flags, and
+a native definition holds nothing company-specific: no id, no path, no key. Measured on a fresh
+install of 54 documents, every one of them round-trips through the codec to bytes identical to its
+committed master. So the tool exists to make the copy *safe*, not to make it work.
+
+#### The two things it puts back, and the one it refuses
+
+**The paper goes back to the master's.** A company carries the installer's Letter/A4 answer; the
+shipping set carries its own. Adopting the company's would re-paper the whole set for every future
+install, silently, from whichever company happened to be used that day.
+
+It does not follow that the paper can be ignored while tidying, and this is the trap worth naming:
+**Letter is 6 mm wider than A4 and 18 mm shorter.** Elements are positioned absolutely from the top,
+so a layout fitted to the foot of an A4 page falls off the foot of a Letter one — and Letter is what
+the masters ship. The test company was re-stamped to Letter before any tidying started, which is also
+why `page.size` then needs no restoring at all.
+
+**Everything that is not geometry is refused unless asked twice.** Moving and resizing is what this
+is for. A change to a text, an image, a binding or a column heading changes what the document *says*,
+and the likeliest reason for one is that the definition came from a company that had customised it —
+which is precisely how a real installation's branding and field choices would end up in a public
+repository. The classification is deliberately wide, because a false positive costs one flag on the
+command line and a false negative costs a private name in git history for ever. `--allow-content` is
+the second ask, and every such change is listed before it is made.
+
+That guard is not hypothetical, and running it against a company cloned from a real installation is
+what finished the classification. The first pass called four things "appearance" that are nothing of
+the sort:
+
+- an element **label** — free text, and the name someone gives a logo box is their company's;
+- a report's **title line** — free text with substitutions in it, so it is what the document says;
+- the top-level **description**;
+- **page.orientation**, which turns the whole page and is a shipping decision like the paper, not a
+  tidy.
+
+With those moved, that company offers **nothing** adoptable without the flag: three definitions, all
+refused, the other 58 still legacy XML and skipped with a reason. Its invoice alone carried customised
+branding, a customised heading and an extra bound field, six elements more than the master.
+
+#### The contract that had to change
+
+Every shipped `.json` was a GENERATED artefact: the generator wrote it from the `.xml` and the
+verifier proved, byte for byte, that it still matched — the only claim worth making about a committed
+generated file. A hand-tidied layout cannot satisfy that claim and must not be reverted by the next
+generator run, so adoption is recorded in `docs/forms-adopted.json`:
+
+- the **generator** skips an adopted file and names it; `--force` overwrites, which is what
+  abandoning a tidy looks like;
+- the **verifier** drops the byte check for an adopted file and applies the checks that survive
+  editing instead — it still decodes, it is still exactly what the editor would write, and it is
+  still the same document as its XML (type, title, group, filename prefix, provider, dataset). A
+  binding that disappeared is reported rather than failed, because a tidy may legitimately delete a
+  duplicated label, but a field the document no longer prints wants reading.
+
+Everything not listed keeps the byte check, so ordinary staleness is still caught. Both directions
+were tested by hand: a mangled adopted file fails the canonical check, an adopted file with a changed
+title fails the same-document check, and the generator leaves an adopted file alone.
+
+The XML stays regardless. It is what Import reads, what a company without Forms seeds from, and the
+record of where these definitions came from.
+
+#### Two bugs the byte comparison uncovered
+
+The whole approach rests on a claim `forms_seed_native()` had been making in a comment — that a
+seeded file is byte-identical to one the editor would write. It was false, twice over, and both
+would have been read as "the tidy changed something" by the tool that trusts it:
+
+1. **`json_decode($s, true)` turns every `{}` in the file into `[]` on the way back out.** A
+   definition with `"style": {}` was seeded as `"style": []`. Harmless to read — `DefinitionCodec`
+   treats the two the same — and fatal to any comparison of bytes. Both the seeder and the re-stamp
+   now decode to objects.
+2. **`DefinitionCodec::encode()` ends with a newline and those two functions did not.** One byte, in
+   every seeded and every re-stamped file.
+
+The re-stamp is the sharper case: its own comment says it has no business rewriting the parts of a
+definition it was not asked about, and it was rewriting a little of every one. Neither bug changed
+what any document printed, which is why neither had been noticed — and neither would have been
+noticed now, except that something finally needed the files to be equal.
+
+#### What it does not cover
+
+- **Extension modules.** `work_orders` ships three definitions and `assets` one; extension modules
+  ship XML only in the repository, and their native files exist just in the deployed tree. Adopting
+  one means first deciding that extension modules ship native at all, which is a larger question
+  than a layout. The tool reports them as having no shipped master.
+- **Serial (receipt) forms.** XML only by design, no canvas, no renderer — §13.16.
+- **Reports, partly.** A report's editable geometry is its column widths, and those adopt like any
+  other; but a report has no canvas, so the tidying this was built for does not apply to it.
+
+### 13.19 A restore leaves a company holding both formats
+
+Asked on 2026-08-17, and the right question: a company is created and seeded with native `.json`
+definitions, then someone restores a backup into it that contains only PhreeForm `.xml`. What breaks?
+
+**The restore itself does not.** Traced through:
+
+- extraction is an **overlay**, not a replacement — `restore_extract.php` runs `extractTo()` (or
+  `tar -xjf`) into the company directory and nothing clears `phreeform/` first, so the backup's XML
+  files land on top of the seeded native ones and any seeded file whose id is not in the archive
+  survives;
+- the SQL dump carries `DROP TABLE IF EXISTS` per table, so the catalogue is replaced wholesale by
+  the backup's rows and its ids;
+- `DefinitionLoader` tries native, falls back to PhreeForm XML and converts on the way past, so every
+  restored document opens and prints. The company simply reverts to legacy definitions, converted on
+  each load — the fallback the format was designed with, and what both legacy companies do daily.
+  Save one in Forms afterwards and it is written back as native, so the company migrates piecemeal.
+
+Two nuisances follow — orphaned native files at ids the backup never mentions, and, where a backup
+holds a catalogue row whose file is missing from the archive, a leftover file being silently adopted
+as that document. Neither is new with native definitions; the second is the old rows-without-files
+hazard wearing a new coat.
+
+#### The tool that did break
+
+**Report Settings → Rebuild**, which is precisely what someone reaches for when a restore has left
+the list wrong. It called `xml_to_object(file_get_contents($file))` on every `pf_*` — and given JSON
+that function **hands the string straight back** rather than failing. Every field then read off it is
+NULL, which on PHP 8.5 is a warning and not an error, so the tool ran to completion and reported
+success while writing a catalogue row with an empty title, an empty group and an empty `doc_ext` for
+every native definition, filing them under Miscellaneous and renaming each file to a fresh id.
+
+Measured on a fresh install before the fix: **54 documents rebuilt, 54 of them nameless.** The files
+survived — the ids did not, and neither did any way of telling one document from another.
+
+It reads both formats now: a file beginning `{` is decoded and its `title`, `group` and `type` taken
+from the JSON, with `u:0;g:0` for the security column, which is what that field means for a native
+definition (decision F, and what `forms_seed_native()` writes). A file that is neither is **skipped
+and counted** rather than turned into an empty row — the tool has just truncated the table those
+documents were listed in, so a file it cannot read is a document that has vanished, and it says how
+many.
+
+Verified by driving the real page against a fresh install: 54 native definitions rebuilt with their
+titles, groups and types intact; then with a legacy XML definition and an unreadable file dropped in
+beside them, 55 documents rebuilt, none nameless, the XML one landing in `cust:inv` as a `frm`, and
+the unreadable file left where it was.
+
+The mirror-image risk is worth stating and is not fixable here: **a native company's backup restored
+into a company without Forms** is dead, because PhreeForm cannot read a native definition at all.
+That is an argument for step 6 rather than against seeding native.

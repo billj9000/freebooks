@@ -63,8 +63,18 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   $contents = @file_get_contents($path);
   if ($contents === false) return false;
 
-  $definition = json_decode($contents, true);
-  if (!is_array($definition) || !isset($definition['title'], $definition['type'])) {
+  // Decoded to OBJECTS, not arrays. An empty JSON object survives
+  // json_decode($s, true) as an empty PHP array, and json_encode() then writes it
+  // back as `[]` — so a definition with `"style": {}` was seeded as
+  // `"style": []`, and every seeded file differed from the shipped one it was
+  // supposed to be a copy of. Harmless to read, because DefinitionCodec treats
+  // the two the same; fatal to the claim this function makes below, that a seeded
+  // file is byte-identical to one the editor would write. That claim is what
+  // every comparison between a company's definitions and the shipped set rests
+  // on, including adopting a tidied layout back into the shipping set.
+  $definition = json_decode($contents);
+  if (!$definition instanceof stdClass
+      || !isset($definition->title) || !isset($definition->type)) {
     // Guarded: this runs at INSTALL, where the forms language file may not
     // have been pulled yet, and a missing constant would fatal while reporting
     // a failure — the one moment nobody is watching.
@@ -83,7 +93,7 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   // shipped reports choose landscape on purpose and would be squeezed onto a
   // portrait page.
   if ($paper_size == '' && defined('PF_DEFAULT_PAPERSIZE')) $paper_size = PF_DEFAULT_PAPERSIZE;
-  if ($paper_size <> '' && isset($definition['page']['size'])) {
+  if ($paper_size <> '' && isset($definition->page->size)) {
     // The two formats spell a paper differently, and the caller passes the
     // LEGACY spelling because the installer, the company manager and
     // PF_DEFAULT_PAPERSIZE all carry it: "A4:210:297", name and dimensions.
@@ -91,12 +101,12 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
     // done explode(':')[0] — and TCPDF looks a paper up BY NAME, so writing
     // the full token here produces a size no renderer can resolve, and every
     // seeded document silently falls back to A4.
-    $definition['page']['size'] = explode(':', $paper_size)[0];
+    $definition->page->size = explode(':', $paper_size)[0];
   }
 
-  $title = (string)$definition['title'];
-  $group = (string)($definition['group'] ?? '');
-  $type  = (string)$definition['type'];
+  $title = (string)$definition->title;
+  $group = (string)($definition->group ?? '');
+  $type  = (string)$definition->type;
 
   // Same refusal ImportReport() makes: a definition of this name already in the
   // catalog WITH its file on disk is not re-seeded, because that would silently
@@ -144,11 +154,14 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   }
 
   // Re-encoded rather than copied, because the paper size may have changed.
-  // The flags match DefinitionCodec::encode() so a seeded file is byte-identical
-  // to one the editor would write, which is what lets a verification tool
-  // compare them.
+  // The flags match DefinitionCodec::encode(), the decode above keeps objects
+  // objects, and the trailing newline is the one that encoder ends with — so a
+  // seeded file differs from the shipped one in the page size and in nothing
+  // else. That is what lets a verification tool compare the two, and what lets a
+  // layout tidied in a company be adopted back into the shipping set.
   $json = json_encode($definition,
       JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+  if ($json !== false) $json .= "\n";
   $written = $json === false ? false : @file_put_contents($save_path . 'pf_' . $rID, $json);
   if ($written === false) {
     $db->Execute("delete from " . TABLE_PHREEFORM . " where id = " . (int)$rID);
@@ -184,13 +197,20 @@ function forms_restamp_native($file, $paper_size) {
   if ($contents === false) return null;
   if (!str_starts_with(ltrim($contents), '{')) return null;   // not ours to stamp
 
-  $definition = json_decode($contents, true);
-  if (!is_array($definition) || !isset($definition['page']['size'])) return false;
+  // Objects, for the reason forms_seed_native() gives: decoding to arrays turns
+  // every `{}` in the file into `[]` on the way back out, so a re-stamp quietly
+  // rewrote parts of a definition it was not asked about — the very thing the
+  // note above says it has no business doing.
+  $definition = json_decode($contents);
+  if (!$definition instanceof stdClass || !isset($definition->page->size)) return false;
 
   // The name alone, as the format stores it — see forms_seed_native().
-  $definition['page']['size'] = explode(':', (string)$paper_size)[0];
+  $definition->page->size = explode(':', (string)$paper_size)[0];
+  // Flags and trailing newline as DefinitionCodec::encode() writes them, so a
+  // re-stamp does not leave the file differing from an editor's save by whitespace.
   $json = json_encode($definition,
       JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
   if ($json === false) return false;
+  $json .= "\n";
   return @file_put_contents($file, $json) !== false;
 }

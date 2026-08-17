@@ -56,6 +56,20 @@ ShippedDatasets::registerAll($catalog);
 (new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORMS_DATASETS))->registerAll($catalog);
 $codec = new DefinitionCodec();
 
+// The definitions whose layout has been TIDIED BY HAND and is therefore no
+// longer derivable from the xml (§13.18). For these the claim below — that the
+// committed file is what the converter produces — is deliberately false, and
+// asserting it would demand the tidying be thrown away. They get the checks that
+// survive editing instead: still decodes, still canonical, still the same
+// document. Everything not listed keeps the byte check, so ordinary staleness is
+// still caught.
+$manifestPath = __DIR__ . '/../forms-adopted.json';
+$adopted = [];
+if (is_file($manifestPath)) {
+    $decoded = json_decode((string)file_get_contents($manifestPath), true);
+    $adopted = is_array($decoded['adopted'] ?? null) ? $decoded['adopted'] : [];
+}
+
 // Only the modules that ship IN trunk. An optional module installed from
 // extensions/ has its own reports, and its native files — if it ever gains
 // any — belong to it rather than to this set.
@@ -112,6 +126,11 @@ ok('no native file is left without its source', $orphans === [],
 
 echo "\n=== the committed files are what the converter produces now ===\n";
 $stale = $unreadable = [];
+// Adopted files, checked differently. Collected here and reported after, so the
+// two claims stay separate: one is about a generated artefact being current, the
+// other about a hand-edited one still being sound.
+$notCanonical = $notSameDocument = $bindingNotes = [];
+$adoptedSeen = [];
 foreach ($shipped as $xml) {
     $json = preg_replace('/\.xml$/i', '.json', $xml);
     if (!is_file($json)) continue;          // xml-only module; reported above
@@ -130,13 +149,88 @@ foreach ($shipped as $xml) {
         $unreadable[] = $name . ' (' . $e->getMessage() . ')';
         continue;
     }
-    if ($fresh !== (string)file_get_contents($json)) $stale[] = $name;
+
+    $committed = (string)file_get_contents($json);
+    $relative  = str_replace(DIR_FS_MODULES, '', $json);
+    if (in_array($relative, $adopted, true)) {
+        $adoptedSeen[] = $relative;
+
+        // Canonical, so a file edited with a text editor rather than through the
+        // editor cannot ship: anything the codec would write differently is a
+        // difference the app will not preserve on the next save.
+        try {
+            if ($codec->encode($codec->decode($committed)) !== $committed) $notCanonical[] = $relative;
+        } catch (\Throwable $e) {
+            $notCanonical[] = $relative . ' (' . $e->getMessage() . ')';
+            continue;
+        }
+
+        // Still the same DOCUMENT as the xml beside it. A tidy moves things; it
+        // does not turn an invoice into something else, change which dataset it
+        // reads, or rename the file customers receive.
+        $was = json_decode($fresh, true);
+        $now = json_decode($committed, true);
+        foreach (['type', 'title', 'group', 'filenamePrefix', 'provider', 'dataset'] as $key) {
+            if (($was[$key] ?? null) !== ($now[$key] ?? null)) {
+                $notSameDocument[] = "$relative: $key '"
+                    . var_export($was[$key] ?? null, true) . "' -> '"
+                    . var_export($now[$key] ?? null, true) . "'";
+            }
+        }
+
+        // Reported, NOT failed: a tidy may legitimately delete a duplicated
+        // label, and the shipped layouts have some. But a binding that vanished
+        // is a field the document no longer prints, and that wants reading.
+        $bind = function (array $definition): array {
+            $names = [];
+            foreach ($definition['form']['elements'] ?? [] as $element) {
+                if (isset($element['bind']['name'])) $names[(string)$element['bind']['name']] = true;
+                foreach ($element['parts'] ?? [] as $part) {
+                    if (isset($part['bind']['name'])) $names[(string)$part['bind']['name']] = true;
+                }
+            }
+            foreach ($definition['report']['columns'] ?? [] as $column) {
+                if (isset($column['key'])) $names[(string)$column['key']] = true;
+            }
+            return $names;
+        };
+        $gone  = array_diff_key($bind($was), $bind($now));
+        $extra = array_diff_key($bind($now), $bind($was));
+        if ($gone || $extra) {
+            $bindingNotes[] = $relative
+                . ($gone  ? ' dropped: ' . implode(', ', array_keys($gone))  : '')
+                . ($extra ? ' added: '   . implode(', ', array_keys($extra)) : '');
+        }
+        continue;
+    }
+
+    if ($fresh !== $committed) $stale[] = $name;
 }
 ok('every shipped xml still converts', $unreadable === [],
    implode(' | ', array_slice($unreadable, 0, 3)));
 ok('no committed native file is out of date', $stale === [],
    count($stale) . ' stale: ' . implode(' | ', array_slice($stale, 0, 4))
    . ' — re-run generate_forms_shipping_set.php --write');
+
+// The manifest names files, and a name that no longer resolves would put a
+// tidied definition back under the byte check without saying so.
+$phantom = array_values(array_diff($adopted, $adoptedSeen));
+if ($adopted) {
+    echo "\n=== the hand-tidied definitions are still sound ===\n";
+    printf("  [--] %d definition(s) adopted; the byte check above does not apply to them\n",
+        count($adopted));
+    ok('every adopted file is one of the shipped definitions', $phantom === [],
+       implode(' | ', array_slice($phantom, 0, 4))
+       . ' — listed in docs/forms-adopted.json but not found beside a shipped xml');
+    ok('the manifest is sorted and free of duplicates',
+       $adopted === array_values(array_unique($adopted))
+       && $adopted === (function ($a) { sort($a); return $a; })($adopted));
+    ok('every adopted file is what the editor would write', $notCanonical === [],
+       implode(' | ', array_slice($notCanonical, 0, 3)));
+    ok('and is still the same document as its xml', $notSameDocument === [],
+       implode(' | ', array_slice($notSameDocument, 0, 3)));
+    foreach ($bindingNotes as $note) echo "  [--] $note\n";
+}
 
 echo "\n=== and they convert without warnings ===\n";
 // A warning here reaches every new install, which is what separates it from

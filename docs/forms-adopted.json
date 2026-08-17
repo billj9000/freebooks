@@ -1,0 +1,4 @@
+{
+    "comment": "Shipped definitions whose layout was tidied by hand and is no longer generated from the xml. See docs/tools/adopt_forms_layouts.php.",
+    "adopted": []
+}

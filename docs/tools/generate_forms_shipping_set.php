@@ -42,9 +42,18 @@
  * the tool exits non-zero if any file fails outright.
  *
  *   docker exec <c> php -d display_errors=1 \
- *       /opt/repo/docs/tools/generate_forms_shipping_set.php [company] [--write]
+ *       /opt/repo/docs/tools/generate_forms_shipping_set.php [company] [--write] [--force]
  *
  * Without --write it reports what would change and touches nothing.
+ *
+ * ## Except where a layout has been tidied by hand
+ *
+ * The shipped layouts came from PhreeBooks and some of them need design work that
+ * only makes sense on the canvas. Once a layout has been tidied in a company and
+ * adopted back — `adopt_forms_layouts.php`, design §13.18 — it is no longer
+ * derivable from the xml, and re-running this tool would silently throw it away.
+ * Those files are listed in `docs/forms-adopted.json`, and are skipped and named
+ * here. `--force` overwrites them, which is what abandoning a tidy looks like.
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
@@ -56,6 +65,20 @@ use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, Shipp
 use FreeBooks\Forms\Definition\{DefinitionBuilder, DefinitionCodec};
 
 $write = in_array('--write', $argv, true);
+// Overwrite a hand-tidied layout anyway. There is one reason to want this — the
+// tidy is being abandoned and the generated layout is wanted back — and it should
+// take saying so.
+$force = in_array('--force', $argv, true);
+
+// The definitions whose layout was tidied by hand and adopted (§13.18). Writing
+// over one throws that work away silently, which is exactly what this tool would
+// otherwise do on its next run, so they are skipped and named.
+$adoptedManifest = __DIR__ . '/../forms-adopted.json';
+$adopted = [];
+if (is_file($adoptedManifest)) {
+    $decoded = json_decode((string)file_get_contents($adoptedManifest), true);
+    $adopted = is_array($decoded['adopted'] ?? null) ? $decoded['adopted'] : [];
+}
 
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
@@ -63,12 +86,20 @@ ShippedDatasets::registerAll($catalog);
 
 $codec = new DefinitionCodec();
 
-$converted = $failed = $unchanged = $written = 0;
+$converted = $failed = $unchanged = $written = $left = 0;
 $warned = [];
 
 foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
     $shown = str_replace(DIR_FS_MODULES, 'modules/', $path);
     $target = preg_replace('/\.xml$/i', '.json', $path);
+
+    // Before anything is read: an adopted file is no longer this tool's output.
+    if (!$force && in_array(str_replace(DIR_FS_MODULES, '', $target), $adopted, true)) {
+        echo "  [adopted] " . str_replace(DIR_FS_MODULES, 'modules/', $target)
+           . " was tidied by hand; left alone (--force overrides)\n";
+        $left++;
+        continue;
+    }
 
     $contents = (string)file_get_contents($path);
     $report   = xml_to_object($contents);
@@ -137,7 +168,8 @@ foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
 
 echo "\n  converted $converted, unchanged $unchanged, "
    . ($write ? "written $written" : "would write " . ($converted - $unchanged))
-   . ", failed $failed\n";
+   . ", failed $failed"
+   . ($left ? ", left alone $left (hand-tidied)" : "") . "\n";
 
 if ($warned) {
     echo "\n  " . count($warned) . " definition(s) converted WITH WARNINGS:\n";
