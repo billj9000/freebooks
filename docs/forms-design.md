@@ -1648,6 +1648,35 @@ Continuing §9.
 During steps 2–5 the loader tries native then legacy, so development and testing work against a
 mixed tree. Step 6 deletes that branch; it is a few lines, not an architecture.
 
+#### After step 6
+
+Work that Forms needs but PhreeForm's removal does not wait on. Nothing here is started, and nothing
+here blocks step 6 — which is the distinction that keeps step 6 finishable.
+
+7. **Editing a table's columns on the canvas** — **§13.21**, where it is scoped. A table is the one
+   element on the page whose content is beyond the editor: the canvas moves it and resizes it, and
+   `TemplateForm::apply()` rebuilds it from `$original->columns`. Added to this list on 2026-08-17,
+   after adding a single column to a single shipped form took an XML edit, a regeneration and a
+   developer (§13.20). The report editor already edits a column list of the same shape, so the
+   control exists; the care is in the palette's GRAIN and in leaving the dataset question alone.
+8. **Updating a company's copy of a shipped document.** There is no route at all: `admin_add_reports()`
+   refuses a definition whose file already exists, deliberately, because replacing it would discard
+   whatever the company has done to it. So a fix to a shipped form reaches new installs only, and an
+   existing company keeps what it was seeded with for ever. Added 2026-08-17, after the Vendor SKU
+   column (§13.20) had to be grafted into a company's own Purchase Order by hand.
+
+   **The blunt version is the wrong one.** That company's copy carried 54 geometry changes — a whole
+   form moved down 20–25 mm and its table reshaped — so overwriting it with the new master would have
+   thrown a session's tidying away to gain one column. What the hand-run did instead was graft the
+   one thing that was new.
+
+   Generalising that is the work, and most of it exists already: `adopt_forms_layouts.php` computes
+   precisely the needed diff in precisely the needed categories — what the company changed against
+   the master it was seeded from, split into geometry, appearance and content. An update action is
+   that diff read in the other direction: take the master's content changes, keep the company's
+   geometry, show both before writing, and keep a backup. Where the two have touched the same thing
+   there is no honest automatic answer, and saying so per element beats guessing.
+
 #### Step 6 must also move the four render-to-string call sites
 
 `gen_print_form_url()` switches a Print BUTTON, which is a choice about a URL. Four places instead
@@ -2830,7 +2859,8 @@ it, which is the next section.
 ### 13.21 Scope: editing a table's columns on the canvas
 
 Not built. Scoped on 2026-08-17, when adding one column to one shipped form turned out to need a
-developer, an XML edit and a regeneration.
+developer, an XML edit and a regeneration. It is item 7 on the after-step-6 list in §13.7: wanted,
+and not a thing PhreeForm's removal waits on.
 
 **What is missing.** `TemplateForm::apply()` rebuilds a `Table` from `$original->source,
 $original->columns` — the canvas moves it and resizes it and cannot touch what is inside it. So a
