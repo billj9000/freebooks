@@ -144,6 +144,15 @@ final class FormRunner
                 ['This is a report, not a form. DocumentRunner serves it.']);
         }
 
+        // The same refusal planDefinition() makes, read off the legacy object
+        // instead. Both entry points must agree, or the diff harness compares a
+        // legacy render against a native one that was never allowed to happen.
+        if (!empty($report->serialform)) {
+            return new FormPlan(FormPlan::UNSUPPORTED, trim((string)($report->special_class ?? '')),
+                ['This is a receipt printer form, laid out in character cells rather'
+                    . ' than on a page. Forms cannot render one yet.']);
+        }
+
         $special = trim((string)($report->special_class ?? ''));
 
         if ($special !== '') {
@@ -245,6 +254,19 @@ final class FormRunner
         if (!$definition->isForm()) {
             return new FormPlan(FormPlan::UNSUPPORTED, '',
                 ['This is a report, not a form. DocumentRunner serves it.']);
+        }
+
+        // BEFORE the provider lookup, because a receipt names one — pos_builder,
+        // which IS registered — and would otherwise plan as runnable and render.
+        // It must not: a serial form carries no coordinates at all, so every
+        // element converts to 0,0 and LayoutPdfRenderer draws them stacked in
+        // one corner. That is worse than refusing, because it produces a
+        // plausible PDF nobody asked for rather than an error somebody reads.
+        // Removed when Forms grows a serial renderer and editor (§13.27).
+        if ($definition->isSerial()) {
+            return new FormPlan(FormPlan::UNSUPPORTED, (string)$definition->provider,
+                ['This is a receipt printer form, laid out in character cells rather'
+                    . ' than on a page. Forms cannot render one yet.']);
         }
 
         if ($definition->hasProvider()) {

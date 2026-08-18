@@ -247,6 +247,7 @@ define('FORMS_CANVAS_FOLDER',     'Folder');
 define('FORMS_CANVAS_CHOOSE',     'Forms you can look at');
 define('FORMS_CANVAS_OPEN',       'Layout');
 define('FORMS_CANVAS_IS_REPORT',  'This is a report, not a form. Reports are made of columns rather than positioned boxes, and are changed in the report editor.');
+define('FORMS_CANVAS_IS_SERIAL',  'This is a receipt printer form. It has no page and no positions — its lines are built from character cells, in order — so there is nothing here to lay out. Edit it in the PhreeForm designer until the receipt editor is built.');
 define('FORMS_CANVAS_READ_ONLY',  'This shows where each element sits on the printed page.');
 define('FORMS_CANVAS_SAMPLED',    'There is no record on this company that this form would print, so the figures below are invented. The layout is the real one; only the data is not.');
 define('FORMS_CANVAS_PAGE',       'The printed page');

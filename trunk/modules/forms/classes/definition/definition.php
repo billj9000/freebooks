@@ -85,6 +85,15 @@ final readonly class Definition
      * @param string  $recordTable form only: the table `record_ids` belong to
      * @param string  $recordKey   form only: the COLUMN of that table they are
      *   values of, which is not always its primary key
+     * @param bool    $serial      form only: a character-cell form for a receipt
+     *   printer rather than a page. Carried because it changes what the
+     *   definition MEANS, not merely how it prints: a serial form has no
+     *   coordinates at all — `abscissa` and `ordinate` are empty on every field
+     *   of the shipped receipt — and lays out by sequence, alignment and a
+     *   row break instead. Nothing in Forms can render or edit that shape yet
+     *   (§13.16, §13.27), so this exists first to let everything REFUSE one
+     *   knowingly; the legacy import used to drop the flag, which turned "we
+     *   cannot draw this" into a page of elements silently stacked at 0,0.
      */
     public function __construct(
         public string       $id          = '',
@@ -124,10 +133,17 @@ final readonly class Definition
         public string       $breakField  = 'id',
         public string       $recordTable = '',
         public string       $recordKey   = 'id',
+        public bool         $serial      = false,
     ) {}
 
     public function isForm(): bool   { return $this->type === self::FORM; }
     public function isReport(): bool { return $this->type === self::REPORT; }
+
+    /**
+     * A character-cell form for a receipt printer — laid out by sequence and
+     * alignment, with no coordinates. Always false for a report.
+     */
+    public function isSerial(): bool { return $this->type === self::FORM && $this->serial; }
 
     /** Served by a class rather than by a dataset query. */
     public function hasProvider(): bool { return $this->provider !== null && $this->provider !== ''; }

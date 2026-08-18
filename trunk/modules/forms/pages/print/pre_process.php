@@ -122,6 +122,25 @@ if ($forms_rID) {
   $messageStack->add(FORMS_PRINT_NOTHING_ASKED, 'error');
 }
 
+// ── a receipt goes back to PhreeForm, which can still print one ──────────────
+// gen_print_form_url() switches Print buttons on a COMPANY setting, not per
+// document, so with MODULE_FORMS_PRINT_BUTTONS on the POS receipt button lands
+// here too — and Forms cannot render a character-cell form (§13.27). Handed
+// straight back rather than refused: the till has to give the customer a
+// receipt, and PhreeForm prints this one correctly today. The query string is
+// already in the shape popup_gen expects, being what gen_print_form_url() built.
+// Goes when Forms grows a serial renderer, and nothing else has to change.
+if ($forms_report && $forms_report->isSerial()) {
+  gen_redirect(html_href_link(FILENAME_DEFAULT,
+      'module=phreeform&page=popup_gen'
+      . '&gID='  . urlencode($forms_gID)
+      . '&date=' . urlencode($forms_date)
+      . '&xfld=' . urlencode($forms_xfld)
+      . '&xcr='  . urlencode($forms_xcr)
+      . ($forms_xmax !== '' ? '&xmax=' . urlencode($forms_xmax) : '')
+      . '&xmin=' . urlencode($forms_xmin), 'SSL'));
+}
+
 // ── which records ────────────────────────────────────────────────────────────
 if ($forms_report) {
   $forms_plan = $runner->planDefinition($forms_report);

@@ -124,6 +124,14 @@ final class DefinitionBuilder
     {
         $converter = new TemplateConverter();
 
+        // Carried rather than dropped, even though nothing can draw one yet.
+        // The conversion runs whichever way this reads, and the coordinates it
+        // produces for a serial form are meaningless — every field of a receipt
+        // stores an EMPTY abscissa and ordinate, because BuildSeq() lays out by
+        // sequence and alignment instead. Losing the flag here is what let a
+        // receipt look like an ordinary form with everything at 0,0 (§13.27).
+        $serial = !empty($report->serialform);
+
         if ($special !== '') {
             if (!in_array($special, self::FORM_PROVIDERS, true)) {
                 throw new DefinitionException("No provider is registered for '$special',"
@@ -141,6 +149,7 @@ final class DefinitionBuilder
                 page:        $converter->convertPageSetup($report),
                 template:    $template,
                 recordTable: self::RECORD_TABLE[$special] ?? '',
+                serial:      $serial,
             );
         }
 
@@ -173,6 +182,7 @@ final class DefinitionBuilder
             breakField:  $break !== '' ? ($map[strtolower($break)] ?? 'id') : 'id',
             recordTable: $dataset->baseTable,
             recordKey:   $this->recordKey($break),
+            serial:      $serial,
         );
     }
 

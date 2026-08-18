@@ -157,7 +157,7 @@ ShippedDatasets::registerAll($catalog);
 $runner = new FormRunner($db, $catalog);
 $loader = new \FreeBooks\Forms\Definition\DefinitionLoader($catalog);
 
-$empty = $declined = 0;
+$empty = $declined = $handedBack = 0;
 foreach ($groups as $group) {
     $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM . "
         where doc_group = '" . db_input($group) . "' and doc_ext = 'frm' order by doc_title");
@@ -183,6 +183,13 @@ foreach ($groups as $group) {
         if (!$definition) {
             $declined++;
             $lines[] = sprintf('pf_%d cannot be read: %s', $id, $e->getMessage());
+        } elseif ($definition->isSerial()) {
+            // Not a decline. Forms cannot render a character-cell form (§13.27),
+            // so its print page hands this group straight back to PhreeForm,
+            // which prints it correctly — the button keeps working either way.
+            $handedBack++;
+            $lines[] = sprintf('pf_%d (%s) to PhreeForm: a receipt printer form', $id,
+                (string)$result->fields['doc_title']);
         } elseif (!$plan->runnable()) {
             $declined++;
             $lines[] = sprintf('pf_%d (%s) DECLINED: %s', $id,
@@ -197,6 +204,9 @@ foreach ($groups as $group) {
 }
 
 ok('no group holds a form Forms would decline', $declined === 0, "$declined declined");
+if ($handedBack) {
+    printf("  [--] %d group(s) hold a receipt printer form, handed back to PhreeForm\n", $handedBack);
+}
 if ($empty) {
     // Not a failure: a company that does not use the POS has no pos:rcpt form,
     // and its Print button is unreachable for the same reason.

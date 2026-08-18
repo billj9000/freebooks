@@ -83,6 +83,18 @@ if ($forms_canvas_definition !== null && !$forms_canvas_definition->isForm()) {
   $forms_canvas_definition = null;
 }
 
+// A receipt has no geometry to edit — see §13.27. Refusing at LOAD is what
+// makes this a guard rather than a warning: the save branch below is gated on
+// the definition being non-null, so a definition that never loads can never be
+// written back. That matters more here than for a report, because saving one
+// would replace the only copy of a working receipt with a native file neither
+// engine can print — Forms has no serial renderer, and PhreeForm cannot read
+// the native format at all.
+if ($forms_canvas_definition !== null && $forms_canvas_definition->isSerial()) {
+  $messageStack->add(FORMS_CANVAS_IS_SERIAL, 'caution');
+  $forms_canvas_definition = null;
+}
+
 if ($forms_canvas_definition !== null) {
   foreach ($loader->warnings() as $warning) {
     $messageStack->add(sprintf(FORMS_WARN_CONVERSION, $warning), 'caution');

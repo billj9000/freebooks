@@ -3225,13 +3225,13 @@ first when `MODULE_FORMS_STATUS` is defined, falling back to the existing
 Forms not being installed, or a definition Forms genuinely cannot serve,
 degrades to exactly the old behaviour rather than a new failure mode.
 
-**This was not a hypothetical.** `demo`'s `cust:inv` group resolves (`ORDER
-BY doc_title LIMIT 1`) to `pf_91` "Invoice" — native, seeded back when
-`phreebooks` first shipped native definitions (§13.5) — while `production`'
+**This was not a hypothetical.** On `demo`, the `cust:inv` group resolves
+(`ORDER BY doc_title LIMIT 1`) to a document that is native — seeded back when
+`phreebooks` first shipped native definitions (§13.5) — while `production`'s
 same-titled document is still legacy XML. Measured before the fix:
-`get_report_details(91)` on `demo` returned `false`; the PayPal payment-link
+`get_report_details()` on that id returned `false`; the PayPal payment-link
 email had been silently sending with no invoice attached, with nothing
-anywhere saying so. Measured after: `forms_render_to_string(91, [1372])`
+anywhere saying so. Measured after: `forms_render_to_string()` on the same id
 returns a 160 KB PDF on `demo` (native) and a 160 KB PDF on `production`
 (legacy) — the same document, either format.
 
@@ -3270,3 +3270,114 @@ id bracket, even against a temp directory.**
 
 See [[todo_forms_render_to_string_callsites]] and
 [[project_phreeform_replacement]].
+
+### 13.27 The receipt form, guarded — and why a canvas is the wrong tool for one
+
+Built 2026-08-18, taking up the guard flagged at the end of §13.26. The
+question that shaped it was the user's: *could* we give the receipt a
+canvas, so it can be edited rather than merely refused? The format
+answers that, and the answer is no.
+
+**A serial form has no coordinates.** Not coordinates Forms mis-reads —
+none. Measured on the shipped `ReceiptSlip.xml`, all 19 fields:
+
+```
+ 0 type=Text  w=40 align=C brk=1  abs=''  ord=''  text='Sales/Invoice'
+ 5 type=Text  w=40 align=L brk=0  abs=''  ord=''  text='Order #'
+ 6 type=Data  w=40 align=C brk=1  abs=''  ord=''
+10 type=Tbl   w=40 align=L brk=0  abs=''  ord=''
+11 type=Text  w=40 align=L brk=0  abs=''  ord=''  text='Subtotal'
+12 type=Data  w=40 align=R brk=1  abs=''  ord=''
+```
+
+`abscissa` and `ordinate` are empty on every one, and `BuildSeq()` never
+reads them. Layout comes from three other things: sequence, `align`, and
+`rowbreak`. Each output line is a 40-character string that successive
+fields OVERLAY through `formatReceipt()` — left-pad, right-pad or centre
+against the line built so far — until a field carrying `rowbreak=1`
+flushes it. That is how "Subtotal" (align L) and its amount (align R)
+occupy one line: two fields overlaid on the same 40 cells, not two boxes
+at two positions.
+
+So dragging boxes cannot express a receipt, and a canvas would have
+nothing true to write back. The converter's "everything at 0,0" is not a
+bug in the conversion — it is a faithful reading of coordinates that were
+never there.
+
+**The right editor, when it is built, is a row/cell grid** — rows in
+order, each listing its overlaid cells with type, width, alignment and
+binding, beside a live monospace preview of the actual 40-column output.
+That would be better than PhreeForm's own serial editor, which is the
+same field grid it uses for PDF forms and still shows X and Y columns
+that do nothing. Building it needs two pieces that do not exist: a serial
+renderer (character-cell output — `formatReceipt()` plus the
+overlay/flush loop) and a serial layout model to replace `Template`'s
+positioned boxes. The data side is already done; `pos_provider` serves
+the receipt today. **This is required before Forms is finished**, because
+PhreeForm is to be retired — it is not optional polish. Until it lands,
+PhreeForm's designer edits the receipt, as it always has.
+
+**What the guard is.** Five pieces, all small:
+
+- `Definition::$serial` and `isSerial()` — the flag the format needs;
+- `DefinitionBuilder::form()` reads `serialform` instead of dropping it,
+  which also makes the conversion lossless;
+- `DefinitionCodec` round-trips it. Emitted only when true, so not one
+  stored byte of the 61 non-receipt definitions changes and the
+  byte-identity check still passes;
+- `FormRunner::planDefinition()` **and** `plan()` refuse a serial form,
+  before the provider lookup;
+- the canvas refuses to open one, `FORMS_CANVAS_IS_SERIAL`.
+
+The canvas refusal is at LOAD, which is what makes it a guard rather than
+a warning: the save branch is gated on the definition being non-null, so
+one that never loads can never be written back. That mattered more here
+than for a report — saving would have replaced the only working copy of a
+receipt with a native file NEITHER engine can print, Forms having no
+serial renderer and PhreeForm being unable to read native at all.
+
+**Both plan entry points, not one.** `planDefinition()` takes a
+Definition and `plan()` takes a legacy object, and the diff harness in
+`verify_forms_native.php` calls the second. Guarding only the first made
+it compare a legacy render against a native one that was no longer
+allowed to happen, and it failed — correctly. Worth noting what that
+check had been doing beforehand: it ran the receipt down both paths, got
+identical bytes, and passed. Both sides were Forms, so both produced the
+same everything-at-0,0 page. It proved the two FORMATS agreed, which is
+all it ever claimed, but on this one document that agreement was between
+two wrong answers.
+
+**The one that would have bitten users.** `gen_print_form_url()` switches
+Print buttons on a COMPANY setting, not per document, and `pos:rcpt` is
+one of the 11 groups it covers — the POS pages call it with
+`POPUP_FORM_TYPE`. So with `MODULE_FORMS_PRINT_BUTTONS` on, the till's
+Print button already landed on the Forms print page, which rendered the
+0,0 page. Adding the plan guard alone would have turned that from a wrong
+receipt into NO receipt, which at a shop counter is worse. The print page
+therefore hands a serial form straight back to `phreeform&page=popup_gen`
+with the query string it already has — gen_print_form_url() built it, so
+it is already in the shape popup_gen expects. The button keeps working,
+on the engine that can still do the job. That redirect goes when the
+serial renderer lands, and nothing else changes.
+
+**Measured, three companies.** No receipt had already been saved native
+anywhere (`serial-already-native=0` on all three), so there was no
+pre-existing damage the guard would have hidden — worth checking first,
+because the guard makes that state invisible rather than repairing it.
+`demo` and `production` each carry one serial form, now planned unrunnable
+with its reason and round-tripping the flag; a third, bare installation has
+no POS module and so no receipt at all. Full verifier suite passes on `demo`
+and `production`. The bare one still shows four pre-existing data-gap failures
+in `verify_forms_native` and `verify_forms_designer` — confirmed
+pre-existing by running the committed code against it and getting the
+same four.
+
+**Also found: the deployment build context held a stale, partial copy of
+the Forms module** — 51 files against the repository's 74, missing
+`classes/definition/` and `pages/canvas/` outright. The Dockerfile is
+`COPY . .`, so that context IS the web root, and a deploy would have
+shipped a Forms module without the definition layer everything now
+requires. Synced. Harmless so far only because Forms is deliberately not
+deployed yet; it would not have stayed harmless.
+
+See [[todo_forms_canvas_serial_guard]] and §13.16.
