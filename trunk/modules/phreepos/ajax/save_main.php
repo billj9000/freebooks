@@ -249,6 +249,16 @@ if (file_exists($custom_path)) { include($custom_path); }
 		  	}
 		  	$rID    = $result->fields['id']; // only one form available, use it
 		  	$report = get_report_details($rID);
+		  	// A receipt is character-cell text for the printer, not a page, and
+		  	// Forms has no renderer for that shape (design §13.16) — so unlike
+		  	// the PDF call sites this one has no second engine to fall back to.
+		  	// get_report_details() returns false rather than fataling when the
+		  	// stored definition is native (saved by the Forms editor), which
+		  	// would otherwise cascade into warnings on every line below and an
+		  	// AJAX response nobody can read the error out of.
+		  	if (!$report) {
+		  		if(DEBUG) $massage .= 'The receipt form ('.POPUP_FORM_TYPE.') is stored in the Forms format, which this engine cannot open.';
+		  	} else {
 		  	$title  = $report->title;
 		  	$report->datedefault = 'a';
 		  	$report->xfilterlist[0]->fieldname = 'journal_main.id';
@@ -267,6 +277,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 		  				$xml .= "</receipt_data>\n";
 		  			}
 		  		}
+		  	}
 		  	}
 		}
 	}

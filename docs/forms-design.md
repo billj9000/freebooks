@@ -3188,3 +3188,85 @@ takes a copy either way, because that is the deployment.
 remains xml-only for its two serial receipt slips — correct, and for the reason in §13.16: Forms has
 no renderer for a character-cell form, so a native copy would leave a new install unable to print a
 receipt with either engine.
+
+### 13.26 The render-to-string call sites, and the two that turned out not to be
+
+Tackled 2026-08-18, continuing [[todo_forms_render_to_string_callsites]]. Four
+places render a document to bytes in-process rather than through a page:
+the ZenCart cron's VAT invoice email, the PayPal payment-link email's
+invoice attachment, and the POS receipt on save and on reprint. All four
+called `get_report_details()` + `BuildForm($report, 'S')` — PhreeForm,
+unconditionally — and `get_report_details()` refuses a native (JSON)
+definition outright, returning `false` with a page message that these
+callers have no page to read.
+
+**Only two of the four are actually the PDF-bytes problem the note
+described.** The other two — `phreepos/ajax/save_main.php` and
+`phreepos/ajax/print_previous.php` — render the POS Receipt Slip, which is
+a SERIAL form: character-cell text for a receipt printer, not a page
+(§13.16). `BuildForm()` returns a plain string for it, not a PDF array, and
+Forms has no renderer for that shape at all — there is nothing to switch
+these two onto. Re-reading the original note against the code it named was
+what caught this; it had grouped all four under "need PDF bytes."
+
+**What shipped for the two real cases** — `forms_render_to_string()`,
+`modules/forms/functions/forms.php`. The same sequence
+`pages/print/pre_process.php` runs for a page (load → plan → run →
+`LayoutPdfRenderer`), without the HTTP delivery, the record selector, or a
+`$messageStack` to write to; failures go to `error_log()` instead, because
+there is no page to put them on. It reads whichever format the definition
+is stored in, through the same `DefinitionLoader` the print page uses — the
+one place a PhreeForm caller can go to stop caring, which is what actually
+closes the trap.
+
+`zencart_email_vat_invoice()` and `_paypal_build_invoice_pdf()` now try it
+first when `MODULE_FORMS_STATUS` is defined, falling back to the existing
+`get_report_details()`/`BuildForm()` path only when it returns null — so
+Forms not being installed, or a definition Forms genuinely cannot serve,
+degrades to exactly the old behaviour rather than a new failure mode.
+
+**This was not a hypothetical.** `demo`'s `cust:inv` group resolves (`ORDER
+BY doc_title LIMIT 1`) to `pf_91` "Invoice" — native, seeded back when
+`phreebooks` first shipped native definitions (§13.5) — while `production`'
+same-titled document is still legacy XML. Measured before the fix:
+`get_report_details(91)` on `demo` returned `false`; the PayPal payment-link
+email had been silently sending with no invoice attached, with nothing
+anywhere saying so. Measured after: `forms_render_to_string(91, [1372])`
+returns a 160 KB PDF on `demo` (native) and a 160 KB PDF on `production`
+(legacy) — the same document, either format.
+
+**What shipped for the two receipt call sites** — a null guard matching the
+one `get_report_details()` already documents needing: `save_main.php`
+previously read `$report->title` with no check at all, so a native receipt
+definition would not fail cleanly, it would cascade property-access
+warnings through the filter-building lines below and hand `BuildForm()` a
+`false`. Guarded, both now decline with a message instead. This does not
+make the underlying document any less printable — nothing does, until
+Forms has a serial renderer — it only stops a bad state from becoming worse
+than "no receipt."
+
+**What did NOT ship: a guard on the canvas.** Nothing in Forms recognises
+`<serialform>` at all — the converter accepts a receipt's XML and produces
+a definition with every element at 0,0 (§13.16's original finding), and
+nothing stops it being opened and SAVED from the canvas, which is the one
+way a receipt could actually become native and hit the code path just
+guarded against. Preventing that at the source — refusing to load or save
+a serial-form definition in the canvas — is a real, separate fix, not
+covered here; the two ajax guards only stop the symptom from being a
+warning cascade.
+
+**A stray catalog row, and the lesson.** Verifying this touched off an
+unrelated finding: an ad-hoc script written earlier in the same session to
+test extension-module seeding (§13.25) had called `admin_add_reports()`
+against `test` with a TEMP save path — and left a real catalog row behind.
+`admin_add_reports()`/`ImportReport()` insert the TABLE_PHREEFORM row
+unconditionally; only the FILE goes to the path given. `verify_paper_seeding.php`
+already knows this and cleans up after itself (`$highWater` captured before,
+everything above it deleted after); a one-off script written to answer a
+quick question did not, and it sat unnoticed until it changed which
+document `verify_forms_pages.php`'s self-test picked to run. **Any direct
+call to `admin_add_reports()` outside that tool needs the same before/after
+id bracket, even against a temp directory.**
+
+See [[todo_forms_render_to_string_callsites]] and
+[[project_phreeform_replacement]].

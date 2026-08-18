@@ -311,29 +311,43 @@ function zencart_email_vat_invoice(int $invoice_id, int $acct_id, int $zc_id): b
             }
         }
 
-        $report = get_report_details($form_id);
-        if (!$report) {
-            fwrite(STDERR, ts() . " Order $zc_id: VAT invoice email skipped, configured form (id $form_id) could not be loaded.\n");
-            return false;
+        // Forms first, when it is installed: it reads BOTH the legacy xml and
+        // a native definition, where get_report_details() below refuses the
+        // latter outright. Without this branch, the first time an admin saved
+        // the configured VAT invoice form in the Forms editor, this email
+        // would keep "succeeding" with silently no attachment forever after —
+        // exactly the trap named in design §13.7 step 6.
+        $pdf = null;
+        if (defined('MODULE_FORMS_STATUS')) {
+            require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+            $pdf = forms_render_to_string($form_id, [$invoice_id]);
         }
 
-        $f = new stdClass();
-        $f->fieldname = 'journal_main.id';
-        $f->default   = 'EQUAL';
-        $f->min_val   = (string)$invoice_id;
-        $f->type      = '';
-        $report->xfilterlist = [$f];
-        $report->datedefault = '';
+        if ($pdf === null) {
+            $report = get_report_details($form_id);
+            if (!$report) {
+                fwrite(STDERR, ts() . " Order $zc_id: VAT invoice email skipped, configured form (id $form_id) could not be loaded.\n");
+                return false;
+            }
 
-        // entry_builder::load_query_results() declares `global $report` and iterates
-        // $report->fieldlist to build $FieldValues — without this, header/customer
-        // fields on the form render blank.
-        $GLOBALS['report'] = $report;
+            $f = new stdClass();
+            $f->fieldname = 'journal_main.id';
+            $f->default   = 'EQUAL';
+            $f->min_val   = (string)$invoice_id;
+            $f->type      = '';
+            $report->xfilterlist = [$f];
+            $report->datedefault = '';
 
-        $pdf = BuildForm($report, 'S');
-        if (!is_array($pdf) || empty($pdf['pdf'])) {
-            fwrite(STDERR, ts() . " Order $zc_id: VAT invoice PDF render failed for invoice $inv_num.\n");
-            return false;
+            // entry_builder::load_query_results() declares `global $report` and iterates
+            // $report->fieldlist to build $FieldValues — without this, header/customer
+            // fields on the form render blank.
+            $GLOBALS['report'] = $report;
+
+            $pdf = BuildForm($report, 'S');
+            if (!is_array($pdf) || empty($pdf['pdf'])) {
+                fwrite(STDERR, ts() . " Order $zc_id: VAT invoice PDF render failed for invoice $inv_num.\n");
+                return false;
+            }
         }
 
         $temp_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/vat_invoice_' . $invoice_id . '_' . time() . '.pdf';

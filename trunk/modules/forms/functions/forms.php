@@ -263,3 +263,84 @@ function forms_folder_for(string $group, bool $isForm, array $titles): string
     // A report's group IS its category; a form's is the category plus a folder.
     return $titles['category'][$group] ?? $titles['category'][explode(':', $group)[0]] ?? $group;
 }
+
+/**
+ * Render one form to PDF bytes, with nothing web-shaped around it.
+ *
+ * For a caller that needs the bytes in-process — an emailed attachment built
+ * by a cron script, a payment-link email — rather than a browser response.
+ * `pages/print/pre_process.php` does the same sequence for a page; this is it
+ * without the HTTP delivery, the record selector, or a $messageStack.
+ *
+ * Reads whichever format the definition is stored in, through the same
+ * format-aware loader the print page uses. That is the whole point of it:
+ * `get_report_details()` (phreeform/functions/phreeform.php) refuses a native
+ * definition outright, adding a page message and returning false — reasonable
+ * for a page, fatal for a caller with no page to read it from. Before this, a
+ * cron script or an ajax handler calling that function would find its report
+ * simply stopped rendering, silently, the first time someone saved the same
+ * form in the Forms editor (design §13.7 step 6, the render-to-string trap).
+ *
+ * Not for a report (`type=rpt`) or a serial/receipt form: a report is
+ * DocumentRunner's, and Forms has no renderer for character-cell text at all
+ * (§13.16) — planDefinition() on either would report itself unrunnable, which
+ * this treats as failure like anything else.
+ *
+ * @param list<int> $recordIds  usually one id — the journal entry, the work
+ *   order — matching what the definition's provider or dataset key expects.
+ * @param array<string,mixed> $params  passed through to FormRunner::runDefinition(),
+ *   e.g. ['dates' => '...'] for the statement forms; omit for a single record.
+ * @return array{pdf:string,filename:string}|null  null on any failure. There is
+ *   no page to put a message on, so the reason goes to error_log() instead.
+ */
+function forms_render_to_string(int $definitionId, array $recordIds, array $params = []): ?array
+{
+    global $db, $currencies;
+
+    try {
+        require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
+        // Defined unconditionally at the top of forms/config.php — but a
+        // caller outside the normal page bootstrap (the ZenCart cron script
+        // builds its own constant list rather than loading module config.php
+        // files at all) may never have required that file.
+        if (!defined('TABLE_FORMS_DATASETS')) {
+            define('TABLE_FORMS_DATASETS', DB_PREFIX . 'forms_datasets');
+        }
+
+        $catalog = new \FreeBooks\Forms\Catalog\Catalog();
+        \FreeBooks\Forms\Catalog\ShippedDatasets::registerAll($catalog);
+        (new \FreeBooks\Forms\Catalog\CustomDatasetStore(
+            $db, new \FreeBooks\Forms\Catalog\SchemaInspector($db), TABLE_FORMS_DATASETS
+        ))->registerAll($catalog);
+
+        $definition = (new \FreeBooks\Forms\Definition\DefinitionLoader($catalog))->load($definitionId);
+        $document   = (new \FreeBooks\Forms\App\FormRunner($db, $catalog))
+            ->runDefinition($definition, $recordIds, $params);
+
+        if (!$document instanceof \FreeBooks\Forms\Document\LayoutDocument || count($document->records) === 0) {
+            error_log("forms_render_to_string: pf_$definitionId produced no records for "
+                . implode(',', $recordIds));
+            return null;
+        }
+
+        $renderer = new \FreeBooks\Forms\Render\LayoutPdfRenderer(
+            formatter: new \FreeBooks\Forms\Render\Formatter(
+                currencies:      $currencies,
+                defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
+                lookups:         forms_formatter_lookups(),
+            ),
+            defaultFont:          defined('PDF_DEFAULT_FONT')    ? PDF_DEFAULT_FONT          : 'helvetica',
+            rowSpacing:           defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
+            continuedLabel:       defined('TEXT_CONTINUED')      ? TEXT_CONTINUED            : 'Continued',
+            pageOfLabel:          defined('TEXT_OF')             ? TEXT_OF                   : 'of',
+            imageDirectory:       PF_DIR_MY_REPORTS . 'images',
+            linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
+        );
+
+        $output = $renderer->render($document, new \FreeBooks\Forms\Document\RenderOptions());
+        return ['pdf' => $output->bytes, 'filename' => $output->filename];
+    } catch (\Throwable $e) {
+        error_log("forms_render_to_string: pf_$definitionId failed: " . $e->getMessage());
+        return null;
+    }
+}

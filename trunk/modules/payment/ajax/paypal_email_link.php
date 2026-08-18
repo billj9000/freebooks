@@ -128,8 +128,20 @@ function _paypal_build_invoice_pdf($fb_invoice_id) {
       . " WHERE doc_group = 'cust:inv' AND (doc_ext = 'frm' OR doc_ext = 'rpt')"
       . " ORDER BY doc_title LIMIT 1");
     if ($r->EOF) return false;
+    $form_id = (int)$r->fields['id'];
 
-    $report = get_report_details((int)$r->fields['id']);
+    // Forms first, when it is installed: it reads both the legacy xml and a
+    // native definition, where get_report_details() below refuses the latter
+    // outright — the trap named in design §13.7 step 6. This id is looked up
+    // by GROUP every call, so which format it is in can change the moment
+    // someone edits the stock invoice form, with nothing here to notice.
+    if (defined('MODULE_FORMS_STATUS')) {
+      require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+      $rendered = forms_render_to_string($form_id, [$fb_invoice_id]);
+      if ($rendered !== null) return $rendered;
+    }
+
+    $report = get_report_details($form_id);
     if (!$report) return false;
 
     // Filter to this specific journal entry, no date range restriction.
