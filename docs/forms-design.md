@@ -2900,3 +2900,211 @@ the same shape (`ReportColumn`), so this is the same control in a different host
 first row) — mitigated by the grain rule in step 1. Widths that no longer fit — mitigated by step 3.
 And the dataset question in step 4, which is where this could quietly turn into "let an author write
 a join" if nobody holds the line.
+
+### 13.22 The document list asks its questions per document
+
+Done 2026-08-18, on the user's direction after a review of `?module=forms&page=main`. Four things
+were on the table; three were taken. Viewing a report inline instead of downloading it was offered
+and declined, and the page's remaining dependence on `TABLE_PHREEFORM` and the PhreeForm bootstrap
+was left where it belongs, in step 6.
+
+#### The defect the review found
+
+The page carried a page-wide options bar — date range, accounting period, GL account — above a list
+of thirty-nine reports. The date select was rendered with `'a'` preselected, `TEXT_ALL`, and the
+click handler sent it whenever it was non-empty. `DocumentRunner` only falls back to the
+definition's own `dateDefault` when the parameter is **empty**, so every report run from this list
+ran over all time. A report drawn as "this month" gave the whole ledger and looked like it had
+worked. Measured on both companies, through the filter description the renderer prints on the page:
+
+```
+Customer Invoice History           stored=f
+  no parameter : Report Filters: Sorted by: Invoice Date; Date range: 01/08/2026 to 31/08/2026
+  forced 'All' : Report Filters: Sorted by: Invoice Date
+```
+
+That is the whole bug: the second line is what the page produced, and the report says so in its own
+header, which is why it was never obviously wrong.
+
+#### What replaced it
+
+`RunPlan` already knew `needsPeriod` and `needsGlAccount`; it gains `needsDates`, true on the
+dataset route when the definition has a `dateField` for a range to apply to. A definition without
+one runs identically whatever a range says, and a control that changes nothing is worse than no
+control. Two derived questions sit beside them: `hasOptions()`, and `mustAsk()` — the answer the
+definition cannot supply for itself, which today is the bank reconciliation's account.
+
+So each row declares what it can be asked, and the page acts on it:
+
+- **PDF runs immediately**, sending no dates and no period, which is what lets the runner fall back
+  to the definition's own answers. The common case costs no clicks and comes out as drawn.
+- **A caret** beside it offers CSV, Email and — only where `hasOptions()` — Options.
+- **The dialog** is headed with the document's name and shows only the controls that document needs.
+  The date list's first entry is *As the report is set — This Month*, valued empty: choosing nothing
+  sends nothing. The period has no such fallback (a structural provider cannot do anything with
+  period 0), so the stored one is named outright, or the current one where none is stored.
+- **`mustAsk()` opens the dialog instead of running.** Reconciling whichever account sorts first is
+  a plausible-looking wrong answer.
+
+The page-wide options bar and the email card are gone; the email fields moved into the same dialog,
+which is what lets the subject default to the document's own title. The form now wraps the dialog
+and nothing else. A refused send reopens the dialog on the document it was for — and a **successful**
+one does not, which needs its own flag: `$_POST` still holds the message on the redraw, so
+"was anything typed" cannot distinguish the two.
+
+#### A required answer with no possible value
+
+Found by the user on a company whose chart of accounts is empty. The bank reconciliation is the one
+report that `mustAsk()`, and the dialog duly presented a mandatory GL account select — with no
+options in it. Mandatory, unanswerable, and an error message that could never be satisfied.
+
+The query and the filter are right: `account_type = 0` is cash and bank, and a company with a chart
+lists its four. What was wrong was the page's behaviour when the answer set is empty. The dialog now
+says there is nothing to reconcile and where to add an account, disables the empty control, and
+**disables the run buttons** rather than demanding an answer that does not exist.
+
+The general rule this is an instance of: a required control whose list is empty is not a validation
+problem, it is a precondition that has not been met, and it should be reported as one.
+
+#### Filtering, folding, and what a row says
+
+A filter box narrows the list on name and group, in the browser, over rows that are already
+rendered — no query, so the framework-wide `LIKE '%term%'` scaling problem does not arise here.
+Folder headings fold. **A search looks through a folded group**: being told nothing matches, because
+the group holding it happens to be shut, is the kind of answer that costs an afternoon.
+
+The "Served by" column is gone. The dataset or provider a definition resolved to is diagnostic — the
+answer to "why can this report not see that field" — so it sits under the title for the people who
+can author, and nobody else. A document Forms *cannot* serve says so to everyone, with a warning
+sign and the reason, because that is what the reader is looking for when a document they expect is
+missing.
+
+Both `alert()` boxes are gone. The GL account and the To address report on the control itself, which
+is now in the dialog beside the field, rather than in a box that pointed at a collapsed panel.
+
+#### Two things the markup had to get right
+
+The row, not the button, carries `data-url` and the flags: one document has several ways to be run,
+and repeating its URL on each of them is how they drift apart. And the table lost its
+`.table-responsive` wrapper — two columns never need to scroll sideways, and the wrapper's
+`overflow-x` makes a clipping context that cuts the row dropdowns off, which is a menu that opens
+and is invisible.
+
+#### Verification, and what it cannot cover
+
+`verify_forms_pages.php` was extended rather than relaxed, and four of its checks had to be taught
+the new shape. Three of those were reading the old markup and would have passed on a broken page:
+the title-cell reader took `textContent`, which swept up the diagnostic line and reported every
+non-runnable document as missing from its own list. It now reads the words a node shows *itself*,
+ignoring child elements.
+
+New checks: every runnable row names its document, its URL and all four flags as `0` or `1`; **no
+run URL imposes a date range or a period**, which is the defect above, asserted; the dialog draws
+`dates`, `period` and `gl_account`, and the first date option's value is empty; the filter box is
+not inside the form (an `<input>` in a form takes Enter as "submit", and the only submit this page
+has sends an email); and no `alert(` survives anywhere in the render.
+
+There is still no JavaScript engine here, so the script cannot be exercised. Standing in for it:
+**every id the page's script reaches for must exist in the render** (19 checked) and **every class
+it delegates on must be in the markup** (4 checked). `getElementById` returning null is silent until
+the line that uses it, which presents as a button that highlights and does nothing — the exact
+failure this page had once before. That is a guard, not a proof.
+
+The run harness also had to change. It followed the first `.fb-run` control it found, which on a
+stock install is the Account Reconciliation — a report that properly refuses to run until it is told
+which account. So it proved the refusal worked and reported a page that delivers documents perfectly
+well as broken. It now follows the first row with `data-must-ask="0"`. Both companies pass.
+
+#### The trap that made every button dead, and why the harness missed it
+
+`template_index.php` emits `pages/{page}/js_include.php` inside the **`<head>`** — before `<body>`,
+and long before the page's own markup. So the script runs when none of the elements it works on
+exist. This page's first version read its elements at the top level and guarded on them:
+
+```js
+const dialog = document.getElementById('forms_run_dialog');
+if (!dialog || !table || !form) return;      // always taken
+```
+
+Every one of those was null, the guard bailed, and nothing was wired: PDF did nothing, and neither
+did anything on the caret. The version it replaced never met this, because it delegated on
+`document` — which does exist in the head. Everything now sits inside a `DOMContentLoaded` handler,
+which also makes `bootstrap` safe to name: the bundle is loaded with `defer`, and deferred scripts
+are guaranteed to have run by then.
+
+**The harness had modelled the page wrongly**, and that is the more useful half of this. It rendered
+`pre_process`, then `template_main`, then `js_include`, and parsed the three as one document — so
+every id the script reached for was "present", and the check that asserts exactly that passed on a
+page whose every button was dead. It now renders them in the order `template_index.php` uses, script
+first.
+
+Order alone does not catch it, though: a parsed document has no notion of *when* a line ran. So
+there is a check for the timing itself. It measures brace depth through each non-module `<script>`,
+skipping strings and comments, and reports a `getElementById` or `querySelector` executed at the top
+level — where "top level" is one brace deep when the file opens with an IIFE, because
+`(function () { … })()` runs immediately despite the brace. A lookup inside a function *declared*
+there is fine; declaring is not calling.
+
+That detector is itself tested, on the four shapes it exists to tell apart — an IIFE that acts at
+once, a `DOMContentLoaded` wrapper, a lookup inside a declared function, and the name appearing in a
+string. A checker that answers "safe" to everything passes every page and protects none, and this
+one is a hand-written scanner over JavaScript.
+
+### 13.23 The report editor has no list of its own
+
+Asked by the user on 2026-08-18, after cancelling an edit and landing somewhere they had not come
+from: *"Do we need the Report Editor page now?"* Mostly, no.
+
+**What it was.** With no `rID`, `?module=forms&page=design` answered with a chooser: every
+`doc_ext <> 'frm'` document, with a Title and a Group column. That is the same population the
+Reports page lists — and it printed the raw `doc_group` code, which §13.14 had deliberately stopped
+doing on the Reports list because `cust:inv` beside every row made an ordered page look unordered.
+Two lists of one thing, and the worse of them on the Tools menu.
+
+**Why it was there, and why that no longer holds.** `config.php` said the menu entry was the only
+way `SECURITY_ID_FORMS_AUTHOR` could be granted at all, because phreedom's roles page builds itself
+by walking `$mainmenu` and drawing one row per entry that names a security id — an id no entry names
+cannot be given to any role, and nothing errors; the feature is simply absent. That reasoning was
+correct when written and is now stale: the form canvas was added afterwards and names the same id.
+Measured before removing anything — with the entry gone, ids 8, 9 and 10 are still named by Reports,
+Form Layout and Report Datasets respectively.
+
+That invariant is now asserted rather than remembered: `verify_forms_pages.php` checks that every one
+of the module's three security ids is named by some menu entry. Removing the canvas's entry would
+now fail the suite instead of quietly ungranting every authoring privilege.
+
+**What replaced it.** The page keeps its "nothing chosen" state — arriving with no report is not an
+error and must not be reported as one — but it says which list to use and links to it rather than
+building a second one. Cancel returns to the Reports list.
+
+**The canvas is NOT following it, and that is the same rule rather than an exception.** Cancel means
+"back to the list this document appears on". For a report that is the Reports list; for a form it is
+Form Layout, because forms are kept off the Reports page on purpose (§13.14), so the canvas's
+chooser is the only list a form appears on at all.
+
+### 13.24 A heading has to look like a different kind of thing
+
+Reported by the user on 2026-08-18: *"the category headings don't look much different from the
+report names so they don't help the user much."*
+
+The headings were `fw-bold text-muted` at the row's own size — bolder than a report name, but in the
+same colour family and on the same ground, so the eye ran past them. Grouping that the reader does
+not see is grouping that is not there.
+
+They are a **band** now: their own background (`#c9e0f0`, distinct from both the `#E2E4FF` odd rows
+and the white even ones), ruled `2px` above and `1px` below in the theme's `#4297d7`, with a small
+uppercase letter-spaced label in `#0d4d69` — a colour no row uses. The rule above is dropped on the
+first heading, where the table head already provides one.
+
+Two things worth keeping in mind from doing it:
+
+- **The look belongs in `freebooks.css`, not in utility classes on the markup.** `.text-muted` and
+  its neighbours carry `!important`, so a colour of our own could not have won against them; the
+  heading's classes came off the button and the styling went into `.fb-folder-toggle`.
+- **The heading is a `<button>`** — it folds its group, so it has to be reachable from the keyboard
+  and announce its state. None of that should show, so the button's own chrome is turned off in the
+  stylesheet rather than by piling `p-0 border-0 text-decoration-none` onto the element.
+
+`freebooks.css` is a static file, so a browser that has it cached will show the old headings until a
+hard refresh — which is a deployment note, not a bug, but it is the first thing to check when a style
+change appears not to have landed.

@@ -65,10 +65,28 @@ final readonly class RunPlan
         public string $kind,
         public string $name,
         public array  $notes = [],
-        /** Run-dialog answers this definition needs before it can run at all. */
+        /** Run-dialog answers this definition can be asked for before it runs. */
+        public bool   $needsDates     = false,
         public bool   $needsPeriod    = false,
         public bool   $needsGlAccount = false,
     ) {}
+
+    /** Is there anything worth asking before this runs? */
+    public function hasOptions(): bool
+    {
+        return $this->needsDates || $this->needsPeriod || $this->needsGlAccount;
+    }
+
+    /**
+     * Is one of those answers one the definition cannot supply itself?
+     *
+     * Dates and period both have a stored answer to fall back on, so a report
+     * runs as its author drew it without anything being asked. A GL account has
+     * none — and reconciling whichever account happens to sort first is a
+     * plausible-looking wrong answer, which is why the list must stop and ask
+     * rather than pick.
+     */
+    public function mustAsk(): bool { return $this->needsGlAccount; }
 
     /** Can DocumentRunner produce a table from this? A form is printed, not run. */
     public function runnable(): bool
@@ -242,7 +260,12 @@ final class DocumentRunner
             return new RunPlan(RunPlan::UNSUPPORTED, '',
                 ['This definition names no dataset, so nothing can serve it.']);
         }
-        return new RunPlan(RunPlan::DATASET, $definition->datasetId);
+        // A date range is worth offering only where there is a field for it to
+        // apply to. The range is emitted as filters ON that field, so a
+        // definition without one runs identically whatever the dialog says, and
+        // offering the choice would be a control that changes nothing.
+        return new RunPlan(RunPlan::DATASET, $definition->datasetId,
+            needsDates: (string)$definition->dateField !== '');
     }
 
     /**

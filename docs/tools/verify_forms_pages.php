@@ -365,16 +365,28 @@ if ($RUNNING) {
     exit(1);
 }
 
-$output = '';
-$fatal  = null;
+// In the order template_index.php uses, which is NOT the order they are named
+// in. js_include.php is emitted inside the <HEAD>, before <body> and before the
+// page's own markup — so the script runs while none of the elements it works on
+// exist yet. Rendering it last, as this did, produced a document no browser ever
+// sees and hid a page whose every button was dead: a top-level getElementById
+// returned null, the guard that tested it bailed, and nothing was ever wired up.
+$output  = '';
+$script  = '';
+$prelude = '';
+$fatal   = null;
 try {
     ob_start();
     require(DIR_FS_WORKING . 'pages/' . $PAGE . '/pre_process.php');
-    require(DIR_FS_WORKING . 'pages/' . $PAGE . '/template_main.php');
+    $prelude = (string)ob_get_clean();
+    ob_start();
     require(DIR_FS_WORKING . 'pages/' . $PAGE . '/js_include.php');
-    $output = (string)ob_get_clean();
+    $script = (string)ob_get_clean();
+    ob_start();
+    require(DIR_FS_WORKING . 'pages/' . $PAGE . '/template_main.php');
+    $output = $prelude . $script . (string)ob_get_clean();
 } catch (\Throwable $e) {
-    $output = (string)ob_get_clean();
+    $output = $prelude . $script . (string)ob_get_clean();
     $fatal  = get_class($e) . ': ' . $e->getMessage()
             . ' in ' . basename($e->getFile()) . ':' . $e->getLine();
 }
@@ -407,12 +419,111 @@ ok('the page heading rendered', str_contains($output, '<h1'));
 if (in_array($PAGE, ['canvas', 'design'], true) && !$CANVASPICK && !$PICKING) {
     preg_match('/tb_icon_cancel[^>]*/', $output, $cancel);
     $target = $cancel[0] ?? '';
-    ok('Cancel returns to this editor\'s own list',
-       str_contains($target, 'page=' . $PAGE) && !str_contains($target, 'page=main'),
+    // The canvas returns to its own chooser, which is the only list a form
+    // appears on; the report editor returns to the Reports list, which is the
+    // only list a report appears on. Same rule, different page — the editor's
+    // own chooser was retired because it duplicated that list.
+    $home = $PAGE === 'canvas' ? 'page=canvas' : 'page=main';
+    ok('Cancel returns to the list this document appears on',
+       str_contains($target, $home),
        $target === '' ? 'no cancel icon in the toolbar' : $target);
     // Back to the LIST, not to the document just left — that would be a Cancel
     // that cancels nothing.
     ok('and not to the document it was editing', !str_contains($target, 'rID='));
+}
+
+// ── the page's script runs in the HEAD, so it may not touch the page yet ─────
+//
+// This is the one contract the render cannot show, because a parsed document has
+// no notion of when a line ran. template_index.php emits js_include.php inside
+// the <head>: at that moment <body> does not exist, and every getElementById in
+// the file returns null. A script that acts on the page immediately is therefore
+// dead on arrival — silently, with no error in the log and every button inert.
+//
+// Three ways to be safe, and the check accepts any of them: wait for
+// DOMContentLoaded, register with the framework's own addLoadEvent(), or be a
+// `type="module"` script, which the browser defers by definition. Delegating on
+// `document` is safe too, since `document` exists in the head — so a file that
+// never reaches for an element at all has nothing to answer for.
+//
+// What counts as "at the top level" needs care, because the wrapper this module
+// favours is an IIFE — and the body of `(function () { … })()` runs immediately
+// even though it sits one brace deep. So the scan measures brace depth, and
+// treats depth 1 as the top when the file OPENS with an IIFE. A lookup inside a
+// function declared at that level is fine: declaring it is not calling it.
+$actsBeforeTheBody = function (string $html): bool {
+    preg_match_all('#<script\b([^>]*)>(.*?)</script>#si', $html, $blocks, PREG_SET_ORDER);
+    foreach ($blocks as $block) {
+        if (stripos($block[1], 'type="module"') !== false) continue;   // deferred by definition
+        $code = $block[2];
+        // An IIFE's body is the top level, one brace down.
+        $opener = ltrim(preg_replace('#/\*.*?\*/|//[^\n]*#s', '', $code));
+        $top    = preg_match('/^[(!+]\s*(async\s+)?(function|\()/', $opener) ? 1 : 0;
+        $depth  = 0;
+        for ($i = 0, $n = strlen($code); $i < $n; $i++) {
+            $two = substr($code, $i, 2);
+            if ($two === '//') { while ($i < $n && $code[$i] !== "\n") $i++; continue; }
+            if ($two === '/*') { $end = strpos($code, '*/', $i); $i = $end === false ? $n : $end + 1; continue; }
+            if ($code[$i] === '"' || $code[$i] === "'" || $code[$i] === '`') {
+                $quote = $code[$i++];
+                while ($i < $n && $code[$i] !== $quote) { if ($code[$i] === '\\') $i++; $i++; }
+                continue;
+            }
+            if ($code[$i] === '{') { $depth++; continue; }
+            if ($code[$i] === '}') { $depth--; continue; }
+            if ($depth !== $top) continue;
+            if (substr($code, $i, 15) === 'getElementById(') return true;
+            if (substr($code, $i, 14) === 'querySelector(') return true;
+            if (substr($code, $i, 17) === 'querySelectorAll(') return true;
+        }
+    }
+    return false;
+};
+// ── every privilege this module defines must be grantable ───────────────────
+//
+// phreedom's roles page builds itself by walking $mainmenu and drawing one row
+// per entry that names a security id. An id named by NO entry appears nowhere on
+// that page, so no role can be given it, so the page it guards is unreachable —
+// for everybody, including whoever installed the module. Nothing errors; the
+// feature is simply not there.
+//
+// This became worth asserting when the Report Editor's menu entry was removed:
+// it was safe only because the form canvas names the same id. Remove that one
+// too and the report editor, the canvas and every author privilege go with it.
+if ($PAGE === 'main' && !$RUNNING) {
+    $granted = [];
+    foreach ($mainmenu as $section) {
+        foreach ((array)($section['submenu'] ?? []) as $entry) {
+            if (($entry['security_id'] ?? '') !== '') $granted[(int)$entry['security_id']] = true;
+        }
+    }
+    foreach (['SECURITY_ID_FORMS_RUN'      => SECURITY_ID_FORMS_RUN,
+              'SECURITY_ID_FORMS_AUTHOR'   => SECURITY_ID_FORMS_AUTHOR,
+              'SECURITY_ID_FORMS_DATASETS' => SECURITY_ID_FORMS_DATASETS] as $name => $id) {
+        ok("$name is named by a menu entry, so a role can be given it",
+           isset($granted[$id]), 'no entry names it; the roles page cannot offer it');
+    }
+}
+
+// The detector is tested on the two shapes it exists to tell apart, because a
+// checker that answers "safe" to everything passes every page and protects none
+// — and this one is a hand-written scanner over JavaScript, which is exactly the
+// sort of thing that quietly stops matching.
+if ($PAGE === 'main' && !$RUNNING) {
+    $iife  = '<script>(function () { const a = document.getElementById("x"); })();</script>';
+    $ready = '<script>document.addEventListener("DOMContentLoaded", function () {'
+           . ' const a = document.getElementById("x"); });</script>';
+    $inFn  = '<script>function go() { return document.querySelector(".x"); }</script>';
+    $quote = '<script>(function () { const s = "getElementById("; })();</script>';
+    ok('the timing check catches an IIFE that acts at once', $actsBeforeTheBody($iife));
+    ok('and clears one that waits for the document',        !$actsBeforeTheBody($ready));
+    ok('and clears a lookup inside a function it declares', !$actsBeforeTheBody($inFn));
+    ok('and is not fooled by the name in a string',         !$actsBeforeTheBody($quote));
+}
+if ($script !== '') {
+    ok('the page script waits for the document before reaching into it',
+       !$actsBeforeTheBody($script),
+       'it calls into the page at the top level, where nothing has been parsed yet');
 }
 
 // ── the contract template_index.php imposes, which this render does not ──────
@@ -584,27 +695,104 @@ if ($PAGE === 'main') {
         ok("the email card draws $field",
            $xpath->query("//form[@id='forms_run_form']//*[@name='" . $field . "']")->length === 1);
     }
-    $emailButtons = $xpath->query("//*[contains(@class,'fb-email')]");
+    $emailButtons = $xpath->query("//*[contains(@class,'fb-options') and @data-email='1']");
     ok(sprintf('every runnable document offers Email (%d documents, %d buttons)',
                $runnable, $emailButtons->length),
        $emailButtons->length === $runnable);
-    $missingId = [];
-    foreach ($emailButtons as $button) {
-        if (!ctype_digit((string)$button->getAttribute('data-doc-id'))) $missingId[] = 'one button';
-    }
-    ok('every Email button names the document it would send', $missingId === []);
 
-    $bad = [];
-    foreach ($controls as $control) {
-        $url = (string)$control->getAttribute('data-url');
-        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)
-            || !str_contains($url, 'action=run')
-            || $control->getAttribute('data-format') === '') {
-            $bad[] = $url === '' ? '(empty)' : substr($url, 0, 60);
+    // Which document, and what it may be asked before it runs, are the ROW's
+    // answers now — one document, several ways to run it, and repeating them on
+    // each control is how they drift apart. So the row is what must be complete.
+    $incomplete = [];
+    foreach ($xpath->query("//tr[contains(@class,'fb-forms-row')][.//*[contains(@class,'fb-run')]]") as $tr) {
+        $url = html_entity_decode((string)$tr->getAttribute('data-url'));
+        if (!ctype_digit((string)$tr->getAttribute('data-doc-id'))
+            || $url === '' || !filter_var($url, FILTER_VALIDATE_URL)
+            || !str_contains($url, 'action=run')) {
+            $incomplete[] = $url === '' ? '(empty)' : substr($url, 0, 60);
+            continue;
+        }
+        // The row's own URL must impose NOTHING about dates or period. The
+        // answers are added by the dialog when the user has seen them; a range
+        // baked in here runs every report over it whatever its author drew,
+        // which is what the page used to do with 'All'.
+        if (str_contains($url, 'dates=') || str_contains($url, 'period=')) {
+            $incomplete[] = 'a run URL imposes a date range: ' . substr($url, 0, 60);
+        }
+        // A flag that is neither 0 nor 1 reads as false in the browser, so a
+        // document that must be asked for a GL account would be run without
+        // one. It has to be present and it has to be one of the two.
+        foreach (['needs-dates', 'needs-period', 'needs-gl', 'must-ask'] as $flag) {
+            if (!in_array((string)$tr->getAttribute('data-' . $flag), ['0', '1'], true)) {
+                $incomplete[] = 'data-' . $flag . ' on document '
+                              . (string)$tr->getAttribute('data-doc-id');
+            }
         }
     }
-    ok('every run control carries a valid run URL and a format', $bad === [],
-       implode(' | ', array_slice($bad, 0, 3)));
+    ok('every runnable row names its document, its URL and what it may be asked',
+       $incomplete === [], implode(' | ', array_slice($incomplete, 0, 3)));
+
+    $formats = [];
+    foreach ($controls as $control) {
+        if (!in_array((string)$control->getAttribute('data-format'), ['pdf', 'csv'], true)) {
+            $formats[] = 'one control has no format';
+        }
+    }
+    ok('every run control names a format', $formats === []);
+
+    // The run dialog. Its controls are named for the REQUEST, not for the page,
+    // because they post with the email and are read into the URL for a
+    // download — the same three answers reaching the runner by both routes.
+    ok('the run dialog is drawn',
+       $xpath->query("//div[@id='forms_run_dialog']")->length === 1);
+    foreach (['dates', 'period', 'gl_account'] as $control) {
+        ok("the dialog offers $control",
+           $xpath->query("//div[@id='forms_run_dialog']//select[@name='" . $control . "']")->length === 1);
+    }
+    // The first date choice must send NOTHING. It is what lets the runner fall
+    // back to the definition's own preference, so a report runs as its author
+    // drew it; a value here would silently re-impose this page's idea of a date
+    // range on every report, which is the bug this replaced.
+    $first = $xpath->query("//div[@id='forms_run_dialog']//select[@name='dates']/option[1]");
+    ok('leaving the date range alone sends nothing',
+       $first->length === 1 && (string)$first->item(0)->getAttribute('value') === '');
+
+    // The filter is a view control, and it must not be able to submit the page.
+    // An <input> inside a form takes Enter as "submit", and the only submit this
+    // page has sends an email.
+    ok('the filter box cannot submit the run form',
+       $xpath->query("//form[@id='forms_run_form']//*[@id='forms_filter']")->length === 0);
+
+    // Every id the page's own script reaches for must be on the page. There is
+    // no JavaScript engine here to run it in, so a renamed element cannot be
+    // caught by exercising it — and getElementById returning null is silent
+    // until the line that uses it, which is a button that does nothing. This is
+    // the one check that stands in for running the script.
+    preg_match_all("/getElementById\('([^']+)'\)/", $output, $wanted);
+    $absent = [];
+    foreach (array_unique($wanted[1]) as $id) {
+        if ($xpath->query("//*[@id='" . $id . "']")->length === 0) $absent[] = $id;
+    }
+    ok(sprintf('every id the page\'s script reaches for exists (%d checked)',
+               count(array_unique($wanted[1]))),
+       $absent === [], implode(' | ', $absent));
+
+    // The same for the classes it delegates on. A listener bound to a class the
+    // markup no longer carries is a control that highlights and does nothing —
+    // which is exactly how the run buttons failed once before.
+    preg_match_all("/closest\('\.([a-z0-9-]+)'\)/", $output, $delegated);
+    $unbound = [];
+    foreach (array_unique($delegated[1]) as $class) {
+        if ($xpath->query("//*[contains(@class,'" . $class . "')]")->length === 0) $unbound[] = $class;
+    }
+    ok(sprintf('every class the page delegates on is in the markup (%d checked)',
+               count(array_unique($delegated[1]))),
+       $unbound === [], implode(' | ', $unbound));
+
+    // No alert(). A modal dialog that stops the page to say a field is wrong,
+    // while the field itself says nothing, is the pattern this page replaced.
+    ok('the page reports a bad answer on the control, not in an alert',
+       !str_contains($output, 'alert('));
 }
 
 // ── the split: reports here, forms on the canvas, nothing lost between ───────
@@ -620,6 +808,30 @@ if ($PAGE === 'main') {
 // of this check asked the editor to list every form and called it a failure.
 $listing = $CANVASPICK ? 'frm' : ($PAGE === 'main' && !$RUNNING ? 'rpt' : '');
 if ($listing !== '') {
+    // The words a node shows ITSELF, ignoring what its child elements add. A
+    // title cell carries more than the title now — a warning sign for a
+    // document Forms cannot serve, and the dataset serving it for the people
+    // who write reports — and textContent would run all three together, which
+    // reported every such document as missing from its own list.
+    $ownText = function (\DOMNode $node): string {
+        $text = '';
+        foreach ($node->childNodes as $child) {
+            if ($child->nodeType === XML_TEXT_NODE) $text .= $child->nodeValue;
+        }
+        return trim((string)preg_replace('/\s+/', ' ', $text));
+    };
+    // A cell whose words are wrapped in a single control still has one label:
+    // the folder headings are buttons so they can be operated from the keyboard.
+    $labelOf = function (\DOMNode $node) use (&$labelOf, $ownText): string {
+        $own = $ownText($node);
+        if ($own !== '') return $own;
+        $elements = [];
+        foreach ($node->childNodes as $child) {
+            if ($child->nodeType === XML_ELEMENT_NODE) $elements[] = $child;
+        }
+        return count($elements) === 1 ? $labelOf($elements[0]) : '';
+    };
+
     // Read the TITLE CELL of each row, not the page text. Substring matching
     // over the whole render reported four forms as leaking onto the reports
     // page, because a report named "Purchase Orders by Vendor" contains the
@@ -629,7 +841,7 @@ if ($listing !== '') {
         $cells = $xpath->query('./td', $tr);
         // One cell means a folder heading, which spans the row.
         if ($cells->length < 2) continue;
-        $title = trim((string)$cells->item(0)->textContent);
+        $title = $labelOf($cells->item(0));
         if ($title !== '') $shown[$title] = true;
     }
 
@@ -666,7 +878,11 @@ if ($listing !== '') {
     foreach ($xpath->query('//tbody/tr') as $tr) {
         $cells = $xpath->query('./td', $tr);
         if ($cells->length !== 1) continue;        // a heading spans the row
-        $text = trim((string)$cells->item(0)->textContent);
+        // ...but so does the line that says nothing matched what was typed,
+        // which the page renders hidden and shows only when the filter empties
+        // the list. A row the page starts by hiding is not a heading.
+        if (str_contains((string)$tr->getAttribute('class'), 'd-none')) continue;
+        $text = $labelOf($cells->item(0));
         if ($text !== '') $headings[] = $text;
     }
     ok('the list is grouped under headings', $headings !== [], 'none found');
@@ -788,23 +1004,15 @@ if ($PICKING) {
     ok('opening the editor from the menu raises no error', $errors === [],
        implode(' | ', array_slice($errors, 0, 3)));
 
+    // And it lists NOTHING. This page used to answer an empty rID with a chooser
+    // of its own — a second list of the same reports the Reports page lists, and
+    // labelled with the raw doc_group codes that page stopped showing. It now
+    // says which list to use and links to it.
     $editLinks = $xpath->query("//a[contains(@href,'page=design') and contains(@href,'rID=')]");
-    ok('it offers the reports it can edit', $editLinks->length > 0,
-       $editLinks->length . ' link(s)');
-
-    // Forms must NOT be offered: a form is laid out on a page, and choosing one
-    // here would land the author on a page that declines it.
-    $offered = [];
-    foreach ($editLinks as $link) {
-        $query = [];
-        parse_str((string)parse_url(html_entity_decode((string)$link->getAttribute('href')),
-            PHP_URL_QUERY), $query);
-        if (isset($query['rID'])) $offered[] = (int)$query['rID'];
-    }
-    $formIds = [];
-    $rows = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_ext = 'frm'");
-    while ($rows && !$rows->EOF) { $formIds[] = (int)$rows->fields['id']; $rows->MoveNext(); }
-    ok('no form is offered in the report chooser', array_intersect($offered, $formIds) === []);
+    ok('it lists no reports of its own', $editLinks->length === 0,
+       $editLinks->length . ' link(s), where the chooser used to be');
+    ok('it sends the author to the list that does',
+       $xpath->query("//a[contains(@href,'page=main')]")->length > 0);
 }
 
 if ($PAGE === 'design' && !$PICKING) {
@@ -1122,8 +1330,27 @@ if ($CANVASPICK) {
 }
 
 if ($PAGE === 'main' && $controls->length > 0) {
-    file_put_contents(sys_get_temp_dir() . '/forms-run-url',
-        (string)$controls->item(0)->getAttribute('data-url'));
+    // The run URL sits on the ROW, not on the button: one document has several
+    // ways to be run, and repeating its URL on each of them is how they drift
+    // apart.
+    //
+    // And it must be a row that can run WITHOUT being asked anything. The first
+    // row on a stock install is the Account Reconciliation, which properly
+    // refuses to run until it is told which account to reconcile — so following
+    // it proved only that the refusal works, and reported a page that delivers
+    // documents perfectly well as broken.
+    $rows = $xpath->query("//tr[@data-must-ask='0' and @data-url]");
+    $node = $rows->length > 0 ? $rows->item(0) : $controls->item(0);
+    while ($node !== null
+        && !($node instanceof DOMElement && $node->hasAttribute('data-url'))) {
+        $node = $node->parentNode;
+    }
+    $url = $node instanceof DOMElement ? (string)$node->getAttribute('data-url') : '';
+    // An empty file would send the run check off to run document 0, which fails
+    // for a reason that has nothing to do with running documents.
+    ok('the run control leads to a URL', $url !== '',
+       'no data-url on the control or any of its ancestors');
+    file_put_contents(sys_get_temp_dir() . '/forms-run-url', html_entity_decode($url));
 }
 
 // ── everything the page's own code names must be available ──────────────────

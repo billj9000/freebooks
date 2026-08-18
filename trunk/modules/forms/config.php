@@ -65,8 +65,31 @@
 //                      preview and would not have wrapped in life. An element
 //                      bound to a company detail says so in the inspector
 //                      instead of showing an empty list it cannot be set from.
+// 1.10 => 2026-08-18 - The document list asks its questions per document. The
+//                      page-wide options bar and email card are gone; PDF runs a
+//                      report as its author drew it, and a dialog headed with the
+//                      document's name asks only what that document needs. This
+//                      fixes a real defect: the bar preselected 'All' and sent it
+//                      on every run, so a report drawn as "this quarter" quietly
+//                      ran over all time. The list gains a filter box and folding
+//                      groups, drops its alert() boxes for validation on the
+//                      control itself, and shows the dataset serving a report to
+//                      the people who can act on it rather than to everyone.
+//                      A report that must be told something the company cannot
+//                      supply — the reconciliation on a company with no cash
+//                      accounts — says so and refuses, instead of presenting a
+//                      mandatory list with nothing in it.
+//                      The Report Editor's own chooser and its Tools menu entry
+//                      are retired: they were a second list of the same reports,
+//                      labelled with the raw group codes the Reports list stopped
+//                      showing. The editor opens from Edit beside a report, and
+//                      Cancel returns there. SECURITY_ID_FORMS_AUTHOR stays
+//                      grantable because Form Layout names it too.
+//                      The folder headings on that list are a ruled band with a
+//                      small uppercase label, not bold text the size and colour
+//                      of the report names beneath them.
 
-define('MODULE_FORMS_VERSION', 1.09);
+define('MODULE_FORMS_VERSION', 1.10);
 
 // Security IDs.
 //
@@ -96,28 +119,24 @@ if (defined('MODULE_FORMS_STATUS')) {
     'params'                 => '',
   );
 
-  // The report editor. It is normally reached from the Edit button on the
-  // document list rather than from here, and with no report chosen it says so —
-  // but it needs a menu entry all the same, and that is not a convenience.
+  // The report editor has NO entry of its own, and that is deliberate. It is
+  // reached from the Edit button beside a report on the list above, which is the
+  // only list of reports there is; an entry here landed on a second list of the
+  // same reports, labelled with the raw doc_group codes the list above stopped
+  // showing. Two lists of one thing, and the worse of them on the menu.
   //
-  // phreedom's roles page builds itself by walking $mainmenu: a security id with
-  // no menu entry appears nowhere on it, so nobody can grant it, so the page it
-  // guards is unreachable for every user including the one who installed the
-  // module. An entry here is the only way SECURITY_ID_FORMS_AUTHOR can be given
-  // to a role at all.
-  $mainmenu['tools']['submenu']['forms_design'] = array(
-    'order'                  => 27,
-    'text'                   => BOX_FORMS_DESIGN,
-    'security_id'            => SECURITY_ID_FORMS_AUTHOR,
-    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=design', 'SSL'),
-    'show_in_users_settings' => true,
-    'params'                 => '',
-  );
-
+  // What the entry USED to be for, and what replaced it: phreedom's roles page
+  // builds itself by walking $mainmenu, so a security id named by no entry
+  // appears nowhere on it and cannot be granted to anybody. That is still true —
+  // but SECURITY_ID_FORMS_AUTHOR is named by the form canvas below, which was
+  // added later and shares it. Removing THAT entry would make the permission
+  // ungrantable; removing this one does not.
+  //
   // The form canvas. Shares SECURITY_ID_FORMS_AUTHOR with the report editor:
   // both are "write a document", and the two exist separately because a form is
   // positioned boxes and a report is a column list (§13.1), not because they are
-  // different privileges.
+  // different privileges. Unlike reports, forms have no other list — they are
+  // kept off the Reports page on purpose — so this chooser is the only way in.
   $mainmenu['tools']['submenu']['forms_canvas'] = array(
     'order'                  => 28,
     'text'                   => BOX_FORMS_CANVAS,

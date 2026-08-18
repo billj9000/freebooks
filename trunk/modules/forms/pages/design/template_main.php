@@ -21,51 +21,22 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 $toolbar->icon_list['save']['show']   = $forms_design_definition !== null && $security_level > 2;
 $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'forms_design_form\').submit()"';
-// Back to the list of REPORTS this editor edits, for the same reason the canvas
-// goes back to its own list: Cancel means "stop editing this one", and that is
-// the same destination whichever door the author came in by. With nothing open
-// this page IS that list, so Cancel then leaves the editing side altogether.
+// Back to the Reports list, which is the only list of reports there is. It used
+// to return to this page's own chooser — a second list of the same reports — so
+// cancelling an edit left the author looking at something they had not come
+// from. The canvas still returns to ITS list, and that is not inconsistent:
+// forms are kept off the Reports page, so the canvas's chooser is the only list
+// a form appears on.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
-    . html_href_link(FILENAME_DEFAULT, $forms_design_definition !== null
-        ? 'module=forms&page=design' : 'module=forms&page=main', 'SSL') . '\'"';
+    . html_href_link(FILENAME_DEFAULT, 'module=forms&page=main', 'SSL') . '\'"';
 $toolbar->add_help('11.06');
 echo $toolbar->build_toolbar();
 
 if ($forms_design_definition === null) { ?>
 <h1><?php echo FORMS_DESIGN_TITLE; ?></h1>
 <p class="text-muted"><?php echo FORMS_DESIGN_PICK_ONE; ?></p>
-
-<div class="card fb-card">
-  <div class="card-header py-1 fb-widget-header"><?php echo FORMS_DESIGN_CHOOSE; ?></div>
-  <div class="card-body p-0">
-    <table class="table table-borderless table-hover table-sm mb-0">
-      <thead class="table-dark">
-        <tr>
-          <th><?php echo FORMS_COL_TITLE; ?></th>
-          <th><?php echo FORMS_COL_GROUP; ?></th>
-          <th class="text-end">&nbsp;</th>
-        </tr>
-      </thead>
-      <tbody>
-<?php if (!$forms_design_choices) { ?>
-        <tr><td colspan="3" class="text-muted p-2"><?php echo FORMS_NO_DOCUMENTS; ?></td></tr>
-<?php } else { $row = 0; foreach ($forms_design_choices as $choice) { ?>
-        <tr class="<?php echo ($row++ % 2) ? 'odd' : 'even'; ?>">
-          <td><?php echo htmlspecialchars($choice['title']); ?></td>
-          <td class="text-muted"><?php echo htmlspecialchars($choice['group']); ?></td>
-          <td class="text-end">
-            <a class="btn btn-primary btn-sm" href="<?php echo html_href_link(FILENAME_DEFAULT,
-              'module=forms&amp;page=design&amp;rID=' . $choice['id'], 'SSL'); ?>">
-              <?php echo FORMS_DESIGN_EDIT; ?>
-            </a>
-          </td>
-        </tr>
-<?php } } ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-<p class="mt-2"><a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=forms&page=main', 'SSL'); ?>">
+<p><a class="btn btn-primary btn-sm" href="<?php
+  echo html_href_link(FILENAME_DEFAULT, 'module=forms&amp;page=main', 'SSL'); ?>">
   <?php echo FORMS_DESIGN_BACK_TO_LIST; ?></a></p>
 <?php
   return;

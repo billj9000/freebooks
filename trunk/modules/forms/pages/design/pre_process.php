@@ -158,23 +158,11 @@ define('PAGE_TITLE', $forms_design_definition !== null
     ? sprintf(FORMS_DESIGN_TITLE_FOR, $forms_design_definition->title)
     : FORMS_DESIGN_TITLE);
 
-// With no report to edit, the page is a chooser rather than a dead end. Reached
-// from the menu that exists so this permission can be granted at all, sending
-// the author to another page to come back is a detour the page can save them.
-// Forms are left out: a form is laid out on a page, and the canvas is step 3.
-$forms_design_choices = array();
-if ($forms_design_definition === null) {
-  $result = $db->Execute("select id, doc_title, doc_group from " . TABLE_PHREEFORM . "
-    where doc_type <> '0' and doc_ext <> 'frm' order by doc_group, doc_title");
-  while (!$result->EOF) {
-    $forms_design_choices[] = array(
-      'id'    => (int)$result->fields['id'],
-      'title' => (string)$result->fields['doc_title'],
-      'group' => (string)$result->fields['doc_group'],
-    );
-    $result->MoveNext();
-  }
-}
+// This page no longer lists anything. It used to answer "no report chosen" with
+// a chooser of its own, which was a second list of the same reports the Reports
+// page lists — labelled with the raw doc_group codes that page deliberately
+// stopped showing. One list, and the editor is opened from the Edit button on
+// it; arriving here with no report now says so and points at that list.
 
 // On a refused save, redisplay the submitted values; otherwise the stored ones.
 $forms_design_values = $forms_design_definition === null ? array()

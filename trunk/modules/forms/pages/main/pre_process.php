@@ -73,6 +73,12 @@ $docID   = isset($_REQUEST['docID'])  ? (int)$_REQUEST['docID'] : 0;
 $format  = isset($_REQUEST['format']) ? (string)$_REQUEST['format'] : 'pdf';
 $inline  = !empty($_REQUEST['inline']);
 
+// Whether the send got as far as the mailer. Every other way out of the email
+// branch is a refusal, and a refusal has to reopen the dialog on the document it
+// was for — while a SUCCESS must not, or the page comes back with the message
+// still on screen as though nothing had been sent.
+$forms_email_sent = false;
+
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action'] ?? '') {
   case 'email':
@@ -179,6 +185,7 @@ switch ($_REQUEST['action'] ?? '') {
       // No exit(): nothing was sent to the browser, so the list is redrawn with
       // the outcome on it. A download exits because the response IS the file.
       $messageStack->add(EMAIL_SEND_SUCCESS, 'success');
+      $forms_email_sent = true;
       break;
     }
 
@@ -200,6 +207,14 @@ switch ($_REQUEST['action'] ?? '') {
 // the Print button always landed on an explanation — and laying one out is what
 // Tools -> Form Layout is for. Listing forms here offered two buttons, one that
 // could not work and one that duplicated another page.
+// Both needed while the list is built: each row carries the answers its own
+// definition stores, so the run dialog can open already set to them. Required at
+// top level — phreedom/defaults.php sets $DateChoices as a plain variable, and
+// requiring it inside a function would silently produce an empty list rather
+// than an error.
+require(DIR_FS_MODULES . 'phreedom/defaults.php');
+$forms_current_period = gen_calculate_period(date('Y-m-d'), false);
+
 $forms_folders   = forms_folder_titles($db);
 $forms_documents = array();
 $result = $db->Execute("select id, doc_title, doc_group, doc_type from " . TABLE_PHREEFORM . "
@@ -213,26 +228,36 @@ while (!$result->EOF) {
     $definition = $loader->load($result->fields['id']);
     $plan       = $runner->planDefinition($definition);
   } catch (DefinitionException $e) {
-    $definition = true;
+    $definition = null;
     $plan       = new RunPlan(RunPlan::UNSUPPORTED, '', array($e->getMessage()));
   }
-  if ($definition) {
-    $forms_documents[] = array(
-      'id'       => (int)$result->fields['id'],
-      'title'    => (string)$result->fields['doc_title'],
-      'group'    => (string)$result->fields['doc_group'],
-      'folder'   => forms_folder_for((string)$result->fields['doc_group'], false, $forms_folders),
-      'plan'     => $plan,
-      'served'   => match (true) {
-                      $plan->kind === RunPlan::DATASET  => sprintf(FORMS_SERVED_DATASET, $plan->name),
-                      $plan->kind === RunPlan::PROVIDER => sprintf(FORMS_SERVED_PROVIDER, $plan->name),
-                      // A form is served, just not from this list — it needs
-                      // records, which only the document that owns it knows.
-                      $plan->isForm()                   => FORMS_SERVED_FORM,
-                      default                           => FORMS_SERVED_NOT_YET,
-                    },
-    );
-  }
+  $forms_documents[] = array(
+    'id'       => (int)$result->fields['id'],
+    'title'    => (string)$result->fields['doc_title'],
+    'group'    => (string)$result->fields['doc_group'],
+    'folder'   => forms_folder_for((string)$result->fields['doc_group'], false, $forms_folders),
+    'plan'     => $plan,
+    'served'   => match (true) {
+                    $plan->kind === RunPlan::DATASET  => sprintf(FORMS_SERVED_DATASET, $plan->name),
+                    $plan->kind === RunPlan::PROVIDER => sprintf(FORMS_SERVED_PROVIDER, $plan->name),
+                    // A form is served, just not from this list — it needs
+                    // records, which only the document that owns it knows.
+                    $plan->isForm()                   => FORMS_SERVED_FORM,
+                    default                           => FORMS_SERVED_NOT_YET,
+                  },
+    // What the run dialog opens on. The date range is offered as "as the report
+    // is set", which sends nothing and lets the runner fall back to the stored
+    // preference — the page used to preselect 'All' and send it on every run,
+    // so a report drawn as "this quarter" quietly ran over all time. The period
+    // has no such fallback for the structural providers, which cannot do
+    // anything with period 0, so the stored one is named outright.
+    // The stored preference is a CODE, and may carry operands — 'b:from:to' is
+    // an explicit range — so it is the letter that names the choice.
+    'dates_as_set' => $definition
+                    ? ($DateChoices[explode(':', (string)$definition->dateDefault)[0]] ?? '') : '',
+    'period'       => $definition && $definition->period > 0
+                    ? $definition->period : $forms_current_period,
+  );
   $result->MoveNext();
 }
 
@@ -244,14 +269,16 @@ usort($forms_documents, function ($a, $b) {
 });
 
 // The same preference letters a definition stores, so a report run here and one
-// run through PhreeForm resolve to the same range. Required at top level: this
-// file sets $DateChoices as a plain variable, and requiring it inside a function
-// would silently produce an empty list rather than an error.
-require(DIR_FS_MODULES . 'phreedom/defaults.php');
-$forms_date_choices = array();
+// run through PhreeForm resolve to the same range. The FIRST entry sends nothing
+// at all, which is what makes "as the report is set" work: the runner falls back
+// to the definition's own preference whenever the parameter is empty, so leaving
+// the dialog alone runs the report as its author drew it. Its text is completed
+// per document by the template, which knows what that preference is.
+$forms_date_choices = array(array('id' => '', 'text' => FORMS_OPT_AS_SET));
 foreach ($DateChoices as $key => $text) {
   // 'b' is an explicit from/to range, which needs two date fields this page does
-  // not offer yet; every other choice is self-contained.
+  // not offer yet; every other choice is self-contained. A report STORED as an
+  // explicit range still runs as one — that is the entry above, untouched.
   if ($key === 'b') continue;
   $forms_date_choices[] = array('id' => $key, 'text' => $text);
 }
@@ -266,16 +293,19 @@ while (!$result->EOF) {
   );
   $result->MoveNext();
 }
-$forms_current_period = gen_calculate_period(date('Y-m-d'), false);
 
 // Whether to offer Edit at all. Running a document and authoring one are
 // different permissions (decision F), and this page is gated on the first —
 // so holding it says nothing about the second.
 $forms_can_author = ($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) > 2;
 
-// What the email card shows. Redisplayed after a refused send so a mistyped
-// address does not cost the user everything else they typed.
+// What the email part of the run dialog shows. Redisplayed after a refused send
+// so a mistyped address does not cost the user everything else they typed —
+// including which document they were sending, which is what reopens the dialog
+// on the right row rather than leaving the message typed into nothing.
 $forms_email = array(
+  'docID'     => $docID,
+  'reopen'    => ($_REQUEST['action'] ?? '') === 'email' && !$forms_email_sent,
   'to_email'  => (string)($_POST['to_email']  ?? ''),
   'to_name'   => (string)($_POST['to_name']   ?? ''),
   'cc_email'  => (string)($_POST['cc_email']  ?? ''),

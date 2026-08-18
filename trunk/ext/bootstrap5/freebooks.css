@@ -138,6 +138,49 @@
   line-height: 16px;
 }
 
+/* ── Reports list: the folder heading each block of documents sits under ──
+   A heading has to read as a different KIND of thing from the rows beneath it,
+   not merely as a bolder one. Bold muted text at the row's own size did not: it
+   sat in the same colour family as the report names and the eye ran straight
+   past it. So the heading is a band — its own ground, ruled off above and
+   below, with a small uppercase label in a colour no row uses. */
+tr.fb-forms-folder > td {
+  background-color: #c9e0f0;
+  border-top:       2px solid #4297d7;
+  border-bottom:    1px solid #4297d7;
+  padding:          5px 8px 4px !important;
+}
+/* No rule above the first one: it would sit directly under the table head,
+   which is ruled already. */
+tr.fb-forms-folder:first-child > td { border-top: 0; }
+tr.fb-forms-folder:hover > td       { background-color: #b8d8ec; }
+
+/* The label is a button so it can be operated from the keyboard; none of that
+   should show. Styled here rather than with utility classes in the markup,
+   because .text-muted and friends carry !important and cannot then be
+   overridden by a colour of our own. */
+.fb-folder-toggle {
+  color:           #0d4d69;
+  font-size:       12px;
+  font-weight:     bold;
+  letter-spacing:  .06em;
+  text-transform:  uppercase;
+  text-decoration: none;
+  padding:         0;
+  border:          0;
+  background:      none;
+}
+.fb-folder-toggle:hover,
+.fb-folder-toggle:focus { color: #026890; text-decoration: none; }
+.fb-folder-caret {
+  display:      inline-block;
+  width:        .9em;
+  color:        #4297d7;
+  font-size:    10px;
+  /* Not stretched by the label's letter-spacing. */
+  letter-spacing: normal;
+}
+
 /* ── ui-widget table fallback: basic styling when jQuery UI CSS is not loaded ── */
 table.ui-widget {
   width:            100%;

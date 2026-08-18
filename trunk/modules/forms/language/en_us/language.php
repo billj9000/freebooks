@@ -39,12 +39,21 @@ define('FORMS_GL_ACCOUNT',         'GL account');
 define('FORMS_BTN_PDF',            'PDF');
 define('FORMS_BTN_CSV',            'CSV');
 define('FORMS_BTN_VIEW',           'View');
+define('FORMS_BTN_MORE',           'More ways to run this');
+define('FORMS_BTN_OPTIONS',        'Options…');
+define('FORMS_RUN_DIALOG_TITLE',   'Run: %s');
+define('FORMS_OPT_AS_SET',         'As the report is set');
+define('FORMS_OPT_AS_SET_NAMED',   'As the report is set — %s');
+
+define('FORMS_FILTER_PLACEHOLDER', 'Filter by name');
+define('FORMS_FILTER_NO_MATCH',    'No document matches what you typed.');
 
 define('FORMS_ERROR_NOT_FOUND',    'No document with id %s.');
 define('FORMS_ERROR_CANNOT_RUN',   'Forms cannot run this document: %s');
 define('FORMS_ERROR_NO_FORMAT',    'Unknown output format: %s');
 define('FORMS_ERROR_DELIVERY',     'The document was built but could not be sent: %s');
 define('FORMS_ERROR_GL_REQUIRED',  'Choose a GL account before running the reconciliation.');
+define('FORMS_GL_NONE',            'This company has no cash or bank accounts, so there is nothing to reconcile. Add one under General Ledger &rarr; Chart of Accounts, then run this again.');
 define('FORMS_WARN_CONVERSION',    'This report converted with warnings: %s');
 define('FORMS_NO_DOCUMENTS',       'No documents are defined.');
 define('FORMS_SEED_UNREADABLE',    'The shipped definition %s could not be read, so it was not installed.');
@@ -74,7 +83,6 @@ define('FORMS_PRINT_OPEN_FROM_DOCUMENT', 'A form prints one record at a time, so
 
 // ── Dataset authoring (design §3.2, §3.3) ────────────────────────────────────
 define('BOX_FORMS_DATASETS',        'Report Datasets');
-define('BOX_FORMS_DESIGN',          'Report Editor');
 define('FORMS_DS_TITLE',            'Report Datasets');
 define('FORMS_DS_INTRO',            'A dataset is the set of tables a report author may draw fields from. Defining one is a separate privilege from writing or running reports, because it decides what data becomes reachable.');
 define('FORMS_DS_SHIPPED_NOTE',     'Datasets shipped with FreeBooks are defined in code and cannot be edited here.');
@@ -122,10 +130,8 @@ define('FORMS_DS_PROBLEM',          '%s');
 // ── the report editor (design §13.7 step 2) ──────────────────────────────────
 define('FORMS_DESIGN_TITLE',        'Report Editor');
 define('FORMS_DESIGN_TITLE_FOR',    'Report Editor — %s');
-define('FORMS_DESIGN_NO_REPORT',    'No report was chosen to edit.');
-define('FORMS_DESIGN_PICK_ONE',     'Choose a report to edit. You can also reach this from the Edit button beside a report on the document list.');
-define('FORMS_DESIGN_CHOOSE',       'Reports you can edit');
-define('FORMS_DESIGN_BACK_TO_LIST', 'Back to the document list');
+define('FORMS_DESIGN_PICK_ONE',     'No report was chosen to edit. Reports are edited from the Edit button beside them on the Reports list.');
+define('FORMS_DESIGN_BACK_TO_LIST', 'Go to the Reports list');
 define('FORMS_DESIGN_EDIT',         'Edit');
 define('FORMS_DESIGN_IS_FORM',      'This is a form, not a report. Forms are laid out on a page rather than in columns, and are edited in the form designer.');
 define('FORMS_DESIGN_DENIED',       'You do not have permission to author reports.');
@@ -225,10 +231,9 @@ define('FORMS_FILTER_PERIOD',       'Accounting period: %s');
 
 // Emailing a document — the run options card on the document list, and the
 // extra recipients on the form print page.
-define('FORMS_BTN_EMAIL',      'Email');
+define('FORMS_BTN_EMAIL',      'Email…');
 define('FORMS_EMAIL_LEGEND',   'Email a report');
-define('FORMS_EMAIL_SHOW',     'Show / hide');
-define('FORMS_EMAIL_NOTE',     'Fill these in, then use the Email button beside the report you want sent. It is emailed as a PDF, over the same date range and period chosen above.');
+define('FORMS_EMAIL_NOTE',     'The report is attached as a PDF, covering exactly what the options above ask for. Leave the subject empty to send it under the report&rsquo;s own name.');
 define('FORMS_EMAIL_FROM',     'From');
 define('FORMS_EMAIL_CC',       'CC');
 define('FORMS_EMAIL_BCC',      'BCC');
