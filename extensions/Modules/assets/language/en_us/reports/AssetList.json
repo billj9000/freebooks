@@ -1,0 +1,159 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "rpt",
+    "title": "Asset List",
+    "description": "Asset List report",
+    "group": "asset",
+    "dataset": "assets",
+    "page": {
+        "size": "Letter",
+        "orientation": "L",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "a"
+    },
+    "sorts": [
+        {
+            "field": "asset_id",
+            "direction": "ASC"
+        }
+    ],
+    "report": {
+        "columns": [
+            {
+                "key": "asset_id",
+                "heading": "ID",
+                "width": 14,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "asset_type",
+                "heading": "Type",
+                "width": 10,
+                "align": "L",
+                "format": "blank",
+                "pageBreak": true
+            },
+            {
+                "key": "purch_cond",
+                "heading": "Cond",
+                "width": 14,
+                "align": "C",
+                "format": "NewUsed",
+                "pageBreak": true
+            },
+            {
+                "key": "serial_number",
+                "heading": "Model #",
+                "width": 40,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "description",
+                "heading": "Description",
+                "width": 45,
+                "align": "L",
+                "pageBreak": true
+            },
+            {
+                "key": "full_price",
+                "heading": "Cost",
+                "width": 21,
+                "align": "R",
+                "format": "posted_cur",
+                "total": true,
+                "pageBreak": true
+            },
+            {
+                "key": "acquisition_date",
+                "heading": "Acq Date",
+                "width": 22,
+                "align": "C",
+                "format": "date",
+                "pageBreak": true
+            },
+            {
+                "key": "terminal_date",
+                "heading": "Retire Date",
+                "width": 22,
+                "align": "C",
+                "format": "date",
+                "pageBreak": true
+            }
+        ],
+        "groupBy": "asset_type",
+        "groupFormat": "0",
+        "style": {
+            "heading": {
+                "font": "helvetica",
+                "size": 12,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "title1": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "title2": {
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "C"
+            },
+            "filter": {
+                "font": "helvetica",
+                "size": 8,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "data": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "totals": {
+                "font": "helvetica",
+                "size": 10,
+                "colour": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L"
+            },
+            "title1Text": "%reportname%",
+            "title2Text": "Report Generated %date%"
+        }
+    }
+}

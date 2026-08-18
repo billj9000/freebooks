@@ -1,0 +1,1032 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "frm",
+    "title": "Work Order",
+    "description": "Work Order Form. Format: Landscape, Size: letter",
+    "group": "inv:wo",
+    "filenamePrefix": "wo_",
+    "provider": "wo_builder",
+    "page": {
+        "size": "Letter",
+        "orientation": "L",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "c"
+    },
+    "form": {
+        "elements": [
+            {
+                "type": "field",
+                "box": {
+                    "x": 28,
+                    "y": 8,
+                    "width": 80,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "wo_title"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Title"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 28,
+                    "y": 13,
+                    "width": 45,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "sku"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - SKU"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 28,
+                    "y": 18,
+                    "width": 30,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "qty"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Qty"
+            },
+            {
+                "type": "barcode",
+                "box": {
+                    "x": 118,
+                    "y": 8,
+                    "height": 10
+                },
+                "bind": {
+                    "name": "bar_code"
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "SKU Bar Code"
+            },
+            {
+                "type": "image",
+                "box": {
+                    "x": 210,
+                    "y": 8,
+                    "height": 18
+                },
+                "src": {
+                    "bind": {
+                        "name": "image_with_path"
+                    }
+                },
+                "pathPrefix": "inventory/images/",
+                "style": {},
+                "label": "Linked Image"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 8,
+                    "y": 28,
+                    "width": 200,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "notes"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Notes"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 240,
+                    "y": 13,
+                    "width": 30,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "id"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - WO Num"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 240,
+                    "y": 23,
+                    "width": 30,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "post_date"
+                },
+                "format": "date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Date Issued"
+            },
+            {
+                "type": "pagenum",
+                "box": {
+                    "x": 240,
+                    "y": 33,
+                    "width": 30,
+                    "height": 5
+                },
+                "pattern": "{page} {of} {pages}",
+                "style": {
+                    "font": "helvetica",
+                    "size": 12,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Page Num"
+            },
+            {
+                "type": "table",
+                "box": {
+                    "x": 8,
+                    "y": 50,
+                    "width": 160,
+                    "height": 145
+                },
+                "source": "items",
+                "columns": [
+                    {
+                        "bind": {
+                            "name": "step"
+                        },
+                        "heading": "Step",
+                        "width": 10,
+                        "align": "C",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "description"
+                        },
+                        "heading": "Task Name",
+                        "width": 124,
+                        "align": "L",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "mfg"
+                        },
+                        "heading": "Mfg Signoff",
+                        "width": 13,
+                        "align": "C",
+                        "format": "yesBno",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C"
+                        }
+                    },
+                    {
+                        "bind": {
+                            "name": "qa"
+                        },
+                        "heading": "QA Signoff",
+                        "width": 13,
+                        "align": "C",
+                        "format": "yesBno",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C"
+                        }
+                    }
+                ],
+                "headerStyle": {
+                    "font": "helvetica",
+                    "size": 8,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Table - Steps"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 170,
+                    "y": 55,
+                    "width": 100,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "bom_list"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - BOM List"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 33,
+                    "y": 23,
+                    "width": 85,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "ref_specs"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Ref Specs"
+            },
+            {
+                "type": "field",
+                "box": {
+                    "x": 143,
+                    "y": 23,
+                    "width": 85,
+                    "height": 5
+                },
+                "bind": {
+                    "name": "ref_docs"
+                },
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Data - Ref Docs"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 8,
+                    "width": 20,
+                    "height": 5
+                },
+                "text": "Title",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Title"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 13,
+                    "width": 20,
+                    "height": 5
+                },
+                "text": "SKU",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - SKU"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 18,
+                    "width": 20,
+                    "height": 5
+                },
+                "text": "Quantity",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Qty"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 23,
+                    "width": 25,
+                    "height": 5
+                },
+                "text": "Ref Drawings",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text- Ref Drawings"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 118,
+                    "y": 23,
+                    "width": 25,
+                    "height": 5
+                },
+                "text": "Ref Docs",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Ref Docs"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 28,
+                    "width": 220,
+                    "height": 5
+                },
+                "text": "Work Order Notes and Special Instructions",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Notes"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 240,
+                    "y": 8,
+                    "width": 30,
+                    "height": 5
+                },
+                "text": "Work Order",
+                "style": {
+                    "font": "helvetica",
+                    "size": 14,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Text - WO"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 240,
+                    "y": 28,
+                    "width": 30,
+                    "height": 5
+                },
+                "text": "Page",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Text - Page Num"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 240,
+                    "y": 18,
+                    "width": 30,
+                    "height": 5
+                },
+                "text": "Date Issued",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "R",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                "label": "Text - Date Issued"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 170,
+                    "y": 50,
+                    "width": 100,
+                    "height": 5
+                },
+                "text": "Bill of Materials",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text- Bom List"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 8,
+                    "y": 195,
+                    "width": 25,
+                    "height": 10
+                },
+                "text": "Assembler",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Assembler"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 96,
+                    "y": 195,
+                    "width": 25,
+                    "height": 10
+                },
+                "text": "ERP Entry",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - ERP Entry"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 184,
+                    "y": 195,
+                    "width": 25,
+                    "height": 10
+                },
+                "text": "Quality",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - QA"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 68,
+                    "y": 195,
+                    "width": 10,
+                    "height": 10
+                },
+                "text": "Date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - Mfg Date"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 156,
+                    "y": 195,
+                    "width": 10,
+                    "height": 10
+                },
+                "text": "Date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "L",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - ERP Date"
+            },
+            {
+                "type": "text",
+                "box": {
+                    "x": 244,
+                    "y": 195,
+                    "width": 10,
+                    "height": 10
+                },
+                "text": "Date",
+                "style": {
+                    "font": "helvetica",
+                    "size": 10,
+                    "colour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "align": "C",
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Text - QA Date"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 33,
+                    "y": 195,
+                    "width": 35,
+                    "height": 10
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - Mfg"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 121,
+                    "y": 195,
+                    "width": 35,
+                    "height": 10
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - ERP Entry"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 209,
+                    "y": 195,
+                    "width": 35,
+                    "height": 10
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - QA"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 78,
+                    "y": 195,
+                    "width": 18,
+                    "height": 10
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - Mfg Date"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 166,
+                    "y": 195,
+                    "width": 18,
+                    "height": 10
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - ERP Date"
+            },
+            {
+                "type": "rect",
+                "box": {
+                    "x": 254,
+                    "y": 195,
+                    "width": 18,
+                    "height": 10
+                },
+                "style": {
+                    "borderSize": 1,
+                    "borderColour": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "borderShow": true
+                },
+                "label": "Rect - QA Date"
+            }
+        ],
+        "recordTable": "wo_journal_main"
+    }
+}

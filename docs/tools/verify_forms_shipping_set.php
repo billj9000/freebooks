@@ -70,14 +70,79 @@ if (is_file($manifestPath)) {
     $adopted = is_array($decoded['adopted'] ?? null) ? $decoded['adopted'] : [];
 }
 
-// Only the modules that ship IN trunk. An optional module installed from
-// extensions/ has its own reports, and its native files — if it ever gains
-// any — belong to it rather than to this set.
+// Every INSTALLED module, core or optional. An optional module ships its
+// reports the same way a core one does, and since 2026-08-18 it ships them
+// native too — so the set under test is what this installation actually holds,
+// not a hand-kept list of module names.
 $shipped = [];
 foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
     $shipped[] = $path;
 }
 sort($shipped);
+
+echo "=== the installed definitions are the ones the repository ships ===\n";
+//
+// modules/ inside the container is a COPY of the repository, and the two drift
+// in one direction that nothing else notices. A core module is redeployed from
+// trunk/ often enough to stay current; an OPTIONAL module is copied out of
+// extensions/ once, when it is installed, and then never again. Two of its
+// reports were turned landscape in the repository on 2026-08-14 and the copy
+// here kept the portrait xml — so GENERATING the native set from this tree
+// would have produced, and committed, definitions converted from an xml nobody
+// ships. Cheap to compare, silent when wrong, so it is checked rather than
+// remembered.
+//
+// The masters arrive by `docker cp`, not from the image, so their absence is
+// reported instead of failing: a container without them can still run
+// everything else here.
+$repoRoot    = dirname(__DIR__, 2);          // /opt/repo, deployed as the docs say
+$masterRoots = [];
+foreach ([$repoRoot . '/trunk/modules', $repoRoot . '/extensions/Modules'] as $root) {
+    if (is_dir($root)) $masterRoots[] = $root;
+}
+if ($masterRoots === []) {
+    echo "  [--] no repository tree at $repoRoot; the installed copies cannot be compared\n";
+} else {
+    // Where a module's master lives — a module is in one root or the other,
+    // never both, because installing an optional module MOVES it into place.
+    $masterOf = function (string $installed) use ($masterRoots): ?string {
+        $tail = str_replace(DIR_FS_MODULES, '', $installed);
+        foreach ($masterRoots as $root) {
+            if (is_file($root . '/' . $tail)) return $root . '/' . $tail;
+        }
+        return null;
+    };
+
+    $comparable = 0;
+    $sourceDrift = $nativeDrift = $uncovered = [];
+    foreach ($shipped as $xml) {
+        foreach ([$xml, preg_replace('/\.xml$/i', '.json', $xml)] as $installed) {
+            if (!is_file($installed)) continue;
+            $master = $masterOf($installed);
+            if ($master === null) {
+                // Only worth saying for the xml: a json with no master is the
+                // generate-then-forget-to-copy-out case, and it is named below.
+                if ($installed === $xml) $uncovered[] = str_replace(DIR_FS_MODULES, '', $installed);
+                elseif ($masterOf($xml) !== null) $nativeDrift[] = str_replace(DIR_FS_MODULES, '', $installed) . ' (no master at all)';
+                continue;
+            }
+            $comparable++;
+            if (file_get_contents($master) === file_get_contents($installed)) continue;
+            $name = str_replace(DIR_FS_MODULES, '', $installed);
+            if ($installed === $xml) $sourceDrift[] = $name; else $nativeDrift[] = $name;
+        }
+    }
+    printf("  [--] %d file(s) compared against %d repository tree(s)\n", $comparable, count($masterRoots));
+    ok('no installed xml differs from the one the repository ships', $sourceDrift === [],
+       implode(' | ', array_slice($sourceDrift, 0, 4))
+       . ' — deploy the master here BEFORE generating, or the native set is made from the wrong source');
+    ok('no generated native file is missing from the repository', $nativeDrift === [],
+       implode(' | ', array_slice($nativeDrift, 0, 4))
+       . ' — copy it back out of the container into the repository');
+    foreach (array_slice($uncovered, 0, 6) as $name) {
+        echo "  [--] $name has no master in the repository tree(s) present; not compared\n";
+    }
+}
 
 echo "=== every shipped definition ships in both formats ===\n";
 //

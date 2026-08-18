@@ -1612,6 +1612,9 @@ Three traps in that, all of which fail silently:
 This is why 13.5 is late in the order below despite being the first thing anyone asks for: seeding
 native before the designer exists gives a fresh install documents nobody can edit.
 
+The optional modules under `extensions/Modules/` ship native definitions too, decided 2026-08-18 —
+see §13.25 for what that added and for the trap it uncovered.
+
 ### 13.6 Decisions
 
 Continuing §9.
@@ -2669,11 +2672,16 @@ real records can.
    pass means a new install gets the tidied layout.
 7. **Commit** the masters and the manifest. The xml is deliberately not touched.
 
-**There is no step for copying anything back INTO the container**, and a first draft of this had one.
-`/opt/repo` is a partial build context — `docs/` and `trunk/modules/forms/`, nothing else — so the
-report directories are not there to copy into, and the `docker cp` simply fails. The deployed tree
-already holds the written files, because that is where the tool writes them; the manifest is already
-under `/opt/repo/docs/`, because that is where the tool keeps it. Only the repository needs feeding.
+**Adoption needs nothing copied back INTO the container**, and a first draft of this had a step for
+it. The deployed tree already holds the written files, because that is where the tool writes them;
+the manifest is already under `/opt/repo/docs/`, because that is where the tool keeps it. Only the
+repository needs feeding.
+
+`/opt/repo` does now carry the report directories of both trees — `trunk/modules/*/language/*/reports`
+and `extensions/Modules/*/language/*/reports` — but for a different purpose: the drift check added in
+§13.25 compares what is installed against what the repository ships. That copy is a *reference*, not
+an input to anything, and it wants refreshing whenever a master changes, or the check is comparing
+against a stale idea of the repository.
 
 Rehearsed end to end on one form before any real tidying (2026-08-17): two elements moved and saved
 through `DefinitionLoader::save()`, the same call the page makes. The master's diff was **four lines
@@ -2757,10 +2765,9 @@ noticed now, except that something finally needed the files to be equal.
 
 #### What it does not cover
 
-- **Extension modules.** `work_orders` ships three definitions and `assets` one; extension modules
-  ship XML only in the repository, and their native files exist just in the deployed tree. Adopting
-  one means first deciding that extension modules ship native at all, which is a larger question
-  than a layout. The tool reports them as having no shipped master.
+- ~~**Extension modules.**~~ **Covered since 2026-08-18** — `work_orders` and `assets` ship native
+  masters in the repository, so their layouts adopt like any other. See §13.25, and note that the
+  copy-out destination is `extensions/Modules/` rather than `trunk/modules/`.
 - **Serial (receipt) forms.** XML only by design, no canvas, no renderer — §13.16.
 - **Reports, partly.** A report's editable geometry is its column widths, and those adopt like any
   other; but a report has no canvas, so the tidying this was built for does not apply to it.
@@ -3108,3 +3115,76 @@ Two things worth keeping in mind from doing it:
 `freebooks.css` is a static file, so a browser that has it cached will show the old headings until a
 hard refresh — which is a deployment note, not a bug, but it is the first thing to check when a style
 change appears not to have landed.
+
+### 13.25 Optional modules ship native definitions too
+
+Decided by the user on 2026-08-18: *"Extension modules should ship native definitions."* This had
+been an open question since §13.18, where the Work Order form was the one shipped layout that could
+not be tidied — the tidy is adopted back over a **master**, and `work_orders` had no native master to
+adopt into.
+
+`admin_add_reports()` chooses per FILE, not per directory, so a module shipping only `.xml` has
+always been legal and still is: the seeder falls back to `ImportReport()`. What made it the wrong
+default is what a fresh install now looks like. Every core document is seeded native (§13.5), and
+after step 6 there is no PhreeForm to fall back to for the pages that render one — so a module
+shipping xml alone would hand a new company a handful of documents converted afresh on every load,
+in a system where nothing else is. Five files close that:
+
+| Module | Definition | Type | Paper |
+|---|---|---|---|
+| `work_orders` | Work Order | form | Letter, landscape |
+| `work_orders` | Work Order List | report, 3 columns | Letter, landscape |
+| `work_orders` | Work Order Task Usage | report, 4 columns | Letter, portrait |
+| `assets` | Asset List (`en_us`) | report, 8 columns | Letter, landscape |
+| `assets` | Activa Lijst (`nl_nl`) | report, 8 columns | Letter, portrait |
+
+All five convert without a warning, and all five bind to datasets the catalog already registers —
+`work_orders`, `assets`, and the `wo_builder` provider for the form. Nothing new was needed to make
+them native; they were simply never generated, because the generator globs the modules **installed**
+in the container and nobody had checked what that missed.
+
+**No module version was bumped, and that is deliberate.** `admin_add_reports()` runs from the
+`install` branch of the module admin, not from `update`. A company that already has these documents
+keeps them exactly as they are; a company that installs the module after this release gets native
+ones. Bumping the version to advertise new shipped files would have implied an Update that does
+nothing.
+
+#### The trap: an optional module's installed copy is made once and never refreshed
+
+Two of these five reports — Work Order List and Asset List — were turned **landscape** in the
+repository on 2026-08-14, as part of the width work in §13.9. The container's copies still said
+portrait four days later, because a core module is redeployed from `trunk/` constantly while an
+optional one is copied out of `extensions/` once, when it is installed, and then never again.
+
+Generating the native set at that moment would have produced, committed and shipped two definitions
+converted from an xml **nobody ships**. It surfaced only because the two trees happened to be
+diffed by hand first. That is not a repeatable safeguard, so it is now a check in both tools:
+
+- `generate_forms_shipping_set.php` compares each installed `.xml` against its master under
+  `/opt/repo/{trunk/modules,extensions/Modules}` and **skips** any that differ, naming them and
+  exiting non-zero. Generating from the wrong source is worse than not generating.
+- `verify_forms_shipping_set.php` makes the same comparison over both formats — a drifted `.xml`
+  means the set was generated from the wrong source, a `.json` present here but absent from the
+  repository means somebody generated and forgot to copy back out.
+
+The masters reach `/opt/repo` by `docker cp`, not from the image, so both tools report their absence
+rather than failing on it: a container without them still runs every other check.
+
+#### Where a generated file goes back to
+
+Inside the container both kinds of module live at `modules/{module}/language/{locale}/reports/`.
+In the repository they do not:
+
+| Installed as | Master in the repository |
+|---|---|
+| `modules/phreebooks/…` | `trunk/modules/phreebooks/…` |
+| `modules/work_orders/…` | `extensions/Modules/work_orders/…` |
+
+So the copy-out step of §13.18's route has two destinations, and the one it needs depends on whether
+the module ships in trunk or in extensions. The build context at `freebooks-docker/php-app/modules/`
+takes a copy either way, because that is the deployment.
+
+`verify_forms_shipping_set.php` now reports **61 definitions in 7 modules**, of which `phreepos`
+remains xml-only for its two serial receipt slips — correct, and for the reason in §13.16: Forms has
+no renderer for a character-cell form, so a native copy would leave a new install unable to print a
+receipt with either engine.

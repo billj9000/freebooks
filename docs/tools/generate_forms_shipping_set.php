@@ -89,6 +89,30 @@ $codec = new DefinitionCodec();
 $converted = $failed = $unchanged = $written = $left = 0;
 $warned = [];
 
+// The xml this reads is the container's COPY of the repository, and for an
+// OPTIONAL module that copy is made once, at install, and never refreshed.
+// Two extension reports were turned landscape in the repository and the copy
+// here kept the portrait xml, so a run at that moment would have generated —
+// and committed — a native set converted from a definition nobody ships.
+// Generating from the wrong source is worse than not generating, so a file
+// whose master is visible and DIFFERENT is skipped and named.
+//
+// The masters arrive by `docker cp` into /opt/repo, not from the image; where
+// they are absent there is nothing to compare and every file simply proceeds.
+$repoRoot    = dirname(__DIR__, 2);
+$masterRoots = array_values(array_filter(
+    [$repoRoot . '/trunk/modules', $repoRoot . '/extensions/Modules'], 'is_dir'));
+$staleSource = function (string $installed) use ($masterRoots): ?string {
+    $tail = str_replace(DIR_FS_MODULES, '', $installed);
+    foreach ($masterRoots as $root) {
+        if (!is_file($root . '/' . $tail)) continue;
+        return file_get_contents($root . '/' . $tail) === file_get_contents($installed)
+             ? null : $root . '/' . $tail;
+    }
+    return null;                              // no master here; nothing to say
+};
+$stale = 0;
+
 foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
     $shown = str_replace(DIR_FS_MODULES, 'modules/', $path);
     $target = preg_replace('/\.xml$/i', '.json', $path);
@@ -98,6 +122,14 @@ foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
         echo "  [adopted] " . str_replace(DIR_FS_MODULES, 'modules/', $target)
            . " was tidied by hand; left alone (--force overrides)\n";
         $left++;
+        continue;
+    }
+
+    // And before it is converted: is this xml the one the repository ships?
+    if (($master = $staleSource($path)) !== null) {
+        echo "  [STALE] $shown differs from " . str_replace($repoRoot . '/', '', $master)
+           . "; deploy the master here first — skipped\n";
+        $stale++;
         continue;
     }
 
@@ -169,7 +201,8 @@ foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
 echo "\n  converted $converted, unchanged $unchanged, "
    . ($write ? "written $written" : "would write " . ($converted - $unchanged))
    . ", failed $failed"
-   . ($left ? ", left alone $left (hand-tidied)" : "") . "\n";
+   . ($left ? ", left alone $left (hand-tidied)" : "")
+   . ($stale ? ", SKIPPED $stale (installed copy is not the master)" : "") . "\n";
 
 if ($warned) {
     echo "\n  " . count($warned) . " definition(s) converted WITH WARNINGS:\n";
@@ -185,4 +218,10 @@ if (!$write && $converted > $unchanged) {
     echo "\n  Nothing was written. Re-run with --write to update the shipping set.\n";
 }
 
-exit($failed === 0 ? 0 : 1);
+if ($stale) {
+    echo "\n  $stale definition(s) were skipped because the copy installed here is not\n"
+       . "  the one the repository ships. Deploy those modules and run this again;\n"
+       . "  what it would have written is derived from the wrong source.\n";
+}
+
+exit($failed === 0 && $stale === 0 ? 0 : 1);
