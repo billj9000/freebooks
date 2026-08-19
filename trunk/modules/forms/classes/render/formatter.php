@@ -71,6 +71,50 @@ final class Formatter
     /** Code-to-label hints served from $lookups — no query, so they stay here. */
     public const LOOKUP_HINTS = ['coa_type', 'cvt_iso2', 'cvt_cntry'];
 
+    /**
+     * The hints an author may CHOOSE, grouped as the editors present them.
+     *
+     * This vocabulary is closed. `format()` ends in `default => plain()` and
+     * this class has no extension point — the `pf_process_{module}` hook that
+     * made PhreeForm's list open is PhreeForm's, and Forms does not call it. So
+     * a name that is not in one of the three lists on this class does nothing
+     * at all, silently, and an editor offering free text was inviting authors
+     * to type into a box where a misspelling and a decision look identical.
+     *
+     * Deliberately NOT the whole vocabulary. RESOLUTION_HINTS are excluded,
+     * because a list is an offer and those five cannot be honoured by a format
+     * alone: each needs a database lookup that the provider must have performed
+     * before the value ever reaches here (§4.3.1). Offering `rep_id` would be
+     * promising a salesperson's name and delivering a number. They are still
+     * KEPT wherever a definition already carries one — the editors append what
+     * is in use to what is on offer, which is the rule the font and symbology
+     * lists already keep.
+     *
+     * Held to the class by verify_forms_formatter.php: this must be exactly
+     * what format() performs, less the resolution hints. Adding an arm to the
+     * match without adding it here is a format nobody can reach.
+     */
+    public const CHOOSABLE = [
+        'money'  => ['posted_cur', 'null_pcur', 'def_cur', 'null_dcur',
+                     'dlr', 'null-dlr', 'euro'],
+        'number' => ['rnd_dec', 'rnd_pre', 'rnd2d', 'neg', 'n2wrd'],
+        'text'   => ['date', 'uc', 'lc', 'blank'],
+        'code'   => ['terms', 'ship_name', 'j_desc', 'yesBno', 'NewUsed',
+                     'printed', 'coa_type', 'cvt_iso2', 'cvt_cntry'],
+    ];
+
+    /**
+     * The language constant naming a hint, e.g. 'null-dlr' -> FORMS_FORMAT_NULL_DLR.
+     *
+     * A hint's stored name is not a label — `posted_cur` tells an author
+     * nothing, and putting the raw names in a select would trade a spelling
+     * problem for a comprehension one.
+     */
+    public static function labelConstant(string $hint): string
+    {
+        return 'FORMS_FORMAT_' . strtoupper(str_replace('-', '_', $hint));
+    }
+
     /** @var array<string,true> hints seen that this class will not perform */
     private array $unresolved = [];
 

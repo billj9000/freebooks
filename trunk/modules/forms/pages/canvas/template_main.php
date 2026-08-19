@@ -602,7 +602,8 @@ if ($forms_canvas_definition === null) { ?>
                data-col="width"></td>
     <td><?php echo html_pull_down_menu('', $forms_canvas_aligns, '',
           'class="form-select form-select-sm" data-col="align"'); ?></td>
-    <td><input type="text" class="form-control form-control-sm" data-col="format"></td>
+    <td><?php echo forms_format_select('class="form-select form-select-sm" data-col="format"',
+          $forms_canvas_formats); ?></td>
     <td class="text-end text-nowrap">
       <button type="button" class="btn btn-primary btn-sm" data-sub="up">&uarr;</button>
       <button type="button" class="btn btn-primary btn-sm" data-sub="down">&darr;</button>
@@ -670,7 +671,8 @@ if ($forms_canvas_definition === null) { ?>
 <?php } ?>
       </select>
     </td>
-    <td><input type="text" class="form-control form-control-sm" data-col="format"></td>
+    <td><?php echo forms_format_select('class="form-select form-select-sm" data-col="format"',
+          $forms_canvas_formats); ?></td>
     <td class="text-end text-nowrap">
       <button type="button" class="btn btn-primary btn-sm" data-sub="up">&uarr;</button>
       <button type="button" class="btn btn-primary btn-sm" data-sub="down">&darr;</button>

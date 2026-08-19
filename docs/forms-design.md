@@ -3830,3 +3830,67 @@ SOURCE as well as its output, because one render is one branch and the canvas
 draws either the list or the editor, never both.
 
 See [[todo_forms_element_kinds]] and §13.7 step 6.
+
+### 13.31 The format box, which was free text over a closed vocabulary
+
+The **Format** control — on a report's columns, a form table's columns and an
+address block's lines — was a text input. It had been one since §13.4, copied
+from the report editor to the two grids §13.30 added, and the question that
+ended it was simply *why?*
+
+`Formatter::format()` ends in `default => $this->plain($value)`. There is no
+extension point on the class: the `pf_process_{module}` hook that made
+PhreeForm's list open is PhreeForm's, and Forms does not call it — the
+references to it inside the module are comments *about* the legacy engine.
+So the vocabulary is **closed at thirty names**, fixed at compile time by that
+`match`, and anything else is a guaranteed no-op.
+
+That makes free text the wrong shape twice over. A misspelling and a decision
+look identical — `posted_curr` prints the value unformatted, exactly as leaving
+the box empty would, with no warning and nothing in any log. And a stored name
+is not a label: `posted_cur` is something an author has to already know, so the
+box could only be used by someone who did not need it.
+
+`Formatter::CHOOSABLE` now names the 25 that can be honoured, grouped as the
+editors present them, with labels in the language file. The remaining five are
+`RESOLUTION_HINTS`, deliberately not offered: **a list is an offer**, and each
+of those needs a database lookup the provider must have performed before the
+value reaches the renderer (§4.3.1), so choosing `rep_id` would promise a
+salesperson's name and deliver a number.
+
+Not offered is not the same as not allowed. Whatever a definition already
+carries is appended to the list and marked *already in use* — the rule the font
+list has kept since §13.7 step 4 and the symbology list since §13.30, for the
+same reason each time: **a select with no option for what is stored clears it on
+the first save of a document nobody meant to change.** That covers the five
+above and anything inherited from a PhreeForm install with its own hooks.
+
+One helper serves all three controls. A format means the same thing in a report
+as on a form, and two lists that could drift apart would be two lists to keep
+right. `html_pull_down_menu()` could not draw it — it emits a flat option list
+and twenty-five entries in one flat list is a list nobody reads to the end of —
+so the markup is hand-written, as the separator column already was.
+
+#### What the suite gained
+
+The chain now has four links and all of them are checked, because none of them
+fails loudly: **performed → offered → labelled → documented.**
+
+- A format performed but not offered is unreachable.
+- A format offered but not performed does nothing when chosen.
+- An option with no label is a blank row nobody can report.
+- A format in neither the offer nor the manual cannot be learned at all.
+
+`verify_forms_formatter.php` holds the first three and `CHOOSABLE` to being
+exactly what the `match` performs less the resolution hints, so adding an arm
+without adding it to the list is a failure rather than a format nobody can
+reach. `verify_forms_pages.php` checks the rendered markup — that no page has
+quietly gone back to an `<input>`, that the groups are there, and that the empty
+option is offered.
+
+Writing the manual page first is what found `null-dlr` missing from it: the one
+format whose name breaks the pattern its neighbours keep, a hyphen where
+`null_pcur` and `null_dcur` take underscores, and so the one an author was least
+likely to guess. That is the argument for the documentation check in a sentence.
+
+See [[todo_forms_element_kinds]] and §13.7 step 6.

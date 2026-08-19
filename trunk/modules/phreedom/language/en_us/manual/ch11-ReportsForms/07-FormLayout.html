@@ -235,7 +235,14 @@ panel on the right is too narrow to say them clearly.</p>
 <p>Each column shows one value from a line of the document &mdash; the item code, its description,
 the quantity, the price. Alongside it you set the <strong>heading</strong> printed above the column,
 its <strong>width</strong> in millimetres, whether the text sits left, centre or right, and a
-<strong>format</strong> if the value needs one.</p>
+<strong>format</strong>.</p>
+
+<p>The format is worth a moment, because an empty one prints the value exactly as it is stored: a
+price held as 12.5 prints "12.5". For a line-item table you will usually want
+<strong>posted_cur</strong> on a price or a total, <strong>null_pcur</strong> where a zero should
+print as nothing, <strong>rnd_dec</strong> on a quantity and <strong>date</strong> on a date. Text
+columns need nothing. The formats are a list you choose from, grouped; the full explanation of
+each is in <a href="08-ValueFormats.html" target="mainFrame">Value Formats</a>.</p>
 
 <p>The order of the rows is the order the columns print in, left to right, and the arrows beside each
 row are how you change it. The cross removes a column.</p>
@@ -263,6 +270,10 @@ is how a town and a postcode end up together.</li>
 </ul>
 
 <p>The last row's setting has nothing after it to join to, so it makes no difference.</p>
+
+<p>Each line has a <strong>format</strong> as well, which does the same job it does in the table:
+an amount or a date in an address block needs one, and a name or a street does not. See
+<a href="08-ValueFormats.html" target="mainFrame">Value Formats</a>.</p>
 
 <p>Some lines of a company block show one of your own company details rather than something from the
 record &mdash; your name, your address, your telephone number. Those rows say so in words instead of
@@ -339,6 +350,7 @@ as they were.</p>
 <h3>Related Links</h3>
 <p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>
 <a href="04-PaperSize.html" target="mainFrame">Paper Size</a><br>
-<a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a></p>
+<a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a><br>
+<a href="08-ValueFormats.html" target="mainFrame">Value Formats</a></p>
 </body>
 </html>

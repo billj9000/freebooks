@@ -633,6 +633,34 @@ if ($script !== '') {
     }
 }
 
+// ── a format is chosen, not typed ───────────────────────────────────────────
+//
+// The Format control was free text until §13.31, and free text was the wrong
+// shape for it: the vocabulary is closed at thirty names and an unknown one
+// does nothing at all, silently. So wherever a page offers a format it must
+// offer the LIST — a page that quietly went back to an input would put the
+// silent failure back with it, and would look completely normal doing so.
+//
+// Checked against the rendered markup rather than the source, because what
+// matters is what reached the browser.
+if (preg_match('/\[format\]|data-col=[\'"]format[\'"]/', $output)) {
+    $typed = (bool)preg_match(
+        '/<input[^>]*(?:\[format\]|data-col=[\'"]format[\'"])[^>]*>/', $output);
+    ok('a format is chosen from a list rather than typed', !$typed,
+       'a text input still carries a format, where a misspelling fails in silence');
+
+    // The groups are most of what makes twenty-five entries usable, and they
+    // are the part html_pull_down_menu() cannot draw — so their absence is the
+    // likely symptom of someone swapping the hand-written select back for it.
+    ok('and the list is grouped', str_contains($output, '<optgroup'),
+       'twenty-five formats in one flat list is a list nobody reads to the end of');
+
+    // The empty option has to be there and has to be first: it is the commonest
+    // answer, and a list without it cannot express "leave the value alone".
+    ok('and it offers leaving the value as stored',
+       (bool)preg_match('/<option value=""[^>]*>/', $output));
+}
+
 // ── the contract template_index.php imposes, which this render does not ──────
 $source = (string)file_get_contents(DIR_FS_WORKING . 'pages/' . $PAGE . '/pre_process.php');
 ok('the page defines PAGE_TITLE', defined('PAGE_TITLE') || str_contains($source, "define('PAGE_TITLE'"),

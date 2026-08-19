@@ -45,6 +45,12 @@ $forms_design_options = function ($choices, $selected = '') {
 var formsDesignFields    = '<?php echo $forms_design_options($forms_design_fields); ?>';
 var formsDesignAligns    = '<?php echo $forms_design_options($forms_design_aligns); ?>';
 var formsDesignOperators = '<?php echo $forms_design_options($forms_design_operators); ?>';
+// json_encode rather than the single-quoted form above: these labels contain
+// apostrophes ("the document's currency") and the quoting has to be certain
+// rather than merely adequate. The options carry <optgroup>s, which is why they
+// are built by the shared helper instead of by $forms_design_options().
+var formsDesignFormats   = <?php echo json_encode(forms_format_options($forms_design_formats),
+    JSON_UNESCAPED_SLASHES); ?>;
 
 // PHP indexes $_POST by the number in the field name, so two rows sharing one
 // index become one row. Renumbering after every change is the only way that
@@ -99,7 +105,8 @@ function formsDesignAddColumn() {
     + '<td><input type="text" class="form-control form-control-sm" name="column[%i%][heading]"></td>'
     + '<td><input type="text" inputmode="decimal" class="form-control form-control-sm text-end" name="column[%i%][width]"></td>'
     + '<td><select name="column[%i%][align]" class="form-select form-select-sm">' + formsDesignAligns + '</select></td>'
-    + '<td><input type="text" class="form-control form-control-sm" name="column[%i%][format]"></td>'
+    + '<td><select name="column[%i%][format]" class="form-select form-select-sm">'
+    + formsDesignFormats + '</select></td>'
     + '<td class="text-center"><input type="checkbox" class="form-check-input" name="column[%i%][total]" value="1"></td>'
     // A NEW column defaults to breaking, which is the ordinary side-by-side
     // grid. Defaulting the other way would stack it under its neighbour.

@@ -241,6 +241,14 @@ foreach (TemplateForm::SEPARATORS as $separator) {
   );
 }
 
+// The value formats, grouped, plus whatever this form already uses that the
+// list does not offer (§13.31). Gathered from the WHOLE definition rather than
+// per element, because the grids are built from one <template> cloned per row —
+// there is a single select markup for every column of every table on the form,
+// so it has to carry every name any of them might need to keep.
+$forms_canvas_formats = forms_format_choices(
+    forms_formats_in_use($forms_canvas_definition));
+
 // The barcode symbologies, plus whatever this form already uses. Same rule as
 // the font list, for the same reason: a definition may name a type this list
 // does not carry, and a select with no option for it would silently re-code

@@ -115,8 +115,9 @@ $bands   = (array)($style['band'] ?? array());
                          value="<?php echo htmlspecialchars((string)($column['width'] ?? '')); ?>"></td>
               <td><?php echo html_pull_down_menu("column[$i][align]", $forms_design_aligns,
                     (string)($column['align'] ?? ''), 'class="form-select form-select-sm"'); ?></td>
-              <td><input type="text" class="form-control form-control-sm" name="column[<?php echo $i; ?>][format]"
-                         value="<?php echo htmlspecialchars((string)($column['format'] ?? '')); ?>"></td>
+              <td><?php echo forms_format_select(
+                    'class="form-select form-select-sm" name="column[' . $i . '][format]"',
+                    $forms_design_formats, (string)($column['format'] ?? '')); ?></td>
               <td class="text-center"><input type="checkbox" class="form-check-input"
                          name="column[<?php echo $i; ?>][total]" value="1"
                          <?php echo !empty($column['total']) ? 'checked' : ''; ?>></td>
@@ -158,8 +159,9 @@ $bands   = (array)($style['band'] ?? array());
           </div>
           <div class="col-md-3">
             <label class="form-label mb-1" for="group_format"><?php echo FORMS_DESIGN_GROUP_FORMAT; ?></label>
-            <input type="text" class="form-control form-control-sm" id="group_format" name="group[format]"
-                   value="<?php echo htmlspecialchars((string)($values['group']['format'] ?? '')); ?>">
+            <?php echo forms_format_select(
+                  'class="form-select form-select-sm" id="group_format" name="group[format]"',
+                  $forms_design_formats, (string)($values['group']['format'] ?? '')); ?>
           </div>
           <div class="col-md-4">
             <div class="form-check">

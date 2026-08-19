@@ -383,6 +383,54 @@ define('FORMS_CANVAS_COL_ADD',      'Add a column');
 define('FORMS_CANVAS_COL_HEADING',  'Heading');
 define('FORMS_CANVAS_COL_WIDTH',    'Width');
 define('FORMS_CANVAS_COL_FORMAT',   'Format');
+// ── value formats (§13.31) ──────────────────────────────────────────────────
+//
+// The labels for Formatter::CHOOSABLE. A hint's stored name is what goes in the
+// file; this is what an author reads. Each names the RESULT rather than the
+// mechanism, because "Money, in the document's currency" is a choice somebody
+// can make and `posted_cur` is a thing they have to already know.
+//
+// The stored name is kept in the label, in brackets. It is what appears in a
+// converted definition, what the manual is indexed by, and what anyone
+// comparing two forms will see - hiding it would make the list easier to read
+// once and harder to use twice.
+define('FORMS_FORMAT_NONE',       'As stored');
+define('FORMS_FORMAT_GROUP_MONEY','Money');
+define('FORMS_FORMAT_GROUP_NUMBER','Numbers');
+define('FORMS_FORMAT_GROUP_TEXT', 'Dates and text');
+define('FORMS_FORMAT_GROUP_CODE', 'Codes turned into words');
+define('FORMS_FORMAT_OTHER',      '%s (already in use)');
+define('FORMS_FORMAT_GROUP_OTHER','Already used by this document');
+
+define('FORMS_FORMAT_POSTED_CUR', "Money, in the document's currency (posted_cur)");
+define('FORMS_FORMAT_NULL_PCUR',  "Money, in the document's currency; blank if zero (null_pcur)");
+define('FORMS_FORMAT_DEF_CUR',    "Money, in the company's currency (def_cur)");
+define('FORMS_FORMAT_NULL_DCUR',  "Money, in the company's currency; blank if zero (null_dcur)");
+define('FORMS_FORMAT_DLR',        'Money, always in dollars (dlr)');
+define('FORMS_FORMAT_NULL_DLR',   'Money, always in dollars; blank if zero (null-dlr)');
+define('FORMS_FORMAT_EURO',       'Money, always in euros (euro)');
+
+define('FORMS_FORMAT_RND_DEC',    'Number, to the usual decimal places (rnd_dec)');
+define('FORMS_FORMAT_RND_PRE',    'Number, to the precise decimal places (rnd_pre)');
+define('FORMS_FORMAT_RND2D',      'Number, rounded to two decimals (rnd2d)');
+define('FORMS_FORMAT_NEG',        'Number, with the sign flipped (neg)');
+define('FORMS_FORMAT_N2WRD',      'Number, spelled out in words (n2wrd)');
+
+define('FORMS_FORMAT_DATE',       'Date, in this installation\'s format (date)');
+define('FORMS_FORMAT_UC',         'Text, in capitals (uc)');
+define('FORMS_FORMAT_LC',         'Text, in lower case (lc)');
+define('FORMS_FORMAT_BLANK',      'Print nothing (blank)');
+
+define('FORMS_FORMAT_TERMS',      'Payment terms, written out (terms)');
+define('FORMS_FORMAT_SHIP_NAME',  'Shipping method name (ship_name)');
+define('FORMS_FORMAT_J_DESC',     'Journal name, from its number (j_desc)');
+define('FORMS_FORMAT_YESBNO',     '"Yes", or blank (yesBno)');
+define('FORMS_FORMAT_NEWUSED',    '"New" or "Used" (NewUsed)');
+define('FORMS_FORMAT_PRINTED',    '"Duplicate" on a reprint (printed)');
+define('FORMS_FORMAT_COA_TYPE',   'Account type name (coa_type)');
+define('FORMS_FORMAT_CVT_ISO2',   'Country code, from the name (cvt_iso2)');
+define('FORMS_FORMAT_CVT_CNTRY',  'Country name, from the code (cvt_cntry)');
+
 define('FORMS_CANVAS_COL_NOTE',     'Widths are in millimetres and are shared out across the table. A blank width lets the column take what is left.');
 
 define('FORMS_CANVAS_PARTS',        'Lines');

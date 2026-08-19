@@ -170,6 +170,192 @@ if ($unresolved !== $want) {
     echo "  all " . count($want) . " passed through and reported: " . implode(', ', $unresolved) . "\n";
 }
 
+// ─── 5. the chain: performed -> offered -> labelled ──────────────────────────
+//
+// The Format control used to be a free-text box, which meant a misspelling and
+// a decision looked identical: format() ends in `default => plain()` and this
+// class has no extension point, so an unknown name printed the value
+// unformatted and said nothing (§13.31). It is a list now, and a list has three
+// ways to go quietly wrong that free text did not:
+//
+//   - a format the class performs but the list does not offer is unreachable;
+//   - a format the list offers but the class does not perform does nothing;
+//   - an option with no label is a blank row nobody can report.
+//
+// All three are cheap to prevent and impossible to notice by eye across
+// thirty entries, so they are checked rather than reviewed.
+echo "\n=== the editors offer exactly what the Formatter performs ===\n";
+
+gen_pull_language('forms');
+
+$armSource = (string)file_get_contents(
+    DIR_FS_MODULES . 'forms/classes/render/formatter.php');
+$armsOnly = substr($armSource, strpos($armSource, 'return match ($name)'));
+$armsOnly = substr($armsOnly, 0, strpos($armsOnly, 'default'));
+preg_match_all("/^\s*'([A-Za-z0-9_\-]+)'/m", $armsOnly, $armNames);
+
+// What can be honoured by a format alone: everything performed, less the five
+// that need the provider to have fetched an answer first.
+$honourable = array_values(array_diff(
+    array_unique(array_merge($armNames[1], Formatter::LOOKUP_HINTS)),
+    Formatter::RESOLUTION_HINTS));
+
+$offered = [];
+foreach (Formatter::CHOOSABLE as $group => $hints) {
+    foreach ($hints as $hint) $offered[] = $hint;
+}
+
+sort($honourable);
+$sortedOffered = $offered;
+sort($sortedOffered);
+
+if ($sortedOffered !== $honourable) {
+    $missing = array_diff($honourable, $sortedOffered);
+    $extra   = array_diff($sortedOffered, $honourable);
+    if ($missing) {
+        echo "  FAIL performed but not offered: " . implode(', ', $missing)
+           . " - no author can reach it\n";
+        $failures++;
+    }
+    if ($extra) {
+        echo "  FAIL offered but not performed: " . implode(', ', $extra)
+           . " - choosing it would do nothing\n";
+        $failures++;
+    }
+} else {
+    echo "  " . count($offered) . " format(s) offered, exactly what can be honoured\n";
+}
+
+// A duplicate would put the same entry under two headings, which reads as two
+// different formats that happen to share a name.
+if (count($offered) !== count(array_unique($offered))) {
+    echo "  FAIL a format appears in more than one group: "
+       . implode(', ', array_diff_assoc($offered, array_unique($offered))) . "\n";
+    $failures++;
+}
+
+// The five that are deliberately NOT offered must still be keepable, or a
+// converted report loses its format the first time anybody opens and saves it.
+$unlabelled = [];
+foreach ($offered as $hint) {
+    $constant = Formatter::labelConstant($hint);
+    if (!defined($constant) || trim((string)constant($constant)) === '') $unlabelled[] = $hint;
+}
+if ($unlabelled) {
+    echo "  FAIL no label defined for: " . implode(', ', $unlabelled)
+       . " - each is a blank row in the list\n";
+    $failures++;
+} else {
+    echo "  every offered format has a label\n";
+}
+
+foreach (['FORMS_FORMAT_NONE', 'FORMS_FORMAT_OTHER', 'FORMS_FORMAT_GROUP_OTHER'] as $needed) {
+    if (!defined($needed)) {
+        echo "  FAIL $needed is not defined\n";
+        $failures++;
+    }
+}
+foreach (array_keys(Formatter::CHOOSABLE) as $group) {
+    $constant = 'FORMS_FORMAT_GROUP_' . strtoupper($group);
+    if (!defined($constant)) {
+        echo "  FAIL group '$group' has no heading ($constant)\n";
+        $failures++;
+    }
+}
+
+// And the keeping rule itself, which is what stops the list being a trap: a
+// name the list does not carry survives being offered alongside it.
+require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+$kept = forms_format_choices(['rep_id', 'something_a_module_added']);
+$keptNames = [];
+foreach ($kept as $group) foreach ($group['options'] as $option) $keptNames[] = $option['id'];
+foreach (['rep_id', 'something_a_module_added'] as $name) {
+    if (!in_array($name, $keptNames, true)) {
+        echo "  FAIL '$name' is in use on a document but was not offered back"
+           . " - saving would silently clear it\n";
+        $failures++;
+    }
+}
+if (in_array('rep_id', $keptNames, true)) {
+    echo "  a format already in use is kept even when it is not on offer\n";
+}
+
+// ─── 5. the manual documents exactly the formats that exist ──────────────────
+//
+// The Format box is FREE TEXT, and an unknown name is ignored in silence: the
+// value prints unformatted, with no warning and nothing in any log. So the
+// manual's list is not a convenience, it is the only place an author can check
+// a spelling — which makes a wrong entry in it worse than no entry at all, and
+// makes an undocumented format one nobody will ever use.
+//
+// Both directions are checked. Writing this found `null-dlr` missing from the
+// page, which is the one whose name breaks the pattern its neighbours keep
+// (a hyphen where null_pcur and null_dcur have underscores) and so the one an
+// author is least likely to guess.
+echo "\n=== the manual lists the formats the Formatter performs ===\n";
+
+$manualPath = DIR_FS_MODULES
+    . 'phreedom/language/en_us/manual/ch11-ReportsForms/08-ValueFormats.html';
+
+if (!is_file($manualPath)) {
+    echo "  FAIL the Value Formats topic is missing: $manualPath\n";
+    $failures++;
+} else {
+    $manual = (string)file_get_contents($manualPath);
+
+    // What the class actually performs: every arm of the match, plus the two
+    // declared lists it answers before reaching it.
+    $source = (string)file_get_contents(
+        DIR_FS_MODULES . 'forms/classes/render/formatter.php');
+    $arms = substr($source, strpos($source, 'return match ($name)'));
+    $arms = substr($arms, 0, strpos($arms, 'default'));
+    preg_match_all("/^\s*'([A-Za-z0-9_\-]+)'/m", $arms, $found);
+    $performed = $found[1];
+    foreach ([Formatter::RESOLUTION_HINTS, Formatter::LOOKUP_HINTS] as $list) {
+        foreach ($list as $hint) $performed[] = $hint;
+    }
+    $performed = array_values(array_unique($performed));
+
+    // A format is documented either as a row of one of the tables or, for the
+    // five the renderer deliberately refuses, named in the prose that explains
+    // why. Those get no table row on purpose: a row would read as an offer.
+    preg_match_all('/<td>(?:<strong>)?([A-Za-z0-9_\-]+)(?:<\/strong>)?<\/td>/', $manual, $rows);
+    preg_match_all('/<em>([A-Za-z0-9_\-]+)<\/em>/', $manual, $prose);
+    $documented = array_flip(array_merge($rows[1], $prose[1]));
+
+    $undocumented = [];
+    foreach ($performed as $name) if (!isset($documented[$name])) $undocumented[] = $name;
+    if ($undocumented) {
+        echo "  FAIL the manual does not list: " . implode(', ', $undocumented)
+           . " - an author has no way to learn a format that is not written down\n";
+        $failures++;
+    }
+
+    // And the other way. A name in the manual that the class does not perform
+    // sends an author to type something that will be ignored in silence, which
+    // is the one failure this whole page exists to prevent.
+    $known = array_flip($performed);
+    $invented = [];
+    foreach (array_keys($documented) as $name) {
+        // Prose emphasis is also used for ordinary words; only a name that
+        // LOOKS like a format is worth holding the manual to.
+        if (!preg_match('/^[a-z][a-z0-9]*([_\-][a-z0-9]+)+$/', $name)) continue;
+        if (!isset($known[$name])) $invented[] = $name;
+    }
+    // The page names one misspelling on purpose, to show what one looks like.
+    $invented = array_values(array_diff($invented, ['posted_curr']));
+    if ($invented) {
+        echo "  FAIL the manual lists a format nothing performs: " . implode(', ', $invented)
+           . " - typing it would be ignored in silence\n";
+        $failures++;
+    }
+
+    if (!$undocumented && !$invented) {
+        echo "  all " . count($performed) . " format(s) documented, and nothing documented"
+           . " that does not exist\n";
+    }
+}
+
 echo "\n" . ($failures === 0
     ? "PASS - Formatter matches PhreeForm and the seam holds.\n"
     : "FAIL - $failures problem(s) above.\n");

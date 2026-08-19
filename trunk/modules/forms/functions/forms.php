@@ -53,6 +53,146 @@ function forms_formatter_lookups(): array
 }
 
 /**
+ * The value formats an author may choose, grouped, as `<optgroup>`s.
+ *
+ * One list for all three places a format is set — a report's columns, a form
+ * table's columns and an address block's lines — because it is one vocabulary
+ * and a name that works in one works in all of them.
+ *
+ * **Why a list at all.** Formatter::format() ends in `default => plain()` and
+ * has no extension point, so a name it does not know does nothing whatever,
+ * silently. A free-text box therefore made a misspelling and a decision look
+ * exactly alike, with the value printing unformatted either way and nothing
+ * said. The vocabulary is closed at 30 names, of which 25 can be honoured by a
+ * format alone, so it can simply be offered (§13.31).
+ *
+ * **Why $inUse.** A definition may carry a hint this list does not — one of the
+ * five the provider must resolve, or something inherited from a PhreeForm
+ * install with its own `pf_process_*` hook. A select with no option for it
+ * would clear it on the first save of a document nobody meant to change. So
+ * whatever is already there is appended, marked, and kept. Exactly the rule
+ * the font list keeps, for exactly the same reason.
+ *
+ * @param list<string> $inUse format names this document already carries
+ * @return list<array{label:string,options:list<array{id:string,text:string}>}>
+ */
+function forms_format_choices(array $inUse = array()): array
+{
+    $groups = array();
+    $known  = array();
+
+    foreach (\FreeBooks\Forms\Render\Formatter::CHOOSABLE as $group => $hints) {
+        $options = array();
+        foreach ($hints as $hint) {
+            $known[$hint] = true;
+            $constant = \FreeBooks\Forms\Render\Formatter::labelConstant($hint);
+            // A hint with no label falls back to its own name rather than to an
+            // empty option: an unlabelled entry is a bug to fix, and a blank
+            // row in a select is one nobody can report.
+            $options[] = array('id' => $hint,
+                               'text' => defined($constant) ? constant($constant) : $hint);
+        }
+        $title = 'FORMS_FORMAT_GROUP_' . strtoupper($group);
+        $groups[] = array('label' => defined($title) ? constant($title) : $group,
+                          'options' => $options);
+    }
+
+    // What this document uses that the list does not offer. Kept together at
+    // the end rather than filed into a group, because what they have in common
+    // is not what they do but that they are already here.
+    $extra = array();
+    foreach ($inUse as $hint) {
+        $hint = trim((string)$hint);
+        if ($hint === '' || isset($known[$hint])) continue;
+        $known[$hint] = true;
+        $extra[] = array('id' => $hint, 'text' => sprintf(FORMS_FORMAT_OTHER, $hint));
+    }
+    if ($extra) $groups[] = array('label' => FORMS_FORMAT_GROUP_OTHER, 'options' => $extra);
+
+    return $groups;
+}
+
+/**
+ * A grouped select, which html_pull_down_menu() cannot draw.
+ *
+ * That helper emits a flat list of options and nothing else, and twenty-five
+ * formats in one flat list is a list nobody reads to the end of. The groups are
+ * most of what makes the control usable — an author looking for a money format
+ * should not have to pass the country-code ones to reach it.
+ *
+ * @param list<array{label:string,options:list<array{id:string,text:string}>}> $groups
+ */
+function forms_format_select(string $attributes, array $groups, string $chosen = ''): string
+{
+    return '<select ' . $attributes . '>' . forms_format_options($groups, $chosen) . '</select>';
+}
+
+/**
+ * The inside of that select, on its own.
+ *
+ * Split out because the report editor adds a column row in JavaScript and needs
+ * the options as a string to build one with — the same reason it already keeps
+ * its field and alignment options that way.
+ *
+ * The empty option comes FIRST and is outside every group: it is the commonest
+ * answer by a distance, and burying "as stored" under a heading would make the
+ * default look like a choice among the money formats.
+ *
+ * @param list<array{label:string,options:list<array{id:string,text:string}>}> $groups
+ */
+function forms_format_options(array $groups, string $chosen = ''): string
+{
+    $out = '<option value=""' . ($chosen === '' ? ' selected' : '') . '>'
+         . htmlspecialchars(FORMS_FORMAT_NONE) . '</option>';
+    foreach ($groups as $group) {
+        $out .= '<optgroup label="' . htmlspecialchars($group['label'], ENT_QUOTES) . '">';
+        foreach ($group['options'] as $option) {
+            $out .= '<option value="' . htmlspecialchars($option['id'], ENT_QUOTES) . '"'
+                  . ($option['id'] === $chosen ? ' selected' : '') . '>'
+                  . htmlspecialchars($option['text']) . '</option>';
+        }
+        $out .= '</optgroup>';
+    }
+    return $out;
+}
+
+/**
+ * Every format name a definition already carries, from all three places one
+ * can be set. What forms_format_choices() needs so that nothing is lost.
+ *
+ * @return list<string>
+ */
+function forms_formats_in_use($definition): array
+{
+    $used = array();
+    foreach ($definition?->columns ?? array() as $column) {
+        if ($column->format !== null) $used[$column->format->name] = true;
+    }
+    if (($definition?->groupFormat ?? null) !== null) $used[$definition->groupFormat->name] = true;
+
+    foreach ($definition?->template?->elements ?? array() as $element) {
+        if ($element instanceof \FreeBooks\Forms\Document\Table) {
+            foreach ($element->columns as $column) {
+                if ($column->format !== null) $used[$column->format->name] = true;
+            }
+        }
+        if ($element instanceof \FreeBooks\Forms\Document\FieldBlock) {
+            foreach ($element->parts as $part) {
+                if ($part->format !== null) $used[$part->format->name] = true;
+            }
+        }
+        // A Field's own format has no control in either editor, so it is not
+        // offered — but it is listed, because a name that exists on the
+        // document is a name an author may reasonably want on another element.
+        if ($element instanceof \FreeBooks\Forms\Document\Field && $element->format !== null) {
+            $used[$element->format->name] = true;
+        }
+    }
+    unset($used['']);
+    return array_keys($used);
+}
+
+/**
  * The document-wide values a report's page furniture is drawn from.
  *
  * PhreeForm read COMPANY_NAME straight from a global inside its render loop.

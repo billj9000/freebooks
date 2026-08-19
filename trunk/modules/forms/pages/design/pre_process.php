@@ -195,6 +195,13 @@ if ($forms_design_definition !== null) {
 
 $forms_design_sortable = $forms_design_fields;
 
+// The value formats, grouped, plus whatever this report already uses that the
+// list does not offer (§13.31). Same vocabulary and same helper as the form
+// canvas: a format means the same thing in a report as it does on a form, and
+// two lists that could drift apart would be two lists to keep right.
+$forms_design_formats = forms_format_choices(
+    forms_formats_in_use($forms_design_definition));
+
 $forms_design_operators = array();
 foreach (FilterOperator::cases() as $case) {
   $forms_design_operators[] = array('id' => $case->value, 'text' => $case->label());

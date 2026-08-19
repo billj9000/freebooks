@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.08">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Value Formats">
+<meta name="doc_index_2" content="Reports.Formatting a Column">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<meta name="doc_glossary_1" content="Format:A named instruction that says how a value should be printed - as money, as a date, in capitals. It changes how the value is drawn, never what is stored.">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Value Formats">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Value Formats</title>
+</head>
+
+<body>
+
+<h1 align="center">Value Formats</h1>
+
+<p>A <strong>format</strong> says how a value should be printed &mdash; as money, as a date, in
+capitals. It changes how the value is drawn and never what is stored, so changing one is always
+safe: nothing about the underlying record is altered.</p>
+
+<p>The same list is used in three places, and this page is the reference for all of them:</p>
+
+<ul>
+<li>the <strong>Format</strong> column when you are <a href="06-ReportEditor.html" target="mainFrame">editing a
+report</a>;</li>
+<li>the <strong>Format</strong> column of a form's line-item table;</li>
+<li>the <strong>Format</strong> column of an address block's lines.</li>
+</ul>
+
+<h3>Leaving it empty</h3>
+
+<p>An empty format prints the value <em>exactly as it is stored</em>. There is no clever default.
+A price held as 12.5 prints as "12.5", not "12.50" and not "&pound;12.50"; a date held as
+2026-08-19 prints as "2026-08-19".</p>
+
+<p>So for text an empty format is usually right, and <strong>for money and dates it is usually
+wrong</strong>. If an amount column is coming out looking like a bare number, a missing format is
+the first thing to check.</p>
+
+<h3>Money</h3>
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Format</th><th>What it prints</th></tr>
+<tr><td><strong>posted_cur</strong></td><td>Money, in the currency the document was posted in, with
+that currency's symbol and decimal places. <strong>This is the one for prices and line totals on an
+invoice, order or statement.</strong></td></tr>
+<tr><td><strong>null_pcur</strong></td><td>The same, but a zero prints as nothing at all. Use it for
+a column that is often empty &mdash; a discount, a tax &mdash; so the page is not full of zeros.</td></tr>
+<tr><td><strong>def_cur</strong></td><td>Money in the company's own currency, whatever the document
+was posted in. Right for a total that is being reported rather than charged.</td></tr>
+<tr><td><strong>null_dcur</strong></td><td>The same, with a zero printing as nothing.</td></tr>
+<tr><td>dlr</td><td>A dollar sign and two decimals, regardless of the company's currency.</td></tr>
+<tr><td>null-dlr</td><td>The same, with a zero printing as nothing. Note the hyphen: this one is
+<em>null-dlr</em> where its neighbours above are <em>null_pcur</em> and <em>null_dcur</em> with
+underscores. It is an inconsistency inherited from the older designer, and exactly the kind of
+misspelling that fails in silence.</td></tr>
+<tr><td>euro</td><td>A euro sign and two decimals, regardless of the company's currency.</td></tr>
+</table>
+
+<p><em>dlr</em> and <em>euro</em> come from the older designer and fix the symbol into the form.
+Prefer the four above them: those follow the currency, so one invoice layout serves every customer
+you bill.</p>
+
+<h3>Numbers</h3>
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Format</th><th>What it prints</th></tr>
+<tr><td><strong>rnd_dec</strong></td><td>A number to the currency's normal number of decimal places.
+The usual choice for a quantity.</td></tr>
+<tr><td>rnd_pre</td><td>A number to the currency's <em>precise</em> number of decimal places, which
+is more than the normal one. Use it for a unit price that carries more decimals than the total does.</td></tr>
+<tr><td>rnd2d</td><td>Rounded to two decimals, with no symbol and no thousands separator.</td></tr>
+<tr><td>neg</td><td>Flips the sign. Useful where a value is stored one way round and read the other
+&mdash; a credit shown as a positive figure.</td></tr>
+<tr><td>n2wrd</td><td>The number spelled out in words. This is what writes "One thousand two hundred
+and thirty" on a cheque.</td></tr>
+</table>
+
+<h3>Dates and text</h3>
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Format</th><th>What it prints</th></tr>
+<tr><td><strong>date</strong></td><td>The date in the format this installation uses, rather than the
+way the database stores it.</td></tr>
+<tr><td>uc</td><td>The text in capitals.</td></tr>
+<tr><td>lc</td><td>The text in lower case.</td></tr>
+<tr><td>blank</td><td>Nothing at all. A way to keep a column in place while stopping it printing.</td></tr>
+</table>
+
+<h3>Codes turned into words</h3>
+
+<p>Several values are stored as a code and mean nothing to the reader as they stand. These formats
+turn them into the words they stand for.</p>
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Format</th><th>What it prints</th></tr>
+<tr><td>terms</td><td>Payment terms, written out &mdash; "Net 30 days" rather than the stored code.</td></tr>
+<tr><td>ship_name</td><td>The name of the shipping method, rather than its internal identifier.</td></tr>
+<tr><td>j_desc</td><td>The name of the journal a transaction belongs to, from its number.</td></tr>
+<tr><td>yesBno</td><td>"Yes" when the value is set, and nothing when it is not.</td></tr>
+<tr><td>NewUsed</td><td>"Used" or "New".</td></tr>
+<tr><td>printed</td><td>Nothing if the document has been printed before, and "Duplicate" if it has
+not. This is what puts the Duplicate mark on a reprinted document.</td></tr>
+<tr><td>coa_type</td><td>The name of an account type, from its number.</td></tr>
+<tr><td>cvt_iso2</td><td>A country's two-letter code from its stored name.</td></tr>
+<tr><td>cvt_cntry</td><td>A country's name from its code.</td></tr>
+</table>
+
+<h3>Choosing one</h3>
+
+<p>The <strong>Format</strong> box is a list you pick from, grouped under the same headings this
+page uses, so there is nothing to spell and nothing to remember. Each entry is described by what it
+does, with its stored name in brackets &mdash; that name is what you will see in an older
+definition, and what this page is organised by.</p>
+
+<p>The first entry, <strong>As stored</strong>, is the empty format, and it is the commonest answer:
+most columns are text and want nothing done to them.</p>
+
+<p>If a document already uses a format the list does not offer &mdash; one of the five below, or
+something inherited from an older installation &mdash; it appears at the end of the list under
+<em>Already used by this document</em>, and stays selected. Nothing is lost by opening a document
+and saving it.</p>
+
+<h3>One thing that will catch you out</h3>
+
+<p><strong>Five formats only work where the report itself supplies the answer.</strong> These are
+<em>rep_id</em>, <em>branch</em>, <em>avg_cost</em>, <em>avg_total</em> and <em>ordr_qty</em>. Each
+needs a database lookup rather than a rearrangement of the value in hand, so the print engine
+deliberately refuses to perform one and prints the value untouched. Typing <em>rep_id</em> into a
+column gets you the raw identifier, not the salesperson's name. Where a report already shows one of
+these properly, it is because the report was built to fetch it, and copying the format alone onto
+another column will not reproduce it.</p>
+
+<p>This is why they are not in the list to choose from: a list is an offer, and choosing
+<em>rep_id</em> would promise a salesperson's name and deliver a number. They are shown only where a
+document already uses one.</p>
+
+<h3>Finding what a column already uses</h3>
+
+<p>The quickest answer to "what should this be?" is usually a document that already gets it right.
+Open a shipped invoice, look at what its amount column uses, and use the same. The formats mean the
+same thing in a report as they do on a form.</p>
+
+<h3>Related Links</h3>
+<p><a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a><br>
+<a href="07-FormLayout.html" target="mainFrame">Changing a Form's Layout</a><br>
+<a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a></p>
+</body>
+</html>
