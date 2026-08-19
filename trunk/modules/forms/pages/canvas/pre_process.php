@@ -47,24 +47,33 @@ require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
-use FreeBooks\Forms\App\{CanvasLayout, FormRunner, ImageStore};
+use FreeBooks\Forms\App\{CanvasLayout, FormRunner, ImageStore, DocumentStore, DocumentStoreException};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader, TemplateForm};
 use FreeBooks\Forms\Document\{Align, Template, Visibility};
 
 $forms_canvas_id = isset($_REQUEST['rID']) ? (int)$_REQUEST['rID'] : 0;
+$forms_canvas_new_id = 0;   // set when an action just made a document to open
 
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 (new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORMS_DATASETS))->registerAll($catalog);
 
 $loader = new DefinitionLoader($catalog);
+$forms_store = new DocumentStore($db, $catalog, $loader, TABLE_PHREEFORM);
 $runner = new FormRunner($db, $catalog);
 
 $forms_canvas_definition = null;
 $forms_canvas_plan       = null;
 $forms_canvas_boxes      = array();
 $forms_canvas_values     = array();
+
+// New, Copy, Rename and Delete, before anything is loaded — a copy opens the
+// COPY and not the document it was made from, and a delete has no document to
+// open at all (§13.29).
+$forms_canvas_new_id = forms_document_action($forms_store, \FreeBooks\Forms\Definition\Definition::FORM, $security_level);
+if ($forms_canvas_new_id > 0) $forms_canvas_id = $forms_canvas_new_id;
+if (($_REQUEST['action'] ?? '') === 'delete') $forms_canvas_id = 0;
 
 // Arriving with nothing chosen is the ordinary way in from the menu, so the
 // page answers with a list rather than with an error.
@@ -150,8 +159,10 @@ if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save')
       $loader->save($edited, $forms_canvas_id);
 
       // The catalog row carries the title the document list shows.
-      $db->Execute("update " . TABLE_PHREEFORM . " set doc_title = '"
-          . $db->prepare_input($edited->title) . "' where id = " . (int)$forms_canvas_id);
+      // Through the store, which refuses a name another document already
+      // has. Several things resolve a document BY TITLE, so two of one
+      // name makes which they find a matter of collation (§13.29).
+      $forms_store->updateTitle((int)$forms_canvas_id, $edited->title);
 
       $messageStack->add(sprintf(FORMS_DESIGN_SAVED, $edited->title), 'success');
       gen_redirect(html_href_link(FILENAME_DEFAULT,
@@ -252,9 +263,18 @@ if ($forms_canvas_definition === null) {
       // forms, so it is the list that has to know.
       'serial' => $serial,
       'page'   => $serial ? 'receipt' : 'canvas',
+      // Whether deleting it would leave a Print button with nothing to open.
+      // Read here so the confirmation can SAY so, while there is still a
+      // decision to be made about it.
+      'last'   => $forms_store->isLastInGroup($id),
     );
     $result->MoveNext();
   }
+  $forms_canvas_groups   = $forms_store->groups(true);
+  $forms_canvas_datasets = array();
+  foreach ($catalog->all() as $dataset) $forms_canvas_datasets[$dataset->id] = $dataset->label;
+  asort($forms_canvas_datasets);
+
   usort($forms_canvas_choices, function ($a, $b) {
     return strcasecmp($a['folder'], $b['folder']) ?: strcasecmp($a['title'], $b['title']);
   });

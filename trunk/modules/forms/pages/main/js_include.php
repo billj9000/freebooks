@@ -254,4 +254,10 @@ table.addEventListener('click', function (event) {
 
 apply();
 });
+
 </script>
+<?php
+// A block of its OWN, outside whatever this page's script is — the
+// canvas's is a module, and a function declared in a module is not
+// global, so an inline handler could never see one (§13.29).
+forms_document_actions_script();

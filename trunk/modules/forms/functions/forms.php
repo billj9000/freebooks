@@ -364,3 +364,143 @@ function forms_render_to_string(int $definitionId, array $recordIds, array $para
         return null;
     }
 }
+
+/**
+ * Act on a New, Copy, Rename or Delete asked for by one of the two lists.
+ *
+ * Shared because the two lists differ only in what they hold: the Reports page
+ * lists reports and Form Layout lists forms, and a document is created,
+ * copied, renamed and deleted the same way whichever it is (§13.29). Writing it
+ * twice is how the guards come to be on one list and not the other.
+ *
+ * Answers with the id to open, or 0. Every refusal goes to the message stack —
+ * these are things a person asked for, so a person has to be told why not.
+ *
+ * @param object $store   a DocumentStore
+ * @param string $type    Definition::REPORT or Definition::FORM, for a new one
+ * @return int the document to open next, or 0 to stay on the list
+ */
+function forms_document_action($store, string $type, int $securityLevel): int
+{
+    global $messageStack;
+
+    $action = (string)($_REQUEST['action'] ?? '');
+    if (!in_array($action, array('new', 'copy', 'rename', 'delete'), true)) return 0;
+
+    // Level 3 writes a document, level 4 removes one. Deleting is the only
+    // action here that cannot be undone from inside Forms, which is the whole
+    // reason it asks for more.
+    $needed = $action === 'delete' ? 4 : 3;
+    if ($securityLevel < $needed) {
+        $messageStack->add(FORMS_DESIGN_DENIED, 'error');
+        return 0;
+    }
+
+    $id    = isset($_REQUEST['rID']) ? (int)$_REQUEST['rID'] : 0;
+    $title = trim((string)($_REQUEST['doc_title'] ?? ''));
+
+    try {
+        switch ($action) {
+            case 'new':
+                $made = $store->create($type, $title,
+                    (string)($_REQUEST['doc_group'] ?? ''),
+                    ($_REQUEST['dataset'] ?? '') !== '' ? (string)$_REQUEST['dataset'] : null);
+                $messageStack->add(sprintf(FORMS_DOC_CREATED, $title), 'success');
+                return $made;
+
+            case 'copy':
+                $made = $store->copy($id, $title);
+                $messageStack->add(sprintf(FORMS_DOC_COPIED, $title), 'success');
+                return $made;
+
+            case 'rename':
+                $store->rename($id, $title);
+                $messageStack->add(sprintf(FORMS_DOC_RENAMED, $title), 'success');
+                return 0;
+
+            case 'delete':
+                // Read BEFORE it goes: afterwards there is no row to ask.
+                $gone = $store->isLastInGroup($id);
+                $store->delete($id);
+                $messageStack->add(FORMS_DOC_DELETED, 'success');
+                if ($gone) $messageStack->add(FORMS_DOC_WAS_LAST, 'caution');
+                return 0;
+        }
+    } catch (\Throwable $e) {
+        $messageStack->add($e->getMessage(), 'error');
+    }
+    return 0;
+}
+
+/**
+ * The script behind New, Copy and Delete on the two document lists.
+ *
+ * Its own `<script>` block, emitted AFTER whatever the page's own js_include
+ * contains, and that is the whole point of it being here rather than pasted
+ * into each page: the canvas's script is `type="module"`, and a function
+ * declared inside a module is scoped to that module. An `onclick="formsDocNew()"`
+ * on a page whose script is a module finds nothing at all — which is exactly
+ * what happened, and it fails silently, because a handler naming an undefined
+ * function is only an error when it is clicked.
+ *
+ * Listeners are DELEGATED from the document rather than written as inline
+ * handlers, so nothing has to be global and a title never has to survive being
+ * JSON-encoded inside an HTML attribute — it travels as a data attribute, which
+ * needs escaping once and in one obvious way.
+ */
+function forms_document_actions_script(): void
+{
+?>
+<script type="text/javascript">
+(function () {
+  function submitAction(kind, id, title) {
+    var form = document.getElementById('forms_doc_action');
+    if (!form) return;
+    document.getElementById('forms_doc_action_kind').value  = kind;
+    document.getElementById('forms_doc_action_id').value    = id;
+    document.getElementById('forms_doc_action_title').value = title || '';
+    form.submit();
+  }
+
+  document.addEventListener('click', function (event) {
+    var el = event.target.closest('[data-fb-doc]');
+    if (!el) return;
+    event.preventDefault();
+
+    var kind  = el.getAttribute('data-fb-doc');
+    var id    = el.getAttribute('data-id') || '';
+    var title = el.getAttribute('data-title') || '';
+
+    if (kind === 'new') {
+      var modal = document.getElementById('forms_new_modal');
+      if (!modal || typeof bootstrap === 'undefined') return;
+      bootstrap.Modal.getOrCreateInstance(modal).show();
+      var name = document.getElementById('forms_new_name');
+      if (name) modal.addEventListener('shown.bs.modal',
+          function () { name.focus(); }, { once: true });
+      return;
+    }
+
+    if (kind === 'copy') {
+      var proposed = <?php echo json_encode(FORMS_DOC_COPY_OF); ?>.replace('%s', title);
+      var chosen   = window.prompt(<?php echo json_encode(FORMS_DOC_NAME); ?>, proposed);
+      if (chosen === null) return;
+      submitAction('copy', id, chosen);
+      return;
+    }
+
+    if (kind === 'delete') {
+      // `last` is worked out on the SERVER while the row still exists — after
+      // the delete there is nothing left to ask, and what it warns about is a
+      // Print button on another page entirely.
+      var question = el.getAttribute('data-last') === '1'
+          ? <?php echo json_encode(FORMS_DOC_CONFIRM_LAST); ?>
+          : <?php echo json_encode(FORMS_DOC_CONFIRM_DELETE); ?>;
+      if (!window.confirm(question)) return;
+      submitAction('delete', id, '');
+    }
+  });
+})();
+</script>
+<?php
+}

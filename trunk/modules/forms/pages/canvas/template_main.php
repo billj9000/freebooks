@@ -30,6 +30,12 @@ $toolbar->icon_list['save']['params'] = 'onclick="formsCanvasSave()"';
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, $forms_canvas_definition !== null
         ? 'module=forms&page=canvas' : 'module=forms&page=main', 'SSL') . '\'"';
+// New, the FreeBooks way of making a thing. Only on the LIST: with a form open
+// the toolbar's actions belong to that form, and a New beside Save reads as
+// "new element" on a page whose whole subject is elements.
+if ($forms_canvas_definition === null && $security_level > 2) {
+  $toolbar->add_icon('new', 'data-fb-doc="new"', 2);
+}
 $toolbar->add_help('11.07');
 echo $toolbar->build_toolbar();
 
@@ -69,11 +75,31 @@ if ($forms_canvas_definition === null) { ?>
             <span class="badge text-bg-secondary"><?php echo FORMS_CANVAS_IS_RECEIPT; ?></span>
 <?php     } ?>
           </td>
-          <td class="text-end">
+          <td class="text-end text-nowrap">
             <a class="btn btn-primary btn-sm" href="<?php echo html_href_link(FILENAME_DEFAULT,
               'module=forms&amp;page=' . $choice['page'] . '&amp;rID=' . $choice['id'], 'SSL'); ?>">
               <?php echo $choice['serial'] ? FORMS_CANVAS_OPEN_RECEIPT : FORMS_CANVAS_OPEN; ?>
             </a>
+<?php     if ($security_level > 2) { ?>
+            <?php // Data attributes, not an inline handler: nothing has to be
+                  // global, and a title is escaped once rather than for HTML and
+                  // for JavaScript at the same time. ?>
+            <button type="button" class="btn btn-primary btn-sm"
+                    data-fb-doc="copy"
+                    data-id="<?php echo (int)$choice['id']; ?>"
+                    data-title="<?php echo htmlspecialchars($choice['title'], ENT_QUOTES); ?>">
+              <?php echo FORMS_DOC_COPY; ?></button>
+<?php     } ?>
+<?php     if ($security_level > 3) { ?>
+            <?php // The consequence is on ANOTHER page — a Print button that
+                  // stops working — so it is said HERE, while there is still a
+                  // decision to make about it. ?>
+            <button type="button" class="btn btn-primary btn-sm"
+                    data-fb-doc="delete"
+                    data-id="<?php echo (int)$choice['id']; ?>"
+                    data-last="<?php echo $choice['last'] ? '1' : '0'; ?>">
+              <?php echo FORMS_DOC_DELETE; ?></button>
+<?php     } ?>
           </td>
         </tr>
 <?php } } ?>
@@ -81,6 +107,68 @@ if ($forms_canvas_definition === null) { ?>
     </table>
   </div>
 </div>
+<?php if ($security_level > 2) { ?>
+<?php // The New icon on the toolbar is the FreeBooks convention for making a
+      // thing, so it is where this belongs rather than in a panel under the
+      // list. The three answers are collected BEFORE the editor opens, because
+      // all three are properties of the document rather than of its layout —
+      // and a canvas that opened first would have to ask for them afterwards,
+      // or guess. ?>
+<div class="modal fade" id="forms_new_modal" tabindex="-1"
+     aria-labelledby="forms_new_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <?php echo html_form('forms_new_form', FILENAME_DEFAULT,
+          'module=forms&page=canvas&action=new'); ?>
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="forms_new_title"><?php echo FORMS_DOC_NEW_FORM; ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="<?php echo TEXT_CANCEL; ?>"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small"><?php echo FORMS_DOC_NEW_HELP; ?></p>
+        <div class="mb-2">
+          <label class="form-label mb-0 small" for="forms_new_name"><?php echo FORMS_DOC_NAME; ?></label>
+          <input type="text" name="doc_title" id="forms_new_name" maxlength="64"
+                 class="form-control form-control-sm" required autocomplete="off">
+        </div>
+        <div class="mb-2">
+          <label class="form-label mb-0 small" for="forms_new_folder"><?php echo FORMS_DOC_FOLDER; ?></label>
+          <select name="doc_group" id="forms_new_folder" class="form-select form-select-sm">
+<?php foreach ($forms_canvas_groups as $forms_new_code => $forms_new_name) { ?>
+            <option value="<?php echo htmlspecialchars($forms_new_code); ?>"><?php
+              echo htmlspecialchars($forms_new_name); ?></option>
+<?php } ?>
+          </select>
+        </div>
+        <div class="mb-1">
+          <label class="form-label mb-0 small" for="forms_new_dataset"><?php echo FORMS_DOC_DATASET; ?></label>
+          <select name="dataset" id="forms_new_dataset" class="form-select form-select-sm">
+<?php foreach ($forms_canvas_datasets as $forms_new_code => $forms_new_name) { ?>
+            <option value="<?php echo htmlspecialchars($forms_new_code); ?>"><?php
+              echo htmlspecialchars($forms_new_name); ?></option>
+<?php } ?>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+          <?php echo TEXT_CANCEL; ?></button>
+        <button type="submit" class="btn btn-primary btn-sm"><?php echo FORMS_DOC_NEW; ?></button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php } ?>
+
+<?php // Copy and Delete post through their own form so the id and the new name
+      // travel as POST rather than in a URL a browser would offer to repeat. ?>
+<?php echo html_form('forms_doc_action', FILENAME_DEFAULT, 'module=forms&page=canvas'); ?>
+  <input type="hidden" name="action"    id="forms_doc_action_kind"  value="">
+  <input type="hidden" name="rID"       id="forms_doc_action_id"    value="">
+  <input type="hidden" name="doc_title" id="forms_doc_action_title" value="">
+</form>
 <?php
   return;
 }
@@ -89,7 +177,16 @@ if ($forms_canvas_definition === null) { ?>
 
 <?php echo html_form('forms_canvas_form', FILENAME_DEFAULT,
     'module=forms&page=canvas&action=save&rID=' . (int)$forms_canvas_id); ?>
-<input type="hidden" name="title" value="<?php echo htmlspecialchars($forms_canvas_definition->title); ?>">
+<?php // A field, not a hidden value. It was hidden because the canvas had no
+      // way to rename anything, so posting the stored name back was the only
+      // safe thing to do; renaming is now the store's job and this is where a
+      // form's name is edited (§13.29). TemplateForm::apply() has always read
+      // this key — it simply never saw a different value. ?>
+<div class="mb-2 d-inline-block">
+  <label class="form-label mb-0 small"><?php echo FORMS_CANVAS_NAME; ?></label>
+  <input type="text" name="title" maxlength="64" size="40"
+         value="<?php echo htmlspecialchars($forms_canvas_definition->title); ?>">
+</div>
 <?php // Every element is submitted as hidden fields written by the canvas: the
       // boxes are dragged, not typed, and the row ORDER is the drawing order. ?>
 <div id="forms_canvas_fields"></div>

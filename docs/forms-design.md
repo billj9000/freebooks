@@ -3567,3 +3567,129 @@ Existing companies keep their own copy: seeding only affects a new install, and
 `demo` has already made this change through the editor.
 
 See [[todo_forms_canvas_serial_guard]], §13.16 and §13.27.
+
+### 13.29 New, Copy, Rename and Delete — the last thing PhreeForm could do
+
+Built 2026-08-19, closing [[todo_forms_create_delete]]. Both editors opened an
+existing `rID` and nothing else, so the route to a new form was "copy one in
+PhreeForm, edit the copy in Forms". A report engine that cannot add a report is
+not a replacement, which is why this was a step 6 blocker rather than a
+convenience.
+
+**One class, not four page actions.** `DocumentStore` owns all of it, because a
+document is TWO things that must agree — a catalogue row and a definition file
+— and every operation touches both. Split across the pages that offer the
+buttons, you get a row with no file (a document that lists and then cannot be
+opened) or a file with no row (a document nobody can see and nobody deletes).
+
+Ordering is chosen so a failure leaves the catalogue consistent. A write inserts
+the row first because the FILENAME IS THE ID, and removes that row again if the
+write fails. A delete removes the row first: of the two inconsistent states, a
+file with no row is the one you can still find, because its name tells you which
+document it was.
+
+**What each does.** *New* is genuinely empty — a report with no columns, a form
+with no elements. An author who wants something like an existing document should
+copy it, and a "new" that guessed at content would only be a worse copy. *Copy*
+is the valuable one: starting from the invoice that is nearly right is the normal
+case. It writes the copy natively whatever the original was, exactly as the first
+save of either editor does, and leaves the original untouched so PhreeForm can
+still print it. *Rename* writes both places the name lives — the row every list
+shows and the definition every printed document shows — because a rename that
+moved one of them is how a report comes to be called two different things
+depending on where you look.
+
+**Renaming a form needed the canvas changed.** Its title was posted back as a
+hidden field, which was correct when the canvas had no way to rename anything.
+It is a text field now; `TemplateForm::apply()` had always read the key and
+simply never saw a different value.
+
+**Four refusals, and one warning.**
+
+- A **duplicate title** is refused, and this is not tidiness. Several things
+  resolve a document BY TITLE — `ImportReport()` upserts on it, and the invoice
+  a payment link attaches is chosen with `order by doc_title limit 1` (§13.26).
+  Two of one name makes which they find a matter of collation. All three editors
+  now rename through the store rather than writing `doc_title` themselves, so
+  none of them can create one.
+- A **document a setting names** is refused, and the refusal names the setting.
+  This is the §13.26 failure mode again: `ZENCART_VAT_INVOICE_FORM` holds a form
+  id, and deleting that form leaves the setting pointing at nothing — which does
+  not fail loudly, it silently stops emailing invoices.
+- A **folder** is refused; deleting one here would orphan everything filed under
+  it rather than delete it.
+- A **name longer than the column** is refused rather than cut by the database
+  into something its author did not choose.
+- Deleting the **last document in its group** is allowed but says so first. The
+  thing that breaks is a Print button on another page entirely, and nothing
+  afterwards would connect the two — so it is said while there is still a
+  decision to make. The list works it out per row while the row still exists,
+  because after the delete there is nothing left to ask.
+
+**Reached the FreeBooks way**, at the user's correction: New is an icon on the
+TOOLBAR, not a panel under the list. The three answers it needs — name, folder,
+and the dataset it is built on — are collected first, in a Bootstrap modal,
+because all three are properties of the DOCUMENT rather than of its layout: an
+editor that opened first would have to ask for them afterwards or guess. On the
+canvas the icon appears only on the list, never with a form open, where a New
+beside Save would read as "new element" on a page whose whole subject is
+elements.
+
+**Levels.** Level 3 writes a document, level 4 removes one: deleting is the only
+action here that cannot be undone from inside Forms. The Reports page validates
+on the RUN key, so the handler is passed the AUTHOR level explicitly rather than
+the one that page happens to hold — decision F, and easy to get wrong precisely
+because the page already has a `$security_level` in scope.
+
+**A `.pre-forms` copy goes with its document.** It exists to make the first save
+reversible, not to outlive what it belongs to; left behind, the next document
+given that id would inherit it as its own history.
+
+**Two faults the checks caught**, both the kind that reads as working software:
+
+*The setting guard matched too loosely.* `FORM|DOCUMENT|REPORT|…` anywhere in a
+key caught `MODULE_FORMS_PRINT_BUTTONS`, a boolean whose value of `1` happens to
+equal a document id — so every company would have refused to delete document 1
+for a reason making no sense. The pattern is anchored at the END now: a key that
+NAMES a document ends in what it names. The verifier reads the store's own
+constant rather than restating it, because a check that restates the rule passes
+whenever the two drift together.
+
+*A title broke out of its own attribute.* `json_encode()` alone emits the double
+quotes that end `onclick="…"`, so every Copy button on a company whose documents
+have ordinary names was truncated. `verify_forms_pages.php` has a check named
+exactly that — "no inline handler was truncated by its own quoting" — and it
+fired on the first render.
+
+**Two faults that rendered perfectly and did nothing**, found by clicking and
+not by any tool:
+
+*The canvas's script is a `type="module"`.* A function declared inside a module
+is scoped to it, so `onclick="formsDocNew()"` resolved to nothing — and an
+inline handler naming an undefined function is only an error when it is
+clicked, so the page looked right.
+
+*And that file returns early when no form is open* — which is exactly and only
+the state the New, Copy and Delete buttons appear in. So even with the scope
+fixed, the handler was never emitted on the one page that needed it.
+
+Both are gone rather than patched around: the buttons carry `data-fb-doc` and a
+single DELEGATED listener handles them, from a classic `<script>` block emitted
+before the early return. Nothing has to be global, and a title travels as a data
+attribute — escaped once, rather than surviving `json_encode()` inside an HTML
+attribute, which had already broken every Copy button once.
+
+The check the suite lacked is the general one: **every trigger in a page must be
+reachable by that page's own script.** It is asserted now for both lists, along
+with the handler preceding any early return. Worth recording that the check's
+own first version was wrong in the same family — it matched a `return;` inside
+the JavaScript — so it strips script blocks before looking for a PHP one.
+
+`verify_forms_documents.php` is the first tool in the suite that MUTATES the
+catalogue, so it brackets its run by id and removes everything above the mark in
+a `finally`, the discipline `verify_paper_seeding.php` already uses and an
+ad-hoc script once failed to (§13.26). It works against the real catalogue
+rather than a scratch copy on purpose: what it tests is whether a row and a file
+stay in step, and a scratch directory with no table behind it cannot answer that.
+
+See [[todo_forms_create_delete]] and §13.7 step 6.

@@ -59,7 +59,7 @@ require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 require(DIR_FS_MODULES . 'phreedom/defaults.php');   // $DateChoices
 
-use FreeBooks\Forms\App\{DocumentRunner, RunPlan};
+use FreeBooks\Forms\App\{DocumentRunner, RunPlan, DocumentStore, DocumentStoreException};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, FilterOperator, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionForm, DefinitionLoader};
 use FreeBooks\Forms\Document\Align;
@@ -72,6 +72,7 @@ $forms_custom = new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORM
 $forms_custom->registerAll($catalog);
 
 $loader = new DefinitionLoader($catalog);
+$forms_store = new DocumentStore($db, $catalog, $loader, TABLE_PHREEFORM);
 $runner = new DocumentRunner($db, $catalog);
 
 $forms_design_definition = null;
@@ -140,8 +141,10 @@ if ($forms_design_definition !== null && ($_REQUEST['action'] ?? '') === 'save')
 
     // The catalog row carries the title the document list shows, so a renamed
     // report that updates only the file is a report renamed in one place.
-    $db->Execute("update " . TABLE_PHREEFORM . " set doc_title = '"
-        . $db->prepare_input($edited->title) . "' where id = " . (int)$forms_design_id);
+    // Through the store, which refuses a name another document already
+    // has. Several things resolve a document BY TITLE, so two of one
+    // name makes which they find a matter of collation (§13.29).
+    $forms_store->updateTitle((int)$forms_design_id, $edited->title);
 
     $messageStack->add(sprintf(FORMS_DESIGN_SAVED, $edited->title), 'success');
     gen_redirect(html_href_link(FILENAME_DEFAULT,

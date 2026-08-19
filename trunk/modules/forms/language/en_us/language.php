@@ -247,6 +247,26 @@ define('FORMS_CANVAS_FOLDER',     'Folder');
 define('FORMS_CANVAS_CHOOSE',     'Forms you can look at');
 define('FORMS_CANVAS_OPEN',       'Layout');
 define('FORMS_CANVAS_IS_REPORT',  'This is a report, not a form. Reports are made of columns rather than positioned boxes, and are changed in the report editor.');
+// ── new, copy, rename and delete (§13.29) ────────────────────────────────────
+define('FORMS_DOC_NEW',        'New');
+define('FORMS_DOC_COPY',       'Copy');
+define('FORMS_DOC_RENAME',     'Rename');
+define('FORMS_DOC_DELETE',     'Delete');
+define('FORMS_DOC_NAME',       'Name');
+define('FORMS_DOC_FOLDER',     'Folder');
+define('FORMS_DOC_DATASET',    'Built on');
+define('FORMS_DOC_CREATED',    '%s was created. It is empty — add to it below.');
+define('FORMS_DOC_COPIED',     '%s was copied. The original is unchanged.');
+define('FORMS_DOC_RENAMED',    'Renamed to %s.');
+define('FORMS_DOC_DELETED',    'The document was deleted.');
+define('FORMS_DOC_WAS_LAST',   'That was the only document in its folder, so any Print button pointing there now has nothing to open.');
+define('FORMS_DOC_NEW_REPORT', 'New report');
+define('FORMS_DOC_NEW_FORM',   'New form');
+define('FORMS_DOC_COPY_OF',    'Copy of %s');
+define('FORMS_DOC_CONFIRM_DELETE', 'Delete this document? This cannot be undone from here.');
+define('FORMS_DOC_CONFIRM_LAST',   'This is the only document in its folder. Deleting it leaves any Print button pointing there with nothing to open. Delete it anyway?');
+define('FORMS_DOC_NEW_HELP',   'A new document starts empty. To start from one that is nearly right, copy that instead.');
+
 // ── the receipt editor (§13.27) ──────────────────────────────────────────────
 define('FORMS_RECEIPT_TITLE',      'Receipts');
 define('FORMS_RECEIPT_TITLE_FOR',  'Receipt: %s');
@@ -281,6 +301,7 @@ define('FORMS_RECEIPT_NOT_A_RECEIPT', 'This is not a receipt printer form.');
 define('FORMS_RECEIPT_PREVIEW_STALE', 'Showing what is saved. Change anything to see what would print.');
 define('FORMS_RECEIPT_NO_SAMPLE',  'There is no point-of-sale entry on this company to print, so there is nothing to preview. The lines can still be edited.');
 define('FORMS_CANVAS_IS_RECEIPT', 'Receipt');
+define('FORMS_CANVAS_NAME',       'Name');
 define('FORMS_CANVAS_OPEN_RECEIPT', 'Lines');
 define('FORMS_CANVAS_READ_ONLY',  'This shows where each element sits on the printed page.');
 define('FORMS_CANVAS_SAMPLED',    'There is no record on this company that this form would print, so the figures below are invented. The layout is the real one; only the data is not.');

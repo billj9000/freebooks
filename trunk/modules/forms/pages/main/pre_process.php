@@ -41,7 +41,7 @@ require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');   // get_rep
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
-use FreeBooks\Forms\App\{DocumentRunner, RunPlan};
+use FreeBooks\Forms\App\{DocumentRunner, RunPlan, DocumentStore, DocumentStoreException};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader};
 use FreeBooks\Forms\Deliver\{EmailDelivery, HttpDelivery};
@@ -66,6 +66,7 @@ $runner  = new DocumentRunner($db, $catalog);
 // "must be of type object, string given", which is a whole page lost to one
 // edited report.
 $loader  = new DefinitionLoader($catalog);
+$forms_store = new DocumentStore($db, $catalog, $loader, TABLE_PHREEFORM);
 
 // $_REQUEST, not $_GET: a download is a navigation and arrives as a query
 // string, while emailing posts the message with it.
@@ -80,6 +81,19 @@ $inline  = !empty($_REQUEST['inline']);
 $forms_email_sent = false;
 
 /***************   Act on the action request   *************************/
+// New, Copy, Rename and Delete, before the list is built — otherwise the list
+// is the one from before the action (§13.29). A new or copied report opens in
+// the editor: an empty report on a list of documents tells you nothing.
+// The AUTHOR level, not this page's own: the page is gated on being allowed to
+// RUN a document, and writing one is a different key (decision F).
+$forms_made_id = forms_document_action($forms_store,
+    \FreeBooks\Forms\Definition\Definition::REPORT,
+    (int)($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0));
+if ($forms_made_id > 0) {
+  gen_redirect(html_href_link(FILENAME_DEFAULT,
+      'module=forms&page=design&rID=' . $forms_made_id, 'SSL'));
+}
+
 switch ($_REQUEST['action'] ?? '') {
   case 'email':
   case 'run':
@@ -216,6 +230,10 @@ require(DIR_FS_MODULES . 'phreedom/defaults.php');
 $forms_current_period = gen_calculate_period(date('Y-m-d'), false);
 
 $forms_folders   = forms_folder_titles($db);
+$forms_groups    = $forms_store->groups(false);
+$forms_datasets  = array();
+foreach ($catalog->all() as $forms_ds) $forms_datasets[$forms_ds->id] = $forms_ds->label;
+asort($forms_datasets);
 $forms_documents = array();
 $result = $db->Execute("select id, doc_title, doc_group, doc_type from " . TABLE_PHREEFORM . "
   where doc_type <> '0' and doc_ext = 'rpt' order by doc_group, doc_title");
@@ -237,6 +255,9 @@ while (!$result->EOF) {
     'group'    => (string)$result->fields['doc_group'],
     'folder'   => forms_folder_for((string)$result->fields['doc_group'], false, $forms_folders),
     'plan'     => $plan,
+    // Whether deleting it would leave a Print button with nothing to open, read
+    // while the row still exists so the confirmation can say so.
+    'last'     => $forms_store->isLastInGroup((int)$result->fields['id']),
     'served'   => match (true) {
                     $plan->kind === RunPlan::DATASET  => sprintf(FORMS_SERVED_DATASET, $plan->name),
                     $plan->kind === RunPlan::PROVIDER => sprintf(FORMS_SERVED_PROVIDER, $plan->name),

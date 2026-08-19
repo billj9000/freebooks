@@ -50,7 +50,7 @@ require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 require(DIR_FS_MODULES . 'phreedom/defaults.php');
 
-use FreeBooks\Forms\App\FormRunner;
+use FreeBooks\Forms\App\{FormRunner, DocumentStore, DocumentStoreException};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader, SerialForm};
 use FreeBooks\Forms\Document\{Align, SerialDocument, StaticText, Table};
@@ -63,6 +63,7 @@ ShippedDatasets::registerAll($catalog);
 (new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORMS_DATASETS))->registerAll($catalog);
 
 $loader = new DefinitionLoader($catalog);
+$forms_store = new DocumentStore($db, $catalog, $loader, TABLE_PHREEFORM);
 $runner = new FormRunner($db, $catalog);
 
 $forms_receipt_definition = null;
@@ -127,8 +128,10 @@ if ($forms_receipt_definition !== null && ($_REQUEST['action'] ?? '') === 'save'
       forms_receipt_keep_original($loader->path($forms_receipt_id));
       $loader->save($edited, $forms_receipt_id);
 
-      $db->Execute("update " . TABLE_PHREEFORM . " set doc_title = '"
-          . $db->prepare_input($edited->title) . "' where id = " . (int)$forms_receipt_id);
+      // Through the store, which refuses a name another document already
+      // has. Several things resolve a document BY TITLE, so two of one
+      // name makes which they find a matter of collation (§13.29).
+      $forms_store->updateTitle((int)$forms_receipt_id, $edited->title);
 
       $messageStack->add(sprintf(FORMS_DESIGN_SAVED, $edited->title), 'success');
       gen_redirect(html_href_link(FILENAME_DEFAULT,

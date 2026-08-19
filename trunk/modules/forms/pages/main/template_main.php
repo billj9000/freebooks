@@ -28,6 +28,8 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, '', 'SSL') . '\'"';
+// New, the FreeBooks way of making a thing.
+if ($forms_can_author) $toolbar->add_icon('new', 'data-fb-doc="new"', 2);
 $toolbar->add_help('11.01');
 echo $toolbar->build_toolbar();
 ?>
@@ -188,6 +190,21 @@ echo $toolbar->build_toolbar();
                    'module=forms&amp;page=design&amp;rID=' . $document['id'], 'SSL'); ?>">
               <?php echo FORMS_DESIGN_EDIT; ?>
             </a>
+            <?php // Data attributes, not an inline handler: nothing has to be
+                  // global, and a title is escaped once rather than for HTML and
+                  // for JavaScript at the same time. ?>
+            <button type="button" class="btn btn-primary btn-sm"
+                    data-fb-doc="copy"
+                    data-id="<?php echo (int)$document['id']; ?>"
+                    data-title="<?php echo htmlspecialchars($document['title'], ENT_QUOTES); ?>">
+              <?php echo FORMS_DOC_COPY; ?></button>
+<?php     if (($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) > 3) { ?>
+            <button type="button" class="btn btn-primary btn-sm"
+                    data-fb-doc="delete"
+                    data-id="<?php echo (int)$document['id']; ?>"
+                    data-last="<?php echo !empty($document['last']) ? '1' : '0'; ?>">
+              <?php echo FORMS_DOC_DELETE; ?></button>
+<?php     } ?>
 <?php   } ?>
           </td>
         </tr>
@@ -200,6 +217,70 @@ echo $toolbar->build_toolbar();
     </table>
   </div>
 </div>
+
+
+<?php if ($forms_can_author) { ?>
+<?php // The New icon on the toolbar is the FreeBooks convention for making a
+      // thing, so that is where this is reached from rather than a panel under
+      // the list. The three answers are collected BEFORE the editor opens,
+      // because all three are properties of the DOCUMENT rather than of its
+      // layout — an editor that opened first would have to ask afterwards, or
+      // guess. ?>
+<div class="modal fade" id="forms_new_modal" tabindex="-1"
+     aria-labelledby="forms_new_title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <?php echo html_form('forms_new_form', FILENAME_DEFAULT,
+          'module=forms&page=main&action=new'); ?>
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="forms_new_title"><?php echo FORMS_DOC_NEW_REPORT; ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="<?php echo TEXT_CANCEL; ?>"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small"><?php echo FORMS_DOC_NEW_HELP; ?></p>
+        <div class="mb-2">
+          <label class="form-label mb-0 small" for="forms_new_name"><?php echo FORMS_DOC_NAME; ?></label>
+          <input type="text" name="doc_title" id="forms_new_name" maxlength="64"
+                 class="form-control form-control-sm" required autocomplete="off">
+        </div>
+        <div class="mb-2">
+          <label class="form-label mb-0 small" for="forms_new_folder"><?php echo FORMS_DOC_FOLDER; ?></label>
+          <select name="doc_group" id="forms_new_folder" class="form-select form-select-sm">
+<?php foreach ($forms_groups as $forms_new_code => $forms_new_name) { ?>
+            <option value="<?php echo htmlspecialchars($forms_new_code); ?>"><?php
+              echo htmlspecialchars($forms_new_name); ?></option>
+<?php } ?>
+          </select>
+        </div>
+        <div class="mb-1">
+          <label class="form-label mb-0 small" for="forms_new_dataset"><?php echo FORMS_DOC_DATASET; ?></label>
+          <select name="dataset" id="forms_new_dataset" class="form-select form-select-sm">
+<?php foreach ($forms_datasets as $forms_new_code => $forms_new_name) { ?>
+            <option value="<?php echo htmlspecialchars($forms_new_code); ?>"><?php
+              echo htmlspecialchars($forms_new_name); ?></option>
+<?php } ?>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+          <?php echo TEXT_CANCEL; ?></button>
+        <button type="submit" class="btn btn-primary btn-sm"><?php echo FORMS_DOC_NEW; ?></button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<?php // Copy and Delete POST rather than link: a delete in a URL is one the
+      // browser offers to repeat, and a repeated delete is a second document. ?>
+<?php echo html_form('forms_doc_action', FILENAME_DEFAULT, 'module=forms&page=main'); ?>
+  <input type="hidden" name="action"    id="forms_doc_action_kind"  value="">
+  <input type="hidden" name="rID"       id="forms_doc_action_id"    value="">
+  <input type="hidden" name="doc_title" id="forms_doc_action_title" value="">
+</form>
+<?php } ?>
 
 <?php // The run dialog. One for the page, filled in from the row that opened it,
       // so the answers are asked for beside the name of the document they apply

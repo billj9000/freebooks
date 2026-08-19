@@ -35,6 +35,13 @@
  * is nothing to get wrong. docs/tools/verify_forms_canvas.php pins the constant
  * against a real render.
  */
+// The document actions, in a block of their OWN and BEFORE the return below.
+// Two reasons, and both bit: this file returns early on the CHOOSER, which is
+// the only place New, Copy and Delete appear at all; and the script that
+// follows is a `type="module"`, where a function declaration is not global, so
+// an inline handler could never have reached one (§13.29).
+forms_document_actions_script();
+
 if ($forms_canvas_definition === null) return;
 ?>
 <script type="module">
@@ -1308,4 +1315,5 @@ liveBox.addEventListener('change', function () {
 
 fillList();
 load(false);
+
 </script>
