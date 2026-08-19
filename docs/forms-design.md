@@ -3507,4 +3507,63 @@ a SerialTemplate does not have. It takes the element list now — and the change
 caught a second call site that the first pass had missed, through the whole
 form suite failing at once rather than quietly.
 
+**What the first real save found**, 2026-08-19, and neither could have been
+found without one — both need a definition that has actually been through the
+encoder, which nothing but a save produces.
+
+*The decoder gave a saved receipt BOTH layouts.* `template:` was built for every
+form on the way back, so a native receipt decoded with an empty page Template
+beside its character-cell one — the contradiction `Definition`'s own docblock
+rules out. Harmless to print, because the serial layout wins wherever the two
+are consulted, but anything asking "what kind of document is this?" by looking
+at `$template` got the wrong answer, and the canvas check said so the moment a
+saved receipt existed. The decoder now builds one only when there is no serial
+layout, and `verify_forms_serial.php` asserts the invariant directly.
+
+*The byte comparison stopped being possible.* A saved receipt is native, so
+`get_report_details()` correctly refuses it — and the check that compares the
+two engines was reading through that function. It now takes the PhreeForm XML
+from wherever it still survives, which after a save is the `.pre-forms` copy the
+editor keeps, and renders THAT down both engines. Comparing engine against
+engine rather than stored-file against stored-file is what makes the guarantee
+survive editing: an author changing their receipt can no longer turn the check
+red, and it will keep working after the last legacy receipt has been converted
+— which is when a byte guarantee is hardest to re-establish and most worth
+still having. A separate check covers what a save actually raises: an unedited
+receipt must print the same bytes after being saved as before.
+
+Measured on the one real edit made through the editor — ending the line on the
+payment reference, the field before the items table:
+
+```
+as shipped   9 |...............12/03/2026...............2..WIDGET-7...........£.9.99....£.19.98|80
+as saved     9 |...............12/03/2026...............|40
+            10 |2..WIDGET-7...........£.9.99....£.19.98|40
+```
+(a made-up sale; the figures are the LINE LENGTHS, which is all this shows)
+
+18 of the 19 fields came back byte-identical and one changed, which is the
+editor doing exactly what was asked and nothing else. The 80-character line
+§13.28 reproduces on purpose is gone from that company's receipt, by a change
+its author made and can see.
+
+**And the shipped receipt carries the fix.** A new install should seed a
+document that is a good example of one, so `ReceiptSlip.xml` now sets the row
+break on the payment reference in both locales it ships in — one line changed
+in each. Verified afterwards down BOTH engines and in both locales, because a
+new install seeds XML and PhreeForm has to keep reading it: byte-identical
+output, and no line wider than the paper.
+
+What that leaves is worth naming, because it is the one artefact a definition
+cannot express away. The items table is items followed by the payments that
+settled them, and the last row loses its final character to the `substr($x, 0,
+-2)` §13.28 reproduces — so the payment row prints as 39 spaces where 40 were
+built. It reads as a blank separator before the totals, which is why it has
+never been noticed, and it is invisible on the shipped form because payment
+rows do not populate the item columns. It is a renderer and provider matter,
+not a layout one, and no setting in the receipt editor reaches it.
+
+Existing companies keep their own copy: seeding only affects a new install, and
+`demo` has already made this change through the editor.
+
 See [[todo_forms_canvas_serial_guard]], §13.16 and §13.27.

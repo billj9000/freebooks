@@ -118,6 +118,15 @@ foreach ($serial as $id => [$definition, $title]) {
         && count($back->serialTemplate->fields) === count($template->fields)
         && $back->serialTemplate->width === $template->width,
         'the layout changed on the way through');
+    // The invariant Definition's docblock states: a form carries a page layout
+    // or a character-cell one, never both. It was broken in exactly one place
+    // — the codec built an empty Template for every form on the way back — and
+    // nothing noticed until a receipt had actually been SAVED, because only a
+    // native file goes through the decoder.
+    ok("pf_$id carries one layout, not two",
+        $back->serialTemplate !== null && $back->template === null,
+        'the decoded definition has a page template as well as a receipt one');
+
     ok("pf_$id round-trips its cells unchanged",
         $back->serialTemplate !== null && serialCells($back->serialTemplate) === serialCells($template),
         'a width, alignment or row break moved');
@@ -161,18 +170,86 @@ function serialCells(\FreeBooks\Forms\Document\SerialTemplate $t): array
 // ─────────────────────────────────────────────────────────────────────────────
 echo "\n=== the new engine prints the bytes the old engine printed ===\n";
 
+/**
+ * A legacy report object from XML, wherever that XML came from.
+ *
+ * get_report_details() does exactly this but only ever against `pf_<id>` in the
+ * live directory — so once a receipt has been SAVED it is native, that function
+ * correctly refuses it, and the comparison it was reading for becomes
+ * impossible. The XML has not gone anywhere though: the editor copies it to
+ * `pf_<id>.pre-forms` on the first save, precisely so the thing it converted
+ * from is never lost.
+ *
+ * Holding BOTH engines to that same original is what makes this check survive
+ * editing. It compares ENGINE against ENGINE rather than stored-file against
+ * stored-file, so an author changing their receipt can never turn it red — and
+ * it keeps working after the last legacy receipt in the world has been
+ * converted, which is when a byte guarantee is hardest to re-establish and
+ * most worth still having.
+ */
+function legacyFromXml(string $xml): ?object
+{
+    $report = xml_to_object($xml);
+    if (!is_object($report)) return null;
+    if (isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
+        $report = $report->PhreeformReport;
+    }
+    foreach (['tables', 'grouplist', 'sortlist', 'filterlist', 'fieldlist'] as $list) {
+        if (isset($report->$list) && is_object($report->$list)) $report->$list = [$report->$list];
+    }
+    if (isset($report->fieldlist) && is_array($report->fieldlist)) {
+        foreach ($report->fieldlist as $key => $field) {
+            if (isset($field->boxfield) && is_object($field->boxfield)) {
+                $report->fieldlist[$key]->boxfield = [$field->boxfield];
+            }
+        }
+    }
+    return $report;
+}
+
 $compared = 0;
 foreach ($serial as $id => [$definition, $title]) {
-    $plan = $runner->planDefinition($definition);
-    if (!$plan->runnable()) {
-        ok("pf_$id ($title) is runnable", false, implode(' ', $plan->notes));
+    $stored = (string)@file_get_contents($loader->path($id));
+    $native = DefinitionLoader::isNative($stored);
+    $kept   = $loader->path($id) . '.pre-forms';
+
+    // Whichever file still holds the PhreeForm original.
+    $xml = !$native ? $stored : (is_file($kept) ? (string)file_get_contents($kept) : '');
+    if ($xml === '' || DefinitionLoader::isNative($xml)) {
+        echo "  [--] pf_$id ($title): converted, and no PhreeForm original is kept beside it;"
+           . " there is nothing left to compare the engines against\n";
+        continue;
+    }
+    printf("  comparing against %s\n", $native ? 'the kept original (this receipt has been saved)' : 'the stored definition');
+
+    if ($native) {
+        // Information, not a verdict. A receipt that has been edited SHOULD
+        // print differently from the one it was converted from; saying so
+        // stops the difference below being read as a fault in the renderer.
+        $edited = $definition->serialTemplate?->fields ?? [];
+        $origin = $loader->loadContents($xml, (string)$id)->serialTemplate?->fields ?? [];
+        if (count($edited) !== count($origin)) {
+            printf("  [--] pf_%d has been edited since it was converted (%d fields, was %d)\n",
+                $id, count($edited), count($origin));
+        }
+    }
+
+    $legacyReport = legacyFromXml($xml);
+    if ($legacyReport === null) {
+        ok("pf_$id ($title) has readable PhreeForm XML to compare against", false,
+            'xml_to_object() could not parse it');
+        continue;
+    }
+    if (empty($legacyReport->serialform)) {
+        ok("pf_$id ($title) is a serial form on both sides", false,
+            'the PhreeForm original does not carry serialform');
         continue;
     }
 
     // A receipt needs a record of its own kind. journal_id 19 is the POS sale;
     // any other journal row would have the legacy decline before it rendered,
     // and a comparison against a refusal proves nothing.
-    $ids = [];
+    $ids  = [];
     $rows = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . "
         where journal_id = 19 order by id desc limit 5");
     while (!$rows->EOF) { $ids[] = (int)$rows->fields['id']; $rows->MoveNext(); }
@@ -183,35 +260,50 @@ foreach ($serial as $id => [$definition, $title]) {
     }
 
     foreach ($ids as $recordId) {
-        // The legacy engine CONSUMES the definition it reads, so it is loaded
-        // fresh for every record — see the note in the design doc about
-        // BuildDataArray() and build_criteria() writing back onto the object.
-        $legacyReport = get_report_details($id);
-        if (!$legacyReport) {
-            ok("pf_$id loads on the legacy engine", false, 'get_report_details() refused it');
-            break;
-        }
+        // BOTH engines read the same XML. The legacy one CONSUMES the object it
+        // is given — BuildDataArray() and build_criteria() write back onto it —
+        // so it is rebuilt for every record rather than reused.
+        $report = legacyFromXml($xml);
         $filter = new stdClass();
         $filter->fieldname = 'journal_main.id';
         $filter->default   = 'EQUAL';
         $filter->min_val   = (string)$recordId;
         $filter->type      = '';
-        $legacyReport->xfilterlist = [$filter];
-        $legacyReport->datedefault = 'a';
-        $GLOBALS['report'] = $legacyReport;
+        $report->xfilterlist = [$filter];
+        $report->datedefault = 'a';
+        $GLOBALS['report'] = $report;
 
-        $legacy = BuildForm($legacyReport, 'S');
+        $legacy = BuildForm($report, 'S');
         if (!is_string($legacy) || $legacy === '' || $legacy === '1') {
             // BuildForm() returns true — '1' as a string — when it declines.
             continue;
         }
 
-        $document = $runner->runDefinition($definition, [$recordId]);
+        $fromXml  = $loader->loadContents($xml, (string)$id);
+        $document = $runner->runDefinition($fromXml, [$recordId]);
         if (!$document instanceof SerialDocument) {
             ok("pf_$id runs to a receipt", false, 'the runner returned ' . get_class($document));
             break;
         }
         $forms = $renderer->renderToString($document);
+
+        // And what is STORED — which after a save is the native file, not the
+        // XML both engines just read. Unedited, it must print the same bytes:
+        // that is the question a save actually raises, and neither the
+        // engine comparison above nor the round-trip checks answer it.
+        $storedDoc = $runner->runDefinition($definition, [$recordId]);
+        $storedOut = $storedDoc instanceof SerialDocument
+            ? $renderer->renderToString($storedDoc) : '';
+        $unchanged = $definition->serialTemplate !== null
+            && serialCells($definition->serialTemplate) === serialCells($fromXml->serialTemplate);
+        if ($unchanged) {
+            ok("pf_$id ($title) prints record $recordId the same after being saved",
+                $storedOut === $legacy,
+                'saving the receipt changed what it prints');
+        } else {
+            ok("pf_$id ($title) still prints something after being edited",
+                $storedOut !== '', 'the edited receipt renders nothing');
+        }
 
         $compared++;
         ok("pf_$id ($title) prints record $recordId identically",

@@ -151,7 +151,7 @@ final class DefinitionCodec
             // it: the two describe the same document in incompatible terms, and
             // a file carrying both would not say which one prints.
             if ($definition->serialTemplate !== null) {
-                $form['elements'] = [];
+                unset($form['elements']);
                 $form['serialLayout'] = [
                     'width'  => $definition->serialTemplate->width,
                     'fields' => array_map([$this, 'serialFieldToArray'],
@@ -423,7 +423,12 @@ final class DefinitionCodec
             resolvedColumns: array_map('strval', (array)($report['resolved'] ?? [])),
             style:           $this->reportStyleFromArray((array)($report['style'] ?? [])),
 
-            template:    $type === Definition::FORM
+            // Null for a receipt, not an empty Template. Building one anyway
+            // gave a saved receipt BOTH layouts — harmless to print, because
+            // the serial one wins, but it is the contradiction Definition's
+            // own docblock rules out, and anything asking "which kind of
+            // document is this?" by looking at $template got the wrong answer.
+            template:    $type === Definition::FORM && !isset($form['serialLayout'])
                             ? new Template(array_map([$this, 'elementFromArray'],
                                 (array)($form['elements'] ?? [])))
                             : null,

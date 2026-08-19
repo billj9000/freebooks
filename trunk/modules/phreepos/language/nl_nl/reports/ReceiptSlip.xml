@@ -232,7 +232,7 @@
 		<description><![CDATA[Data - Betalingsref]]></description>
 		<width><![CDATA[40]]></width>
 		<height><![CDATA[5]]></height>
-		<rowbreak><![CDATA[0]]></rowbreak>
+		<rowbreak><![CDATA[1]]></rowbreak>
 		<type><![CDATA[Data]]></type>
 		<font><![CDATA[helvetica]]></font>
 		<size><![CDATA[12]]></size>
