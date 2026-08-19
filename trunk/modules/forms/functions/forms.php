@@ -155,6 +155,22 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
         if ($element instanceof \FreeBooks\Forms\Document\Table) {
             foreach ($element->columns as $column) $allowed[$column->bind->name] = true;
         }
+        // A block's parts, which used to be missing from this list and did not
+        // show it: parts were carried past the canvas untouched, so a name it
+        // could not offer was a name nothing asked it about. With the parts
+        // editable (§13.30) the omission became visible at once — the grid had
+        // no entry to select for a line that was bound perfectly well.
+        //
+        // Context parts stay out, here as everywhere: they are the COMPANY's
+        // details rather than the record's, nothing may be re-pointed at one,
+        // and TemplateForm keeps the ones an element already has by identity.
+        if ($element instanceof \FreeBooks\Forms\Document\FieldBlock) {
+            foreach ($element->parts as $part) {
+                if ($part->bind->scope !== \FreeBooks\Forms\Document\Scope::Context) {
+                    $allowed[$part->bind->name] = true;
+                }
+            }
+        }
     }
 
     if ($definition->datasetId !== null && $catalog->has($definition->datasetId)) {

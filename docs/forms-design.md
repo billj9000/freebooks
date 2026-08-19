@@ -3693,3 +3693,140 @@ rather than a scratch copy on purpose: what it tests is whether a row and a file
 stay in step, and a scratch directory with no table behind it cannot answer that.
 
 See [[todo_forms_create_delete]] and §13.7 step 6.
+
+### 13.30 The other four element kinds — what a new form could not become
+
+`TemplateForm::ADDABLE` held five kinds: text, a value, a line, a box and an
+image. The four it did not hold were `FieldBlock`, `Table`, `PageNumber` and
+`Barcode`, and the reason was written into the class:
+
+> A Table created here would arrive with no columns and a FieldBlock with no
+> parts, and neither could be repaired on that page — so they are not offered.
+
+That was a sound rule and it had an expiry date. It says *these are the kinds
+the canvas cannot COMPLETE*, not *these are the unimportant ones* — and an image
+had already left the list, the moment §13.13 gave the canvas somewhere to put a
+file. The other four leave for the same reason and no other.
+
+**What the gap actually cost.** The question that prompted this was whether a
+newly created Form Layout could be given every element a form might use, and the
+honest answer was no — in the way that mattered most. A blank form could be
+given text, bound values, rules, boxes and a logo. It could not be given **line
+items** or a **customer address block**. Those are not decoration; they are what
+distinguishes an invoice from a letterhead. So §13.29's New button, which had
+just made creating a document a first-class action, opened onto a canvas that
+could not carry the creation through, and **Copy** remained the only route to a
+substantive form. New promised more than it delivered.
+
+Worse for the existing set: `rebuild()` carried a Table's columns and a
+FieldBlock's parts across untouched, which meant that even on a form that HAD
+them, they could be moved and resized but never edited. A shipped invoice's
+column headings were unreachable from the editor that draws that invoice.
+
+#### The rule that replaced "carry every structure"
+
+The blanket carry existed to stop the editor deleting what it could not draw —
+the classic way this kind of editor loses things, silently. Editing the
+structures means each one is now exposed to exactly that failure, so the
+protection is kept in a narrower form, **per key**:
+
+> An **absent** key is carried. A **present** one is rebuilt.
+
+A post that says nothing about the columns is not a post that says none of them.
+A blank is treated as absent too, because a blank is not an instruction and a
+browser that fails to fill the field sends one; the deliberate empty is written
+as `[]`, which is what makes deleting the last column possible while an
+accidental blank stays harmless. An unreadable value is carried and reported.
+
+#### One field, not a nested array
+
+A column list travels as JSON in a single canvas value — `element[i][columns]` —
+rather than as `element[i][column][j][bind]`. The canvas writes its hidden fields
+from a flat object and the live preview POSTs the same object through FormData;
+a nested shape would mean teaching both of those, and undo's snapshot, to walk a
+tree. Opaque to the transport, structured at both ends — the same trade the
+report editor already makes for a filter expression.
+
+#### The gate that is not a validation nicety
+
+A `Binding` carrying `Scope::Context` resolves through `FormRunner::contextFor()`,
+which is:
+
+```php
+if (defined($name)) $values[$name] = TypedValue::text((string)constant($name));
+```
+
+**Every PHP constant in the process** — `configure.php`'s `DB_SERVER_PASSWORD`
+among them. A company block's parts ARE context bindings (PhreeForm's `CBlk`), so
+a parts editor that let an author name one would hand back precisely the
+database-wide read primitive §1.1 records as PhreeForm's defect, on the very page
+built to remove it. An author would put the database password on an invoice.
+
+So an author never *names* a non-record binding. They may *keep* one, which is
+what lets a company block be reordered and rejoined. The test is membership of
+what the element already had, scope and name together:
+
+1. **Was it already here?** Handed back as ITSELF, with whatever `sumOf` it
+   carries. This is `font()`'s rule — *what is already in the definition survives
+   a save* — and it is checked first for that reason.
+2. **Otherwise, is it a record value this form supplies?** The ordinary palette
+   check.
+
+Test 1 is not a courtesy. Written with only test 2, the first run emptied the
+company block on three shipped documents: eight parts to zero. `forms_binding_names()`
+had never collected FieldBlock part names, because parts were carried past the
+canvas and so nothing had ever asked it about them. Both were fixed — the
+function now offers them, and the binder no longer depends on it doing so.
+
+#### Two smaller repairs, and one deliberate omission
+
+- A column that HAD a style keeps one even when every setting in it is blank.
+  `TemplateConverter::style()` returns a Style unconditionally, so every column
+  converted from a PhreeForm table carries one and most carry nothing but
+  defaults. Letting those collapse to null would have rewritten the stored file
+  of every shipped form on its first save — a diff on 14 documents nobody asked
+  for, which §13.24's byte-identity check would then report as drift.
+- A separator outside `Formatter::separator()`'s vocabulary is refused rather
+  than accepted. That method falls through its `default` on a name it does not
+  know and joins with NOTHING, which reads as an address block that has lost its
+  line breaks. The editor's list and the renderer's `match` are now held
+  together by the suite.
+- A form table column's `total` flag is carried and **not** offered. No renderer
+  reads it: an Aggregate binding sums by field name across the line items and
+  never consults the column list. A tick box for it would be a control that does
+  nothing. It is carried because the format can express it.
+
+#### A page number and a barcode
+
+Nearly free, and worth having. A page number's whole content is one pattern, so
+it is edited in place. A barcode gains a symbology picker — every converted form
+uses `C128` because that is what `TemplateConverter` hardcodes, so this is a
+setting the old format could not express at all. It is gated: TCPDF throws on a
+type it does not know, from inside `write1DBarcode()` with the document
+part-drawn, so an unknown name is refused where it can be reported. A symbology
+already in a definition is kept regardless, for the font rule's reason.
+
+Unlike a table and a block, a barcode with no binding is **refused** rather than
+created blank. An empty table can be repaired in the grid beside it; an element
+bound to nothing cannot be told apart, in the element list, from one whose
+binding was lost.
+
+#### What the suite gained
+
+`verify_forms_canvas.php` now assembles a form from **nothing but the four kinds
+that used to be unreachable**, stores it, reloads it and prints it — which is the
+question the change was made to answer, asked directly. It also checks the carry
+rule in all four of its states, the separator vocabulary against the renderer,
+and both halves of the constant gate. The gate's checks were confirmed
+non-vacuous by reinstating the fault: with the scope test removed, the assembled
+form prints `DB_SERVER_PASSWORD`.
+
+`verify_forms_pages.php` gained the check §13.29's afternoon deserved and did not
+get: **every id the page script looks up must be one the page can emit.** A
+`getElementById` that finds nothing returns null silently — the page renders, the
+console stays quiet, and the control is simply dead, which is exactly how "none
+of the new buttons do anything" happened. The comparison is against the page's
+SOURCE as well as its output, because one render is one branch and the canvas
+draws either the list or the editor, never both.
+
+See [[todo_forms_element_kinds]] and §13.7 step 6.

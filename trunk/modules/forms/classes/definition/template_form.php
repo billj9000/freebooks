@@ -23,12 +23,23 @@
  * grid, and it keeps the same two rules for the same two reasons.
  *
  * **The base matters.** An author moves, resizes, restyles, adds and deletes.
- * Everything else — a FieldBlock's parts, a Table's columns and source, an
- * Image's bound filename, a Line's type, a Barcode's symbology — is carried
- * across from the element it came from, untouched. Those are structures the
- * canvas cannot draw controls for yet, and a form that can only submit what it
- * can draw would delete them on the first save. Silently, which is the way this
+ * Anything the canvas draws no control for is carried across from the element
+ * it came from, untouched — because a form that can only submit what it can
+ * draw would delete the rest on the first save. Silently, which is the way this
  * kind of editor usually loses things.
+ *
+ * What is carried has shrunk as the canvas has grown. A Table's columns and a
+ * FieldBlock's parts were on that list until §13.30 gave them editors; a
+ * Table's source, a Table's heading style, an Image's folder prefix and a
+ * Line's type are still on it.
+ *
+ * The rule that replaced "carry everything structural" is narrower and applies
+ * per key: **an ABSENT key is carried, a PRESENT one is rebuilt.** So a post
+ * from a page that knows nothing of columns leaves a table's columns exactly as
+ * they were, while a post that names them replaces them. That is what keeps an
+ * older cached page, or a partial submission, from emptying a table — the
+ * failure the blanket carry existed to prevent, kept without freezing the
+ * structures it protected.
  *
  * **An author names only what exists.** Every binding submitted is checked
  * against the list of names the document can actually supply. For a
@@ -58,25 +69,75 @@
 namespace FreeBooks\Forms\Definition;
 
 use FreeBooks\Forms\Document\{
-    Align, Barcode, Binding, Box, Colour, Element, Field, FieldBlock, Image, Line, PageNumber,
-    Rect, Scope, StaticText, Style, Table, Template, Visibility
+    Align, Barcode, Binding, BlockPart, Box, Colour, Column, Element, Field, FieldBlock, Format,
+    Image, Line, PageNumber, Rect, Scope, StaticText, Style, Table, Template, Visibility
 };
 
 final class TemplateForm
 {
     /**
-     * What an author may add.
+     * What an author may add: all nine kinds (§13.30).
      *
-     * The kinds whose whole content the canvas can supply. A Table created here
-     * would arrive with no columns and a FieldBlock with no parts, and neither
-     * could be repaired on that page — so they are not offered.
+     * The list used to be five. The rule behind it was never "these are the
+     * important ones" but "these are the ones the canvas can COMPLETE" — a
+     * Table created with no columns and a FieldBlock created with no parts were
+     * elements that drew nothing and could not be repaired on the page that
+     * made them, so offering them would have been offering a dead end.
      *
-     * An image was excluded for the same reason until the canvas could put a
-     * file in the images folder; its "sub-structure" is one filename, and there
-     * was no way to set it. There is now (§13.13), so it joins the list. A form
-     * that ships without a logo can be given one.
+     * An image left the exclusion first, when the canvas learnt to put a file
+     * in the images folder (§13.13): its whole sub-structure is one filename,
+     * and once there was a control for it there was no reason to withhold it.
+     *
+     * The other four leave it for the same reason and nothing else. A Table's
+     * columns and a FieldBlock's parts are now edited here rather than carried
+     * past, a PageNumber's pattern is one string, and a Barcode needs a binding
+     * — which this class already gates — plus a symbology. The test has not
+     * moved; the canvas has caught up with it.
+     *
+     * This matters most for the kinds it was previously impossible to obtain: a
+     * form created from scratch could be given text, values, rules, boxes and a
+     * logo, which is not an invoice. Line items and an address block were
+     * reachable only by copying a form that already had them.
      */
-    public const ADDABLE = ['text', 'field', 'line', 'rect', 'image'];
+    public const ADDABLE = ['text', 'field', 'block', 'table', 'line', 'rect',
+                            'image', 'pagenum', 'barcode'];
+
+    /**
+     * How a block part joins to the one after it.
+     *
+     * Formatter::separator()'s vocabulary, and it has to stay in step with it:
+     * a name that class does not know falls through its `default` and joins the
+     * next part with nothing, which reads as an address block that has lost its
+     * line breaks. `verify_forms_canvas.php` holds the two together.
+     *
+     * 'del-nl' is the one worth knowing: a line break UNLESS the value is
+     * empty, which is how an address block closes up around a missing second
+     * line instead of printing a gap.
+     */
+    public const SEPARATORS = ['', 'nl', 'del-nl', 'sp', '2sp', 'comma', 'com-sp', 'semi-sp'];
+
+    /**
+     * The barcode symbologies on offer.
+     *
+     * A curated subset of TCPDF's 1D list, not all thirty: every one of these
+     * is a symbology a business document plausibly carries, and the rest
+     * (POSTNET, KIX, IMB, PHARMA) are national postal and pharmaceutical codes
+     * that would be noise in a select an author reads once.
+     *
+     * The list is a gate as well as a menu — TCPDF throws on a type it does not
+     * know, from inside the renderer with the document half drawn, so an
+     * unknown name is refused here where it can be reported. A symbology
+     * already IN the definition is kept regardless, for the same reason an
+     * unlisted font is: a customised install may use one this list does not
+     * carry, and silently re-coding someone's barcode is the loss this class
+     * exists to prevent.
+     */
+    public const SYMBOLOGIES = ['C128', 'C128A', 'C128B', 'C128C', 'C39', 'C39E', 'C93',
+                                'I25', 'S25', 'EAN8', 'EAN13', 'UPCA', 'UPCE',
+                                'CODABAR', 'CODE11', 'MSI'];
+
+    /** Every provider supplies its line items under this one name. */
+    private const DEFAULT_SOURCE = 'items';
 
     private const VISIBILITY = [
         'all'       => Visibility::AllPages,
@@ -205,6 +266,27 @@ final class TemplateForm
                 'src'        => $element instanceof Image && is_string($element->src)
                                     ? $element->src : '',
                 'text'       => $element instanceof StaticText ? $element->text : '',
+
+                // The two sub-structures, as ONE value each rather than as a
+                // nested array of fields.
+                //
+                // The canvas submits `element[i][key]` and nothing deeper: the
+                // save writes those hidden fields from a flat object, and the
+                // live preview POSTs the same object through FormData. A nested
+                // `element[i][column][j][bind]` would mean teaching both of
+                // those to walk a tree, and teaching undo — which snapshots the
+                // same object — to survive the walk.
+                //
+                // So a column list travels as JSON in a single field. It is
+                // opaque to the transport and structured at both ends, which is
+                // the same trade the report editor makes for a filter
+                // expression, for the same reason.
+                'columns'    => $element instanceof Table
+                                    ? self::columnsToValue($element->columns) : '',
+                'parts'      => $element instanceof FieldBlock
+                                    ? self::partsToValue($element->parts) : '',
+                'pattern'    => $element instanceof PageNumber ? $element->pattern : '',
+                'symbology'  => $element instanceof Barcode ? $element->symbology : '',
                 'visible'    => self::keyFor(self::VISIBILITY, $element->visible) ?? 'all',
                 'label'      => (string)($element->label ?? ''),
                 'font'       => (string)($style?->font ?? ''),
@@ -254,15 +336,23 @@ final class TemplateForm
 
             $original instanceof Barcode =>
                 new Barcode($this->binding($row, $original->bind, $allowed, $what),
-                            $box, $original->symbology, $style, $visible, $label),
+                            $box, $this->symbology($row, $original->symbology, $what),
+                            $style, $visible, $label),
 
-            // Parts, columns, sources and bound filenames are structures with no
-            // control on the canvas. Carried, not rebuilt.
+            // Parts and columns are edited here now (§13.30) — but only when
+            // the post actually carries them. Absent, they are carried, which
+            // is what stops a stale page from emptying a table.
             $original instanceof FieldBlock =>
-                new FieldBlock($original->parts, $box, $style, $visible, $label),
+                new FieldBlock($this->parts($row, $original->parts, $allowed, $what),
+                               $box, $style, $visible, $label),
 
+            // The source and the heading style stay carried: every provider
+            // supplies its line items under one name, so a source picker would
+            // offer a list of one, and the heading row has no control of its own
+            // on the canvas.
             $original instanceof Table =>
-                new Table($original->source, $original->columns, $box,
+                new Table($original->source,
+                          $this->columns($row, $original->columns, $allowed, $what), $box,
                           $original->headerStyle, $style, $visible, $label),
 
             // Two different edits behind one element type: a bound image takes
@@ -277,7 +367,7 @@ final class TemplateForm
                           $box, $style, $visible, $label, $original->pathPrefix),
 
             $original instanceof PageNumber =>
-                new PageNumber($box, $original->pattern, $style, $visible, $label),
+                new PageNumber($box, $this->pattern($row, $original->pattern), $style, $visible, $label),
 
             $original instanceof Line =>
                 new Line($box, $original->lineType, $style, $visible, $label),
@@ -290,11 +380,16 @@ final class TemplateForm
     }
 
     /**
-     * A brand-new element.
+     * A brand-new element. Any of the nine kinds (§13.30).
      *
-     * Only the four kinds that need no sub-structure. A Table or a FieldBlock
-     * created here would arrive with no columns and no parts, which is a form
-     * element that draws nothing and cannot be fixed on this page.
+     * A Table and a FieldBlock may be created EMPTY — with no columns and no
+     * parts. That was the objection to offering them at all, and it stopped
+     * being one when the inspector gained the grids that fill them: an empty
+     * table draws nothing for as long as it takes to add the first column,
+     * which is a state the author is passing through rather than one they are
+     * stuck in. The renderer already tolerates it — an empty column list draws
+     * no cells, it does not fail — so the intermediate state costs a blank
+     * outline and nothing else.
      *
      * @param array<string,mixed> $row
      * @param array<string,true>  $allowed
@@ -311,9 +406,16 @@ final class TemplateForm
         // side out from the file, which is how every logo in the shipped set is
         // stored. Giving a new one a height would fix its shape to whatever the
         // default happened to be and squash the first picture put in it.
-        $box     = $this->box($row, $kind === 'image'
-                                      ? new Box(10.0, 10.0, 40.0, null)
-                                      : new Box(10.0, 10.0, 40.0, 5.0));
+        //
+        // A table's is deeper and wider than the rest for a plainer reason: it
+        // is the one element whose box is a REGION rather than a line of text,
+        // and one dropped at 40x5 mm reads as a mistake rather than as a table
+        // waiting for columns.
+        $box     = $this->box($row, match ($kind) {
+                                      'image' => new Box(10.0, 10.0, 40.0, null),
+                                      'table' => new Box(10.0, 10.0, 180.0, 100.0),
+                                      default => new Box(10.0, 10.0, 40.0, 5.0),
+                                    });
         $style   = $this->style($row, null);
         $visible = $this->visibility($row, Visibility::AllPages);
         $label   = trim((string)($row['label'] ?? '')) ?: null;
@@ -330,16 +432,59 @@ final class TemplateForm
             // filled in a moment later draws nothing in between rather than
             // breaking the page it is being placed on.
             'image' => new Image($this->imageFile($row, '', $what), $box, $style, $visible, $label),
+
+            // Created empty unless the row already carries a structure — which
+            // it does when the canvas seeds one, and does not when the element
+            // is added bare and filled in afterwards.
+            'block' => new FieldBlock($this->parts($row, [], $allowed, $what),
+                                      $box, $style, $visible, $label),
+            'table' => new Table(self::DEFAULT_SOURCE,
+                                 $this->columns($row, [], $allowed, $what), $box,
+                                 null, $style, $visible, $label),
+
+            // The default pattern is the ELEMENT's, not this class's: a page
+            // number added with nothing typed should read the way every
+            // converted one does.
+            'pagenum' => new PageNumber($box, $this->pattern($row, '{page} / {pages}'),
+                                        $style, $visible, $label),
+
+            'barcode' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label): ?Element {
+                $bind = $this->newBinding($row, $allowed, $what);
+                return $bind === null ? null
+                     : new Barcode($bind, $box, $this->symbology($row, 'C128', $what),
+                                   $style, $visible, $label);
+            })(),
+
             'field' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label): ?Element {
-                $name = trim((string)($row['bind'] ?? ''));
-                if ($name === '' || !isset($allowed[$name])) {
-                    $this->warnings[] = "$what names no field this form can supply; it was not saved.";
-                    return null;
-                }
-                return new Field(Binding::record($name), $box, null, $style, $visible, $label);
+                $bind = $this->newBinding($row, $allowed, $what);
+                return $bind === null ? null
+                     : new Field($bind, $box, null, $style, $visible, $label);
             })(),
             default => null,
         };
+    }
+
+    /**
+     * The binding a newly added element names, or null if it names nothing real.
+     *
+     * A value and a barcode both need one before they can exist — an element
+     * bound to nothing draws nothing and reads, in the element list, as an
+     * element that is simply broken. Refused rather than created blank, which
+     * is the one place this differs from a table: a table with no columns can
+     * be repaired in the grid beside it, an element with no binding cannot be
+     * told apart from one whose binding was lost.
+     *
+     * @param array<string,mixed> $row
+     * @param array<string,true>  $allowed
+     */
+    private function newBinding(array $row, array $allowed, string $what): ?Binding
+    {
+        $name = trim((string)($row['bind'] ?? ''));
+        if ($name === '' || !isset($allowed[$name])) {
+            $this->warnings[] = "$what names no field this form can supply; it was not saved.";
+            return null;
+        }
+        return Binding::record($name);
     }
 
     // ── pieces ───────────────────────────────────────────────────────────────
@@ -475,6 +620,403 @@ final class TemplateForm
             return $current;
         }
         return new Binding($name, $current->scope, $current->sumOf);
+    }
+
+    // ── sub-structures: a table's columns, a block's parts ───────────────────
+
+    /**
+     * The submitted rows of a sub-structure, or null meaning "carry".
+     *
+     * The three answers are deliberately distinct, and the distinction is the
+     * whole safety of §13.30. An ABSENT key is a post that says nothing about
+     * the structure — an older page, a partial submission — and says nothing is
+     * not the same as says none. A BLANK one is treated the same way for the
+     * same reason: a blank is not an instruction, and the canvas writes `[]`
+     * rather than `''` when an author really has deleted every row, so nothing
+     * legitimate arrives here empty.
+     *
+     * Only a well-formed array replaces what is there. That is what makes the
+     * worst case — a browser that fails to fill the field — a table that keeps
+     * its columns rather than one that quietly loses them.
+     *
+     * @param array<string,mixed> $row
+     * @return ?list<mixed>
+     */
+    private function subRows(array $row, string $key, string $what): ?array
+    {
+        if (!array_key_exists($key, $row)) return null;
+
+        $value = $row[$key];
+        if (is_array($value)) return array_values($value);
+
+        $value = trim((string)$value);
+        if ($value === '') return null;
+
+        $decoded = json_decode($value, true);
+        if (!is_array($decoded)) {
+            $this->warnings[] = "$what submitted a $key list that could not be read;"
+                              . ' the previous one was kept.';
+            return null;
+        }
+        return array_values($decoded);
+    }
+
+    /**
+     * A table's columns.
+     *
+     * @param list<Column>       $current
+     * @param array<string,true> $allowed
+     * @param array<string,mixed> $row
+     * @return list<Column>
+     */
+    private function columns(array $row, array $current, array $allowed, string $what): array
+    {
+        $rows = $this->subRows($row, 'columns', $what);
+        if ($rows === null) return $current;
+
+        $kept    = self::keptBindings(array_map(fn(Column $c) => $c->bind, $current));
+        $columns = [];
+
+        foreach ($rows as $position => $entry) {
+            $entry = (array)$entry;
+            $where = "$what, column " . ((int)$position + 1);
+
+            $bind = $this->subBinding($entry, $kept, $allowed, $where);
+            if ($bind === null) continue;
+
+            $width = trim((string)($entry['width'] ?? ''));
+            $columns[] = new Column(
+                bind:    $bind,
+                heading: (string)($entry['heading'] ?? ''),
+                width:   $width === '' || !is_numeric($width) ? null : (float)$width,
+                align:   Align::tryFrom((string)($entry['align'] ?? '')),
+                format:  self::formatFrom($entry),
+                // Stored, and no control offers it. No renderer reads a form
+                // table column's `total` — an Aggregate binding sums by FIELD
+                // NAME across the line items and never consults the column list
+                // (LayoutPdfRenderer::aggregate) — so a tick box for it would
+                // be a control that does nothing. It is carried because the
+                // format can express it and a definition is not ours to edit
+                // down to what we happen to use.
+                total:   !empty($entry['total']),
+                style:   $this->subStyle($entry),
+            );
+        }
+        return $columns;
+    }
+
+    /**
+     * A field block's parts.
+     *
+     * @param list<BlockPart>    $current
+     * @param array<string,true> $allowed
+     * @param array<string,mixed> $row
+     * @return list<BlockPart>
+     */
+    private function parts(array $row, array $current, array $allowed, string $what): array
+    {
+        $rows = $this->subRows($row, 'parts', $what);
+        if ($rows === null) return $current;
+
+        $kept  = self::keptBindings(array_map(fn(BlockPart $p) => $p->bind, $current));
+        $parts = [];
+
+        foreach ($rows as $position => $entry) {
+            $entry = (array)$entry;
+            $where = "$what, line " . ((int)$position + 1);
+
+            $bind = $this->subBinding($entry, $kept, $allowed, $where);
+            if ($bind === null) continue;
+
+            $separator = (string)($entry['separator'] ?? '');
+            if (!in_array($separator, self::SEPARATORS, true)) {
+                // Not silently accepted: Formatter::separator() falls through
+                // its `default` on a name it does not know and joins the next
+                // part with NOTHING, which reads as an address block that has
+                // lost its line breaks rather than as a setting that was
+                // refused.
+                $this->warnings[] = "$where asked to be joined by '$separator', which is not"
+                                  . ' a way of joining two lines; nothing was used.';
+                $separator = '';
+            }
+
+            $parts[] = new BlockPart(
+                bind:      $bind,
+                separator: $separator,
+                format:    self::formatFrom($entry),
+            );
+        }
+        return $parts;
+    }
+
+    /**
+     * A binding inside a column or a part.
+     *
+     * **This is a security gate, not a validation nicety.** A Context binding
+     * resolves through `FormRunner::contextFor()`, which does
+     * `if (defined($name)) constant($name)` — every PHP constant in the
+     * process, `configure.php`'s database password among them. An author who
+     * could name one would have exactly the database-wide read primitive that
+     * §1.1 records as PhreeForm's defect and that this whole layer exists to
+     * remove.
+     *
+     * So an author never NAMES a non-record binding. They may keep one:
+     * a company block's parts are Context bindings (PhreeForm's CBlk), and they
+     * must survive being reordered, reformatted and rejoined.
+     *
+     * Hence the two tests, in this order:
+     *
+     *   1. **Was it already here?** Scope and name together, against the
+     *      element's own bindings. This is the rule `font()` keeps and for the
+     *      identical reason — *what is already in the definition survives a
+     *      save* — and it is checked first so that an existing binding is
+     *      handed back as ITSELF, with whatever `sumOf` it carries, rather than
+     *      rebuilt into an equal-looking one.
+     *
+     *   2. **Otherwise, is it a record value this form supplies?** The ordinary
+     *      palette check, the same one `binding()` applies to a whole element.
+     *
+     * Test 1 is not a convenience. A form's own address block binds to names
+     * that are perfectly real and that the palette may not list — and dropping
+     * them would empty the block on the first save of a form nobody edited,
+     * which is exactly what happened to eight parts of the company block on
+     * three shipped documents when this was written with only test 2.
+     *
+     * @param array<string,mixed>   $entry
+     * @param array<string,Binding> $kept  bindings this element already has
+     * @param array<string,true>    $allowed
+     */
+    private function subBinding(array $entry, array $kept, array $allowed, string $where): ?Binding
+    {
+        $name  = trim((string)($entry['bind'] ?? ''));
+        $scope = (string)($entry['scope'] ?? 'record');
+
+        if ($name === '') {
+            // A cleared row, which is how the grid says "I am not finished with
+            // this one" — dropped without comment, exactly as the report
+            // editor drops a column whose field is blank.
+            return null;
+        }
+
+        $kept_ = $kept[$scope . '|' . $name] ?? null;
+        if ($kept_ !== null) return $kept_;
+
+        if ($scope === 'record') {
+            if (isset($allowed[$name])) return Binding::record($name);
+            $this->warnings[] = "$where names '$name', which this form cannot supply;"
+                              . ' it was not saved.';
+            return null;
+        }
+
+        $this->warnings[] = "$where asked for '$name', which is not one of this element's"
+                          . ' own values; it was not saved.';
+        return null;
+    }
+
+    /**
+     * The bindings an element already carries, by scope and name.
+     *
+     * @param list<Binding> $bindings
+     * @return array<string,Binding>
+     */
+    private static function keptBindings(array $bindings): array
+    {
+        $kept = [];
+        foreach ($bindings as $binding) {
+            $kept[self::scopeName($binding->scope) . '|' . $binding->name] = $binding;
+        }
+        return $kept;
+    }
+
+    private static function scopeName(Scope $scope): string
+    {
+        return match ($scope) {
+            Scope::Record    => 'record',
+            Scope::Context   => 'context',
+            Scope::Aggregate => 'aggregate',
+        };
+    }
+
+    /**
+     * A column's own style.
+     *
+     * A column that HAD a style keeps one even when every setting in it is
+     * blank, which is not pedantry: `TemplateConverter::style()` returns a
+     * Style unconditionally, so every column converted from a PhreeForm table
+     * carries one, and most of them carry nothing but defaults. Letting those
+     * collapse to null would rewrite the stored file of every shipped form the
+     * first time anybody opened and saved it — a diff on 14 documents that
+     * nobody asked for and that the byte-identity check (§13.24) would then
+     * report as a difference between us and the master.
+     *
+     * The non-null fallback is what forces the Style back: `style()` returns
+     * null only when there is nothing set AND nothing to fall back to.
+     *
+     * @param array<string,mixed> $entry
+     */
+    private function subStyle(array $entry): ?Style
+    {
+        $style = $entry['style'] ?? null;
+        return is_array($style) ? $this->style($style, new Style()) : null;
+    }
+
+    /**
+     * A format hint, with its options carried past.
+     *
+     * The grid edits the NAME, which is the whole of the hint in every
+     * definition there is — nothing writes options and no renderer reads them.
+     * They are carried anyway, because the format can express them and a field
+     * that is invisible in the editor is exactly the kind that gets deleted by
+     * a save nobody thought was destructive.
+     *
+     * @param array<string,mixed> $entry
+     */
+    private static function formatFrom(array $entry): ?Format
+    {
+        $name = trim((string)($entry['format'] ?? ''));
+        $options = is_array($entry['formatOptions'] ?? null) ? $entry['formatOptions'] : [];
+        if ($name === '' && !$options) return null;
+        return new Format($name, $options);
+    }
+
+    /**
+     * A page number's pattern.
+     *
+     * Absent means carry, for the reason subRows() gives. A blank one is
+     * carried too — a page number that prints nothing is not something anybody
+     * asks for on purpose, and the author who cleared the box by accident gets
+     * their pattern back rather than an element that has silently stopped
+     * printing.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function pattern(array $row, string $current): string
+    {
+        if (!array_key_exists('pattern', $row)) return $current;
+        $pattern = trim((string)$row['pattern']);
+        return $pattern === '' ? $current : $pattern;
+    }
+
+    /**
+     * A barcode's symbology, checked against the list that can be drawn.
+     *
+     * TCPDF throws on a type it does not know — from inside write1DBarcode(),
+     * with the document part-built — so this is the same shape of gate as
+     * `font()`, and for the same reason: an unknown name refused here can be
+     * reported, and one discovered at render time cannot.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function symbology(array $row, string $current, string $what): string
+    {
+        if (!array_key_exists('symbology', $row)) return $current;
+
+        $name = trim((string)$row['symbology']);
+        if ($name === '' || $name === $current) return $current;
+        if (in_array($name, self::SYMBOLOGIES, true)) return $name;
+
+        $this->warnings[] = "$what asked for a '$name' barcode, which cannot be drawn;"
+                          . ' the previous kind was kept.';
+        return $current;
+    }
+
+    // ── sub-structures, the other way ────────────────────────────────────────
+
+    /**
+     * A table's columns as the canvas's own value. @param list<Column> $columns
+     */
+    private static function columnsToValue(array $columns): string
+    {
+        $out = [];
+        foreach ($columns as $column) {
+            $out[] = array_merge(
+                self::bindingToValue($column->bind),
+                [
+                    'heading' => $column->heading,
+                    'width'   => $column->width === null ? '' : self::number($column->width),
+                    'align'   => $column->align?->value ?? '',
+                    'total'   => $column->total ? '1' : '',
+                    'style'   => self::styleToValue($column->style),
+                ],
+                self::formatToValue($column->format),
+            );
+        }
+        return self::encode($out);
+    }
+
+    /** A block's parts as the canvas's own value. @param list<BlockPart> $parts */
+    private static function partsToValue(array $parts): string
+    {
+        $out = [];
+        foreach ($parts as $part) {
+            $out[] = array_merge(
+                self::bindingToValue($part->bind),
+                ['separator' => $part->separator],
+                self::formatToValue($part->format),
+            );
+        }
+        return self::encode($out);
+    }
+
+    /**
+     * An empty list is `[]`, never `""`.
+     *
+     * subRows() reads a blank as "say nothing" so that a browser which fails to
+     * fill the field cannot empty a table. That only holds if the deliberate
+     * empty looks different from the accidental one, which is this line.
+     *
+     * @param list<array<string,mixed>> $rows
+     */
+    private static function encode(array $rows): string
+    {
+        return (string)json_encode($rows, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /** @return array<string,mixed> */
+    private static function bindingToValue(Binding $binding): array
+    {
+        return [
+            'bind'  => $binding->name,
+            'scope' => self::scopeName($binding->scope),
+            // Which fields an aggregate adds up. No control edits it and
+            // nothing in the shipped set puts an aggregate in a column or a
+            // part — but subBinding() hands back the ORIGINAL Binding for a
+            // non-record scope, so this rides along for the reader rather than
+            // for the round trip.
+            'sumOf' => $binding->sumOf,
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private static function formatToValue(?Format $format): array
+    {
+        return [
+            'format'        => $format?->name ?? '',
+            'formatOptions' => $format?->options ?? [],
+        ];
+    }
+
+    /**
+     * A column's style in the same flat shape the inspector uses for an
+     * element's, so `style()` can read it back with no second vocabulary.
+     *
+     * @return ?array<string,string>
+     */
+    private static function styleToValue(?Style $style): ?array
+    {
+        if ($style === null) return null;
+        return [
+            'font'         => (string)($style->font ?? ''),
+            'size'         => $style->size === null ? '' : self::number($style->size),
+            'colour'       => self::colourText($style->colour),
+            'borderColour' => self::colourText($style->borderColour),
+            'align'        => $style->align?->value ?? '',
+            'borderSize'   => $style->borderSize === null ? '' : self::number($style->borderSize),
+            'borderShow'   => $style->borderShow ? '1' : '',
+            'truncate'     => $style->truncate   ? '1' : '',
+            'bold'         => $style->bold       ? '1' : '',
+            'italic'       => $style->italic     ? '1' : '',
+        ];
     }
 
     /**

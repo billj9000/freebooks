@@ -457,12 +457,50 @@ if ($forms_canvas_definition === null) { ?>
               <?php echo FORMS_CANVAS_TABLE_ON_TOP; ?>
             </div>
 
+            <?php // A page number's whole content is one pattern, so it is
+                  // edited in place rather than behind a button. ?>
+            <div class="mb-2 d-none" id="ins_pattern_row">
+              <label class="form-label mb-0 small" for="ins_pattern"><?php
+                echo FORMS_CANVAS_PATTERN; ?></label>
+              <input type="text" class="form-control form-control-sm" id="ins_pattern">
+              <div class="form-text"><?php echo FORMS_CANVAS_PATTERN_NOTE; ?></div>
+            </div>
+
+            <div class="mb-2 d-none" id="ins_symbology_row">
+              <label class="form-label mb-0 small" for="ins_symbology"><?php
+                echo FORMS_CANVAS_SYMBOLOGY; ?></label>
+              <?php echo html_pull_down_menu('ins_symbology', $forms_canvas_symbologies, '',
+                  'class="form-select form-select-sm"'); ?>
+              <div class="form-text"><?php echo FORMS_CANVAS_SYMBOLOGY_NOTE; ?></div>
+            </div>
+
+            <?php // A table's columns and a block's lines are GRIDS, and the
+                  // inspector is a narrow sidebar. Squeezing six controls a row
+                  // into it would make the one thing an author most needs to
+                  // read — which value each column shows — the hardest thing on
+                  // the page. So the button opens the grid at full width, the
+                  // same shape the report editor gives its own column list, and
+                  // the sidebar carries the count instead. ?>
+            <div class="mb-2 d-none" id="ins_columns_row">
+              <button type="button" class="btn btn-primary btn-sm w-100" id="ins_columns_open"
+                      data-bs-toggle="modal" data-bs-target="#forms_columns_modal"></button>
+            </div>
+            <div class="mb-2 d-none" id="ins_parts_row">
+              <button type="button" class="btn btn-primary btn-sm w-100" id="ins_parts_open"
+                      data-bs-toggle="modal" data-bs-target="#forms_parts_modal"></button>
+            </div>
+
             <div class="d-block mb-2">
               <button type="button" class="btn btn-primary btn-sm" onclick="formsCanvasZ(-1)"
                       title="<?php echo FORMS_CANVAS_FORWARD; ?>">&uarr;</button>
               <button type="button" class="btn btn-primary btn-sm" onclick="formsCanvasZ(1)"
                       title="<?php echo FORMS_CANVAS_BACKWARD; ?>">&darr;</button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="formsCanvasDelete()"><?php
+              <?php // The key is the only affordance on this page a reader
+                    // cannot see, so the button that does the same thing is
+                    // where it gets announced — the same job the Undo button's
+                    // title does for Ctrl+Z. ?>
+              <button type="button" class="btn btn-primary btn-sm" onclick="formsCanvasDelete()"
+                      title="<?php echo FORMS_CANVAS_DELETE_HINT; ?>"><?php
                 echo TEXT_DELETE; ?></button>
             </div>
           </div>
@@ -500,3 +538,143 @@ if ($forms_canvas_definition === null) { ?>
   </div>
 </div>
 </form>
+
+<?php // ── the two sub-structure grids (§13.30) ──────────────────────────────
+      //
+      // A table's columns and a block's lines, at full width. Deliberately
+      // OUTSIDE the canvas form: nothing in either grid carries a `name`, and
+      // nothing in either is posted. They edit the page's own `values` array,
+      // which is what formsCanvasSave() writes the hidden fields from — so a
+      // column added here reaches the server the same way a dragged box does,
+      // through one field per element, and is drawn by the live preview before
+      // it is saved at all.
+      //
+      // The rows are built in JavaScript rather than rendered here, because the
+      // grid belongs to whichever element is selected and that changes without
+      // a page load. The two <template> tags below are what it builds them
+      // from, so the markup still lives in the template file. ?>
+<div class="modal fade" id="forms_columns_modal" tabindex="-1"
+     aria-labelledby="forms_columns_title" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="forms_columns_title"><?php echo FORMS_CANVAS_COLUMNS; ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="<?php echo TEXT_CANCEL; ?>"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2"><?php echo FORMS_CANVAS_COL_NOTE; ?></p>
+        <div class="alert alert-warning py-2 px-3 small d-none" id="forms_columns_empty">
+          <?php echo FORMS_CANVAS_COLUMNS_NONE; ?>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="table table-borderless table-hover table-sm mb-2">
+            <thead class="table-dark">
+              <tr>
+                <th style="width:28%"><?php echo FORMS_CANVAS_BIND; ?></th>
+                <th style="width:24%"><?php echo FORMS_CANVAS_COL_HEADING; ?></th>
+                <th style="width:10%"><?php echo FORMS_CANVAS_COL_WIDTH; ?></th>
+                <th style="width:14%"><?php echo FORMS_DESIGN_COL_ALIGN; ?></th>
+                <th style="width:14%"><?php echo FORMS_CANVAS_COL_FORMAT; ?></th>
+                <th style="width:10%" class="text-end">&nbsp;</th>
+              </tr>
+            </thead>
+            <tbody id="forms_columns_rows"></tbody>
+          </table>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="forms_columns_add"><?php
+          echo FORMS_CANVAS_COL_ADD; ?></button>
+      </div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"><?php
+          echo FORMS_CANVAS_SUB_DONE; ?></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="forms_columns_template">
+  <tr>
+    <td><?php echo html_pull_down_menu('', $forms_canvas_palette, '',
+          'class="form-select form-select-sm" data-col="bind"'); ?></td>
+    <td><input type="text" class="form-control form-control-sm" data-col="heading"></td>
+    <td><input type="text" inputmode="decimal" class="form-control form-control-sm text-end"
+               data-col="width"></td>
+    <td><?php echo html_pull_down_menu('', $forms_canvas_aligns, '',
+          'class="form-select form-select-sm" data-col="align"'); ?></td>
+    <td><input type="text" class="form-control form-control-sm" data-col="format"></td>
+    <td class="text-end text-nowrap">
+      <button type="button" class="btn btn-primary btn-sm" data-sub="up">&uarr;</button>
+      <button type="button" class="btn btn-primary btn-sm" data-sub="down">&darr;</button>
+      <button type="button" class="btn btn-primary btn-sm" data-sub="remove">&times;</button>
+    </td>
+  </tr>
+</template>
+
+<div class="modal fade" id="forms_parts_modal" tabindex="-1"
+     aria-labelledby="forms_parts_title" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title" id="forms_parts_title"><?php echo FORMS_CANVAS_PARTS; ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="<?php echo TEXT_CANCEL; ?>"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2"><?php echo FORMS_CANVAS_PART_NOTE; ?></p>
+        <div class="alert alert-warning py-2 px-3 small d-none" id="forms_parts_empty">
+          <?php echo FORMS_CANVAS_PARTS_NONE; ?>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="table table-borderless table-hover table-sm mb-2">
+            <thead class="table-dark">
+              <tr>
+                <th style="width:36%"><?php echo FORMS_CANVAS_BIND; ?></th>
+                <th style="width:32%"><?php echo FORMS_CANVAS_PART_JOIN; ?></th>
+                <th style="width:20%"><?php echo FORMS_CANVAS_COL_FORMAT; ?></th>
+                <th style="width:12%" class="text-end">&nbsp;</th>
+              </tr>
+            </thead>
+            <tbody id="forms_parts_rows"></tbody>
+          </table>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="forms_parts_add"><?php
+          echo FORMS_CANVAS_PART_ADD; ?></button>
+      </div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"><?php
+          echo FORMS_CANVAS_SUB_DONE; ?></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?php // A part bound to one of the company's own details takes NO select. The
+      // palette holds what the record supplies and has no entry for it, and
+      // TemplateForm refuses to re-point one whatever is posted — so the row
+      // says what it is bound to in words, exactly as the inspector does for a
+      // company-bound value. Its separator and format are still editable, which
+      // is the whole reason a company block can be rearranged at all. ?>
+<template id="forms_parts_template">
+  <tr>
+    <td>
+      <?php echo html_pull_down_menu('', $forms_canvas_palette, '',
+            'class="form-select form-select-sm" data-col="bind"'); ?>
+      <span class="small d-none" data-col="fixed"></span>
+    </td>
+    <td>
+      <select class="form-select form-select-sm" data-col="separator">
+<?php foreach ($forms_canvas_separators as $forms_sep) { ?>
+        <option value="<?php echo htmlspecialchars($forms_sep['id'], ENT_QUOTES); ?>"><?php
+          echo htmlspecialchars($forms_sep['text']); ?></option>
+<?php } ?>
+      </select>
+    </td>
+    <td><input type="text" class="form-control form-control-sm" data-col="format"></td>
+    <td class="text-end text-nowrap">
+      <button type="button" class="btn btn-primary btn-sm" data-sub="up">&uarr;</button>
+      <button type="button" class="btn btn-primary btn-sm" data-sub="down">&darr;</button>
+      <button type="button" class="btn btn-primary btn-sm" data-sub="remove">&times;</button>
+    </td>
+  </tr>
+</template>

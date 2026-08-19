@@ -228,6 +228,36 @@ foreach (TemplateForm::ADDABLE as $kind) {
       . strtoupper($kind)));
 }
 
+// How one line of an address block joins to the next (§13.30). Taken from
+// TemplateForm rather than written out here, so the list an author reads cannot
+// drift from the list the save accepts — and both are held against what
+// Formatter actually performs by verify_forms_canvas.php.
+$forms_canvas_separators = array();
+foreach (TemplateForm::SEPARATORS as $separator) {
+  $forms_canvas_separators[] = array(
+    'id'   => $separator,
+    'text' => constant('FORMS_CANVAS_SEP_' . ($separator === ''
+                ? 'NONE' : strtoupper(str_replace('-', '_', $separator)))),
+  );
+}
+
+// The barcode symbologies, plus whatever this form already uses. Same rule as
+// the font list, for the same reason: a definition may name a type this list
+// does not carry, and a select with no option for it would silently re-code
+// somebody's barcode on the first save.
+$forms_canvas_symbologies = array();
+foreach (TemplateForm::SYMBOLOGIES as $symbology) {
+  $forms_canvas_symbologies[] = array('id' => $symbology, 'text' => $symbology);
+}
+$forms_canvas_seen_codes = array_flip(TemplateForm::SYMBOLOGIES);
+foreach ($forms_canvas_definition?->template?->elements ?? array() as $element) {
+  if (!$element instanceof \FreeBooks\Forms\Document\Barcode) continue;
+  if (isset($forms_canvas_seen_codes[$element->symbology])) continue;
+  $forms_canvas_seen_codes[$element->symbology] = true;
+  $forms_canvas_symbologies[] = array('id' => $element->symbology,
+      'text' => sprintf(FORMS_CANVAS_SYMBOLOGY_OTHER, $element->symbology));
+}
+
 define('PAGE_TITLE', $forms_canvas_definition !== null
     ? sprintf(FORMS_CANVAS_TITLE_FOR, $forms_canvas_definition->title)
     : FORMS_CANVAS_TITLE);

@@ -565,6 +565,74 @@ if ($script !== '') {
        'it calls into the page at the top level, where nothing has been parsed yet');
 }
 
+// ── every element the script reaches for is an element the page emits ───────
+//
+// The sibling of the timing check above, and it catches the same failure from
+// the other end: that one asks whether the script runs too early to find the
+// page, this one asks whether what it is looking for is there at all.
+//
+// Both exist because of the same afternoon. "None of the new buttons do
+// anything" was a script reaching for controls it could not reach — and a
+// getElementById that finds nothing returns null SILENTLY, so the page renders,
+// the console stays quiet, and the button is simply dead. The failure has no
+// symptom a test can see except this one: compare the names the script asks for
+// against the names the markup carries.
+//
+// Only literal, single-argument lookups are checked. An id built at runtime is
+// not a name this can know, and there is no point guessing at one.
+//
+// The names are compared against the page's SOURCE as well as its output,
+// because one render is one branch. The canvas draws either the list of forms
+// or the editor, never both, and its script serves both — so half its controls
+// are legitimately absent from any given rendering, and a check that read only
+// the output would report six dead controls that work perfectly. A name that is
+// genuinely mistyped is in neither, which is the distinction worth drawing.
+if ($script !== '') {
+    preg_match_all('/getElementById\(\s*[\'"]([A-Za-z0-9_\-]+)[\'"]\s*\)/', $script, $asked);
+    $wanted = array_values(array_unique($asked[1]));
+
+    // What the page CAN emit: every literal id in its own template, plus every
+    // id this rendering actually produced — which covers the ones written by
+    // shared helpers rather than by the template itself.
+    $canEmit = $output . (string)@file_get_contents(
+        DIR_FS_WORKING . 'pages/' . $PAGE . '/template_main.php');
+    preg_match_all('/\bid\s*=\s*[\'"]([A-Za-z0-9_\-]+)[\'"]/', $canEmit, $has);
+    $present = array_flip($has[1]);
+
+    // A form's id is its NAME: html_form() writes `name` and `id` from the same
+    // first argument, so the template says `html_form('forms_doc_action', ...)`
+    // and never the word `id` at all.
+    preg_match_all('/html_form\(\s*[\'"]([A-Za-z0-9_\-]+)[\'"]/', $canEmit, $forms);
+    foreach ($forms[1] as $name) $present[$name] = true;
+
+    $missing = [];
+    foreach ($wanted as $id) if (!isset($present[$id])) $missing[] = $id;
+
+    ok('every id the page script looks up is one the page can emit', $missing === [],
+       implode(', ', $missing) . ' — a lookup that finds nothing returns null'
+       . ' silently, which is a dead control and a quiet console');
+    echo '  [--] ' . count($wanted) . " id(s) looked up, all accounted for\n";
+
+    // The same rule one level down, for controls a script finds by attribute
+    // rather than by id. A grid built from a <template> has no ids at all — its
+    // rows are cloned, so every one of them would carry the same one — and it
+    // reaches its controls with `[data-col=heading]`. A name misspelled on
+    // either side is a field that silently never saves, which is the id bug
+    // wearing different clothes.
+    preg_match_all('/\[data-col=[\'"]?([A-Za-z0-9_\-]+)[\'"]?\]/', $script, $reads);
+    $readNames = array_values(array_unique($reads[1]));
+    if ($readNames !== []) {
+        preg_match_all('/\bdata-col\s*=\s*[\'"]([A-Za-z0-9_\-]+)[\'"]/', $canEmit, $written);
+        $writtenNames = array_flip($written[1]);
+
+        $unwired = [];
+        foreach ($readNames as $name) if (!isset($writtenNames[$name])) $unwired[] = $name;
+        ok('every control the script reads by data-col is one the markup carries',
+           $unwired === [], implode(', ', $unwired));
+        echo '  [--] ' . count($readNames) . " data-col name(s) read, all present\n";
+    }
+}
+
 // ── the contract template_index.php imposes, which this render does not ──────
 $source = (string)file_get_contents(DIR_FS_WORKING . 'pages/' . $PAGE . '/pre_process.php');
 ok('the page defines PAGE_TITLE', defined('PAGE_TITLE') || str_contains($source, "define('PAGE_TITLE'"),

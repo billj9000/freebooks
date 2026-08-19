@@ -50,7 +50,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{CanvasLayout, FormRunner, SampleData};
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
-use FreeBooks\Forms\Definition\{DefinitionCodec, DefinitionException, DefinitionLoader, TemplateForm};
+use FreeBooks\Forms\Definition\{Definition, DefinitionCodec, DefinitionException, DefinitionLoader, TemplateForm};
 use FreeBooks\Forms\Document\{
     Box, LayoutDocument, Line, PageSetup, Record, Rect, RenderOptions, Template
 };
@@ -208,6 +208,77 @@ ok('the canvas script converts with the same constant',
    'the overlay and the server must agree on what a millimetre is');
 ok('the canvas script positions boxes with scale × PT_PER_MM',
    (bool)preg_match('/function px\(mm\)\s*\{\s*return mm \* scale \* PT_PER_MM;/', $js));
+
+// The two grids reach their controls by ATTRIBUTE, not by id: rows are cloned
+// from a <template>, so every row would carry the same id. The names come from
+// a `fields:` list in the script and the attributes are written in the markup,
+// which is two places to spell the same word — and a mismatch is a control that
+// silently never saves rather than one that errors.
+//
+// verify_forms_pages.php catches the LITERAL selectors. These are built as
+// '[data-col=' + field + ']', so the name never appears as a selector at all
+// and only the list it is drawn from can be checked.
+$markup = (string)file_get_contents(DIR_FS_MODULES . 'forms/pages/canvas/template_main.php');
+preg_match_all('/\bdata-col\s*=\s*[\'"]([A-Za-z0-9_\-]+)[\'"]/', $markup, $carried);
+$carriedNames = array_flip($carried[1]);
+
+preg_match_all("/fields:\s*\[([^\]]*)\]/", $js, $lists);
+$declared = [];
+foreach ($lists[1] as $list) {
+    preg_match_all("/'([A-Za-z0-9_\-]+)'/", $list, $names);
+    foreach ($names[1] as $name) $declared[] = $name;
+}
+$declared = array_values(array_unique($declared));
+
+ok('the grids declare at least one field list to check', $declared !== []);
+$unwired = [];
+foreach ($declared as $name) if (!isset($carriedNames[$name])) $unwired[] = $name;
+ok('every grid field the script names is one the row markup carries',
+   $unwired === [], implode(', ', $unwired)
+   . ' — the script would find nothing, and that column would never save');
+echo '  [--] ' . count($declared) . " grid field(s) declared, all carried\n";
+
+// ── the Delete key ──────────────────────────────────────────────────────────
+//
+// A keyboard shortcut that removes things is worth pinning, because everything
+// about it that can go wrong is invisible: it fails by deleting something the
+// author was not looking at, not by throwing.
+//
+// The dangerous case is not the canvas at all. Both grids are modals full of
+// text boxes and per-row buttons, and a focused <button> passes the usual
+// INPUT/TEXTAREA/SELECT test — so without the extra guards, pressing Delete
+// after clicking a column's own × would offer to remove the whole table.
+$deleteKey = (string)(preg_match('/keydown[^}]*?Delete(.|\n)*?formsCanvasDelete\(\);/', $js, $found)
+                        ? $found[0] : '');
+
+ok('the canvas binds a key to deleting the selection', $deleteKey !== '',
+   'no keydown handler reaches formsCanvasDelete()');
+
+if ($deleteKey !== '') {
+    // Bound on a MacBook too, where the key marked "delete" IS Backspace and
+    // forward delete needs Fn — bind only 'Delete' there and the feature does
+    // not exist.
+    ok('and to Backspace as well, which is the only such key a MacBook has',
+       str_contains($deleteKey, "'Backspace'"));
+
+    ok('it declines inside a text box, a control or a link',
+       (bool)preg_match('/INPUT\|TEXTAREA\|SELECT\|BUTTON\|A/', $deleteKey),
+       'a focused row button would otherwise delete the element that owns the grid');
+
+    ok('it declines while a dialog is open',
+       str_contains($deleteKey, "classList.contains('modal-open')"),
+       'the column and line grids are modals, and their subject is not the element');
+
+    ok('it declines when a modifier is held',
+       (bool)preg_match('/ctrlKey \|\| event\.metaKey \|\| event\.altKey/', $deleteKey));
+
+    // Only after every guard has passed. Swallowing the key and THEN declining
+    // would take Backspace away from the browser in the very cases the guards
+    // exist to protect.
+    $bail = strpos($deleteKey, 'preventDefault');
+    ok('and it swallows the key only once it has decided to act',
+       $bail !== false && $bail > strrpos($deleteKey, 'modal-open'));
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 echo "\n=== a box is drawn where the canvas will put it ===\n";
@@ -918,15 +989,303 @@ if ($victim === null) {
            && $warnings === [], var_export($new->src ?? null, true));
     }
 
-    // A kind with sub-structure cannot be conjured: a Table with no columns
-    // draws nothing and cannot be repaired on this page.
-    [$refused, $warnings] = $edit(function (array $r): array {
+    // ── the four kinds that used to be unreachable (§13.30) ──────────────────
+    //
+    // A Table and a FieldBlock were refused for as long as the canvas could not
+    // fill them: one created with no columns drew nothing and could not be
+    // repaired on the page that made it. Now it can, so it is added EMPTY and
+    // filled in the grid beside it — and the assertion below is the one that
+    // used to say the opposite.
+
+    [$withTable, $warnings] = $edit(function (array $r): array {
         $r['element'][] = ['index' => '', 'kind' => 'table', 'x' => '5', 'y' => '5'];
         return $r;
     });
-    ok('a new element of a kind that needs sub-structure is refused',
-       count($refused->template->elements) === count($victim->template->elements)
-       && $warnings !== []);
+    $drawn = $withTable->template->elements;
+    $new   = end($drawn);
+    ok('a line-item table can be added', $new instanceof \FreeBooks\Forms\Document\Table
+       && $warnings === [], implode(' ', $warnings));
+    ok('it arrives on the one source every provider supplies',
+       $new instanceof \FreeBooks\Forms\Document\Table && $new->source === 'items'
+       && $new->columns === [], var_export($new->source ?? null, true));
+    // A table is a REGION, not a line of text. One dropped at the 40x5 mm that
+    // suits a value reads as a mistake rather than as a table awaiting columns.
+    ok('and big enough to read as a table',
+       $new->box->width === 180.0 && $new->box->height === 100.0,
+       $new->box->width . 'x' . $new->box->height);
+
+    [$withBlock, $warnings] = $edit(function (array $r): array {
+        $r['element'][] = ['index' => '', 'kind' => 'block', 'x' => '5', 'y' => '5'];
+        return $r;
+    });
+    $drawn = $withBlock->template->elements;
+    $new   = end($drawn);
+    ok('an address block can be added', $new instanceof \FreeBooks\Forms\Document\FieldBlock
+       && $new->parts === [] && $warnings === [], implode(' ', $warnings));
+
+    [$withPage, $warnings] = $edit(function (array $r): array {
+        $r['element'][] = ['index' => '', 'kind' => 'pagenum', 'x' => '5', 'y' => '5'];
+        return $r;
+    });
+    $drawn = $withPage->template->elements;
+    $new   = end($drawn);
+    ok('a page number can be added, with a pattern that prints something',
+       $new instanceof \FreeBooks\Forms\Document\PageNumber
+       && $new->pattern === '{page} / {pages}' && $warnings === [],
+       var_export($new->pattern ?? null, true));
+
+    // A barcode differs from the two above on purpose: an element bound to
+    // nothing cannot be told apart, in the element list, from one whose binding
+    // was lost — so it is refused rather than created blank.
+    [$bare, $warnings] = $edit(function (array $r): array {
+        $r['element'][] = ['index' => '', 'kind' => 'barcode', 'x' => '5', 'y' => '5'];
+        return $r;
+    });
+    ok('a barcode with no value named is refused, not created blank',
+       count($bare->template->elements) === count($victim->template->elements)
+       && $warnings !== [], implode(' ', $warnings));
+
+    $someField = (string)array_key_first($allowed);
+    [$withBar, $warnings] = $edit(function (array $r) use ($someField): array {
+        $r['element'][] = ['index' => '', 'kind' => 'barcode', 'x' => '5', 'y' => '5',
+                           'bind' => $someField, 'symbology' => 'EAN13'];
+        return $r;
+    });
+    $drawn = $withBar->template->elements;
+    $new   = end($drawn);
+    ok('a barcode naming a value the form supplies is added',
+       $new instanceof \FreeBooks\Forms\Document\Barcode
+       && $new->bind->name === $someField && $warnings === [], implode(' ', $warnings));
+    ok('and it can be given a symbology other than the legacy default',
+       $new instanceof \FreeBooks\Forms\Document\Barcode && $new->symbology === 'EAN13',
+       var_export($new->symbology ?? null, true));
+
+    // TCPDF throws on a type it does not know, from inside write1DBarcode()
+    // with the document part-drawn. Refused here, where it can be reported.
+    [$badCode, $warnings] = $edit(function (array $r) use ($someField): array {
+        $r['element'][] = ['index' => '', 'kind' => 'barcode', 'x' => '5', 'y' => '5',
+                           'bind' => $someField, 'symbology' => 'NOT-A-SYMBOLOGY'];
+        return $r;
+    });
+    $drawn = $badCode->template->elements;
+    $new   = end($drawn);
+    ok('a symbology TCPDF cannot draw is refused, and the drawable default kept',
+       $new instanceof \FreeBooks\Forms\Document\Barcode && $new->symbology === 'C128'
+       && $warnings !== [], var_export($new->symbology ?? null, true));
+
+    // ── a table's columns and a block's parts are edited, not carried ────────
+    //
+    // These two structures were carried past the canvas untouched for as long
+    // as there was no control for them. They now travel through the form as
+    // JSON in one field per element, which means every one of them is exposed
+    // to being lost by a save — the exact failure the blanket carry prevented.
+    // What replaces it is a per-key rule, and these are the checks on it.
+
+    /** The first element of a kind, with the row that carries it. */
+    $find = function (string $class) use ($victim): ?array {
+        foreach ($victim->template->elements as $index => $element) {
+            if ($element instanceof $class) return [$index, $element];
+        }
+        return null;
+    };
+
+    $tableAt = $find(\FreeBooks\Forms\Document\Table::class);
+    if ($tableAt === null) {
+        echo "  [--] this form has no line-item table; its column checks were skipped\n";
+    } else {
+        [$tIndex, $table] = $tableAt;
+        $columnCount = count($table->columns);
+
+        // The heading is the plainest possible edit, and it has to actually
+        // take effect or every refusal below would pass on a binder that
+        // ignores the field entirely.
+        [$retitled, $warnings] = $edit(function (array $r) use ($tIndex): array {
+            $columns = json_decode($r['element'][$tIndex]['columns'], true);
+            $columns[0]['heading'] = 'Widget';
+            $r['element'][$tIndex]['columns'] = json_encode($columns);
+            return $r;
+        });
+        $edited = $retitled->template->elements[$tIndex];
+        ok('a table column can be renamed',
+           $edited->columns[0]->heading === 'Widget' && $warnings === [],
+           var_export($edited->columns[0]->heading ?? null, true));
+        ok('and the other columns are untouched',
+           count($edited->columns) === $columnCount, count($edited->columns) . " vs $columnCount");
+
+        // Reordering IS the edit for a table: column order is print order.
+        [$swapped, $warnings] = $edit(function (array $r) use ($tIndex): array {
+            $columns = json_decode($r['element'][$tIndex]['columns'], true);
+            $columns[] = array_shift($columns);
+            $r['element'][$tIndex]['columns'] = json_encode($columns);
+            return $r;
+        });
+        $edited = $swapped->template->elements[$tIndex];
+        ok('columns can be reordered, which is what changes the printed order',
+           count($edited->columns) === $columnCount
+           && $edited->columns[0]->bind->name === $table->columns[1]->bind->name
+           && $warnings === [], implode(' ', $warnings));
+
+        // The gate. A column is a binding like any other, and the palette is
+        // the only list an author may name from.
+        [$invented, $warnings] = $edit(function (array $r) use ($tIndex): array {
+            $columns = json_decode($r['element'][$tIndex]['columns'], true);
+            $columns[0]['bind'] = 'no_such_field_anywhere';
+            $r['element'][$tIndex]['columns'] = json_encode($columns);
+            return $r;
+        });
+        $edited = $invented->template->elements[$tIndex];
+        ok('a column naming a field the form cannot supply is dropped, not stored',
+           count($edited->columns) === $columnCount - 1 && $warnings !== [],
+           implode(' ', $warnings));
+
+        // ── the per-key carry rule ──
+        //
+        // This is the safety that replaced "carry every structure". A post that
+        // says NOTHING about the columns is not a post that says none of them,
+        // and the difference is a stale page emptying somebody's invoice.
+        [$silent, $warnings] = $edit(function (array $r) use ($tIndex): array {
+            unset($r['element'][$tIndex]['columns']);
+            return $r;
+        });
+        ok('a post that omits the columns keeps them',
+           count($silent->template->elements[$tIndex]->columns) === $columnCount
+           && $warnings === [], count($silent->template->elements[$tIndex]->columns) . '');
+
+        // Same for a blank, because a browser that fails to fill the field
+        // sends one — and a blank is not an instruction.
+        [$blank, ] = $edit(function (array $r) use ($tIndex): array {
+            $r['element'][$tIndex]['columns'] = '';
+            return $r;
+        });
+        ok('and a blank one keeps them too',
+           count($blank->template->elements[$tIndex]->columns) === $columnCount);
+
+        // Unreadable is carried as well, rather than treated as none.
+        [$broken, $warnings] = $edit(function (array $r) use ($tIndex): array {
+            $r['element'][$tIndex]['columns'] = '{not json';
+            return $r;
+        });
+        ok('a column list that cannot be read keeps the previous one, and says so',
+           count($broken->template->elements[$tIndex]->columns) === $columnCount
+           && $warnings !== [], implode(' ', $warnings));
+
+        // The deliberate empty, which has to look different from all three
+        // above or deleting the last column would be impossible.
+        [$emptied, ] = $edit(function (array $r) use ($tIndex): array {
+            $r['element'][$tIndex]['columns'] = '[]';
+            return $r;
+        });
+        ok('an explicit empty list does empty it',
+           $emptied->template->elements[$tIndex]->columns === []);
+
+        // A converted column always carries a Style, usually one holding
+        // nothing but defaults. Letting those collapse to null would rewrite
+        // the stored file of every shipped form on its first save.
+        $styled = 0;
+        foreach ($table->columns as $i => $column) {
+            if ($column->style !== null && $retitled->template->elements[$tIndex]->columns[$i]->style !== null) $styled++;
+        }
+        ok('a column style survives the round trip rather than collapsing to none',
+           $styled === count(array_filter($table->columns, fn($c) => $c->style !== null)),
+           "$styled kept");
+    }
+
+    // ── a block's parts, and the constant-reading gate ───────────────────────
+
+    $blockAt = $find(\FreeBooks\Forms\Document\FieldBlock::class);
+    if ($blockAt === null) {
+        echo "  [--] this form has no field block; its part checks were skipped\n";
+    } else {
+        [$bIndex, $block] = $blockAt;
+        $partCount = count($block->parts);
+
+        [$rejoined, $warnings] = $edit(function (array $r) use ($bIndex): array {
+            $parts = json_decode($r['element'][$bIndex]['parts'], true);
+            $parts[0]['separator'] = 'com-sp';
+            $r['element'][$bIndex]['parts'] = json_encode($parts);
+            return $r;
+        });
+        $edited = $rejoined->template->elements[$bIndex];
+        ok('a block part can be given a different separator',
+           $edited->parts[0]->separator === 'com-sp' && count($edited->parts) === $partCount
+           && $warnings === [], var_export($edited->parts[0]->separator ?? null, true));
+
+        // Formatter::separator() falls through its default on a name it does
+        // not know and joins with NOTHING — an address block that has silently
+        // lost its line breaks. Refused here, where it can be said out loud.
+        [$odd, $warnings] = $edit(function (array $r) use ($bIndex): array {
+            $parts = json_decode($r['element'][$bIndex]['parts'], true);
+            $parts[0]['separator'] = 'sideways';
+            $r['element'][$bIndex]['parts'] = json_encode($parts);
+            return $r;
+        });
+        ok('a separator that does not exist is refused rather than silently ignored',
+           $odd->template->elements[$bIndex]->parts[0]->separator === ''
+           && $warnings !== [], implode(' ', $warnings));
+
+        // THE security check of §13.30.
+        //
+        // A Context binding resolves through FormRunner::contextFor(), which is
+        // `if (defined($name)) constant($name)` over every constant in the
+        // process — configure.php's database password included. An author who
+        // could type one into a part would have precisely the read primitive
+        // §1.1 records as PhreeForm's defect.
+        $contextPart = null;
+        foreach ($victim->template->elements as $index => $element) {
+            if (!$element instanceof \FreeBooks\Forms\Document\FieldBlock) continue;
+            foreach ($element->parts as $part) {
+                if ($part->bind->scope === \FreeBooks\Forms\Document\Scope::Context) {
+                    $contextPart = $index; break 2;
+                }
+            }
+        }
+        if ($contextPart === null) {
+            echo "  [--] this form has no company-bound block; the constant gate was checked below\n";
+        } else {
+            [$probe, $warnings] = $edit(function (array $r) use ($contextPart): array {
+                $parts = json_decode($r['element'][$contextPart]['parts'], true);
+                foreach ($parts as $i => $part) {
+                    if (($part['scope'] ?? '') === 'context') {
+                        $parts[$i]['bind'] = 'DB_SERVER_PASSWORD';
+                        break;
+                    }
+                }
+                $r['element'][$contextPart]['parts'] = json_encode($parts);
+                return $r;
+            });
+            $names = array_map(fn($p) => $p->bind->name,
+                               $probe->template->elements[$contextPart]->parts);
+            ok('a company-bound part cannot be re-pointed at an arbitrary PHP constant',
+               !in_array('DB_SERVER_PASSWORD', $names, true) && $warnings !== [],
+               implode(', ', $names));
+        }
+
+        // And the same refusal for one invented from nothing, which is the
+        // route that does not need an existing context part to exploit.
+        [$conjured, $warnings] = $edit(function (array $r) use ($bIndex): array {
+            $parts = json_decode($r['element'][$bIndex]['parts'], true);
+            $parts[] = ['bind' => 'DB_SERVER_PASSWORD', 'scope' => 'context', 'separator' => 'nl'];
+            $r['element'][$bIndex]['parts'] = json_encode($parts);
+            return $r;
+        });
+        $names = array_map(fn($p) => $p->bind->name, $conjured->template->elements[$bIndex]->parts);
+        ok('a company-bound part cannot be conjured naming one either',
+           !in_array('DB_SERVER_PASSWORD', $names, true) && $warnings !== [],
+           implode(' ', $warnings));
+    }
+
+    // The separator vocabulary the editor offers has to be the one the renderer
+    // performs. A name in one list and not the other is an address block that
+    // loses its line breaks with nothing reporting anything.
+    $formatter = new \FreeBooks\Forms\Render\Formatter(currencies: $currencies ?? null);
+    $performed = [];
+    foreach (TemplateForm::SEPARATORS as $separator) {
+        if ($separator === '') continue;
+        $performed[$separator] = $formatter->separator('x', $separator) !== 'x';
+    }
+    ok('every separator the editor offers is one the renderer performs',
+       !in_array(false, $performed, true),
+       implode(', ', array_keys(array_filter($performed, fn($p) => !$p))));
 
     // An index naming nothing is a row that would otherwise become a NEW
     // element of the wrong kind.
@@ -1340,6 +1699,173 @@ if ($victim === null) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ── a form built from nothing but the four new kinds (§13.30) ───────────────
+//
+// The checks above prove the binder accepts each kind. This proves the point of
+// accepting them: that a form assembled ONLY from what used to be unreachable
+// is a form that stores, reloads and prints.
+//
+// It is the question the change was made to answer. A new blank Form Layout
+// could previously be given text, values, rules, boxes and a logo — which is
+// not an invoice, because an invoice needs line items and an address block, and
+// neither could be added. So the assembly here is deliberately the one that was
+// impossible: a table, a block, a page number and a barcode, and nothing else.
+
+echo "\n=== a form built from nothing but the four new kinds ===\n";
+
+$tableForm = null;
+foreach ($forms as $id => $title) {
+    try { $candidate = $loader->load($id); } catch (DefinitionException) { continue; }
+    if (!$candidate->isForm() || $candidate->isSerial() || $candidate->template === null) continue;
+    foreach ($candidate->template->elements as $element) {
+        if ($element instanceof \FreeBooks\Forms\Document\Table && $element->columns) {
+            $tableForm = [$candidate, $element];
+            break 2;
+        }
+    }
+}
+
+if ($tableForm === null) {
+    echo "  [--] no form with a line-item table on this company; the assembly was not built\n";
+} else {
+    [$donor, $donorTable] = $tableForm;
+
+    // Line-item keys and record keys are borrowed from a real form rather than
+    // invented, because the binder checks every name against what the document
+    // can actually supply — inventing them would test the refusal path.
+    $lineKeys = [];
+    foreach ($donorTable->columns as $column) $lineKeys[] = $column->bind->name;
+    $lineKeys = array_values(array_unique($lineKeys));
+    $donorAllowed = $allowedFor($donor);
+    $recordKeys   = array_slice(array_keys($donorAllowed), 0, 4);
+
+    if (count($lineKeys) < 2 || count($recordKeys) < 2) {
+        echo "  [--] too few bindings to assemble from\n";
+    } else {
+        $scratch = new Definition(
+            id: $donor->id, type: $donor->type, title: 'scratch', description: '',
+            group: $donor->group, provider: $donor->provider, datasetId: $donor->datasetId,
+            page: $donor->page, template: new Template([]), breakField: $donor->breakField,
+            recordTable: $donor->recordTable, recordKey: $donor->recordKey);
+
+        $wantColumns = min(3, count($lineKeys));
+        $wantParts   = min(3, count($recordKeys));
+
+        $columnRows = [];
+        foreach (array_slice($lineKeys, 0, $wantColumns) as $i => $key) {
+            $columnRows[] = ['bind' => $key, 'scope' => 'record', 'sumOf' => [],
+                             'heading' => 'Col' . ($i + 1), 'width' => (string)(30 + $i * 10),
+                             'align' => 'L', 'format' => '', 'formatOptions' => [],
+                             'total' => '', 'style' => null];
+        }
+        $partRows = function (string $separator) use ($recordKeys, $wantParts): array {
+            $rows = [];
+            foreach (array_slice($recordKeys, 0, $wantParts) as $key) {
+                $rows[] = ['bind' => $key, 'scope' => 'record', 'sumOf' => [],
+                           'separator' => $separator, 'format' => '', 'formatOptions' => []];
+            }
+            return $rows;
+        };
+
+        $assemble = function (string $separator) use ($scratch, $columnRows, $partRows,
+                                                      $recordKeys, $donorAllowed): array {
+            $request = ['title' => 'scratch', 'element' => [
+                ['index' => '', 'kind' => 'table', 'x' => '10', 'y' => '60',
+                 'w' => '180', 'h' => '100', 'columns' => json_encode($columnRows)],
+                ['index' => '', 'kind' => 'block', 'x' => '10', 'y' => '20',
+                 'w' => '80', 'h' => '5', 'parts' => json_encode($partRows($separator))],
+                ['index' => '', 'kind' => 'pagenum', 'x' => '160', 'y' => '10',
+                 'w' => '40', 'h' => '5', 'pattern' => '{page} {of} {pages}'],
+                ['index' => '', 'kind' => 'barcode', 'x' => '120', 'y' => '30',
+                 'w' => '50', 'h' => '15', 'bind' => $recordKeys[0], 'symbology' => 'C39'],
+            ]];
+            $binder = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+            return [$binder->apply($scratch, $request, $donorAllowed), $binder->warnings()];
+        };
+
+        [$assembled, $warnings] = $assemble('nl');
+        ok('all four kinds are accepted in one form, with nothing to report',
+           count($assembled->template->elements) === 4 && $warnings === [],
+           count($assembled->template->elements) . ' element(s); ' . implode(' ', $warnings));
+
+        $kinds = array_map(fn($e) => (new \ReflectionClass($e))->getShortName(),
+                           $assembled->template->elements);
+        ok('and each is the kind that was asked for',
+           $kinds === ['Table', 'FieldBlock', 'PageNumber', 'Barcode'], implode(', ', $kinds));
+
+        $builtTable = $assembled->template->elements[0];
+        $builtBlock = $assembled->template->elements[1];
+        ok('the table arrived with the columns it was given, in order',
+           count($builtTable->columns) === $wantColumns
+           && $builtTable->columns[0]->heading === 'Col1'
+           && $builtTable->columns[0]->bind->name === $lineKeys[0],
+           count($builtTable->columns) . ' column(s)');
+        ok('and the block with its lines', count($builtBlock->parts) === $wantParts,
+           count($builtBlock->parts) . ' part(s)');
+
+        // An element that exists only until the page is reopened is no use.
+        $codec  = new DefinitionCodec();
+        $stored = $codec->decode($codec->encode($assembled), $assembled->id);
+        ok('the whole assembly survives being written and read back',
+           count($stored->template->elements) === 4
+           && count($stored->template->elements[0]->columns) === $wantColumns
+           && count($stored->template->elements[1]->parts) === $wantParts
+           && $stored->template->elements[2]->pattern === '{page} {of} {pages}'
+           && $stored->template->elements[3]->symbology === 'C39');
+
+        // ── and it prints ──
+        $printed = function (Definition $definition) use ($renderer): array {
+            $document = new LayoutDocument(
+                title: $definition->title, template: $definition->template,
+                records: [SampleData::record($definition->template, null)],
+                page: $definition->page);
+            $bytes = $renderer->render($document, new RenderOptions(filename: 'scratch.pdf'))->bytes;
+
+            // TCPDF writes text as the ARRAY form, `[(...)] TJ`, not `Tj`.
+            // Counting the wrong operator reports zero on a page full of words.
+            $runs = 0;
+            $rows = [];
+            foreach (operators($bytes) as $line) {
+                $runs += substr_count($line, '] TJ');
+                if (preg_match('/([0-9.]+) ([0-9.]+) Td \[\(/', $line, $at)) $rows[(string)$at[2]] = true;
+            }
+            return [$bytes, $runs, count($rows)];
+        };
+
+        [$bytes, $runs, ] = $printed($stored);
+        ok('the assembled form renders a PDF', str_starts_with($bytes, '%PDF') && strlen($bytes) > 2000,
+           strlen($bytes) . ' bytes');
+
+        // The table is the element that was worth adding, so it is the one held
+        // to drawing something: a cell per sample row per column.
+        $withoutTable = new Template(array_values(array_filter(
+            $stored->template->elements,
+            fn($e) => !$e instanceof \FreeBooks\Forms\Document\Table)));
+        [, $bare, ] = $printed(new Definition(
+            id: $stored->id, type: $stored->type, title: 'x', description: '',
+            group: $stored->group, provider: $stored->provider, datasetId: $stored->datasetId,
+            page: $stored->page, template: $withoutTable));
+
+        // SampleData::record() invents six lines, so a table of N columns draws
+        // at least 6N cells. The headings are extra, and not counted, so an
+        // off-by-one in the heading row cannot make this pass by accident.
+        ok('the line-item table draws a cell for every sample row and column',
+           $runs - $bare >= 6 * $wantColumns,
+           ($runs - $bare) . " more text runs than without it, wanted " . (6 * $wantColumns));
+
+        // The separator is the whole of a block's layout, and the one thing
+        // about it an author cannot predict. `nl` has to put the parts on
+        // SEPARATE lines and no separator has to leave them on one — measured
+        // off the y coordinates the renderer actually emitted, because the
+        // block is one box of text either way and its box does not change.
+        [$joined, ] = $assemble('');
+        [, , $linesApart]    = $printed($stored);
+        [, , $linesTogether] = $printed($codec->decode($codec->encode($joined), $joined->id));
+        ok('a line break separator puts the block on more lines than none does',
+           $linesApart > $linesTogether, "$linesApart vs $linesTogether distinct rows");
+    }
+}
+
 echo "\n=== pdf.js is vendored where the page loads it from ===\n";
 
 $vendor = dirname(rtrim(DIR_FS_MODULES, '/')) . '/ext/pdfjs/';

@@ -196,10 +196,19 @@ a silver rule.</p>
 
 <h3>Adding, removing and overlapping</h3>
 
-<p><strong>Add an element</strong> offers text, a value, a line, a box or an image. New elements
-appear near the top-left corner &mdash; drag them where you want them. A value must be given
-something to show, chosen from the list of values this form can supply; nothing else can be typed
-in.</p>
+<p><strong>Add an element</strong> offers all nine kinds: fixed text, a value, an address block,
+the table of line items, a line, a box, an image, a page number and a barcode. New elements appear
+near the top-left corner &mdash; drag them where you want them.</p>
+
+<p>A value and a barcode must each be given something to show, chosen from the list of values this
+form can supply; nothing else can be typed in, and one added without a value chosen is not kept when
+you save. An address block and a line-item table are the opposite: they are added <em>empty</em>,
+because what goes in them is a list rather than a single choice, and you fill that list in the panel
+described below. Until you do, they draw nothing.</p>
+
+<p>This is what makes a form built from scratch worth building. A form needs its line items and its
+customer address before it is an invoice at all, and until these could be added, starting from a
+blank form meant starting from something that could never become one.</p>
 
 <p>A new image starts out empty and draws nothing until you give it a picture, which is the next
 section. Its height is left unset on purpose, so that the shape comes from whatever picture you
@@ -210,7 +219,68 @@ elements overlap: a filled box drawn after a piece of text hides it. With severa
 they all move a step together, keeping their order among themselves; if any one of them is already
 at the end, none of them moves.</p>
 
-<p><strong>Delete</strong> removes everything selected, and says how many before it does.</p>
+<p><strong>Delete</strong> removes everything selected, and says how many before it does. The
+<em>Delete</em> key on the keyboard does the same, as does <em>Backspace</em> &mdash; which is the
+key marked "delete" on a Mac keyboard. Either way you are asked first.</p>
+
+<p>The key does nothing while you are typing in a box, or while the column or line list is open, so
+it never removes an element out from under whatever you were actually working on.</p>
+
+<h3>The columns of the line-item table</h3>
+
+<p>Select the line-item table and the panel offers <strong>Columns</strong>, with the number it has.
+That opens the list of them at full width, because a column has five things to say about it and the
+panel on the right is too narrow to say them clearly.</p>
+
+<p>Each column shows one value from a line of the document &mdash; the item code, its description,
+the quantity, the price. Alongside it you set the <strong>heading</strong> printed above the column,
+its <strong>width</strong> in millimetres, whether the text sits left, centre or right, and a
+<strong>format</strong> if the value needs one.</p>
+
+<p>The order of the rows is the order the columns print in, left to right, and the arrows beside each
+row are how you change it. The cross removes a column.</p>
+
+<p>A table with no columns prints nothing, and the list says so while it is empty. That is the state
+a newly added table starts in, so it is worth adding the first column straight away.</p>
+
+<h3>The lines of an address block</h3>
+
+<p>An address block is several values printed as one block of text: the customer's name, then the
+first line of the address, then the town, and so on. Select one and the panel offers
+<strong>Lines</strong>, which opens the same kind of list.</p>
+
+<p>Each row is one value, and beside it is <strong>Followed by</strong> &mdash; what joins it to the
+row beneath. This is the setting that makes an address look like an address:</p>
+
+<ul>
+<li><em>A new line</em> puts the next value on its own line.</li>
+<li><em>A new line, unless it is empty</em> does the same, but closes the gap up when the value is
+blank. This is what you want for a second address line that many customers do not have; with a plain
+new line, those customers get a blank line in the middle of their address.</li>
+<li><em>A comma and a space</em>, <em>a space</em>, and the rest join the two on the same line, which
+is how a town and a postcode end up together.</li>
+<li><em>Nothing</em> runs the two straight together with no gap at all.</li>
+</ul>
+
+<p>The last row's setting has nothing after it to join to, so it makes no difference.</p>
+
+<p>Some lines of a company block show one of your own company details rather than something from the
+record &mdash; your name, your address, your telephone number. Those rows say so in words instead of
+offering a list, and they cannot be pointed at anything else here; change them in Company Settings.
+You can still reorder them and change how they are joined, which is the usual reason for opening the
+list at all.</p>
+
+<h3>Page numbers and barcodes</h3>
+
+<p>A page number's <strong>Wording</strong> is what it prints, with three substitutions:
+<em>{page}</em> for the number of the page, <em>{pages}</em> for how many there are, and
+<em>{of}</em> for the word "of" in your language. So <em>{page} {of} {pages}</em> prints
+"2 of 5", and <em>{page} / {pages}</em> prints "2 / 5".</p>
+
+<p>A barcode has a <strong>Barcode type</strong>. Every form converted from the old designer uses
+Code 128, which is the general-purpose choice and encodes anything; change it only if the scanner
+that will read it needs a particular one. A type the printer cannot draw is refused when you save
+rather than left to fail at the printer.</p>
 
 <h3>Logos and other images</h3>
 
@@ -262,9 +332,9 @@ the form again.</p>
 note before you save: afterwards the original print engine can no longer open that form, and a copy
 of the original is kept alongside it.</p>
 
-<p>The editor only saves what it can show you. Parts of a form it has no controls for &mdash; the
-individual lines of an address block, the columns of the line-item table &mdash; are kept exactly as
-they were.</p>
+<p>The editor only saves what it can show you. The few things it has no controls for &mdash; where a
+line-item table draws its rows from, the styling of that table's heading row &mdash; are kept exactly
+as they were.</p>
 
 <h3>Related Links</h3>
 <p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>

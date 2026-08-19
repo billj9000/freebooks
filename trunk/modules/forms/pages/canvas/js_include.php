@@ -575,6 +575,31 @@ function describeSelection() {
        ['text', 'field', 'block', 'pagenum', 'table', 'barcode'].indexOf(box.kind) >= 0);
   show('ins_table_note', box.kind === 'table');
   show('ins_src_row',  box.kind === 'image' && box.source === 'file');
+
+  // The four kinds the canvas learnt in §13.30. A page number's whole content
+  // is one pattern and a barcode's is one symbology, so both are edited in
+  // place; a table's columns and a block's lines are grids, and the button
+  // carries the count so the sidebar says how many there are without opening
+  // anything.
+  show('ins_pattern_row',   box.kind === 'pagenum');
+  show('ins_symbology_row', box.kind === 'barcode');
+  set('ins_pattern', value.pattern);
+  if (box.kind === 'barcode') {
+    document.getElementById('ins_symbology').value = value.symbology || 'C128';
+  }
+
+  show('ins_columns_row', box.kind === 'table');
+  show('ins_parts_row',   box.kind === 'block');
+  if (box.kind === 'table') {
+    document.getElementById('ins_columns_open').textContent =
+      <?php echo json_encode(FORMS_CANVAS_COLUMNS_EDIT); ?>
+        .replace('%d', subRows(value.columns).length);
+  }
+  if (box.kind === 'block') {
+    document.getElementById('ins_parts_open').textContent =
+      <?php echo json_encode(FORMS_CANVAS_PARTS_EDIT); ?>
+        .replace('%d', subRows(value.parts).length);
+  }
   // A binding the author can retarget, and one they cannot. A company constant
   // — the company's own phone number or tax number — is not in the palette,
   // because the palette holds what the RECORD supplies; so the select had no
@@ -650,6 +675,12 @@ function inspectorChanged() {
   const src = document.getElementById('ins_src').value;
   if (src !== '') value.src = src;
 
+  // Written only for the element that HAS one. Both controls keep whatever the
+  // last page number or barcode put in them, so writing unconditionally would
+  // give a rectangle a symbology and a save something to store about it.
+  if (box.kind === 'pagenum') value.pattern   = document.getElementById('ins_pattern').value;
+  if (box.kind === 'barcode') value.symbology = document.getElementById('ins_symbology').value;
+
   place();
   rebuildList();
   highlight(selected);
@@ -713,27 +744,47 @@ function formsCanvasAdd(kind) {
   // CanvasLayout uses for an image it cannot measure. Choosing a file replaces
   // both numbers with the real ones.
   const image  = kind === 'image';
-  const height = image ? '' : (kind === 'line' ? '0' : '5');
-  const drawn  = image ? 25 : (kind === 'line' ? 0 : 5);
+  const table  = kind === 'table';
+  // A table is a REGION, not a line of text, and these have to agree with
+  // TemplateForm::create() — the canvas draws the outline, the binder stores the
+  // box, and a form whose new table jumped size on its first save would be one
+  // the author had to re-place having already placed it.
+  const height = image ? '' : (table ? '100' : (kind === 'line' ? '0' : '5'));
+  const drawn  = image ? 25 : (table ? 100 : (kind === 'line' ? 0 : 5));
+  const width  = table ? 180 : 40;
 
   // Dropped at a fixed spot rather than under the pointer: the author is about
   // to drag it anyway, and a new element hidden under the one they clicked is
   // worse than one they can see.
   const box = { index: boxes.length, kind: kind, x: 20, y: 20,
-                width: 40, height: drawn,
+                width: width, height: drawn,
                 label: <?php echo json_encode(FORMS_CANVAS_NEW); ?>,
                 described: <?php echo json_encode(FORMS_CANVAS_NEW); ?>, visible: 'all',
-                grows: (kind === 'text' || kind === 'field'), unmeasured: image,
+                // Which elements grow past the box they declare, because their
+                // box is a line height rather than an extent. The same list
+                // CanvasLayout::boxes() uses on the server.
+                grows: ['text', 'field', 'block', 'pagenum'].indexOf(kind) >= 0,
+                unmeasured: image,
                 // Which of the two image controls the inspector offers. A new
                 // one always names a file: binding it to the record needs a
                 // path prefix and a value, neither of which is set here.
                 source: image ? 'file' : '',
-                store: { x: 20, y: 20, w: 40, h: height } };
+                store: { x: 20, y: 20, w: width, h: height } };
   boxes.push(box);
-  values.push({ index: '', kind: kind, x: '20', y: '20', w: '40',
+  values.push({ index: '', kind: kind, x: '20', y: '20', w: String(width),
                 h: height, bind: '', text: '', visible: 'all',
                 label: '', font: '', size: '', colour: '', borderColour: '', align: '',
-                borderSize: '', borderShow: '', truncate: '', bold: '', italic: '', src: '' });
+                borderSize: '', borderShow: '', truncate: '', bold: '', italic: '', src: '',
+                // Empty, and explicitly so. `[]` is what tells the binder the
+                // author means none rather than means nothing — a blank is read
+                // as "say nothing about it", which for a NEW element would
+                // leave it with no columns anyway, but the two must stay
+                // distinguishable or deleting the last column of an existing
+                // table would be impossible.
+                columns: table ? '[]' : '',
+                parts:   kind === 'block' ? '[]' : '',
+                pattern: kind === 'pagenum' ? '{page} / {pages}' : '',
+                symbology: kind === 'barcode' ? 'C128' : '' });
   place(); rebuildList(); select(boxes.length - 1);
   touched(0);
 }
@@ -754,6 +805,209 @@ function formsCanvasSave() {
   });
   document.getElementById('forms_canvas_form').submit();
 }
+
+// ── a table's columns, and an address block's lines (§13.30) ───────────────
+//
+// Both structures travel as JSON in ONE canvas value — `values[i].columns`,
+// `values[i].parts` — for the reason TemplateForm gives: the save writes hidden
+// fields from a flat object and the live preview POSTs the same object, and a
+// nested `element[i][column][j][bind]` would mean teaching both of those, and
+// undo, to walk a tree.
+//
+// While a grid is open the DOM IS the model. Every mutation re-reads the whole
+// table rather than patching the row it touched, which is the rule the report
+// editor and the receipt editor both keep, and it removes a whole class of
+// bug: there is no second copy of the list to fall out of step.
+//
+// What the grid does NOT show still has to survive it. A column carries a
+// style, a `total` flag no renderer reads, and a format's options; a part
+// carries its scope. Those ride on the <tr> as a property rather than as hidden
+// inputs — the row element is what moves when a row is reordered, so they move
+// with it, and they cannot be reached by anything that posts.
+
+/** A sub-structure value as an array. A blank is none; unreadable is none. */
+function subRows(text) {
+  if (!text) return [];
+  try {
+    const rows = JSON.parse(text);
+    return Array.isArray(rows) ? rows : [];
+  } catch (e) { return []; }
+}
+
+// Which element the open grid belongs to. Held apart from `selected` because a
+// modal can outlive a change of selection in ways that are not worth relying
+// on, and writing a table's columns onto whatever happens to be selected when
+// the dialog closes would be the worst bug on this page.
+let subIndex = null;
+
+const SUB = {
+  columns: { modal: 'forms_columns_modal', rows: 'forms_columns_rows',
+             tpl: 'forms_columns_template', empty: 'forms_columns_empty',
+             add: 'forms_columns_add', title: 'forms_columns_title',
+             heading: <?php echo json_encode(FORMS_CANVAS_COLUMNS_TITLE); ?>,
+             button: 'ins_columns_open',
+             label: <?php echo json_encode(FORMS_CANVAS_COLUMNS_EDIT); ?>,
+             fields: ['bind', 'heading', 'width', 'align', 'format'],
+             blank: { bind: '', scope: 'record', sumOf: [], heading: '', width: '',
+                      align: '', format: '', formatOptions: [], total: '', style: null } },
+  parts:   { modal: 'forms_parts_modal', rows: 'forms_parts_rows',
+             tpl: 'forms_parts_template', empty: 'forms_parts_empty',
+             add: 'forms_parts_add', title: 'forms_parts_title',
+             heading: <?php echo json_encode(FORMS_CANVAS_PARTS_TITLE); ?>,
+             button: 'ins_parts_open',
+             label: <?php echo json_encode(FORMS_CANVAS_PARTS_EDIT); ?>,
+             fields: ['bind', 'separator', 'format'],
+             blank: { bind: '', scope: 'record', sumOf: [], separator: 'nl',
+                      format: '', formatOptions: [] } }
+};
+
+/** Draw the grid for the selected element. */
+function subOpen(key) {
+  const spec = SUB[key];
+  const body = document.getElementById(spec.rows);
+  body.textContent = '';
+  subIndex = selected;
+  if (subIndex === null || values[subIndex] === undefined) return;
+
+  document.getElementById(spec.title).textContent =
+      spec.heading.replace('%s', boxes[subIndex].label);
+  subRows(values[subIndex][key]).forEach(function (entry) {
+    body.appendChild(subRow(spec, entry));
+  });
+  subShowEmpty(spec);
+}
+
+/** One row, from the page's own <template>. */
+function subRow(spec, entry) {
+  const tpl = document.getElementById(spec.tpl);
+  const row = tpl.content.firstElementChild.cloneNode(true);
+
+  // Everything the grid has no control for. Kept on the row, so a reorder
+  // carries it and a delete takes it away.
+  row._extra = { scope: entry.scope || 'record', sumOf: entry.sumOf || [],
+                 name: entry.bind || '', total: entry.total || '',
+                 style: entry.style === undefined ? null : entry.style,
+                 formatOptions: entry.formatOptions || [] };
+
+  spec.fields.forEach(function (field) {
+    const control = row.querySelector('[data-col=' + field + ']');
+    if (!control) return;
+    control.value = entry[field] === undefined || entry[field] === null ? '' : entry[field];
+  });
+
+  // A part bound to one of the company's own details takes no select: the
+  // palette holds what the RECORD supplies and has no option for it, so the
+  // control would read empty on a line that is bound perfectly well. It says
+  // what it is in words instead — and TemplateForm refuses to re-point one
+  // whatever is posted, so nothing is lost by not offering it.
+  if (row._extra.scope !== 'record') {
+    const select = row.querySelector('[data-col=bind]');
+    const fixed  = row.querySelector('[data-col=fixed]');
+    if (select) select.classList.add('d-none');
+    if (fixed) {
+      fixed.classList.remove('d-none');
+      fixed.textContent = row._extra.name;
+      fixed.title = <?php echo json_encode(FORMS_CANVAS_PART_FIXED); ?>;
+    }
+  }
+  return row;
+}
+
+/** The grid, back into the element's value. */
+function subWrite(key) {
+  const spec = SUB[key];
+  if (subIndex === null || values[subIndex] === undefined) return;
+
+  const out = [];
+  Array.from(document.getElementById(spec.rows).rows).forEach(function (row) {
+    const extra = row._extra || { scope: 'record' };
+    const entry = { bind: extra.scope === 'record'
+                            ? (row.querySelector('[data-col=bind]') || {}).value || ''
+                            : extra.name,
+                    scope: extra.scope, sumOf: extra.sumOf || [] };
+    spec.fields.forEach(function (field) {
+      if (field === 'bind') return;
+      const control = row.querySelector('[data-col=' + field + ']');
+      entry[field] = control ? control.value : '';
+    });
+    entry.formatOptions = extra.formatOptions || [];
+    if (key === 'columns') { entry.total = extra.total || ''; entry.style = extra.style; }
+    out.push(entry);
+  });
+
+  remember();
+  values[subIndex][key] = JSON.stringify(out);
+  // The count in the sidebar, without redrawing the whole inspector — which
+  // would close nothing but would reset every control the author is looking at.
+  const button = document.getElementById(spec.button);
+  if (button) button.textContent = spec.label.replace('%d', out.length);
+  subShowEmpty(spec);
+  rebuildList();
+  touched();
+}
+
+/**
+ * Say so when there is nothing in it.
+ *
+ * An empty table and an empty block both draw NOTHING, and an element that
+ * draws nothing looks on the canvas exactly like one that is broken. Since both
+ * can now be created empty, the state is reachable on purpose and has to be
+ * explained where it is reached rather than discovered at the printer.
+ */
+function subShowEmpty(spec) {
+  const empty = document.getElementById(spec.empty);
+  if (empty) empty.classList.toggle('d-none',
+      document.getElementById(spec.rows).rows.length > 0);
+}
+
+/** Add, move and remove, for both grids. */
+function subWire(key) {
+  const spec = SUB[key];
+  const modal = document.getElementById(spec.modal);
+  if (!modal) return;
+
+  // Populated as it opens rather than when the selection changes: the grid
+  // belongs to whichever element is selected, and building it eagerly would
+  // rebuild it on every click on the page.
+  modal.addEventListener('show.bs.modal', function () { subOpen(key); });
+
+  document.getElementById(spec.add).addEventListener('click', function () {
+    if (subIndex === null) return;
+    const body = document.getElementById(spec.rows);
+    body.appendChild(subRow(spec, Object.assign({}, spec.blank)));
+    subWrite(key);
+  });
+
+  const body = document.getElementById(spec.rows);
+  body.addEventListener('click', function (event) {
+    const button = event.target.closest('[data-sub]');
+    if (!button) return;
+    const row  = button.closest('tr');
+    const rows = Array.from(body.rows);
+    const at   = rows.indexOf(row);
+
+    if (button.dataset.sub === 'remove') row.remove();
+    // insertBefore with a null reference APPENDS, which is what moving the last
+    // row down would otherwise do to the first one.
+    if (button.dataset.sub === 'up'   && at > 0)               body.insertBefore(row, rows[at - 1]);
+    if (button.dataset.sub === 'down' && at < rows.length - 1) body.insertBefore(rows[at + 1], row);
+    subWrite(key);
+  });
+
+  // One listener for every control in the grid, because they are created and
+  // destroyed as rows come and go and a per-control listener would have to be
+  // attached each time — and forgetting once is a field that silently does not
+  // save.
+  // `change`, not `input` — the same event every other control on this page
+  // commits on. Binding `input` would put one undo entry, one redraw and one
+  // preview request on the wire per KEYSTROKE while a heading is typed.
+  body.addEventListener('change', function (event) {
+    if (event.target.closest('[data-col]')) subWrite(key);
+  });
+}
+
+subWire('columns');
+subWire('parts');
 
 // ── adding an image ─────────────────────────────────────────────────────────
 //
@@ -1176,7 +1430,8 @@ window.formsCanvasRedo   = formsCanvasRedo;
 
 ['ins_label','ins_x','ins_y','ins_w','ins_h','ins_text','ins_font','ins_size','ins_border',
  'ins_align','ins_visible','ins_bordershow','ins_colour','ins_bordercolour',
- 'ins_bold','ins_italic','ins_bind','ins_src'].forEach(function (id) {
+ 'ins_bold','ins_italic','ins_bind','ins_src',
+ 'ins_pattern','ins_symbology'].forEach(function (id) {
   const control = document.getElementById(id);
   if (control) control.addEventListener('change', inspectorChanged);
 });
@@ -1301,6 +1556,52 @@ document.addEventListener('keydown', function (event) {
   const key = event.key.toLowerCase();
   if (key === 'z' && !event.shiftKey) { event.preventDefault(); formsCanvasUndo(); }
   else if (key === 'y' || (key === 'z' && event.shiftKey)) { event.preventDefault(); formsCanvasRedo(); }
+});
+
+/**
+ * Delete removes the selection.
+ *
+ * Backspace too, and not as an afterthought: a MacBook has no Delete key at all
+ * — its key marked "delete" IS Backspace, and forward delete needs Fn. Binding
+ * only the one would mean the feature simply does not exist on that hardware.
+ *
+ * Both go through formsCanvasDelete(), which asks before it removes anything and
+ * says how many. So the cost of an accidental press is a dialog, which is what
+ * makes the more easily-pressed key safe to accept.
+ *
+ * Three things must NOT be deleted through:
+ *
+ *   1. a text box, where both keys mean what they always mean;
+ *   2. any other focused control — a <button> passes the tag test above but a
+ *      row's ↑ ↓ × buttons live INSIDE the column grid, and deleting the whole
+ *      table because the author had just clicked one of its own controls is the
+ *      worst version of this feature;
+ *   3. an open modal. The grids are modals, and while one is up the subject on
+ *      screen is a column or a line, not the element that owns it.
+ *
+ * Deliberately not preventDefault()ed when it declines: the browser's own
+ * meaning for the key is the right one in every case above, Backspace's history
+ * of navigating back included — which is why the guard is a bail rather than a
+ * swallow.
+ */
+document.addEventListener('keydown', function (event) {
+  if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+  // Nothing selected is not an error and not a beep: the author pressed a key
+  // that has no subject.
+  if (!chosen.size) return;
+
+  const target = event.target;
+  if (target && target !== document.body) {
+    if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(target.tagName)) return;
+    if (target.isContentEditable) return;
+  }
+  // Bootstrap puts this on <body> for as long as a dialog is up.
+  if (document.body.classList.contains('modal-open')) return;
+
+  event.preventDefault();
+  formsCanvasDelete();
 });
 
 const liveBox = document.getElementById('forms_canvas_live');
