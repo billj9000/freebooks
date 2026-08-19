@@ -317,9 +317,29 @@ function forms_render_to_string(int $definitionId, array $recordIds, array $para
         $document   = (new \FreeBooks\Forms\App\FormRunner($db, $catalog))
             ->runDefinition($definition, $recordIds, $params);
 
-        if (!$document instanceof \FreeBooks\Forms\Document\LayoutDocument || count($document->records) === 0) {
+        if (count($document->records ?? []) === 0) {
             error_log("forms_render_to_string: pf_$definitionId produced no records for "
                 . implode(',', $recordIds));
+            return null;
+        }
+
+        // A receipt is TEXT for a till printer, not a PDF (§13.27). Returned
+        // under the same 'pdf' key the callers already read, because what they
+        // do with it is identical — the POS handlers put it straight into an
+        // ajax response, and the key is a name, not a promise about the format.
+        if ($document instanceof \FreeBooks\Forms\Document\SerialDocument) {
+            $receipt = (new \FreeBooks\Forms\Render\SerialRenderer(
+                new \FreeBooks\Forms\Render\Formatter(
+                    currencies:      $currencies,
+                    defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
+                    lookups:         forms_formatter_lookups(),
+                )
+            ))->render($document);
+            return ['pdf' => $receipt->bytes, 'filename' => $receipt->filename];
+        }
+
+        if (!$document instanceof \FreeBooks\Forms\Document\LayoutDocument) {
+            error_log("forms_render_to_string: pf_$definitionId is not a form.");
             return null;
         }
 

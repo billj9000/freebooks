@@ -48,7 +48,7 @@
 
 namespace FreeBooks\Forms\Definition;
 
-use FreeBooks\Forms\Document\{Format, PageSetup, ReportColumn, ReportStyle, Template};
+use FreeBooks\Forms\Document\{Format, PageSetup, ReportColumn, ReportStyle, SerialTemplate, Template};
 
 /** Anything wrong with a stored definition, or with the attempt to build one. */
 class DefinitionException extends \RuntimeException {}
@@ -90,10 +90,9 @@ final readonly class Definition
      *   definition MEANS, not merely how it prints: a serial form has no
      *   coordinates at all — `abscissa` and `ordinate` are empty on every field
      *   of the shipped receipt — and lays out by sequence, alignment and a
-     *   row break instead. Nothing in Forms can render or edit that shape yet
-     *   (§13.16, §13.27), so this exists first to let everything REFUSE one
-     *   knowingly; the legacy import used to drop the flag, which turned "we
-     *   cannot draw this" into a page of elements silently stacked at 0,0.
+     *   row break instead — see $serialTemplate, and §13.27. The legacy import
+     *   used to drop this flag, which turned a receipt into a page of elements
+     *   silently stacked at 0,0.
      */
     public function __construct(
         public string       $id          = '',
@@ -134,6 +133,13 @@ final readonly class Definition
         public string       $recordTable = '',
         public string       $recordKey   = 'id',
         public bool         $serial      = false,
+        /**
+         * A receipt's layout, where $template holds a page's. Both are nullable
+         * and exactly one is set on a form: they describe different things, and
+         * a definition that carried both would be saying two contradictory
+         * things about the same document.
+         */
+        public ?SerialTemplate $serialTemplate = null,
     ) {}
 
     public function isForm(): bool   { return $this->type === self::FORM; }

@@ -3235,6 +3235,11 @@ anywhere saying so. Measured after: `forms_render_to_string()` on the same id
 returns a 160 KB PDF on `demo` (native) and a 160 KB PDF on `production`
 (legacy) — the same document, either format.
 
+**Superseded by §13.28**, which built the serial renderer and the receipt
+editor these paragraphs describe as missing. What follows is left as written
+because the guard is still there and still correct — the canvas still refuses a
+receipt — and because the reasoning is what the editor was designed from.
+
 **What shipped for the two receipt call sites** — a null guard matching the
 one `get_report_details()` already documents needing: `save_main.php`
 previously read `$report->title` with no check at all, so a native receipt
@@ -3381,3 +3386,125 @@ requires. Synced. Harmless so far only because Forms is deliberately not
 deployed yet; it would not have stayed harmless.
 
 See [[todo_forms_canvas_serial_guard]] and §13.16.
+
+### 13.28 The receipt editor, and a renderer that had to be wrong on purpose
+
+Built 2026-08-18, at the user's instruction: *"Guard now, but add the receipt
+editor before we finish the Forms module. PhreeForm will be retired."* §13.27
+guarded the receipt; this makes it editable, which is what removes the last
+reason PhreeForm has to exist.
+
+**Why it is not a canvas, settled by measurement.** Every field of the shipped
+receipt stores an EMPTY `abscissa` and `ordinate`, and `BuildSeq()` never reads
+them. Layout is sequence, `align`, and `rowbreak`: each line is a string of the
+paper's width that successive fields OVERLAY through `formatReceipt()` — left
+pad, right pad, or centre against the line built so far — until a field
+carrying `rowbreak` flushes it. "Subtotal" left and its amount right are two
+fields written into the same 40 cells, not two boxes at two positions. No
+arrangement of draggable boxes can say that, so the editor is a list of lines
+and the cells written into each.
+
+**The model composes rather than duplicates.** A receipt's four field kinds ARE
+`StaticText`, `Field`, `FieldBlock` and `Table`, with the same bindings,
+formats and separators as a page. So `SerialField` pairs an existing `Element`
+with a `SerialCell` (width, align, row break), and `SerialTemplate` holds them
+in order; `TemplateConverter::convertSerial()` calls the SAME `convertField()`
+a page does. Nothing about a binding changes because the thing printing it has
+no coordinates, and so nothing about the binding rules is restated. Two
+behaviours the legacy applied at PRINT time are recorded in the model instead,
+because they belong to the field and not to the run: a `Tbl` always breaks the
+row (BuildSeq() used to set `rowbreak = 1` on the definition as it read it),
+and a `TBlk` writes the whole line rather than overlaying it.
+
+**The renderer is faithful where the legacy is wrong.** `SerialRenderer`
+reproduces `BuildSeq()` including two visible faults: the table APPENDS to the
+line under construction instead of flushing it, so a 40-column receipt prints
+an 80-character line; and it then chops two characters with `substr($x, 0, -2)`,
+eating the last row's final character along with its newline. Both are
+deliberate. A definition must print the same before and after the engine
+changes under it, or the switch to Forms becomes an unrequested change of
+output that nobody can diff. An author who wants the fault gone now has a
+place to fix it — and in the editor they can SEE it, which they could not
+before. Where it does not copy the legacy is data: `BuildSeq()` pulls each
+value with `array_shift($FieldValues)`, positionally, so inserting a field
+silently re-points every field after it; values resolve by NAME here.
+
+**Held to the byte.** `verify_forms_serial.php` renders the same point-of-sale
+entry down both engines and compares. Measured on `demo`: 658 bytes, identical,
+on both of the sales it has. It also asserts the properties an editor lives or
+dies by — that a receipt opened and saved unchanged comes back byte-identical
+through `SerialForm::toRequest()`/`apply()`, that the codec round-trips every
+cell, and that the encoding is stable. `production` has the definition but no
+POS module, so it checks the conversion there and says plainly that it compared
+nothing.
+
+Two faults the checks found on the way, both worth recording because neither
+would have shown up by looking: the record feed is a per-record TERMINATOR
+(`$output .= "\n\n\n\n"`, four blank lines that clear the printer's cutter),
+not a separator between receipts — treating it as a separator was 4 bytes short
+and would have cut the last line off every receipt; and `RenderOptions` carries
+a NULL filename rather than an empty string, so the obvious emptiness test named
+every download `.txt`.
+
+**The editor.** `pages/receipt`, its own menu entry, sharing
+`SECURITY_ID_FORMS_AUTHOR` with the canvas — which KIND of layout a document
+has does not change who may change it. It shows the lines, and in each the
+cells written into it, with the width, the position and the row break editable;
+rows move and delete; literal text is editable in place and can be added. Beside
+it, a live preview rendered through the real `SerialRenderer` against a real
+sale, under a character ruler — because a cell width of 15 means nothing except
+against the column it lands in, and the overlay behaviour is very hard to
+predict and very easy to see.
+
+What it deliberately will not do is invent a binding. A new field is literal
+text only; adding a field that prints a VALUE needs the dataset machinery the
+canvas has, and an editor that offered a half-completed binding would produce a
+receipt that prints a blank where a total should be.
+
+**One list, not two menu entries.** The receipt editor has no menu entry of its
+own. The Form Layout chooser reads each definition rather than merely listing
+catalog rows — a receipt is known by its stored layout and by nothing else,
+since `pos:rcpt` is not reserved — marks the receipts it finds, and links them
+straight to the receipt editor. Both editors also redirect: the canvas sends a
+receipt here, this page sends a page form to the canvas and a report to the
+report editor, and a request naming nothing goes to the one list. So a link to
+either editor lands on the right one whatever it names, which is what lets the
+list link directly without having to be certain, and keeps old links working.
+The redirect is still the guard it replaced — it fires before anything reads a
+template, and the save branch is gated on a definition being loaded.
+
+Retiring the entry was safe for the reason the report editor's removal already
+records: `SECURITY_ID_FORMS_AUTHOR` is still named by the canvas entry, so it
+stays grantable on the roles page.
+
+**The preview is live.** It renders the receipt AS EDITED through the same
+`SerialForm` the save uses, posted by htmx from the editor's own form, so what
+is shown is what would be stored. It matters more here than on any other Forms
+page: fields overlay one another, so the effect of a width or an alignment is
+genuinely hard to predict, and a preview that waited for a save would make an
+author commit to a change in order to find out what it was. Row moves, deletes
+and additions change what prints without changing any field's VALUE, so they
+fire no `change` event — the row code announces them on a custom event instead,
+from the renumbering every mutation already goes through.
+
+Worth knowing what the preview makes visible: ticking "Ends line" on the field
+before the items table turns the 80-character line into two 40-character ones.
+The fault §13.28 reproduces on purpose is now one an author can see and fix in
+about two seconds, which is the whole argument for reproducing it rather than
+silently correcting it.
+
+**The wiring, now that a receipt can be printed.** The §13.27 hand-back to
+PhreeForm is gone: the print page renders a receipt itself, and both POS ajax
+handlers try `forms_render_to_string()` first — which returns the receipt text
+under the same `pdf` key, because what those callers do with it is identical.
+`FormRunner::plan()`, the legacy-object entry point, still declines a serial
+form: it converts to a page `Template`, and a receipt is served from a native
+Definition. The canvas still refuses one, and now names the receipt editor
+rather than PhreeForm.
+
+**Also fixed here:** `contextFor()` took a Template and read `->elements`, which
+a SerialTemplate does not have. It takes the element list now — and the change
+caught a second call site that the first pass had missed, through the whole
+form suite failing at once rather than quietly.
+
+See [[todo_forms_canvas_serial_guard]], §13.16 and §13.27.

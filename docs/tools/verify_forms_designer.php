@@ -397,6 +397,13 @@ gen_pull_language('phreeform');
 $pageFiles = array_merge(
     glob(DIR_FS_MODULES . 'forms/pages/design/*.php') ?: [],
     [DIR_FS_MODULES . 'forms/ajax/design_preview.php'],
+    // The receipt editor and its live preview, scanned for the same reason and
+    // with more cause: retiring its chooser deleted five strings at once, and a
+    // string still named by a page is fatal on first open, not on the line that
+    // uses it.
+    glob(DIR_FS_MODULES . 'forms/pages/receipt/*.php') ?: [],
+    [DIR_FS_MODULES . 'forms/ajax/receipt_preview.php'],
+    [DIR_FS_MODULES . 'forms/pages/canvas/template_main.php'],
     [DIR_FS_MODULES . 'forms/pages/main/template_main.php']);
 
 $missing = $alwaysFallback = [];
@@ -438,6 +445,18 @@ foreach (['pre_process.php', 'template_main.php', 'js_include.php'] as $file) {
 }
 ok('the preview endpoint exists where the page posts to it',
     is_file(DIR_FS_MODULES . 'forms/ajax/design_preview.php'));
+
+// The receipt editor holds to the same contract, and posts to its own preview.
+foreach (['pre_process.php', 'template_main.php', 'js_include.php'] as $file) {
+    ok("the receipt editor has its $file", is_file(DIR_FS_MODULES . 'forms/pages/receipt/' . $file));
+}
+ok('the receipt preview endpoint exists where the page posts to it',
+    is_file(DIR_FS_MODULES . 'forms/ajax/receipt_preview.php'));
+$receiptPage = (string)@file_get_contents(DIR_FS_MODULES . 'forms/pages/receipt/template_main.php');
+ok('the receipt preview refreshes from the editor form itself',
+    str_contains($receiptPage, 'op=receipt_preview')
+    && str_contains($receiptPage, 'hx-include="#forms_receipt_form"'),
+    'a preview built from anything but the form is a preview of a different receipt');
 
 $manual = DIR_FS_MODULES . 'phreedom/language/en_us/manual/ch11-ReportsForms/';
 $topics = glob($manual . '*.html') ?: [];

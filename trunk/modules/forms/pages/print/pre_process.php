@@ -56,8 +56,8 @@ use FreeBooks\Forms\App\{FormPlan, FormRunner, RecordSelector};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Deliver\{EmailDelivery, HttpDelivery};
-use FreeBooks\Forms\Document\{LayoutDocument, RenderOptions};
-use FreeBooks\Forms\Render\{Formatter, LayoutPdfRenderer};
+use FreeBooks\Forms\Document\{LayoutDocument, RenderOptions, SerialDocument};
+use FreeBooks\Forms\Render\{Formatter, LayoutPdfRenderer, SerialRenderer};
 
 // Required of every page by includes/template_index.php, which renders it as
 // the browser <title>. A page that omits it is a fatal, not an untitled page.
@@ -122,25 +122,6 @@ if ($forms_rID) {
   $messageStack->add(FORMS_PRINT_NOTHING_ASKED, 'error');
 }
 
-// ── a receipt goes back to PhreeForm, which can still print one ──────────────
-// gen_print_form_url() switches Print buttons on a COMPANY setting, not per
-// document, so with MODULE_FORMS_PRINT_BUTTONS on the POS receipt button lands
-// here too — and Forms cannot render a character-cell form (§13.27). Handed
-// straight back rather than refused: the till has to give the customer a
-// receipt, and PhreeForm prints this one correctly today. The query string is
-// already in the shape popup_gen expects, being what gen_print_form_url() built.
-// Goes when Forms grows a serial renderer, and nothing else has to change.
-if ($forms_report && $forms_report->isSerial()) {
-  gen_redirect(html_href_link(FILENAME_DEFAULT,
-      'module=phreeform&page=popup_gen'
-      . '&gID='  . urlencode($forms_gID)
-      . '&date=' . urlencode($forms_date)
-      . '&xfld=' . urlencode($forms_xfld)
-      . '&xcr='  . urlencode($forms_xcr)
-      . ($forms_xmax !== '' ? '&xmax=' . urlencode($forms_xmax) : '')
-      . '&xmin=' . urlencode($forms_xmin), 'SSL'));
-}
-
 // ── which records ────────────────────────────────────────────────────────────
 if ($forms_report) {
   $forms_plan = $runner->planDefinition($forms_report);
@@ -194,6 +175,25 @@ function forms_print_render(): ?object
     $messageStack->add(sprintf(FORMS_WARN_CONVERSION, $warning), 'caution');
   }
 
+  // A receipt: text for a till printer, not a page (§13.27). Rendered here so
+  // that the Print button on a point-of-sale entry works exactly as every other
+  // Print button does — gen_print_form_url() switches them on a company
+  // setting, not per document, so pos:rcpt arrives here whether or not anyone
+  // meant it to.
+  if ($document instanceof SerialDocument) {
+    if (count($document->records) === 0) {
+      $messageStack->add(FORMS_PRINT_NO_RECORDS, 'error');
+      return null;
+    }
+    return (new SerialRenderer(new Formatter(
+        currencies:      $currencies,
+        defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
+        lookups:         forms_formatter_lookups(),
+    )))->render($document, new RenderOptions(
+        filename: forms_print_filename($forms_report, '')
+    ));
+  }
+
   if (!$document instanceof LayoutDocument || count($document->records) === 0) {
     $messageStack->add(FORMS_PRINT_NO_RECORDS, 'error');
     return null;
@@ -218,12 +218,18 @@ function forms_print_render(): ?object
   ));
 }
 
-/** The download name, from the definition's own prefix where it has one. */
-function forms_print_filename(\FreeBooks\Forms\Definition\Definition $definition): string
+/**
+ * The download name, from the definition's own prefix where it has one.
+ *
+ * The extension is the CALLER's, because it is a property of what was rendered
+ * rather than of the definition: the same receipt is '.txt', and SerialRenderer
+ * appends that itself.
+ */
+function forms_print_filename(\FreeBooks\Forms\Definition\Definition $definition, string $extension = '.pdf'): string
 {
   $prefix = trim($definition->filenamePrefix);
   $base   = $prefix !== '' ? $prefix : ($definition->title !== '' ? $definition->title : 'document');
-  return $base . '.pdf';
+  return $base . $extension;
 }
 
 /***************   Act on the action request   *************************/

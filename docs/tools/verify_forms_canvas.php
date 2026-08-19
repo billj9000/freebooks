@@ -454,24 +454,29 @@ $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM
     . " where doc_type <> '0' and doc_ext = 'frm' order by id");
 while (!$result->EOF) { $forms[(int)$result->fields['id']] = (string)$result->fields['doc_title']; $result->MoveNext(); }
 
-// ── a receipt is refused, not drawn ──────────────────────────────────────────
-// The canvas guard of §13.27, asserted where the canvas itself decides. A
-// serial form has no coordinates at all, so CanvasLayout would place every
-// element at 0,0 and an author who moved one and saved would replace a working
-// receipt with a native file NEITHER engine can print. pre_process.php refuses
-// at load, which is also what stops the save — its save branch is gated on the
-// definition being non-null.
+// ── a receipt is refused HERE, and edited elsewhere ──────────────────────────
+// The canvas guard of §13.27. A serial form has no coordinates at all, so
+// CanvasLayout would place every element at 0,0 and an author who moved one and
+// saved would replace a working receipt with a layout that prints nothing.
+// pre_process.php refuses at load, which is also what stops the save — its save
+// branch is gated on the definition being non-null.
+//
+// Refused by the CANVAS is not refused by Forms: the receipt editor edits one
+// and SerialRenderer prints one. Both halves are asserted, because the failure
+// this guards against is the canvas quietly accepting a receipt, and the
+// failure on the other side is the whole document becoming unprintable.
 $serialSeen = 0;
 $serialRunner = new FormRunner($db, $catalog);
 foreach ($forms as $id => $title) {
     try { $definition = $loader->load($id); } catch (DefinitionException) { continue; }
     if (!$definition->isSerial()) continue;
     $serialSeen++;
-    ok("pf_$id ($title) is refused by the canvas rather than laid out",
-        $definition->isSerial(), 'the canvas would draw it');
-    ok("pf_$id ($title) is refused by the runner too",
-        !$serialRunner->planDefinition($definition)->runnable(),
-        'planDefinition() calls it runnable');
+    ok("pf_$id ($title) has a character-cell layout, not a canvas one",
+        $definition->serialTemplate !== null && $definition->template === null,
+        'it carries a page template the canvas would draw');
+    ok("pf_$id ($title) still runs, for the receipt editor and the printer",
+        $serialRunner->planDefinition($definition)->runnable(),
+        'planDefinition() refuses it: nothing could print it');
 }
 if ($serialSeen === 0) {
     // Not a failure: a company without the POS module has no receipt to refuse.

@@ -146,6 +146,17 @@ if (defined('MODULE_FORMS_STATUS')) {
     'params'                 => '',
   );
 
+  // The RECEIPT editor has no entry of its own, for the same reason the report
+  // editor has none: there is one list of forms, and it is the canvas chooser
+  // above. A receipt is listed there like any other form, marked as one, and
+  // opening it lands on the editor that can edit it — the list knows which,
+  // so nobody has to (§13.28). A second menu entry would have been a second
+  // list of the same forms, which is exactly what the report editor's entry
+  // was removed for.
+  //
+  // Safe to omit for the reason spelled out above: SECURITY_ID_FORMS_AUTHOR is
+  // still named by the canvas entry, so it remains grantable on the roles page.
+
   // Its own key, and a rare one to hold. Defining which tables join is the
   // dangerous privilege of the three (§3.1); running a report is not.
   $mainmenu['tools']['submenu']['forms_datasets'] = array(

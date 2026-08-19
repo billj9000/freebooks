@@ -184,12 +184,13 @@ foreach ($groups as $group) {
             $declined++;
             $lines[] = sprintf('pf_%d cannot be read: %s', $id, $e->getMessage());
         } elseif ($definition->isSerial()) {
-            // Not a decline. Forms cannot render a character-cell form (§13.27),
-            // so its print page hands this group straight back to PhreeForm,
-            // which prints it correctly — the button keeps working either way.
+            // Served, but as TEXT rather than a PDF: the print page renders it
+            // through SerialRenderer (§13.27). Counted separately because
+            // "prints" means something different for a till printer, and a
+            // group reported alongside the PDF forms would hide that.
             $handedBack++;
-            $lines[] = sprintf('pf_%d (%s) to PhreeForm: a receipt printer form', $id,
-                (string)$result->fields['doc_title']);
+            $lines[] = sprintf('pf_%d (%s) via %s, as a receipt', $id,
+                (string)$result->fields['doc_title'], $plan->name);
         } elseif (!$plan->runnable()) {
             $declined++;
             $lines[] = sprintf('pf_%d (%s) DECLINED: %s', $id,
@@ -205,7 +206,7 @@ foreach ($groups as $group) {
 
 ok('no group holds a form Forms would decline', $declined === 0, "$declined declined");
 if ($handedBack) {
-    printf("  [--] %d group(s) hold a receipt printer form, handed back to PhreeForm\n", $handedBack);
+    printf("  [--] %d group(s) hold a receipt printer form, printed as text\n", $handedBack);
 }
 if ($empty) {
     // Not a failure: a company that does not use the POS has no pos:rcpt form,

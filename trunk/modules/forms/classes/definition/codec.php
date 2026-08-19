@@ -49,7 +49,7 @@ use FreeBooks\Forms\Catalog\{FieldExpression, Filter, FilterOperator, Sort, Sort
 use FreeBooks\Forms\Document\{
     Align, Barcode, Binding, BlockPart, Box, Colour, Column, Element, Field, FieldBlock, Format,
     Image, Line, PageNumber, PageSetup, Rect, ReportColumn, ReportStyle, Scope, StaticText, Style,
-    Table, Template, Visibility
+    SerialCell, SerialField, SerialTemplate, Table, Template, Visibility
 };
 
 final class DefinitionCodec
@@ -147,6 +147,17 @@ final class DefinitionCodec
             // does not change a single stored byte of the 61 that are not
             // receipts — which the byte-identity check depends on.
             $this->put($form, 'serial',      $definition->serial,      false);
+            // A receipt's layout replaces the element list rather than joining
+            // it: the two describe the same document in incompatible terms, and
+            // a file carrying both would not say which one prints.
+            if ($definition->serialTemplate !== null) {
+                $form['elements'] = [];
+                $form['serialLayout'] = [
+                    'width'  => $definition->serialTemplate->width,
+                    'fields' => array_map([$this, 'serialFieldToArray'],
+                                          $definition->serialTemplate->fields),
+                ];
+            }
             $out['form'] = $form;
         }
 
@@ -420,6 +431,9 @@ final class DefinitionCodec
             recordTable: (string)($form['recordTable'] ?? ''),
             recordKey:   (string)($form['recordKey']   ?? 'id'),
             serial:      (bool)($form['serial'] ?? false),
+            serialTemplate: isset($form['serialLayout'])
+                ? $this->serialTemplateFromArray((array)$form['serialLayout'])
+                : null,
         );
     }
 
@@ -656,6 +670,40 @@ final class DefinitionCodec
      *
      * @param array<string,mixed> $target
      */
+    /** @return array<string,mixed> */
+    private function serialFieldToArray(SerialField $field): array
+    {
+        $out = ['element' => $this->elementToArray($field->element)];
+        // The cell, flat beside the element rather than nested under a key of
+        // its own: it is three small numbers and reads better in a file that a
+        // person may well have to look at.
+        $this->put($out, 'width',     $field->cell->width,     40);
+        $this->put($out, 'align',     $field->cell->align->value, Align::Left->value);
+        $this->put($out, 'rowBreak',  $field->cell->rowBreak,  false);
+        $this->put($out, 'wholeLine', $field->cell->wholeLine, false);
+        return $out;
+    }
+
+    /** @param array<string,mixed> $data */
+    private function serialTemplateFromArray(array $data): SerialTemplate
+    {
+        $fields = [];
+        foreach ((array)($data['fields'] ?? []) as $entry) {
+            $entry = (array)$entry;
+            if (!isset($entry['element'])) continue;
+            $fields[] = new SerialField(
+                $this->elementFromArray((array)$entry['element']),
+                new SerialCell(
+                    width:     (int)($entry['width'] ?? 40),
+                    align:     $this->alignFromValue($entry['align'] ?? null) ?? Align::Left,
+                    rowBreak:  (bool)($entry['rowBreak']  ?? false),
+                    wholeLine: (bool)($entry['wholeLine'] ?? false),
+                ),
+            );
+        }
+        return new SerialTemplate($fields, (int)($data['width'] ?? 40));
+    }
+
     private function put(array &$target, string $key, mixed $value, mixed $default): void
     {
         if ($value === $default) return;

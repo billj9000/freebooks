@@ -170,6 +170,12 @@ final class TemplateForm
             breakField:  $base->breakField,
             recordTable: $base->recordTable,
             recordKey:   $base->recordKey,
+            // The canvas refuses a receipt before it gets here, so these are
+            // carried rather than used. Dropping them would mean that if it
+            // ever DID get here, the save would quietly turn a receipt into a
+            // page — which is the exact loss the canvas guard exists to stop.
+            serial:         $base->serial,
+            serialTemplate: $base->serialTemplate,
         );
     }
 

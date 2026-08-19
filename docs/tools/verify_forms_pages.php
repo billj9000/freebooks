@@ -46,7 +46,7 @@
 // 'print', driven through parameters taken from what was actually rendered or
 // proven elsewhere. Listing them means the suite exercises what clicking the
 // button does, rather than only that the button is wired.
-const FORMS_PAGES = ['main', 'datasets', 'datasetsnew', 'admin', 'design', 'designpick', 'canvas', 'canvaspick', 'print', 'printgroup', 'run', 'printrun'];
+const FORMS_PAGES = ['main', 'datasets', 'datasetsnew', 'admin', 'design', 'designpick', 'canvas', 'canvaspick', 'receipt', 'print', 'printgroup', 'run', 'printrun'];
 
 if (!isset($argv[2])) {
     $failed = 0;
@@ -147,6 +147,8 @@ $DEFINING = $PAGE === 'datasetsnew';
 $PICKING  = $PAGE === 'designpick';
 // The form canvas, and the same page reached from the menu with nothing chosen.
 $CANVASPICK = $PAGE === 'canvaspick';
+// The receipt editor. It has no chooser of its own: there is ONE list of forms
+// and it is the canvas's, which links a receipt straight to this page (§13.28).
 if ($RUNNING)  $PAGE = 'main';
 if ($PRINTING) $PAGE = 'print';
 if ($CHOOSING) $PAGE = 'print';
@@ -220,6 +222,38 @@ if ($PAGE === 'canvas' && $CANVASPICK) {
         exit(0);
     }
     $_GET = $_REQUEST = ['module' => 'forms', 'page' => 'canvas', 'rID' => (string)$row->fields['id']];
+} elseif ($PAGE === 'receipt') {
+    // A SERIAL form, which the id has to be found by loading: a receipt is
+    // known by its stored layout, not by its group — pos:rcpt is not reserved
+    // and a company may have written its own.
+    // The directory is computed here rather than read from PF_DIR_MY_REPORTS,
+    // and phreeform's defaults are deliberately NOT required: defining that
+    // constant before the page runs is exactly what let a page missing its own
+    // bootstrap render an empty chooser and still pass. The harness must not
+    // supply what the page is supposed to supply (see the page contract note).
+    require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
+    $rcptDir     = DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/';
+    $rcptCatalog = new \FreeBooks\Forms\Catalog\Catalog();
+    \FreeBooks\Forms\Catalog\ShippedDatasets::registerAll($rcptCatalog);
+    $rcptLoader  = new \FreeBooks\Forms\Definition\DefinitionLoader($rcptCatalog, $rcptDir);
+
+    $rcptId = 0;
+    $rows = $db->Execute("select id from " . TABLE_PHREEFORM
+        . " where doc_type <> '0' and doc_ext = 'frm' order by id");
+    while ($rows && !$rows->EOF) {
+        try {
+            if ($rcptLoader->load((int)$rows->fields['id'])->isSerial()) {
+                $rcptId = (int)$rows->fields['id'];
+                break;
+            }
+        } catch (\FreeBooks\Forms\Definition\DefinitionException) {}
+        $rows->MoveNext();
+    }
+    if ($rcptId === 0) {
+        echo "  [--] no receipt printer form on this company; nothing to edit\n";
+        exit(0);
+    }
+    $_GET = $_REQUEST = ['module' => 'forms', 'page' => 'receipt', 'rID' => (string)$rcptId];
 } elseif ($PAGE === 'design' && $PICKING) {
     // No rID at all: what a menu click sends.
     $_GET = $_REQUEST = ['module' => 'forms', 'page' => 'design'];
@@ -416,14 +450,19 @@ ok('the page heading rendered', str_contains($output, '<h1'));
 // Anchored on the icon rather than on `location.href`: the handler is written
 // onclick="location.href = '…'", so a pattern that refuses quote characters
 // stops dead at the opening one and reports a correct page as broken. It did.
-if (in_array($PAGE, ['canvas', 'design'], true) && !$CANVASPICK && !$PICKING) {
+if (in_array($PAGE, ['canvas', 'design', 'receipt'], true) && !$CANVASPICK && !$PICKING) {
     preg_match('/tb_icon_cancel[^>]*/', $output, $cancel);
     $target = $cancel[0] ?? '';
     // The canvas returns to its own chooser, which is the only list a form
     // appears on; the report editor returns to the Reports list, which is the
     // only list a report appears on. Same rule, different page — the editor's
     // own chooser was retired because it duplicated that list.
-    $home = $PAGE === 'canvas' ? 'page=canvas' : 'page=main';
+    //
+    // The RECEIPT editor returns to the form list too, and that is the same
+    // rule again rather than an exception: a receipt is listed there beside the
+    // page forms. Leaving this page out of the check is why it shipped pointing
+    // at the Reports list, which a receipt never appears on.
+    $home = $PAGE === 'design' ? 'page=main' : 'page=canvas';
     ok('Cancel returns to the list this document appears on',
        str_contains($target, $home),
        $target === '' ? 'no cancel icon in the toolbar' : $target);
@@ -1306,6 +1345,11 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
 }
 
 if ($CANVASPICK) {
+    $formCount = 0;
+    $rows = $db->Execute("select count(*) as n from " . TABLE_PHREEFORM
+        . " where doc_type <> '0' and doc_ext = 'frm'");
+    if ($rows && !$rows->EOF) $formCount = (int)$rows->fields['n'];
+
     $errors = [];
     foreach ((array)($_SESSION['messageToStack'] ?? []) as $message) {
         if (($message['type'] ?? '') === 'error') $errors[] = strip_tags((string)$message['text']);
@@ -1327,6 +1371,59 @@ if ($CANVASPICK) {
     $rows = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_ext <> 'frm'");
     while ($rows && !$rows->EOF) { $reportIds[] = (int)$rows->fields['id']; $rows->MoveNext(); }
     ok('no report is offered in the form chooser', array_intersect($offered, $reportIds) === []);
+
+    // This is the ONE list of forms (§13.28), so a receipt has to be ON it and
+    // has to lead to the editor that can edit it. Both halves matter: a receipt
+    // missing from the list is unreachable, and a receipt linked to the canvas
+    // lands on a page that redirects — which works, but means the list did not
+    // know what it was listing.
+    //
+    // The directory is computed rather than read from PF_DIR_MY_REPORTS, and
+    // phreeform's defaults are deliberately not required here: supplying a
+    // constant the PAGE is supposed to supply is what let an empty chooser pass
+    // once already.
+    require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
+    $rcptCatalog = new \FreeBooks\Forms\Catalog\Catalog();
+    \FreeBooks\Forms\Catalog\ShippedDatasets::registerAll($rcptCatalog);
+    $rcptLoader  = new \FreeBooks\Forms\Definition\DefinitionLoader($rcptCatalog,
+        DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/');
+
+    $serialIds = [];
+    $rows = $db->Execute("select id from " . TABLE_PHREEFORM
+        . " where doc_type <> '0' and doc_ext = 'frm' order by id");
+    while ($rows && !$rows->EOF) {
+        try {
+            if ($rcptLoader->load((int)$rows->fields['id'])->isSerial()) {
+                $serialIds[] = (int)$rows->fields['id'];
+            }
+        } catch (\FreeBooks\Forms\Definition\DefinitionException) {}
+        $rows->MoveNext();
+    }
+
+    ok('every form this company has is offered',
+       count($offered) + count($xpath->query("//a[contains(@href,'page=receipt') and contains(@href,'rID=')]"))
+           >= $formCount,
+       "$formCount stored");
+
+    if ($serialIds === []) {
+        printf("  [--] no receipt printer form on this company; none to route\n");
+    } else {
+        $toReceipt = [];
+        foreach ($xpath->query("//a[contains(@href,'page=receipt') and contains(@href,'rID=')]") as $link) {
+            $query = [];
+            parse_str((string)parse_url(html_entity_decode((string)$link->getAttribute('href')),
+                PHP_URL_QUERY), $query);
+            if (isset($query['rID'])) $toReceipt[] = (int)$query['rID'];
+        }
+        sort($toReceipt);
+        ok('every receipt is listed, and opens the receipt editor',
+           $toReceipt === $serialIds,
+           'listed for the receipt editor: ' . implode(',', $toReceipt)
+               . '; stored: ' . implode(',', $serialIds));
+        ok('no receipt is offered to the canvas',
+           array_intersect($offered, $serialIds) === [],
+           'the canvas would be handed a document with no coordinates');
+    }
 }
 
 if ($PAGE === 'main' && $controls->length > 0) {

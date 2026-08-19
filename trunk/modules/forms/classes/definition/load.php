@@ -37,3 +37,4 @@ require_once(__DIR__ . '/legacy_import.php');
 require_once(__DIR__ . '/loader.php');
 require_once(__DIR__ . '/definition_form.php');
 require_once(__DIR__ . '/template_form.php');
+require_once(__DIR__ . '/serial_form.php');

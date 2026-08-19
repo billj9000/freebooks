@@ -60,11 +60,19 @@ if ($forms_canvas_definition === null) { ?>
           echo htmlspecialchars($folder); ?></td></tr>
 <?php   } ?>
         <tr class="<?php echo ($row++ % 2) ? 'odd' : 'even'; ?>">
-          <td><?php echo htmlspecialchars($choice['title']); ?></td>
+          <td>
+            <?php echo htmlspecialchars($choice['title']); ?>
+<?php     if ($choice['serial']) { ?>
+            <?php // Named in the list, not merely routed by it: the two editors
+                  // look nothing alike, and arriving at an unexpected one is
+                  // worse than being told which is coming. ?>
+            <span class="badge text-bg-secondary"><?php echo FORMS_CANVAS_IS_RECEIPT; ?></span>
+<?php     } ?>
+          </td>
           <td class="text-end">
             <a class="btn btn-primary btn-sm" href="<?php echo html_href_link(FILENAME_DEFAULT,
-              'module=forms&amp;page=canvas&amp;rID=' . $choice['id'], 'SSL'); ?>">
-              <?php echo FORMS_CANVAS_OPEN; ?>
+              'module=forms&amp;page=' . $choice['page'] . '&amp;rID=' . $choice['id'], 'SSL'); ?>">
+              <?php echo $choice['serial'] ? FORMS_CANVAS_OPEN_RECEIPT : FORMS_CANVAS_OPEN; ?>
             </a>
           </td>
         </tr>

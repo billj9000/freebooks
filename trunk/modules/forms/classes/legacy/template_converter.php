@@ -54,7 +54,7 @@ use FreeBooks\Forms\Catalog\Dataset;
 use FreeBooks\Forms\Document\{
     Align, Barcode, Binding, BlockPart, Box, Colour, Column, Element, Field,
     FieldBlock, Image, Line, PageNumber, PageSetup, Rect, StaticText, Style,
-    Table, Template, Visibility
+    SerialCell, SerialField, SerialTemplate, Table, Template, Visibility
 };
 
 final class TemplateConverter
@@ -114,6 +114,55 @@ final class TemplateConverter
         }
 
         return new Template($elements);
+    }
+
+    /**
+     * A RECEIPT's layout, from the same fieldlist. See §13.27.
+     *
+     * The same convertField() as a page — a receipt's four kinds ARE
+     * StaticText, Field, FieldBlock and Table, with the same bindings, formats
+     * and separators — paired with the cell geometry a page has no use for.
+     * Nothing about a binding changes because the thing printing it has no
+     * coordinates, so nothing about the mapping is repeated here.
+     *
+     * The width and alignment come off the field itself rather than off the box
+     * it has none of. Two behaviours the legacy renderer applied at PRINT time
+     * are recorded in the model instead, because they are properties of the
+     * field and not of the run:
+     *
+     *   - a Tbl always breaks the row. BuildSeq() set $field->rowbreak = 1 as
+     *     it drew one, mutating the definition it was reading;
+     *   - a TBlk writes the whole line rather than overlaying it.
+     */
+    public function convertSerial(object $report, ?Dataset $dataset = null): SerialTemplate
+    {
+        $this->warnings  = [];
+        $this->unmapped  = [];
+        $this->lastTable = null;
+        $this->fieldMap  = $dataset === null ? [] : self::mapFor($dataset);
+
+        $fields = [];
+        $width  = 0;
+        foreach ((array)($report->fieldlist ?? []) as $index => $field) {
+            $element = $this->convertField($field, $index);
+            if ($element === null) continue;
+
+            $type      = $this->scalar($field->type ?? null);
+            $cellWidth = (int)$this->number($field->width ?? null);
+            $width     = max($width, $cellWidth);
+
+            $fields[] = new SerialField($element, new SerialCell(
+                width:     $cellWidth,
+                align:     $this->align($this->scalar($field->align ?? null)) ?? Align::Left,
+                rowBreak:  $element instanceof Table ? true : !empty($field->rowbreak),
+                wholeLine: $type === 'TBlk',
+            ));
+        }
+
+        // The paper is as wide as the widest cell asks for. No definition
+        // states it anywhere else — the shipped receipt says "40 char wide" in
+        // its description and nowhere a machine can read.
+        return new SerialTemplate($fields, $width > 0 ? $width : 40);
     }
 
     /**

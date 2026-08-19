@@ -42,7 +42,10 @@ namespace FreeBooks\Forms\App;
 
 use FreeBooks\Forms\Catalog\{AppFiscalCalendar, Catalog, DateRangeResolver, Filter};
 use FreeBooks\Forms\Definition\Definition;
-use FreeBooks\Forms\Document\{Context, Document, Field, FieldBlock, Scope, Template, TypedValue};
+use FreeBooks\Forms\Document\{
+    Context, Document, Field, FieldBlock, LayoutDocument, Scope, SerialDocument,
+    Template, TypedValue
+};
 use FreeBooks\Forms\Legacy\{DatasetResolver, ReportConverter, TemplateConverter};
 use FreeBooks\Forms\Provider\{
     EntryDocumentProvider, PosDocumentProvider, QueryDocumentProvider,
@@ -144,13 +147,15 @@ final class FormRunner
                 ['This is a report, not a form. DocumentRunner serves it.']);
         }
 
-        // The same refusal planDefinition() makes, read off the legacy object
-        // instead. Both entry points must agree, or the diff harness compares a
-        // legacy render against a native one that was never allowed to happen.
+        // A receipt is served through a native Definition and SerialRenderer,
+        // not from a raw legacy object: this entry point converts to a page
+        // Template, which a character-cell form has no coordinates to fill.
+        // Callers that print a receipt go through planDefinition(); the byte
+        // comparison against BuildSeq() lives in verify_forms_serial.php.
         if (!empty($report->serialform)) {
             return new FormPlan(FormPlan::UNSUPPORTED, trim((string)($report->special_class ?? '')),
-                ['This is a receipt printer form, laid out in character cells rather'
-                    . ' than on a page. Forms cannot render one yet.']);
+                ['This is a receipt printer form. It is served from a native'
+                    . ' definition, not from PhreeForm XML.']);
         }
 
         $special = trim((string)($report->special_class ?? ''));
@@ -223,7 +228,7 @@ final class FormRunner
         $page      = $converter->convertPageSetup($report);
         $this->warnings = array_merge($converter->warnings(), $converter->unmappedFields());
 
-        $context = $this->contextFor($template);
+        $context = $this->contextFor($template->elements);
         $title   = (string)($report->title ?? 'Document');
 
         $provider = $plan->kind === FormPlan::DATASET
@@ -256,17 +261,15 @@ final class FormRunner
                 ['This is a report, not a form. DocumentRunner serves it.']);
         }
 
-        // BEFORE the provider lookup, because a receipt names one — pos_builder,
-        // which IS registered — and would otherwise plan as runnable and render.
-        // It must not: a serial form carries no coordinates at all, so every
-        // element converts to 0,0 and LayoutPdfRenderer draws them stacked in
-        // one corner. That is worse than refusing, because it produces a
-        // plausible PDF nobody asked for rather than an error somebody reads.
-        // Removed when Forms grows a serial renderer and editor (§13.27).
-        if ($definition->isSerial()) {
+        // A receipt with no serial layout is one the conversion could not read.
+        // Everything else about it may look runnable — it names pos_builder,
+        // which IS registered — and rendering it as a page would stack every
+        // element at 0,0, because a serial form has no coordinates to place
+        // them by (§13.27). SerialRenderer serves the ones that DID convert.
+        if ($definition->isSerial() && $definition->serialTemplate === null) {
             return new FormPlan(FormPlan::UNSUPPORTED, (string)$definition->provider,
-                ['This is a receipt printer form, laid out in character cells rather'
-                    . ' than on a page. Forms cannot render one yet.']);
+                ['This is a receipt printer form, but no character-cell layout'
+                    . ' could be read from it.']);
         }
 
         if ($definition->hasProvider()) {
@@ -315,7 +318,8 @@ final class FormRunner
         }
 
         $template = $definition->template ?? new Template();
-        $context  = $this->contextFor($template);
+        $serial   = $definition->serialTemplate;
+        $context  = $this->contextFor($serial !== null ? $serial->elements() : $template->elements);
         $title    = $definition->title !== '' ? $definition->title : 'Document';
         $page     = $definition->page;
 
@@ -332,6 +336,26 @@ final class FormRunner
                 filters:    $definition->filters,
             );
             return $provider->build(['record_ids' => array_values($recordIds)]);
+        }
+
+        // A receipt: the same provider builds the same records, and only the
+        // shape they are handed back in differs. Building the LayoutDocument
+        // first and taking its records off it keeps the provider ignorant of
+        // whether a page or a printer is on the other end — which is the point
+        // of the seam, and why no provider needed changing for this.
+        if ($serial !== null) {
+            $built = (new (self::PROVIDERS[$plan->name])(
+                db: $this->db, template: $template,
+                context: $context, title: $title, page: $page,
+            ))->build(['record_ids' => array_values($recordIds)]);
+
+            return new SerialDocument(
+                title:    $title,
+                template: $serial,
+                records:  $built instanceof LayoutDocument ? $built->records : [],
+                context:  $context,
+                page:     $page,
+            );
         }
 
         $class = self::PROVIDERS[$plan->name];
@@ -368,14 +392,14 @@ final class FormRunner
      * A name that is not defined is left OUT rather than blanked, so the
      * renderer's own missing-binding handling decides what to draw.
      */
-    private function contextFor(object $template): Context
+    private function contextFor(array $elements): Context
     {
         $values = [];
         $collect = function (string $name) use (&$values): void {
             if ($name === '' || isset($values[$name])) return;
             if (defined($name)) $values[$name] = TypedValue::text((string)constant($name));
         };
-        foreach ($template->elements as $element) {
+        foreach ($elements as $element) {
             if ($element instanceof Field && $element->bind->scope === Scope::Context) {
                 $collect($element->bind->name);
             }

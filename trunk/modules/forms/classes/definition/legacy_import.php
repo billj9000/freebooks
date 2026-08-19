@@ -140,7 +140,8 @@ final class DefinitionBuilder
             // A provider builds its own records, so there is no dataset to map
             // bindings onto: the provider addresses values by their legacy name
             // and TemplateConverter leaves them alone when given no dataset.
-            $template = $converter->convert($report, null);
+            $template = $serial ? null : $converter->convert($report, null);
+            $serialTemplate = $serial ? $converter->convertSerial($report, null) : null;
             $this->warnings = array_merge($converter->warnings(), $converter->unmappedFields());
 
             return new Definition(...$common,
@@ -150,6 +151,7 @@ final class DefinitionBuilder
                 template:    $template,
                 recordTable: self::RECORD_TABLE[$special] ?? '',
                 serial:      $serial,
+                serialTemplate: $serialTemplate,
             );
         }
 
@@ -160,7 +162,8 @@ final class DefinitionBuilder
                 ?: 'No dataset can serve this form.');
         }
 
-        $template = $converter->convert($report, $dataset);
+        $template = $serial ? null : $converter->convert($report, $dataset);
+        $serialTemplate = $serial ? $converter->convertSerial($report, $dataset) : null;
         $this->warnings = array_merge($converter->warnings(), $converter->unmappedFields());
 
         // The definition's own filterlist is what makes a Purchase Order a
@@ -183,6 +186,7 @@ final class DefinitionBuilder
             recordTable: $dataset->baseTable,
             recordKey:   $this->recordKey($break),
             serial:      $serial,
+            serialTemplate: $serialTemplate,
         );
     }
 

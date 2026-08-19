@@ -46,17 +46,24 @@ if (!$error ) {
 		if(DEBUG) $massage .= 'More than one form was found for this type ('.POPUP_FORM_TYPE.'). Using the first form found.';
 	}
 	$rID    = $result->fields['id']; // only one form available, use it
-	$report = get_report_details($rID);
-	// A receipt is character-cell text for the printer, not a page, and Forms
-	// has no renderer for that shape (design §13.16) — so unlike a PDF form
-	// this one has no second engine to fall back to. get_report_details()
-	// returns false rather than fataling when the stored definition is native
-	// (saved by the Forms editor), which would otherwise cascade into
-	// warnings on every line below and an AJAX response nobody can read the
-	// error out of.
-	if (!$report) {
-		if(DEBUG) $massage .= 'The receipt form ('.POPUP_FORM_TYPE.') is stored in the Forms format, which this engine cannot open.';
-	} else {
+
+	// Forms first, when it is installed: it reads BOTH the legacy xml and a
+	// native definition, where get_report_details() below refuses the latter
+	// outright — which is what happens the moment the receipt editor saves
+	// this form. Forms prints a receipt as character-cell text through
+	// SerialRenderer, not as a PDF (§13.27), so what comes back is the same
+	// string BuildForm() returns here and goes into the same response.
+	$output = null;
+	if (defined('MODULE_FORMS_STATUS')) {
+		require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+		$rendered = forms_render_to_string((int)$rID, array((int)$journal_id));
+		if ($rendered !== null) $output = $rendered['pdf'];
+	}
+
+	$report = $output === null ? get_report_details($rID) : false;
+	if ($output === null && !$report) {
+		if(DEBUG) $massage .= 'The receipt form ('.POPUP_FORM_TYPE.') could not be opened by either engine.';
+	} elseif ($output === null) {
 	$title  = $report->title;
 	$report->datedefault = 'a';
 	if (!isset($report->xfilterlist) || !is_array($report->xfilterlist)) $report->xfilterlist = [];
@@ -65,9 +72,10 @@ if (!$error ) {
 	$report->xfilterlist[0]->default   = 'EQUAL';
 	$report->xfilterlist[0]->min_val   = $journal_id;
 	$output = BuildForm($report, $delivery_method = 'S'); // force return with report
+	}
 	if ($output === true) {
 	  	if(DEBUG) $massage .='direct printing fault.';
-	} else if (!is_array($output) ){ // if it is a array then it is not a sequential report
+	} else if ($output !== null && !is_array($output) ){ // if it is a array then it is not a sequential report
 	  	// fetch the receipt and prepare to print
 	  	$receipt_data = str_replace("\r", "", addslashes($output)); // for javascript multi-line
 	  	foreach (explode("\n",$receipt_data) as $value){
@@ -77,7 +85,6 @@ if (!$error ) {
 		    	$xml .= "</receipt_data>\n";
 	  		}
 		}
-	}
 	}
 }
 				 $xml .= "\t" . xmlEntry("action",$_REQUEST['action']);

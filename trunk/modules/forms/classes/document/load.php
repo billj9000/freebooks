@@ -33,4 +33,5 @@
 require_once(__DIR__ . '/values.php');
 require_once(__DIR__ . '/elements.php');
 require_once(__DIR__ . '/documents.php');
+require_once(__DIR__ . '/serial.php');
 require_once(__DIR__ . '/renderer.php');

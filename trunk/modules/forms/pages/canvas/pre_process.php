@@ -83,16 +83,19 @@ if ($forms_canvas_definition !== null && !$forms_canvas_definition->isForm()) {
   $forms_canvas_definition = null;
 }
 
-// A receipt has no geometry to edit — see §13.27. Refusing at LOAD is what
-// makes this a guard rather than a warning: the save branch below is gated on
-// the definition being non-null, so a definition that never loads can never be
-// written back. That matters more here than for a report, because saving one
-// would replace the only copy of a working receipt with a native file neither
-// engine can print — Forms has no serial renderer, and PhreeForm cannot read
-// the native format at all.
+// A receipt has no geometry to edit, so it goes to the editor that CAN edit it
+// (§13.27–13.28). Sent rather than refused: which kind of layout a document has
+// is the system's business to know, not something a user should have to work
+// out from a list before clicking.
+//
+// This is still the guard it replaces. The redirect happens before anything
+// reads the template, and the save branch below is gated on a definition being
+// loaded — so the canvas can no more write a receipt now than when it declined
+// to open one. The list beside it links receipts straight here, so this is
+// reached by a bookmark or an old link rather than in normal use.
 if ($forms_canvas_definition !== null && $forms_canvas_definition->isSerial()) {
-  $messageStack->add(FORMS_CANVAS_IS_SERIAL, 'caution');
-  $forms_canvas_definition = null;
+  gen_redirect(html_href_link(FILENAME_DEFAULT,
+      'module=forms&page=receipt&rID=' . $forms_canvas_id, 'SSL'));
 }
 
 if ($forms_canvas_definition !== null) {
@@ -230,12 +233,25 @@ if ($forms_canvas_definition === null) {
   $result = $db->Execute("select id, doc_title, doc_group from " . TABLE_PHREEFORM . "
     where doc_type <> '0' and doc_ext = 'frm' order by doc_group, doc_title");
   while (!$result->EOF) {
+    $id = (int)$result->fields['id'];
+    // Each definition is READ, not merely listed, because a receipt is known by
+    // its stored layout and by nothing else — `pos:rcpt` is not reserved and a
+    // company may have written its own. That is a file read per form, which is
+    // what the Documents page already does for every report.
+    $serial = false;
+    try { $serial = $loader->load($id)->isSerial(); }
+    catch (DefinitionException) { /* listed anyway; opening it will say why */ }
+
     $forms_canvas_choices[] = array(
-      'id'     => (int)$result->fields['id'],
+      'id'     => $id,
       'title'  => (string)$result->fields['doc_title'],
       'group'  => (string)$result->fields['doc_group'],
       'folder' => forms_folder_for((string)$result->fields['doc_group'], true,
                                    $forms_canvas_folders),
+      // Which editor this one opens in. The list is the single catalogue of
+      // forms, so it is the list that has to know.
+      'serial' => $serial,
+      'page'   => $serial ? 'receipt' : 'canvas',
     );
     $result->MoveNext();
   }
