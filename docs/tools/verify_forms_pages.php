@@ -15,12 +15,12 @@
  * Render each Forms page for real, and fail on anything it emits.
  *
  * Replaces verify_forms_page_bootstrap.php, which only replayed a page's
- * `require` lines. That caught the missing `PF_DIR_MY_REPORTS` but could not
- * catch the two defects behind it — a missing `PAGE_TITLE`, and a toolbar entry
- * invented by assigning into `icon_list['new']`, which leaves the entry without
- * an `order` key and makes `array_multisort()` in `build_toolbar()` fatal. Both
- * are in the page BODY, and the only way to catch a defect in a page body is to
- * run the body.
+ * `require` lines. That caught the missing definitions-directory constant but
+ * could not catch the two defects behind it — a missing `PAGE_TITLE`, and a
+ * toolbar entry invented by assigning into `icon_list['new']`, which leaves the
+ * entry without an `order` key and makes `array_multisort()` in
+ * `build_toolbar()` fatal. Both are in the page BODY, and the only way to catch
+ * a defect in a page body is to run the body.
  *
  * So this does what index.php does: set `DIR_FS_WORKING`, include
  * `pre_process.php`, then `template_main.php` and `js_include.php`, with output
@@ -67,8 +67,9 @@ if (!isset($argv[2])) {
 if (in_array($argv[2] ?? '', ['run', 'printrun'], true)) ob_start();
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
-// No phreeform: a page must load whatever it uses, which is how the missing
-// PF_DIR_MY_REPORTS went unseen while every other tool reported green.
+// No page bootstrap from the harness: a page must load whatever it uses, which
+// is how a missing definitions directory went unseen while every other tool
+// reported green.
 $company = fb_bootstrap(($argv[1] ?? '') !== '' ? $argv[1] : null, false);
 $PAGE = (string)$argv[2];
 
@@ -226,10 +227,10 @@ if ($PAGE === 'canvas' && $CANVASPICK) {
     // A SERIAL form, which the id has to be found by loading: a receipt is
     // known by its stored layout, not by its group — pos:rcpt is not reserved
     // and a company may have written its own.
-    // The directory is computed here rather than read from PF_DIR_MY_REPORTS,
-    // and phreeform's defaults are deliberately NOT required: defining that
-    // constant before the page runs is exactly what let a page missing its own
-    // bootstrap render an empty chooser and still pass. The harness must not
+    // The directory is computed here rather than read from FORMS_DIR_DEFINITIONS,
+    // and the module defaults that define it are deliberately NOT required:
+    // defining that constant before the page runs is exactly what let a page
+    // missing its own bootstrap render an empty chooser and still pass. The harness must not
     // supply what the page is supposed to supply (see the page contract note).
     require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
     $rcptDir     = DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/';
@@ -1474,10 +1475,10 @@ if ($CANVASPICK) {
     // lands on a page that redirects — which works, but means the list did not
     // know what it was listing.
     //
-    // The directory is computed rather than read from PF_DIR_MY_REPORTS, and
-    // phreeform's defaults are deliberately not required here: supplying a
-    // constant the PAGE is supposed to supply is what let an empty chooser pass
-    // once already.
+    // The directory is computed rather than read from FORMS_DIR_DEFINITIONS, and
+    // the module defaults that define it are deliberately not required here:
+    // supplying a constant the PAGE is supposed to supply is what let an empty
+    // chooser pass once already.
     require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
     $rcptCatalog = new \FreeBooks\Forms\Catalog\Catalog();
     \FreeBooks\Forms\Catalog\ShippedDatasets::registerAll($rcptCatalog);

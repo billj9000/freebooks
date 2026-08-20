@@ -188,9 +188,20 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
     }
     $currencies = new currencies();
 
+    // Everything a PAGE does for itself before it can run a document. A module's
+    // defaults.php is not loaded for you — index.php requires it per page
+    // through DIR_FS_WORKING, and a CLI tool has no equivalent — so a tool has
+    // to do the same. FORMS_DIR_DEFINITIONS is in there, and it is what every
+    // definition is read from.
+    //
+    // Behind the flag rather than unconditional, and that is the point of the
+    // flag: verify_forms_pages.php boots with it false so that a page failing to
+    // load its own bootstrap has nothing to fall back on. Supplying a constant
+    // the page is supposed to supply is what let an empty chooser pass once.
     if ($withPhreeForm) {
         gen_pull_language('phreeform');              // PF_FONT_* etc.
         gen_pull_language('phreebooks');             // special-class strings
+        fb_require_globals(DIR_FS_MODULES . 'forms/defaults.php');
         fb_require_globals(DIR_FS_MODULES . 'phreeform/defaults.php');
         fb_require_globals(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
     }

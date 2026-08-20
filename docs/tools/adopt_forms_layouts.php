@@ -181,7 +181,7 @@ if (is_file(ADOPTED_MANIFEST)) {
     $adopted = is_array($decoded['adopted'] ?? null) ? $decoded['adopted'] : [];
 }
 
-$dir = defined('PF_DIR_MY_REPORTS') ? PF_DIR_MY_REPORTS : DIR_FS_MY_FILES . $company . '/phreeform/';
+$dir = defined('FORMS_DIR_DEFINITIONS') ? FORMS_DIR_DEFINITIONS : DIR_FS_MY_FILES . $company . '/phreeform/';
 echo "company: $company\nreading: $dir\n\n";
 
 $same = $wouldWrite = $written = $blocked = $skipped = 0;

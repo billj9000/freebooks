@@ -4041,3 +4041,72 @@ it can retire with the loader branch it tests.
 The suite now passes on all three states a company can be in — un-migrated,
 migrated, and seeded native — which is the property that makes step 6 something
 that can be done one company at a time rather than all at once.
+
+### 13.33 Forms could not be left standing when PhreeForm went
+
+Step 6 was written as a deletion: convert the definitions, then remove the
+module. Checking what actually breaks when it goes turned that order round.
+
+**Forms is not self-contained.** It reads PhreeForm's constants, calls
+PhreeForm's functions, and every page bootstraps the module it replaces before
+it can find its own files. Deleting PhreeForm first would take the loader, the
+canvas, the print page, the datasets page and the migration tool with it — and,
+worst of the lot, `legacyOriginal()`, which is how a `.pre-forms` original is
+read. The rollback safety net would go the same day the thing it protects
+against becomes possible.
+
+So the deletion is last, and what comes first is moving each dependency across.
+
+#### Counting them, rather than remembering them
+
+A dependency here does not look like one. `PF_DEFAULT_ROWSPACE` in a renderer
+looks like any other constant; `value_to_words_en_us()` looks like a helper;
+`$GLOBALS['Fonts']` looks like a lookup. Searching the module for `phreeform`
+finds the ten `require` lines and none of those, so the day the module goes each
+becomes a fatal, one page at a time, found by whoever prints something.
+
+`verify_forms_standalone.php` answers it by reading the vocabulary **out of
+PhreeForm** — every constant its files define, every runtime setting its
+`install.php` seeds, every function declared at file scope, every global its
+`defaults.php` assigns — and then looking for those names in Forms, through the
+tokeniser so that the module's own prose about PhreeForm does not count as a use
+of it. What comes back is a list of 18, each with the reason it is still there.
+
+Three narrowings decide whether that list is readable, and the first draft got
+all three wrong:
+
+- **PhreeForm's own files only.** `includes/fpdf/` is vendored FPDF, so
+  scanning it made `Cell()` and `AddPage()` look like PhreeForm's — and every
+  PDF renderer in Forms calls those, on a TCPDF object.
+- **Column zero only.** `function` at an indent is a *method*, and method names
+  are the commonest words in the codebase: `install`, `output`, `notes`, `list`.
+- **Declared nowhere else.** A name core or another module also defines is not
+  PhreeForm's to lend. `PAGE_TITLE` and the shared `TEXT_*` strings go out here.
+
+Unnarrowed it reported 73 borrowings, most of them noise, which is the failure
+mode that matters: a list nobody believes is a list nobody shrinks.
+
+**Both directions fail.** A borrowing not on the list is a new coupling. A name
+on the list Forms no longer uses is a stale entry, and the list has to shrink to
+stay honest — which is what stops it quietly describing last month's module.
+When it is empty, PhreeForm can be deleted without touching Forms at all.
+
+#### The definitions directory
+
+`PF_DIR_MY_REPORTS` was the first across, and the one that made the rest
+visible: it was named in the loader, the canvas, the print page, three ajax
+handlers and nine tools. `FORMS_DIR_DEFINITIONS` and `FORMS_DIR_IMAGES` now
+carry it, from `forms/defaults.php`.
+
+The **path does not change**. `pf_<id>` under `my_files/<company>/phreeform/` is
+wired into the backup, the restore, and every definition file already on disk;
+moving 57 files so a folder reads better is a migration with nothing to gain and
+one an older backup would silently undo. What changes is who owns the constant.
+
+One trap worth naming, because it is the kind that makes a harness weaker
+without making it red. `bootstrap_freebooks.php` is where a CLI tool does what
+`index.php` does for a page, so the new `require` belongs there — but
+`verify_forms_pages.php` boots with that bootstrap deliberately **off**, so that
+a page failing to load its own defaults has nothing to fall back on. Supplying a
+constant the page is supposed to supply is exactly what let an empty chooser
+pass once already. The require went inside the flag, not above it.

@@ -63,7 +63,7 @@ if (!in_array($ACTION, ['create', 'remove'], true)) {
 
 fb_bootstrap($argv[2] ?? null);
 
-$dir    = PF_DIR_MY_REPORTS;
+$dir    = FORMS_DIR_DEFINITIONS;
 $source = $dir . 'pf_91';
 $multi  = $dir . 'pf_9991';
 $withTtl= $dir . 'pf_9992';

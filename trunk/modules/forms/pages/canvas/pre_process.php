@@ -39,8 +39,11 @@
 $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// In this order, at file scope — phreeform's language file defines the PF_FONT_*
-// constants its defaults.php reads, and that defines PF_DIR_MY_REPORTS.
+// Definitions and images are found through FORMS_DIR_DEFINITIONS, which the
+// require above sets — Forms' own constant, so this page can find its own files
+// without PhreeForm. What phreeform's bootstrap is still wanted for is the font
+// table the palette offers, and its language file has to be pulled first
+// because its defaults.php reads the PF_FONT_* constants at file scope.
 gen_pull_language('phreeform');
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
@@ -116,7 +119,7 @@ if ($forms_canvas_definition !== null) {
   // measured against the file that will actually be printed.
   $forms_canvas_boxes = CanvasLayout::boxes(
       $forms_canvas_definition->template ?? new Template(),
-      PF_DIR_MY_REPORTS . 'images');
+      FORMS_DIR_IMAGES);
   // The editable values, in the same order as the boxes, so the canvas can put
   // an element in the inspector without asking the server for it.
   $forms_canvas_values = TemplateForm::toRequest(
@@ -148,7 +151,7 @@ if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save')
   if ($security_level < 3) {
     $messageStack->add(FORMS_DESIGN_DENIED, 'error');
   } else {
-    $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+    $binding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
     try {
       $edited = $binding->apply($forms_canvas_definition, $_POST, $forms_canvas_bindings);
       foreach ($binding->warnings() as $warning) {
@@ -178,7 +181,7 @@ if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save')
 // also the class an upload goes through — a lister and a writer that disagree
 // about which files count leave the folder holding images nobody can choose.
 $forms_canvas_images = array(array('id' => '', 'text' => FORMS_DESIGN_GROUP_NONE));
-foreach ((new ImageStore(PF_DIR_MY_REPORTS . 'images'))->names() as $name) {
+foreach ((new ImageStore(FORMS_DIR_IMAGES))->names() as $name) {
   $forms_canvas_images[] = array('id' => $name, 'text' => $name);
 }
 // Taken from the class that enforces it: a template saying "4 MB" beside code

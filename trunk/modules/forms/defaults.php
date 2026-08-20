@@ -32,3 +32,22 @@ define('FORMS_DEFAULT_COLUMN_WIDTH', defined('PF_DEFAULT_COLUMN_WIDTH') ? PF_DEF
 // Rows drawn before the engine gives up on a runaway report. A report with no
 // filter on a large journal is a memory exhaustion, not a useful document.
 define('FORMS_MAX_ROWS', 50000);
+
+// Where a company's definitions and their images live.
+//
+// The same path PhreeForm used, and deliberately so: `pf_<id>` under
+// `my_files/<company>/phreeform/` is wired into the backup, the restore, and
+// every definition file already on disk. Moving 57 files to make a folder name
+// read better would be a migration with nothing to gain from it, and one that
+// an older backup would silently undo.
+//
+// What changes is who owns the constant. Forms read PF_DIR_MY_REPORTS, which
+// phreeform/defaults.php defines, so every Forms page had to bootstrap the
+// module it replaces before it could find its own files — and deleting
+// PhreeForm would have taken the loader, the canvas, the print page and the
+// migration tool with it (design §13.7 step 6).
+define('FORMS_DIR_DEFINITIONS', DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/');
+
+// Images a form may draw. A subdirectory rather than a sibling, so that a
+// company's whole Forms state is one folder to copy.
+define('FORMS_DIR_IMAGES', FORMS_DIR_DEFINITIONS . 'images');

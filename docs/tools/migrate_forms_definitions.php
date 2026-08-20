@@ -125,7 +125,7 @@ $codec  = new DefinitionCodec();
 
 // What a --write run leaves behind so that --rollback knows what it did, and
 // just as importantly what it did NOT do.
-$manifestPath = (defined('PF_DIR_MY_REPORTS') ? PF_DIR_MY_REPORTS : '')
+$manifestPath = (defined('FORMS_DIR_DEFINITIONS') ? FORMS_DIR_DEFINITIONS : '')
               . 'forms-migration.json';
 
 /** Native is decided by the first non-whitespace byte — the loader's own rule. */

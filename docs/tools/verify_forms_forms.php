@@ -72,7 +72,7 @@ $renderer = new LayoutPdfRenderer(
     rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
     continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
     pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
-    imageDirectory: PF_DIR_MY_REPORTS . 'images',
+    imageDirectory: FORMS_DIR_IMAGES,
   linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
 );
 

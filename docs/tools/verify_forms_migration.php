@@ -59,7 +59,7 @@ function ok(string $what, bool $cond, string $detail = ''): void {
     echo "  [FAIL] $what" . ($detail !== '' ? " — $detail" : '') . "\n";
 }
 
-$dir  = rtrim(PF_DIR_MY_REPORTS, '/\\');
+$dir  = rtrim(FORMS_DIR_DEFINITIONS, '/\\');
 $tool = __DIR__ . '/migrate_forms_definitions.php';
 
 if (!is_dir($dir)) { echo "  [--] no report directory on this company\n"; exit(0); }

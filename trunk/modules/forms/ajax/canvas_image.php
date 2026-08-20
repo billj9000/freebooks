@@ -47,10 +47,13 @@ validate_ajax_user();
 gen_pull_language('phreeform');
 gen_pull_language('forms');
 
-// phreeform's defaults.php is what defines PF_DIR_MY_REPORTS, and it reads the
-// PF_FONT_* constants from the language file pulled above — hence that order.
-// Only the one class is required: nothing here builds a document.
+// FORMS_DIR_IMAGES lives in Forms' own defaults, and a module's defaults.php is
+// not loaded for you — an ajax op has no DIR_FS_WORKING to require it from.
+// phreeform's is pulled too, before it, for the constants its defaults.php
+// reads from the language file above. Only the one class beyond that: nothing
+// here builds a document.
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
+require_once(DIR_FS_MODULES . 'forms/defaults.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/image_store.php');
 
 use FreeBooks\Forms\App\{ImageStore, ImageStoreException};
@@ -72,7 +75,7 @@ if ($security_level < 3) {
   forms_image_answer(403, array('error' => FORMS_DESIGN_DENIED));
 }
 
-$store = new ImageStore(PF_DIR_MY_REPORTS . 'images');
+$store = new ImageStore(FORMS_DIR_IMAGES);
 
 // A POST that arrives with no file at all is the browser's upload limit being
 // hit, or a form submitted empty. Either way there is nothing to store.

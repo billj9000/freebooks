@@ -104,7 +104,7 @@ $runner = new FormRunner($db, $catalog);
 // one.
 $forms_canvas_warnings = array();
 if (!empty($_POST['element'])) {
-  $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+  $binding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
   try {
     $definition = $binding->apply($definition, $_POST,
         forms_binding_names($definition, $runner, $catalog, $db));
@@ -205,7 +205,7 @@ $renderer = new LayoutPdfRenderer(
   rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
   continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
   pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
-  imageDirectory: PF_DIR_MY_REPORTS . 'images',
+  imageDirectory: FORMS_DIR_IMAGES,
   linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
 );
 

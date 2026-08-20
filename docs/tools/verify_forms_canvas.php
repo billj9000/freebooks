@@ -75,7 +75,7 @@ $renderer = new LayoutPdfRenderer(
     rowSpacing:     2.0,
     continuedLabel: 'Continued',
     pageOfLabel:    'of',
-    imageDirectory: PF_DIR_MY_REPORTS . 'images',
+    imageDirectory: FORMS_DIR_IMAGES,
   linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
 );
 
@@ -588,7 +588,7 @@ echo "\n=== an image's outline is the size it is actually drawn ===\n";
 // canvas has to do the same arithmetic or the logo gets a two-pixel sliver
 // where its outline should be. Unlike a block of text this is knowable, so it
 // is measured; and the measurement is checked against the ink.
-$images = PF_DIR_MY_REPORTS . 'images';
+$images = FORMS_DIR_IMAGES;
 $file   = null;
 foreach (glob($images . '/*.{png,jpg,jpeg,gif}', GLOB_BRACE) ?: [] as $candidate) {
     $size = @getimagesize($candidate);
@@ -716,7 +716,7 @@ foreach ($forms as $id => $title) {
     $request = ['title' => $definition->title,
                 'element' => TemplateForm::toRequest($definition->template)];
 
-    $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+    $binding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
     try {
         $again = $binding->apply($definition, $request, $allowedFor($definition));
     } catch (\Throwable $e) {
@@ -772,7 +772,7 @@ if ($victim === null) {
         $request = ['title' => $victim->title,
                     'element' => TemplateForm::toRequest($victim->template)];
         $request = $mutate($request);
-        $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+        $binding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
         return [$binding->apply($victim, $request, $allowed), $binding->warnings()];
     };
 
@@ -1421,7 +1421,7 @@ if ($victim === null) {
     // An image's source is editable, and gated. A fixed image names a FILE and
     // a bound one names a VALUE; a path submitted by a browser is whatever the
     // browser chose to send.
-    $images = PF_DIR_MY_REPORTS . 'images';
+    $images = FORMS_DIR_IMAGES;
     $fixed = $boundImage = null;
     foreach ($victim->template->elements as $index => $element) {
         if (!($element instanceof \FreeBooks\Forms\Document\Image)) continue;
@@ -1502,7 +1502,7 @@ if ($victim === null) {
             try { $each = $loader->load($id); } catch (DefinitionException) { continue; }
             if (!$each->isForm() || $each->template === null) continue;
             $request = ['title' => $each->title, 'element' => TemplateForm::toRequest($each->template)];
-            $saved = (new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names()))
+            $saved = (new TemplateForm(FORMS_DIR_IMAGES, forms_font_names()))
                 ->apply($each, $request, $allowedFor($each));
             foreach ($each->template->elements as $index => $element) {
                 if ($element->style?->font === null || $element->style->font === '') continue;
@@ -1538,7 +1538,7 @@ if ($victim === null) {
     } else {
         [$owner, $index] = $twoColours;
         $request = ['title' => $owner->title, 'element' => TemplateForm::toRequest($owner->template)];
-        $saved   = (new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names()))
+        $saved   = (new TemplateForm(FORMS_DIR_IMAGES, forms_font_names()))
             ->apply($owner, $request, $allowedFor($owner));
 
         ok('an element keeps a border colour distinct from its text colour',
@@ -1548,7 +1548,7 @@ if ($victim === null) {
         // And the two move independently.
         $request['element'][$index]['colour']       = '#112233';
         $request['element'][$index]['borderColour'] = '#445566';
-        $changed = (new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names()))
+        $changed = (new TemplateForm(FORMS_DIR_IMAGES, forms_font_names()))
             ->apply($owner, $request, $allowedFor($owner));
         $style = $changed->template->elements[$index]->style;
         ok('the two colours can be set to different values',
@@ -1677,7 +1677,7 @@ if ($victim === null) {
         $request['element'][$movable]['x'] = '150';
         $request['element'][$movable]['y'] = '95';
 
-        $binding = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+        $binding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
         $edited  = $binding->apply($victim, $request, $allowedFor($victim));
 
         $before = new LayoutDocument(title: $victim->title, template: $victim->template,
@@ -1779,7 +1779,7 @@ if ($tableForm === null) {
                 ['index' => '', 'kind' => 'barcode', 'x' => '120', 'y' => '30',
                  'w' => '50', 'h' => '15', 'bind' => $recordKeys[0], 'symbology' => 'C39'],
             ]];
-            $binder = new TemplateForm(PF_DIR_MY_REPORTS . 'images', forms_font_names());
+            $binder = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
             return [$binder->apply($scratch, $request, $donorAllowed), $binder->warnings()];
         };
 

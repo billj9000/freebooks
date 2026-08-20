@@ -52,9 +52,10 @@ if (($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) < 1) {
   die('<p class="text-danger small mb-0">' . htmlspecialchars(FORMS_DESIGN_DENIED) . '</p>');
 }
 
-// PF_DIR_MY_REPORTS lives in phreeform's defaults, which its language file
-// feeds — in this order, at file scope. Without it the loader resolves
-// `pf_<id>` against a relative path and finds nothing.
+// FORMS_DIR_DEFINITIONS is what the loader resolves `pf_<id>` against; without
+// it every load runs at a relative path and finds nothing. phreeform's defaults
+// still supply the font table, and its language file — pulled above — has to
+// come first because that file reads the PF_FONT_* constants at file scope.
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 require_once(DIR_FS_MODULES . 'forms/defaults.php');
 require_once(DIR_FS_MODULES . 'forms/functions/forms.php');

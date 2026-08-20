@@ -42,10 +42,11 @@
 $security_level = validate_user(SECURITY_ID_FORMS_RUN);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// Same order, and for the same reasons, as the Forms main page: PhreeForm's
-// language file feeds its defaults.php, which defines PF_DIR_MY_REPORTS and
-// loads each module's pf_process_* hooks behind an `isset($loaded_modules)`
-// guard it can only satisfy at file scope.
+// Definitions and images are found through FORMS_DIR_DEFINITIONS, which the
+// require above sets. Same order as the Forms main page for the rest of it:
+// PhreeForm's language file feeds its defaults.php, which supplies the font
+// table and loads each module's pf_process_* hooks behind an
+// `isset($loaded_modules)` guard it can only satisfy at file scope.
 gen_pull_language('phreeform');
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');   // get_report_details()
@@ -209,7 +210,7 @@ function forms_print_render(): ?object
     rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
     continuedLabel: defined('TEXT_CONTINUED')     ? TEXT_CONTINUED            : 'Continued',
     pageOfLabel:    defined('TEXT_OF')            ? TEXT_OF                   : 'of',
-    imageDirectory: PF_DIR_MY_REPORTS . 'images',
+    imageDirectory: FORMS_DIR_IMAGES,
   linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
   );
 

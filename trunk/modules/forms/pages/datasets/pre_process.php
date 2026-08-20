@@ -40,9 +40,9 @@
 $security_level = validate_user(SECURITY_ID_FORMS_DATASETS);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// At file scope, and before anything calls get_report_details(): PF_DIR_MY_REPORTS
-// lives in phreeform/defaults.php, and that file reads $loaded_modules, which it
-// can only see from here. forms_datasets_in_use() below relies on both.
+// FORMS_DIR_DEFINITIONS comes from the require above. phreeform/defaults.php is
+// pulled at file scope because it reads $loaded_modules, a global it can only
+// see from here. forms_datasets_in_use() below relies on both.
 gen_pull_language('phreeform');
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');

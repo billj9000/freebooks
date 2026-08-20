@@ -48,10 +48,11 @@
 $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// In this order, at file scope: phreeform's language file defines the PF_FONT_*
-// constants its defaults.php reads, and that defines PF_DIR_MY_REPORTS, which is
-// where definitions live. $PaperSizes and $DateChoices are plain variables in
-// those files and would vanish if this moved inside a function.
+// Definitions are found through FORMS_DIR_DEFINITIONS, which the require above
+// sets. What phreeform is still wanted for, in this order and at file scope, is
+// the font table — its language file defines the PF_FONT_* constants its
+// defaults.php reads — and $PaperSizes. That and $DateChoices are plain
+// variables, so they would vanish if this moved inside a function.
 gen_pull_language('phreeform');
 require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');

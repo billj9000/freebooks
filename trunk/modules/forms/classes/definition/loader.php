@@ -53,9 +53,10 @@ final class DefinitionLoader
     public function __construct(
         private readonly Catalog $catalog,
         /**
-         * Where definitions live. Defaults to PF_DIR_MY_REPORTS, the constant
-         * phreeform/defaults.php sets — passed explicitly so a tool can point
-         * at a scratch copy without redefining a constant it cannot undefine.
+         * Where definitions live. Defaults to FORMS_DIR_DEFINITIONS, the
+         * constant forms/defaults.php sets — passed explicitly so a tool can
+         * point at a scratch copy without redefining a constant it cannot
+         * undefine.
          */
         private readonly ?string $directory = null,
     ) {}
@@ -68,7 +69,7 @@ final class DefinitionLoader
 
     public function path(string|int $id): string
     {
-        $directory = $this->directory ?? (defined('PF_DIR_MY_REPORTS') ? PF_DIR_MY_REPORTS : '');
+        $directory = $this->directory ?? (defined('FORMS_DIR_DEFINITIONS') ? FORMS_DIR_DEFINITIONS : '');
         return $directory . 'pf_' . $id;
     }
 
