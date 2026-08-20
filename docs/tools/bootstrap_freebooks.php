@@ -199,11 +199,20 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
     // load its own bootstrap has nothing to fall back on. Supplying a constant
     // the page is supposed to supply is what let an empty chooser pass once.
     if ($withPhreeForm) {
-        gen_pull_language('phreeform');              // PF_FONT_* etc.
         gen_pull_language('phreebooks');             // special-class strings
         fb_require_globals(DIR_FS_MODULES . 'forms/defaults.php');
-        fb_require_globals(DIR_FS_MODULES . 'phreeform/defaults.php');
-        fb_require_globals(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+
+        // PhreeForm only IF IT IS STILL THERE. Step 6 deletes it, and every
+        // tool in this directory boots through here — so an unconditional
+        // require turns the deletion into a bootstrap fatal for all of them at
+        // once, including the ones written to keep working without it. Found by
+        // hiding the module and running the suite, which is the only way to
+        // find it before the day it matters.
+        if (is_file(DIR_FS_MODULES . 'phreeform/defaults.php')) {
+            gen_pull_language('phreeform');          // PF_FONT_* etc.
+            fb_require_globals(DIR_FS_MODULES . 'phreeform/defaults.php');
+            fb_require_globals(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+        }
     }
 
     // Whatever this tool goes on to write under my_files/<company>/ ends up

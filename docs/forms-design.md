@@ -4542,4 +4542,42 @@ Two options, and this is the open decision:
    there is no way to make the OLD engine render an invented sale, and a
    baseline the old engine never produced is not an oracle at all.
 
-Option 1 is the only one that captures what the old engine actually did.
+Option 1 is the only one that captures what the old engine actually did, and it
+is what `capture_forms_receipts.php` does — into
+`my_files/<company>/forms-baselines/receipts.json`, which is outside version
+control. `verify_forms_serial` then reads it: three-way while the engine is
+here, two-way after.
+
+Two things are recorded besides the bytes. The **record ids**, because the check
+must keep asking about the same sales rather than whichever five are newest — on
+a live company that set changes daily, and a recorded answer for a sale nobody
+asks about is no baseline. And a **fingerprint of each receipt's layout**,
+because a receipt that has since been edited *should* print differently, and
+that has to be tellable apart from a renderer that has broken.
+
+Only the demo company has a baseline: neither of the others has a
+point-of-sale entry to print, which the tool says rather than inventing one.
+
+#### The dress rehearsal, and what it found
+
+The way to know the suite survives the deletion is to try it. Hiding
+`modules/phreeform` in the container and running the checks found two things
+that the code reading could not:
+
+- **`bootstrap_freebooks.php` required PhreeForm unconditionally.** Every tool in
+  `docs/tools/` boots through it, so the deletion would have been a bootstrap
+  fatal for all of them at once — including the ones written to keep working
+  without it. Now guarded by `is_file()`.
+- **The engine is spread over two files, and half of it loaded is worse than
+  none.** `function_exists('BuildForm')` was true while `AddSep()` was not, so
+  the check took the live-engine path and died inside PhreeForm. The test is now
+  for both.
+
+Faults reinstated and caught: a doctored receipt baseline (caught by the live
+engine), and a broken `SerialRenderer` with PhreeForm hidden — which is the
+proof that the captured bytes are a real oracle and not a decoration.
+
+A latent one fixed on the way past: neither the capture nor the check cleared
+`setprintedfield`, so a company whose receipt carried it would have had its
+printed counter incremented by a tool that only meant to look. No shipped
+receipt carries it; that is not a reason to leave the door open.
