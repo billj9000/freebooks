@@ -68,9 +68,20 @@
  * ## Going back
  *
  * Every conversion keeps the original beside the new file as `pf_N.pre-forms`,
- * which is the same convention the canvas has used since §13.3 — so `--rollback`
- * is a copy in the other direction, and a migration is reversible until the
- * originals are deleted. Nothing here deletes them.
+ * which is the same convention the canvas has used since §13.3.
+ *
+ * `--rollback` restores **only what this tool converted**, read from the
+ * manifest a `--write` run leaves behind. That scoping is the whole of its
+ * safety, and it was learnt the expensive way: the first version restored every
+ * `.pre-forms` it could find, which is not the same set. A definition saved in
+ * the Forms editor months ago ALSO has one — its PhreeForm original — and
+ * restoring that does not undo a migration, it discards the author's work. Run
+ * against a company where five documents had been edited that way, it silently
+ * reverted all five.
+ *
+ * So a rollback with no manifest refuses rather than guessing. The originals are
+ * still there to be restored by hand if that is genuinely wanted, and a refusal
+ * that can be overridden deliberately beats an action that cannot be undone.
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
@@ -112,6 +123,11 @@ if ($forms_installed) {
 $loader = new DefinitionLoader($catalog);
 $codec  = new DefinitionCodec();
 
+// What a --write run leaves behind so that --rollback knows what it did, and
+// just as importantly what it did NOT do.
+$manifestPath = (defined('PF_DIR_MY_REPORTS') ? PF_DIR_MY_REPORTS : '')
+              . 'forms-migration.json';
+
 /** Native is decided by the first non-whitespace byte — the loader's own rule. */
 function forms_is_native(string $path): bool
 {
@@ -129,10 +145,31 @@ while (!$result->EOF) {
 
 // ── going back ───────────────────────────────────────────────────────────────
 if ($rollback) {
-    echo "=== rollback: restoring originals kept beside each definition ===\n";
+    echo "=== rollback: undoing what this tool converted ===\n";
+
+    if (!is_file($manifestPath)) {
+        echo "  There is no migration manifest in this company's report folder, so\n"
+           . "  there is no record of what this tool converted here.\n\n"
+           . "  Restoring every pf_N.pre-forms instead would NOT be a rollback. A\n"
+           . "  definition saved in the Forms editor also has one — its PhreeForm\n"
+           . "  original — and putting that back discards the author's work rather\n"
+           . "  than undoing a migration.\n\n"
+           . "  Nothing was changed. Restore by hand if that is really what you want.\n";
+        exit(1);
+    }
+
+    $manifest = json_decode((string)file_get_contents($manifestPath), true);
+    $ids = is_array($manifest['converted'] ?? null) ? $manifest['converted'] : null;
+    if ($ids === null) {
+        echo "  The manifest could not be read. Nothing was changed.\n";
+        exit(1);
+    }
+    printf("  the manifest records %d definition(s) converted on %s\n",
+        count($ids), (string)($manifest['when'] ?? 'an unrecorded date'));
+
     $restored = $absent = 0;
-    foreach ($rows as $id => $title) {
-        $path = $loader->path($id);
+    foreach ($ids as $id) {
+        $path = $loader->path((int)$id);
         $kept = $path . '.pre-forms';
         if (!is_file($kept)) { $absent++; continue; }
         if (!$write) { $restored++; continue; }
@@ -140,10 +177,14 @@ if ($rollback) {
         // only copy could not be repeated, and the second attempt is exactly
         // when somebody needs it.
         if (@copy($kept, $path)) $restored++;
-        else echo "  could not restore pf_$id ($title)\n";
+        else echo "  could not restore pf_$id\n";
     }
     printf("  %s %d definition(s); %d had no original kept\n",
         $write ? 'restored' : 'would restore', $restored, $absent);
+
+    // The manifest goes only once its work is undone, so a half-finished
+    // rollback can be run again.
+    if ($write && $restored > 0 && $absent === 0) @unlink($manifestPath);
     if (!$write) echo "\n  Nothing was changed. Add --write to do it.\n";
     exit(0);
 }
@@ -265,6 +306,11 @@ foreach ($todo as $id => $entry) {
         exit(1);
     }
 }
+
+file_put_contents($manifestPath, (string)json_encode([
+    'when'      => date('Y-m-d H:i:s'),
+    'converted' => array_map('intval', array_keys($todo)),
+], JSON_PRETTY_PRINT));
 
 printf("  converted %d definition(s); each original kept as pf_N.pre-forms\n", $done);
 echo "\n  Re-run without --write to confirm, and verify_forms_native.php to prove\n";

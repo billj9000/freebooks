@@ -3987,6 +3987,47 @@ Two smaller corrections came with it, both of the same kind:
   what it actually is, cross-checked against a real `json_decode` rather than
   against the one-byte sniff alone.
 
+#### The rollback restored too much, and cost five documents
+
+The first `--rollback` restored **every** `pf_N.pre-forms` it could find. That
+is not the set the migration wrote, and the difference is the whole safety of
+the thing.
+
+A definition saved in the Forms editor also has a `.pre-forms` — its PhreeForm
+original, kept by the canvas since §13.3. On disk it is indistinguishable from a
+migrated one: native file, XML original beside it. Restoring it does not undo a
+migration; it discards whatever the author did in the editor, and overwrites the
+only copy of it.
+
+Run once against `demo` to prove the safety net worked, it reverted five
+documents that had been edited that way. They are not recoverable. A sixth,
+created natively through **New**, was unharmed for an incidental reason worth
+knowing: the canvas's keep-original copies the *native* file as `.pre-forms`
+when there was never a PhreeForm original, so restoring it was a no-op.
+
+`--write` now leaves a manifest naming exactly what it converted, and
+`--rollback` restores only those. With no manifest it **refuses** — the
+originals are still there for a deliberate manual restore, which is the right
+way round for something that cannot be undone. `demo` was migrated by the
+pre-fix tool, so its manifest was reconstructed with the browser-saved Invoice
+explicitly excluded.
+
+`verify_forms_migration.php` pins it, and pins it against the real tool rather
+than a re-implementation: it copies the report directory aside, builds the
+fixture the incident needed — some definitions put back to XML, two left native
+with an original beside them — runs the migration and the rollback for real, and
+restores the directory from a shutdown function so a fatal cannot leave a
+company half-converted. Reinstating the unscoped rollback fails it by name:
+
+```
+[FAIL] and left every definition it did not convert exactly as it was
+       — reverted an editor save: pf_34, pf_35, pf_42, ...
+```
+
+The general lesson is not about manifests. **A tool that undoes an operation
+must know which operation it is undoing**, and "restore every backup file I can
+see" is a different and much larger action wearing the same name.
+
 #### Still to do when PhreeForm goes
 
 `verify_forms_forms` exercises `plan()`/`run()` over a legacy object — the route
