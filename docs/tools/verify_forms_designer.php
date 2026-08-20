@@ -287,9 +287,29 @@ if ($victim !== null) {
     @unlink($path);
     @unlink($path . '.pre-forms');
 
-    // Start from the PhreeForm file, as an unconverted installation would.
-    $legacyPath = $source->path((int)array_key_first($reports));
-    $legacy     = (string)@file_get_contents($legacyPath);
+    // Start from a PhreeForm file, as an unconverted installation would.
+    //
+    // Taken from whichever report still HAS one rather than from the first
+    // report in the list: on a migrated company the stored file is native and
+    // the original is beside it as `.pre-forms`, and this test is about what
+    // happens the first time a legacy file is saved — so it needs a legacy file,
+    // not whatever the first id happens to hold now.
+    $legacy = '';
+    foreach (array_keys($reports) as $candidate) {
+        $stored = (string)@file_get_contents($source->path($candidate));
+        if ($stored !== '' && !DefinitionLoader::isNative($stored)) { $legacy = $stored; break; }
+        $kept = (string)@file_get_contents($source->path($candidate) . '.pre-forms');
+        if ($kept !== '' && !DefinitionLoader::isNative($kept)) { $legacy = $kept; break; }
+    }
+
+    if ($legacy === '') {
+        // A company seeded native has never had one. After step 6 that is every
+        // company, and this whole section becomes a test of history — see
+        // §13.32, where its retirement is scoped along with the two other tools
+        // that read the legacy side.
+        echo "  [--] no report on this company has a PhreeForm original, so there is\n"
+           . "       nothing to test keeping one FROM. Nothing is wrong.\n";
+    } else {
     ok('the stored original is PhreeForm XML to begin with',
         $legacy !== '' && !DefinitionLoader::isNative($legacy));
     file_put_contents($path, $legacy);
@@ -312,6 +332,7 @@ if ($victim !== null) {
 
     ok('what was saved loads back identically',
         differences($victim, $editor->load($testId)) === []);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -266,11 +266,17 @@ foreach ($catalogRows as $id => $row) {
     // state for a partly-migrated company, not a failure, and calling it "could
     // not be read" — which is what the legacy reader's refusal looks like from
     // here — would send someone looking for a corrupt file.
-    $stored = (string)@file_get_contents($source->path($id));
-    if ($stored !== '' && DefinitionLoader::isNative($stored)) { $alreadyNative[$id] = true; continue; }
-
-    $legacy = get_report_details($id);
-    if (!$legacy) { $declined[$id] = 'the stored file could not be read'; continue; }
+    // A definition stored natively with NO original kept has no legacy side at
+    // all — a company seeded native, which is every fresh install. One with an
+    // original kept beside it is a MIGRATED definition, and that original is
+    // exactly what this tool exists to compare against, so it is read.
+    $legacy = legacyOriginal($source, $id);
+    if ($legacy === null) {
+        $stored = (string)@file_get_contents($source->path($id));
+        if ($stored !== '' && DefinitionLoader::isNative($stored)) { $alreadyNative[$id] = true; continue; }
+        $declined[$id] = 'the stored file could not be read';
+        continue;
+    }
 
     // What the SHIPPING code makes of it, so a conversion failure can be told
     // apart from a definition Forms already declines.
@@ -330,15 +336,38 @@ ok('re-encoding is byte-stable for every one of them', $stable === count($conver
 ok('the loader reads every one of them back as native', $sniffed === count($converted),
     "$sniffed of " . count($converted));
 
-// The legacy tree must still sniff as legacy, or the loader would take the
-// wrong branch on an installation that has not migrated.
-$legacySniffs = 0;
+// The sniff must DISCRIMINATE, which is what the loader's branch depends on.
+//
+// This used to say "the stored files still sniff as legacy", which was true
+// while every company held XML and became false the moment one was migrated —
+// asserting a state step 6 exists to end. What has to hold either way is
+// narrower and permanent: whatever file the comparison above read as the
+// PhreeForm original sniffs LEGACY, and whatever is stored sniffs as whatever
+// it actually is. A sniff that stopped discriminating would send the loader
+// down the wrong branch, and it would do it silently.
+$legacySniffs = $storedSniffs = $originals = 0;
 foreach (array_keys($converted) as $id) {
-    $raw = @file_get_contents($source->path($id));
-    if ($raw !== false && !DefinitionLoader::isNative($raw)) $legacySniffs++;
+    $path   = $source->path($id);
+    $stored = (string)@file_get_contents($path);
+    $native = DefinitionLoader::isNative($stored);
+
+    // A migrated definition is native on disk with its original beside it; an
+    // un-migrated one is the original.
+    $original = $native ? (string)@file_get_contents($path . '.pre-forms') : $stored;
+    if ($original !== '') {
+        $originals++;
+        if (!DefinitionLoader::isNative($original)) $legacySniffs++;
+    }
+
+    // json_decode is the second opinion: a file that sniffs native must BE
+    // JSON, and one that does not must not be. The sniff reads one byte, so
+    // agreeing with a real parse is the whole of its correctness.
+    if ($native === (json_decode($stored) !== null)) $storedSniffs++;
 }
-ok('the stored PhreeForm files still sniff as legacy', $legacySniffs === count($converted),
-    "$legacySniffs of " . count($converted));
+ok('every PhreeForm original sniffs as legacy', $legacySniffs === $originals,
+    "$legacySniffs of $originals");
+ok('and every stored file sniffs as what it actually is',
+    $storedSniffs === count($converted), "$storedSniffs of " . count($converted));
 
 if ($declined) {
     echo "\n  declined (" . count($declined) . "):\n";
@@ -369,8 +398,23 @@ foreach ($converted as $id => $definition) {
     $control = null;
 }
 if ($control === null) {
-    ok('a document is available to calibrate the comparison', false, 'no report returned rows');
+    // No report returned a row, so there is nothing to calibrate against and
+    // nothing below to calibrate FOR. That is a property of the company — a
+    // fresh install with no transactions posted — not a defect in anything this
+    // tool tests, and calling it a failure on every empty company is how a
+    // suite teaches people to skim past its failures.
+    //
+    // It is still said, loudly, because the alternative is a run that reports
+    // success having compared nothing.
+    $uncalibrated = true;
+    echo "  [--] no report on this company returned a row, so the byte comparison
+"
+       . "       below has nothing to calibrate against and nothing to compare.
+"
+       . "       Post a transaction, or run this against a company that has one.
+";
 } else {
+    $uncalibrated = false;
     // A full second BETWEEN the two renders, deliberately. Back-to-back they
     // usually land in the same second, which leaves the per-page /LastModified
     // stamps equal and lets an incomplete normaliser pass this control while
@@ -399,8 +443,8 @@ $thin     = [];   // rendered and compared, but the report returned no rows
 
 foreach ($converted as $id => $definition) {
     $title  = $catalogRows[$id]['title'];
-    $legacy = get_report_details($id);
-    if (!$legacy) continue;
+    $legacy = legacyOriginal($source, $id);
+    if ($legacy === null) continue;
 
     try {
         if ($catalogRows[$id]['form']) {
@@ -469,6 +513,13 @@ foreach ($converted as $id => $definition) {
                : 'the DOCUMENTS match — the difference is in the renderer or the normaliser'));
 }
 
+// Nothing compared is a failure ONLY when something could have been. With no
+// data there was never a comparison to make, and the line above has already
+// said so in words.
+if ($compared === 0 && $uncalibrated) {
+    echo "  [--] 0 compared, for the reason given above
+";
+} else
 ok(sprintf('%d of %d rendered definition(s) are byte-identical%s', $identical, $compared,
         $thin ? sprintf(' (%d of them empty on this company)', count($thin)) : ''),
     $compared > 0 && $identical === $compared);

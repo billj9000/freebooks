@@ -227,3 +227,60 @@ function fb_formatter_lookups(): array
         'cvt_cntry' => $pluck($arrLocales, 'name'),
     ];
 }
+
+/**
+ * The PhreeForm original for a definition, whether or not it has been migrated.
+ *
+ * `get_report_details()` reads the STORED file and refuses a native one by
+ * design (§13.9). That was fine while every company held XML; it makes this
+ * whole tool vacuous the moment a company is migrated, which is the state step 6
+ * puts every company into — 0 of 0 compared, reported as a pass in the earlier
+ * shape of this check, and as a failure now.
+ *
+ * The original does not go away, though. Every conversion keeps it beside the
+ * new file as `pf_N.pre-forms`, so the comparison survives migration by reading
+ * THAT. This is the same move `verify_forms_serial.php` already makes for a
+ * saved receipt, and it changes what the tool proves in a way worth being
+ * explicit about: it is a comparison of the two ENGINES over one definition,
+ * not of two files.
+ *
+ * Returns null when there is no original left to compare against — a company
+ * seeded native has never had one, and nothing is wrong with that.
+ */
+function legacyOriginal(object $loader, string|int $id): ?object
+{
+    $path   = $loader->path($id);
+    $stored = (string)@file_get_contents($path);
+
+    if ($stored !== '' && !\FreeBooks\Forms\Definition\DefinitionLoader::isNative($stored)) {
+        // Not yet migrated: the ordinary path, and the one the legacy reader
+        // was written for.
+        return get_report_details($id) ?: null;
+    }
+
+    $kept = $path . '.pre-forms';
+    if (!is_file($kept)) return null;
+    $xml = (string)@file_get_contents($kept);
+    if ($xml === '' || \FreeBooks\Forms\Definition\DefinitionLoader::isNative($xml)) return null;
+
+    // xml_to_object() alone is not enough: get_report_details() normalises the
+    // shapes a single-child tag collapses to — one <tables> arrives as an
+    // object where two arrive as an array — and every converter downstream
+    // assumes that has been done.
+    $report = xml_to_object($xml);
+    if (!is_object($report)) return null;
+    if (isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
+        $report = $report->PhreeformReport;
+    }
+    foreach (['tables', 'grouplist', 'sortlist', 'filterlist', 'fieldlist'] as $list) {
+        if (isset($report->$list) && is_object($report->$list)) $report->$list = [$report->$list];
+    }
+    if (isset($report->fieldlist) && is_array($report->fieldlist)) {
+        foreach ($report->fieldlist as $key => $field) {
+            if (isset($field->boxfield) && is_object($field->boxfield)) {
+                $report->fieldlist[$key]->boxfield = [$field->boxfield];
+            }
+        }
+    }
+    return $report;
+}

@@ -1656,12 +1656,12 @@ mixed tree. Step 6 deletes that branch; it is a few lines, not an architecture.
 Work that Forms needs but PhreeForm's removal does not wait on. Nothing here is started, and nothing
 here blocks step 6 — which is the distinction that keeps step 6 finishable.
 
-7. **Editing a table's columns on the canvas** — **§13.21**, where it is scoped. A table is the one
-   element on the page whose content is beyond the editor: the canvas moves it and resizes it, and
-   `TemplateForm::apply()` rebuilds it from `$original->columns`. Added to this list on 2026-08-17,
-   after adding a single column to a single shipped form took an XML edit, a regeneration and a
-   developer (§13.20). The report editor already edits a column list of the same shape, so the
-   control exists; the care is in the palette's GRAIN and in leaving the dataset question alone.
+7. ~~**Editing a table's columns on the canvas.**~~ **DONE — see §13.30**, which went further than
+   this entry asked: a block's parts are editable too, and all nine element kinds can be added, so a
+   form created from nothing can become an invoice. §13.31 then made the format a list rather than
+   free text. The entry was added on 2026-08-17 after adding a single column to a single shipped
+   form took an XML edit, a regeneration and a developer (§13.20); that is now a job for whoever
+   owns the form.
 8. **Updating a company's copy of a shipped document.** There is no route at all: `admin_add_reports()`
    refuses a definition whose file already exists, deliberately, because replacing it would discard
    whatever the company has done to it. So a fix to a shipped form reaches new installs only, and an
@@ -1680,7 +1680,18 @@ here blocks step 6 — which is the distinction that keeps step 6 finishable.
    geometry, show both before writing, and keep a backup. Where the two have touched the same thing
    there is no honest automatic answer, and saying so per element beats guessing.
 
-#### Step 6 must also move the four render-to-string call sites
+#### ~~Step 6 must also move the four render-to-string call sites~~ — DONE
+
+**All four were switched in `cf8c94d2` and the receipt work that followed it** (§13.26, §13.28).
+Each now tries `forms_render_to_string()` first and falls back to `get_report_details()` /
+`BuildForm()`, so step 6's job here is to delete the fallback rather than to write the branch.
+
+**The standing caution below is therefore lifted**: opening a configured form in the Forms editor no
+longer stops its call site producing a document. The section is kept because the trap it describes
+is the reason the call sites are written the way they are, and because a reader meeting
+`forms_render_to_string()` deserves to know what it was for.
+
+The original entry follows.
 
 `gen_print_form_url()` switches a Print BUTTON, which is a choice about a URL. Four places instead
 render a form to PDF **bytes in-process**, and every one of them calls `get_report_details()` and
@@ -1705,11 +1716,10 @@ A company can already be in the state that makes this easy to walk into: `MODULE
 on, so the invoice prints through Forms from the screen and through PhreeForm from the cron. An
 author would edit the form, watch it print correctly, and never learn the emails had stopped.
 
-What step 6 needs is the render-to-string counterpart of the URL helper — `FormRunner` →
-`LayoutPdfRenderer` → bytes, which the print page already does behind an HTTP delivery — and these
-four switched onto it. Until then, treat "do not open a form named in one of these settings in the
-Forms canvas" as a standing caution; the POS pair announce themselves immediately, the two email
-paths do not.
+What step 6 needed was the render-to-string counterpart of the URL helper — `FormRunner` →
+`LayoutPdfRenderer` → bytes, which the print page already did behind an HTTP delivery — and these
+four switched onto it. That is `forms_render_to_string()`, and it is done. The caution that stood
+here — *do not open a form named in one of these settings in the Forms canvas* — no longer applies.
 
 #### Step 6 must also give Forms a way to CREATE and DELETE a document
 
@@ -3894,3 +3904,99 @@ format whose name breaks the pattern its neighbours keep, a hyphen where
 likely to guess. That is the argument for the documentation check in a sentence.
 
 See [[todo_forms_element_kinds]] and §13.7 step 6.
+
+### 13.32 The migration, and what it revealed about the suite
+
+`docs/tools/migrate_forms_definitions.php` converts a company's definitions from
+PhreeForm XML to native, in bulk. Decisions I, J and K, with one refinement that
+the survey forced.
+
+It reports and changes **nothing** without `--write`, keeps every original beside
+its replacement as `pf_N.pre-forms`, and has a `--rollback` that copies them
+back. Nothing deletes an original, so a migration is reversible indefinitely.
+
+#### Decision J, refined: three outcomes rather than two
+
+J says the migration blocks on any unconvertible definition rather than skipping
+it, because after PhreeForm is deleted nothing can read what was skipped. That
+is right, and the survey found a case it does not cover: **one company had 56
+catalogue rows and no `pf_` files at all.**
+
+A missing file is unreadable by *both* engines already. Blocking on it would
+make that company permanently un-upgradeable for a fault the migration neither
+caused nor can repair, and deleting PhreeForm would lose nothing that is not
+already lost. So there are three outcomes: **convertible**, **blocked** (the file
+is there and cannot be converted — J exactly), and **already lost** (reported by
+id, loudly, and not a blocker).
+
+That company also had no Forms module installed, so registering custom datasets
+fataled the tool that was supposed to be telling the operator what state it was
+in. Conversion needs the shipped datasets and the loader, both of which are code;
+the module's tables are not required, and the tool now says so and continues.
+
+#### The bar the migration holds, and the one it does not
+
+Every definition is converted, encoded, decoded and encoded again, and the two
+encodings must match byte for byte. That is **total** — it needs no data, so it
+covers every definition on every company — and it proves what the migration is
+responsible for: the file written back holds exactly what the conversion
+produced.
+
+It does **not** prove the converted definition prints the same document. That
+needs records, so it can only cover what a company has data for, and it already
+lives in `verify_forms_native.php`. The tool says so rather than implying a
+guarantee it has not checked.
+
+#### What migrating actually broke: the suite went blind
+
+Migrating `demo` converted 52 definitions and turned three verifiers red —
+`verify_forms_native`, `verify_forms_forms` and `verify_forms_designer`. Not a
+regression in the code. All three read the legacy side through
+`get_report_details()`, which refuses a native definition **by design** (§13.9),
+so on a migrated company they had nothing to read:
+
+```
+[FAIL] 0 of 0 rendered definition(s) are byte-identical
+[FAIL] 0 form(s) ran and rendered as PDF
+[FAIL] the stored original is PhreeForm XML to begin with
+```
+
+**This had already happened and been misdiagnosed.** The same three had been
+failing on the freshly-seeded company for some time, and were written off as
+"that company has no data". Half true — it has none — but the actual cause was
+that it was seeded native and there was no legacy side at all. Two causes wearing
+one symptom, and the wrong one was believed because it was plausible.
+
+The fix was a pattern the suite had already invented and not generalised:
+`verify_forms_serial.php` compares engines by reading the PhreeForm original out
+of `pf_N.pre-forms` when the stored file is native. `legacyOriginal()` now lives
+in `bootstrap_freebooks.php` and all three use it, so the comparison **survives
+migration** — and covers more than before, because it now includes definitions
+that were already native with an original kept. On `demo`: 52 compared before,
+56 after.
+
+Two smaller corrections came with it, both of the same kind:
+
+- *Nothing compared* is a failure only when something could have been. With no
+  data there was never a comparison to make, so the tool now says that in words
+  instead of reporting a red run on a correct installation. A suite that goes red
+  on a healthy company is a suite people learn to skim.
+- The check *"the stored files still sniff as legacy"* asserted a state step 6
+  exists to end. What has to hold permanently is narrower: **the sniff must
+  discriminate** — every original reads as legacy, every stored file reads as
+  what it actually is, cross-checked against a real `json_decode` rather than
+  against the one-byte sniff alone.
+
+#### Still to do when PhreeForm goes
+
+`verify_forms_forms` exercises `plan()`/`run()` over a legacy object — the route
+step 6 deletes. Reading the kept originals keeps it working today and shrinks its
+coverage to nothing on a company that never had them, which is every fresh
+install and, after step 6, every company. It has to be repointed at
+`planDefinition()`/`runDefinition()`. `verify_forms_designer`'s "saving keeps the
+original, once" section tests a first conversion, which after step 6 is history;
+it can retire with the loader branch it tests.
+
+The suite now passes on all three states a company can be in — un-migrated,
+migrated, and seeded native — which is the property that makes step 6 something
+that can be done one company at a time rather than all at once.

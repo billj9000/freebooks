@@ -43,6 +43,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\{FormPlan, FormRunner, RecordSelector};
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
+use FreeBooks\Forms\Definition\DefinitionLoader;
 use FreeBooks\Forms\Document\{LayoutDocument, RenderOptions};
 use FreeBooks\Forms\Render\{Formatter, LayoutPdfRenderer};
 
@@ -55,6 +56,13 @@ function ok(string $what, bool $cond, string $detail = ''): void {
 
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
+
+// This tool exercises the LEGACY route — plan()/run() over a get_report_details()
+// object — which is the route step 6 deletes. Until it is repointed at
+// planDefinition()/runDefinition(), it reads the PhreeForm original wherever one
+// survives, so a migrated company is still covered rather than silently
+// reporting "0 forms ran". See §13.32.
+$forms_loader = new DefinitionLoader($catalog);
 $runner   = new FormRunner($db, $catalog);
 $selector = new RecordSelector($db);
 
@@ -150,7 +158,7 @@ $rendered = 0;
 $declined = $noRecord = [];
 
 foreach ($forms as $id => $title) {
-    $report = get_report_details($id);
+    $report = legacyOriginal($forms_loader, $id);
     if (!$report) continue;
 
     $plan = $runner->plan($report);
@@ -257,7 +265,23 @@ foreach ($forms as $id => $title) {
     }
 }
 
-ok(sprintf('%d form(s) ran and rendered as PDF', $rendered), $rendered > 0);
+// A company seeded NATIVE has no PhreeForm original for any form, so this tool
+// — which tests the legacy route — has nothing to route. That is the ordinary
+// state of every fresh install and, after step 6, of every company; it is
+// reported rather than failed, because a suite that goes red on a correct
+// installation is a suite people learn to ignore.
+//
+// It is also the clearest possible statement of why this tool must be
+// repointed at planDefinition()/runDefinition() when PhreeForm goes (§13.32):
+// what it covers shrinks to nothing on its own.
+$routed = $counts['provider'] + $counts['dataset'] + $counts['unsupported'];
+if ($routed === 0) {
+    echo "  [--] no form on this company has a PhreeForm original to route.\n"
+       . "       This tool exercises the legacy engine, which such a company has\n"
+       . "       never used. Nothing was tested here, and nothing is wrong.\n";
+} else {
+    ok(sprintf('%d form(s) ran and rendered as PDF', $rendered), $rendered > 0);
+}
 printf("  routing: %d by provider, %d by dataset, %d declined; %d had no record on this company\n",
     $counts['provider'], $counts['dataset'], $counts['unsupported'], count($noRecord));
 foreach ($declined as $note) echo "  [--] $note\n";
@@ -267,14 +291,16 @@ foreach ($noRecord as $note) echo "  [--] $note\n";
 
 // A company where every form found nothing proves nothing at all — the vacuous
 // pass this suite has been caught by before.
-ok('the run produced documents, not a set of empty ones', $rendered > count($noRecord),
-   $rendered . ' rendered, ' . count($noRecord) . ' empty');
+if ($routed > 0) {
+    ok('the run produced documents, not a set of empty ones', $rendered > count($noRecord),
+       $rendered . ' rendered, ' . count($noRecord) . ' empty');
+}
 
 echo "\n=== the Print button's parameters select the right records ===\n";
 // EQUAL on the record key, which is what the orders and bills pages send.
 $sample = null;
 foreach ($forms as $id => $title) {
-    $report = get_report_details($id);
+    $report = legacyOriginal($forms_loader, $id);
     if (!$report) continue;
     $plan = $runner->plan($report);
     if (!$plan->runnable() || $plan->recordTable !== 'journal_main') continue;
@@ -321,7 +347,7 @@ if ($sample === null) {
 echo "\n=== a form for an uninstalled module is declined, not fataled ===\n";
 $woForm = null;
 foreach ($forms as $id => $title) {
-    $report = get_report_details($id);
+    $report = legacyOriginal($forms_loader, $id);
     if ($report && ($report->special_class ?? '') === 'wo_builder') { $woForm = [$id, $report]; break; }
 }
 if ($woForm === null) {
