@@ -39,14 +39,10 @@
 $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// Definitions and images are found through FORMS_DIR_DEFINITIONS, which the
-// require above sets — Forms' own constant, so this page can find its own files
-// without PhreeForm. What phreeform's bootstrap is still wanted for is the font
-// table the palette offers, and its language file has to be pulled first
-// because its defaults.php reads the PF_FONT_* constants at file scope.
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+// No PhreeForm. Definitions and images are found through FORMS_DIR_DEFINITIONS
+// and the palette's faces through forms_font_names(), both of which the two
+// requires here supply — so the page that draws a form no longer bootstraps the
+// engine it replaces to do it.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 

@@ -51,3 +51,12 @@ define('FORMS_DIR_DEFINITIONS', DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') .
 // Images a form may draw. A subdirectory rather than a sibling, so that a
 // company's whole Forms state is one folder to copy.
 define('FORMS_DIR_IMAGES', FORMS_DIR_DEFINITIONS . 'images');
+
+// The face a document is drawn in when it names none.
+//
+// Not PhreeForm's PDF_DEFAULT_FONT, which is 'freeserif' or 'helvetica'
+// depending on the PDF_APP setting. Forms has no such choice to make: its
+// renderers extend TCPDF unconditionally (classes/render/pdf_canvas.php), FPDF
+// was never an option, and a setting with one possible value is a question
+// nobody should be asked. So the branch does not survive the move.
+define('FORMS_DEFAULT_FONT', 'freeserif');

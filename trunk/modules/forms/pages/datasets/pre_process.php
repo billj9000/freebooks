@@ -40,12 +40,9 @@
 $security_level = validate_user(SECURITY_ID_FORMS_DATASETS);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// FORMS_DIR_DEFINITIONS comes from the require above. phreeform/defaults.php is
-// pulled at file scope because it reads $loaded_modules, a global it can only
-// see from here. forms_datasets_in_use() below relies on both.
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+// FORMS_DIR_DEFINITIONS comes from the require above, and it is the only thing
+// forms_datasets_in_use() needs beyond the catalogue: it counts through the
+// loader, which reads a definition in whichever format it is stored in.
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
 

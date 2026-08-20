@@ -4110,3 +4110,50 @@ without making it red. `bootstrap_freebooks.php` is where a CLI tool does what
 a page failing to load its own defaults has nothing to fall back on. Supplying a
 constant the page is supposed to supply is exactly what let an empty chooser
 pass once already. The require went inside the flag, not above it.
+
+#### The fonts
+
+`forms_font_names()` read `$GLOBALS['Fonts']`, which PhreeForm's `defaults.php`
+assigns. Forms now names the four faces itself, with `FORMS_FONT_*` labels in
+its own language file and `FORMS_DEFAULT_FONT` in its own defaults.
+
+**The PDF_APP branch does not survive the move**, and that is the whole content
+of the change. PhreeForm builds its list as three faces, adding `freeserif` and
+setting `PDF_DEFAULT_FONT` only when the `PDF_APP` setting says `TCPDF`. Forms
+has no such choice to make: every renderer extends TCPDF unconditionally, FPDF
+was never an option for it, and a setting with one possible value is a question
+nobody should be asked. Carried across, that condition would have meant an
+editor that could not offer the face it draws with, for a reason belonging to
+another engine.
+
+The old fallbacks said `helvetica`, which disagreed with what
+`PDF_DEFAULT_FONT` actually holds on every real install. They now say
+`freeserif`, so the fallback and the value agree.
+
+**Five files stopped requiring PhreeForm at all** — the canvas, the receipt
+editor, the datasets page and two ajax handlers. Each had pulled its bootstrap
+for the font table or the directory, and neither is there any more. What they
+still take from the module is `TABLE_PHREEFORM`, which comes from its
+`config.php` by way of `application_top`, not from `defaults.php`.
+
+#### TCPDF's Error() dies with status zero
+
+The check that every offered face is one TCPDF actually has runs in a **child
+process**, and finding out why is worth more than the check.
+
+`TCPDF::Error()` prints `Could not include font definition file` and `die()`s.
+It does not throw, so there is nothing to catch: asking the question in-process
+takes the rest of the tool down with it. That is also the answer to why the list
+exists — an unknown face is not a fallback, it is a dead page found by whoever
+prints the invoice.
+
+Worse, `die()` exits with **status 0**. A verifier that dies inside TCPDF looks,
+to anything checking only the exit status, exactly like a verifier that
+finished. The three font checks are therefore placed *before* the first render
+in `verify_forms_canvas.php`, where they fail as checks rather than as silence —
+setting `FORMS_DEFAULT_FONT` to a face TCPDF lacks killed the run at the first
+drawn box when they sat further down. A suite runner must require each tool's
+own terminal marker, not its exit status.
+
+Three faults reinstated and caught: a face TCPDF does not have, a default face
+absent from the list, and a face whose label constant was deleted.

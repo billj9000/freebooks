@@ -40,12 +40,8 @@ $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 require(DIR_FS_WORKING . 'defaults.php');
 // FORMS_DIR_DEFINITIONS is what the loader resolves `pf_<id>` against, and the
 // require above sets it. Without it every load fails on a relative path, and a
-// page that finds no definitions says the company has none. The rest is the
-// same sequence the canvas and print pages use, at file scope: phreeform's
-// language file defines the PF_FONT_* constants its defaults.php reads.
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+// page that finds no definitions says the company has none. Nothing from
+// PhreeForm: a receipt has no faces to choose and no paper to sit on.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 require(DIR_FS_MODULES . 'phreedom/defaults.php');

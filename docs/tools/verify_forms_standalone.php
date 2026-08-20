@@ -78,7 +78,7 @@ function ok(string $what, bool $cond, string $detail = ''): void {
 const BORROWED = [
     // Requires. Each page pulls PhreeForm's bootstrap for the entries below it.
     'phreeform'                        => "gen_pull_language('phreeform'), for the constants defaults.php reads",
-    'phreeform/defaults.php'           => 'the font, paper and row-space defaults',
+    'phreeform/defaults.php'           => 'the paper sizes and the row-space default',
     'phreeform/functions/phreeform.php'=> 'TextReplace(), used by the run pages',
 
     // Renderer defaults that were PhreeForm admin settings and have no Forms
@@ -87,13 +87,11 @@ const BORROWED = [
     'PF_DEFAULT_COLUMN_WIDTH'          => 'fallback column width, read behind defined()',
     'PF_DEFAULT_ROWSPACE'              => 'fallback row height for a table renderer',
     'PF_DEFAULT_PAPERSIZE'             => 'the paper a seeded document gets',
-    'PDF_DEFAULT_FONT'                 => 'the face a document that names none is drawn in',
     'TEXT_CONTINUED'                   => 'the label on a table that runs to a second page',
     'TEXT_GROUP_TOTAL_FOR'             => "a report's group subtotal label",
     'TEXT_REPORT_TOTAL_FOR'            => "a report's grand total label",
 
     // Tables PhreeForm builds in its defaults.php.
-    'Fonts'                            => 'the faces the canvas offers',
     'PaperSizes'                       => 'the paper sizes the report editor offers',
     'arrLocales'                       => 'country lookups for cvt_iso2 / cvt_cntry',
 

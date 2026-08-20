@@ -86,7 +86,7 @@ $formatter = new Formatter(
 $tablePdf  = new TablePdfRenderer(formatter: $formatter, defaultColumnWidth: 25.0);
 $layoutPdf = new LayoutPdfRenderer(
     formatter:      $formatter,
-    defaultFont:    defined('PDF_DEFAULT_FONT') ? PDF_DEFAULT_FONT : 'helvetica',
+    defaultFont:    defined('FORMS_DEFAULT_FONT') ? FORMS_DEFAULT_FONT : 'freeserif',
     rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
     continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
     pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',

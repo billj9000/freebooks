@@ -465,3 +465,9 @@ define('FORMS_CANVAS_UNDO',      'Undo');
 define('FORMS_CANVAS_REDO',      'Redo');
 define('FORMS_CANVAS_UNDO_HINT', 'Undo the last change (Ctrl+Z). Undo history is lost when you leave the page.');
 define('FORMS_CANVAS_REDO_HINT', 'Redo the change you just undid (Ctrl+Y).');
+
+/***** the faces a document may be drawn in *****/
+define('FORMS_FONT_HELVETICA', 'Helvetica');
+define('FORMS_FONT_COURIER',   'Courier');
+define('FORMS_FONT_TIMES',     'Times Roman');
+define('FORMS_FONT_SERIF',     'Serif');

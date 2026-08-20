@@ -41,7 +41,6 @@
 $security_level = validate_ajax_user();
 
 /**************  include page specific files    *********************/
-gen_pull_language('phreeform');
 gen_pull_language('forms');
 
 // validate_ajax_user() proves there is a SESSION, not that it holds this
@@ -53,10 +52,9 @@ if (($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) < 1) {
 }
 
 // FORMS_DIR_DEFINITIONS is what the loader resolves `pf_<id>` against; without
-// it every load runs at a relative path and finds nothing. phreeform's defaults
-// still supply the font table, and its language file — pulled above — has to
-// come first because that file reads the PF_FONT_* constants at file scope.
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
+// it every load runs at a relative path and finds nothing. A module's
+// defaults.php is not loaded for you, and an ajax op has no DIR_FS_WORKING to
+// require it from.
 require_once(DIR_FS_MODULES . 'forms/defaults.php');
 require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');

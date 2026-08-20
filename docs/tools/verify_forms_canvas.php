@@ -63,6 +63,56 @@ function ok(string $what, bool $cond, string $detail = ''): void {
     else { $failures++; echo "  [FAIL] $what" . ($detail ? " — $detail" : '') . "\n"; }
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Before anything is drawn, because a bad face is not a bad result but the end
+// of the run: TCPDF's Error() prints and die()s — and die()s with status ZERO,
+// so a tool that dies inside it looks to any runner like a tool that finished.
+// Checked here, these three fail as checks instead of as silence.
+echo "=== the faces a document may be drawn in ===\n";
+$offered = array_keys(forms_font_names());
+ok('the font list is not empty', $offered !== [], implode(', ', $offered));
+
+// Every offered face must be one TCPDF actually has.
+//
+// In a CHILD process, and that is the finding rather than a precaution:
+// TCPDF::Error() prints "Could not include font definition file" and
+// die()s. It does not throw, so there is nothing to catch and no way to
+// ask the question in-process without taking the rest of this tool down
+// with it. Which is also the answer to why the list exists at all — an
+// unknown face is not a fallback, it is a dead page found by whoever
+// prints the invoice.
+//
+// Re-implementing TCPDF's font lookup here would be quicker and would
+// prove nothing: a re-implementation can agree with the code while both
+// are wrong. This runs the real SetFont().
+$vendor = dirname(rtrim(DIR_FS_MODULES, '/\\')) . '/vendor/autoload.php';
+foreach ($offered as $face) {
+    $probe = 'require ' . var_export($vendor, true) . ';'
+           . '$p = new TCPDF(); $p->AddPage(); $p->SetFont('
+           . var_export($face, true) . ', "", 10); echo $p->getFontFamily();';
+    $lines = []; $status = 0;
+    exec(escapeshellarg(PHP_BINARY) . ' -r ' . escapeshellarg($probe) . ' 2>&1', $lines, $status);
+    $said = trim(implode('', $lines));
+    ok("the face '$face' is one TCPDF can be told to use",
+       $status === 0 && $said === $face, $said);
+}
+
+ok('the face a document with none of its own gets is on the list',
+   in_array(FORMS_DEFAULT_FONT, $offered, true),
+   FORMS_DEFAULT_FONT . ' is not offered');
+
+// A face with no label would render as an empty row in the select: not
+// a face nobody picks, a face nobody can see is there.
+$unlabelled = [];
+foreach (forms_font_names() as $face => $label) {
+    if ($label === '' || $label === $face) $unlabelled[] = $face;
+}
+ok('every face reads as a name rather than as its stored spelling',
+   $unlabelled === [], implode(', ', $unlabelled));
+
+echo "\n";
+
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 
@@ -71,7 +121,7 @@ $renderer = new LayoutPdfRenderer(
                       currencies:      $currencies,
                       defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
                       lookups:         forms_formatter_lookups()),
-    defaultFont:    defined('PDF_DEFAULT_FONT') ? PDF_DEFAULT_FONT : 'helvetica',
+    defaultFont:    defined('FORMS_DEFAULT_FONT') ? FORMS_DEFAULT_FONT : 'freeserif',
     rowSpacing:     2.0,
     continuedLabel: 'Continued',
     pageOfLabel:    'of',
@@ -1481,8 +1531,6 @@ if ($victim === null) {
         ok('a font the document cannot be drawn in is refused',
            $attacked->template->elements[$styled]->style?->font === $was && $warnings !== []);
 
-        $offered = array_keys(forms_font_names());
-        ok('the font list is not empty', $offered !== [], implode(', ', $offered));
         if ($offered !== []) {
             $wanted = $offered[0];
             [$changed, $warnings] = $edit(function (array $r) use ($styled, $wanted): array {

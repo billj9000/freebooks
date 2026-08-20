@@ -44,15 +44,11 @@
 validate_ajax_user();
 
 /**************  include page specific files    *********************/
-gen_pull_language('phreeform');
 gen_pull_language('forms');
 
 // FORMS_DIR_IMAGES lives in Forms' own defaults, and a module's defaults.php is
 // not loaded for you — an ajax op has no DIR_FS_WORKING to require it from.
-// phreeform's is pulled too, before it, for the constants its defaults.php
-// reads from the language file above. Only the one class beyond that: nothing
-// here builds a document.
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
+// Only the one class beyond that: nothing here builds a document.
 require_once(DIR_FS_MODULES . 'forms/defaults.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/image_store.php');
 

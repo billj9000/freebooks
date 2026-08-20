@@ -351,21 +351,41 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
 /**
  * The fonts a document may be drawn in.
  *
- * PhreeForm's own list, from its defaults.php — helvetica, courier, times and,
- * on TCPDF, freeserif. It is short because these are the faces the PDF layer
- * can be relied on to have; a name TCPDF cannot find is not a fallback but an
- * error, raised from inside the renderer with the document half built.
+ * Four, and short on purpose: these are the faces TCPDF is built with and can
+ * be relied on to have. A name it cannot find is not a fallback but an error,
+ * raised from inside the renderer with the document half built — so this list
+ * is the difference between an unknown face being refused by an editor and
+ * being discovered by whoever prints the invoice.
  *
  * The keys are what a definition stores and the values are what a person reads.
  * They are not the same thing, which is the whole reason the canvas offers a
  * list: nobody would guess that the default face is spelled "freeserif".
  *
+ * Read from here rather than from PhreeForm's $Fonts, which is the same four
+ * names minus one: its list drops freeserif unless PDF_APP is 'TCPDF'. Forms
+ * has no such branch — its renderers extend TCPDF and nothing else — so
+ * carrying that condition across would have meant an editor that could not
+ * offer the very face it draws with, for a reason belonging to another engine.
+ *
+ * A label is read through defined() so that a missing language string shows the
+ * stored name rather than an empty row in a select. An unlabelled entry is a
+ * bug to fix; a blank one is a bug nobody can report. Same rule as
+ * forms_format_choices().
+ *
  * @return array<string,string> stored name => label
  */
 function forms_font_names(): array
 {
-    $fonts = $GLOBALS['Fonts'] ?? array();
-    return is_array($fonts) ? $fonts : array();
+    $fonts = array(
+        'helvetica' => 'FORMS_FONT_HELVETICA',
+        'courier'   => 'FORMS_FONT_COURIER',
+        'times'     => 'FORMS_FONT_TIMES',
+        'freeserif' => 'FORMS_FONT_SERIF',
+    );
+    foreach ($fonts as $name => $constant) {
+        $fonts[$name] = defined($constant) ? constant($constant) : $name;
+    }
+    return $fonts;
 }
 
 /**
@@ -505,7 +525,7 @@ function forms_render_to_string(int $definitionId, array $recordIds, array $para
                 defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
                 lookups:         forms_formatter_lookups(),
             ),
-            defaultFont:          defined('PDF_DEFAULT_FONT')    ? PDF_DEFAULT_FONT          : 'helvetica',
+            defaultFont:          defined('FORMS_DEFAULT_FONT')    ? FORMS_DEFAULT_FONT          : 'freeserif',
             rowSpacing:           defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
             continuedLabel:       defined('TEXT_CONTINUED')      ? TEXT_CONTINUED            : 'Continued',
             pageOfLabel:          defined('TEXT_OF')             ? TEXT_OF                   : 'of',
