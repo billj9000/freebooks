@@ -142,21 +142,23 @@ foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
     }
 
     // A SERIAL form is not a page — it is character-cell text for a receipt
-    // printer. PhreeForm routes it to BuildSeq(), where `width` counts columns
-    // and `rowbreak` ends a line; there are no coordinates at all, which is why
-    // converting one produces a template with every element at 0,0.
+    // printer, where `width` counts columns and `rowbreak` ends a line, and it
+    // carries no coordinates at all. It used to be EXCLUDED from the shipping
+    // set for that reason: Forms had no renderer for the kind, so a native copy
+    // would have left a new install unable to print a receipt with either
+    // engine.
     //
-    // Forms has no renderer for that kind yet (§13.16), so shipping a native
-    // copy would leave a NEW install unable to print a receipt with either
-    // engine: Forms would draw nonsense and PhreeForm cannot read the format.
-    // Left as xml, which the seeder falls back to and PhreeForm still prints.
-    if (preg_match('#<serialform><!\[CDATA\[([^\]]*)\]\]>#', $contents, $serial)
-        && trim($serial[1]) !== '' && trim($serial[1]) !== '0') {
-        $native = preg_replace('/\.xml$/i', '.json', $path);
-        if (is_file($native) && $write) { @unlink($native); echo "  [remove] " . str_replace(DIR_FS_MODULES, 'modules/', $native) . " (serial form)\n"; }
-        echo "  [--] " . $shown . " is a serial (receipt) form; it stays xml\n";
-        continue;
-    }
+    // That reason died with §13.28 — SerialRenderer prints byte for byte what
+    // BuildSeq() printed — and the exclusion outlived it. Left in place it
+    // would have been the quiet blocker on step 6: a fresh install with
+    // PhreeForm deleted would seed 59 native definitions and NO receipt, and
+    // the first sign of it would be a till that prints nothing.
+    //
+    // The converted file also carries a page template with every element at
+    // 0,0, which is what the old comment worried about. It is dead weight and
+    // not a hazard: a definition with a serial template is served as one, which
+    // is what every migrated company's receipt has been doing since the
+    // migration.
 
     $builder = new DefinitionBuilder($catalog);
     try {

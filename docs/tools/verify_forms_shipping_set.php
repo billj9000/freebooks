@@ -309,27 +309,42 @@ ok('no shipped definition converts with a warning', $warned === [],
    implode(' | ', array_slice(array_map(
        fn($f, $w) => "$f: $w", array_keys($warned), $warned), 0, 3)));
 
-echo "\n=== a serial (receipt) form is NOT shipped native ===\n";
-// A serial form is character-cell text for a receipt printer, not a page:
-// PhreeForm routes it to BuildSeq(), where width counts columns and rowbreak
-// ends a line, and it carries no coordinates at all. Forms has no renderer for
-// that kind (§13.16), so a native copy would leave a new install unable to
-// print a receipt with EITHER engine — Forms drawing every element at 0,0 and
-// PhreeForm unable to read the format.
-$wrongly = $serials = [];
+echo "\n=== a serial (receipt) form IS shipped native ===\n";
+// This check used to say the opposite, and the rule it enforced outlived its
+// reason. A serial form is character-cell text for a receipt printer — width
+// counts columns, rowbreak ends a line, and there are no coordinates at all —
+// and while Forms had no renderer for that kind, shipping a native copy would
+// have left a new install unable to print a receipt with EITHER engine.
+//
+// §13.28 built the renderer, and verify_forms_serial holds it to BuildSeq()
+// byte for byte. The exclusion stayed anyway, which made it the quiet blocker
+// on step 6: with PhreeForm deleted, a fresh install would seed 59 native
+// definitions and NO RECEIPT, and the first sign of it would be a till printing
+// nothing.
+$missing = $serials = $noTemplate = [];
 foreach ($shipped as $xml) {
     $text = (string)file_get_contents($xml);
     if (!preg_match('#<serialform><!\[CDATA\[([^\]]*)\]\]>#', $text, $m)) continue;
     if (trim($m[1]) === '' || trim($m[1]) === '0') continue;
     $serials[] = basename($xml);
-    if (is_file(preg_replace('/\.xml$/i', '.json', $xml))) {
-        $wrongly[] = str_replace(DIR_FS_MODULES, '', $xml);
+
+    $native = preg_replace('/\.xml$/i', '.json', $xml);
+    if (!is_file($native)) { $missing[] = str_replace(DIR_FS_MODULES, '', $xml); continue; }
+
+    // Shipped is not enough: it has to carry the SERIAL template. A receipt
+    // converts to a page template too, with every element at 0,0 — dead weight,
+    // and the thing that would be printed if the serial half were ever lost.
+    $decoded = json_decode((string)file_get_contents($native), true);
+    if (empty($decoded['form']['serialLayout']['fields'] ?? null)) {
+        $noTemplate[] = str_replace(DIR_FS_MODULES, '', $native);
     }
 }
 ok(sprintf('%d serial form(s) found', count($serials)), $serials !== [],
    'none — this check would pass whatever the rule did');
-ok('none of them ships a native copy', $wrongly === [],
-   implode(' | ', array_slice($wrongly, 0, 3)));
+ok('each ships a native copy, so a new install can print a receipt',
+   $missing === [], implode(' | ', array_slice($missing, 0, 3)));
+ok('and each native copy carries its serial template',
+   $noTemplate === [], implode(' | ', array_slice($noTemplate, 0, 3)));
 
 echo "\n=== every column keeps the break and total the xml declared ===\n";
 //

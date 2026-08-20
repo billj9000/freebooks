@@ -4581,3 +4581,41 @@ A latent one fixed on the way past: neither the capture nor the check cleared
 `setprintedfield`, so a company whose receipt carried it would have had its
 printed counter incremented by a tool that only meant to look. No shipped
 receipt carries it; that is not a reason to leave the door open.
+
+### 13.36 Step 6, part three: the receipt that would not have shipped
+
+Stage C began with the other modules and immediately found something else: a
+**fresh install with PhreeForm deleted would have had no till receipt.**
+
+Two of the 61 shipped definitions had no native `.json` beside their `.xml` —
+`phreepos`'s `ReceiptSlip`, in both locales. Not an oversight: both the
+generator and `verify_forms_shipping_set` enforced it, with this reason —
+
+> A serial form is character-cell text for a receipt printer… Forms has no
+> renderer for that kind (§13.16), so a native copy would leave a new install
+> unable to print a receipt with EITHER engine.
+
+That was true when it was written. §13.28 built `SerialRenderer` and
+`verify_forms_serial` holds it to `BuildSeq()` byte for byte. **The reason died
+and the rule outlived it**, which is the dangerous shape: a guard whose
+justification has quietly become false still passes its own check, every time,
+and reads as deliberate to whoever comes next.
+
+Left in place, the failure would have arrived as a till printing nothing on a
+customer's first day.
+
+The exclusion is gone from both, and the check now says the opposite: every
+serial form ships a native copy, **and** that copy carries its serial layout —
+because a receipt also converts to a page template with every element at 0,0,
+which is dead weight and would be what got printed if the serial half were ever
+lost. Converting the shipped file produces 19 serial fields and no warnings,
+which is the same shape the demo company's own receipt has had since migration.
+
+#### And a deployment gap the check caught
+
+The generated files were written inside the container and not copied back, so
+the repository shipped nothing. `verify_forms_shipping_set` says exactly that —
+*"no master at all — copy it back out of the container into the repository"* —
+which is the case it was written for. The fix was to the deploy script, which
+had been syncing a hand-listed set of module directories; it syncs the whole
+tree now. Piecemeal deployment is how a generated file gets forgotten.

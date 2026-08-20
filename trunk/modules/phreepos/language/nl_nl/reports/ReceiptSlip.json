@@ -1,0 +1,775 @@
+{
+    "format": "freebooks/forms-definition",
+    "version": 1,
+    "type": "frm",
+    "title": "Kassabon",
+    "description": "Kassabon met betalingen. Formaat: 40 char breed, voor het printen van kassabonnen",
+    "group": "pos:rcpt",
+    "filenamePrefix": "Inv-",
+    "provider": "pos_builder",
+    "page": {
+        "size": "Letter",
+        "orientation": "P",
+        "margins": {
+            "top": 8,
+            "bottom": 8,
+            "left": 8,
+            "right": 8
+        }
+    },
+    "dates": {
+        "default": "c"
+    },
+    "form": {
+        "recordTable": "journal_main",
+        "serial": true,
+        "serialLayout": {
+            "width": 40,
+            "fields": [
+                {
+                    "element": {
+                        "type": "text",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 6
+                        },
+                        "text": "Verkoop Factuur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 14,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Tekst - Factuur"
+                    },
+                    "align": "C",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "block",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 6
+                        },
+                        "parts": [
+                            {
+                                "bind": {
+                                    "name": "COMPANY_NAME",
+                                    "scope": "context"
+                                },
+                                "separator": "nl"
+                            },
+                            {
+                                "bind": {
+                                    "name": "COMPANY_ADDRESS1",
+                                    "scope": "context"
+                                },
+                                "separator": "nl"
+                            },
+                            {
+                                "bind": {
+                                    "name": "COMPANY_ADDRESS2",
+                                    "scope": "context"
+                                },
+                                "separator": "del-nl"
+                            },
+                            {
+                                "bind": {
+                                    "name": "COMPANY_CITY_TOWN",
+                                    "scope": "context"
+                                },
+                                "separator": "com-sp"
+                            },
+                            {
+                                "bind": {
+                                    "name": "COMPANY_ZONE",
+                                    "scope": "context"
+                                },
+                                "separator": "2sp"
+                            },
+                            {
+                                "bind": {
+                                    "name": "COMPANY_POSTAL_CODE",
+                                    "scope": "context"
+                                }
+                            }
+                        ],
+                        "style": {
+                            "font": "helvetica",
+                            "size": 14,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Bedrijfs Adres"
+                    },
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 4
+                        },
+                        "bind": {
+                            "name": "COMPANY_TELEPHONE1",
+                            "scope": "context"
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Bedrijfs Telefoon"
+                    },
+                    "align": "C",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 4
+                        },
+                        "bind": {
+                            "name": "COMPANY_EMAIL",
+                            "scope": "context"
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Bedrijfs Email"
+                    },
+                    "align": "C",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 4
+                        },
+                        "bind": {
+                            "name": "COMPANY_WEBSITE",
+                            "scope": "context"
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Bedrijfs Website"
+                    },
+                    "align": "C",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "text",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "text": "Bonnummer #",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Tekst - Factuur Nummer"
+                    }
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "purchase_invoice_id"
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Data - Factuur Nummer"
+                    },
+                    "align": "C",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "post_date"
+                        },
+                        "format": "date",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Data - Boekdatum"
+                    },
+                    "align": "C"
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "rep_id"
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Data - Verkoop Medew"
+                    },
+                    "align": "C"
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "payment_reference"
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "C",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Data - Betalingsref"
+                    },
+                    "align": "C",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "table",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "source": "items",
+                        "columns": [
+                            {
+                                "bind": {
+                                    "name": "invoice_qty"
+                                },
+                                "heading": "Aant",
+                                "width": 3,
+                                "align": "L",
+                                "style": {
+                                    "font": "helvetica",
+                                    "size": 12,
+                                    "colour": [
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "align": "L"
+                                }
+                            },
+                            {
+                                "bind": {
+                                    "name": "invoice_sku"
+                                },
+                                "heading": "Artikelnr",
+                                "width": 15,
+                                "align": "L",
+                                "style": {
+                                    "font": "helvetica",
+                                    "size": 12,
+                                    "colour": [
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "align": "L"
+                                }
+                            },
+                            {
+                                "bind": {
+                                    "name": "invoice_unit_price"
+                                },
+                                "heading": "Stuks Prijs",
+                                "width": 11,
+                                "align": "R",
+                                "format": "posted_cur",
+                                "style": {
+                                    "font": "helvetica",
+                                    "size": 12,
+                                    "colour": [
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "align": "R"
+                                }
+                            },
+                            {
+                                "bind": {
+                                    "name": "invoice_price"
+                                },
+                                "heading": "Prijs",
+                                "width": 11,
+                                "align": "R",
+                                "format": "posted_cur",
+                                "style": {
+                                    "font": "helvetica",
+                                    "size": 12,
+                                    "colour": [
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "align": "R"
+                                }
+                            }
+                        ],
+                        "headerStyle": {
+                            "font": "helvetica",
+                            "size": 8,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Data Tabel - Regels"
+                    },
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "text",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "text": "Subtotaal",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Tekst - Subtotaal"
+                    }
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "invoice_subtotal"
+                        },
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "borderShow": true
+                        },
+                        "label": "Data - Subtotaal"
+                    },
+                    "align": "R",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "text",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "text": "b.t.w.",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Tekst - BTW"
+                    }
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "sales_tax"
+                        },
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "borderShow": true
+                        },
+                        "label": "Data - BTW"
+                    },
+                    "align": "R",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "text",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "text": "Totaal",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 8,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Text - Totaal"
+                    }
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "total_amount"
+                        },
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 12,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "borderShow": true
+                        },
+                        "label": "Data - Totaal"
+                    },
+                    "align": "R",
+                    "rowBreak": true
+                },
+                {
+                    "element": {
+                        "type": "text",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "text": "Ontvangen Betalingen",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "L",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ]
+                        },
+                        "label": "Tekst - OntvBet"
+                    }
+                },
+                {
+                    "element": {
+                        "type": "field",
+                        "box": {
+                            "x": 0,
+                            "y": 0,
+                            "width": 40,
+                            "height": 5
+                        },
+                        "bind": {
+                            "name": "total_paid"
+                        },
+                        "format": "posted_cur",
+                        "style": {
+                            "font": "helvetica",
+                            "size": 10,
+                            "colour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "align": "R",
+                            "borderSize": 1,
+                            "borderColour": [
+                                0,
+                                0,
+                                0
+                            ],
+                            "borderShow": true
+                        },
+                        "label": "Data - OntvBet"
+                    },
+                    "align": "R",
+                    "rowBreak": true
+                }
+            ]
+        }
+    }
+}
