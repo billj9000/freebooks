@@ -25,9 +25,19 @@
  * here is what genuinely belongs to the installation.
  */
 
-// Fallback width for a column whose definition declares none. PhreeForm's admin
-// setting is reused where present so a converted report keeps its layout.
-define('FORMS_DEFAULT_COLUMN_WIDTH', defined('PF_DEFAULT_COLUMN_WIDTH') ? PF_DEFAULT_COLUMN_WIDTH : 25);
+// The three renderer defaults, as FALLBACKS.
+//
+// Each is really a pb_configuration row that forms/classes/install.php seeds
+// and application_top turns into a constant, so on any installed company these
+// defines never run. They exist for the one case that is otherwise a fatal: a
+// company enabled before the rows existed, or a CLI caller that builds its own
+// constant list. `defined()` rather than an unconditional define, because a row
+// and a define of the same name is a redeclaration warning on every page.
+//
+// The values match what install.php ships, deliberately. Two places holding the
+// same number is a smell; the alternative is a page that dies when a row is
+// missing, and a missing row is exactly when a default is wanted.
+if (!defined('FORMS_DEFAULT_COLUMN_WIDTH')) define('FORMS_DEFAULT_COLUMN_WIDTH', 25);
 
 // Rows drawn before the engine gives up on a runaway report. A report with no
 // filter on a large journal is a memory exhaustion, not a useful document.
@@ -60,3 +70,10 @@ define('FORMS_DIR_IMAGES', FORMS_DIR_DEFINITIONS . 'images');
 // was never an option, and a setting with one possible value is a question
 // nobody should be asked. So the branch does not survive the move.
 define('FORMS_DEFAULT_FONT', 'freeserif');
+
+// Space between the heading rows of a table, in points.
+if (!defined('FORMS_DEFAULT_ROWSPACE')) define('FORMS_DEFAULT_ROWSPACE', 2);
+
+// The paper a seeded document gets when its definition names none. Stored as
+// the NAME; forms_seed_native() takes either spelling and keeps the name.
+if (!defined('FORMS_DEFAULT_PAPER')) define('FORMS_DEFAULT_PAPER', 'Letter');

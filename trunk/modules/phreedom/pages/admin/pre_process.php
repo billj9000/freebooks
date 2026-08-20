@@ -256,6 +256,11 @@ switch ($_REQUEST['action']) {
 	    // $db is the NEW company's connection from the top of this branch, so
 	    // this writes where the definitions went.
 	    if (defined('MODULE_FORMS_STATUS')) write_configure('MODULE_FORMS_PRINT_BUTTONS', '1');
+	    // Forms reads its own key, not PhreeForm's. The name alone: a native
+	    // definition stores "A4", never "A4:210:297".
+	    if (defined('MODULE_FORMS_STATUS') && $paper_size <> '') {
+	      write_configure('FORMS_DEFAULT_PAPER', explode(':', $paper_size)[0]);
+	    }
 	  }
 	}
 	if (!$error && $_POST['phreebooks_action'] <> 'data') { // install fiscal year if the phreebooks data is not copied

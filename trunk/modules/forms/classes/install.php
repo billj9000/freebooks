@@ -32,6 +32,25 @@
  */
 
 class forms_admin {
+  /**
+   * The PhreeForm setting each of Forms' own renderer defaults takes over from.
+   *
+   * Read at construction so that install and update both see it. An
+   * installation that answered this question once — at install time, or on
+   * PhreeForm's admin tab — should not be asked again by a module that is
+   * taking the question over, and should certainly not have the answer
+   * replaced by a shipped default without being told.
+   *
+   * When PhreeForm goes, these constants stop existing and the shipped
+   * defaults below apply to new installations only; every existing one already
+   * has its own row by then.
+   */
+  const INHERITS = array(
+    'FORMS_DEFAULT_PAPER'        => 'PF_DEFAULT_PAPERSIZE',
+    'FORMS_DEFAULT_ROWSPACE'     => 'PF_DEFAULT_ROWSPACE',
+    'FORMS_DEFAULT_COLUMN_WIDTH' => 'PF_DEFAULT_COLUMN_WIDTH',
+  );
+
   public $notes         = array();
   public $prerequisites = array();
   public $keys          = array();
@@ -49,7 +68,27 @@ class forms_admin {
       // Forms should let an admin look at it, not silently move production
       // printing onto it. Design §11.16 wants the two side by side first.
       'MODULE_FORMS_PRINT_BUTTONS' => '0',
+
+      // The three renderer defaults, which were PhreeForm's settings and are
+      // now Forms' own. Each INHERITS the PhreeForm value where the
+      // installation has one, so an admin who tuned a column width or chose A4
+      // at install time keeps that answer instead of silently reverting to what
+      // this module happens to ship. See below.
+      //
+      // Paper is stored as the NAME. PhreeForm keeps "A4:210:297" because its
+      // designer carried the dimensions along; a native definition stores the
+      // name alone and TCPDF looks the dimensions up itself.
+      'FORMS_DEFAULT_PAPER'        => 'Letter',
+      'FORMS_DEFAULT_ROWSPACE'     => '2',
+      'FORMS_DEFAULT_COLUMN_WIDTH' => '25',
     );
+    foreach (self::INHERITS as $key => $from) {
+      if (!defined($from)) continue;
+      $value = (string)constant($from);
+      // Either spelling is accepted, and only the name is kept.
+      if ($key === 'FORMS_DEFAULT_PAPER') $value = explode(':', $value)[0];
+      if ($value !== '') $this->keys[$key] = $value;
+    }
     $this->dirlist = array();
     $this->tables  = array(
       TABLE_FORMS_DATASETS => "CREATE TABLE " . TABLE_FORMS_DATASETS . " (

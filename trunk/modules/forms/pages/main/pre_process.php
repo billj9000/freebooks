@@ -28,15 +28,9 @@
 $security_level = validate_user(SECURITY_ID_FORMS_RUN);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// Definitions are found through FORMS_DIR_DEFINITIONS, which the require above
-// sets. PhreeForm's own bootstrap still has to happen, IN THIS ORDER and at
-// file scope: its language file defines the PF_FONT_* constants defaults.php
-// reads, and defaults.php loads each module's pf_process_* hooks behind
-// `isset($loaded_modules)` — a global it can only see from file scope, so this
-// must not move inside a function.
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');   // get_report_details()
+// No PhreeForm. Definitions are found through FORMS_DIR_DEFINITIONS, the labels
+// and the fonts through Forms' own language file, and the email tokens through
+// forms_fill_tokens() — all of which the two requires here supply.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
@@ -150,8 +144,8 @@ switch ($_REQUEST['action'] ?? '') {
       case 'csv': $renderer = new CsvRenderer(); break;
       case 'pdf': $renderer = new TablePdfRenderer(
                       formatter:          $formatter,
-                      groupTotalLabel:    defined('TEXT_GROUP_TOTAL_FOR')  ? TEXT_GROUP_TOTAL_FOR  : 'Group Total For:',
-                      reportTotalLabel:   defined('TEXT_REPORT_TOTAL_FOR') ? TEXT_REPORT_TOTAL_FOR : 'Report Total For:',
+                      groupTotalLabel:    FORMS_GROUP_TOTAL_FOR,
+                      reportTotalLabel:   FORMS_REPORT_TOTAL_FOR,
                       defaultColumnWidth: (float)FORMS_DEFAULT_COLUMN_WIDTH,
                   ); break;
       default:
@@ -173,7 +167,7 @@ switch ($_REQUEST['action'] ?? '') {
                 : $report->title . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
       $body     = trim((string)($_POST['message_body'] ?? '')) !== ''
                 ? (string)$_POST['message_body']
-                : ($report->emailMessage !== '' ? TextReplace($report->emailMessage)
+                : ($report->emailMessage !== '' ? forms_fill_tokens($report->emailMessage, $report->title)
                    : sprintf(FORMS_PRINT_EMAIL_BODY, $report->title, COMPANY_NAME));
 
       $block = forms_email_block($_POST);

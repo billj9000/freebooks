@@ -105,6 +105,43 @@ $failures += count($diffs);
 if ($expected) { echo "  -- intended divergences (garbage input) --\n"; foreach ($expected as $e) echo $e . "\n"; }
 if ($fatals)   { echo "  -- legacy crashes where we degrade safely --\n"; foreach ($fatals as $f) echo $f . "\n"; }
 
+// ─── 1b. an amount in words ──────────────────────────────────────────────────
+echo "\n=== n2wrd vs value_to_words_en_us() ===\n";
+//
+// Never compared before, because the hint CALLED that function: it was the same
+// implementation on both sides of the equals sign. Forms has its own now, so
+// there are two, and this is the only window in which they can be held against
+// each other — value_to_words_en_us() goes with PhreeForm.
+//
+// The spread is chosen for the joins, which is where a number-to-words gets it
+// wrong: the teens (their own words, not tens-plus-units), the hyphen that
+// appears only when a tens word precedes it, a zero hundreds column inside a
+// larger number, and the carry at each thousand boundary.
+$amounts = [0, 0.5, 1, 1.05, 7, 10, 11, 15, 19, 20, 21, 42, 99, 100, 101, 110,
+            115, 199, 200, 999, 1000, 1001, 1100, 12345.67, 100000, 999999.99,
+            1000000, 1234567.89, 1000000000, 1234567890.12, -5, 3.005];
+$matched = 0; $diffs = [];
+foreach ($amounts as $amount) {
+    $legacy = (string)value_to_words_en_us($amount);
+    $mine   = $fmt->format(new TypedValue($amount), new Format('n2wrd'), null);
+    if ($legacy === $mine) { $matched++; continue; }
+    $diffs[] = sprintf("  %-16s legacy=%s\n                  ours  =%s",
+        var_export($amount, true), $legacy, $mine);
+}
+// Non-numeric input is where the two deliberately differ: the legacy walks a
+// string through intval() and prints ZERO DOLLARS AND 00/100 for a name.
+$mine = $fmt->format(new TypedValue('mixed Case Text'), new Format('n2wrd'), null);
+printf("  %d matched, %d difference(s)\n", $matched, count($diffs));
+foreach ($diffs as $d) echo $d . "\n";
+$failures += count($diffs);
+if ($matched === 0) { $failures++; echo "  [FAIL] nothing was compared, so this proves nothing\n"; }
+if ($mine === 'mixed Case Text') {
+    echo "  [ok] a non-numeric amount is left alone rather than written as zero\n";
+} else {
+    $failures++;
+    printf("  [FAIL] a non-numeric amount became '%s'\n", $mine);
+}
+
 // ─── 2. separators ───────────────────────────────────────────────────────────
 echo "\n=== separators vs AddSep() ===\n";
 $matched = 0; $diffs = [];

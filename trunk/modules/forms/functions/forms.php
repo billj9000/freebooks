@@ -42,6 +42,18 @@
  */
 function forms_formatter_lookups(): array
 {
+    // phreebooks/defaults.php builds $coa_types_list out of COA_*_DESC, which
+    // live in that module's ADMIN language file — so requiring it without pulling
+    // that first is a fatal on an undefined constant.
+    //
+    // It used to be pulled by accident: phreeform/defaults.php calls
+    // gen_pull_language() for every module with a config_phreeform.php, and
+    // phreebooks has one. Every Forms page required phreeform's bootstrap, so
+    // the language was always there and nothing here had to ask. Dropping that
+    // require took the accident with it, and the first thing to run a report
+    // died in this function. Asked for explicitly now, which is what it always
+    // needed to do.
+    if (!defined('COA_00_DESC')) gen_pull_language('phreebooks', 'admin');
     require(DIR_FS_MODULES . 'phreebooks/defaults.php');   // $coa_types_list
 
     $locales   = gen_pull_countries();
@@ -366,6 +378,57 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
 }
 
 /**
+ * The paper sizes a document may sit on.
+ *
+ * Forms' own, rather than PhreeForm's $PaperSizes. Two differences, both
+ * deliberate:
+ *
+ *   - **No FPDF branch.** PhreeForm offers five sizes and adds seven more only
+ *     when PDF_APP is 'TCPDF'. Forms is TCPDF unconditionally, so it offers the
+ *     lot, always — the same reasoning as forms_font_names().
+ *   - **Keyed by NAME.** PhreeForm keys "A4:210:297" because its designer
+ *     carried the dimensions along; a native definition stores the name alone
+ *     and TCPDF looks the dimensions up itself. The editor had to split those
+ *     keys apart on every load, which is a conversion happening in a page.
+ *
+ * The three named sizes take a label because "Legal" and "Letter" are words
+ * before they are sizes; A0-A9 and Tabloid are the same in every language.
+ *
+ * @return array<string,string> stored name => label
+ */
+function forms_paper_sizes(): array
+{
+    $sizes = array(
+        'Legal'   => defined('FORMS_PAPER_LEGAL')   ? FORMS_PAPER_LEGAL   : 'Legal',
+        'Letter'  => defined('FORMS_PAPER_LETTER')  ? FORMS_PAPER_LETTER  : 'Letter',
+        'Tabloid' => defined('FORMS_PAPER_TABLOID') ? FORMS_PAPER_TABLOID : 'Tabloid',
+    );
+    foreach (range(0, 9) as $n) $sizes['A' . $n] = 'A' . $n;
+    return $sizes;
+}
+
+/**
+ * The %tokens% a stored email message carries, filled in.
+ *
+ * PhreeForm's TextReplace() did this by reading `global $report` for the
+ * document's title — a hidden dependency that made the function correct only
+ * where that global happened to be set, and silently wrong where it was not.
+ * The title is a parameter here for that reason.
+ *
+ * Same three tokens, same spelling, because they are in the stored definitions
+ * of every company that has ever set an email message.
+ */
+function forms_fill_tokens(string $text, string $title = ''): string
+{
+    return str_replace(
+        array('%date%', '%reportname%', '%company%'),
+        array(function_exists('gen_locale_date') ? (string)gen_locale_date(date('Y-m-d')) : date('Y-m-d'),
+              $title,
+              defined('COMPANY_NAME') ? COMPANY_NAME : ''),
+        $text);
+}
+
+/**
  * The fonts a document may be drawn in.
  *
  * Four, and short on purpose: these are the faces TCPDF is built with and can
@@ -543,8 +606,8 @@ function forms_render_to_string(int $definitionId, array $recordIds, array $para
                 lookups:         forms_formatter_lookups(),
             ),
             defaultFont:          defined('FORMS_DEFAULT_FONT')    ? FORMS_DEFAULT_FONT          : 'freeserif',
-            rowSpacing:           defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
-            continuedLabel:       defined('TEXT_CONTINUED')      ? TEXT_CONTINUED            : 'Continued',
+            rowSpacing:           (float)FORMS_DEFAULT_ROWSPACE,
+            continuedLabel:       FORMS_TABLE_CONTINUED,
             pageOfLabel:          defined('TEXT_OF')             ? TEXT_OF                   : 'of',
             imageDirectory:       FORMS_DIR_IMAGES,
             linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',

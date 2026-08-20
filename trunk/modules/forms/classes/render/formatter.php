@@ -68,6 +68,27 @@ final class Formatter
         'rep_id', 'branch', 'avg_cost', 'avg_total', 'ordr_qty',
     ];
 
+    /**
+     * The number words, as language KEYS with English fallbacks.
+     *
+     * Keys because these are translatable and PhreeForm defined them; the
+     * fallbacks are what makes `n2wrd` keep working after that language file
+     * goes. TEXT_HUNDERD is spelled as it is spelled in the file.
+     */
+    private const UNITS = [1 => 'TEXT_ONE', 'TEXT_TWO', 'TEXT_THREE', 'TEXT_FOUR', 'TEXT_FIVE',
+                           'TEXT_SIX', 'TEXT_SEVEN', 'TEXT_EIGHT', 'TEXT_NINE'];
+    private const UNITS_EN = [1 => 'One', 'Two', 'Three', 'Four', 'Five',
+                              'Six', 'Seven', 'Eight', 'Nine'];
+    private const TEENS = [10 => 'TEXT_TEN', 'TEXT_ELEVEN', 'TEXT_TWELVE', 'TEXT_THIRTEEN',
+                           'TEXT_FOURTEEN', 'TEXT_FIFTEEN', 'TEXT_SIXTEEN', 'TEXT_SEVENTEEN',
+                           'TEXT_EIGHTEEN', 'TEXT_NINETEEN'];
+    private const TEENS_EN = [10 => 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen',
+                              'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    private const TENS = [2 => 'TEXT_TWENTY', 'TEXT_THIRTY', 'TEXT_FORTY', 'TEXT_FIFTY',
+                          'TEXT_SIXTY', 'TEXT_SEVENTY', 'TEXT_EIGHTY', 'TEXT_NINETY'];
+    private const TENS_EN = [2 => 'Twenty', 'Thirty', 'Forty', 'Fifty',
+                             'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
     /** Code-to-label hints served from $lookups — no query, so they stay here. */
     public const LOOKUP_HINTS = ['coa_type', 'cvt_iso2', 'cvt_cntry'];
 
@@ -167,7 +188,7 @@ final class Formatter
             'dlr'                     => $numeric ? '$ ' . number_format(round((float)$raw, 2), 2) : (string)($raw ?? ''),
             'null-dlr'                => !$numeric ? (string)($raw ?? '') : (((float)$raw == 0) ? '' : '$ ' . number_format((float)$raw, 2)),
             'euro'                    => $numeric ? chr(128) . ' ' . number_format(round((float)$raw, 2), 2) : (string)($raw ?? ''),
-            'n2wrd'                   => function_exists('value_to_words_en_us') ? value_to_words_en_us($raw) : (string)($raw ?? ''),
+            'n2wrd'                   => $this->words($raw),
             'terms'                   => function_exists('gen_terms_to_language') ? (string)gen_terms_to_language($raw) : (string)($raw ?? ''),
             'ship_name'               => $this->shipName((string)($raw ?? '')),
             'rnd_dec'                 => $numeric ? $this->cur('format',  (float)$raw) : (string)($raw ?? ''),
@@ -276,6 +297,85 @@ final class Formatter
     private function lower(string $s): string
     {
         return function_exists('strtolower_utf8') ? strtolower_utf8($s) : mb_strtolower($s);
+    }
+
+    /**
+     * An amount written out in words, for the line on a cheque.
+     *
+     * Forms' own, rather than PhreeForm's value_to_words_en_us(). The call it
+     * replaced was guarded with function_exists(), which reads like caution and
+     * is the opposite: after step 6 that function is gone, the guard is
+     * satisfied by the `else` branch, and `n2wrd` quietly prints the NUMBER on
+     * every cheque. Nobody would see a failure — they would see a cheque.
+     *
+     * The check that would have caught it dies in the same commit, because it
+     * compares this hint against value_to_words_en_us(). So the algorithm is
+     * reproduced here exactly — same recursion, same order, same spacing, same
+     * hyphen between tens and units, and the same `TEXT_HUNDERD` misspelling,
+     * which is a language KEY and not a word. While both exist they can be
+     * compared, which is the only moment that comparison is available.
+     *
+     * en_us in its bones: it says DOLLARS, and it writes the cents as `NN/100`.
+     * That is what the shipped cheque forms expect. A locale that needs
+     * otherwise needs a different hint, not a different table.
+     */
+    private function words(mixed $raw): string
+    {
+        if (!is_numeric($raw)) return (string)($raw ?? '');
+
+        $number  = round((float)$raw, 2);
+        $dollars = (int)$number;
+        $cents   = (string)round(($number - $dollars) * 100);
+        if (strlen($cents) === 1) $cents = '0' . $cents;
+
+        $output = $dollars < 1
+            ? $this->constant('TEXT_ZERO', 'Zero')
+            : $this->thousands($dollars, ['', ' ' . $this->constant('TEXT_THOUSAND', 'Thousand'),
+                                              ' ' . $this->constant('TEXT_MILLION',  'Million'),
+                                              ' ' . $this->constant('TEXT_BILLION',  'Billion'),
+                                              ' ' . $this->constant('TEXT_TRILLION', 'Trillion')]);
+
+        return $this->upper($output . ' ' . $this->constant('TEXT_DOLLARS', 'Dollars')
+             . ' ' . $this->constant('TEXT_AND', 'and') . ' ' . $cents . '/100');
+    }
+
+    /** @param list<string> $position suffixes, smallest first; consumed by recursion */
+    private function thousands(int $number, array $position): string
+    {
+        $output   = '';
+        $suffix   = array_shift($position);
+        $tens     = $number % 100;
+        $number   = intdiv($number, 100);
+        $hundreds = $number % 10;
+        $number   = intdiv($number, 10);
+
+        if ($number >= 1) $output = $this->thousands($number, $position);
+        if ($hundreds >= 1) {
+            $output .= ' ' . $this->digit($hundreds) . ' ' . $this->constant('TEXT_HUNDERD', 'Hundred');
+        }
+        return $output . $this->hundreds($tens) . $suffix;
+    }
+
+    private function hundreds(int $number): string
+    {
+        // The teens are their own words, not tens-plus-units.
+        if ($number > 9 && $number < 20) {
+            return ' ' . $this->constant(self::TEENS[$number], self::TEENS_EN[$number]);
+        }
+        $output = '';
+        $tens   = intdiv($number, 10);
+        if ($tens >= 2) $output .= ' ' . $this->constant(self::TENS[$tens], self::TENS_EN[$tens]);
+
+        $ones = $number % 10;
+        // A hyphen only when there is a tens word before it: "twenty-one", but
+        // " one". The space is what the caller's concatenation expects.
+        if ($ones >= 1) $output .= ($output !== '' ? '-' : ' ') . $this->digit($ones);
+        return $output;
+    }
+
+    private function digit(int $n): string
+    {
+        return $this->constant(self::UNITS[$n] ?? '', self::UNITS_EN[$n] ?? (string)$n);
     }
 
     private function constant(string $name, string $fallback): string

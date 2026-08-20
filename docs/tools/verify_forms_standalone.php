@@ -76,37 +76,19 @@ function ok(string $what, bool $cond, string $detail = ''): void {
  * survives step 6 — there is only one entry of that kind, and it is marked.
  */
 const BORROWED = [
-    // Requires. Each page pulls PhreeForm's bootstrap for the entries below it.
-    'phreeform'                        => "gen_pull_language('phreeform'), for the constants defaults.php reads",
-    'phreeform/defaults.php'           => 'the paper sizes and the row-space default',
-    'phreeform/functions/phreeform.php'=> 'TextReplace(), used by the run pages',
-
-    // Renderer defaults that were PhreeForm admin settings and have no Forms
-    // equivalent yet. Each is a document property in the native format, so
-    // these are fallbacks for a definition that does not carry one.
-    'PF_DEFAULT_COLUMN_WIDTH'          => 'fallback column width, read behind defined()',
-    'PF_DEFAULT_ROWSPACE'              => 'fallback row height for a table renderer',
-    'PF_DEFAULT_PAPERSIZE'             => 'the paper a seeded document gets',
-    'TEXT_CONTINUED'                   => 'the label on a table that runs to a second page',
-    'TEXT_GROUP_TOTAL_FOR'             => "a report's group subtotal label",
-    'TEXT_REPORT_TOTAL_FOR'            => "a report's grand total label",
-
-    // Tables PhreeForm builds in its defaults.php.
-    'PaperSizes'                       => 'the paper sizes the report editor offers',
-
-    // Functions declared in PhreeForm and called from Forms.
-    'TextReplace'                      => '%date% / %company% substitution in a title',
-    'value_to_words_en_us'             => "the 'n2wrd' format, for cheque amounts",
-
-    // Language constants the seeder reports with.
-    'PHREEFORM_REPDUP'                 => 'seeder message: a document of that name exists',
-    'PHREEFORM_WRITE_ERROR'            => 'seeder message: the definition could not be written',
-
-    // NOT a step-6 dependency. The catalogue table is shared BY DESIGN — one
-    // row per document, read by both engines, which is what made running the
-    // two side by side possible at all (§13.3). When PhreeForm goes, the
-    // constant moves to forms/config.php and the table keeps its name.
-    'TABLE_PHREEFORM'                  => 'the shared document catalogue (by design)',
+    // Empty, and that is the finding: Forms names nothing PhreeForm declares.
+    //
+    // Leave the array here rather than deleting the check. It is the guard
+    // against the dependency coming BACK — a page that reaches for a PF_
+    // constant, a `gen_pull_language('phreeform')` added for one label — and
+    // the second check below keeps this honest in the other direction, so an
+    // entry cannot be added speculatively and left to rot.
+    //
+    // One thing it cannot see, named here so nobody assumes otherwise:
+    // forms/classes/install.php holds PF_* names as STRINGS, to inherit an
+    // installation's tuned settings through defined()/constant(). A name in a
+    // string is not a dependency on the constant existing — that code runs
+    // correctly either way — but it is also where a real dependency could hide.
 ];
 
 /**
@@ -217,17 +199,29 @@ function formsReferences(string $forms, array $vocabulary): array
         $where = str_replace($forms . '/', '', $path);
         $src   = (string)file_get_contents($path);
 
+        $previous = '';
         foreach (token_get_all($src) as $token) {
             if (!is_array($token)) continue;
             [$id, $text, $line] = $token;
             if ($id === T_COMMENT || $id === T_DOC_COMMENT || $id === T_INLINE_HTML) continue;
+            if ($id === T_WHITESPACE) continue;
+            $wasCall = $previous;
+            if ($id === T_STRING) $previous = $text;
 
             if ($id === T_CONSTANT_ENCAPSED_STRING) {
-                // A require path or a gen_pull_language() argument. Only the
+                // A require path, or a gen_pull_language() argument. Only the
                 // whole literal counts: prose ABOUT phreeform is not a use of
                 // it, and prose is what a substring search would find.
+                //
+                // A bare 'phreeform' has to be read in context, because the
+                // TABLE is called pb_phreeform and always will be — renaming it
+                // is a migration every backup, restore and extension would have
+                // to be taught, in exchange for a word. So `DB_PREFIX .
+                // 'phreeform'` is not a dependency on the module; only
+                // gen_pull_language('phreeform') is.
                 $literal = trim($text, "'\"");
-                if ($literal === 'phreeform' || str_starts_with($literal, 'phreeform/')) {
+                if (str_starts_with($literal, 'phreeform/')
+                    || ($literal === 'phreeform' && $wasCall === 'gen_pull_language')) {
                     $found[$literal][] = "$where:$line";
                 }
                 continue;
@@ -273,6 +267,43 @@ foreach ($used as $name => $where) {
     if ($verbose || $why === null) foreach ($where as $one) echo "        $one\n";
 }
 if ($used === []) echo "  (nothing — Forms stands alone)\n";
+
+// ─────────────────────────────────────────────────────────────────────────────
+echo "\n=== a setting has one value, written twice ===\n";
+//
+// The three renderer defaults are pb_configuration rows that install.php seeds,
+// AND defines in defaults.php for the company whose row is missing. Two places
+// holding the same number is a smell, and the alternative is worse — a page
+// that dies when a row is absent, which is exactly when a default is wanted.
+// So they are held equal instead.
+//
+// Source-only, deliberately: this is about what SHIPS, not about what one
+// company's database happens to hold. A company that tuned a value has a row
+// that rightly differs from both.
+$installed = [];
+$src = (string)file_get_contents($forms . '/classes/install.php');
+if (preg_match("/\\\$this->keys\s*=\s*array\((.*?)\n    \);/s", $src, $block)
+    && preg_match_all("/'(FORMS_[A-Z_]+)'\s*=>\s*'([^']*)'/", $block[1], $m, PREG_SET_ORDER)) {
+    foreach ($m as $one) $installed[$one[1]] = $one[2];
+}
+ok('install.php ships the renderer defaults as configuration keys',
+   count($installed) >= 3, count($installed) . ' found');
+
+$fallbacks = [];
+$src = (string)file_get_contents($forms . '/defaults.php');
+if (preg_match_all("/if \(!defined\('(FORMS_[A-Z_]+)'\)\) define\('\\1',\s*'?([^,')]*)'?\)/", $src, $m, PREG_SET_ORDER)) {
+    foreach ($m as $one) $fallbacks[$one[1]] = trim($one[2]);
+}
+
+$missing = $differ = [];
+foreach ($installed as $key => $value) {
+    if ($key === 'MODULE_FORMS_PRINT_BUTTONS') continue;
+    if (!isset($fallbacks[$key]))            { $missing[] = $key; continue; }
+    if ((string)$fallbacks[$key] !== $value) { $differ[]  = "$key: ships '$value', falls back to '{$fallbacks[$key]}'"; }
+}
+ok('every seeded default has a fallback, so a missing row is not a fatal',
+   $missing === [], implode(', ', $missing));
+ok('and the two agree', $differ === [], implode(' | ', $differ));
 
 echo "\n=== the list is honest ===\n";
 $new = array_diff(array_keys($used), array_keys(BORROWED));

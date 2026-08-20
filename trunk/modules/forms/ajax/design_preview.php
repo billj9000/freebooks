@@ -38,7 +38,6 @@
 $security_level = validate_ajax_user();
 
 /**************  include page specific files    *********************/
-gen_pull_language('phreeform');
 gen_pull_language('forms');
 
 // validate_ajax_user() proves there is a SESSION, not that it holds this
@@ -53,8 +52,6 @@ if (($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) < 1) {
     . FORMS_DESIGN_DENIED . '</body>');
 }
 
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 // A module's defaults.php is NOT loaded for you — a page requires its own, and
 // an ajax op has no DIR_FS_WORKING to require it from. FORMS_DEFAULT_COLUMN_WIDTH
 // lives there, and reaching it undefined is fatal at the last line of this file,
@@ -148,8 +145,8 @@ $renderer = new TablePdfRenderer(
                         currencies:      $currencies,
                         defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
                         lookups:         forms_formatter_lookups()),
-  groupTotalLabel:    defined('TEXT_GROUP_TOTAL_FOR')  ? TEXT_GROUP_TOTAL_FOR  : 'Group Total For:',
-  reportTotalLabel:   defined('TEXT_REPORT_TOTAL_FOR') ? TEXT_REPORT_TOTAL_FOR : 'Report Total For:',
+  groupTotalLabel:    FORMS_GROUP_TOTAL_FOR,
+  reportTotalLabel:   FORMS_REPORT_TOTAL_FOR,
   defaultColumnWidth: (float)FORMS_DEFAULT_COLUMN_WIDTH,
 );
 

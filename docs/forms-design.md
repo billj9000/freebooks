@@ -4345,3 +4345,111 @@ Worth recording for step 6: **PhreeForm's own `cvt_iso2` and `cvt_cntry` are
 broken too**, for the same reason and for whoever commented that file out. They
 are not being fixed; the module is being deleted, and Forms no longer depends on
 anything in that file.
+
+### 13.34 Step 6, part one: Forms stops borrowing
+
+The design doc's step 6 was three bullets. Counted properly — by
+`verify_forms_standalone`, §13.33 — it was **eighteen names**, and this pass
+takes it to **none**. Forms names nothing PhreeForm declares, and all ten
+`gen_pull_language` and `require` lines are gone.
+
+#### Three settings that would have changed meaning quietly
+
+The first draft of this stopped at fifteen and left the three renderer defaults
+— `PF_DEFAULT_COLUMN_WIDTH`, `PF_DEFAULT_ROWSPACE`, `PF_DEFAULT_PAPERSIZE` —
+read behind `defined()`, on the reasoning that they are `pb_configuration` rows
+and an installation that tuned one should keep its layout.
+
+That reasoning holds for an **existing** company and fails for a **fresh
+install**, which is the case nobody was looking at. `PF_DEFAULT_PAPERSIZE` is
+PhreeForm's from the original 3.7.1 import, but issue #24 built the installer's
+paper question on top of it: the form writes that key, and `admin_add_reports()`
+stamps it onto every seeded definition. Three of those four links are
+PhreeForm's. After step 6 the installer would be writing a key for a module that
+no longer exists, `defined()` would be false, and a new company choosing A4
+would get its documents seeded on Letter — the exact defect #24 fixed, restored
+silently.
+
+So the three are Forms' own configuration keys now, seeded by
+`forms/classes/install.php`, and each **inherits** the PhreeForm value where the
+installation has one. An admin who answered this question once should not be
+asked again by the module taking the question over, and certainly should not
+have the answer replaced by a shipped default without being told. The installer
+and the Company Manager write `FORMS_DEFAULT_PAPER` alongside the old key.
+
+Paper is stored as the **name**. PhreeForm keeps `"A4:210:297"` because its
+designer carried the dimensions along; a native definition stores `A4` and TCPDF
+looks the dimensions up itself. `forms_seed_native()` takes either spelling.
+
+A settings key needs a value in two places — the row `install.php` seeds, and a
+`defined()` fallback for the company whose row is missing. Two places holding
+one number is a smell, and the alternative is a page that dies exactly when a
+default is wanted. They are held equal by a check instead, read out of both
+files.
+
+**One thing `verify_forms_standalone` cannot see**, recorded so nobody assumes
+otherwise: `install.php` holds the `PF_*` names as **strings**, to inherit
+through `defined()`/`constant()`. A name in a string is not a dependency on the
+constant existing — that code runs correctly either way — but it is also where a
+real dependency could hide.
+
+#### The cheque that would have printed a number
+
+`n2wrd` — the amount in words on a cheque — was
+`function_exists('value_to_words_en_us') ? value_to_words_en_us($raw) : $raw`.
+That reads like caution and is the opposite. After step 6 the function is gone,
+the guard is satisfied by the else branch, and every cheque prints the **digits**
+where the words should be. Nobody would see a failure; they would see a cheque.
+
+And the check that would have caught it dies in the same commit, because it
+compared the hint against `value_to_words_en_us()` — the hint *called* that
+function, so it was the same implementation on both sides of the equals sign.
+
+So the algorithm is reproduced in the Formatter exactly: same recursion, same
+spacing, the hyphen that appears only when a tens word precedes it, and the same
+`TEXT_HUNDERD` misspelling, which is a language key and not a word. Then the two
+are compared over 32 amounts chosen for the joins — the teens, the hyphen, a
+zero hundreds column inside a larger number, each thousand boundary. They agree
+exactly. **That comparison is only available while both exist**, which is the
+whole argument for doing it now rather than after.
+
+#### An accident nobody had written down
+
+Dropping the requires broke running a report, and the cause is worth keeping.
+`forms_formatter_lookups()` requires `phreebooks/defaults.php`, which builds
+`$coa_types_list` out of `COA_*_DESC` — constants in that module's **admin**
+language file. Requiring it without pulling that first is a fatal.
+
+It had never had to ask. `phreeform/defaults.php` calls
+`gen_pull_language($mod, 'admin')` for every module with a `config_phreeform.php`,
+and phreebooks has one; every Forms page required phreeform's bootstrap, so the
+language was always already there. Removing the require took the accident with
+it, and the first thing to run a report died inside that function.
+
+`verify_forms_standalone` could not have seen this: it is a transitive
+*language pull*, not a named symbol. `verify_forms_pages` caught it, because it
+boots without that bootstrap and runs the page body — which is exactly the
+property it was built for (§13.22).
+
+#### Smaller moves, same shape
+
+- **`TextReplace()`** read `global $report` for `%reportname%`, so it was correct
+  only where that global happened to be set and silently wrong elsewhere.
+  `forms_fill_tokens()` takes the title as a parameter. Same three tokens, same
+  spelling — they are in the stored definitions of every company that has set an
+  email message.
+- **Paper sizes** are Forms' own, keyed by the NAME a definition stores.
+  PhreeForm keys `"A4:210:297"` because its designer carried the dimensions
+  along, and the report editor split them off again on every load — a conversion
+  happening in a page. No `PDF_APP` branch either, for the same reason as the
+  fonts.
+- **`TABLE_PHREEFORM`** is now defined by `forms/config.php` as well, guarded.
+  The table keeps its name: renaming it is a migration every backup, restore and
+  installed extension would have to be taught, in exchange for a word. That
+  meant teaching the standalone checker to read a bare `'phreeform'` in context
+  — `DB_PREFIX . 'phreeform'` is a table, `gen_pull_language('phreeform')` is a
+  dependency.
+
+Faults reinstated and caught: the hyphen dropped from the tens (9 of 32 amounts
+differ), the teens built as tens-plus-units (7 differ), and a page pulling
+PhreeForm's language again.

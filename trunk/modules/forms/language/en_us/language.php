@@ -471,3 +471,17 @@ define('FORMS_FONT_HELVETICA', 'Helvetica');
 define('FORMS_FONT_COURIER',   'Courier');
 define('FORMS_FONT_TIMES',     'Times Roman');
 define('FORMS_FONT_SERIF',     'Serif');
+
+/***** labels the renderers draw *****/
+define('FORMS_TABLE_CONTINUED',    'Continued');
+define('FORMS_GROUP_TOTAL_FOR',    'Group Total For:');
+define('FORMS_REPORT_TOTAL_FOR',   'Report Total For:');
+
+/***** seeding a company's documents *****/
+define('FORMS_SEED_DUPLICATE',     'A document called "%s" already exists, so it was not replaced.');
+define('FORMS_SEED_WRITE_ERROR',   'The document definition could not be written to %s.');
+
+/***** the paper a document may sit on *****/
+define('FORMS_PAPER_LEGAL',        'Legal');
+define('FORMS_PAPER_LETTER',       'Letter');
+define('FORMS_PAPER_TABLOID',      'Tabloid');

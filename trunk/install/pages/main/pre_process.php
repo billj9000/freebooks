@@ -291,6 +291,15 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  				// Letter — and the reports are seeded from the constant further
 	  				// down. The failure would be silent: every report simply Letter.
 	  				if ($entry == 'phreeform') $install_mod->keys['PF_DEFAULT_PAPERSIZE'] = $paper_size;
+	  				// And Forms' own key, which is what its renderers read. Stored
+	  				// as the NAME: PhreeForm keeps "A4:210:297" because its designer
+	  				// carried the dimensions along, and a native definition stores
+	  				// the name alone. Written here for the same reason as the line
+	  				// above — write_configure() only define()s on the INSERT branch,
+	  				// so a later write would update the row and leave the constant
+	  				// holding the shipped default, and the documents are seeded from
+	  				// the constant further down.
+	  				if ($entry == 'forms') $install_mod->keys['FORMS_DEFAULT_PAPER'] = explode(':', $paper_size)[0];
 			    	if (admin_check_versions($entry, $install_mod->prerequisites)) {
 			    		// Check for version levels
 			    		$error = true;

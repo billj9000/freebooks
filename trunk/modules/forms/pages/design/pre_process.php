@@ -53,9 +53,6 @@ require(DIR_FS_WORKING . 'defaults.php');
 // the font table — its language file defines the PF_FONT_* constants its
 // defaults.php reads — and $PaperSizes. That and $DateChoices are plain
 // variables, so they would vanish if this moved inside a function.
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 require(DIR_FS_MODULES . 'phreedom/defaults.php');   // $DateChoices
@@ -223,14 +220,13 @@ $forms_design_aligns = array(
   array('id' => Align::Right->value,   'text' => FORMS_DESIGN_ALIGN_RIGHT),
 );
 
-// Paper sizes are stored as a NAME only; $PaperSizes keys them as
-// "Name:width:height" because the legacy designer carried the dimensions along.
+// Keyed by the name a definition stores. PhreeForm keyed "A4:210:297" and this
+// page split the dimensions off again on every load, which is a conversion
+// happening in a page; forms_paper_sizes() hands back what is stored.
 $forms_design_papers = array();
-foreach ($PaperSizes as $key => $label) {
-  $name = explode(':', $key)[0];
-  $forms_design_papers[$name] = array('id' => $name, 'text' => $label);
+foreach (forms_paper_sizes() as $name => $label) {
+  $forms_design_papers[] = array('id' => $name, 'text' => $label);
 }
-$forms_design_papers = array_values($forms_design_papers);
 
 $forms_design_orientations = array(
   array('id' => 'P', 'text' => FORMS_DESIGN_PORTRAIT),

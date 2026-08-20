@@ -168,3 +168,13 @@ if (defined('MODULE_FORMS_STATUS')) {
     'params'                 => '',
   );
 }
+
+// The document catalogue: one row per report or form, read by Forms and — while
+// it is still installed — by PhreeForm. Shared BY DESIGN (§13.3), which is what
+// made running the two side by side possible at all.
+//
+// Defined here as well as in phreeform/config.php, guarded, so that Forms keeps
+// working when that module goes. The TABLE keeps its name: renaming it is a
+// migration every backup, restore and installed extension would have to be
+// taught, in exchange for a word.
+if (!defined('TABLE_PHREEFORM')) define('TABLE_PHREEFORM', DB_PREFIX . 'phreeform');

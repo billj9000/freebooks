@@ -47,9 +47,6 @@ require(DIR_FS_WORKING . 'defaults.php');
 // PhreeForm's language file feeds its defaults.php, which supplies the font
 // table and loads each module's pf_process_* hooks behind an
 // `isset($loaded_modules)` guard it can only satisfy at file scope.
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');   // get_report_details()
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
@@ -207,8 +204,8 @@ function forms_print_render(): ?object
                         lookups:         forms_formatter_lookups(),
                     ),
     defaultFont:    defined('FORMS_DEFAULT_FONT')   ? FORMS_DEFAULT_FONT          : 'freeserif',
-    rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
-    continuedLabel: defined('TEXT_CONTINUED')     ? TEXT_CONTINUED            : 'Continued',
+    rowSpacing:     (float)FORMS_DEFAULT_ROWSPACE,
+    continuedLabel: FORMS_TABLE_CONTINUED,
     pageOfLabel:    defined('TEXT_OF')            ? TEXT_OF                   : 'of',
     imageDirectory: FORMS_DIR_IMAGES,
   linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
@@ -335,7 +332,7 @@ if ($forms_subject === '' && $forms_report) {
 $forms_body = (string)($_POST['message_body'] ?? '');
 if ($forms_body === '' && $forms_report) {
   $forms_body = $forms_report->emailMessage !== ''
-              ? TextReplace($forms_report->emailMessage)
+              ? forms_fill_tokens($forms_report->emailMessage, $forms_report->title)
               : sprintf(FORMS_PRINT_EMAIL_BODY, $forms_report->title, COMPANY_NAME);
 }
 

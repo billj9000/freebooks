@@ -92,7 +92,7 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   // Size only. PF_DEFAULT_ORIENTATION is deliberately NOT applied: several
   // shipped reports choose landscape on purpose and would be squeezed onto a
   // portrait page.
-  if ($paper_size == '' && defined('PF_DEFAULT_PAPERSIZE')) $paper_size = PF_DEFAULT_PAPERSIZE;
+  if ($paper_size == '') $paper_size = FORMS_DEFAULT_PAPER;
   if ($paper_size <> '' && isset($definition->page->size)) {
     // The two formats spell a paper differently, and the caller passes the
     // LEGACY spelling because the installer, the company manager and
@@ -117,9 +117,7 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   if ($result->RecordCount() > 0) {
     $rID = $result->fields['id'];
     if (file_exists($save_path . 'pf_' . $rID)) {
-      if (isset($messageStack) && defined('PHREEFORM_REPDUP')) {
-        $messageStack->add(sprintf(PHREEFORM_REPDUP, $title), 'error');
-      }
+      if (isset($messageStack)) $messageStack->add(sprintf(FORMS_SEED_DUPLICATE, $title), 'error');
       return false;
     }
   }
@@ -165,9 +163,7 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   $written = $json === false ? false : @file_put_contents($save_path . 'pf_' . $rID, $json);
   if ($written === false) {
     $db->Execute("delete from " . TABLE_PHREEFORM . " where id = " . (int)$rID);
-    if (isset($messageStack) && defined('PHREEFORM_WRITE_ERROR')) {
-      $messageStack->add(sprintf(PHREEFORM_WRITE_ERROR, $save_path . 'pf_' . $rID), 'error');
-    }
+    if (isset($messageStack)) $messageStack->add(sprintf(FORMS_SEED_WRITE_ERROR, $save_path . 'pf_' . $rID), 'error');
     return false;
   }
   return true;

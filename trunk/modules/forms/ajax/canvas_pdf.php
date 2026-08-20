@@ -51,7 +51,6 @@
 $security_level = validate_ajax_user();
 
 /**************  include page specific files    *********************/
-gen_pull_language('phreeform');
 gen_pull_language('forms');
 
 // Authoring is its own permission, and validate_ajax_user() proves only a
@@ -62,8 +61,6 @@ if (($_SESSION['admin_security'][SECURITY_ID_FORMS_AUTHOR] ?? 0) < 1) {
     . FORMS_DESIGN_DENIED . '</body>');
 }
 
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 // A module's defaults.php is not loaded for you, and an ajax op has no
 // DIR_FS_WORKING to require it from.
 require_once(DIR_FS_MODULES . 'forms/defaults.php');
@@ -202,8 +199,8 @@ $renderer = new LayoutPdfRenderer(
                     defaultCurrency: defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
                     lookups:         forms_formatter_lookups()),
   defaultFont:    defined('FORMS_DEFAULT_FONT') ? FORMS_DEFAULT_FONT : 'freeserif',
-  rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
-  continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
+  rowSpacing:     (float)FORMS_DEFAULT_ROWSPACE,
+  continuedLabel: FORMS_TABLE_CONTINUED,
   pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
   imageDirectory: FORMS_DIR_IMAGES,
   linkedImageDirectory: DIR_FS_MY_FILES . $_SESSION['company'] . '/',
