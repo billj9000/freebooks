@@ -70,23 +70,6 @@ if (!is_dir($dir)) { echo "  [--] no report directory on this company\n"; exit(0
 // a child process, but this script can still die on an assertion that throws,
 // and a verifier that leaves a company's definitions in a half-migrated state
 // would be worse than no verifier.
-$backup = $dir . '.verify-backup-' . getmypid();
-function copyTree(string $from, string $to): void {
-    @mkdir($to, 0777, true);
-    foreach (scandir($from) ?: [] as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-        $a = "$from/$entry"; $b = "$to/$entry";
-        if (is_dir($a)) copyTree($a, $b); else @copy($a, $b);
-    }
-}
-function removeTree(string $path): void {
-    foreach (scandir($path) ?: [] as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-        $p = "$path/$entry";
-        if (is_dir($p)) removeTree($p); else @unlink($p);
-    }
-    @rmdir($path);
-}
 /** Every pf_ file and its bytes, which is what "unchanged" has to mean. */
 function snapshot(string $dir): array {
     $out = [];
@@ -95,12 +78,13 @@ function snapshot(string $dir): array {
     return $out;
 }
 
-copyTree($dir, $backup);
-register_shutdown_function(function () use ($dir, $backup) {
-    if (!is_dir($backup)) return;
-    removeTree($dir);
-    copyTree($backup, $dir);
-    removeTree($backup);
+// Through the shared snapshot, which restores OWNERSHIP as well as bytes. This
+// tool ran as root under `docker exec` and put every definition back owned by
+// root, which the web server cannot then write — a verifier proving the
+// definitions were untouched, by making them unwritable. See fb_snapshot_tree().
+$snapshot = fb_snapshot_tree($dir);
+register_shutdown_function(function () use ($snapshot) {
+    fb_restore_tree($snapshot);
     echo "\n  [--] the report directory was restored exactly as it was found\n";
 });
 

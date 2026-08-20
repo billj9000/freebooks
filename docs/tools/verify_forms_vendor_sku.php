@@ -41,12 +41,12 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($argv[1] ?? null);
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\App\FormRunner;
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
+use FreeBooks\Forms\Definition\DefinitionLoader;
 
 $failures = 0;
 function ok(string $what, bool $cond, string $detail = ''): void {
@@ -67,11 +67,16 @@ if (!($db->Execute("show tables like '" . $db->prepare_input($table) . "'"))->Re
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 $runner = new FormRunner($db, $catalog);
+// The definition is looked for in the PhreeForm ORIGINAL: it is identified by
+// the TABLE it joins, and a migrated definition names a dataset instead, so
+// reading the stored file found nothing on either company and said so as
+// "[--] no form joins inventory_purchase_details" — a skip, not a failure.
+$loader = new DefinitionLoader($catalog);
 
 $target = null;
 $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM . " where doc_ext = 'frm' order by id");
 while (!$result->EOF) {
-    $definition = get_report_details((int)$result->fields['id']);
+    $definition = legacyOriginal($loader, (int)$result->fields['id']);
     $names = array_map(fn($t) => strtolower((string)($t->tablename ?? '')), (array)($definition->tables ?? []));
     if ($definition && in_array('inventory_purchase_details', $names, true)) {
         $target = [(int)$result->fields['id'], (string)$result->fields['doc_title'], $definition];

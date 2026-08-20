@@ -206,6 +206,11 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
         fb_require_globals(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
     }
 
+    // Whatever this tool goes on to write under my_files/<company>/ ends up
+    // owned by whoever runs it — root, under `docker exec` — and the web server
+    // then cannot write it. Repaired at shutdown, once, for every tool.
+    fb_guard_file_ownership($company);
+
     return $company;
 }
 
@@ -240,58 +245,174 @@ function fb_formatter_lookups(): array
 }
 
 /**
+ * Put back any ownership a tool changed under `my_files/<company>/`.
+ *
+ * Registered by fb_bootstrap() for every tool, because this is not a mistake
+ * one tool made. A tool run with `docker exec` is root; anything it writes —
+ * a converted definition, a restored backup, a kept original, a temporary file
+ * renamed into place — belongs to root afterwards, and Apache runs as www-data
+ * and cannot write it again. The tool passes, because from where it stands
+ * nothing is wrong. The failure surfaces later, somewhere else, as
+ *
+ *     Report not saved: The definition 'pf_91' could not be written.
+ *
+ * Every individual tool could remember to chown. None of them did, and the two
+ * that were fixed by hand would not have covered the migration tool, the
+ * designer verifier, the template maker or the next one written. So it is done
+ * once, here, for whatever the tool turns out to touch.
+ *
+ * The model is `my_files/<company>/` itself, which no tool creates and which
+ * therefore still carries the ownership the installation intends. Nothing
+ * happens unless this process is root and the owner actually differs.
+ */
+function fb_guard_file_ownership(string $company): void
+{
+    if (!function_exists('posix_geteuid') || posix_geteuid() !== 0) return;
+    if (!defined('DIR_FS_MY_FILES')) return;
+
+    $model = rtrim(DIR_FS_MY_FILES, '/\\') . '/' . $company;
+    if (!is_dir($model)) return;
+    $uid = (int)@fileowner($model);
+    $gid = (int)@filegroup($model);
+
+    register_shutdown_function(function () use ($model, $uid, $gid) {
+        $fix = function (string $path) use (&$fix, $uid, $gid): void {
+            if ((int)@fileowner($path) !== $uid || (int)@filegroup($path) !== $gid) {
+                @chgrp($path, $gid);
+                @chown($path, $uid);
+            }
+            if (!is_dir($path)) return;
+            foreach (scandir($path) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') continue;
+                $fix("$path/$entry");
+            }
+        };
+        $fix($model);
+    });
+}
+
+/**
+ * Copy a directory aside so a destructive tool can put it back exactly.
+ *
+ * ## Why this is not two lines of copy()
+ *
+ * It restores OWNERSHIP, and that is the whole reason it exists. A tool run
+ * with `docker exec` runs as root; deleting a company's `phreeform/` directory
+ * and copying it back therefore recreates every file — and the directory — owned
+ * by root. Everything the tool checks then passes, because the tool is root and
+ * can read anything. The next person to save a report gets
+ *
+ *     Report not saved: The definition 'pf_91' could not be written.
+ *
+ * from Apache, which runs as www-data and no longer can. The verifier that
+ * proved the definitions were untouched is what made them unwritable, and it
+ * said nothing, because from where it stood nothing was wrong. Measured on
+ * three companies at once.
+ *
+ * So the mode and the owner of every path are recorded going in and reapplied
+ * coming out, and if reapplying fails — a tool run as somebody who cannot
+ * chown — it says so loudly rather than leaving a company that looks fine and
+ * cannot be edited.
+ *
+ * @return array{dir:string,backup:string,owners:array<string,array{0:int,1:int,2:int}>}
+ */
+function fb_snapshot_tree(string $dir): array
+{
+    $dir    = rtrim($dir, '/\\');
+    $backup = $dir . '.fb-snapshot-' . getmypid();
+    $owners = [];
+
+    $walk = function (string $from, string $rel) use (&$walk, &$owners): void {
+        $owners[$rel] = [(int)@fileowner($from), (int)@filegroup($from), (int)@fileperms($from) & 0777];
+        if (!is_dir($from)) return;
+        foreach (scandir($from) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+            $walk("$from/$entry", $rel === '' ? $entry : "$rel/$entry");
+        }
+    };
+    $walk($dir, '');
+
+    fb_copy_tree($dir, $backup);
+    return ['dir' => $dir, 'backup' => $backup, 'owners' => $owners];
+}
+
+/** Put back what fb_snapshot_tree() copied aside, ownership and all. */
+function fb_restore_tree(array $snapshot): void
+{
+    ['dir' => $dir, 'backup' => $backup, 'owners' => $owners] = $snapshot;
+    if (!is_dir($backup)) return;
+
+    fb_remove_tree($dir);
+    fb_copy_tree($backup, $dir);
+    fb_remove_tree($backup);
+
+    // The directory's own owner is the fallback for anything that was not there
+    // before — a tool may legitimately leave a file behind.
+    [$uid, $gid, $mode] = $owners[''] ?? [0, 0, 0755];
+    $apply = function (string $path, string $rel) use (&$apply, $owners, $uid, $gid): void {
+        [$u, $g, $m] = $owners[$rel] ?? [$uid, $gid, is_dir($path) ? 0755 : 0644];
+        @chmod($path, $m);
+        @chgrp($path, $g);
+        @chown($path, $u);
+        if (!is_dir($path)) return;
+        foreach (scandir($path) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+            $apply("$path/$entry", $rel === '' ? $entry : "$rel/$entry");
+        }
+    };
+    $apply($dir, '');
+
+    // Say so rather than leave a company that looks fine and cannot be saved to.
+    if ((int)@fileowner($dir) !== $uid) {
+        fwrite(STDERR, "\n  *** THE DIRECTORY WAS RESTORED BUT ITS OWNER WAS NOT ***\n"
+            . "      $dir is now owned by uid " . (int)@fileowner($dir) . ", was $uid.\n"
+            . "      The web server may no longer be able to save a definition. Run:\n"
+            . "        chown -R $uid:$gid " . escapeshellarg($dir) . "\n\n");
+    }
+}
+
+function fb_copy_tree(string $from, string $to): void
+{
+    @mkdir($to, 0777, true);
+    foreach (scandir($from) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $a = "$from/$entry"; $b = "$to/$entry";
+        if (is_dir($a)) fb_copy_tree($a, $b); else @copy($a, $b);
+    }
+}
+
+function fb_remove_tree(string $path): void
+{
+    if (!is_dir($path)) { @unlink($path); return; }
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $p = "$path/$entry";
+        if (is_dir($p)) fb_remove_tree($p); else @unlink($p);
+    }
+    @rmdir($path);
+}
+
+/**
  * The PhreeForm original for a definition, whether or not it has been migrated.
  *
  * `get_report_details()` reads the STORED file and refuses a native one by
- * design (§13.9). That was fine while every company held XML; it makes this
- * whole tool vacuous the moment a company is migrated, which is the state step 6
- * puts every company into — 0 of 0 compared, reported as a pass in the earlier
- * shape of this check, and as a failure now.
+ * design (§13.9). That was fine while every company held XML; it makes a tool
+ * built on it vacuous the moment a company is migrated, which is the state
+ * step 6 puts every company into — 0 of 0 compared, reported as a pass.
  *
  * The original does not go away, though. Every conversion keeps it beside the
  * new file as `pf_N.pre-forms`, so the comparison survives migration by reading
- * THAT. This is the same move `verify_forms_serial.php` already makes for a
- * saved receipt, and it changes what the tool proves in a way worth being
- * explicit about: it is a comparison of the two ENGINES over one definition,
- * not of two files.
+ * THAT. It changes what a tool proves in a way worth being explicit about: it
+ * is a comparison of the two ENGINES over one definition, not of two files.
+ *
+ * Now a thin wrapper over LegacyReader, which is where that reading lives.
+ * It stays as a function because it is what the tools call and because it is
+ * the place to say why — and because the loader is what knows the path.
  *
  * Returns null when there is no original left to compare against — a company
  * seeded native has never had one, and nothing is wrong with that.
  */
 function legacyOriginal(object $loader, string|int $id): ?object
 {
-    $path   = $loader->path($id);
-    $stored = (string)@file_get_contents($path);
-
-    if ($stored !== '' && !\FreeBooks\Forms\Definition\DefinitionLoader::isNative($stored)) {
-        // Not yet migrated: the ordinary path, and the one the legacy reader
-        // was written for.
-        return get_report_details($id) ?: null;
-    }
-
-    $kept = $path . '.pre-forms';
-    if (!is_file($kept)) return null;
-    $xml = (string)@file_get_contents($kept);
-    if ($xml === '' || \FreeBooks\Forms\Definition\DefinitionLoader::isNative($xml)) return null;
-
-    // xml_to_object() alone is not enough: get_report_details() normalises the
-    // shapes a single-child tag collapses to — one <tables> arrives as an
-    // object where two arrive as an array — and every converter downstream
-    // assumes that has been done.
-    $report = xml_to_object($xml);
-    if (!is_object($report)) return null;
-    if (isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-        $report = $report->PhreeformReport;
-    }
-    foreach (['tables', 'grouplist', 'sortlist', 'filterlist', 'fieldlist'] as $list) {
-        if (isset($report->$list) && is_object($report->$list)) $report->$list = [$report->$list];
-    }
-    if (isset($report->fieldlist) && is_array($report->fieldlist)) {
-        foreach ($report->fieldlist as $key => $field) {
-            if (isset($field->boxfield) && is_object($field->boxfield)) {
-                $report->fieldlist[$key]->boxfield = [$field->boxfield];
-            }
-        }
-    }
-    return $report;
+    return \FreeBooks\Forms\Legacy\LegacyReader::original($loader->path($id));
 }

@@ -33,9 +33,12 @@ require_once(__DIR__ . '/bootstrap_freebooks.php');
 fb_bootstrap($argv[1] ?? null);
 require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
 require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
+require_once(DIR_FS_MODULES . 'forms/classes/legacy/legacy_reader.php');
 require_once(DIR_FS_MODULES . 'forms/classes/legacy/dataset_resolver.php');
+require_once(DIR_FS_MODULES . 'forms/classes/definition/loader.php');
 
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
+use FreeBooks\Forms\Definition\DefinitionLoader;
 use FreeBooks\Forms\Legacy\DatasetResolver;
 
 /** Mappings proven by a passing row-set comparison. */
@@ -94,6 +97,11 @@ const PROVIDER_SERVED = [
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 $resolver = new DatasetResolver($catalog);
+// Through the ORIGINAL, not the stored file. What this tool asks is whether a
+// PhreeForm table list resolves to the right dataset, and a migrated definition
+// no longer has one — it names its dataset outright. Reading the stored file
+// took this from 57 mappings checked to 0, reported as a pass (§13.32).
+$loader = new DefinitionLoader($catalog);
 
 $failures = $checked = $unverified = $structural = 0;
 
@@ -103,7 +111,7 @@ $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM
 while (!$result->EOF) {
     $id     = (int)$result->fields['id'];
     $title  = (string)$result->fields['doc_title'];
-    $report = get_report_details($id);
+    $report = legacyOriginal($loader, $id);
     $result->MoveNext();
     if (!$report) continue;
 

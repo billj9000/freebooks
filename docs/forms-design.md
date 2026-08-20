@@ -4157,3 +4157,149 @@ own terminal marker, not its exit status.
 
 Three faults reinstated and caught: a face TCPDF does not have, a default face
 absent from the list, and a face whose label constant was deleted.
+
+#### The reader
+
+`get_report_details()` is PhreeForm's, and reading a PhreeForm definition does
+**not** stop being necessary when PhreeForm goes. Decision L keeps the converter
+as an **Import** feature — for the definition that turns up on a USB stick two
+years from now — and `.pre-forms` originals stay on disk as the record of what a
+migrated document used to be. So the reader has to outlive the engine.
+
+`FreeBooks\Forms\Legacy\LegacyReader` is that reader. It was also overdue for a
+second reason: **the same twelve lines had been written four times** — in
+`get_report_details()`, in `DefinitionLoader`, in `legacyOriginal()` and in
+`verify_forms_serial.php`. Four copies of a normalisation is four chances for a
+converter to be handed a shape it does not expect, and the failure is not an
+exception but a form that renders with one table instead of two.
+
+**`xml_to_object()` is wrapped, not replaced.** It lives in
+`includes/common_functions.php` — core, not PhreeForm — so it survives step 6
+and there is nothing to rescue. Copying ninety lines of hand-rolled parser into
+Forms to own it would add a second parser that has to agree with the first about
+CDATA, self-closing tags and attributes, and would be tested by nothing. What
+Forms needed to own is the *shape*.
+
+There is no separate test for a native file, and there does not need to be one:
+`xml_to_object()` hands JSON straight back as a **string** rather than failing,
+so `is_object()` catches it. That is worth knowing rather than guarding against,
+because it is also the trap — a caller that skips the test gets a string where
+an object is expected and dies on "must be of type object, string given", from a
+file that is perfectly valid and simply not this engine's. The `?object` return
+type makes passing one on impossible.
+
+#### Two more tools had gone blind, and nobody had noticed
+
+§13.32 recorded that migrating a company silently emptied parts of the suite.
+Repointing the readers found two the migration commit had missed, both reporting
+success while checking nothing:
+
+- `verify_forms_dataset_map` resolves a PhreeForm table list to a dataset. A
+  migrated definition has no table list — it names its dataset outright — so
+  `get_report_details()` refused all 57 and the tool printed
+  **"0 proven mapping(s) checked, 0 failed"** and `PASS`. Through the kept
+  original it now checks **33**, with 14 structural and 10 not yet proven.
+- `verify_forms_vendor_sku` identifies its definition by the table it joins, so
+  it found nothing and skipped with `[--] no form joins …` — on the one company
+  that has that customised form. It now compares **40 records and 797 lines**.
+
+The lesson from §13.32 generalises further than it was written: **a check that
+reads the stored file measures nothing once the file is native.** Any tool that
+wants the PhreeForm side must go through `legacyOriginal()`.
+
+#### Proving the move changed nothing, while that is still possible
+
+`verify_forms_legacy_reader.php` compares `LegacyReader::parse()` with
+`get_report_details()` over every definition both can read — 57 on the demo
+company, agreeing exactly.
+
+That comparison has a **short window**: only while PhreeForm is installed is
+there a second implementation to compare against. After step 6 the only evidence
+the reader is right would be that documents still print, which is evidence found
+by a customer. So the tool is in two halves with different lifetimes — the
+comparison dies with `get_report_details()` and should be deleted rather than
+left to pass vacuously, and the shape checks, built from constructed XML with no
+company and no database, stay.
+
+On a migrated company the comparison would be 0 of 0, so the fixture is built:
+the report directory is copied aside, kept originals are put back as `pf_<id>`
+so both readers can see them, and it is restored from a shutdown function so
+that happens on a fatal as well as on success — the same machinery, for the same
+reason, as `verify_forms_migration.php`.
+
+Three faults reinstated and caught: the list normalisation removed (31 of 57
+definitions then differ, and a one-entry list comes back as an object), a native
+file handed back as a string, and `original()` no longer looking beside the
+stored file.
+
+#### `.pre-forms` did not always hold a PhreeForm original
+
+Found while deciding what `LegacyReader::original()` should do when the kept
+file is not XML: on one company **fourteen `.pre-forms` files contain native
+JSON**. `forms_design_keep_original()` and its two siblings copied the stored
+file on first save *whatever format it was in*, so saving an already-native
+definition wrote a copy of it under a name that says PhreeForm XML.
+
+Nothing was reading them — `LegacyReader::original()` answers null for one, and
+`verify_forms_native`'s "every PhreeForm original sniffs as legacy" only looks
+at definitions it converted, which on a company seeded native is none. But a
+file whose name lies about its contents is a trap laid for the next tool, and
+the next tool is Import.
+
+All three functions now decline when the stored file is already native, and the
+reader is held to refusing a native kept file. The fourteen existing ones are
+left alone: they are a pre-edit snapshot of somebody's document, and deleting a
+company's files to tidy a name is not a verifier's business.
+
+A pleasant consequence: after step 6 every save is on a native definition, so
+with the guard `.pre-forms` is never written again. The file becomes purely
+historical, which is what §13.3 condition 2 always meant it to be.
+
+It also decided a predicate. `verify_forms_legacy_reader` skips its comparison
+on a company that holds no PhreeForm original — a fact about the company, not a
+fault — and it has to ask that of the CONTENTS. Asking it of the filename
+counted those fourteen and turned "nothing to compare here" into a failure no
+change to the reader could ever have fixed.
+
+#### The verifier that made three companies read-only
+
+Found by a browser pass, not by the suite, and reported as:
+
+> Report not saved: The definition 'pf_91' could not be written.
+
+`verify_forms_legacy_reader` copies the report directory aside and puts it back,
+so that a destructive test cannot lose anything. It runs under `docker exec`,
+which is **root** — so removing and recopying the directory recreated every
+definition, and the directory itself, owned by `root:root`. Apache runs as
+`www-data` and could no longer write. Three companies at once.
+
+The tool passed. From where it stood nothing was wrong: it could read
+everything, the bytes matched, and it printed *"the report directory was
+restored exactly as it was found"*. A verifier proving the definitions were
+untouched, by making them unwritable — and `verify_forms_migration.php` had
+carried the identical flaw since it was written.
+
+**Bytes are not the whole of a file.** A restore that compares content and
+ignores mode and owner has not restored anything; it has replaced a company's
+definitions with copies that happen to read the same.
+
+Two fixes, and the second is the one that matters:
+
+- `fb_snapshot_tree()` / `fb_restore_tree()` record mode and owner per path
+  going in and reapply them coming out, and write loudly to stderr if the chown
+  fails — rather than leaving a company that looks fine and cannot be edited.
+- `fb_bootstrap()` registers `fb_guard_file_ownership()` for **every** tool. At
+  shutdown it walks `my_files/<company>/` and puts back any ownership that
+  drifted, modelled on the company directory itself — which no tool creates, so
+  it still carries what the installation intends. Root only, and only where the
+  owner actually differs.
+
+The second exists because this was never one tool's mistake. Fixing the two
+verifiers by hand would have left `migrate_forms_definitions.php --write`,
+`verify_forms_designer.php`, `adopt_forms_layouts.php`,
+`make_forms_proving_templates.php` and every tool not yet written free to lay
+the same trap. Anything run as root that writes under `my_files/` does this;
+the guard is placed where all of them already pass.
+
+Proved non-vacuous by a probe that writes a definition as root: with the guard
+the file is `www-data` after the process exits, without it root.

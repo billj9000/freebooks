@@ -24,10 +24,13 @@
  * — app/load.php does, and is what an application page requires.
  *
  * The legacy converters are required here rather than by app/load.php because
- * DefinitionBuilder is the last thing that will use them: when the migration
- * has run, this file loses one line and legacy/ is deleted whole.
+ * DefinitionBuilder is the last thing that will use them through the LOADER.
+ * They do not go away with the loader's legacy branch, though: decision L keeps
+ * them as the Import feature, so what step 6 removes here is the branch, not
+ * the directory.
  */
 
+require_once(__DIR__ . '/../legacy/legacy_reader.php');
 require_once(__DIR__ . '/../legacy/template_converter.php');
 require_once(__DIR__ . '/../legacy/dataset_resolver.php');
 require_once(__DIR__ . '/../legacy/report_converter.php');

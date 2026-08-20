@@ -34,6 +34,7 @@ require_once(__DIR__ . '/../document/load.php');
 require_once(__DIR__ . '/../catalog/load.php');
 require_once(__DIR__ . '/../render/load.php');
 require_once(__DIR__ . '/../deliver/load.php');
+require_once(__DIR__ . '/../legacy/legacy_reader.php');
 require_once(__DIR__ . '/../legacy/template_converter.php');
 require_once(__DIR__ . '/../legacy/dataset_resolver.php');
 require_once(__DIR__ . '/../providers/report_provider.php');

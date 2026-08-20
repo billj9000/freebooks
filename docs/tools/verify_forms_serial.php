@@ -173,10 +173,11 @@ echo "\n=== the new engine prints the bytes the old engine printed ===\n";
 /**
  * A legacy report object from XML, wherever that XML came from.
  *
- * get_report_details() does exactly this but only ever against `pf_<id>` in the
- * live directory — so once a receipt has been SAVED it is native, that function
- * correctly refuses it, and the comparison it was reading for becomes
- * impossible. The XML has not gone anywhere though: the editor copies it to
+ * LegacyReader does the reading; this names it for what the section below
+ * needs. get_report_details() does the same thing but only ever against
+ * `pf_<id>` in the live directory — so once a receipt has been SAVED it is
+ * native, that function correctly refuses it, and the comparison it was reading
+ * for becomes impossible. The XML has not gone anywhere though: the editor copies it to
  * `pf_<id>.pre-forms` on the first save, precisely so the thing it converted
  * from is never lost.
  *
@@ -189,22 +190,7 @@ echo "\n=== the new engine prints the bytes the old engine printed ===\n";
  */
 function legacyFromXml(string $xml): ?object
 {
-    $report = xml_to_object($xml);
-    if (!is_object($report)) return null;
-    if (isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-        $report = $report->PhreeformReport;
-    }
-    foreach (['tables', 'grouplist', 'sortlist', 'filterlist', 'fieldlist'] as $list) {
-        if (isset($report->$list) && is_object($report->$list)) $report->$list = [$report->$list];
-    }
-    if (isset($report->fieldlist) && is_array($report->fieldlist)) {
-        foreach ($report->fieldlist as $key => $field) {
-            if (isset($field->boxfield) && is_object($field->boxfield)) {
-                $report->fieldlist[$key]->boxfield = [$field->boxfield];
-            }
-        }
-    }
-    return $report;
+    return \FreeBooks\Forms\Legacy\LegacyReader::parse($xml);
 }
 
 $compared = 0;

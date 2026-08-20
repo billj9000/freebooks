@@ -201,10 +201,7 @@ foreach ($shipped as $xml) {
     if (!is_file($json)) continue;          // xml-only module; reported above
     $name = str_replace(DIR_FS_MODULES, '', $xml);
 
-    $report = xml_to_object((string)file_get_contents($xml));
-    if (is_object($report) && isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-        $report = $report->PhreeformReport;
-    }
+    $report = \FreeBooks\Forms\Legacy\LegacyReader::parse((string)file_get_contents($xml));
     if (!is_object($report)) { $unreadable[] = $name; continue; }
 
     $builder = new DefinitionBuilder($catalog);
@@ -302,10 +299,7 @@ echo "\n=== and they convert without warnings ===\n";
 // the same warning on a company's own report.
 $warned = [];
 foreach ($shipped as $xml) {
-    $report = xml_to_object((string)file_get_contents($xml));
-    if (is_object($report) && isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-        $report = $report->PhreeformReport;
-    }
+    $report = \FreeBooks\Forms\Legacy\LegacyReader::parse((string)file_get_contents($xml));
     if (!is_object($report)) continue;
     $builder = new DefinitionBuilder($catalog);
     try { $builder->fromLegacy($report, ''); } catch (\Throwable) { continue; }
@@ -371,10 +365,7 @@ foreach ($shipped as $xml) {
     // makes it: breaking the converter left the check green (the staleness
     // check above caught it instead). Converting here makes this an external
     // truth test of the converter itself.
-    $report = xml_to_object($text);
-    if (is_object($report) && isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-        $report = $report->PhreeformReport;
-    }
+    $report = \FreeBooks\Forms\Legacy\LegacyReader::parse($text);
     if (!is_object($report)) continue;
     $builder = new DefinitionBuilder($catalog);
     try { $definition = $builder->fromLegacy($report, ''); } catch (\Throwable) { continue; }

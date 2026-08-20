@@ -42,6 +42,7 @@
 namespace FreeBooks\Forms\Definition;
 
 use FreeBooks\Forms\Catalog\Catalog;
+use FreeBooks\Forms\Legacy\LegacyReader;
 
 final class DefinitionLoader
 {
@@ -103,26 +104,16 @@ final class DefinitionLoader
             return (new DefinitionCodec())->decode($contents, $id);
         }
 
-        // Parsed by the legacy reader rather than by SimpleXML directly: it
-        // normalises the shapes a single-child tag collapses to (one <tables>
-        // arrives as an object where two arrive as an array), and every
-        // converter downstream assumes that has been done.
-        $report = xml_to_object($contents);
-        if (!is_object($report)) {
+        // Through Forms' own reader, which normalises the shapes a single-child
+        // tag collapses to — one <tables> arrives as an object where two arrive
+        // as an array — because every converter downstream assumes that has
+        // been done. It is a class rather than these twelve lines because the
+        // same twelve were also in get_report_details(), in the tool bootstrap
+        // and in one verifier, and because reading a PhreeForm definition
+        // outlives this branch: decision L keeps it as Import.
+        $report = LegacyReader::parse($contents);
+        if ($report === null) {
             throw new DefinitionException("The definition 'pf_$id' is neither native nor PhreeForm XML.");
-        }
-        if (isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-            $report = $report->PhreeformReport;
-        }
-        foreach (['tables', 'grouplist', 'sortlist', 'filterlist', 'fieldlist'] as $list) {
-            if (isset($report->$list) && is_object($report->$list)) $report->$list = [$report->$list];
-        }
-        if (isset($report->fieldlist) && is_array($report->fieldlist)) {
-            foreach ($report->fieldlist as $key => $field) {
-                if (isset($field->boxfield) && is_object($field->boxfield)) {
-                    $report->fieldlist[$key]->boxfield = [$field->boxfield];
-                }
-            }
         }
 
         $builder    = new DefinitionBuilder($this->catalog);

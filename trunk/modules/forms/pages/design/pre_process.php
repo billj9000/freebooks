@@ -92,6 +92,14 @@ $forms_design_was_legacy = false;
 function forms_design_keep_original($path) {
   $kept = $path . '.pre-forms';
   if (file_exists($kept) || !file_exists($path)) return;
+  // Only a PhreeForm original. A definition that is ALREADY native has no
+  // original to keep, and copying it here would put a native file under a name
+  // that says it is XML — which is what `test` holds fourteen of, written by
+  // this function before the guard. Nothing reads them (LegacyReader::original()
+  // returns null for one), but a file whose name lies about its contents is a
+  // trap laid for the next tool.
+  $contents = (string)@file_get_contents($path);
+  if (\FreeBooks\Forms\Definition\DefinitionLoader::isNative($contents)) return;
   @copy($path, $kept);
 }
 

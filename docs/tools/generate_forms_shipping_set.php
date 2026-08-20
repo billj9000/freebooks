@@ -134,12 +134,7 @@ foreach (glob(DIR_FS_MODULES . '*/language/*/reports/*.xml') ?: [] as $path) {
     }
 
     $contents = (string)file_get_contents($path);
-    $report   = xml_to_object($contents);
-    // The shipped files carry a <PhreeformReport> container that ImportReport()
-    // unwraps; a native file has no container, so it is unwrapped here too.
-    if (is_object($report) && isset($report->PhreeformReport) && is_object($report->PhreeformReport)) {
-        $report = $report->PhreeformReport;
-    }
+    $report   = \FreeBooks\Forms\Legacy\LegacyReader::parse($contents);
     if (!is_object($report)) {
         echo "  [FAIL] $shown — not readable as a PhreeForm definition\n";
         $failed++;
