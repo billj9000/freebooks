@@ -4303,3 +4303,45 @@ the guard is placed where all of them already pass.
 
 Proved non-vacuous by a probe that writes a definition as root: with the guard
 the file is `www-data` after the process exits, without it root.
+
+#### The locale table, and two formats that did nothing at all
+
+`forms_formatter_lookups()` read `$GLOBALS['arrLocales']`, which
+`phreeform/config_phreeform.php` sets — a file whose **entire body is commented
+out**, and has been throughout this project. So `cvt_iso2` and `cvt_cntry` were
+offered by the format list, labelled in the editor, and written up in the
+manual, and both tables were empty. Every code fell through `?? $key` and
+printed itself. Choosing "Country name, from the code" on a country field did
+nothing whatever, silently.
+
+It now reads `gen_pull_countries()` — core, phreedom's `locales.xml`, 239
+countries, about a millisecond. `GBR` becomes `GB` and `United Kingdom`; a code
+the table does not carry still prints as itself, because a report showing a raw
+country code is recoverable and one showing an empty cell is not.
+
+**Two implementations that both do nothing agree perfectly.**
+`verify_forms_formatter` compares each hint against PhreeForm's `ProcessData()`,
+and it reported `cvt_iso2` as matching for as long as it has existed —
+because PhreeForm's hook, `pf_process_phreeform()`, is in the same commented-out
+file. Both returned the input unchanged. The comparison was real, the agreement
+was real, and it proved nothing. A comparison is only worth making against
+something that works, so those two hints moved out of that section and are now
+held to `locales.xml` itself.
+
+**The check that was missing.** §13.31 built a chain of *performed → offered →
+labelled → documented*, and this defect sat one link below it: a `LOOKUP_HINT`
+is a name **plus a table**, and only the name was ever tested. `format()` ends
+its lookup in `?? $key`, so an empty table is indistinguishable from a code that
+happens not to be listed. Every lookup hint must now have a non-empty table, and
+the two country ones must agree with the file they come from. Reinstating the
+old empty global fails five checks.
+
+**And the label was wrong**, which nobody could have noticed while the format
+was inert: `cvt_iso2` was described as taking a country's *name*. It takes the
+three-letter code — that is what the dropdowns store, keyed by `iso3`. The
+editor label and the manual row both now say so.
+
+Worth recording for step 6: **PhreeForm's own `cvt_iso2` and `cvt_cntry` are
+broken too**, for the same reason and for whoever commented that file out. They
+are not being fixed; the module is being deleted, and Forms no longer depends on
+anything in that file.

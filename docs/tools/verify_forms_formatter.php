@@ -124,10 +124,18 @@ $failures += count($diffs);
 // ─── 3. code-to-label hints (no query, so they stay below the seam) ──────────
 echo "\n=== lookup hints vs their module hooks ===\n";
 require(DIR_FS_MODULES . 'phreebooks/defaults.php');    // $coa_types_list
+//
+// cvt_iso2 and cvt_cntry are NOT compared here, and that omission is a finding
+// rather than a gap. PhreeForm's hook for them, pf_process_phreeform() in
+// config_phreeform.php, has its entire file body commented out — so
+// ProcessData('GBR', 'cvt_iso2') returns 'GBR'. Forms' tables were empty for
+// the same reason, so it returned 'GBR' too, and this section reported a match
+// for years. Two implementations that both do nothing agree perfectly.
+//
+// Held to the locale table instead, below. A comparison is only worth making
+// against something that works.
 $cases = [
     'coa_type'  => array_slice(array_keys($coa_types_list), 0, 8),
-    'cvt_iso2'  => ['GBR', 'USA', 'DEU', 'ZZZ'],        // ZZZ = unknown -> shows as itself
-    'cvt_cntry' => ['GBR', 'USA', 'DEU', 'ZZZ'],
     'j_desc'    => [2, 6, 12, 18, 99],                  // 99 = no such journal
     'NewUsed'   => ['u', 'n', ''],
 ];
@@ -354,6 +362,62 @@ if (!is_file($manualPath)) {
         echo "  all " . count($performed) . " format(s) documented, and nothing documented"
            . " that does not exist\n";
     }
+}
+
+// ─── 3b. the tables behind the lookup hints ──────────────────────────────────
+echo "\n=== every lookup hint has something to look up in ===\n";
+//
+// THE check this file was missing. A LOOKUP_HINT is a name plus a table, and
+// only the name was ever tested: `format()` ends its lookup in `?? $key`, so a
+// hint whose table is empty returns the code unchanged and says nothing. Two of
+// the three were in that state — offered by the format list, described in the
+// manual, and doing nothing whatever.
+//
+// §13.31 built a chain of performed -> offered -> labelled -> documented. This
+// is the link below it: a format can be all four and still be inert.
+
+$lookups = fb_formatter_lookups();
+foreach (Formatter::LOOKUP_HINTS as $hint) {
+    $count = count($lookups[$hint] ?? []);
+    if ($count > 0) {
+        printf("  [ok] %-10s %d code(s) to look up\n", $hint, $count);
+    } else {
+        $failures++;
+        printf("  [FAIL] %-10s has no table, so it returns the raw code and says nothing\n", $hint);
+    }
+}
+
+// And that the tables are the RIGHT ones. Read out of phreedom's locales.xml
+// rather than written here, so this cannot drift from what ships — it is the
+// same file gen_pull_countries() reads, parsed a second time on purpose.
+$expected = [];
+foreach (gen_pull_countries()->country ?? [] as $country) {
+    $expected[(string)$country->iso3] = [(string)$country->iso2, (string)$country->name];
+}
+$wrong = 0; $sampled = 0;
+foreach (['GBR', 'USA', 'DEU', 'AUS', 'FRA'] as $iso3) {
+    if (!isset($expected[$iso3])) continue;
+    [$iso2, $name] = $expected[$iso3];
+    $sampled++;
+    $gotIso2  = $fmt->format(new TypedValue($iso3), new Format('cvt_iso2'), null);
+    $gotName  = $fmt->format(new TypedValue($iso3), new Format('cvt_cntry'), null);
+    if ($gotIso2 !== $iso2)  { $wrong++; echo "  [FAIL] cvt_iso2 $iso3 -> '$gotIso2', locales.xml says '$iso2'\n"; }
+    if ($gotName !== $name)  { $wrong++; echo "  [FAIL] cvt_cntry $iso3 -> '$gotName', locales.xml says '$name'\n"; }
+}
+if ($wrong === 0 && $sampled > 0) {
+    echo "  [ok] cvt_iso2 and cvt_cntry agree with locales.xml on $sampled country/countries\n";
+}
+$failures += $wrong;
+if ($sampled === 0) { $failures++; echo "  [FAIL] no country was sampled, so this proves nothing\n"; }
+
+// An unknown code must come back as ITSELF. A report showing a raw country code
+// is recoverable; one showing an empty cell is not.
+$unknown = $fmt->format(new TypedValue('ZZZ'), new Format('cvt_cntry'), null);
+if ($unknown === 'ZZZ') {
+    echo "  [ok] a code the table does not carry prints as itself\n";
+} else {
+    $failures++;
+    echo "  [FAIL] an unknown code printed as '$unknown' rather than as itself\n";
 }
 
 echo "\n" . ($failures === 0

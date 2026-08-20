@@ -93,7 +93,6 @@ const BORROWED = [
 
     // Tables PhreeForm builds in its defaults.php.
     'PaperSizes'                       => 'the paper sizes the report editor offers',
-    'arrLocales'                       => 'country lookups for cvt_iso2 / cvt_cntry',
 
     // Functions declared in PhreeForm and called from Forms.
     'TextReplace'                      => '%date% / %company% substitution in a title',

@@ -29,12 +29,29 @@
  * itself. That matches the legacy hooks' isset() fallbacks: a report showing a
  * raw account type is recoverable, one showing an empty cell is not.
  *
+ * **The countries come from gen_pull_countries()**, which reads phreedom's
+ * `locales.xml`, rather than from PhreeForm's `$arrLocales`. That global is set
+ * in `phreeform/config_phreeform.php` — a file whose entire body is commented
+ * out, and has been throughout this project. So `cvt_iso2` and `cvt_cntry` were
+ * offered by the format list, documented in the manual, and did NOTHING: both
+ * tables were empty, every code fell through the `?? $key` and printed itself.
+ * Precisely the silence §13.31 set out to abolish, hiding one level below where
+ * that work looked — the name was known, and the table behind it was not there.
+ *
  * @return array<string,array<string,string>>
  */
 function forms_formatter_lookups(): array
 {
     require(DIR_FS_MODULES . 'phreebooks/defaults.php');   // $coa_types_list
-    $arrLocales = $GLOBALS['arrLocales'] ?? [];            // phreeform/config_phreeform.php
+
+    $locales   = gen_pull_countries();
+    $countries = array();
+    foreach ($locales->country ?? array() as $country) {
+        $iso3 = (string)($country->iso3 ?? '');
+        if ($iso3 === '') continue;
+        $countries[$iso3] = array('iso2' => (string)($country->iso2 ?? ''),
+                                  'name' => (string)($country->name ?? ''));
+    }
 
     $pluck = function (array $rows, string $field): array {
         $out = [];
@@ -47,8 +64,8 @@ function forms_formatter_lookups(): array
 
     return [
         'coa_type'  => $pluck($coa_types_list ?? [], 'text'),
-        'cvt_iso2'  => $pluck($arrLocales, 'iso2'),
-        'cvt_cntry' => $pluck($arrLocales, 'name'),
+        'cvt_iso2'  => $pluck($countries, 'iso2'),
+        'cvt_cntry' => $pluck($countries, 'name'),
     ];
 }
 

@@ -428,7 +428,7 @@ define('FORMS_FORMAT_YESBNO',     '"Yes", or blank (yesBno)');
 define('FORMS_FORMAT_NEWUSED',    '"New" or "Used" (NewUsed)');
 define('FORMS_FORMAT_PRINTED',    '"Duplicate" on a reprint (printed)');
 define('FORMS_FORMAT_COA_TYPE',   'Account type name (coa_type)');
-define('FORMS_FORMAT_CVT_ISO2',   'Country code, from the name (cvt_iso2)');
+define('FORMS_FORMAT_CVT_ISO2',   'Country code, two letters from three (cvt_iso2)');
 define('FORMS_FORMAT_CVT_CNTRY',  'Country name, from the code (cvt_cntry)');
 
 define('FORMS_CANVAS_COL_NOTE',     'Widths are in millimetres and are shared out across the table. A blank width lets the column take what is left.');
