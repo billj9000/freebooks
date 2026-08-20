@@ -18,12 +18,27 @@
 //
 /**
  * Prove Forms' Formatter renders values exactly as PhreeForm's ProcessData()
- * and AddSep() do (docs/forms-design.md §8).
+ * and AddSep() did (docs/forms-design.md §8, §13.35).
  *
  * Every value in every migrated form passes through one of these hints, so a
- * silent divergence here is a silent divergence on every printed document. The
- * tool runs both implementations over the same value/hint grid and fails on any
- * difference that is not explicitly recorded as intended below.
+ * silent divergence here is a silent divergence on every printed document.
+ *
+ * ## Past tense, on purpose
+ *
+ * This used to run both implementations side by side. Step 6 deletes one of
+ * them — and deleting PhreeForm does not merely remove a module, it removes the
+ * STANDARD this file measures against. So the answers were captured first, into
+ * docs/tools/baselines/formatter.json, and Forms is held to the FILE.
+ *
+ * While the engine is still installed the file is checked against it too, which
+ * is what stops a golden file becoming a hostage to whoever last regenerated
+ * it: run the capture after breaking something and the bug becomes the
+ * standard, unless the engine that produced the file still has to agree with
+ * it. Three-way now, two-way after, same guarantee.
+ *
+ * One matrix drives both, in formatter_cases.php. Two lists that drift apart
+ * give a baseline with entries nothing asks for and questions nothing has an
+ * answer to, and both failures are quiet.
  *
  * It also asserts the seam holds: the five DB-backed hints must be REFUSED by
  * the Formatter, not quietly performed (see formatter.php for why rep_id in
@@ -36,6 +51,9 @@
  *   docker exec <container> php -d display_errors=1 /tmp/fbtools/verify_forms_formatter.php [company]
  *
  * Exit code 0 = parity holds. 1 = an unexpected divergence; the run prints it.
+ *
+ * Requires a baseline. If there is none, run capture_forms_baseline.php WHILE
+ * PHREEFORM IS STILL INSTALLED — afterwards there is nothing to capture from.
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
@@ -73,126 +91,171 @@ $GLOBALS['posted_currencies'] = ['currencies_code' => 'EUR', 'currencies_value' 
 $recordCurrency = new Currency('EUR', 1.225018);
 
 $failures = 0;
+function ok(string $what, bool $cond, string $detail = ''): void {
+    global $failures;
+    if ($cond) { echo "  [ok] $what\n"; return; }
+    $failures++;
+    echo "  [FAIL] $what" . ($detail !== '' ? " — $detail" : '') . "\n";
+}
 
-// ─── 1. presentation hints ───────────────────────────────────────────────────
-$values = [1234.5678, 0, -42.5, '2026-07-14', 'mixed Case Text', '', null, '7.91'];
-$hints  = ['', 'blank', 'uc', 'lc', 'neg', 'yesBno', 'printed', 'date', 'rnd2d',
-           'dlr', 'null-dlr', 'euro', 'rnd_dec', 'rnd_pre', 'def_cur',
-           'null_dcur', 'posted_cur', 'null_pcur', 'terms'];
+// ─── 1. every value, against the captured baseline ───────────────────────────
+//
+// Forms was built by comparison against PhreeForm, and step 6 deletes the thing
+// it was compared with. So the answers were captured first — into
+// docs/tools/baselines/formatter.json, by capture_forms_baseline.php — and this
+// section holds Forms to the FILE. "Forms agrees with PhreeForm" becomes "Forms
+// produces what PhreeForm produced", which is the same guarantee without the
+// dependency (§13.35).
+//
+// While the engine is still installed, the file is checked against it too. A
+// golden file is a hostage to whoever regenerates it, and a three-way
+// comparison is what stops a stale or doctored one passing: the engine that
+// produced the file has to still agree with it.
+//
+// One matrix, in formatter_cases.php, shared with the capture. Two lists that
+// drift apart give a baseline with entries nothing asks for and questions
+// nothing has an answer to, and both failures are quiet.
 
-$matched = 0; $diffs = []; $expected = []; $fatals = [];
-foreach ($hints as $hint) {
-    foreach ($values as $value) {
-        $mine = $fmt->format(new TypedValue($value), $hint === '' ? null : new Format($hint), $recordCurrency);
-        $key  = $hint . '|' . var_export($value, true);
-        try {
-            $legacy = (string)ProcessData($value, $hint);
-        } catch (\Throwable $e) {
-            $fatals[] = sprintf("  %-10s %-18s legacy FATAL (%s)  ->  we return %s",
-                $hint, var_export($value, true), $e->getMessage(), var_export($mine, true));
+$cases      = require(__DIR__ . '/formatter_cases.php');
+$haveLegacy = function_exists('ProcessData');
+
+$baselinePath = __DIR__ . '/baselines/formatter.json';
+$baseline     = is_file($baselinePath)
+              ? json_decode((string)file_get_contents($baselinePath), true) : null;
+
+/** The marker capture_forms_baseline.php puts on a value that is not UTF-8. */
+const BASE64_MARKER = '~b64~';
+function baselineValue(?string $stored): ?string
+{
+    if ($stored === null) return null;
+    return str_starts_with($stored, BASE64_MARKER)
+        ? (string)base64_decode(substr($stored, strlen(BASE64_MARKER)))
+        : $stored;
+}
+
+echo "\n=== every value, against the captured baseline ===\n";
+
+if (!is_array($baseline) || !isset($baseline['free'])) {
+    $failures++;
+    echo "  [FAIL] no baseline at $baselinePath — capture_forms_baseline.php has\n"
+       . "         to be run while PhreeForm is still installed, and it is the only\n"
+       . "         record there will be once it is not.\n";
+} else {
+    // The environment-bound half is only comparable where the environment
+    // matches: `def_cur` on a GBP company is not `def_cur` on a USD one, and a
+    // difference of company must not read as a difference of behaviour.
+    $env     = $baseline['environment'] ?? [];
+    $sameEnv = ($env['language'] ?? '') === (string)($_SESSION['language'] ?? '')
+            && ($env['currency'] ?? '') === (defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '');
+    if (!$sameEnv) {
+        printf("  [--] captured under language '%s' / currency '%s'; this company is '%s' / '%s',\n"
+             . "       so the %d environment-bound answer(s) are not comparable here.\n",
+            $env['language'] ?? '?', $env['currency'] ?? '?',
+            (string)($_SESSION['language'] ?? ''),
+            defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
+            count($baseline['bound'] ?? []));
+    }
+
+    $stored = $baseline['free'] + ($sameEnv ? ($baseline['bound'] ?? []) : []);
+
+    // Driven by the MATRIX, not by the file's keys. Walking the file would mean
+    // reconstructing each value from its printed form, and it would also make a
+    // question that has silently dropped out of the matrix look like a question
+    // nobody asks. This way a case with no stored answer is reported.
+    $asked = [];
+    foreach ($cases['free']['hints'] as $hint) {
+        foreach ($cases['free']['values'] as $value) $asked[] = ['hint', $hint, $value];
+    }
+    foreach ($cases['bound']['hints'] as $hint) {
+        foreach ($cases['bound']['values'] as $value) $asked[] = ['hint', $hint, $value];
+    }
+    foreach ($cases['codes'] as $hint => $values) {
+        foreach ($values as $value) $asked[] = ['hint', $hint, $value];
+    }
+    foreach ($cases['amounts'] as $amount) $asked[] = ['n2wrd', 'n2wrd', $amount];
+    foreach ($cases['separators']['names'] as $name) {
+        foreach ($cases['separators']['values'] as $value) $asked[] = ['sep', $name, $value];
+    }
+
+    $matched = $rotted = 0;
+    $diffs = $rot = $expected = $survived = $unanswered = [];
+
+    foreach ($asked as [$kind, $hint, $value]) {
+        $key = $kind === 'n2wrd'
+             ? 'n2wrd|' . var_export($value, true)
+             : $kind . '|' . $hint . '|' . var_export($value, true);
+
+        // A hint whose hook ships in a module this company does not have is not
+        // a gap in the baseline; it is a question that cannot be asked here.
+        if (isset(HINT_OWNER[$hint]) && !in_array(HINT_OWNER[$hint], $loaded_modules, true)) continue;
+        if (!array_key_exists($key, $stored)) {
+            if (!$sameEnv) continue;              // environment-bound, already reported
+            $unanswered[] = $key;
             continue;
         }
-        if ($legacy === $mine)                     { $matched++; continue; }
-        if (isset(EXPECTED_DIVERGENCES[$key]))     { $expected[] = sprintf("  %-10s %-18s %s", $hint, var_export($value, true), EXPECTED_DIVERGENCES[$key]); continue; }
-        $diffs[] = sprintf("  %-10s %-18s legacy=%-24s formatter=%s",
-            $hint === '' ? '(none)' : $hint, var_export($value, true), var_export($legacy, true), var_export($mine, true));
-    }
-}
-echo "\n=== presentation hints vs ProcessData() ===\n";
-printf("  %d matched, %d unexpected difference(s)\n", $matched, count($diffs));
-foreach ($diffs as $d) echo $d . "\n";
-$failures += count($diffs);
-if ($expected) { echo "  -- intended divergences (garbage input) --\n"; foreach ($expected as $e) echo $e . "\n"; }
-if ($fatals)   { echo "  -- legacy crashes where we degrade safely --\n"; foreach ($fatals as $f) echo $f . "\n"; }
+        $want = baselineValue($stored[$key]);
 
-// ─── 1b. an amount in words ──────────────────────────────────────────────────
-echo "\n=== n2wrd vs value_to_words_en_us() ===\n";
-//
-// Never compared before, because the hint CALLED that function: it was the same
-// implementation on both sides of the equals sign. Forms has its own now, so
-// there are two, and this is the only window in which they can be held against
-// each other — value_to_words_en_us() goes with PhreeForm.
-//
-// The spread is chosen for the joins, which is where a number-to-words gets it
-// wrong: the teens (their own words, not tens-plus-units), the hyphen that
-// appears only when a tens word precedes it, a zero hundreds column inside a
-// larger number, and the carry at each thousand boundary.
-$amounts = [0, 0.5, 1, 1.05, 7, 10, 11, 15, 19, 20, 21, 42, 99, 100, 101, 110,
-            115, 199, 200, 999, 1000, 1001, 1100, 12345.67, 100000, 999999.99,
-            1000000, 1234567.89, 1000000000, 1234567890.12, -5, 3.005];
-$matched = 0; $diffs = [];
-foreach ($amounts as $amount) {
-    $legacy = (string)value_to_words_en_us($amount);
-    $mine   = $fmt->format(new TypedValue($amount), new Format('n2wrd'), null);
-    if ($legacy === $mine) { $matched++; continue; }
-    $diffs[] = sprintf("  %-16s legacy=%s\n                  ours  =%s",
-        var_export($amount, true), $legacy, $mine);
-}
-// Non-numeric input is where the two deliberately differ: the legacy walks a
-// string through intval() and prints ZERO DOLLARS AND 00/100 for a name.
-$mine = $fmt->format(new TypedValue('mixed Case Text'), new Format('n2wrd'), null);
-printf("  %d matched, %d difference(s)\n", $matched, count($diffs));
-foreach ($diffs as $d) echo $d . "\n";
-$failures += count($diffs);
-if ($matched === 0) { $failures++; echo "  [FAIL] nothing was compared, so this proves nothing\n"; }
-if ($mine === 'mixed Case Text') {
-    echo "  [ok] a non-numeric amount is left alone rather than written as zero\n";
-} else {
-    $failures++;
-    printf("  [FAIL] a non-numeric amount became '%s'\n", $mine);
-}
+        $mine = $kind === 'sep'
+            ? $fmt->separator((string)$value, $hint)
+            : $fmt->format(new TypedValue($value), $hint === '' ? null : new Format($hint), $recordCurrency);
 
-// ─── 2. separators ───────────────────────────────────────────────────────────
-echo "\n=== separators vs AddSep() ===\n";
-$matched = 0; $diffs = [];
-foreach (['sp', '2sp', 'comma', 'com-sp', 'nl', 'semi-sp', 'del-nl', '(unknown)'] as $sep) {
-    foreach (['Acme Ltd', ''] as $value) {          // '' proves del-nl collapses the line
-        $legacy = (string)AddSep($value, $sep);
-        $mine   = $fmt->separator($value, $sep);
-        if ($legacy === $mine) { $matched++; continue; }
-        $diffs[] = sprintf("  %-10s %-12s legacy=%-18s formatter=%s",
-            $sep, var_export($value, true), var_export($legacy, true), var_export($mine, true));
-    }
-}
-printf("  %d matched, %d difference(s)\n", $matched, count($diffs));
-foreach ($diffs as $d) echo $d . "\n";
-$failures += count($diffs);
+        // Where the legacy engine CRASHED there is no answer to match, and what
+        // matters is that Forms did not crash either — it degrades to passing
+        // the value through. Recorded rather than skipped, because "the old one
+        // died here" is a fact worth keeping after the old one is gone.
+        if ($want === null) {
+            $survived[] = sprintf("  %-10s %-18s legacy could not answer; we return %s",
+                $hint, var_export($value, true), var_export($mine, true));
+            continue;
+        }
 
-// ─── 3. code-to-label hints (no query, so they stay below the seam) ──────────
-echo "\n=== lookup hints vs their module hooks ===\n";
-require(DIR_FS_MODULES . 'phreebooks/defaults.php');    // $coa_types_list
-//
-// cvt_iso2 and cvt_cntry are NOT compared here, and that omission is a finding
-// rather than a gap. PhreeForm's hook for them, pf_process_phreeform() in
-// config_phreeform.php, has its entire file body commented out — so
-// ProcessData('GBR', 'cvt_iso2') returns 'GBR'. Forms' tables were empty for
-// the same reason, so it returned 'GBR' too, and this section reported a match
-// for years. Two implementations that both do nothing agree perfectly.
-//
-// Held to the locale table instead, below. A comparison is only worth making
-// against something that works.
-$cases = [
-    'coa_type'  => array_slice(array_keys($coa_types_list), 0, 8),
-    'j_desc'    => [2, 6, 12, 18, 99],                  // 99 = no such journal
-    'NewUsed'   => ['u', 'n', ''],
-];
-$matched = 0; $diffs = [];
-foreach ($cases as $hint => $vals) {
-    if (isset(HINT_OWNER[$hint]) && !in_array(HINT_OWNER[$hint], $loaded_modules, true)) {
-        printf("  %-10s SKIPPED - module '%s' is not installed here\n", $hint, HINT_OWNER[$hint]);
-        continue;
+        $divergence = $hint . '|' . var_export($value, true);
+        if ($mine === $want)                            { $matched++; }
+        elseif (isset(EXPECTED_DIVERGENCES[$divergence])) {
+            $expected[] = sprintf("  %-10s %-18s %s", $hint, var_export($value, true),
+                                  EXPECTED_DIVERGENCES[$divergence]);
+        } else {
+            $diffs[] = sprintf("  %-10s %-18s baseline=%-24s formatter=%s",
+                $hint === '' ? '(none)' : $hint, var_export($value, true),
+                var_export($want, true), var_export($mine, true));
+        }
+
+        // The anti-rot half, while there is something to check it against.
+        if (!$haveLegacy) continue;
+        try {
+            $live = $kind === 'sep'    ? (string)AddSep((string)$value, $hint)
+                  : ($kind === 'n2wrd' ? (string)value_to_words_en_us($value)
+                                       : (string)@ProcessData($value, $hint));
+        } catch (\Throwable) { $live = null; }
+        if ($live !== null && $live !== $want) {
+            $rotted++;
+            if (count($rot) < 4) {
+                $rot[] = sprintf("  %-10s %-18s file=%-24s engine=%s",
+                    $hint, var_export($value, true), var_export($want, true), var_export($live, true));
+            }
+        }
     }
-    foreach ($vals as $value) {
-        $legacy = (string)ProcessData($value, $hint);
-        $mine   = $fmt->format(new TypedValue($value), new Format($hint), null);
-        if ($legacy === $mine) { $matched++; continue; }
-        $diffs[] = sprintf("  %-10s %-8s legacy=%-30s formatter=%s",
-            $hint, var_export($value, true), var_export($legacy, true), var_export($mine, true));
+
+    printf("  %d matched, %d unexpected difference(s), %d case(s) the legacy could not answer\n",
+        $matched, count($diffs), count($survived));
+    foreach ($diffs as $d) echo $d . "\n";
+    $failures += count($diffs);
+
+    ok('the baseline covers something', $matched > 0, 'nothing was compared');
+    ok('and it has an answer for every case the matrix asks',
+       $unanswered === [],
+       count($unanswered) . ' unanswered, e.g. ' . implode(', ', array_slice($unanswered, 0, 3)));
+
+    if ($expected) { echo "  -- intended divergences (garbage input) --\n"; foreach ($expected as $e) echo $e . "\n"; }
+    if ($survived) { echo "  -- legacy crashed where we degrade safely --\n"; foreach (array_slice($survived, 0, 4) as $f) echo $f . "\n"; }
+
+    if ($haveLegacy) {
+        ok('and the baseline still says what the live engine says', $rotted === 0,
+           "$rotted answer(s) have drifted:\n" . implode("\n", $rot));
+    } else {
+        echo "  [--] PhreeForm is gone, so the baseline is the only standard left.\n";
     }
 }
-printf("  %d matched, %d difference(s)\n", $matched, count($diffs));
-foreach ($diffs as $d) echo $d . "\n";
-$failures += count($diffs);
 
 // ─── 4. the seam: DB-backed hints must be refused ────────────────────────────
 echo "\n=== DB-backed hints are refused, not performed ===\n";

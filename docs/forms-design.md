@@ -4453,3 +4453,93 @@ property it was built for (§13.22).
 Faults reinstated and caught: the hyphen dropped from the tens (9 of 32 amounts
 differ), the teens built as tens-plus-units (7 differ), and a page pulling
 PhreeForm's language again.
+
+### 13.35 Step 6, part two: capturing the oracle
+
+Deleting PhreeForm does not merely remove a module. **It removes the standard
+everything has been measured against.**
+
+Forms was built by comparison. `verify_forms_formatter` holds every value format
+against `ProcessData()`, every separator against `AddSep()`, every amount in
+words against `value_to_words_en_us()` — a couple of hundred assertions whose
+entire content is *"the same as the engine we are replacing"*. After step 6
+those checks cannot run at all, and the only remaining evidence that a format is
+right would be that nobody has complained — evidence found by a customer, on a
+printed invoice, months later.
+
+Nothing in the design doc's step 6 said so. It is the prerequisite.
+
+#### Written down before it is gone
+
+`capture_forms_baseline.php` runs the case matrix through PhreeForm and writes
+`docs/tools/baselines/formatter.json`, which ships with the repository.
+`verify_forms_formatter` is then held to the **file**: *"Forms agrees with
+PhreeForm"* becomes *"Forms produces what PhreeForm produced"* — the same
+guarantee with the dependency removed. 202 answers, and the tool passes with
+PhreeForm's bootstrap switched off, which is the state that matters.
+
+**What stops a golden file rotting.** A baseline is a hostage to whoever
+regenerates it: run the capture after breaking something and the bug becomes the
+standard. Two guards. While the engine is installed, the check compares the FILE
+against the live engine as well as Forms against the file — three-way, so a
+stale or doctored baseline is caught by the thing that produced it. And the
+capture refuses to overwrite without `--force`, because recapturing is not
+casual and after step 6 it is not possible at all.
+
+**One matrix**, in `formatter_cases.php`, shared by capture and check. Two lists
+that drift apart give a baseline with entries nothing asks for and questions
+nothing has an answer to, and both failures are quiet. The check is driven by
+the matrix rather than by the file's keys, so a question that silently drops out
+of the matrix is reported rather than simply not asked.
+
+#### Three things the capture had to learn
+
+- **`euro` emits a byte that is not UTF-8.** `chr(128)` is the euro sign in the
+  single-byte encoding the old FPDF fonts used — PhreeForm's own comment says
+  so. `json_encode()` refuses the whole document for it and returns `false`,
+  which is how the first capture failed: no exception, no message, just a file
+  that did not appear. Values that are not valid UTF-8 are stored base64 behind
+  a marker; everything else stays legible, which is most of what a golden file
+  is for.
+- **`ProcessData()` is not total.** `neg` does `-$strData` on a string and
+  `null-dlr` feeds one to `number_format()`, so a name or a date is a PHP 8
+  TypeError rather than a value. Those cases are recorded as `null` — "the old
+  one died here" is worth keeping after the old one is gone, and what the check
+  then asserts is that Forms does *not* die.
+- **Some answers belong to the company.** `dlr` is the same everywhere;
+  `def_cur` is not, and neither is anything that reads the loaded language. The
+  file records the environment it was taken in and the bound half is compared
+  only where that matches, so a difference of company never reads as a
+  difference of behaviour.
+
+Faults reinstated and caught: Forms changing what `dlr` prints (4 differences), a
+doctored baseline (caught by the live engine, not by Forms), and no baseline at
+all.
+
+#### Still holding a knife: the serial renderer
+
+`verify_forms_serial` compares `SerialRenderer` against `BuildSeq()` **byte for
+byte, for a real POS sale on a real company**. It is the only check that means
+anything about the receipt — the one document Forms renders as text — and it
+dies with PhreeForm too.
+
+The formatter's answer does not transfer. That baseline is a table of pure
+functions over invented inputs, so it ships in the repository. A receipt
+baseline is a rendered sale: customer, SKUs, prices. **It cannot go in the
+repository** — everything here is public — and it would not be portable between
+companies anyway.
+
+Two options, and this is the open decision:
+
+1. **Snapshot per company, beside the definitions.** Capture what each receipt
+   prints on the day PhreeForm is removed, into `my_files/<company>/`, and the
+   check becomes "still prints what it printed then". A real regression guard,
+   no repo pollution, no private names committed — but it is per installation,
+   so a fresh install has no baseline and the check is silent there.
+2. **Synthesise a sale.** Forms already has `SampleData` for the canvas
+   preview. A shipped receipt definition plus invented lines is portable and
+   committable — but `BuildSeq()` reaches into the database for its data, so
+   there is no way to make the OLD engine render an invented sale, and a
+   baseline the old engine never produced is not an oracle at all.
+
+Option 1 is the only one that captures what the old engine actually did.
