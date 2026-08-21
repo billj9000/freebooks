@@ -65,7 +65,7 @@ final class EntryDocumentProvider implements DocumentProvider
         private readonly Context       $context = new Context(),
         private readonly string        $title = 'Invoice',
         private readonly PageSetup     $page = new PageSetup(),
-        /** e.g. ['table' => 'journal_main', 'field' => 'printed'] or null */
+        /** e.g. ['table'=>'journal_main','field'=>'printed','key'=>'id'] or null */
         private readonly ?array        $printedField = null,
         ?array $taxRates = null,
         ?array $taxLabels = null,
@@ -101,6 +101,7 @@ final class EntryDocumentProvider implements DocumentProvider
                 $hooks[] = new AfterRenderHook('increment_field', [
                     'table' => $this->printedField['table'],
                     'field' => $this->printedField['field'],
+                    'key'   => $this->printedField['key'] ?? 'id',
                     'id'    => $id,
                 ]);
             }

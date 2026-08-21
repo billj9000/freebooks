@@ -587,6 +587,17 @@ function forms_render_to_string(int $definitionId, array $recordIds, array $para
         // under the same 'pdf' key the callers already read, because what they
         // do with it is identical — the POS handlers put it straight into an
         // ajax response, and the key is a name, not a promise about the format.
+        // Delivered by the caller the moment this returns — the PayPal mail
+        // and the point-of-sale receipt both send what they are handed — so
+        // the document's own after-render hooks are performed here. Nothing
+        // else in this function may do it: forms_binding_names() builds real
+        // documents from real records purely to read their field names.
+        $hooks = new \FreeBooks\Forms\App\AfterRenderRunner($db);
+        $hooks->run($document);
+        foreach ($hooks->failures() as $failure) {
+            error_log("forms_render_to_string: pf_$definitionId: $failure");
+        }
+
         if ($document instanceof \FreeBooks\Forms\Document\SerialDocument) {
             $receipt = (new \FreeBooks\Forms\Render\SerialRenderer(
                 new \FreeBooks\Forms\Render\Formatter(

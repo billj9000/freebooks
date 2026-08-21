@@ -5150,3 +5150,89 @@ was made to fail: a vacuous check on a form with no heading, a second vacuous
 one guarded by `$heading === null ||`, a fallback the round trip could not
 reach, and now a control with no listener. The feature itself was about forty
 lines.
+
+### 13.45 The counter nobody was keeping
+
+`journal_main.printed` is what the sales journal list's Printed column shows and
+what the Sales Invoice Manager's **Unprinted** filter selects on. Exactly one
+thing in the product sets it: printing an invoice. PhreeForm did it from inside
+`BuildPDF()` — `update journal_main set printed = printed + 1` per record,
+driven by a `<setprintedfield>` tag in the definition.
+
+Forms did not do it at all. Not wrongly — *at all*, on every company, since the
+migration. Three separate links of the chain were missing at once:
+
+- `DefinitionBuilder` never read `setprintedfield`, so the native format did not
+  carry it and every converted definition lost it silently;
+- `FormRunner` never passed `printedField:` to either provider, so no document
+  ever declared the hook;
+- and nothing anywhere ran an `AfterRenderHook`, so a declared one would have
+  been ignored had there been one.
+
+The two providers that *accept* a printed field were written on the first day
+and have been dead parameters ever since. `capture_phreeform_baseline.php`
+explains why nobody noticed: baselining had to **suppress** the counter, or
+measuring the old engine would have marked a company's invoices printed. It was
+turned off for the comparison and never turned back on, and the comparison
+itself could not see the difference — a rendered PDF is identical either way.
+
+**This is the shape that gets through everything.** The standalone check counts
+borrowed *names*; a capability that is simply absent borrows nothing. The
+native-vs-legacy diff compares *bytes*; the bytes agree. The migration check
+compares *definitions*; both sides had dropped the tag. Nothing failed, nothing
+differed, nothing was named. The only symptom was a column of zeroes that
+someone would eventually have to explain.
+
+#### What it does now
+
+The tag is carried as `Definition::$printedField`, a `table.field` string,
+parsed by `printedTarget()` in one place because it reaches an `UPDATE`.
+`FormRunner` hands it to the provider, the provider declares one
+`increment_field` hook per record it actually built, and `AfterRenderRunner`
+performs them.
+
+The seam is the point. PhreeForm incremented from inside its renderer, so
+*anything* that built a form counted: a preview, a diff harness, a tool. Ours
+cannot — a renderer is handed hooks it has no way to run, and the hook runner is
+called by the four places that put a document in front of somebody: the print
+page's view, download and email, and `forms_render_to_string()` for the callers
+with no page. `verify_forms_printed_field.php` asserts that list from the source
+and names the three preview endpoints that must never appear on it. That check
+is worth more than it looks: the canvas preview, the receipt preview and
+`forms_binding_names()`'s field probe all build real documents from real
+records, and any of them acquiring a hook runner would mark live invoices
+printed for a form nobody has finished drawing.
+
+Two shipped masters declare a counter — `Invoice` and `DepositReceipt` — and
+their `.json` files were patched with the single key, through the codec, after
+confirming all 52 shipped definitions round-trip byte-identically.
+
+The other three builders do not take a printed field: a statement is per
+contact and a receipt is a till roll, and neither counts. A definition that asks
+anyway gets a warning on the print page rather than silence — "the flag never
+moved" being the fault this whole piece of work exists to end.
+
+#### The companies already migrated
+
+The code fix only helps a conversion that has yet to happen, and every company
+was converted months ago. `repair_forms_printed_field.php` reads the kept
+`pf_N.pre-forms` original — saved by the migration for exactly this kind of
+question — takes the one tag, and writes it into the native file. It does not
+re-convert: that would discard whatever has been done on the canvas since.
+
+It refuses to write if the file would change in more than that one key, refuses
+a counter whose table is not the form's own record table, and is idempotent —
+a second run reports "already right". Where a company's own customised invoice
+was copied from the shipped one *before* PhreeBooks added the tag, there is
+nothing in its original to recover, and `--set N` stamps it deliberately.
+
+#### Proving the checks
+
+Seven faults reinstated, each failing the tool that guards it: the converter
+dropping the tag, the runner not passing it, the print page not performing the
+hooks, the canvas dropping it on save, the codec not storing it, and a missing
+row counting as done. The seventh is the one worth recording — disabling the
+identifier check on the hook's table name left the tool **green**, because the
+injected name happened to comment out the bound placeholder and the database
+refused it. Refused by luck, not by the guard. The assertion now requires the
+refusal to name the identifier check, which fails the moment the check is gone.

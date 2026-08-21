@@ -711,6 +711,7 @@
                 "label": "Text - Total"
             }
         ],
-        "recordTable": "journal_main"
+        "recordTable": "journal_main",
+        "printedField": "journal_main.printed"
     }
 }

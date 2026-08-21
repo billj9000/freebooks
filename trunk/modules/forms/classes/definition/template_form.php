@@ -231,6 +231,10 @@ final class TemplateForm
             breakField:  $base->breakField,
             recordTable: $base->recordTable,
             recordKey:   $base->recordKey,
+            // Carried, like the filename prefix and for the same reason: the
+            // canvas draws no control for it, and a field the editor cannot
+            // show is deleted by the first save unless it is copied across.
+            printedField: $base->printedField,
             // The canvas refuses a receipt before it gets here, so these are
             // carried rather than used. Dropping them would mean that if it
             // ever DID get here, the save would quietly turn a receipt into a

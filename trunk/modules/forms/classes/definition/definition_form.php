@@ -135,6 +135,7 @@ final class DefinitionForm
             breakField:  $base->breakField,
             recordTable: $base->recordTable,
             recordKey:   $base->recordKey,
+            printedField: $base->printedField,
         );
     }
 

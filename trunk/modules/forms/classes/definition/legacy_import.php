@@ -150,6 +150,7 @@ final class DefinitionBuilder
                 page:        $converter->convertPageSetup($report),
                 template:    $template,
                 recordTable: self::RECORD_TABLE[$special] ?? '',
+                printedField: $this->printedField($report),
                 serial:      $serial,
                 serialTemplate: $serialTemplate,
             );
@@ -185,9 +186,37 @@ final class DefinitionBuilder
             breakField:  $break !== '' ? ($map[strtolower($break)] ?? 'id') : 'id',
             recordTable: $dataset->baseTable,
             recordKey:   $this->recordKey($break),
+            printedField: $this->printedField($report),
             serial:      $serial,
             serialTemplate: $serialTemplate,
         );
+    }
+
+    /**
+     * The counter a delivered document increments, from `setprintedfield`.
+     *
+     * Two of the shipped forms declare one — the Invoice and the Deposit
+     * Receipt — and it is the only reason `journal_main.printed` is ever
+     * non-zero, which is what the Sales Invoice Manager's "unprinted" filter
+     * reads. The tag was dropped by this converter until §13.45, so every
+     * migrated company silently stopped counting.
+     *
+     * A malformed value is a WARNING rather than a failure: it costs a counter,
+     * not a document, and refusing to convert the form over it would be a worse
+     * trade than printing it uncounted and saying so.
+     */
+    private function printedField(object $report): string
+    {
+        $value = trim((string)($report->setprintedfield ?? ''));
+        if ($value === '') return '';
+
+        $probe = new Definition(printedField: $value);
+        if ($probe->printedTarget() === null) {
+            $this->warnings[] = "The printed-counter field '$value' is not a table.field pair,"
+                . ' so this form will print without marking its records printed.';
+            return '';
+        }
+        return $value;
     }
 
     /**

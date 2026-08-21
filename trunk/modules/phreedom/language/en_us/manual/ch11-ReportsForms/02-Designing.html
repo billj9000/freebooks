@@ -44,7 +44,11 @@
   <li>A bar code &mdash; Code 39 and variants, Interleaved 2 of 5, Code 128 (A/B/C), EAN-13, UPC-A, POSTNET, or Codabar. Bar codes require the TCPDF PDF engine (see <a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a>).</li>
 </ul>
 <p>Each element has its own font, size, alignment, and color, and can optionally have a border and/or fill. Table-style blocks have separate styling for their header row.</p>
-<p>A Form can also be configured to: mark a record as printed once the form is generated for it (to help avoid accidentally reprinting the same document), start a new page whenever a chosen field's value changes (useful for printing a batch of many records in one run, one per page), and serialize/number each printed copy.</p>
+<p>A Form can also start a new page whenever a chosen field's value changes (useful for printing a batch of many records in one run, one per page), and serialize/number each printed copy.</p>
+
+<h3>Marking records as printed</h3>
+<p>Some forms count the times a record has been printed, so that a document is not sent out twice by accident. The Invoice and the Deposit Receipt do this: each record they print has its Printed count raised by one, and the sales journal list shows that record as printed. The Sales Invoice Manager's Unprinted filter reads the same count &mdash; see <a href="../ch08-HowTo/HowTo-SalesProcess.html" target="mainFrame">The Sales Process</a>.</p>
+<p>The count is raised when the document is actually delivered &mdash; viewed, downloaded or emailed &mdash; and not when it is previewed on the design canvas, so laying a form out never marks anybody's invoice as sent. A form copied from one that counts keeps the setting; a form built from scratch does not count, and the setting is carried with the form rather than edited on the canvas.</p>
 
 <h3>Field processing</h3>
 <p>Individual fields can be transformed as they're placed on a report or form: convert to uppercase or lowercase, negate a number, spell out a number in words (for printing checks), round to two decimals, format as a date, format as a dollar or euro amount, show blank instead of "No", force a field blank, or show a duplicate/printed indicator. When combining several fields into one line (for example a full address from separate address fields), a text separator controls how they're joined: a space, double space, comma, comma-space, new line, semicolon-space, or simply dropped if the value is empty.</p>

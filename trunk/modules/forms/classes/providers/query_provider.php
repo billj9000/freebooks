@@ -72,6 +72,7 @@ final class QueryDocumentProvider implements DocumentProvider
         private readonly PageSetup     $page           = new PageSetup(),
         private readonly array         $filters        = [],
         private readonly array         $sorts          = [],
+        /** ['table'=>…,'field'=>…,'key'=>…]: the counter delivery increments */
         private readonly ?array        $printedField   = null,
         /** Field key holding the line's own id, used to de-duplicate rows. */
         private readonly string        $lineKeyField   = 'item_id',
@@ -166,6 +167,7 @@ final class QueryDocumentProvider implements DocumentProvider
                 $hooks[] = new AfterRenderHook('increment_field', [
                     'table' => $this->printedField['table'],
                     'field' => $this->printedField['field'],
+                    'key'   => $this->printedField['key'] ?? 'id',
                     'id'    => $key,
                 ]);
             }

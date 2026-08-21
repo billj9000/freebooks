@@ -50,6 +50,7 @@ require_once(__DIR__ . '/sample_data.php');
 require_once(__DIR__ . '/canvas_layout.php');
 require_once(__DIR__ . '/image_store.php');
 require_once(__DIR__ . '/record_selector.php');
+require_once(__DIR__ . '/after_render.php');
 require_once(__DIR__ . '/form_runner.php');
 require_once(__DIR__ . '/document_runner.php');
 require_once(__DIR__ . '/document_store.php');

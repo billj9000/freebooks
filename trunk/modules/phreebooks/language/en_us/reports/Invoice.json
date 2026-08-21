@@ -1850,6 +1850,7 @@
                 "label": "Line - Gen Vert 4"
             }
         ],
-        "recordTable": "journal_main"
+        "recordTable": "journal_main",
+        "printedField": "journal_main.printed"
     }
 }

@@ -143,6 +143,10 @@ final class DefinitionCodec
             $this->put($form, 'breakField',  $definition->breakField,  'id');
             $this->put($form, 'recordTable', $definition->recordTable, '');
             $this->put($form, 'recordKey',   $definition->recordKey,   'id');
+            // Omitted by put()'s default for every form that counts nothing,
+            // which is all but two of the shipped set — so adding the key
+            // changes no stored byte of the rest (§13.45).
+            $this->put($form, 'printedField', $definition->printedField, '');
             // Omitted for every ordinary form by put()'s default, so adding it
             // does not change a single stored byte of the 61 that are not
             // receipts — which the byte-identity check depends on.
@@ -435,6 +439,7 @@ final class DefinitionCodec
             breakField:  (string)($form['breakField']  ?? 'id'),
             recordTable: (string)($form['recordTable'] ?? ''),
             recordKey:   (string)($form['recordKey']   ?? 'id'),
+            printedField: (string)($form['printedField'] ?? ''),
             serial:      (bool)($form['serial'] ?? false),
             serialTemplate: isset($form['serialLayout'])
                 ? $this->serialTemplateFromArray((array)$form['serialLayout'])

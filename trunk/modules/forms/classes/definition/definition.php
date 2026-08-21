@@ -85,6 +85,15 @@ final readonly class Definition
      * @param string  $recordTable form only: the table `record_ids` belong to
      * @param string  $recordKey   form only: the COLUMN of that table they are
      *   values of, which is not always its primary key
+     * @param string  $printedField form only: `table.field` of a counter to
+     *   increment by one for every record DELIVERED, or '' for the forms — most
+     *   of them — that count nothing. PhreeForm's `setprintedfield`, and the
+     *   Invoice is why it exists: the Sales Invoice Manager's "unprinted"
+     *   filter reads journal_main.printed, and nothing else sets it. Named here
+     *   rather than performed here — a Definition describes a document and does
+     *   not touch the database. The provider turns it into an AfterRenderHook
+     *   and the CALLER runs that hook, so a preview never marks anything
+     *   printed (§13.45).
      * @param bool    $serial      form only: a character-cell form for a receipt
      *   printer rather than a page. Carried because it changes what the
      *   definition MEANS, not merely how it prints: a serial form has no
@@ -132,6 +141,7 @@ final readonly class Definition
         public string       $breakField  = 'id',
         public string       $recordTable = '',
         public string       $recordKey   = 'id',
+        public string       $printedField = '',
         public bool         $serial      = false,
         /**
          * A receipt's layout, where $template holds a page's. Both are nullable
@@ -153,4 +163,30 @@ final readonly class Definition
 
     /** Served by a class rather than by a dataset query. */
     public function hasProvider(): bool { return $this->provider !== null && $this->provider !== ''; }
+
+    /**
+     * The counter to increment on delivery, as table and field, or null.
+     *
+     * Parsed and validated in ONE place because both ends need it and neither
+     * should be trusting a stored string: this value reaches an UPDATE, and it
+     * comes out of a definition file that a person may have edited. Anything
+     * that is not a plain `table.field` pair of identifiers is no counter at
+     * all — the caller prints the document and marks nothing, which is what
+     * PhreeForm did with a malformed one too.
+     *
+     * The table name is stored UNPREFIXED, as PhreeForm stored it; whoever
+     * builds the SQL adds DB_PREFIX.
+     *
+     * @return array{table:string,field:string}|null
+     */
+    public function printedTarget(): ?array
+    {
+        if ($this->printedField === '') return null;
+        $parts = explode('.', $this->printedField);
+        if (count($parts) !== 2) return null;
+        foreach ($parts as $part) {
+            if (!preg_match('/^[a-z_][a-z0-9_]*$/i', $part)) return null;
+        }
+        return ['table' => $parts[0], 'field' => $parts[1]];
+    }
 }

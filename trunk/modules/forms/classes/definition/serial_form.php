@@ -115,6 +115,7 @@ final class SerialForm
             breakField:  $base->breakField,
             recordTable: $base->recordTable,
             recordKey:   $base->recordKey,
+            printedField: $base->printedField,
             serial:      true,
             serialTemplate: new SerialTemplate($fields, $width),
         );

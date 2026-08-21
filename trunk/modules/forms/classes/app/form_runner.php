@@ -323,6 +323,8 @@ final class FormRunner
         $title    = $definition->title !== '' ? $definition->title : 'Document';
         $page     = $definition->page;
 
+        $printed = $this->printedTarget($definition);
+
         if ($plan->kind === FormPlan::DATASET) {
             $provider = new QueryDocumentProvider(
                 db:         $this->db,
@@ -334,6 +336,7 @@ final class FormRunner
                 title:      $title,
                 page:       $page,
                 filters:    $definition->filters,
+                printedField: $printed,
             );
             return $provider->build(['record_ids' => array_values($recordIds)]);
         }
@@ -344,6 +347,10 @@ final class FormRunner
         // whether a page or a printer is on the other end — which is the point
         // of the seam, and why no provider needed changing for this.
         if ($serial !== null) {
+            if ($printed !== null) {
+                $this->warnings[] = 'This receipt asks to mark its records printed, but a'
+                    . ' till receipt is not counted: they will print uncounted.';
+            }
             $built = (new (self::PROVIDERS[$plan->name])(
                 db: $this->db, template: $template,
                 context: $context, title: $title, page: $page,
@@ -360,6 +367,18 @@ final class FormRunner
 
         $class = self::PROVIDERS[$plan->name];
 
+        // Only the entry builder takes a printed counter: it is the one that
+        // serves the two forms that declare one, and the others describe
+        // documents nothing counts — a statement is per contact, a receipt is
+        // the till roll. A definition that asks anyway is told so rather than
+        // quietly printing uncounted, because "the flag never moved" is
+        // precisely the fault this whole piece of work exists to end. Said
+        // HERE, above the statement branch, because that branch returns.
+        if ($printed !== null && $class !== EntryDocumentProvider::class) {
+            $this->warnings[] = 'This form asks to mark its records printed, but the'
+                . ' builder that serves it cannot: they will print uncounted.';
+        }
+
         // Only the statement providers need a period: a statement covers a date
         // range, where an invoice is simply itself.
         if ($class === StatementDocumentProvider::class) {
@@ -373,10 +392,43 @@ final class FormRunner
             return $provider->build(['record_ids' => array_values($recordIds)]);
         }
 
+        if ($class === EntryDocumentProvider::class) {
+            return (new EntryDocumentProvider(
+                db: $this->db, template: $template,
+                context: $context, title: $title, page: $page,
+                printedField: $printed,
+            ))->build(['record_ids' => array_values($recordIds)]);
+        }
+
         return (new $class(
             db: $this->db, template: $template,
             context: $context, title: $title, page: $page,
         ))->build(['record_ids' => array_values($recordIds)]);
+    }
+
+    /**
+     * What a delivered record increments, ready for a provider, or null.
+     *
+     * The key column comes from the DEFINITION rather than from the hook's
+     * eventual UPDATE, because only the definition knows it: `record_ids` are
+     * not always primary keys, and PhreeForm's own statement used
+     * formbreakfield as the WHERE column for exactly that reason.
+     *
+     * @return array{table:string,field:string,key:string}|null
+     */
+    private function printedTarget(Definition $definition): ?array
+    {
+        $target = $definition->printedTarget();
+        if ($target === null) {
+            if ($definition->printedField !== '') {
+                $this->warnings[] = "The printed-counter field '{$definition->printedField}' is not"
+                    . ' a table.field pair, so these records will print uncounted.';
+            }
+            return null;
+        }
+        $key = preg_match('/^[a-z_][a-z0-9_]*$/i', $definition->recordKey)
+             ? $definition->recordKey : 'id';
+        return $target + ['key' => $key];
     }
 
     /**

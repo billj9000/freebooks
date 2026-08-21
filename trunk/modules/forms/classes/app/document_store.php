@@ -386,6 +386,7 @@ final class DocumentStore
             groupBy: $d->groupBy, groupFormat: $d->groupFormat, totalsOnly: $d->totalsOnly,
             resolvedColumns: $d->resolvedColumns, style: $d->style, template: $d->template,
             breakField: $d->breakField, recordTable: $d->recordTable, recordKey: $d->recordKey,
+            printedField: $d->printedField,
             serial: $d->serial, serialTemplate: $d->serialTemplate,
         );
     }

@@ -151,8 +151,9 @@ if ($forms_report) {
 function forms_print_render(): ?object
 {
   global $runner, $forms_report, $forms_plan, $forms_selection, $forms_date,
-         $currencies, $messageStack;
+         $currencies, $messageStack, $forms_document;
 
+  $forms_document = null;
   if (!$forms_report || !$forms_plan || !$forms_plan->runnable()) return null;
   if (!$forms_selection || $forms_selection->isEmpty()) {
     $messageStack->add(FORMS_PRINT_NO_RECORDS, 'error');
@@ -160,7 +161,7 @@ function forms_print_render(): ?object
   }
 
   try {
-    $document = $runner->runDefinition($forms_report, $forms_selection->ids,
+    $document = $forms_document = $runner->runDefinition($forms_report, $forms_selection->ids,
       array('dates' => $forms_date));
   } catch (\Throwable $e) {
     $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, $e->getMessage()), 'error');
@@ -230,6 +231,30 @@ function forms_print_filename(\FreeBooks\Forms\Definition\Definition $definition
   return $base . $extension;
 }
 
+/**
+ * Perform what the document said should happen once it had been delivered.
+ *
+ * Called after a successful view, download or send, and only then — the
+ * Invoice's printed counter has to mean "this went to somebody", or the Sales
+ * Invoice Manager's unprinted filter is measuring page loads.
+ *
+ * A failure here is a caution rather than an error: the document HAS been
+ * delivered by the time this runs, and telling somebody their invoice failed
+ * when they are holding it is worse than telling them the counter did not move.
+ */
+function forms_print_delivered(): void
+{
+  global $db, $forms_document, $messageStack;
+
+  if (!$forms_document instanceof \FreeBooks\Forms\Document\Document) return;
+
+  $hooks = new \FreeBooks\Forms\App\AfterRenderRunner($db);
+  $hooks->run($forms_document);
+  foreach ($hooks->failures() as $failure) {
+    $messageStack->add(sprintf(FORMS_WARN_NOT_COUNTED, $failure), 'caution');
+  }
+}
+
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action'] ?? '') {
   case 'view':
@@ -242,6 +267,7 @@ switch ($_REQUEST['action'] ?? '') {
       $messageStack->add(sprintf(FORMS_ERROR_DELIVERY, $result->detail), 'error');
       break;
     }
+    forms_print_delivered();
     exit;
 
   case 'email':
@@ -288,6 +314,7 @@ switch ($_REQUEST['action'] ?? '') {
       $messageStack->add(sprintf(FORMS_ERROR_DELIVERY, $result->detail), 'error');
       break;
     }
+    forms_print_delivered();
     $messageStack->add(EMAIL_SEND_SUCCESS, 'success');
     break;
 }
