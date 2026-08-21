@@ -36,11 +36,6 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($argv[1] ?? null);
-// Conditionally, so this tool still runs after step 6 — when it compares
-// against the captured baseline instead of against a live BuildSeq().
-if (is_file(DIR_FS_MODULES . 'phreeform/functions/phreeform.php')) {
-    require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
-}
 require_once(DIR_FS_MODULES . 'forms/defaults.php');
 require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');

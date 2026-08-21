@@ -34,7 +34,7 @@ require_once(DIR_FS_WORKING . 'classes/install.php');
 require_once(DIR_FS_WORKING . 'classes/currency.php');
 /**************   page specific initialization  *************************/
 $error  = false; 
-$core_modules = array('phreedom','phreeform','phreebooks','contacts','inventory','phreehelp','payment'); // phreeform first!
+$core_modules = array('phreedom','forms','phreebooks','contacts','inventory','phreehelp','payment'); // forms first: it owns the document catalogue and directory
 // see if installing or removing a module
 if (substr($_REQUEST['action'], 0, 8) == 'install_') {
   $method = substr($_REQUEST['action'], 8);
@@ -200,7 +200,7 @@ switch ($_REQUEST['action']) {
 		$install_mod = new $classname;
 		// Seed the NEW company's stored setting with the chosen paper. write_configure()
 		// writes into $db, which now points at the new database.
-		if ($entry == 'phreeform' && $paper_size <> '') $install_mod->keys['PF_DEFAULT_PAPERSIZE'] = $paper_size;
+		if ($entry == 'forms' && $paper_size <> '') $install_mod->keys['FORMS_DEFAULT_PAPER'] = $paper_size;
 	    $task        = $_POST[$entry . '_action'];
 		if ($entry == 'phreedom') $task = 'data'; // force complete copy of phreedom module
 	    switch ($task) {
@@ -224,7 +224,7 @@ switch ($_REQUEST['action']) {
 			  if ($entry <> 'phreedom' && method_exists($install_mod, 'load_reports')) {
 			    $install_mod->load_reports($entry);
 			  }
-			  if ($entry == 'phreeform') {
+			  if ($entry == 'forms') {
 			  	$temp_mod = new phreedom_admin;
 	  			$temp_mod->load_reports('phreedom');
 			  }
@@ -249,7 +249,7 @@ switch ($_REQUEST['action']) {
 	    }
 	  }
 	  // install reports now that categories are set up
-	  if ($_POST['phreeform_action'] <> 'data') { // if=data reports have been copied, else load basic reports
+	  if (($_POST['forms_action'] ?? '') <> 'data') { // if=data reports have been copied, else load basic reports
 	    foreach ($copy_modules as $entry) admin_add_reports($entry, DIR_FS_MY_FILES . $db_name . '/phreeform/', $paper_size);
 	    // Those are NATIVE definitions now (design §13.5), and PhreeForm cannot
 	    // open one — so a new company whose Print buttons pointed at PhreeForm

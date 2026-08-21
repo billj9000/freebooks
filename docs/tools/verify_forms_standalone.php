@@ -222,6 +222,7 @@ function phreeformVocabulary(string $root, string $pf): array
 function phpFiles(string $dir): array
 {
     $files = [];
+    if (!is_dir($dir)) return $files;
     $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
     foreach ($rii as $file) {
         if ($file->isFile() && $file->getExtension() === 'php') $files[] = $file->getPathname();
@@ -267,7 +268,10 @@ function formsReferences(string $forms, array $vocabulary): array
                 // 'phreeform'` is not a dependency on the module; only
                 // gen_pull_language('phreeform') is.
                 $literal = trim($text, "'\"");
-                if (str_starts_with($literal, 'phreeform/')
+                // Ends in .php, because the module's DIRECTORY is called
+                // phreeform too and always will be — 'phreeform/images' is a
+                // folder a company owns, not a file this code loads.
+                if ((str_starts_with($literal, 'phreeform/') && str_ends_with($literal, '.php'))
                     || ($literal === 'phreeform' && $wasCall === 'gen_pull_language')) {
                     $found[$literal][] = "$where:$line";
                 }
@@ -301,8 +305,20 @@ function formsReferences(string $forms, array $vocabulary): array
 
 // ─────────────────────────────────────────────────────────────────────────────
 $vocabulary = phreeformVocabulary($root, $pf);
-printf("PhreeForm declares %d constants, %d functions and %d file-scope globals.\n",
-    count($vocabulary['constants']), count($vocabulary['functions']), count($vocabulary['globals']));
+
+// Once the module is gone there is no vocabulary to look for, and every list
+// below is trivially empty. Said out loud rather than passed silently: a check
+// that reports success while measuring nothing is the failure this whole file
+// exists to prevent, and it would be a poor irony to end as one.
+$deleted = !is_dir($pf);
+if ($deleted) {
+    echo "PhreeForm is gone, so there is nothing left to borrow.\n"
+       . "  The lists below are history: what each tree took, and why, up to the\n"
+       . "  day it was deleted. Only the settings check still measures anything.\n\n";
+} else {
+    printf("PhreeForm declares %d constants, %d functions and %d file-scope globals.\n",
+        count($vocabulary['constants']), count($vocabulary['functions']), count($vocabulary['globals']));
+}
 
 $everything = [];
 foreach (BORROWED as $tree => $allowed) {
@@ -360,10 +376,40 @@ ok('every seeded default has a fallback, so a missing row is not a fatal',
    $missing === [], implode(', ', $missing));
 ok('and the two agree', $differ === [], implode(' | ', $differ));
 
+// ─────────────────────────────────────────────────────────────────────────────
+echo "\n=== nothing on screen still names the old engine ===\n";
+//
+// A deleted module leaves its name behind in the places nobody greps: a menu
+// entry qualified "(Forms)" to tell it apart from a Reports entry that no
+// longer exists, a module description promising it "runs alongside PhreeForm
+// during the transition", a caution about a fallback there is no longer a
+// fallback to. Each reads as current, and each is now a lie told to a user.
+//
+// Values only, not comments. The code may say whatever it needs to about where
+// it came from — much of this file does — but a define()d STRING is something
+// somebody reads on a page.
+$named = [];
+foreach (phpFiles($root . '/modules') as $path) {
+    if (!str_contains($path, '/language/')) continue;
+    $where = str_replace($root . '/modules/', '', $path);
+    foreach (token_get_all((string)file_get_contents($path)) as $token) {
+        if (!is_array($token) || $token[0] !== T_CONSTANT_ENCAPSED_STRING) continue;
+        if (stripos($token[1], 'phreeform') === false) continue;
+        // The constant NAME may legitimately contain it — a config key seeded
+        // long ago is still called what it is called.
+        if (preg_match('/^[\'"](MODULE_)?PHREEFORM/i', $token[1])) continue;
+        $named[] = $where . ':' . $token[2];
+    }
+}
+ok('no message a user reads still mentions PhreeForm', $named === [],
+   implode(', ', array_slice($named, 0, 4)));
+
 echo "\n=== the list is honest ===\n";
 foreach ($everything as $tree => $used) {
+    // With the module deleted, "nothing on the list is borrowed any more" is
+    // true of every list and proves nothing, so the stale half is not asked.
     $new   = array_diff(array_keys($used), array_keys(BORROWED[$tree]));
-    $stale = array_diff(array_keys(BORROWED[$tree]), array_keys($used));
+    $stale = $deleted ? [] : array_diff(array_keys(BORROWED[$tree]), array_keys($used));
     ok("$tree borrows nothing that is not on its list", $new === [],
        'new coupling to PhreeForm: ' . implode(', ', $new));
     ok("and nothing on $tree's list has stopped being borrowed", $stale === [],

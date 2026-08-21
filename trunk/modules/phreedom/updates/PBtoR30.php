@@ -16,6 +16,10 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/updates/PBtoR10.php
+// PhreeForm is deleted (design §13.39). Every reference below is guarded
+// rather than removed: this script upgrades a 2.x database, and what it
+// did then is the record of what such a database needs. Guarded, it is
+// history that cannot fatal; deleted, it would be a gap in the trail.
 //
 
 // This script updates/converts PhreeBooks Release 2.1 to Phreedom Release 3.0
@@ -78,19 +82,37 @@ if (defined('MODULE_SHIPPING_STOREPICKUP_SORT_ORDER')) write_configure('MODULE_S
 if (defined('MODULE_SHIPPING_TABLE_SORT_ORDER'))       write_configure('MODULE_SHIPPING_TABLE_STATUS',       '0.1');
 if (defined('MODULE_SHIPPING_UPS_SORT_ORDER'))         write_configure('MODULE_SHIPPING_UPS_STATUS',         '0.1');
 if (defined('MODULE_SHIPPING_USPS_SORT_ORDER'))        write_configure('MODULE_SHIPPING_USPS_STATUS',        '0.1');
-// load the phreeform module
-gen_pull_language('phreeform', 'admin');
-require_once (DIR_FS_MODULES . 'phreeform/config.php');
-require_once (DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once (DIR_FS_MODULES . 'phreeform/classes/install.php');
-$mInstall = new phreeform_admin;
-admin_install_dirs($mInstall->dirlist, DIR_FS_MY_FILES.$_SESSION['company'].'/');
-admin_install_tables($mInstall->tables);
-write_configure('MODULE_PHREEFORM_STATUS', constant('MODULE_PHREEFORM_VERSION'));
-foreach ($mInstall->keys as $key => $value) write_configure($key, $value);
-$mInstall->load_reports('phreeform');
-admin_add_reports('phreeform');
-$mInstall->install('phreeform');
+// Load the reports module. This was phreeform; it is forms, which owns the
+// document catalogue, the definitions directory and the seeding (§13.39).
+$mInstall = null;
+if (is_file(DIR_FS_MODULES . 'forms/classes/install.php')) {
+  gen_pull_language('forms', 'admin');
+  require_once (DIR_FS_MODULES . 'forms/config.php');
+  require_once (DIR_FS_MODULES . 'forms/defaults.php');
+  require_once (DIR_FS_MODULES . 'forms/classes/install.php');
+  $mInstall = new forms_admin;
+  $module   = 'forms';
+} elseif (is_file(DIR_FS_MODULES . 'phreeform/classes/install.php')) {
+  // Kept for a tree that still has the old module beside this script. Guarded
+  // rather than removed: this upgrades a 2.x database, and what it did then is
+  // the record of what such a database needs.
+  gen_pull_language('phreeform', 'admin');
+  require_once (DIR_FS_MODULES . 'phreeform/config.php');
+  require_once (DIR_FS_MODULES . 'phreeform/defaults.php');
+  require_once (DIR_FS_MODULES . 'phreeform/classes/install.php');
+  $mInstall = new phreeform_admin;
+  $module   = 'phreeform';
+}
+if ($mInstall !== null) {
+  admin_install_dirs($mInstall->dirlist, DIR_FS_MY_FILES.$_SESSION['company'].'/');
+  admin_install_tables($mInstall->tables);
+  write_configure('MODULE_' . strtoupper($module) . '_STATUS',
+                  constant('MODULE_' . strtoupper($module) . '_VERSION'));
+  foreach ($mInstall->keys as $key => $value) write_configure($key, $value);
+  if (method_exists($mInstall, 'load_reports')) $mInstall->load_reports($module);
+  admin_add_reports($module);
+  $mInstall->install($module);
+}
 // load installed modules and build report folders
 $contents = scandir(DIR_FS_MODULES);
 foreach ($contents as $entry) { // load the configuration files to load version info

@@ -16,6 +16,10 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/install/updates/R21toR30.php
+// PhreeForm is deleted (design §13.39). Every reference below is guarded
+// rather than removed: this script upgrades a 2.x database, and what it
+// did then is the record of what such a database needs. Guarded, it is
+// history that cannot fatal; deleted, it would be a gap in the trail.
 //
 
 // This script updates Release 2.1 to Phreedom Framework Release 3.0, it is included as part of the update script
@@ -67,27 +71,37 @@ if (!db_field_exists(TABLE_JOURNAL_MAIN, 'closed_date')) {
 
 // convert reports
 gen_pull_language('phreebooks');
-gen_pull_language('phreeform','admin');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/reportwriter.php');
-$result = $db->Execute("select * from " . TABLE_REPORTS);
-$count  = 0;
-while (!$result->EOF) {
-  $skip_report = false;
-  $report = PrepReport($result->fields['id']);
-  if (!$params = import_text_params($report)) {
-	$messageStack->add(sprintf(PB_CONVERT_SAVE_ERROR, $result->fields['description']), 'error');
-	$skip_report = true;
+// PhreeForm is deleted (§13.39), and this conversion was ITS: PrepReport() and
+// save_report() turned a 2.x pb_reports row into a PhreeForm xml definition, and
+// both functions went with the module. The block is guarded rather than removed
+// because it is the record of what a 2.x database needs, and a database that old
+// has to reach 3.0 through the old code before Forms can convert anything.
+if (is_file(DIR_FS_MODULES . 'phreeform/functions/phreeform.php')) {
+  gen_pull_language('phreeform','admin');
+  require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+  require_once(DIR_FS_MODULES . 'phreeform/functions/reportwriter.php');
+  $result = $db->Execute("select * from " . TABLE_REPORTS);
+  $count  = 0;
+  while (!$result->EOF) {
+    $skip_report = false;
+    $report = PrepReport($result->fields['id']);
+    if (!$params = import_text_params($report)) {
+  	$messageStack->add(sprintf(PB_CONVERT_SAVE_ERROR, $result->fields['description']), 'error');
+  	$skip_report = true;
+    }
+    // fix some fields
+    $params->custom = $result->fields['standard_report'] ? 's' : 'c';
+    if (!$skip_report) {
+  	if (!$success = save_report($params)) {
+  	  $messageStack->add(sprintf(PB_CONVERT_SAVE_ERROR, $params->title), 'error');
+  	}
+  	$count++;
+    }
+    $result->MoveNext();
   }
-  // fix some fields
-  $params->custom = $result->fields['standard_report'] ? 's' : 'c';
-  if (!$skip_report) {
-	if (!$success = save_report($params)) {
-	  $messageStack->add(sprintf(PB_CONVERT_SAVE_ERROR, $params->title), 'error');
-	}
-	$count++;
-  }
-  $result->MoveNext();
+} else {
+  $messageStack->add('Reports could not be converted: the PhreeForm engine this'
+      . ' upgrade needs is no longer installed.', 'caution');
 }
 // Copy the PhreeBooks images
 $dir_source = DIR_FS_MY_FILES . $_SESSION['company'] . '/images';

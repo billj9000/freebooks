@@ -54,8 +54,6 @@ function fbmenu_permitted(array $items) {
     if (isset($item['submenu']) && is_array($item['submenu'])) {
       if (fbmenu_permitted($item['submenu'])) return true;
     } else {
-      if (isset($item['show_in_users_settings']) && $item['show_in_users_settings'] == false
-          && isset($item['security_id']) && $item['security_id'] == SECURITY_ID_PHREEFORM) continue;
       if (isset($item['security_id']) && $item['security_id'] != ''
           && array_key_exists($item['security_id'], $_SESSION['admin_security'])
           && $_SESSION['admin_security'][$item['security_id']] > 0) return true;

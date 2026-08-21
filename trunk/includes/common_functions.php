@@ -1415,80 +1415,10 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return '<li class="nav-item"><a class="' . $cls . '" data-bs-toggle="tab" href="#' . $name . '">' . $text . '</a></li>' . chr(10);
   }
 
-  function build_dir_html($name, $full_array) {
-	$entry_string  = NULL;
-//	$entry_string  .= '<table id="' . $name . '" cellpadding="0" cellspacing="0">' . chr(10);
-	$entry_string .= build_dir_tree($name, $full_array, $index = -1, $level = 0, $cont_level = array());
-//	$entry_string .= '</table>' . chr(10);
-	return $entry_string;
-  }
-
-  function build_dir_tree($name, $full_array, $index = -1, $level = 0, $cont_level = array()) {
-	$entry_string = '';
-	for ($j = 0; $j < count(is_array($full_array[$index]) ? $full_array[$index] : []); $j++) {
-	  $new_ref   = $index . '_' . $full_array[$index][$j]['id'];
-	  $cont_temp = array_keys($cont_level);
-	  $entry_string .= '<div style="height:16px;">' . chr(10);
-//	  $entry_string .= '<table cellpadding="0" cellspacing="0">' . chr(10);
-//	  $entry_string .= '<tr><td nowrap="nowrap">' . chr(10);
-	  for ($i = 0; $i < $level; $i++) {
-	    if (false) {
-	    } elseif ($i == $level-1 && $j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
-		  $entry_string .= html_icon('phreebooks/cont-end.gif', '', 'small');
-		} elseif ($i == $level-1 && $j == count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
-		  $entry_string .= html_icon('phreebooks/end-end.gif', '', 'small');
-		} elseif (in_array($i, $cont_temp)) {
-		  $entry_string .= html_icon('phreebooks/cont.gif', '', 'small');
-		} elseif ($i < $level-1) {
-		  $entry_string .= html_icon('phreebooks/blank.gif', '', 'small');
-		}
-	  }
-	  // change title to language if constant is defined
-	  if (defined($full_array[$index][$j]['doc_title'])) $full_array[$index][$j]['doc_title'] = constant($full_array[$index][$j]['doc_title']);
-	  if ($full_array[$index][$j]['doc_type'] == '0') {  // folder
-		$entry_string .= '<a id="imgdc_' . $new_ref . '" href="javascript:Toggle(\'dc_' . $new_ref . '\');">' . html_icon('places/folder.png', TEXT_OPEN, 'small', '', '', '', 'icndc_' . $new_ref) . '</a>';
-	  } else {
-		$entry_string .= html_icon('mimetypes/text-x-generic.png', $full_array[$index][$j]['doc_title'], 'small');
-	  }
-//	  $entry_string .= '</td>' . chr(10);
-//	  $entry_string .= '<td>';
-	  $short_title   = (strlen($full_array[$index][$j]['doc_title']) <= PF_DEFAULT_TRIM_LENGTH) ? $full_array[$index][$j]['doc_title'] : substr($full_array[$index][$j]['doc_title'], 0, PF_DEFAULT_TRIM_LENGTH) . '...';
-	  $entry_string .= '&nbsp;<a href="javascript:fetch_doc(' . $full_array[$index][$j]['id'] . ');">' . htmlspecialchars($short_title) . '</a>' . chr(10);
-//	  $entry_string .= '</td></tr>' . chr(10);
-//	  $entry_string .= '</table>' . chr(10);
-	  $entry_string .= '</div>' . chr(10);
-	  if ($j < count(is_array($full_array[$index]) ? $full_array[$index] : [])-1) {
-		$cont_level[$level-1] = true;
-	  } else {
-		unset($cont_level[$level-1]);
-	  }
-	  if (isset($full_array[$full_array[$index][$j]['id']])) {
-		$display_none = ($level == 0 || $full_array[$index][$j]['show']) ? '' : 'display:none; ';
-		$entry_string .= '<div id="dc_' . $new_ref . '" style="' . $display_none . 'margin-left:0px;">' . chr(10);
-		$entry_string .= build_dir_tree($name, $full_array, $full_array[$index][$j]['id'], $level+1, $cont_level) . chr(10);
-		$entry_string .= '</div>' . chr(10);
-	  }
-	}
-	return $entry_string;
-  }
-
-/**************************************************************************************************************/
-// Section 4. Localization Functions
-/**************************************************************************************************************/
-function charConv($string, $in, $out) {
-	$str = NULL;
-	// make them both lowercase
-	$in = strtolower($in);
-	$out = strtolower($out);
-	// sanity checking
-	if (!$in || !$out) return $string;
-	if ($in == $out) return $string;
-	// return string if we don't have this function
-	if (!function_exists("iconv")) return $string;
-	// this tells php to ignore characters it doesn't know
-	$out .= "//IGNORE";
-	return iconv($in, $out, $string);
-}
+  // build_dir_html() and build_dir_tree() were here: a collapsible document tree
+  // with exactly one caller, PhreeForm's report list, and the only thing in core
+  // that read PF_DEFAULT_TRIM_LENGTH. Both went with it. Forms' document list
+  // folds by heading in its own page (§13.22) rather than through a core helper.
 
   function strtolower_utf8($string){
     $convert_from = array(

@@ -58,7 +58,6 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($argv[1] ?? null);
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};

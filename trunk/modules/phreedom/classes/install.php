@@ -301,9 +301,9 @@ class phreedom_admin {
   	  if (!db_table_exists(TABLE_WEBAUTHN_CREDS)) $db->Execute($this->tables[TABLE_WEBAUTHN_CREDS]);
   	}
   	if (MODULE_PHREEDOM_STATUS < 3.9) {
-  	  // The Company Links / Notes / To-Do dashboards had SECURITY_ID_PHREEFORM
-  	  // (3) as their own key — a constant they borrowed, which goes with that
-  	  // module. They are SECURITY_ID_DASHBOARDS (12) now.
+  	  // The Company Links / Notes / To-Do dashboards had PhreeForm's security
+  	  // id (3) as their own key — a constant they borrowed, which went with
+  	  // that module. They are SECURITY_ID_DASHBOARDS (12) now.
   	  //
   	  // A rename would not have been enough. A dashboard's security id decides
   	  // WHO CAN SEE IT, so pointing three of them at a key nobody holds makes
@@ -321,8 +321,11 @@ class phreedom_admin {
   	    $stored   = (string)$result->fields['admin_security'];
   	    $result->MoveNext();
   	    $levels   = gen_parse_permissions($stored);
-  	    if (!isset($levels[SECURITY_ID_PHREEFORM]) || isset($levels[SECURITY_ID_DASHBOARDS])) continue;
-  	    $levels[SECURITY_ID_DASHBOARDS] = $levels[SECURITY_ID_PHREEFORM];
+  	    // 3 as a NUMBER, because SECURITY_ID_PHREEFORM no longer exists: the
+  	    // module that defined it is deleted, and a migration whose job is to
+  	    // carry an old value forward cannot depend on the old name surviving.
+  	    if (!isset($levels[3]) || isset($levels[SECURITY_ID_DASHBOARDS])) continue;
+  	    $levels[SECURITY_ID_DASHBOARDS] = $levels[3];
   	    $pairs = array();
   	    foreach ($levels as $key => $level) $pairs[] = $key . ':' . $level;
   	    $db->Execute("update " . TABLE_USERS . " set admin_security = '"

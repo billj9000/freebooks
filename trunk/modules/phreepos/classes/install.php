@@ -31,7 +31,7 @@ class phreepos_admin {
 	  'phreebooks'=> 3.6,
 	  'phreedom'  => 3.6,
 	  'payment'   => 3.6,
-	  'phreeform' => 3.6,
+	  'forms'     => 1.1,
 	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(

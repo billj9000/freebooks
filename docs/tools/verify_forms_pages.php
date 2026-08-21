@@ -1117,7 +1117,7 @@ if ($PAGE === 'admin') {
     // not the other is a control that cannot be saved, or a setting with no
     // control at all.
     require_once(DIR_FS_MODULES . 'forms/classes/install.php');
-    $keys = array_keys((new forms_admin())->keys);
+    $keys = array_diff(array_keys((new forms_admin())->keys), forms_admin::HIDDEN_KEYS);
     ok('the installer ships some settings to draw', $keys !== []);
 
     $undrawn = [];

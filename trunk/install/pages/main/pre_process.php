@@ -48,7 +48,7 @@ $lang = !empty($_GET['lang']) ? $_GET['lang'] : DEFAULT_LANGUAGE;
 $_SESSION['language'] = $lang;
 install_pull_language($lang);
 install_lang('phreedom',  $lang, 'language'); // install general language file
-install_lang('phreeform', $lang, 'language'); // install general language file
+install_lang('forms', $lang, 'language'); // install general language file
 require_once('defaults.php');
 require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
 // PDF_APP is normally seeded into pb_configuration and turned into a constant
@@ -283,7 +283,7 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  		}
 	  	}
 		// install core modules first
-	  	$core_modules = array('phreedom', 'phreeform', 'phreebooks', 'contacts', 'inventory', 'shipping', 'phreehelp');
+	  	$core_modules = array('phreedom', 'forms', 'phreebooks', 'contacts', 'inventory', 'shipping', 'phreehelp');
 	  	foreach ($core_modules as $entry) {
 	  		if (DEBUG) $messageStack->debug("\n  installing core module = " . $entry);
 	  		if ($entry <> '.' && $entry <> '..' && is_dir(DIR_FS_MODULES . $entry)) {

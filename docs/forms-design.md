@@ -4753,3 +4753,97 @@ was the pretence that it could be written down. The `date` hint is now asked
 only about things that are dates, and the drift check that caught it is the same
 one that would catch a doctored baseline. Its first real catch was a case that
 could never have been golden.
+
+### 13.39 Step 6, part five: PhreeForm is deleted
+
+80 files, 10,454 lines of its own code and 1,898 of vendored FPDF.
+
+The dress rehearsal is what made it a deletion rather than an excavation. Hiding
+`modules/phreeform` and running the suite named eleven failures **before**
+anything was removed, and every one was a `require_once` at the top of a
+verification tool — none in Forms itself. Ten of those requires turned out to be
+bootstrap habit: only two tools touched anything live, and it was
+`PF_DEFAULT_ROWSPACE`, a configuration row rather than code.
+
+#### What the deletion still found
+
+Three things the inventory in §13.37 had not: each was PhreeForm doing a job for
+the whole application rather than for itself.
+
+- **The definitions directory.** `phreeform_admin::dirlist` created
+  `my_files/<company>/phreeform/` and its `images/`. Without it a fresh install
+  has nowhere to seed a document into and no obvious sign of why.
+- **The document catalogue table.** `phreeform_admin::tables` created
+  `TABLE_PHREEFORM` — the table every page of Forms reads first.
+- **`PDF_APP`.** Seeded by that same class, and read by
+  `currencies::format_full()` in **core**, as a parameter default. A company
+  without the row is a fatal a long way from anything to do with reports.
+
+All three are Forms' now, unchanged: same folder name, same `CREATE TABLE`
+(MyISAM and all), same value. Renaming any of them would be a migration every
+backup, restore and installed extension would have to be taught, in exchange for
+a word.
+
+`PDF_APP` also produced the one exemption on the settings page. It has to be
+written and must not be offered — Forms' renderers extend TCPDF and nothing
+else, and a setting with one possible value is a question nobody should be
+asked. `forms_admin::HIDDEN_KEYS` says so **beside the keys**, so the page check
+reads the exemption out of the code it is checking rather than out of a list in
+the test.
+
+#### Guarded, not deleted
+
+Two upgrade scripts still name PhreeForm: `PBtoR30.php` and `R21toR30.php`, which
+take a 2.x database to 3.0. Their references are guarded rather than removed.
+Such a database has to reach 3.0 through the old code before Forms can convert
+anything, and what those scripts did is the record of what a database that old
+needs; deleted, it would be a gap in the trail. `PBtoR30` now installs **forms**
+where it installed phreeform, falling back to the old module if a tree still has
+it.
+
+The loader's legacy branch stays too, against §13.32's list. It costs nothing —
+`LegacyReader` remains for Import and for `.pre-forms` — and it is the only
+thing that makes a definition out of an old backup readable. Removing it turns
+"works" into "error" for the one person it would matter to.
+
+#### What the suite does now, with nothing to compare against
+
+Every tool that measured Forms against PhreeForm says so and keeps working:
+
+| | |
+|---|---|
+| `verify_forms_formatter` | 198 matched **against the captured baseline** |
+| `verify_forms_serial` | 2 records compared **against the captured baseline** |
+| `verify_forms_legacy_reader` | comparison half skipped; shape checks stand |
+| `verify_forms_standalone` | *"PhreeForm is gone, so there is nothing left to borrow"* |
+
+That is stage B paying for itself. Without those two baselines, deleting the
+module would have deleted the evidence that Forms prints what it used to — and
+the checks would have gone green by having nothing left to check, which is the
+failure this project has spent its length learning to distrust.
+
+`verify_forms_forms` needed no repointing after all: it drives Forms' own
+`plan()`/`run()` over a legacy object read from a `.pre-forms` original, and
+never called PhreeForm to do it.
+
+#### The name left behind on screen
+
+`Reports (Forms)` in the Tools menu. The qualifier existed to tell it apart from
+PhreeForm's own Reports entry, and with that gone there is nothing to tell it
+apart from — a qualifier that no longer qualifies anything is noise in a menu.
+It is `Reports`. The page intro said "rendered by the Forms engine", drawing the
+same dead distinction, and the module description promised it "runs alongside
+PhreeForm during the transition".
+
+None of those is a code dependency, which is why the scanner never saw them:
+they are the module's name in the places nobody greps, each reading as current
+and each now a lie told to a user. `verify_forms_standalone` checks the shipped
+language files for it — **values only**, since the code may say whatever it
+needs about where it came from, and much of this project does.
+
+#### Left behind on purpose
+
+`MODULE_PHREEFORM_STATUS` and the `PF_DEFAULT_*` rows stay in every existing
+company's `pb_configuration`. They define constants nothing reads. Deleting rows
+from a live database to tidy a name is not worth the risk, and a fresh install
+never creates them.

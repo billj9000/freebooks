@@ -289,7 +289,6 @@ ok('it exists', is_file($endpoint));
 
 gen_pull_language('phreeform');
 gen_pull_language('forms');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 
 // Over tokens, not raw text: the file's own header explains the checks in
 // prose, and prose is not a reference.

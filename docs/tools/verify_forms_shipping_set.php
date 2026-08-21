@@ -37,7 +37,6 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($argv[1] ?? null);
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_MODULES . 'forms/functions/seed.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
@@ -411,9 +410,13 @@ echo "\n=== a stored definition is `pf_` AND DIGITS, everywhere it is walked ===
 // its list close to doubled and its backups gone; the adopt tool would have
 // matched the pre-tidy copy to the same master and, being second in the
 // directory listing, written the version from BEFORE the tidy over it.
+//
+// Two of the three walkers were PhreeForm's own admin loops, and went with it.
+// What is left is the one that still runs, and the rule outlives the module
+// because `.pre-forms` will outlive it too: a backup beside a definition begins
+// `pf_` exactly like the definition does, and anything matching on three
+// characters picks it up.
 $walkers = [
-    'the paper re-stamp'   => DIR_FS_MODULES . 'phreeform/pages/admin/pre_process.php',
-    'the catalog rebuild'  => DIR_FS_MODULES . 'phreeform/pages/admin/pre_process.php',
     'adopt_forms_layouts'  => __DIR__ . '/adopt_forms_layouts.php',
 ];
 $loose = [];
@@ -427,9 +430,6 @@ foreach (array_unique($walkers) as $path) {
 }
 ok('no walker matches on the first three characters', $loose === [],
    implode(' | ', $loose) . " — a `.pre-forms` backup begins `pf_` as well");
-$gates = substr_count((string)file_get_contents(
-    DIR_FS_MODULES . 'phreeform/pages/admin/pre_process.php'), "preg_match('/^pf_\\d+$/'");
-ok('both admin loops gate on the exact name', $gates === 2, "found $gates, expected 2");
 ok('and so does the adopt tool',
    str_contains((string)file_get_contents(__DIR__ . '/adopt_forms_layouts.php'),
                 "preg_match('/^pf_\\d+$/'"));

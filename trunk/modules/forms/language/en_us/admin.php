@@ -22,7 +22,7 @@
 // missing row.
 
 define('MODULE_FORMS_TITLE',       'Forms Module');
-define('MODULE_FORMS_DESCRIPTION', 'Reports and forms engine. Runs the existing report catalog with typed values, so the same definition prints a readable PDF and exports a machine-readable CSV. Replaces PhreeForm, and runs alongside it during the transition. Defining datasets is a separate privilege from writing or running reports.');
+define('MODULE_FORMS_DESCRIPTION', 'Reports and forms engine. Runs the document catalog with typed values, so the same definition prints a readable PDF and exports a machine-readable CSV. Defining datasets is a separate privilege from writing or running reports.');
 
 // The module's own settings page, reached from Company -> Module Administration.
 define('FORMS_ADMIN_TITLE',        'Forms Module Settings');

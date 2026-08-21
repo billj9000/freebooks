@@ -41,7 +41,6 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($argv[1] ?? null);
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 // The module's own defaults, which a page requires for itself — FORMS_DEFAULT_COLUMN_WIDTH
 // is there and nothing loads it automatically.
 require_once(DIR_FS_MODULES . 'forms/defaults.php');

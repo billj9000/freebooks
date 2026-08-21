@@ -51,6 +51,20 @@ class forms_admin {
     'FORMS_DEFAULT_COLUMN_WIDTH' => 'PF_DEFAULT_COLUMN_WIDTH',
   );
 
+  /**
+   * Keys that are seeded but deliberately have no control on the settings page.
+   *
+   * PDF_APP is the only one, and it is here rather than absent from $keys
+   * because it still has to be WRITTEN: currencies::format_full() in core takes
+   * it as a parameter default, so a company without the row is a fatal. What it
+   * is not is a choice — Forms' renderers extend TCPDF and nothing else, and a
+   * setting with one possible value is a question nobody should be asked.
+   *
+   * Declared beside the keys rather than listed in the test, so that the page
+   * check reads the exemption from the code it is checking.
+   */
+  const HIDDEN_KEYS = array('PDF_APP');
+
   public $notes         = array();
   public $prerequisites = array();
   public $keys          = array();
@@ -75,6 +89,12 @@ class forms_admin {
       'FORMS_DEFAULT_PAPER'        => 'Letter',
       'FORMS_DEFAULT_ROWSPACE'     => '2',
       'FORMS_DEFAULT_COLUMN_WIDTH' => '25',
+
+      // Inherited outright from PhreeForm's install class, which is deleted.
+      // TCPDF is not a choice for Forms — its renderers extend it and nothing
+      // else — but the constant is read by currencies::format_full() in core,
+      // as a parameter default, so it has to exist.
+      'PDF_APP'                    => 'TCPDF',
     );
     foreach (self::INHERITS as $key => $from) {
       if (!defined($from)) continue;
@@ -83,8 +103,35 @@ class forms_admin {
       if ($key === 'FORMS_DEFAULT_PAPER') $value = explode(':', $value)[0];
       if ($value !== '') $this->keys[$key] = $value;
     }
-    $this->dirlist = array();
+    // Where a company's definitions and their images live. PhreeForm's install
+    // class created these; with it deleted, a fresh install would have had
+    // nowhere to seed a document into and no obvious sign of why.
+    //
+    // The FOLDER keeps its name. Renaming it is a migration every backup,
+    // restore and installed extension would have to be taught, in exchange for
+    // a word — the same reasoning as TABLE_PHREEFORM below.
+    $this->dirlist = array(
+      'phreeform',
+      'phreeform/images',
+    );
     $this->tables  = array(
+      // The document catalogue, inherited from PhreeForm's install class: one
+      // row per report or form, and the thing every page of Forms reads first.
+      // Unchanged from the definition that module shipped, MyISAM and all, so
+      // that an existing company and a new one hold the same table.
+      TABLE_PHREEFORM => "CREATE TABLE " . TABLE_PHREEFORM . " (
+          id int(10) unsigned NOT NULL auto_increment,
+          parent_id int(11) NOT NULL default '0',
+          doc_type enum('0','c','s') NOT NULL default 's',
+          doc_title varchar(64) default '',
+          doc_group varchar(9) default NULL,
+          doc_ext varchar(3) default NULL,
+          security varchar(255) default 'u:0;g:0',
+          create_date date default NULL,
+          last_update date default NULL,
+          PRIMARY KEY (id)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+
       TABLE_FORMS_DATASETS => "CREATE TABLE " . TABLE_FORMS_DATASETS . " (
           id          varchar(64)  NOT NULL,
           label       varchar(128) NOT NULL DEFAULT '',

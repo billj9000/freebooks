@@ -64,7 +64,7 @@ Every module under `trunk/modules/` follows the same layout:
 | **phreebooks** | General ledger, journals (J1–J22), orders, invoices, bank reconciliation, reports |
 | **contacts** | Customers, vendors, pricing |
 | **inventory** | SKU/stock management, warehouses |
-| **phreeform** | Report designer and print engine |
+| **forms** | Report and form designer, print engine, and the document catalog |
 | **phreepos** | Point of Sale |
 | **payment** | Payment method plugins |
 | **shipping** | Shipping method plugins |
@@ -207,7 +207,6 @@ This covers, among others:
 | Path | Upstream |
 |---|---|
 | `trunk/vendor/` | Composer packages (PHPMailer, Twig, BoxPacker, TCPDF, …) |
-| `trunk/modules/phreeform/includes/fpdf/` | FPDF — Olivier Plathey |
 | `trunk/ext/` | Bootstrap, htmx, and other bundled front-end assets |
 | `trunk/jodit/` | Jodit editor |
 | `extensions/Modules/zencart/ZenCartFiles/` | ZenCart's own files (run on the ZenCart side) |

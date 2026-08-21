@@ -161,7 +161,7 @@ $formatter = new Formatter($currencies, DEFAULT_CURRENCY, fb_formatter_lookups()
 $renderer  = new LayoutPdfRenderer(
     formatter:      $formatter,
     defaultFont:    defined('FORMS_DEFAULT_FONT') ? FORMS_DEFAULT_FONT : 'freeserif',
-    rowSpacing:     defined('PF_DEFAULT_ROWSPACE') ? (float)PF_DEFAULT_ROWSPACE : 2.0,
+    rowSpacing:     (float)FORMS_DEFAULT_ROWSPACE,
     continuedLabel: defined('TEXT_CONTINUED') ? TEXT_CONTINUED : 'Continued',
     pageOfLabel:    defined('TEXT_OF') ? TEXT_OF : 'of',
     imageDirectory: FORMS_DIR_IMAGES,
