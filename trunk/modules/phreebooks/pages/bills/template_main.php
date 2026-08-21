@@ -23,6 +23,10 @@ echo html_hidden_field('id',              $order->id) . chr(10);
 echo html_hidden_field('bill_acct_id',    $order->bill_acct_id) . chr(10);
 echo html_hidden_field('bill_address_id', $order->bill_address_id) . chr(10);
 echo html_hidden_field('bill_telephone1', $order->bill_telephone1) . chr(10);
+// Set by submitToDo() from fbDocModified(). '1' unless the javascript could
+// establish that nothing changed, so a browser that never ran it posts as
+// before rather than silently dropping an edit.
+echo html_hidden_field('doc_modified',    '1') . chr(10);
 if (JOURNAL_ID == 18) {
   echo html_hidden_field('acct_balance', '0') . chr(10);
   echo html_hidden_field('end_balance',  '0') . chr(10);
@@ -40,11 +44,12 @@ echo html_pull_down_menu('payment_id', gen_null_pull_down(), '', 'style="visibil
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=' . JOURNAL_ID . '&amp;type=' . $account_type . '&amp;list=1', 'SSL') . '\'"';
 $toolbar->icon_list['open']['params']   = 'onclick="OpenOrdrList(this)"';
 $toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . TEXT_DELETE_ENTRY . '\')) submitToDo(\'delete\')"';
-$toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
-$toolbar->icon_list['print']['params']  = 'onclick="submitToDo(\'print\')"';
+$toolbar->icon_list['save']['params']   = 'onclick="saveDocument()"';
+$toolbar->icon_list['print']['params']  = 'onclick="printDocument()"';
 if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;
 if ($security_level < 2) $toolbar->icon_list['save']['show']   = false;
-if ($security_level < 2) $toolbar->icon_list['print']['show']  = false;
+// Print stays for read-only: printDocument() opens the form popup on the stored
+// record without posting this form, so it needs no more than sight of it.
 $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')) . 'jID=' . JOURNAL_ID . '&amp;type=' . $type, 'SSL') . '\'"', 2);
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 switch (JOURNAL_ID) {

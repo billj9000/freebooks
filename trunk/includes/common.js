@@ -386,6 +386,132 @@ function buildIcon(imagePath, alt, params) {
     return image_html;
 }
 
+// ***************** START has-this-document-been-changed tracking *********************************
+//
+// A document page (an order, an invoice, a receipt) may be opened just to look
+// at it or to print it, and opening it must not rewrite it. Every caller that
+// wants to know whether the person actually changed anything asks fbDocModified().
+//
+// The answer comes from comparing the form against a snapshot of itself rather
+// than from watching for events, because most of what fills these forms never
+// fires one: the AJAX loaders write straight into the fields with insertValue(),
+// and so do the contact, inventory and terms pickers when a popup hands a value
+// back. A signature over the whole form sees all of it, whoever wrote it.
+//
+// The snapshot cannot be taken at load: the form is empty then, and an AJAX
+// response fills it a moment later. fbDocBaselineSoon() is therefore called at
+// the end of each fill routine and defers to the end of the current task, and it
+// gives up the moment the person touches the form, so a late-arriving response
+// can never be mistaken for the state they started from.
+//
+// With no snapshot at all fbDocModified() answers true. Every caller then does
+// what it did before this existed - saving something unchanged is wasteful, but
+// treating an edit as unchanged would throw the edit away.
+//
+var fb_doc_form     = null;  // the form being watched, once fbDocInit has run
+var fb_doc_baseline = null;  // its signature as opened; null until established
+var fb_doc_touched  = false; // has the person typed in, or clicked inside, it
+// The two controls the answer itself is carried in, which would otherwise make
+// every document look changed the moment it was asked about.
+var fb_doc_ignore   = {'action': true, 'doc_modified': true};
+
+function fbDocInit(form_name) {
+  fb_doc_form     = document.forms[form_name];
+  fb_doc_baseline = null;
+  fb_doc_touched  = false;
+  if (!fb_doc_form) return;
+  // Capture phase, so a field's own handler cannot stop these from being seen.
+  // A click is watched alongside the two that change a value, because a click is
+  // what opens the contact, inventory and terms pickers, and a picker writes its
+  // answer back later without an event of any kind.
+  //
+  // The cost of counting a click too eagerly is only that no snapshot is taken,
+  // which reads as changed and behaves as this page did before any of this
+  // existed. The cost of counting one too late is an edit treated as no edit. So
+  // this errs early, every time, and never asks whether a snapshot exists yet.
+  var touched = function() { fb_doc_touched = true; fbDocSyncIcons(); };
+  fb_doc_form.addEventListener('input',  touched, true);
+  fb_doc_form.addEventListener('change', touched, true);
+  fb_doc_form.addEventListener('click',  touched, true);
+}
+
+function fbDocSignature() {
+  if (!fb_doc_form) return null;
+  var parts = [];
+  for (var i = 0; i < fb_doc_form.elements.length; i++) {
+	var el = fb_doc_form.elements[i];
+	// === rather than truthy, so a field named after an Object member is not
+	// mistaken for one of the two names above.
+	if (!el.name || fb_doc_ignore[el.name] === true) continue;
+	var value;
+	switch (el.type) {
+	  case 'checkbox':
+	  case 'radio':  value = el.checked ? '1' : '0'; break;
+	  case 'button':
+	  case 'submit':
+	  case 'reset':  continue;
+	  default:       value = el.value;
+	}
+	parts.push(el.name + '\x1f' + value);
+  }
+  return parts.join('\x1e');
+}
+
+function fbDocBaseline() {
+  fb_doc_baseline = fbDocSignature();
+  fbDocSyncIcons();
+}
+
+function fbDocBaselineSoon() {
+  if (fb_doc_touched) return;
+  window.setTimeout(function() { if (!fb_doc_touched) fbDocBaseline(); }, 0);
+}
+
+function fbDocModified() {
+  if (fb_doc_baseline === null) return true; // nothing to compare against
+  return fbDocSignature() !== fb_doc_baseline;
+}
+
+// Has this document ever been written? A form that opened pre-filled from
+// somewhere else - a sales order being invoiced, a receipt raised against an
+// invoice - has every field set and nothing stored, and asking it whether it
+// "changed" is the wrong question: it always needs saving.
+function fbDocIsStored() {
+  var id = fb_doc_form ? fb_doc_form.elements['id'] : null;
+  return !!(id && id.value !== '' && id.value !== '0');
+}
+
+function fbDocNeedsSaving() {
+  return !fbDocIsStored() || fbDocModified();
+}
+
+// Write the answer into the hidden field the server reads, for whichever action
+// is about to be submitted. Called from submitToDo(), and by hand from the few
+// places that submit the form themselves. Pages without the field are untouched.
+function fbDocPublish() {
+  var field = document.getElementById('doc_modified');
+  if (field) field.value = fbDocModified() ? '1' : '0';
+}
+
+// May this person save this document? The Save icon is the answer, because it is
+// where every rule about that already lives: the page hides it by security level,
+// and the AJAX loaders remove it again once they know the document is an existing
+// one (fillOrder, fillBill). Asking the icon is right in cases a value computed
+// while rendering cannot be - on an order opened for edit the record is not known
+// until the response arrives, long after the page was built.
+function fbDocCanSave() {
+  return !!document.getElementById('tb_icon_save');
+}
+
+// Grey the Save icon while there is nothing to save. The greying is only how the
+// refusal is shown; saveDocument() on each page is the refusal itself.
+function fbDocSyncIcons() {
+  var icon = document.getElementById('tb_icon_save');
+  if (!icon) return;
+  if (fbDocNeedsSaving()) icon.classList.remove('fb-icon-disabled');
+  else                    icon.classList.add('fb-icon-disabled');
+}
+
 // ***************** START function to set button pressed ******************************************
 function showLoading() {
   document.getElementById('please_wait').style.display = 'block';
@@ -398,6 +524,11 @@ function hideLoading() {
 function submitToDo(action, multi_submit) {
   if (!multi_submit) multi_submit = false;
   document.getElementById('action').value = action;
+  // Tell the server whether this document was actually changed, so that an action
+  // which only passes through it - print, email, take a payment, step to the next
+  // one - does not re-post it. One hook here covers every action submitted this
+  // way; the few places that submit the form themselves call fbDocPublish().
+  fbDocPublish();
   if (!form_submitted && check_form() && !multi_submit) {
 	showLoading();
 	form_submitted = true;

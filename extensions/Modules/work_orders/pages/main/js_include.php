@@ -22,6 +22,7 @@
 <!--
 // pass some php variables
 var fetchDetails  = false;
+var nothing_to_print = '<?php echo WO_NOTHING_TO_PRINT; ?>';
 <?php echo js_calendar_init($cal_date); ?>
 
 // required function called with every page load
@@ -31,9 +32,46 @@ function init() {
 	echo "  document.getElementById('search_text').select();";
   } ?>
 <?php
-  if (!$error && $__action == 'print') echo '  printWOrder(' . $id . ');';
+  // Print of a work order that HAD been changed saves it and then comes back here
+  // as action=edit&print=1, so the record printed is still the one in front of
+  // them. Print of an unchanged one never posts at all.
+  if (!$error && isset($_GET['print']) && $__action == 'edit') echo '  printWOrder(' . (int)$id . ');';
   if (!$error && $__action == 'new')   echo '  document.getElementById("sku").focus();';
+  // Watch for changes, so Print can leave an unchanged work order alone. Only
+  // the new/edit form has one to watch; the list page has no work_orders form.
+  // Both are rendered filled by the server, so the snapshot can be taken here.
+  // Not after a failed post: what is on screen is unsaved work, and a snapshot
+  // of it would grey out the Save that has to happen next.
+  if (!$error && ($__action == 'new' || $__action == 'edit')) {
+	echo '  fbDocInit(\'work_orders\');' . "\n";
+	echo '  fbDocBaselineSoon();' . "\n";
+  }
 ?>
+}
+
+// Print does not save. A work order nobody has changed is printed as it stands -
+// no post, no reload, and no write access needed, which is why a read-only user
+// gets the button. Only a record that has never been saved, or one with changes
+// the person is entitled to save, still goes through the server first.
+function printDocument() {
+  var id = document.getElementById('id').value;
+  if ((id == '' || id == '0') && !fbDocCanSave()) { // nothing stored, no right to store it
+	alert(nothing_to_print);
+	return;
+  }
+  if (id != '' && id != '0' && (!fbDocCanSave() || !fbDocModified())) {
+	printWOrder(id);
+	return;
+  }
+  submitToDo('print');
+}
+
+// Saving a work order nobody changed would rewrite the same values. The Save icon
+// is greyed for it (fbDocSyncIcons); this is the refusal itself, for a browser
+// that shows the icon anyway.
+function saveDocument() {
+  if (!fbDocNeedsSaving()) return;
+  submitToDo('save');
 }
 
 function check_form() {

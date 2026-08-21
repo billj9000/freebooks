@@ -68,6 +68,7 @@ define('WO_SKU_NOT_FOUND','The SKU entered cannot be found in the inventory data
 define('WO_INSUFFICIENT_INVENTORY','Not enough of the following parts to build the sku entered. The shortages include:');
 define('WO_MESSAGE_SUCCESS_MAIN_UPDATE','The work order record was updated successfully!');
 define('WO_MESSAGE_SUCCESS_MAIN_ADD','The work order record was added successfully!');
+define('WO_NOTHING_TO_PRINT','This work order has not been saved yet, so there is nothing to print.');
 define('WO_MESSAGE_SUCCESS_MAIN_DELETE','The work order was deleted successfully.');
 define('WO_MESSAGE_STEP_UPDATE_SUCCESS','Work Order step %s was successfully updated.');
 define('WO_MESSAGE_SUCCESS_COMPLETE','Work Order %s has been successfully completed.');

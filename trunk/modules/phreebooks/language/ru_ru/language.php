@@ -110,6 +110,7 @@ define('ORD_JS_NO_STOCK_C','\\n\\nНажмите OK чтобы продолжи�
 define('ORD_JS_INACTIVE_A','Внимание! АРТ: ');
 define('ORD_JS_INACTIVE_B',' is an inactive item.\\n\\nPress OK to continue or Cancel to return to the order form');
 define('ORD_JS_CANNOT_CONVERT_QUOTE','An un-Posted Sales Quote cannot be converted to Sales Order or a Sales/Invoice!');
+define('ORD_JS_NOTHING_TO_PRINT','This document has not been saved yet, so there is nothing to print.');
 define('ORD_JS_CANNOT_CONVERT_SO','An un-Posted Sales Order cannot be converted to a Purchase Order!');
 define('ORD_DELIVERY_DATES','Дата доставки');
 define('ORD_TT_PURCH_INV_NUM','If you leave this field blank, Phreebooks will automatically assign a number.');

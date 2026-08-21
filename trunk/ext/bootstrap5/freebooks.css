@@ -671,3 +671,12 @@ h1 {
   background: #79c9ec url('../../themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png') 50% 50% repeat-x;
   color:      #026890;
 }
+
+/* A toolbar icon that is present but has nothing to do — Save on a document
+   nobody has changed. Greyed and inert; the click handler is what actually
+   refuses, this is only how the refusal is shown. */
+.fb-icon-disabled {
+  opacity:        0.35;
+  cursor:         default !important;
+  pointer-events: none;
+}

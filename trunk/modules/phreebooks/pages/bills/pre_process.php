@@ -96,7 +96,13 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
   case 'print':
-	validate_security($security_level, 2);
+	// Did anyone actually change this receipt? Printing one is a look at it, not a
+	// rewrite of it, so an unchanged record is left alone and read-only may print.
+	// doc_modified is set by submitToDo() from fbDocModified(); it is '1' unless
+	// the browser established that nothing changed, so a client that never ran the
+	// javascript behaves as it always did rather than dropping an edit.
+	$doc_unchanged = (($_POST['id'] ?? '') <> '') && isset($_POST['doc_modified']) && $_POST['doc_modified'] == '0';
+	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	// create and retrieve customer account (defaults also)
 	$order->bill_short_name     = db_prepare_input($_POST['search']);
 	$order->bill_acct_id        = db_prepare_input($_POST['bill_acct_id']);
@@ -188,14 +194,18 @@ switch ($_REQUEST['action']) {
 	if ($order->total_amount < 0) $error = $messageStack->add(TEXT_TOTAL_LESS_THAN_ZERO,'error');
 */
 	// post the receipt/payment
-	if (!$error && $post_success = $order->post_ordr($_REQUEST['action'])) {	// Post the order class to the db
+	if (!$error && $doc_unchanged) $post_success = true; // nothing to write
+	elseif (!$error)               $post_success = $order->post_ordr($_REQUEST['action']);
+	if (!$error && $post_success) {
 	  if ($_REQUEST['action'] == 'save') {
-		gen_add_audit_log(AUDIT_LOG_DESC, $order->purchase_invoice_id, $order->total_amount);
+		if (!$doc_unchanged) gen_add_audit_log(AUDIT_LOG_DESC, $order->purchase_invoice_id, $order->total_amount);
 		if (DEBUG) $messageStack->write_debug();
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
-	  } // else print or print_update, fall through and load javascript to call form_popup and clear form
-	  $print_record_id = $order->id; // save id for printing
-	  $order  = new banking(); // reset all values
+	  }
+	  // Reopen the record that was printed rather than clearing the form: Print is
+	  // a look at this receipt, not a move away from it. js_include.php opens the
+	  // form popup when it sees print=1.
+	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'oID', 'print')) . '&amp;action=edit&amp;oID=' . $order->id . '&amp;print=1', 'SSL'));
 	} else { // else there was a post error, display and re-display form
 	  $error = $messageStack->add(GL_ERROR_NO_POST, 'error');
 	  if (DEBUG) $messageStack->write_debug();

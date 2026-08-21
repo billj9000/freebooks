@@ -176,7 +176,17 @@ switch ($_REQUEST['action']) {
   case 'payment':
   case 'post_previous':
   case 'post_next':
-	validate_security($security_level, 2);
+	// Did anyone actually change this document? These actions all pass through it
+	// - printing it, emailing it, taking a payment against it, exporting it,
+	// stepping to the next one - and only some of them, some of the time, are
+	// meant to write it. An unchanged document is left exactly as it is: no
+	// re-post, no audit entry, and for printing, no write access required.
+	//
+	// doc_modified is set by submitToDo() from fbDocModified(). It is '1' unless
+	// the browser established that nothing changed, so a client that never ran
+	// the javascript behaves as it always did rather than dropping an edit.
+	$doc_unchanged = (($_POST['id'] ?? '') <> '') && isset($_POST['doc_modified']) && $_POST['doc_modified'] == '0';
+	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	if (!isset($_POST['total'])) { // check for truncated post vars
 		$messageStack->add('The total field was not set, this means the form was not submitted in full and the order cannot be posted properly. The most common solution to this problem is to set the max_input_vars above the standard 1000 in your php.ini configuration file.','error');
 		break;
@@ -329,10 +339,17 @@ switch ($_REQUEST['action']) {
 	}
 	// End of error checking, check for attachments and process the order
 	if (!$error) { // Post the order
-	  if ($post_success = $order->post_ordr($_REQUEST['action'])) {	// Post the order class to the db
-		if ($order->rm_attach) @unlink(PHREEBOOKS_DIR_MY_ORDERS . 'order_'.$order->id.'.zip');
-		if (is_uploaded_file($_FILES['file_name']['tmp_name'])) saveUploadZip('file_name', PHREEBOOKS_DIR_MY_ORDERS, 'order_'.$order->id.'.zip');
-		gen_add_audit_log(constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE') . ' - ' . ($_POST['id'] ? TEXT_EDIT : TEXT_ADD), $order->purchase_invoice_id, $order->total_amount);
+	  if ($doc_unchanged) { // nothing to write; carry on to whatever the action wanted
+		$post_success = true;
+	  } else {
+		$post_success = $order->post_ordr($_REQUEST['action']);	// Post the order class to the db
+	  }
+	  if ($post_success) {
+		if (!$doc_unchanged) { // an attachment or an audit entry is part of writing it
+		  if ($order->rm_attach) @unlink(PHREEBOOKS_DIR_MY_ORDERS . 'order_'.$order->id.'.zip');
+		  if (is_uploaded_file($_FILES['file_name']['tmp_name'])) saveUploadZip('file_name', PHREEBOOKS_DIR_MY_ORDERS, 'order_'.$order->id.'.zip');
+		  gen_add_audit_log(constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE') . ' - ' . ($_POST['id'] ? TEXT_EDIT : TEXT_ADD), $order->purchase_invoice_id, $order->total_amount);
+		}
 		if (DEBUG) $messageStack->write_debug();
 		if ($_REQUEST['action'] == 'save') {
 		  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
@@ -361,7 +378,12 @@ switch ($_REQUEST['action']) {
 			echo $body;
 			exit;
 		  }
-		} // else print or print_update, fall through and load javascript to call form_popup and clear form
+		} elseif ($_REQUEST['action'] == 'print') {
+		  // Reopen the document that was printed rather than clearing the form:
+		  // Print is a look at this order, not a move away from it. js_include.php
+		  // opens the form popup when it sees print=1.
+		  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'oID', 'print')) . '&amp;action=edit&amp;oID=' . $order->id . '&amp;print=1', 'SSL'));
+		}
 	  } else { // reset the id because the post failed (ID could have been set inside of Post)
 		$error = true;
 		$order->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);	// reset order num to submitted value (may have been set if payment failed)

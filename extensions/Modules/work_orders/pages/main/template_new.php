@@ -25,16 +25,23 @@ echo html_hidden_field('wo_id', $wo_id)           . chr(10);
 echo html_hidden_field('sku_id', $sku_id)         . chr(10);
 echo html_hidden_field('store_id', $store_id)     . chr(10);
 echo html_hidden_field('close_date', $close_date) . chr(10);
+// Set by submitToDo() from fbDocModified(). '1' unless the javascript could
+// establish that nothing changed, so a browser that never ran it posts as
+// before rather than silently dropping an edit.
+echo html_hidden_field('doc_modified', '1')       . chr(10);
 // customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL') . '\'"';
 $toolbar->icon_list['open']['show'] = false;
 $toolbar->icon_list['delete']['show'] = false;
 if (!$hide_save && $security_level > 1) {
-  $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
+  $toolbar->icon_list['save']['params'] = 'onclick="saveDocument()"';
 } else {
   $toolbar->icon_list['save']['show'] = false;
 }
-$toolbar->icon_list['print']['params'] = 'onclick="submitToDo(\'print\')"';
+// Printing a saved work order only reads it - printDocument() asks for its
+// detail over AJAX and opens the form popup, without posting this form - so
+// read-only may print.
+$toolbar->icon_list['print']['params'] = 'onclick="printDocument()"';
 if ($security_level > 1) $toolbar->add_icon('new', 'onclick="submitToDo(\'new\')"', $order = 2);
 $toolbar->add_help('07.04.WO.04');
 echo $toolbar->build_toolbar();

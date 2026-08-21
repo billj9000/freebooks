@@ -36,6 +36,10 @@ var post_error         = <?php echo $error ? "true;" : "false;"; ?>
 var account_type       = '<?php echo $account_type; ?>';
 var store_country_code = '<?php echo COMPANY_COUNTRY; ?>';
 var payments_installed = <?php echo count($payment_modules) ? 'true' : 'false'; ?>;
+// printDocument() opens the form popup on the stored record, without posting
+// this one. Same URL the status list's print icon uses, less the record id.
+var printFormUrlBase   = '<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>';
+var nothing_to_print   = '<?php echo ORD_JS_NOTHING_TO_PRINT; ?>';
 <?php echo js_calendar_init($cal_bills); ?>
 
 function init() {
@@ -60,14 +64,29 @@ function init() {
   }
 ?>
 
-<?php if ($post_success && $_REQUEST['action'] == 'print') { ?>
-  ClearForm();
-  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL', $print_record_id); ?>","reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
-  printWin.focus();
+<?php
+  // Print of a receipt that HAD been changed saves it and then comes back here as
+  // action=edit&print=1, so the record printed is still the one in front of them.
+  // Print of an unchanged receipt never posts at all - printDocument() opens the
+  // popup directly and this page is not reloaded.
+  if (isset($_GET['print']) && $_REQUEST['action'] == 'edit') { ?>
+  var printWin = window.open(printFormUrlBase + <?php echo json_encode((string)$oID); ?>,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  if (printWin) printWin.focus();
 <?php } ?>
   document.getElementById('search').addEventListener('change', function(){
 	if(document.getElementById('search').value != ''){ AccountList(); }
   });
+  // Watch for changes, so that Print can leave an unchanged record alone.
+  fbDocInit('bills_form');
+<?php
+  // Where the record arrives over AJAX the form is still empty here, so the
+  // snapshot is fillBill()'s and showNewPayment()'s to take once the response has
+  // been written in. Taking one now as well would only invite a race: a click
+  // landing between the two cancels the second, and it would read as changed.
+  // After a failed post, none either: what is on screen is unsaved work, and a
+  // snapshot of it would grey out the Save that has to happen next.
+  if (!$error && $_REQUEST['action'] <> 'edit') echo '  fbDocBaselineSoon();' . "\n";
+?>
 }
 
 function check_form() {
@@ -139,6 +158,10 @@ function showNewPayment(xml) { // call back function
 	jIndex++;
   });
   document.getElementById('payment_id').style.visibility = show ? '' : 'hidden';
+  // The last request the page makes when opening a record - fillBillData() calls
+  // this after fillBill(). Re-snapshotting here keeps the stored payment list
+  // from reading as somebody's edit. A no-op once the person has typed anything.
+  fbDocBaselineSoon();
 }
 // ******* END - AJAX payment stored payment values request function pair *********/
 

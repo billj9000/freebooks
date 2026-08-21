@@ -262,7 +262,8 @@ function fillOrder(xml) {
 	  document.getElementById('show_attach').style.display = ''; // show attachment button and delete checkbox if it exists
     }
     if (xmlText(orderData, "id") && securityLevel < 3) { // turn off some icons
-	  removeElement('tb_main_0', 'tb_icon_print');
+	  // tb_icon_print stays: printDocument() reads the stored record and never
+	  // posts this form, so it needs no more than the right to see the document.
 	  removeElement('tb_main_0', 'tb_icon_save');
 	  removeElement('tb_main_0', 'tb_icon_payment');
 	  removeElement('tb_main_0', 'tb_icon_save_as_so');
@@ -357,6 +358,37 @@ function fillOrder(xml) {
     calculateDiscountPercent();
   });
   if (typeof updatePackingListLink === 'function') updatePackingListLink();
+  // The form now holds the document as stored. Anything that differs from here
+  // on is somebody's edit - see fbDocInit() in includes/common.js.
+  fbDocBaselineSoon();
+}
+
+// Print does not save. A document nobody has changed is printed as it stands -
+// no post, no reload, and no write access needed, which is why a read-only user
+// gets the button. Only two cases still have to save first: a document that has
+// never been saved (there would be nothing to print), and one with changes on
+// screen that the person is entitled to save.
+function printDocument() {
+  var id = document.getElementById('id').value;
+  if (id == '' && !fbDocCanSave()) { // nothing stored, and no right to store it
+	alert(nothing_to_print);
+	return;
+  }
+  if (id != '' && (!fbDocCanSave() || !fbDocModified())) {
+	var printWin = window.open(printFormUrlBase + encodeURIComponent(id), "popup_gen",
+	  "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+	if (printWin) printWin.focus();
+	return;
+  }
+  submitToDo('print');
+}
+
+// Saving a document nobody changed would rewrite every journal row to the same
+// values. The Save icon is greyed for it (fbDocSyncIcons); this is the refusal
+// itself, for a browser that shows the icon anyway.
+function saveDocument() {
+  if (!fbDocNeedsSaving()) return;
+  submitToDo('save');
 }
 
 function AccountList(override) {
@@ -487,6 +519,9 @@ function exportOrder() {
   // (nothing here ever calls hideLoading(); it relies on the full-page reload
   // that print/save get but a download never does).
   document.getElementById('action').value = 'export';
+  // submitToDo() would have done this; exporting an order it changed nothing in
+  // should no more re-post it than printing one does.
+  fbDocPublish();
   if (check_form()) {
     document.getElementById('action').form.submit();
   }

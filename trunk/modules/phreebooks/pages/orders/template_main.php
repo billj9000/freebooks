@@ -35,6 +35,10 @@ echo html_hidden_field('item_count',      $order->item_count) . chr(10);
 echo html_hidden_field('weight',          $order->weight) . chr(10);
 echo html_hidden_field('currencies_code', $order->currencies_code) . chr(10);
 echo html_hidden_field('printed',         $order->printed);
+// Set by submitToDo() from fbDocModified(). '1' unless the javascript could
+// establish that nothing changed, so a browser that never ran it posts as
+// before rather than silently dropping an edit.
+echo html_hidden_field('doc_modified',    '1') . chr(10);
 echo html_hidden_field('override_user',   '');
 echo html_hidden_field('override_pass',   '');
 if (!isset($template_options['closed']))        echo html_hidden_field('closed',  $order->closed);
@@ -50,8 +54,8 @@ if (!ENABLE_MULTI_BRANCH) echo html_hidden_field('store_id', '0') . chr(10);
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=status&amp;jID=' . JOURNAL_ID . '&amp;list=1', 'SSL') . '\'"';
 $toolbar->icon_list['open']['params']   = 'onclick="OpenOrdrList(this)"';
 $toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . ORD_DELETE_ALERT . '\')) submitToDo(\'delete\')"';
-$toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
-$toolbar->icon_list['print']['params']  = 'onclick="submitToDo(\'print\')"';
+$toolbar->icon_list['save']['params']   = 'onclick="saveDocument()"';
+$toolbar->icon_list['print']['params']  = 'onclick="printDocument()"';
 $toolbar->add_icon('new', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'jID')) . '&jID=' . JOURNAL_ID, 'SSL') . '\'"', 2);
 if ($security_level > 1 && ENABLE_BAR_CODE_READERS) {
   $toolbar->add_icon('bar_code', 'onclick="openBarCode()"', 9);
@@ -92,14 +96,17 @@ if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12 || JOURNAL_ID ==
   if (JOURNAL_ID == 13) $toolbar->icon_list['ship_all']['text'] = TEXT_RETURN_ALL;
 }
 if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;
-if ($security_level < 2 || JOURNAL_ID == 6 || JOURNAL_ID == 7) $toolbar->icon_list['print']['show']  = false;
+// Printing an existing document only reads it - printDocument() opens the form
+// popup on the stored record without posting - so read-only may print. What it
+// may not do is save, and printDocument() will not offer to. Purchases and
+// vendor credits have no form of their own to print, as before.
+if (JOURNAL_ID == 6 || JOURNAL_ID == 7) $toolbar->icon_list['print']['show'] = false;
 if ($security_level < 2) {
   $toolbar->icon_list['save']['show']  = false;
   $toolbar->icon_list['new']['show']   = false;
 }
 if ($security_level < 3 && $order->id) {
   $toolbar->icon_list['save']['show']  = false;
-  $toolbar->icon_list['print']['show'] = false;
 }
 if ($security_level >1 && JOURNAL_ID == 4 ) {
   $toolbar->add_icon('import', 'onclick=PreProcessLowStock()');

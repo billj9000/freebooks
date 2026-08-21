@@ -263,6 +263,7 @@ define('ORD_JS_NO_STOCK_C','\n\nPress OK to continue or Cancel to return to the 
 define('ORD_JS_INACTIVE_A','Caution! SKU: ');
 define('ORD_JS_INACTIVE_B',' is an inactive item.\n\nPress OK to continue or Cancel to return to the order form');
 define('ORD_JS_CANNOT_CONVERT_QUOTE','An un-Posted Sales Quote cannot be converted to Sales Order or a Sales/Invoice!');
+define('ORD_JS_NOTHING_TO_PRINT','This document has not been saved yet, so there is nothing to print.');
 define('ORD_JS_CANNOT_CONVERT_SO','An un-Posted Sales Order cannot be converted to a Purchase Order!');
 define('ITEM_IS_ALREADY_ON_ORDER', 'item is already on order');
 define('ITEM_IS_ON_HAND', 'item is on hand');

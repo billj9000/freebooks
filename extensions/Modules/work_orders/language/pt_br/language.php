@@ -56,6 +56,7 @@ define('WO_SKU_NOT_FOUND','O SKU digitado não pode ser encontrado na tabela de 
 define('WO_INSUFFICIENT_INVENTORY','Not enough of the following parts to build the sku entered. The shortages include:');
 define('WO_MESSAGE_SUCCESS_MAIN_UPDATE','A Ordem de Serviço foi atualizada com sucesso!');
 define('WO_MESSAGE_SUCCESS_MAIN_ADD','A Ordem de Serviço foi inserida com sucesso!');
+define('WO_NOTHING_TO_PRINT','Esta Ordem de Serviço ainda não foi salva, portanto não há nada para imprimir.');
 define('WO_MESSAGE_SUCCESS_MAIN_DELETE','A Ordem de Serviço foi removida com sucesso!');
 define('WO_MESSAGE_STEP_UPDATE_SUCCESS','O passo %s da Ordem de Serviço foi atualizado com sucesso.');
 define('WO_MESSAGE_SUCCESS_COMPLETE','A Ordem de Serviço %s foi completada com sucesso.');

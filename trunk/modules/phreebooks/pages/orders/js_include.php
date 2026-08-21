@@ -71,6 +71,7 @@ var warn_form_has_data   = '<?php echo ORD_WARN_FORM_HAS_DATA; ?>';
 var warn_price_sheet     = '<?php echo ORD_PRICE_SHEET_WARN; ?>';
 var cannot_convert_quote = '<?php echo ORD_JS_CANNOT_CONVERT_QUOTE; ?>';
 var cannot_convert_so    = '<?php echo ORD_JS_CANNOT_CONVERT_SO; ?>';
+var nothing_to_print     = '<?php echo ORD_JS_NOTHING_TO_PRINT; ?>';
 var sku_not_unique       = '<?php echo ORD_JS_SKU_NOT_UNIQUE; ?>';
 var no_contact_id        = '<?php echo ORD_JS_NO_CID; ?>';
 var defaultPostDate      = '<?php echo date('Y-m-d', time()); ?>';
@@ -94,6 +95,9 @@ var ItemIsOutOfStockAndInactive  = '<?php echo ITEM_IS_OUT_OF_STOCK_AND_INACTIVE
 var SalesOrderForItem	 = '<?php echo THERE_IS_SALES_ORDER_FOR_THIS_ITEM; ?>';
 var ItemIsOnOrder		 = '<?php echo ITEM_IS_ON_ORDER; ?>';
 var ItemMustBeOrderd	 = '<?php echo ITEM_MUST_BE_ORDERD; ?>';
+// printDocument() opens the form popup on the stored record, without posting
+// this one. Same URL the status list's print icon uses, less the record id.
+var printFormUrlBase     = '<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>';
 <?php 
 echo js_calendar_init($cal_order);
 if ($template_options['terminal_date']) echo js_calendar_init($cal_terminal);
@@ -151,11 +155,13 @@ function init() {
 
 <?php 
   if (!$error) echo 'DropShipView(document.orders);' . "\n";
-  if (!$error && $_REQUEST['action'] == 'print') {
-    echo '  force_clear = true;' . "\n";
-	echo '  ClearForm();' . "\n";
-	echo '  var printWin = window.open("' . gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL', $order->id) . '","popup_gen","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");' . "\n";
-    echo '  printWin.focus();' . "\n";
+  // Print of a document that HAD been changed saves it and then comes back here
+  // as action=edit&print=1, so the document the person printed is still the one
+  // in front of them. Print of an unchanged document never posts at all -
+  // printDocument() opens the popup directly and this page is not reloaded.
+  if (!$error && isset($_GET['print']) && $_REQUEST['action'] == 'edit') {
+	echo '  var printWin = window.open(printFormUrlBase + ' . json_encode((string)$oID) . ',"popup_gen","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");' . "\n";
+    echo '  if (printWin) printWin.focus();' . "\n";
   }
   if (!$error && $_REQUEST['action'] == 'email') {
     echo '  force_clear = true;' . "\n";
@@ -170,6 +176,21 @@ function init() {
   document.getElementById('search').addEventListener('change', function(){
 	if(document.getElementById('search').value != ''){ AccountList(false); }
   });
+  // Watch for changes, so that Print and the other actions that only pass
+  // through this document can leave it alone. Nothing is excluded - the
+  // attachment field included, because choosing a file and changing nothing else
+  // is a change, and a document read as unchanged never posts the upload.
+  fbDocInit('orders');
+<?php
+  // Where the order arrives over AJAX the form is still empty here, so the
+  // snapshot is fillOrder()'s to take once the response has been written in.
+  // Taking one now as well would only invite a race: a click landing between the
+  // two cancels the second, and the order would then read as changed.
+  //
+  // After a failed post, none either: what is on screen is unsaved work, and a
+  // snapshot of it would grey out the Save that has to happen next.
+  if (!$error && $_REQUEST['action'] <> 'edit' && $_REQUEST['action'] <> 'prc_so') echo '  fbDocBaselineSoon();' . "\n";
+?>
 }
 
 function check_form() {

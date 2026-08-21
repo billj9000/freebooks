@@ -253,6 +253,7 @@ define('ORD_JS_NO_STOCK_C','\\n\\nKlik OK om door te gaan of Annuleren om terug 
 define('ORD_JS_INACTIVE_A','Voorzichtig! Artikel: ');
 define('ORD_JS_INACTIVE_B',' is een inactief item.\\n\\nPress OK om door te gaan Annuleren om terug te gaan naar het order formulier');
 define('ORD_JS_CANNOT_CONVERT_QUOTE','Een niet opgeslagen verkoop offerte kan niet worden omgezet in een verkoop order of verkoop factuur!');
+define('ORD_JS_NOTHING_TO_PRINT','Dit document is nog niet opgeslagen, er is dus niets om af te drukken.');
 define('ORD_JS_CANNOT_CONVERT_SO','Een niet opgeslagen verkoop Order kan niet worden omgezet in een bestelling!');
 define('LOW_STOCK_BUTTON','Vul order met artikelen met te lage voorraad');
 define('LOW_STOCK_PROCESSED','Verwerkt ');

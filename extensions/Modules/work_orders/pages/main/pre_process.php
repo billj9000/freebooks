@@ -41,8 +41,20 @@ switch ($_REQUEST['action'] ?? '') {
 	break;
   case 'save':
   case 'print':
-	validate_security($security_level, 2);
+	// Did anyone actually change this work order? Printing one is a look at it,
+	// not a rewrite of it, so an unchanged record is left alone and read-only may
+	// print. doc_modified is set by submitToDo() from fbDocModified(); it is '1'
+	// unless the browser established that nothing changed, so a client that never
+	// ran the javascript behaves as it always did rather than dropping an edit.
+	$doc_unchanged = !empty($_POST['id']) && isset($_POST['doc_modified']) && $_POST['doc_modified'] == '0';
+	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	$id       = (int)db_prepare_input($_POST['id']);
+	if ($doc_unchanged) { // nothing to write; go where the action was heading
+	  if ($_REQUEST['action'] == 'print') {
+		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'id', 'print')) . '&amp;action=edit&amp;id=' . $id . '&amp;print=1', 'SSL'));
+	  }
+	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
+	}
 	$sku      = db_prepare_input($_POST['sku']);
 	$sku_id   = db_prepare_input($_POST['sku_id']);
 	$qty      = db_prepare_input($_POST['qty']);
@@ -135,6 +147,9 @@ switch ($_REQUEST['action'] ?? '') {
 	  gen_add_audit_log($id  ? sprintf(WO_AUDIT_LOG_MAIN, TEXT_UPDATE) . $wo_id : sprintf(WO_AUDIT_LOG_MAIN, TEXT_ADD) . $wo_id);
 	  $messageStack->add($id ? WO_MESSAGE_SUCCESS_MAIN_UPDATE : WO_MESSAGE_SUCCESS_MAIN_ADD, 'success');
 	  if ($_REQUEST['action'] == 'save') gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
+	  // Reopen the work order that was printed rather than dropping back to the
+	  // list: Print is a look at this record, not a move away from it.
+	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'id', 'print')) . '&amp;action=edit&amp;id=' . $id . '&amp;print=1', 'SSL'));
 	} else {
 	  $messageStack->add(WO_MESSAGE_MAIN_ERROR, 'error');
 	  $_REQUEST['action'] = 'edit';

@@ -71,6 +71,7 @@ define('LOW_STOCK_NO_PRODUCTS','Não há produtos que precisem ser encomendados 
 define('LOW_STOCK_BUTTON','Preencha ordem com itens com estoque baixo');
 define('ORD_JS_CANNOT_CONVERT_SO','AUma Cotação de Vendas Não Enviada não pode ser convertida em Ordem de Compra!');
 define('ORD_JS_CANNOT_CONVERT_QUOTE','Uma Cotação de Vendas Não Enviada não pode ser convertida em Ordem de Venda ou Venda/Fatura!');
+define('ORD_JS_NOTHING_TO_PRINT','Este documento ainda não foi salvo, portanto não há nada para imprimir.');
 define('ORD_JS_INACTIVE_B',' é um item inativo.\\n\\nPressione OK para continuar ou Cancelar para retornar ao formnulário de ordem');
 define('ORD_JS_INACTIVE_A','Cuidade! SKU: ');
 define('ORD_JS_NO_STOCK_C','\\n\\nPressione OK para continuar ou Cancelar para retornar ao formnulário de ordem.');
