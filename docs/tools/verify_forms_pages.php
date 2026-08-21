@@ -1130,6 +1130,20 @@ if ($PAGE === 'admin') {
     ok('every setting the save branch writes has a control on the page',
        $undrawn === [], implode(', ', $undrawn));
 
+    // The tools card. Both actions came over from PhreeForm when it was
+    // deleted, and the failure to guard against is the one §13.22 exists for:
+    // a button that names an action the page's switch does not handle looks
+    // exactly like a button that works, and does nothing at all.
+    $source = (string)file_get_contents(DIR_FS_WORKING . 'pages/admin/pre_process.php');
+    foreach (['restamp', 'rebuild'] as $action) {
+        ok("the page offers the $action action",
+           str_contains($output, "submitToDo('$action')"), 'no button names it');
+        ok("and its pre_process handles it",
+           str_contains($source, "case '$action':"), 'the button would do nothing');
+    }
+    ok('both tools actions ask before rewriting anything',
+       substr_count($output, 'confirm(') >= 2, 'a destructive action with no confirm');
+
     // And the paper control offers what Forms can actually draw on, rather
     // than PhreeForm's "A4:210:297" spelling, which no native definition uses.
     require_once(DIR_FS_MODULES . 'forms/functions/forms.php');

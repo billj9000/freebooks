@@ -121,14 +121,31 @@ set_error_handler(function (int $no, string $message, string $file, int $line)
 // first version of this tool reported as a missing control. See
 // feedback_cli_bootstrap_scope.
 
-// The "Reports and Forms" TOOLS TAB was PhreeForm's, and went with it (§13.39).
-// Its Re-stamp Paper Size and Rebuild Catalog actions have no home in Forms
-// yet — forms_restamp_native() still exists and is still tested, but nothing
-// calls it from a page. Recorded here rather than quietly dropped, because a
-// check that stops asking is how a feature disappears without anyone noticing.
+// The Re-stamp Paper Size action. It lived on PhreeForm's tools tab and came
+// over to Forms' settings page when that module was deleted (§13.42); this
+// check followed it rather than being dropped, because a check that stops
+// asking is how a feature disappears without anyone noticing.
+//
+// From SOURCE, not from a render. That page has a full harness next door —
+// verify_forms_pages drives it through index.php's own sequence, with a
+// toolbar and a PAGE_TITLE — and a second, thinner harness for the same page
+// would only ever test the harness. What is asked here is the part that
+// belongs to PAPER: that the action stamps the setting this file is about, and
+// that the description names it rather than reciting a constant nobody set.
 echo "\n=== the paper re-stamp action ===\n";
-echo "  [--] the tools tab it lived on was PhreeForm's and is deleted; the action\n"
-   . "       has not been ported to Forms, so there is nothing to render here.\n";
+$adminSource  = (string)file_get_contents(DIR_FS_MODULES . 'forms/pages/admin/pre_process.php');
+$adminMarkup  = (string)file_get_contents(DIR_FS_MODULES . 'forms/pages/admin/template_main.php');
+ok('the settings page still offers it', str_contains($adminMarkup, "submitToDo('restamp')"),
+   'no button names the restamp action');
+ok('and its pre_process handles it', str_contains($adminSource, "case 'restamp':"),
+   'the button would do nothing');
+ok('it stamps the paper setting rather than a literal',
+   str_contains($adminSource, 'forms_restamp_native($file, FORMS_DEFAULT_PAPER)'),
+   'the action does not use FORMS_DEFAULT_PAPER');
+ok('and says which paper it will use before you press it',
+   str_contains($adminMarkup, 'FORMS_TOOLS_RESTAMP_DESC, FORMS_DEFAULT_PAPER'),
+   'the description does not name the paper');
+ok('it asks first', str_contains($adminMarkup, 'FORMS_TOOLS_RESTAMP_CONFIRM'));
 
 echo "\n=== Company Manager: the paper select ===\n";
 // Asked for explicitly, because it used to arrive by accident: this tool

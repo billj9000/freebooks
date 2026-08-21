@@ -4941,3 +4941,71 @@ says so, in the place the check used to be, rather than dropping the section:
 
 A check that stops asking is how a feature disappears without anyone noticing —
 which is the whole of §13.36 restated, and the reason that section exists.
+
+### 13.42 The two actions that came back
+
+Deleting PhreeForm took its **tools tab** with it, and that tab held two actions
+nothing else offered: **Re-stamp Paper Size** — built for issue #24, to move an
+existing installation's definitions onto the paper it actually prints on — and
+**Document List Verification / Rebuild**, the first thing anyone reaches for
+after a restore has left the list wrong.
+
+`forms_restamp_native()` had been in Forms since §11 and was still tested; it
+simply had no page. Both actions are on the Forms settings page now, in a Tools
+card — a card rather than a second tab, because the page holds one screen and a
+tab strip over two cards is furniture. Shown only above security level 2, since
+both branches demand it and a button that can only refuse is worse than no
+button.
+
+Both simplify in the move. Every definition is native, so the re-stamp goes
+through `forms_restamp_native()` and keeps the textual xml substitution only for
+a company restored from a backup old enough to hold one — the same reasoning
+that kept the loader's legacy branch (§13.39). The rebuild reads both formats,
+which it had to learn once already: handed a native file, `xml_to_object()`
+returns the JSON string rather than failing, every field read off it is NULL,
+and a native company was rebuilt into a catalogue of nameless documents, filed
+under Miscellaneous, each file renamed, reported as success.
+
+#### Wired is not working
+
+`verify_forms_pages` can check that a button names an action the page's switch
+handles — that is the §13.22 failure, and it is worth checking. It says nothing
+about whether the action runs. These two emit nothing at all: they rewrite every
+definition on disk, or truncate the document list and build it again, and then
+redirect.
+
+That gap mattered more than usual here, because **nothing had ever run this copy
+of the code**. A ported feature that does not work is worse than a missing one:
+the button is there, it reports success, and the damage is silent.
+
+`verify_forms_admin_tools.php` runs both for real — in a child process, because
+each ends in `gen_redirect()`, and a check that cannot outlive the thing it
+checks cannot report on it — with the report directory and the catalogue table
+copied aside and put back from a shutdown function.
+
+It found two bugs immediately, and neither would have shown up any other way:
+
+- **The rebuild died on the first module it reached.** `load_reports()` calls
+  `admin_add_report_heading()`, which lives in `phreedom/functions/phreedom.php`
+  — a file PhreeForm's own page required and this one did not. It died *after*
+  truncating the list.
+- **Then it died on `PB_PF_CUST_QUOTE`.** The folder names `load_reports()` files
+  documents under are constants in each module's ADMIN language file, and
+  PhreeForm's version pulled that language per module inside the same loop. The
+  port dropped the line. **Fourth time** a transitive language pull has bitten
+  in this work — §13.34, §13.37, §13.41 and here. It is invisible to every check
+  that reads names, and the only thing that finds it is running the code.
+
+#### And two in the check itself
+
+The first version of the re-stamp check passed while moving nothing. It set the
+paper with an `UPDATE`, and a company enabled before that key existed **has no
+row** — so the update changed nothing, the child fell back to the `define()` in
+`forms/defaults.php`, and the action dutifully stamped the size everything
+already had. `write_configure()` inserts or updates; the check now asserts that
+something was going to change before it changes it.
+
+And it left the setting behind. The shutdown restored the directory and the
+table but not the configuration row, so a green run ended with the demo company
+on Letter. Putting a setting back means **deleting the row** where there was no
+row — not writing the old value into one.

@@ -37,3 +37,20 @@ define('FORMS_DEFAULT_ROWSPACE_DESC',     'Extra space between the rows of a rep
 define('FORMS_DEFAULT_COLUMN_WIDTH_TEXT', 'Default column width');
 define('FORMS_DEFAULT_COLUMN_WIDTH_DESC', 'Width in millimetres for a report column whose definition declares none. 25 is the shipped value.');
 define('FORMS_ADMIN_PRINT_CAUTION',       'Printing needs the <b>Forms - Run and print documents</b> permission. Anyone whose role does not grant it cannot open a document from a Print button, so check the roles in Company &rarr; User Security.');
+
+/***** the tools card: two actions that came over with the engine *****/
+define('FORMS_ADMIN_TOOLS_INFO',    'Tools');
+
+define('FORMS_TOOLS_RESTAMP_TITLE',   'Re-stamp Paper Size');
+define('FORMS_TOOLS_RESTAMP_DESC',    'Re-target every stored report and form onto the current default paper size (%s). Element positions are not moved, so a form drawn for a wider page will sit closer to the right edge on a narrower one. Any file whose page setting cannot be located is left untouched and counted.');
+define('FORMS_TOOLS_RESTAMP_SUBMIT',  'Re-stamp all reports and forms');
+define('FORMS_TOOLS_RESTAMP_CONFIRM', 'This rewrites the page size of every stored report and form. Continue?');
+define('FORMS_RESTAMP_DONE',          'Re-stamped %d report(s) and form(s) onto %s.');
+define('FORMS_RESTAMP_SKIPPED',       '%d file(s) were left untouched because their page setting could not be located.');
+
+define('FORMS_TOOLS_REBUILD_TITLE',   'Document List Verification / Rebuild');
+define('FORMS_TOOLS_REBUILD_DESC',    'Rebuilds the document list from the definition files on disk. It reloads the folder structure, re-files any document whose folder has gone missing, and clears list entries that no longer have a file. Use it after a restore has left the list wrong.');
+define('FORMS_TOOLS_REBUILD_SUBMIT',  'Start verify / rebuild');
+define('FORMS_TOOLS_REBUILD_CONFIRM', 'This rebuilds the whole document list from the files on disk. Continue?');
+define('FORMS_TOOLS_REBUILD_SUCCESS', 'Rebuilt the document list: %s document(s), of which %s had lost their folder and were filed under Miscellaneous.');
+define('FORMS_TOOLS_REBUILD_SKIPPED', '%s file(s) could not be read as a document and were left where they are. They are not in the rebuilt list.');

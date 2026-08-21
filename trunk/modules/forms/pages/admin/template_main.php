@@ -55,4 +55,36 @@ echo $toolbar->build_toolbar();
     <div class="alert alert-warning py-1 px-2 mb-0 small"><?php echo FORMS_ADMIN_PRINT_CAUTION; ?></div>
   </div>
 </div>
+
+<?php // Both actions came over from PhreeForm's tools tab when that module was
+      // deleted (§13.42). A card rather than a second tab: this page has one
+      // screen's worth of content, and a tab strip over two cards is furniture.
+      //
+      // Shown only to somebody who could actually use them: both branches call
+      // validate_security($security_level, 3), so at a lower level the button
+      // is a refusal waiting to happen. Same test the Save icon makes above.
+      if ($security_level > 2) { ?>
+<div class="fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo FORMS_ADMIN_TOOLS_INFO; ?></div>
+  <div class="card-body p-2">
+
+    <div class="fb-fieldset mb-3">
+      <div class="fb-fieldset-legend"><?php echo FORMS_TOOLS_RESTAMP_TITLE; ?></div>
+      <p class="small mb-2"><?php echo sprintf(FORMS_TOOLS_RESTAMP_DESC, FORMS_DEFAULT_PAPER); ?></p>
+      <p class="text-center mb-0"><?php echo FORMS_TOOLS_RESTAMP_SUBMIT; ?>
+        <button type="button" class="btn btn-primary btn-sm"
+                onclick="if (confirm('<?php echo FORMS_TOOLS_RESTAMP_CONFIRM; ?>')) submitToDo('restamp')"><?php echo TEXT_SUBMIT; ?></button></p>
+    </div>
+
+    <div class="fb-fieldset mb-0">
+      <div class="fb-fieldset-legend"><?php echo FORMS_TOOLS_REBUILD_TITLE; ?></div>
+      <p class="small mb-2"><?php echo FORMS_TOOLS_REBUILD_DESC; ?></p>
+      <p class="text-center mb-0"><?php echo FORMS_TOOLS_REBUILD_SUBMIT; ?>
+        <button type="button" class="btn btn-primary btn-sm"
+                onclick="if (confirm('<?php echo FORMS_TOOLS_REBUILD_CONFIRM; ?>')) submitToDo('rebuild')"><?php echo TEXT_SUBMIT; ?></button></p>
+    </div>
+
+  </div>
+</div>
+<?php } ?>
 </form>
