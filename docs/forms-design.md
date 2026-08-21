@@ -4847,3 +4847,44 @@ needs about where it came from, and much of this project does.
 company's `pb_configuration`. They define constants nothing reads. Deleting rows
 from a live database to tidy a name is not worth the risk, and a fresh install
 never creates them.
+
+### 13.40 The flake in verify_forms_prefix
+
+`verify_forms_prefix` copies every table a dataset touches into a session
+`TEMPORARY pb_<table>`, then runs each dataset's query twice — unprefixed
+against the **live** table, prefixed against the copy — and compares the row
+sets. Anything written in between shows up as a mismatch. It failed twice on
+companies that are being written to, both times on `audit_log`, both times by
+exactly one row.
+
+The obvious fix is a consistent snapshot, and it is half the answer.
+`START TRANSACTION WITH CONSISTENT SNAPSHOT` makes every read in the session —
+the `CREATE TEMPORARY … SELECT` and the later live `SELECT`s alike — see one
+point in time. That settles **ten** of the fifteen tables.
+
+It settles nothing for the other five. `wo_main`, `wo_steps`, `wo_task`, `users`
+and `audit_log` are **MyISAM**, which ignores MVCC entirely — including
+`audit_log`, which is the one that actually moved. A fix that only took the
+transaction would have looked complete, passed on a quiet database, and gone on
+flaking on the one table anybody writes to.
+
+So the non-transactional tables are **watched** instead: their row counts are
+taken when the copies are made, and re-checked only when a comparison fails —
+the point where it costs something and the point where it explains something. A
+dataset whose volatile table moved reports
+
+    [--] audit_trail     not comparable — audit_log changed while the check ran
+
+which is neither a pass nor a failure, because the question could not be asked.
+Said out loud so that a company under load does not quietly stop being checked,
+and the summary counts it: *7 of 8 datasets*.
+
+With a floor under it. Skipping one dataset is honest; skipping all of them is a
+vacuous pass, so that is a failure in its own right — the same rule this suite
+has been applying to itself since §13.32.
+
+Proved by running a writer that appends to `audit_log` every 150ms while the
+check runs: without the watch the dataset fails, with it the run reports the
+skip and its reason. The first attempt at that proof inserted nothing at all,
+because the columns were guessed rather than read — which is its own small
+lesson about fault injection: **check that the fault actually happened.**
