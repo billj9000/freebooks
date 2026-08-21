@@ -122,7 +122,24 @@ function create_row($array) {
   if (!empty($array['submenu'])) foreach ($array['submenu'] as $menu_item) {
     create_row($menu_item);
   } else {
-    if ($array['text'] == TEXT_REPORTS || $array['security_id'] == '') return;
+    // Skipped on the absence of a KEY, and nothing else.
+    //
+    // This used to skip anything LABELLED TEXT_REPORTS as well. PhreeForm gave
+    // every section its own "Reports" entry — Customers, Vendors, Banking and
+    // the rest — and all of them carried the same SECURITY_ID_PHREEFORM, so
+    // drawing a row per entry meant eight rows for one permission. Skipping by
+    // label was the cheap way out.
+    //
+    // That module is gone and nothing else is named that, but Forms' document
+    // list IS: it was "Reports (Forms)" only to tell it apart from PhreeForm's,
+    // and once that qualifier went the guard swallowed it — leaving
+    // SECURITY_ID_FORMS_RUN with no row on this page and therefore no way to
+    // grant it, on any installation. A permission nobody can grant is the
+    // §13.38 failure exactly, arriving by a route that check did not model.
+    //
+    // Deciding whether a permission may be granted by comparing its LABEL was
+    // always the wrong test; a label is presentation.
+    if ($array['security_id'] == '') return;
     $checked = array();
     if ($array['show_in_users_settings'] === false) {
       return;

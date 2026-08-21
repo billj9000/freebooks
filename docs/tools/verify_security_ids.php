@@ -83,6 +83,70 @@ if (preg_match_all("/'security_id'\s*=>\s*(SECURITY_ID_[A-Z_0-9]+)/", $extra, $m
     foreach ($m[1] as $name) $offered[$name] = true;
 }
 
+// ── the filter the roles page applies to LABELS ─────────────────────────────
+//
+// create_row() has skipped entries by what they are CALLED, not only by what
+// key they carry. That is how SECURITY_ID_FORMS_RUN became ungrantable:
+// PhreeForm gave every section its own "Reports" entry, all sharing one key, so
+// the page skipped anything labelled TEXT_REPORTS to avoid eight rows for one
+// permission — and when Forms' document list lost its "(Forms)" qualifier it
+// became "Reports" too, and vanished from the page.
+//
+// The rule is READ OUT of the page rather than written here. A check that
+// hardcodes "and also skip TEXT_REPORTS" is a re-implementation that can agree
+// with the code while both are wrong; this one fails the moment a new
+// label-based skip appears, whatever it is called.
+$rolesPage = (string)@file_get_contents($root . '/modules/phreedom/pages/roles/template_detail.php');
+$skippedLabels = [];
+if (preg_match_all("/\\\$array\['text'\]\s*[!=]==?\s*([A-Z][A-Z_0-9]+)/", $rolesPage, $m)) {
+    foreach ($m[1] as $name) $skippedLabels[$name] = true;
+}
+
+/** What a label constant actually says, from the shipped language files. */
+function labelValue(string $root, string $constant): ?string
+{
+    static $values = null;
+    if ($values === null) {
+        $values = [];
+        foreach (phpFiles($root . '/modules') as $path) {
+            if (!str_contains($path, '/language/en_us/')) continue;
+            if (preg_match_all("/define\('([A-Z][A-Z_0-9]*)'\s*,\s*'((?:[^'\\\\]|\\\\.)*)'\)/",
+                               (string)file_get_contents($path), $found, PREG_SET_ORDER)) {
+                foreach ($found as $one) $values[$one[1]] ??= stripslashes($one[2]);
+            }
+        }
+    }
+    return $values[$constant] ?? null;
+}
+
+if ($skippedLabels !== []) {
+    $skippedText = [];
+    foreach (array_keys($skippedLabels) as $constant) {
+        $value = labelValue($root, $constant);
+        if ($value !== null) $skippedText[$value] = $constant;
+    }
+    // An entry whose label matches one of those is drawn by nothing, so the id
+    // it carries is not on offer through it.
+    $lost = [];
+    foreach (phpFiles($root . '/modules') as $path) {
+        if (!str_ends_with($path, '/config.php')) continue;
+        foreach (preg_split('/\barray\s*\(/', (string)file_get_contents($path)) as $chunk) {
+            if (!preg_match("/'security_id'\s*=>\s*(SECURITY_ID_[A-Z_0-9]+)/", $chunk, $key)) continue;
+            if (!preg_match("/'text'\s*=>\s*([A-Z][A-Z_0-9]+)/", $chunk, $label)) continue;
+            $value = labelValue($root, $label[1]);
+            if ($value === null || !isset($skippedText[$value])) continue;
+            unset($offered[$key[1]]);
+            $lost[$key[1]] = sprintf('%s is labelled "%s", which the roles page skips as %s',
+                $label[1], $value, $skippedText[$value]);
+        }
+    }
+    foreach ($lost as $name => $why) {
+        // Only a problem if nothing ELSE offers the same id.
+        if (isset($offered[$name])) continue;
+        echo "  [--] $name: $why\n";
+    }
+}
+
 // ── what the code demands ───────────────────────────────────────────────────
 $demanded = [];
 foreach (phpFiles($root . '/modules') as $path) {
