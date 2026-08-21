@@ -44,6 +44,15 @@
  * table is the one the counter lives on, so a statement or a purchase order
  * cannot be stamped with a sales invoice's counter by a slip of the finger.
  *
+ * ## A company that was never migrated
+ *
+ * Most of a company's definitions may still be PhreeForm XML — one of ours has
+ * 56 of 58 that way. Those need no repair at all: the loader converts them
+ * afresh on every run, so the fixed converter carries their tag again by
+ * itself. They are still counted and reported rather than passed over in
+ * silence, because a summary that says "1 to patch" and nothing else reads as
+ * "that was everything", and here it would be wrong about 56 files.
+ *
  * ## What it will not do
  *
  * Write anything if the file would change in more than that one key. The native
@@ -80,7 +89,7 @@ $dir    = rtrim(FORMS_DIR_DEFINITIONS, '/\\');
 
 if (!is_dir($dir)) { echo "  no definitions directory on this company\n"; exit(0); }
 
-/** The counter a definition's kept original asked for, or ''. */
+/** The counter a legacy definition asks for — a kept original, or a live one. */
 function declared_counter(string $path): string
 {
     if (!is_file($path)) return '';
@@ -118,12 +127,35 @@ function with_counter(DefinitionCodec $codec, Definition $d, string $counter, st
 
 echo "\n=== " . ($write ? 'repairing' : 'what would be repaired') . " on $company ===\n";
 $patched = $already = $none = $skipped = 0;
+$legacy  = $legacyCounted = 0;
+/** @var list<int> ids something was decided about, so --set can report the rest */
+$acted   = [];
 
 foreach (glob("$dir/pf_*") ?: [] as $path) {
-    if (str_contains($path, '.pre-forms')) continue;
-    $id  = (int)substr(basename($path), 3);
+    // `pf_` and digits, nothing else. The directory also holds the migration's
+    // kept originals and whatever a person has left beside a definition while
+    // working on it — `pf_64.pre-au-fix` is a real example — and every one of
+    // those matches the glob and yields a plausible id from substr().
+    if (!preg_match('/^pf_(\d+)$/', basename($path), $name)) continue;
+    $id = (int)$name[1];
     $raw = (string)file_get_contents($path);
-    if (!DefinitionLoader::isNative($raw)) { continue; }   // still legacy; conversion will carry it
+    // Still in the legacy format. Nothing to repair — the loader converts it
+    // afresh on every run, and the converter carries the tag again — but it is
+    // COUNTED and reported rather than passed over, or this tool's summary
+    // would read "nothing else here" on a company where most of the
+    // definitions were never migrated at all.
+    if (!DefinitionLoader::isNative($raw)) {
+        $legacy++;
+        if (declared_counter($path) !== '') $legacyCounted++;
+        if (in_array($id, $forced, true)) {
+            echo "  pf_$id is still in the legacy format, so --set cannot write to it:"
+               . " add <setprintedfield> to the definition, or open and save it in the"
+               . " Forms editor first and run this again\n";
+            $skipped++;
+            $acted[] = $id;
+        }
+        continue;
+    }
 
     try { $definition = $codec->decode($raw, (string)$id); }
     catch (\Throwable $e) { echo "  pf_$id could not be read: " . $e->getMessage() . "\n"; $skipped++; continue; }
@@ -143,23 +175,24 @@ foreach (glob("$dir/pf_*") ?: [] as $path) {
     if ($target === null) {
         echo "  pf_$id ({$definition->title}): its original asks for '$counter', which is not"
            . " a table.field pair — left alone\n";
-        $skipped++; continue;
+        $skipped++; $acted[] = $id; continue;
     }
     if ($definition->recordTable !== '' && $definition->recordTable !== $target['table']) {
         echo "  pf_$id ({$definition->title}): counts {$target['table']} but its records are"
            . " {$definition->recordTable} — left alone\n";
-        $skipped++; continue;
+        $skipped++; $acted[] = $id; continue;
     }
 
     $encoded = with_counter($codec, $definition, $counter, $raw);
     if ($encoded === null) {
         echo "  pf_$id ({$definition->title}): adding the counter would rewrite more of the"
            . " file than the one key — left alone\n";
-        $skipped++; continue;
+        $skipped++; $acted[] = $id; continue;
     }
 
     printf("  pf_%-4d %-34s + %s%s\n", $id, $definition->title, $counter,
            in_array($id, $forced, true) ? '   (--set)' : '');
+    $acted[] = $id;
     if ($write) {
         file_put_contents($path, $encoded);
         @chmod($path, 0664);
@@ -169,6 +202,19 @@ foreach (glob("$dir/pf_*") ?: [] as $path) {
 
 printf("\n  %d to patch, %d already right, %d declare no counter, %d left alone\n",
        $patched, $already, $none, $skipped);
+// An id asked for by name that nothing happened to — a report, a definition
+// that is not there, one that already has the counter. Said out loud, because
+// somebody typing --set is expecting that definition to change.
+foreach ($forced as $id) {
+    if (in_array($id, $acted, true)) continue;
+    echo "  --set $id did nothing: there is no form pf_$id here, or it is a report,"
+       . " or it already asks for a counter\n";
+}
+if ($legacy > 0) {
+    printf("  %d still in the legacy format — nothing to repair: they are converted on"
+         . " every run,\n  and the converter carries the tag again (%d of them ask for a"
+         . " counter)\n", $legacy, $legacyCounted);
+}
 echo $write
     ? "  written. Print an invoice and check the Printed column on the sales journal list.\n"
     : "  dry run — add --write to apply.\n";
