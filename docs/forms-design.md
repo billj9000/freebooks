@@ -5009,3 +5009,61 @@ And it left the setting behind. The shutdown restored the directory and the
 table but not the configuration row, so a green run ended with the demo company
 on Letter. Putting a setting back means **deleting the row** where there was no
 row — not writing the old value into one.
+
+### 13.43 "What will be printed", said to a user
+
+The print page's summary card read:
+
+    Served by         built in code: entry_builder
+    Records selected  1 — id = 993
+
+Both true. Neither means anything to the person who pressed Print. `entry_builder`
+is the provider class that serves the document; `id = 993` is the filter
+expression `RecordSelector` built. It now reads:
+
+    Document   Invoice
+    For        20415 — Bill Jones
+
+**Which engine serves a document belongs on the Reports list**, where an
+administrator is looking at the catalogue and the answer decides whether a
+definition is servable at all. On the print page it is noise between a person
+and a PDF.
+
+`RecordSelection` gained `$labels` beside `$ids` — what each record is *called*.
+The reference comes from an explicit per-table list rather than a heuristic:
+`journal_main` has no column matching any pattern like `*_num`, and guessing
+would have found nothing there and the wrong thing elsewhere. There are three
+record tables in the shipped set; naming them costs less than being clever.
+First non-empty wins, because a journal row carries the reference for its own
+kind — a sales invoice fills `purchase_invoice_id`, a purchase order fills
+`purch_order_id`, a quote may carry only the customer's own `so_po_ref_id`.
+Capped at five, then "and N more": this is a label on a page, and reading four
+hundred rows to describe three of them would make a document slower to describe
+than to render. A table with no recognisable column falls back to a count —
+thin, but true, and better than an id.
+
+#### Three drafts of one check
+
+The guard should be general: **a page a user prints from must not name the
+code.** Getting there took three attempts, and the two failures are the
+interesting part.
+
+1. **Globbed `classes/providers/*.php`** and compared the filenames. Those are
+   called `entry_provider.php`; the name on the page is `entry_builder`. It
+   could never have matched.
+2. **Read FormRunner's provider map**, which is the right source — and still
+   passed with the fault reinstated, because the form this harness prints is
+   served by a **dataset**, so the leak it was told to look for could not appear
+   in the sample it was looking at.
+
+Both were checking for the wrong thing. What the card must not say is *which
+engine serves this document*, and that answer comes in exactly two shapes —
+`FORMS_SERVED_PROVIDER` and `FORMS_SERVED_DATASET`. Those are language
+constants, so the check reads their wording rather than guessing at it, and now
+fails on either flavour. The filter expression is guarded separately, against
+`RecordSelection::$description` itself.
+
+The lesson is one this work keeps relearning from the other direction: a check
+that passes tells you nothing until you have made it fail on purpose. Twice here
+it passed because it was aimed slightly beside the target, and both times the
+run was green.

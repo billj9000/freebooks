@@ -1089,6 +1089,49 @@ if ($PAGE === 'print' && !$CHOOSING) {
     ok('it reports a non-empty record selection',
        !str_contains($output, FORMS_PRINT_NO_RECORDS),
        'the page says nothing was selected');
+
+    // AND IT SAYS SO IN WORDS A PERSON PRESSED PRINT WITH.
+    //
+    // This card used to read "Served by: built in code: entry_builder" and
+    // "Records selected: 1 — id = 993": the provider class and the filter
+    // expression. Both true, both meaningless to whoever clicked, and neither
+    // wrong in any way a test asserting "the page rendered" could notice.
+    //
+    // What is forbidden is the "Served by" VOCABULARY, not one class name.
+    //
+    // Two earlier drafts of this check missed the fault it was written for. The
+    // first globbed the providers directory, whose files are called
+    // entry_provider.php while the name on the page is `entry_builder`. The
+    // second read FormRunner's provider map, which is right — but the form this
+    // harness prints is served by a DATASET, so the leak it was told to look
+    // for could not appear in the sample it was looking at.
+    //
+    // Both were checking for the wrong thing. What the card must not say is
+    // which engine serves the document, in either of the two forms that answer
+    // comes in — and those are language constants, so the test can read them
+    // instead of guessing at their contents.
+    $servedBy = [];
+    foreach (['FORMS_SERVED_PROVIDER', 'FORMS_SERVED_DATASET'] as $constant) {
+        if (!defined($constant)) continue;
+        $prefix = trim(explode('%s', (string)constant($constant))[0]);
+        if ($prefix !== '') $servedBy[$constant] = $prefix;
+    }
+    ok('the "served by" wording could be read', $servedBy !== [],
+       'nothing to check against, so the check below proves nothing');
+    $leaked = [];
+    foreach ($servedBy as $constant => $prefix) {
+        if (str_contains($output, $prefix)) $leaked[] = "$constant (\"$prefix\")";
+    }
+    ok('the page does not tell the user which engine serves the document',
+       $leaked === [], implode(', ', $leaked));
+
+    // The filter expression is developer-facing too: RecordSelection keeps it as
+    // $description for a log or an error, not for this card.
+    if (isset($forms_selection) && $forms_selection && $forms_selection->description !== '') {
+        ok('nor the filter expression it selected with',
+           !str_contains($output, $forms_selection->description),
+           'the page shows "' . $forms_selection->description . '"');
+    }
     foreach (['view', 'download', 'email'] as $action) {
         ok("it offers the $action action", str_contains($output, "formsPrint('$action')"));
     }

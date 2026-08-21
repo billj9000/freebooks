@@ -61,6 +61,17 @@ final readonly class RecordSelection
         public array  $ids,
         public array  $notes = [],
         public string $description = '',
+        /**
+         * What each selected record is CALLED, for a person reading the print
+         * page — "SO-10023, Acme Ltd" rather than "id = 993".
+         *
+         * Empty when the record table has no column anybody would recognise.
+         * A caller must fall back to a count rather than to $description, which
+         * is the filter expression and is developer-facing.
+         *
+         * @var list<string>
+         */
+        public array $labels = [],
     ) {}
 
     public function isEmpty(): bool { return $this->ids === []; }
@@ -72,6 +83,9 @@ final class RecordSelector
     private const EQUAL   = 'EQUAL';
     private const IN_LIST = 'IN_LIST';
     private const RANGE   = 'RANGE';
+
+    /** How many records the print page will name before it stops listing. */
+    private const LABEL_LIMIT = 5;
 
     public function __construct(private readonly \queryFactory $db) {}
 
@@ -115,7 +129,8 @@ final class RecordSelector
             if ($comparison !== self::RANGE) {
                 return new RecordSelection($ids, $ids === []
                     ? ['No record was named to print.'] : [],
-                    $this->describe($column, $comparison, $min, $max));
+                    $this->describe($column, $comparison, $min, $max),
+                    $this->labelsFor($recordTable, $ids, $keyColumn));
             }
         }
 
@@ -148,7 +163,77 @@ final class RecordSelector
 
         return new RecordSelection($ids, $ids === []
             ? ['Nothing matched the records requested.'] : [],
-            $this->describe($column, $comparison, $min, $max));
+            $this->describe($column, $comparison, $min, $max),
+            $this->labelsFor($recordTable, $ids, $keyColumn));
+    }
+
+    /**
+     * The columns a person would recognise a record by, best first.
+     *
+     * Explicit rather than guessed. A heuristic ("any column called *_num")
+     * finds nothing on journal_main — which has no such column — and would find
+     * the wrong thing elsewhere; there are three record tables in the shipped
+     * set and naming them costs less than being clever about it.
+     *
+     * The FIRST non-empty one wins, because a journal row carries the reference
+     * for its own kind: a sales invoice fills purchase_invoice_id, a purchase
+     * order fills purch_order_id, and a quote may carry only the customer's own
+     * so_po_ref_id.
+     */
+    private const REFERENCE = [
+        'journal_main'    => ['purchase_invoice_id', 'purch_order_id', 'so_po_ref_id'],
+        'wo_journal_main' => ['id'],
+        'contacts'        => ['short_name'],
+    ];
+
+    /** And who it is for, where the table says. */
+    private const PARTY = [
+        'journal_main'    => 'bill_primary_name',
+        'wo_journal_main' => 'primary_name',
+    ];
+
+    /**
+     * What the selected records are called.
+     *
+     * One query, capped: this is a label on a page, and reading four hundred
+     * rows to print three of them would make a document slower to describe than
+     * to render.
+     *
+     * @param list<string|int> $ids
+     * @return list<string>
+     */
+    private function labelsFor(string $recordTable, array $ids, string $keyColumn): array
+    {
+        $columns = self::REFERENCE[$recordTable] ?? [];
+        if ($columns === [] || $ids === []) return [];
+
+        $table = (defined('DB_PREFIX') ? DB_PREFIX : '') . $recordTable;
+        $party = self::PARTY[$recordTable] ?? '';
+        $wanted = $columns;
+        if ($party !== '') $wanted[] = $party;
+        foreach ($wanted as $column) {
+            if (!$this->hasColumn($table, $column)) return [];   // an older schema
+        }
+
+        $keys = array_map(fn($id) => "'" . $this->db->prepare_input((string)$id) . "'",
+                          array_slice($ids, 0, self::LABEL_LIMIT));
+        $select = implode(', ', array_map(fn($c) => "`$c`", array_unique($wanted)));
+        $result = $this->db->Execute("select `$keyColumn`, $select from `$table`
+            where `$keyColumn` in (" . implode(',', $keys) . ") order by `$keyColumn`");
+
+        $labels = [];
+        while ($result && !$result->EOF) {
+            $reference = '';
+            foreach ($columns as $column) {
+                $value = trim((string)($result->fields[$column] ?? ''));
+                if ($value !== '' && $value !== '0') { $reference = $value; break; }
+            }
+            $who = $party === '' ? '' : trim((string)($result->fields[$party] ?? ''));
+            if ($reference === '' && $who === '') { $result->MoveNext(); continue; }
+            $labels[] = $reference !== '' && $who !== '' ? "$reference — $who" : ($reference ?: $who);
+            $result->MoveNext();
+        }
+        return $labels;
     }
 
     /**

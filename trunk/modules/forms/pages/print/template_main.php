@@ -80,26 +80,32 @@ echo html_hidden_field('action', '') . chr(10);
   <div class="card-body">
     <table class="table table-borderless table-sm mb-0">
       <tbody>
+        <?php // What a PERSON is about to print. This card used to answer with
+              // "Served by: built in code: entry_builder" and "Records selected:
+              // 1 — id = 993" — the provider class and the filter expression,
+              // both true and both meaningless to whoever pressed Print. Which
+              // code serves a document belongs on the Reports list, where an
+              // administrator is looking at the catalogue. ?>
         <tr>
-          <td style="width:35%"><?php echo FORMS_COL_SERVED_BY; ?></td>
-          <td><?php
-            // Fully qualified: a `use` statement in pre_process.php applies to
-            // that FILE only, and template_main.php is a separate one — the
-            // short name here was an unresolved-class fatal.
-            echo htmlspecialchars($forms_plan->kind === \FreeBooks\Forms\App\FormPlan::DATASET
-               ? sprintf(FORMS_SERVED_DATASET, $forms_plan->name)
-               : sprintf(FORMS_SERVED_PROVIDER, $forms_plan->name));
-          ?></td>
+          <td style="width:35%"><?php echo FORMS_PRINT_DOCUMENT; ?></td>
+          <td><?php echo htmlspecialchars((string)$forms_report->title); ?></td>
         </tr>
         <tr>
-          <td><?php echo FORMS_PRINT_RECORDS; ?></td>
+          <td><?php echo FORMS_PRINT_FOR; ?></td>
           <td><?php
-            if ($forms_selection && !$forms_selection->isEmpty()) {
-              printf('%s &mdash; %s',
-                htmlspecialchars((string)count($forms_selection->ids)),
-                htmlspecialchars($forms_selection->description));
-            } else {
+            if (!$forms_selection || $forms_selection->isEmpty()) {
               echo '<span class="text-danger">' . FORMS_PRINT_NO_RECORDS . '</span>';
+            } elseif ($forms_selection->labels !== []) {
+              $shown = array_map('htmlspecialchars', $forms_selection->labels);
+              $more  = count($forms_selection->ids) - count($shown);
+              echo implode(', ', $shown);
+              if ($more > 0) printf(' %s', htmlspecialchars(sprintf(FORMS_PRINT_AND_MORE, $more)));
+            } else {
+              // No column on this record table that anybody would recognise —
+              // a count is thin, but it is true, and it beats an id.
+              $n = count($forms_selection->ids);
+              printf('%s', htmlspecialchars(sprintf($n === 1 ? FORMS_PRINT_ONE_RECORD
+                                                            : FORMS_PRINT_N_RECORDS, $n)));
             }
           ?></td>
         </tr>
