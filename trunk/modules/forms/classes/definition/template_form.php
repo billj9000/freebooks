@@ -253,8 +253,9 @@ final class TemplateForm
     {
         $rows = [];
         foreach ($template->elements as $index => $element) {
-            $box   = $element->box;
-            $style = $element->style;
+            $box    = $element->box;
+            $style  = $element->style;
+            $header = $element instanceof Table ? $element->headerStyle : null;
 
             $rows[] = [
                 'index'      => (string)$index,
@@ -296,6 +297,22 @@ final class TemplateForm
                 'align'      => $style?->align?->value ?? '',
                 'borderSize' => $style?->borderSize === null ? '' : self::number($style->borderSize),
                 'borderShow' => $style?->borderShow ? '1' : '',
+
+                // The heading row's own style, which a table has and nothing
+                // else does. The renderer reads `headerStyle ?? style`, so
+                // these four are a second, independent set — the grey frame
+                // round an invoice's column headings is this borderShow, not
+                // the one above it, and unticking the wrong one leaves the
+                // heading boxed and the body not.
+                //
+                // Only the four the canvas offers. Font, colour, alignment and
+                // weight are carried through untouched by headerStyleFrom(),
+                // because a control that is not on screen must not be able to
+                // clear the value behind it.
+                'hdrSize'         => $header?->size === null ? '' : self::number($header->size),
+                'hdrBorderSize'   => $header?->borderSize === null ? '' : self::number($header->borderSize),
+                'hdrBorderColour' => self::colourText($header?->borderColour),
+                'hdrBorderShow'   => $header?->borderShow ? '1' : '',
                 'truncate'   => $style?->truncate   ? '1' : '',
                 'bold'       => $style?->bold       ? '1' : '',
                 'italic'     => $style?->italic     ? '1' : '',
@@ -353,7 +370,8 @@ final class TemplateForm
             $original instanceof Table =>
                 new Table($original->source,
                           $this->columns($row, $original->columns, $allowed, $what), $box,
-                          $original->headerStyle, $style, $visible, $label),
+                          $this->headerStyleFrom($row, $original->headerStyle),
+                          $style, $visible, $label),
 
             // Two different edits behind one element type: a bound image takes
             // a VALUE from the record, a fixed one names a FILE. Both go
@@ -521,6 +539,61 @@ final class TemplateForm
     }
 
     /** @param array<string,mixed> $row */
+    /**
+     * The heading row's style, from the four controls the canvas offers.
+     *
+     * NOT style() with a renamed row. That method builds a whole Style out of
+     * what was posted and lets everything absent fall to a default, which is
+     * right for an element whose every property has a control. The heading has
+     * four, so the other six have to be carried — a size the author never saw
+     * must not be cleared by saving a border they did.
+     *
+     * Two rules from §13.30 apply here unchanged:
+     *
+     *   - A row with NO heading keys at all is a client that does not know
+     *     about them, and the stored heading survives untouched. That is what
+     *     lets the report editor, the receipt editor and any older page save a
+     *     form without flattening its table headings.
+     *   - Null is not an empty Style. The renderer reads
+     *     `headerStyle ?? style`, so a table with no heading style draws its
+     *     headings in the BODY's style; writing an empty one instead switches
+     *     them to defaults, which is a visible change to a document nobody
+     *     asked to change (§13.9).
+     */
+    private function headerStyleFrom(array $row, ?Style $fallback): ?Style
+    {
+        $keys = ['hdrSize', 'hdrBorderSize', 'hdrBorderColour', 'hdrBorderShow'];
+        $sent = false;
+        foreach ($keys as $key) if (array_key_exists($key, $row)) { $sent = true; break; }
+        if (!$sent) return $fallback;
+
+        $size   = trim((string)($row['hdrSize'] ?? ''));
+        $border = trim((string)($row['hdrBorderSize'] ?? ''));
+        $colour = array_key_exists('hdrBorderColour', $row)
+            ? self::colourFrom((string)$row['hdrBorderColour'])
+            : $fallback?->borderColour;
+        $show   = !empty($row['hdrBorderShow']);
+
+        // Nothing set, and nothing there before: still nothing. Anything else
+        // and the heading has a style of its own from here on.
+        if ($fallback === null && $size === '' && $border === '' && $colour === null && !$show) {
+            return null;
+        }
+
+        return new Style(
+            font:         $fallback?->font,
+            size:         $size   !== '' && is_numeric($size)   ? (float)$size   : $fallback?->size,
+            colour:       $fallback?->colour,
+            align:        $fallback?->align,
+            borderSize:   $border !== '' && is_numeric($border) ? (float)$border : $fallback?->borderSize,
+            borderColour: $colour,
+            borderShow:   $show,
+            truncate:     (bool)$fallback?->truncate,
+            bold:         (bool)$fallback?->bold,
+            italic:       (bool)$fallback?->italic,
+        );
+    }
+
     private function style(array $row, ?Style $fallback): ?Style
     {
         $font = $this->font(trim((string)($row['font'] ?? '')), $fallback?->font);

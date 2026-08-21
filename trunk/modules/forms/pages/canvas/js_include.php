@@ -553,6 +553,10 @@ function describeSelection() {
   document.getElementById('ins_align').value  = value.align || '';
   document.getElementById('ins_visible').value = value.visible || 'all';
   document.getElementById('ins_bordershow').checked = value.borderShow === '1';
+  set('ins_hdr_size', value.hdrSize);
+  set('ins_hdr_border', value.hdrBorderSize);
+  document.getElementById('ins_hdr_bordercolour').value = value.hdrBorderColour || '#000000';
+  document.getElementById('ins_hdr_bordershow').checked = value.hdrBorderShow === '1';
   document.getElementById('ins_bold').checked   = value.bold   === '1';
   document.getElementById('ins_italic').checked = value.italic === '1';
   document.getElementById('ins_bind').value = value.bind || '';
@@ -589,6 +593,7 @@ function describeSelection() {
   }
 
   show('ins_columns_row', box.kind === 'table');
+  show('ins_heading_row', box.kind === 'table');
   show('ins_parts_row',   box.kind === 'block');
   if (box.kind === 'table') {
     document.getElementById('ins_columns_open').textContent =
@@ -653,6 +658,13 @@ function inspectorChanged() {
   value.align      = document.getElementById('ins_align').value;
   value.visible    = document.getElementById('ins_visible').value;
   value.borderShow = document.getElementById('ins_bordershow').checked ? '1' : '';
+  // The heading row's four. Written for EVERY element, not only a table: the
+  // binder decides what to do with them by element kind, and a value posted
+  // for a text box is ignored there — whereas a field posted only sometimes is
+  // a field the binder cannot tell from one deliberately cleared.
+  value.hdrSize       = document.getElementById('ins_hdr_size').value.trim();
+  value.hdrBorderSize = document.getElementById('ins_hdr_border').value.trim();
+  value.hdrBorderShow = document.getElementById('ins_hdr_bordershow').checked ? '1' : '';
   value.bold       = document.getElementById('ins_bold').checked   ? '1' : '';
   value.italic     = document.getElementById('ins_italic').checked ? '1' : '';
   // A colour input cannot say "unset": it shows black when nothing is stored.
@@ -664,6 +676,8 @@ function inspectorChanged() {
   if (colour !== (value.colour || '#000000')) value.colour = colour;
   const borderColour = document.getElementById('ins_bordercolour').value;
   if (borderColour !== (value.borderColour || '#000000')) value.borderColour = borderColour;
+  const hdrBorderColour = document.getElementById('ins_hdr_bordercolour').value;
+  if (hdrBorderColour !== (value.hdrBorderColour || '#000000')) value.hdrBorderColour = hdrBorderColour;
   // Never from a context element: its control is not the one on screen, and the
   // select still holds whatever the last record-bound element put there. Today
   // that select reads empty for a company constant anyway — the palette has no
@@ -775,6 +789,7 @@ function formsCanvasAdd(kind) {
                 h: height, bind: '', text: '', visible: 'all',
                 label: '', font: '', size: '', colour: '', borderColour: '', align: '',
                 borderSize: '', borderShow: '', truncate: '', bold: '', italic: '', src: '',
+                hdrSize: '', hdrBorderSize: '', hdrBorderColour: '', hdrBorderShow: '',
                 // Empty, and explicitly so. `[]` is what tells the binder the
                 // author means none rather than means nothing — a blank is read
                 // as "say nothing about it", which for a NEW element would
@@ -1428,10 +1443,15 @@ window.formsCanvasAdd    = formsCanvasAdd;
 window.formsCanvasUndo   = formsCanvasUndo;
 window.formsCanvasRedo   = formsCanvasRedo;
 
+// Every control in the inspector, or the one left out is a control that looks
+// editable and does nothing — no error, no console, just a form that will not
+// redraw. The heading-row four were added to the panel and forgotten here, and
+// the only symptom was that changing them appeared to have no effect.
 ['ins_label','ins_x','ins_y','ins_w','ins_h','ins_text','ins_font','ins_size','ins_border',
  'ins_align','ins_visible','ins_bordershow','ins_colour','ins_bordercolour',
  'ins_bold','ins_italic','ins_bind','ins_src',
- 'ins_pattern','ins_symbology'].forEach(function (id) {
+ 'ins_pattern','ins_symbology',
+ 'ins_hdr_size','ins_hdr_border','ins_hdr_bordershow','ins_hdr_bordercolour'].forEach(function (id) {
   const control = document.getElementById(id);
   if (control) control.addEventListener('change', inspectorChanged);
 });

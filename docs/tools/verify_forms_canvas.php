@@ -1563,6 +1563,101 @@ if ($victim === null) {
            $checked > 0 && $survivors === $checked, "$survivors of $checked");
     }
 
+    // ── the heading row, which has a style of its own ───────────────────────
+    //
+    // A table draws its headings from `headerStyle ?? style`, so a table has
+    // two independent borders: the frame round the column headings and the box
+    // round the rows. The canvas offered controls for the second only and
+    // carried the first through untouched — so the grey frame on a shipped
+    // invoice was drawn on every page and could not be changed from the editor
+    // that drew it. §13.30 closed the same gap for the columns themselves.
+    //
+    // A form of its OWN, not $victim. That one is chosen for having an image,
+    // and its table turned out to have no heading style at all — against which
+    // "unticking the border turns it off" and "nothing else changed" both pass
+    // without exercising a line of this code. Both did, with the feature
+    // reverted. A check has to be run against data that can make it fail.
+    $headed = $headedAt = null;
+    foreach ($forms as $id => $title) {
+        try { $candidate = $loader->load($id); } catch (DefinitionException) { continue; }
+        if (!$candidate->isForm() || $candidate->template === null) continue;
+        foreach ($candidate->template->elements as $index => $element) {
+            if (!$element instanceof \FreeBooks\Forms\Document\Table) continue;
+            if (!($element->headerStyle?->borderShow)) continue;
+            $headed = $candidate; $headedAt = $index; break 2;
+        }
+    }
+
+    if ($headed === null) {
+        // Not a pass. Every shipped invoice has one, so a company with none is
+        // a company where this cannot be checked, and that has to be said.
+        echo "  [--] no form here has a table with a bordered heading, so the heading\n"
+           . "       controls are not exercised on this company\n";
+    } else {
+        $headedAllowed = $allowedFor($headed);
+        $headEdit = function (callable $mutate) use ($headed, $headedAllowed): array {
+            $request = ['title' => $headed->title,
+                        'element' => TemplateForm::toRequest($headed->template)];
+            $request = $mutate($request);
+            $binding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+            return [$binding->apply($headed, $request, $headedAllowed), $binding->warnings()];
+        };
+        $heading = $headed->template->elements[$headedAt]->headerStyle;
+        $encoder = new DefinitionCodec();
+        printf("  using a form whose table heading is boxed (%dpt, border %s)\n",
+            (int)($heading->size ?? 0), $heading->borderSize === null ? '?' : (string)$heading->borderSize);
+
+        [$same, $warnings] = $headEdit(fn(array $r): array => $r);
+        ok('a table survives a save with its heading style unchanged',
+           $encoder->encode($same) === $encoder->encode($headed) && $warnings === [],
+           'saving a form nobody edited rewrote its table heading');
+
+        // The edit an author makes to get rid of the frame.
+        [$off] = $headEdit(function (array $r) use ($headedAt): array {
+            $r['element'][$headedAt]['hdrBorderShow'] = '';
+            return $r;
+        });
+        $after = $off->template->elements[$headedAt]->headerStyle;
+        ok('unticking the heading border turns it off',
+           $after !== null && !$after->borderShow, 'the frame would still be drawn');
+
+        // AND NOTHING ELSE. The heading is 8pt against a 12pt body on the
+        // shipped invoice and there is no control for that, so a save that
+        // cleared it would silently reflow every column heading on the form.
+        ok('and changes nothing else about the heading',
+           $after !== null
+           && $after->size === $heading->size
+           && $after->font === $heading->font
+           && $after->borderSize === $heading->borderSize
+           && (string)($after->align?->value ?? '') === (string)($heading->align?->value ?? ''),
+           'the save altered a heading property that has no control');
+
+        // Blank means KEEP, which is what the note under the control promises.
+        // The round trip above cannot prove it: the canvas posts the current
+        // size every time, so the fallback branch is never reached and a
+        // builder that dropped it would pass unnoticed. It did.
+        [$blank] = $headEdit(function (array $r) use ($headedAt): array {
+            $r['element'][$headedAt]['hdrSize'] = '';
+            return $r;
+        });
+        $kept = $blank->template->elements[$headedAt]->headerStyle;
+        ok('clearing the heading size keeps the size the form already used',
+           $kept !== null && $kept->size === $heading->size,
+           'expected ' . var_export($heading->size, true) . ', got ' . var_export($kept?->size, true));
+
+        // A page that does not know about these controls must not flatten what
+        // it cannot see — the rule the whole binder keeps.
+        [$older] = $headEdit(function (array $r) use ($headedAt): array {
+            foreach (['hdrSize', 'hdrBorderSize', 'hdrBorderColour', 'hdrBorderShow'] as $key) {
+                unset($r['element'][$headedAt][$key]);
+            }
+            return $r;
+        });
+        ok('a save with no heading fields at all carries the heading through',
+           $encoder->encode($older) === $encoder->encode($headed),
+           'an older client would have flattened the table heading');
+    }
+
     // The border's colour is its OWN, and the data uses that: 16 shipped
     // elements draw black text inside a silver rule. The renderer reads
     // `borderColour ?? colour`, so a rule with no colour of its own follows the

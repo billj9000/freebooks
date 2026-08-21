@@ -442,6 +442,40 @@ if ($forms_canvas_definition === null) { ?>
               </div>
             </div>
 
+            <?php // A table's HEADING ROW has a style of its own, and the
+                  // renderer reads `headerStyle ?? style`: the frame round an
+                  // invoice's column headings is this border, not the one
+                  // above. Without these four the heading was drawn on every
+                  // page and could not be changed from the editor that drew it
+                  // — the same gap §13.30 closed for the columns themselves. ?>
+            <div class="border rounded p-2 mb-2 d-none" id="ins_heading_row">
+              <div class="small fw-semibold mb-1"><?php echo FORMS_CANVAS_HEADING; ?></div>
+              <div class="row g-1">
+                <div class="col-6">
+                  <label class="form-label mb-0 small" for="ins_hdr_size"><?php echo FORMS_DESIGN_SIZE; ?></label>
+                  <input type="text" inputmode="decimal" class="form-control form-control-sm" id="ins_hdr_size">
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0 small" for="ins_hdr_border"><?php echo FORMS_CANVAS_BORDER; ?></label>
+                  <input type="text" inputmode="decimal" class="form-control form-control-sm" id="ins_hdr_border">
+                </div>
+                <div class="col-6 d-flex align-items-end">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="ins_hdr_bordershow">
+                    <label class="form-check-label small" for="ins_hdr_bordershow"><?php
+                      echo FORMS_CANVAS_BORDER_SHOW; ?></label>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0 small" for="ins_hdr_bordercolour"><?php
+                    echo FORMS_CANVAS_BORDER_COLOUR; ?></label>
+                  <input type="color" class="form-control form-control-sm form-control-color"
+                         id="ins_hdr_bordercolour">
+                </div>
+              </div>
+              <div class="form-text"><?php echo FORMS_CANVAS_HEADING_NOTE; ?></div>
+            </div>
+
             <div class="mb-2">
               <label class="form-label mb-0 small" for="ins_visible"><?php echo FORMS_CANVAS_VISIBLE; ?></label>
               <?php echo html_pull_down_menu('ins_visible', $forms_canvas_visibility, 'all',

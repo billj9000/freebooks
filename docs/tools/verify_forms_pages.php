@@ -1201,6 +1201,50 @@ if ($PAGE === 'admin') {
     }
 }
 
+if ($PAGE === 'canvas' && !$PICKING) {
+    // Every control in the inspector must be wired to the redraw.
+    //
+    // The page script attaches one `change` listener, over a LIST OF IDS
+    // written out by hand. A control added to the panel and left out of that
+    // list looks exactly like a control that works: it accepts a value, keeps
+    // it, and changes nothing — no error, no console. That is what happened to
+    // the heading-row four, and the only symptom was a form that would not
+    // redraw.
+    //
+    // Read from the RENDERED page, so a control is counted because it exists
+    // on screen rather than because somebody remembered to list it twice.
+    $script = (string)file_get_contents(DIR_FS_WORKING . 'pages/canvas/js_include.php');
+    $wired  = [];
+    if (preg_match_all("/'(ins_[a-z_]+)'/", $script, $found)) {
+        // Only the ids inside the listener array. Every other mention is a
+        // getElementById, and reading THOSE would make the check circular:
+        // a control the script reads but never listens to would pass.
+        if (preg_match('/\[([^\]]*?)\]\.forEach\(function \(id\)/s', $script, $block)
+            && preg_match_all("/'(ins_[a-z_]+)'/", $block[1], $listed)) {
+            $wired = array_flip($listed[1]);
+        }
+    }
+    ok('the redraw listener list could be read', $wired !== [],
+       'nothing to compare against, so the check below proves nothing');
+
+    $unwired = [];
+    foreach ($xpath->query("//input[starts-with(@id,'ins_')] | //select[starts-with(@id,'ins_')]"
+                         . " | //textarea[starts-with(@id,'ins_')]") as $control) {
+        $id = (string)$control->getAttribute('id');
+        // Hidden fields carry the sub-structures and are written by the sub
+        // editors, which redraw themselves; they are not typed into.
+        if ((string)$control->getAttribute('type') === 'hidden') continue;
+        // Nor a file chooser. Picking a file changes no property of the
+        // element — the upload button does, and what it changes is `src`,
+        // which IS in the list. Named rather than pattern-matched, so a second
+        // file input would have to be considered rather than slip through.
+        if ($id === 'ins_upload') continue;
+        if (!isset($wired[$id])) $unwired[] = $id;
+    }
+    ok('every inspector control redraws the form when it changes',
+       $unwired === [], implode(', ', $unwired) . ' — a control that changes nothing, silently');
+}
+
 if ($PICKING) {
     // Arriving from the menu is not a failure, and must not be reported as one:
     // a red "No report was chosen to edit" blames the author for the click that

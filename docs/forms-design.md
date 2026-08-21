@@ -5067,3 +5067,86 @@ The lesson is one this work keeps relearning from the other direction: a check
 that passes tells you nothing until you have made it fail on purpose. Twice here
 it passed because it was aimed slightly beside the target, and both times the
 run was green.
+
+### 13.44 The heading row had a style nobody could reach
+
+A table draws its headings from `headerStyle ?? style`, so a line-item table has
+**two independent borders**: the frame around the column headings and the box
+around the rows beneath them. The canvas offered controls for the second only,
+and carried the first through untouched.
+
+On a shipped invoice both are silver, so they read as one frame — and unticking
+*Draw it* removed the body box and left the headings boxed on their own, which
+looks like a bug rather than a choice. There was no way to remove the heading
+frame from the editor that draws it.
+
+Exactly the gap §13.30 closed for the columns themselves, in the same element,
+one property along.
+
+The panel gains a **Heading row** group — border width, draw it, colour, and the
+font size, which is 8pt against the body's 12pt on that invoice and was equally
+unreachable. `headerStyleFrom()` builds the style from those four and **carries
+the other six**: font, colour, alignment, weight, truncation. A control that is
+not on screen must not be able to clear the value behind it.
+
+Two rules from §13.30 carry over unchanged. A row with **no** heading keys at
+all is a client that does not know about them, and the stored heading survives —
+which is what lets the report editor and the receipt editor save a form without
+flattening its table headings. And **null is not an empty Style**: the renderer
+reads `headerStyle ?? style`, so a table with no heading style draws its
+headings in the *body's* style, and writing an empty one instead switches them
+to defaults (§13.9).
+
+Measured rather than asserted: unticking takes the shipped invoice from 29
+rectangle operators to 28, and an untouched save is byte-identical.
+
+#### The check was vacuous, twice, and passed both times
+
+The first version hung the checks on `$victim` — the form the surrounding
+section already had. That one is chosen for having an **image**, and its table
+turned out to have no heading style at all. So "unticking the border turns it
+off" and "nothing else changed" both passed *with the feature reverted*: there
+was no border to turn off and nothing to preserve. One of them was even written
+as `$heading === null || (…)`, which cannot fail when `$heading` is null.
+
+Fixed by choosing a form **whose table heading is actually boxed**, and saying
+so on the way past — and by reporting `[--]` rather than passing when a company
+has none.
+
+Then a third fault survived even that: dropping the `?? $fallback?->size` that
+keeps a heading's size when the box is cleared. The round trip cannot reach it,
+because the canvas posts the current size every time. It needed the case the
+note under the control promises — **blank means keep** — which is now its own
+check, and fails with *"expected 8.0, got NULL"*.
+
+Three faults, three checks that had to be aimed at them individually. The
+pattern this work keeps meeting from both ends: a green run means nothing until
+each check has been made to fail on purpose, and "I reverted the feature and the
+suite stayed green" is the cheapest way to find out that it does not.
+
+#### And the control that did nothing
+
+The panel was built, the binder was right, the four checks passed — and changing
+anything in the Heading row group did not redraw the form.
+
+The page script attaches its `change` listener over a **hand-written list of
+ids**. A control added to the panel and left out of that list looks exactly like
+one that works: it takes a value, keeps it, and changes nothing. No error, no
+console message. The author's only symptom is a form that will not redraw, which
+reads as a slow page rather than as a dead control.
+
+`verify_forms_pages` now takes every `ins_*` input, select and textarea **from
+the rendered page** and requires each to appear in that list — read from the
+page rather than from a second list, or the check is just the same omission
+written twice. Two exemptions, both named rather than pattern-matched: hidden
+fields carrying the sub-structures, which the sub editors write and redraw
+themselves, and the file chooser, where picking a file changes no property —
+the upload button changes `src`, and `src` is in the list.
+
+Removing the four reproduces it exactly, naming all four.
+
+This is the fourth thing in this one small feature that was invisible until it
+was made to fail: a vacuous check on a form with no heading, a second vacuous
+one guarded by `$heading === null ||`, a fallback the round trip could not
+reach, and now a control with no listener. The feature itself was about forty
+lines.
