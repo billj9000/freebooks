@@ -116,36 +116,40 @@ set_error_handler(function (int $no, string $message, string $file, int $line)
 // Rendered at FILE scope, deliberately, and not from inside a helper function.
 // template_index.php requires a page's template at global scope, and the tab
 // templates are required at the file scope of template_main.php, so the globals
-// that phreeform/defaults.php defines — $PaperSizes among them — are visible to
-// them. Rendering inside a function makes those globals invisible and the paper
-// select silently disappears, which is what the first version of this tool
-// reported as a missing control. See feedback_cli_bootstrap_scope.
-$active_tab = 'tools';
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
+// they read are visible to them. Rendering inside a function makes those
+// globals invisible and the paper select silently disappears, which is what the
+// first version of this tool reported as a missing control. See
+// feedback_cli_bootstrap_scope.
 
-echo "\n=== Reports and Forms: the tools tab ===\n";
-$problems = [];
-ob_start();
-include(DIR_FS_MODULES . 'phreeform/pages/admin/template_tab_tools.php');
-$html   = (string)ob_get_clean();
-$issues = $problems;
-ok('it rendered', trim($html) !== '');
-ok('it raised nothing', $issues === [], implode(' | ', array_slice($issues, 0, 4)));
-ok('the re-stamp button is wired to the restamp action', str_contains($html, "submitToDo('restamp')"), $html);
-ok('it names the paper that will be stamped',
-   defined('PF_DEFAULT_PAPERSIZE') && str_contains($html, PF_DEFAULT_PAPERSIZE),
-   'expected ' . (defined('PF_DEFAULT_PAPERSIZE') ? PF_DEFAULT_PAPERSIZE : '?'));
-ok('it asks before rewriting anything', str_contains($html, 'confirm('));
+// The "Reports and Forms" TOOLS TAB was PhreeForm's, and went with it (§13.39).
+// Its Re-stamp Paper Size and Rebuild Catalog actions have no home in Forms
+// yet — forms_restamp_native() still exists and is still tested, but nothing
+// calls it from a page. Recorded here rather than quietly dropped, because a
+// check that stops asking is how a feature disappears without anyone noticing.
+echo "\n=== the paper re-stamp action ===\n";
+echo "  [--] the tools tab it lived on was PhreeForm's and is deleted; the action\n"
+   . "       has not been ported to Forms, so there is nothing to render here.\n";
 
 echo "\n=== Company Manager: the paper select ===\n";
+// Asked for explicitly, because it used to arrive by accident: this tool
+// required phreeform/defaults.php, which calls gen_pull_language($mod, 'admin')
+// for every module carrying a config_phreeform.php — phreedom among them. The
+// require went with the module and took the accident with it, and the template
+// died on SETUP_CO_MGR_COPY_CO. Third time this exact shape has turned up
+// (§13.34, §13.37); it is what a transitive language pull costs.
 gen_pull_language('phreedom', 'admin');
-// What the page's own pre_process.php loads: load_company_dropdown() lives here.
+// What the page's own pre_process.php loads: load_company_dropdown() lives here,
+// and the paper list is Forms' now — the template draws the row only when it can
+// see forms_paper_sizes(), so a harness that does not load it renders a page
+// with the control silently missing.
 require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
+require_once(DIR_FS_MODULES . 'forms/defaults.php');
+require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 $active_tab   = 'manager';
 $db_server    = 'localhost';
 $db_name      = $db_user = $co_name = '';
 $error        = false;
-$core_modules = ['phreedom', 'phreeform', 'phreebooks', 'contacts', 'inventory', 'shipping', 'phreehelp'];
+$core_modules = ['phreedom', 'forms', 'phreebooks', 'contacts', 'inventory', 'shipping', 'phreehelp'];
 $problems     = [];
 ob_start();
 include(DIR_FS_MODULES . 'phreedom/pages/admin/template_tab_manager.php');
@@ -155,12 +159,16 @@ ok('it rendered', trim($html) !== '');
 ok('it raised nothing of its own', $issues === [], implode(' | ', array_slice($issues, 0, 4)));
 ok('the paper select is present', str_contains($html, "name=\"papersize\"") || str_contains($html, "name='papersize'"),
    'no papersize control in the rendered markup');
+// By NAME. PhreeForm keyed its list "A4:210:297" because its designer carried
+// the dimensions along; a native definition stores the name and TCPDF looks the
+// rest up (§13.37). A tool still asserting the old spelling would fail on a
+// page that is right.
 ok('it offers A4 and Letter',
-   str_contains($html, 'A4:210:297') && str_contains($html, 'Letter:216:282'));
+   preg_match('#<option value="A4"#', $html) === 1
+   && preg_match('#<option value="Letter"#', $html) === 1);
 ok('it defaults to this company\'s current setting',
-   !defined('PF_DEFAULT_PAPERSIZE')
-   || preg_match('#<option value="' . preg_quote(PF_DEFAULT_PAPERSIZE, '#') . '" selected#', $html) === 1,
-   'expected ' . (defined('PF_DEFAULT_PAPERSIZE') ? PF_DEFAULT_PAPERSIZE : '?') . ' to be preselected');
+   preg_match('#<option value="' . preg_quote(FORMS_DEFAULT_PAPER, '#') . '"[^>]*selected#', $html) === 1,
+   'expected ' . FORMS_DEFAULT_PAPER . ' to be preselected');
 
 restore_error_handler();
 if ($inherited) {

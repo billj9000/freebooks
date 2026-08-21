@@ -41,7 +41,7 @@
  * container's modules/ tree is reported and skipped rather than failing the
  * run, since which optional modules are deployed varies by installation.
  *
- * THIS TOOL WRITES. ImportReport() inserts a catalog row per definition, and
+ * THIS TOOL WRITES. Seeding inserts a catalog row per definition, and
  * TABLE_PHREEFORM is MyISAM so there is no transaction to roll back. It records
  * the highest id first and deletes everything above it in a finally, and it
  * writes its files to a temp directory rather than to my_files. Even so, do not
@@ -53,7 +53,6 @@
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($argv[1] ?? null);
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 
 $failures = 0;

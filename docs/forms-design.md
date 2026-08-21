@@ -4888,3 +4888,56 @@ check runs: without the watch the dataset fails, with it the run reports the
 skip and its reason. The first attempt at that proof inserted nothing at all,
 because the columns were guessed rather than read — which is its own small
 lesson about fault injection: **check that the fault actually happened.**
+
+### 13.41 The suite runner, and two tools the deletion broke
+
+`docs/tools/run_forms_suite.sh` runs every verification tool against one
+company, from inside the container like the php tools beside it. It exists
+because `for f in verify_*.php; do php $f; done` gets three things wrong, each
+learned by getting it wrong:
+
+- **Exit status is not enough.** TCPDF's `Error()` prints and `die()`s — with
+  status **zero** (§13.35). A tool that dies inside a renderer is
+  indistinguishable, to `$?`, from one that finished. A run counts as finished
+  only if it printed a terminal marker of its own, and the tools use several
+  spellings.
+- **Not every tool is a check.** The directory also holds tools that WRITE — the
+  migration, the captures, the generators — and tools that take arguments.
+  `verify_report_page_widths` reads `argv[1]` as a **paper name** and refuses
+  "demo", so it is run bare.
+- **`verify_forms_*` is the wrong glob**, and that is the finding.
+
+#### What the glob was hiding
+
+`verify_paper_pages` and `verify_paper_seeding` do not match `verify_forms_*`,
+so they were never in the suite anybody ran — and the deletion left **both
+fatally broken** without a single red line anywhere.
+
+`verify_paper_seeding` was easy: a `require` of PhreeForm's functions that
+nothing in the file had called for some time.
+
+`verify_paper_pages` was not, and it turned up the same accident for the **third
+time**. It required `phreeform/defaults.php`, which calls
+`gen_pull_language($mod, 'admin')` for every module carrying a
+`config_phreeform.php` — phreedom among them. The require went with the module
+and took the accident with it, and the Company Manager template died on
+`SETUP_CO_MGR_COPY_CO`. §13.34 was `COA_*_DESC`; §13.37 was the same shape
+again. A transitive language pull is invisible to every check that reads names.
+
+#### A feature that left with the module
+
+`verify_paper_pages` also rendered PhreeForm's **tools tab**, and that tab held
+the **Re-stamp Paper Size** and **Rebuild Catalog** actions — the first of them
+built for issue #24, to move an existing installation's definitions onto the
+paper it actually prints on.
+
+They are gone. `forms_restamp_native()` still exists and is still tested by
+`verify_forms_shipping_set`, but nothing calls it from a page any more. The tool
+says so, in the place the check used to be, rather than dropping the section:
+
+    === the paper re-stamp action ===
+      [--] the tools tab it lived on was PhreeForm's and is deleted; the action
+           has not been ported to Forms, so there is nothing to render here.
+
+A check that stops asking is how a feature disappears without anyone noticing —
+which is the whole of §13.36 restated, and the reason that section exists.
