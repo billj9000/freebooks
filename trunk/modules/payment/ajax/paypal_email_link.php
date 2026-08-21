@@ -108,59 +108,30 @@ echo json_encode(['success' => true]);
 die;
 
 // ---------------------------------------------------------------------------
-// Best-effort helper: generate a PDF for the given FreeBooks invoice ID.
-// Uses the phreeform 'cust:inv' form. Returns ['pdf'=>..., 'filename'=>...]
-// or false if the report cannot be found or rendered.
+// Best-effort helper: generate a PDF for the given FreeBooks invoice ID, from
+// whichever document is filed under 'cust:inv'. Returns
+// ['pdf'=>..., 'filename'=>...] or false if it cannot be found or rendered.
 // ---------------------------------------------------------------------------
 function _paypal_build_invoice_pdf($fb_invoice_id) {
   global $db, $messageStack;
   try {
     if (!defined('TABLE_PHREEFORM')) {
-      require_once(DIR_FS_MODULES . 'phreeform/config.php');
+      require_once(DIR_FS_MODULES . 'forms/config.php');
     }
-    gen_pull_language('phreeform');
-    if (!defined('PF_DIR_MY_REPORTS')) {
-      require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-    }
-    require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
-
     $r = $db->Execute("SELECT id FROM " . TABLE_PHREEFORM
       . " WHERE doc_group = 'cust:inv' AND (doc_ext = 'frm' OR doc_ext = 'rpt')"
       . " ORDER BY doc_title LIMIT 1");
     if ($r->EOF) return false;
-    $form_id = (int)$r->fields['id'];
 
-    // Forms first, when it is installed: it reads both the legacy xml and a
-    // native definition, where get_report_details() below refuses the latter
-    // outright — the trap named in design §13.7 step 6. This id is looked up
-    // by GROUP every call, so which format it is in can change the moment
-    // someone edits the stock invoice form, with nothing here to notice.
-    if (defined('MODULE_FORMS_STATUS')) {
-      require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
-      $rendered = forms_render_to_string($form_id, [$fb_invoice_id]);
-      if ($rendered !== null) return $rendered;
-    }
-
-    $report = get_report_details($form_id);
-    if (!$report) return false;
-
-    // Filter to this specific journal entry, no date range restriction.
-    $f = new stdClass();
-    $f->fieldname = 'journal_main.id';
-    $f->default   = 'EQUAL';
-    $f->min_val   = (string)$fb_invoice_id;
-    $f->type      = '';
-    $report->xfilterlist = [$f];
-    $report->datedefault = '';
-
-    // entry_builder::load_query_results() declares `global $report` and iterates
-    // $report->fieldlist to build the indexed $FieldValues array for Data-type fields.
-    // Without this, $FieldValues is empty and header/footer/customer fields are blank.
-    $GLOBALS['report'] = $report;
-
-    $output = BuildForm($report, 'S');
-    if (!is_array($output) || empty($output['pdf'])) return false;
-    return $output;
+    // Through Forms, and only Forms. The PhreeForm fallback that used to sit
+    // here could not have run on any migrated company — get_report_details()
+    // refuses a native definition outright — and this id is looked up BY GROUP
+    // every call, so which format the stock invoice is in changes the moment
+    // somebody edits it, with nothing here to notice. It was a fallback that
+    // fired exactly when it could not work.
+    if (!defined('MODULE_FORMS_STATUS')) return false;
+    require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+    return forms_render_to_string((int)$r->fields['id'], [$fb_invoice_id]) ?: false;
   } catch (\Throwable $e) {
     error_log('paypal_email_link: PDF generation failed for invoice ' . $fb_invoice_id . ': ' . $e->getMessage());
     return false;

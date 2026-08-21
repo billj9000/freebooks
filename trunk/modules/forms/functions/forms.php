@@ -537,10 +537,14 @@ function forms_folder_for(string $group, bool $isForm, array $titles): string
  * simply stopped rendering, silently, the first time someone saved the same
  * form in the Forms editor (design §13.7 step 6, the render-to-string trap).
  *
- * Not for a report (`type=rpt`) or a serial/receipt form: a report is
- * DocumentRunner's, and Forms has no renderer for character-cell text at all
- * (§13.16) — planDefinition() on either would report itself unrunnable, which
- * this treats as failure like anything else.
+ * Not for a report (`type=rpt`): that is DocumentRunner's, and
+ * planDefinition() on one reports itself unrunnable, which this treats as
+ * failure like anything else.
+ *
+ * A RECEIPT it does handle, and this docblock said otherwise for longer than it
+ * was true — the §13.16 note about Forms having no renderer for character-cell
+ * text died with §13.28. The same dead sentence was still guarding the shipping
+ * set (§13.36) and still describing this function; both are corrected.
  *
  * @param list<int> $recordIds  usually one id — the journal entry, the work
  *   order — matching what the definition's provider or dataset key expects.

@@ -28,8 +28,12 @@ define('MODULE_FORMS_DESCRIPTION', 'Reports and forms engine. Runs the existing 
 define('FORMS_ADMIN_TITLE',        'Forms Module Settings');
 define('FORMS_ADMIN_CONFIG_INFO',  'Settings');
 
-define('MODULE_FORMS_PRINT_BUTTONS_TEXT', 'Print buttons open Forms');
-define('MODULE_FORMS_PRINT_BUTTONS_DESC', 'The Print button on an order, bill, invoice, receipt or POS ticket opens PhreeForm until you turn this on. Both engines read the same stored form definitions, so nothing is migrated and nothing is lost by turning it off again.');
-define('FORMS_ADMIN_PRINT_CAUTION',       'Printing through Forms needs the <b>Forms - Run and print documents</b> permission. Anyone whose role does not grant it keeps printing through PhreeForm, so check the roles in Company &rarr; User Security before relying on this.');
-define('FORMS_ADMIN_YES_NO_ON',           'Yes - open Forms');
-define('FORMS_ADMIN_YES_NO_OFF',          'No - open PhreeForm');
+// The renderer defaults. Each was a PhreeForm setting, on a tab that goes when
+// that module does — so they live here or they become unreachable.
+define('FORMS_DEFAULT_PAPER_TEXT',        'Paper size');
+define('FORMS_DEFAULT_PAPER_DESC',        'The paper a document sits on when its own layout does not say. A document that names its own size keeps it.');
+define('FORMS_DEFAULT_ROWSPACE_TEXT',     'Row spacing');
+define('FORMS_DEFAULT_ROWSPACE_DESC',     'Extra space between the rows of a report table, in points. 2 is the shipped value.');
+define('FORMS_DEFAULT_COLUMN_WIDTH_TEXT', 'Default column width');
+define('FORMS_DEFAULT_COLUMN_WIDTH_DESC', 'Width in millimetres for a report column whose definition declares none. 25 is the shipped value.');
+define('FORMS_ADMIN_PRINT_CAUTION',       'Printing needs the <b>Forms - Run and print documents</b> permission. Anyone whose role does not grant it cannot open a document from a Print button, so check the roles in Company &rarr; User Security.');

@@ -75,20 +75,67 @@ function ok(string $what, bool $cond, string $detail = ''): void {
  * Shrink this as the dependencies move. Do not add to it without a reason that
  * survives step 6 — there is only one entry of that kind, and it is marked.
  */
+/**
+ * Who may still take what from PhreeForm, and why.
+ *
+ * Keyed by the tree that does the taking. `forms` is empty and stays empty —
+ * that was §13.34. The rest are what step 6 has to clear before the module can
+ * be deleted, and having them counted rather than remembered is the difference
+ * between a deletion and a series of surprises.
+ *
+ * Both directions fail: a borrowing not on the list is new coupling, and a name
+ * on a list that is no longer taken is a stale entry. The second is what keeps
+ * the list honest, and it is what turns each of these into a target that has to
+ * shrink rather than a note somebody wrote once.
+ */
 const BORROWED = [
-    // Empty, and that is the finding: Forms names nothing PhreeForm declares.
-    //
-    // Leave the array here rather than deleting the check. It is the guard
-    // against the dependency coming BACK — a page that reaches for a PF_
-    // constant, a `gen_pull_language('phreeform')` added for one label — and
-    // the second check below keeps this honest in the other direction, so an
-    // entry cannot be added speculatively and left to rot.
-    //
-    // One thing it cannot see, named here so nobody assumes otherwise:
-    // forms/classes/install.php holds PF_* names as STRINGS, to inherit an
-    // installation's tuned settings through defined()/constant(). A name in a
-    // string is not a dependency on the constant existing — that code runs
-    // correctly either way — but it is also where a real dependency could hide.
+    'modules/forms' => [
+        // Empty, and that is the finding: Forms names nothing PhreeForm
+        // declares. Leave the entry here rather than deleting the check — it
+        // is the guard against the dependency coming BACK, a page reaching for
+        // a PF_ constant or a gen_pull_language('phreeform') added for one
+        // label.
+        //
+        // One thing it cannot see, named here so nobody assumes otherwise:
+        // forms/classes/install.php holds PF_* names as STRINGS, to inherit an
+        // installation's tuned settings through defined()/constant(). A name in
+        // a string is not a dependency on the constant existing — that code
+        // runs correctly either way — but it is also where a real dependency
+        // could hide.
+    ],
+
+    // The rest of the tree, which is what step 6 stage C has to clear. Each
+    // entry is a target: when a list is empty and stays empty, that module no
+    // longer knows PhreeForm exists.
+    // Cleared by stage C: nothing in these knows PhreeForm exists.
+    'modules/payment'  => [],
+    'install'          => [],
+
+    // What is left is PhreeForm's own machinery, living in other modules
+    // because that is where PhreeForm's extension points were. Each is DELETED
+    // WITH THE ENGINE rather than rewritten — there is nothing to move, because
+    // Forms already does the same job its own way. Listed so that "still to do"
+    // is a list rather than a memory.
+    'modules/phreepos' => [
+        'ProcessData' => 'pos_builder.php, a PhreeForm special class; Forms has pos_provider',
+        'AddSep'      => 'the same class',
+    ],
+    'modules/phreedom' => [
+        'FormProcessing'        => 'config_phreeform.php, a PhreeForm hook registration',
+        'SECURITY_ID_PHREEFORM' => 'three dashboards borrow it as their own key — see below',
+        'phreeform'                         => 'PBtoR30.php, the 2.x upgrade that installed the module',
+        'phreeform/config.php'              => 'the same upgrade script',
+        'phreeform/defaults.php'            => 'the same upgrade script',
+        'phreeform/classes/install.php'     => 'the same upgrade script',
+    ],
+    'modules/contacts' => ['FormProcessing' => 'config_phreeform.php'],
+    'modules/shipping' => ['FormProcessing' => 'config_phreeform.php'],
+    'includes'         => [
+        // build_dir_html()/build_dir_tree() are core functions with exactly one
+        // caller: PhreeForm's own report list. They go with it, and the
+        // constant goes with them.
+        'PF_DEFAULT_TRIM_LENGTH' => 'build_dir_tree(), called only by PhreeForm',
+    ],
 ];
 
 /**
@@ -257,16 +304,24 @@ $vocabulary = phreeformVocabulary($root, $pf);
 printf("PhreeForm declares %d constants, %d functions and %d file-scope globals.\n",
     count($vocabulary['constants']), count($vocabulary['functions']), count($vocabulary['globals']));
 
-$used = formsReferences($forms, $vocabulary);
-printf("Forms names %d of them in live code.\n\n", count($used));
-
-echo "=== what Forms still borrows ===\n";
-foreach ($used as $name => $where) {
-    $why = BORROWED[$name] ?? null;
-    printf("  %-34s %s\n", $name, $why ?? '*** NOT ON THE LIST ***');
-    if ($verbose || $why === null) foreach ($where as $one) echo "        $one\n";
+$everything = [];
+foreach (BORROWED as $tree => $allowed) {
+    $path = $root . '/' . $tree;
+    if (!is_dir($path)) { echo "  [--] no $tree here\n"; continue; }
+    $everything[$tree] = formsReferences($path, $vocabulary);
 }
-if ($used === []) echo "  (nothing — Forms stands alone)\n";
+printf("Scanned %d tree(s).\n\n", count($everything));
+
+foreach ($everything as $tree => $used) {
+    printf("=== what %s still borrows ===\n", $tree);
+    foreach ($used as $name => $where) {
+        $why = BORROWED[$tree][$name] ?? null;
+        printf("  %-34s %s\n", $name, $why ?? '*** NOT ON THE LIST ***');
+        if ($verbose || $why === null) foreach ($where as $one) echo "        $one\n";
+    }
+    if ($used === []) echo "  (nothing)\n";
+    echo "\n";
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 echo "\n=== a setting has one value, written twice ===\n";
@@ -306,13 +361,14 @@ ok('every seeded default has a fallback, so a missing row is not a fatal',
 ok('and the two agree', $differ === [], implode(' | ', $differ));
 
 echo "\n=== the list is honest ===\n";
-$new = array_diff(array_keys($used), array_keys(BORROWED));
-ok('nothing is borrowed that is not on the list', $new === [],
-   'new coupling to PhreeForm: ' . implode(', ', $new));
-
-$stale = array_diff(array_keys(BORROWED), array_keys($used));
-ok('nothing on the list has stopped being borrowed', $stale === [],
-   'remove from BORROWED, the dependency is gone: ' . implode(', ', $stale));
+foreach ($everything as $tree => $used) {
+    $new   = array_diff(array_keys($used), array_keys(BORROWED[$tree]));
+    $stale = array_diff(array_keys(BORROWED[$tree]), array_keys($used));
+    ok("$tree borrows nothing that is not on its list", $new === [],
+       'new coupling to PhreeForm: ' . implode(', ', $new));
+    ok("and nothing on $tree's list has stopped being borrowed", $stale === [],
+       'remove from BORROWED, the dependency is gone: ' . implode(', ', $stale));
+}
 
 echo "\n" . ($failures === 0 ? "PASS\n" : "FAIL - $failures check(s) failed.\n");
 exit($failures === 0 ? 0 : 1);

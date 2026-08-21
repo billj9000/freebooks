@@ -34,11 +34,21 @@ echo $toolbar->build_toolbar();
     <table class="table table-borderless table-sm mb-0">
       <tbody>
         <tr>
-          <td style="white-space:nowrap"><?php echo MODULE_FORMS_PRINT_BUTTONS_TEXT; ?></td>
+          <td style="white-space:nowrap"><?php echo FORMS_DEFAULT_PAPER_TEXT; ?></td>
           <?php // form-select is width:100% of its cell, so the cell needs a width
                 // of its own — 1% collapsed it to a stub with the arrow only. ?>
-          <td style="width:14rem"><?php echo html_pull_down_menu('module_forms_print_buttons', $forms_print_choices, $forms_print_buttons, 'class="form-select form-select-sm"'); ?></td>
-          <td class="text-muted small"><?php echo MODULE_FORMS_PRINT_BUTTONS_DESC; ?></td>
+          <td style="width:14rem"><?php echo html_pull_down_menu('forms_default_paper', $forms_paper_choices, $forms_paper, 'class="form-select form-select-sm"'); ?></td>
+          <td class="text-muted small"><?php echo FORMS_DEFAULT_PAPER_DESC; ?></td>
+        </tr>
+        <tr>
+          <td style="white-space:nowrap"><?php echo FORMS_DEFAULT_ROWSPACE_TEXT; ?></td>
+          <td style="width:14rem"><?php echo html_input_field('forms_default_rowspace', $forms_rowspace, 'class="form-control form-control-sm" size="4" maxlength="3"'); ?></td>
+          <td class="text-muted small"><?php echo FORMS_DEFAULT_ROWSPACE_DESC; ?></td>
+        </tr>
+        <tr>
+          <td style="white-space:nowrap"><?php echo FORMS_DEFAULT_COLUMN_WIDTH_TEXT; ?></td>
+          <td style="width:14rem"><?php echo html_input_field('forms_default_column_width', $forms_column_width, 'class="form-control form-control-sm" size="4" maxlength="3"'); ?></td>
+          <td class="text-muted small"><?php echo FORMS_DEFAULT_COLUMN_WIDTH_DESC; ?></td>
         </tr>
       </tbody>
     </table>

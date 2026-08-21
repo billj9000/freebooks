@@ -56,17 +56,20 @@ switch ($_REQUEST['action'] ?? '') {
 }
 
 /*****************   prepare to display templates  *************************/
-$forms_print_choices = array(
-  array('id' => '0', 'text' => FORMS_ADMIN_YES_NO_OFF),
-  array('id' => '1', 'text' => FORMS_ADMIN_YES_NO_ON),
-);
+require_once(DIR_FS_WORKING . 'defaults.php');
+require_once(DIR_FS_WORKING . 'functions/forms.php');
 
-// An installation enabled before this key existed has no row for it, so the
-// constant is undefined and the pull-down would select nothing. Off is both the
-// shipped default and what such an installation is actually doing.
-$forms_print_buttons = isset($_POST['module_forms_print_buttons'])
-                     ? (string)$_POST['module_forms_print_buttons']
-                     : (defined('MODULE_FORMS_PRINT_BUTTONS') ? (string)MODULE_FORMS_PRINT_BUTTONS : '0');
+$forms_paper_choices = array();
+foreach (forms_paper_sizes() as $name => $label) {
+  $forms_paper_choices[] = array('id' => $name, 'text' => $label);
+}
+
+// An installation enabled before a key existed has no row for it, so the
+// constant falls back to the define() in defaults.php — which is the shipped
+// value, and what such an installation is actually using.
+$forms_paper        = (string)($_POST['forms_default_paper']        ?? FORMS_DEFAULT_PAPER);
+$forms_rowspace     = (string)($_POST['forms_default_rowspace']     ?? FORMS_DEFAULT_ROWSPACE);
+$forms_column_width = (string)($_POST['forms_default_column_width'] ?? FORMS_DEFAULT_COLUMN_WIDTH);
 
 $include_header    = true;
 $include_footer    = true;

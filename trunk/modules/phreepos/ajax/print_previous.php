@@ -19,9 +19,6 @@
 $security_level = validate_user(SECURITY_ID_PHREEPOS);
 define('JOURNAL_ID','19');
 /**************  include page specific files    *********************/
-gen_pull_language('phreeform');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
 /**************   page specific initialization  *************************/
 define('POPUP_FORM_TYPE','pos:rcpt');
 $error        = false;
@@ -47,31 +44,18 @@ if (!$error ) {
 	}
 	$rID    = $result->fields['id']; // only one form available, use it
 
-	// Forms first, when it is installed: it reads BOTH the legacy xml and a
-	// native definition, where get_report_details() below refuses the latter
-	// outright — which is what happens the moment the receipt editor saves
-	// this form. Forms prints a receipt as character-cell text through
-	// SerialRenderer, not as a PDF (§13.27), so what comes back is the same
-	// string BuildForm() returns here and goes into the same response.
+	// Forms prints a receipt as character-cell text through SerialRenderer
+	// (§13.27), so what comes back is the same string BuildForm() used to
+	// return and goes into the same response. The PhreeForm fallback that used
+	// to sit here was already dead — see the note in save_main.php.
 	$output = null;
 	if (defined('MODULE_FORMS_STATUS')) {
 		require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 		$rendered = forms_render_to_string((int)$rID, array((int)$journal_id));
 		if ($rendered !== null) $output = $rendered['pdf'];
 	}
-
-	$report = $output === null ? get_report_details($rID) : false;
-	if ($output === null && !$report) {
-		if(DEBUG) $massage .= 'The receipt form ('.POPUP_FORM_TYPE.') could not be opened by either engine.';
-	} elseif ($output === null) {
-	$title  = $report->title;
-	$report->datedefault = 'a';
-	if (!isset($report->xfilterlist) || !is_array($report->xfilterlist)) $report->xfilterlist = [];
-	if (!isset($report->xfilterlist[0]) || !is_object($report->xfilterlist[0])) $report->xfilterlist[0] = new stdClass();
-	$report->xfilterlist[0]->fieldname = 'journal_main.id';
-	$report->xfilterlist[0]->default   = 'EQUAL';
-	$report->xfilterlist[0]->min_val   = $journal_id;
-	$output = BuildForm($report, $delivery_method = 'S'); // force return with report
+	if ($output === null && DEBUG) {
+		$massage .= 'The receipt form ('.POPUP_FORM_TYPE.') could not be printed.';
 	}
 	if ($output === true) {
 	  	if(DEBUG) $massage .='direct printing fault.';

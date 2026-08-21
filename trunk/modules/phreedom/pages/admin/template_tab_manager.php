@@ -52,10 +52,10 @@
           <td><?php echo SETUP_CO_MGR_CO_NAME; ?></td>
           <td><?php echo html_input_field('co_name', $co_name, 'size="50"', true); ?></td>
         </tr>
-<?php if (!empty($PaperSizes)) { // phreeform supplies the list; skip the row if it is not installed ?>
+<?php if (function_exists('forms_paper_sizes')) { // Forms supplies the list; skip the row if it is not installed ?>
         <tr>
           <td><?php echo SETUP_CO_MGR_PAPER_SIZE; ?></td>
-          <td><?php echo html_pull_down_menu('papersize', gen_build_pull_down($PaperSizes), $_POST['papersize'] ?? (defined('PF_DEFAULT_PAPERSIZE') ? PF_DEFAULT_PAPERSIZE : 'A4:210:297'), 'class="form-select form-select-sm"'); ?></td>
+          <td><?php echo html_pull_down_menu('papersize', gen_build_pull_down(forms_paper_sizes()), $_POST['papersize'] ?? (defined('FORMS_DEFAULT_PAPER') ? FORMS_DEFAULT_PAPER : 'A4'), 'class="form-select form-select-sm"'); ?></td>
         </tr>
 <?php } ?>
       </tbody>

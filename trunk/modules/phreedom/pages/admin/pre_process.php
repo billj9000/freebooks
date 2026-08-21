@@ -21,10 +21,12 @@ ini_set('memory_limit','256M');  // Set this big for memory exhausted errors
 $security_level = validate_user(SECURITY_ID_CONFIGURATION);
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
-gen_pull_language('phreeform');
-if (defined('MODULE_PHREEFORM_STATUS')) { 
-  require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-  require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+// forms_paper_sizes(), for the Company Manager's paper question. Only the
+// functions file: forms/defaults.php resolves the CURRENT company's path, and
+// the company this page is creating does not exist yet.
+if (defined('MODULE_FORMS_STATUS')) {
+  gen_pull_language('forms');
+  require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 }
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
 require_once(DIR_FS_WORKING . 'classes/backup.php');
@@ -160,7 +162,10 @@ switch ($_REQUEST['action']) {
 	// copied verbatim from the source company, definitions and paper included,
 	// which is what cloning a company should do.
 	$paper_size = db_prepare_input($_POST['papersize'] ?? '');
-	if (!isset($PaperSizes[$paper_size])) $paper_size = defined('PF_DEFAULT_PAPERSIZE') ? PF_DEFAULT_PAPERSIZE : '';
+	$known      = function_exists('forms_paper_sizes') ? forms_paper_sizes() : array();
+	if (!isset($known[$paper_size])) {
+	  $paper_size = defined('FORMS_DEFAULT_PAPER') ? FORMS_DEFAULT_PAPER : '';
+	}
 	// error check company name and company full name
 	if (!$db_name || !$co_name)           $error = $messageStack->add(SETUP_CO_MGR_ERROR_EMPTY_FIELD,'error');
 	if ($db_name == $_SESSION['company']) $error = $messageStack->add(SETUP_CO_MGR_DUP_DB_NAME,'error');
@@ -255,11 +260,13 @@ switch ($_REQUEST['action']) {
 	    //
 	    // $db is the NEW company's connection from the top of this branch, so
 	    // this writes where the definitions went.
-	    if (defined('MODULE_FORMS_STATUS')) write_configure('MODULE_FORMS_PRINT_BUTTONS', '1');
-	    // Forms reads its own key, not PhreeForm's. The name alone: a native
-	    // definition stores "A4", never "A4:210:297".
+	    // MODULE_FORMS_PRINT_BUTTONS used to be written here, to point a new
+	    // company's Print buttons at Forms rather than PhreeForm. One engine
+	    // now, so there is nothing to point.
+	    // Forms reads its own key. The name alone: a native definition stores
+	    // "A4", never "A4:210:297".
 	    if (defined('MODULE_FORMS_STATUS') && $paper_size <> '') {
-	      write_configure('FORMS_DEFAULT_PAPER', explode(':', $paper_size)[0]);
+	      write_configure('FORMS_DEFAULT_PAPER', $paper_size);
 	    }
 	  }
 	}

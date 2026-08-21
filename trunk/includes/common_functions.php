@@ -508,26 +508,16 @@
    * Where a Print button should send the browser.
    *
    * Every Print button in FreeBooks opens the same popup with the same six
-   * parameters and a different form group. Forms answers that contract exactly
-   * (modules/forms/pages/print/), so which engine prints is a choice about the
-   * URL and nothing else — which is why it is made here, once, rather than in
-   * nine call sites that would drift apart.
+   * parameters and a different form group, and Forms answers that contract
+   * exactly (modules/forms/pages/print/) — so this is one place rather than
+   * nine that would drift apart.
    *
-   * Three things have to be true before a button opens Forms:
-   *
-   *   - the module is installed (MODULE_FORMS_STATUS), because the page does
-   *     not exist otherwise;
-   *   - MODULE_FORMS_PRINT_BUTTONS is on. It ships OFF, so installing Forms to
-   *     look at the document list does not silently retire PhreeForm. Design
-   *     §11.16 asks for the two to run side by side first, and an admin who
-   *     wants that has to say so;
-   *   - and the person clicking holds SECURITY_ID_FORMS_RUN. Printing and
-   *     running documents were never the same permission, so a warehouse user
-   *     who prints packing lists may well not have the second. Without this
-   *     they would get a popup that bounces to the dashboard; with it they keep
-   *     printing on PhreeForm until their role is granted the key. The Forms
-   *     settings tab says so, because a per-user fallback nobody mentions is
-   *     just a mystery.
+   * It used to CHOOSE, between Forms and PhreeForm, on MODULE_FORMS_PRINT_BUTTONS
+   * and on whether the person clicking held SECURITY_ID_FORMS_RUN. Both were
+   * scaffolding for running the two engines side by side, and both go with the
+   * engine that is no longer there. A user without the key now reaches the
+   * Forms print page and is refused by it, which is what should happen: the
+   * alternative was a silent fallback to an engine nobody can see any more.
    *
    * $xmin comes last in the query string on purpose: most callers are inside a
    * window.open() and append the id in JavaScript, so they pass '' and
@@ -541,16 +531,11 @@
    * @param string $date a date preference letter, for the statement forms
    */
   function gen_print_form_url($gID = '', $xfld = 'journal_main.id', $xcr = 'EQUAL', $xmin = '', $xmax = '', $date = 'a') {
-    $use_forms = defined('MODULE_FORMS_STATUS')
-              && defined('MODULE_FORMS_PRINT_BUTTONS') && MODULE_FORMS_PRINT_BUTTONS == '1'
-              && defined('SECURITY_ID_FORMS_RUN')
-              && in_array($_SESSION['admin_security'][SECURITY_ID_FORMS_RUN] ?? 0, array(1,2,3,4));
     // FILENAME_DEFAULT is 'index', without the extension — html_href_link()
     // adds it, and a relative URL that omits it is a 404. Same guard as there.
     $page = FILENAME_DEFAULT;
     if (!strstr($page, '.php')) $page .= '.php';
-    $url = $page . '?'
-         . ($use_forms ? 'module=forms&page=print' : 'module=phreeform&page=popup_gen')
+    $url = $page . '?module=forms&page=print'
          . '&gID='  . urlencode($gID)
          . '&date=' . urlencode($date)
          . '&xfld=' . urlencode($xfld)

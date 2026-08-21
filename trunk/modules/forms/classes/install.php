@@ -63,12 +63,6 @@ class forms_admin {
       'phreebooks' => 3.7,
     );
     $this->keys    = array(
-      // Whether the Print buttons on orders, bills, status and the POS open
-      // Forms or PhreeForm (gen_print_form_url()). OFF on purpose: installing
-      // Forms should let an admin look at it, not silently move production
-      // printing onto it. Design §11.16 wants the two side by side first.
-      'MODULE_FORMS_PRINT_BUTTONS' => '0',
-
       // The three renderer defaults, which were PhreeForm's settings and are
       // now Forms' own. Each INHERITS the PhreeForm value where the
       // installation has one, so an admin who tuned a column width or chose A4

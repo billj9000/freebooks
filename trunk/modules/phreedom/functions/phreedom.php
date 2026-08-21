@@ -231,7 +231,14 @@ function admin_add_report_folder($parent_id, $doc_title, $doc_group, $doc_ext) {
   return $error;
 }
 
-function admin_add_reports($module, $save_path = PF_DIR_MY_REPORTS, $paper_size = '') {
+function admin_add_reports($module, $save_path = null, $paper_size = '') {
+  // Computed rather than taken from a module constant. It used to default to
+  // PF_DIR_MY_REPORTS, so a core function's SIGNATURE could not be evaluated
+  // without PhreeForm loaded — which made deleting that module a fatal here,
+  // in phreedom, for every caller.
+  if ($save_path === null) {
+    $save_path = DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/';
+  }
   $error = false;
   if (!is_dir(DIR_FS_MODULES . $module)) return $error;
   if (file_exists(DIR_FS_MODULES . $module . '/language/' . $_SESSION['language'] . '/reports/')) {
@@ -286,11 +293,19 @@ function admin_add_reports($module, $save_path = PF_DIR_MY_REPORTS, $paper_size 
   $files = scandir($read_path);
   foreach ($files as $file) if (strtolower(substr($file, -4)) == '.xml') {
     $json = substr($file, 0, -4) . '.json';
-    if (function_exists('forms_seed_native') && file_exists($read_path . $json)) {
-      if (!forms_seed_native($read_path . $json, $save_path, $paper_size)) $error = true;
+    if (!function_exists('forms_seed_native')) {
+      // No Forms, no seeding. Every shipped definition is native now, and
+      // ImportReport() — which used to be the fallback here — goes with
+      // PhreeForm. A company without Forms has nothing that can read either.
       continue;
     }
-    if (!ImportReport('', $file, $read_path, $save_path, $paper_size)) $error = true;
+    // A native master beside the xml wins; an xml on its own is CONVERTED on
+    // the way in rather than stored verbatim, which is what ImportReport() did
+    // and what left every load converting it afresh (decision L).
+    $seeded = file_exists($read_path . $json)
+            ? forms_seed_native($read_path . $json, $save_path, $paper_size)
+            : forms_seed_legacy($read_path . $file, $save_path, $paper_size);
+    if (!$seeded) $error = true;
   }
   return $error;
 }

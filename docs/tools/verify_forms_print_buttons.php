@@ -55,34 +55,28 @@ function ok(string $what, bool $cond, string $detail = ''): void {
 }
 
 printf("company '%s'\n", $company);
-printf("  Forms installed: %s\n", defined('MODULE_FORMS_STATUS') ? 'yes' : 'no');
-printf("  MODULE_FORMS_PRINT_BUTTONS: %s\n\n",
-    defined('MODULE_FORMS_PRINT_BUTTONS') ? var_export(MODULE_FORMS_PRINT_BUTTONS, true) : '(not set)');
+printf("  Forms installed: %s\n\n", defined('MODULE_FORMS_STATUS') ? 'yes' : 'no');
 
-// ── 1. the switch ────────────────────────────────────────────────────────────
-// The session is the only one of the three conditions a running process can
-// change — a constant defined at bootstrap from the configuration table cannot
-// be redefined — so the key is read where it stands and the permission is moved.
-echo "=== the switch routes, and can be switched off ===\n";
+// ── 1. where a Print button goes ─────────────────────────────────────────────
+//
+// This section used to test a SWITCH. gen_print_form_url() chose between Forms
+// and PhreeForm on MODULE_FORMS_PRINT_BUTTONS and on whether the person
+// clicking held SECURITY_ID_FORMS_RUN, both of which were scaffolding for
+// running the two engines side by side (§11.16). One engine now, so the only
+// thing left to hold is that every button reaches it — including for a user
+// whose role does not grant Run, who used to be quietly sent to the other
+// engine and is now refused by the print page, which is the honest answer.
+echo "=== every Print button opens Forms ===\n";
 
 $forms  = 'module=forms&page=print';
-$legacy = 'module=phreeform&page=popup_gen';
+$legacy = 'module=phreeform';
 
-$_SESSION['admin_security'][SECURITY_ID_FORMS_RUN] = 0;
-$denied = gen_print_form_url('cust:inv', 'journal_main.id', 'EQUAL', 1372);
-ok('without Run rights, a button opens PhreeForm', str_contains($denied, $legacy), $denied);
-
-$_SESSION['admin_security'][SECURITY_ID_FORMS_RUN] = 3;
-$granted  = gen_print_form_url('cust:inv', 'journal_main.id', 'EQUAL', 1372);
-$key_on   = defined('MODULE_FORMS_STATUS')
-         && defined('MODULE_FORMS_PRINT_BUTTONS') && MODULE_FORMS_PRINT_BUTTONS == '1';
-ok('with Run rights, a button follows the setting',
-   str_contains($granted, $key_on ? $forms : $legacy),
-   ($key_on ? 'setting is on but got ' : 'setting is off but got ') . $granted);
-
-if (!$key_on) {
-    echo "      (the setting is off here, so the Forms branch is unexercised;\n"
-       . "       turn it on in Company -> Module Administration -> Forms to check it)\n";
+foreach ([0 => 'without Run rights', 3 => 'with Run rights'] as $level => $who) {
+    $_SESSION['admin_security'][SECURITY_ID_FORMS_RUN] = $level;
+    $url = gen_print_form_url('cust:inv', 'journal_main.id', 'EQUAL', 1372);
+    ok("$who, a button opens Forms", str_contains($url, $forms), $url);
+    ok("$who, it names no other engine", !str_contains($url, $legacy), $url);
+    $granted = $url;      // the last one, with rights, for the checks below
 }
 
 echo "\n=== the parameters survive the round trip ===\n";

@@ -4619,3 +4619,88 @@ the repository shipped nothing. `verify_forms_shipping_set` says exactly that �
 which is the case it was written for. The fix was to the deploy script, which
 had been syncing a hand-listed set of module directories; it syncs the whole
 tree now. Piecemeal deployment is how a generated file gets forgotten.
+
+### 13.37 Step 6, part four: the other modules let go
+
+Stage C is everything outside Forms that still called PhreeForm. Counting it
+first mattered as much as here as it did in §13.33, so
+`verify_forms_standalone` was widened: it scans a **list of trees**, each with
+its own allowlist, and fails in both directions for each. What was one question
+about Forms is now a target per module, and "still to do" is a list rather than
+a memory.
+
+`modules/payment` and `install` are clear. `modules/phreepos` went from four
+bootstraps to one class. What is left everywhere is PhreeForm's own machinery,
+which is deleted with the engine rather than rewritten.
+
+#### Fallbacks that could only fire when they could not work
+
+Three call sites rendered a document "through Forms, falling back to
+PhreeForm". Every one of those fallbacks was unreachable-or-broken:
+
+- The POS receipt (`save_main`, `print_previous`) fell back when
+  `forms_render_to_string()` returned null — which it has not done for a receipt
+  since §13.28 gave Forms a serial renderer. And on a migrated company the
+  fallback could not have worked anyway: `get_report_details()` refuses a native
+  definition, which is what that form becomes the moment the receipt editor
+  saves it.
+- The PayPal invoice PDF looked its form up **by group on every call**, so which
+  format it was in could change under it at any time, and the fallback was
+  reached exactly in the case it could not handle.
+
+A fallback that fires only when it cannot work is worse than none: it converts a
+clear failure into a silent one.
+
+#### The stale sentence, in its third and last place
+
+The §13.16 note — *"Forms has no renderer for character-cell text"* — was still
+in `forms_render_to_string()`'s docblock, describing behaviour the function had
+not had for weeks, having already been found guarding the shipping set (§13.36).
+One dead sentence, copied to three places, each of which read as a decision.
+
+#### The settings that would have had nowhere to live
+
+`gen_print_form_url()` chose between the two engines on
+`MODULE_FORMS_PRINT_BUTTONS` and on whether the clicker held
+`SECURITY_ID_FORMS_RUN`. Both were transition scaffolding and both are gone; a
+user without the key now reaches the Forms print page and is refused there,
+which is the honest answer rather than a silent redirect to an engine nobody can
+see.
+
+That emptied the Forms settings tab, which had contained nothing else — and made
+visible a second problem: **the three renderer defaults Forms took over in
+§13.34 were set on PhreeForm's admin tab**, which goes with the module. A
+setting with nowhere to set it is not a setting. Paper size, row spacing and
+default column width are on the Forms tab now, and the page is held to the
+installer's key list rather than to a list written in the test, so a key in one
+and not the other is caught either way round.
+
+The installer and the Company Manager offer `forms_paper_sizes()` — keyed by the
+name a definition stores, not PhreeForm's `"A4:210:297"`.
+
+#### admin_add_reports(), and Import arriving early
+
+Two things there. Its **signature** defaulted to `PF_DIR_MY_REPORTS`, so a core
+function in phreedom could not be evaluated without PhreeForm loaded. And it
+fell back to `ImportReport()` for a module shipping only xml.
+
+`forms_seed_legacy()` replaces that fallback, and it is decision L arriving
+early: the xml is **converted on the way in** and lands as a native definition,
+rather than stored verbatim for every later load to convert afresh. The company
+receiving it needs no legacy reader at all.
+
+#### Left for the deletion, and one of them is a decision
+
+Three phreedom dashboards — Company Links, Company Notes, Company To-Do — use
+`SECURITY_ID_PHREEFORM` as their own security key. They have nothing to do with
+reports; they borrowed a constant. It cannot simply be swapped: changing a
+dashboard's security id changes **who can see it**, and pointing it at a new key
+means nobody holds it and all three vanish. That needs a role migration and a
+decision, not a rename.
+
+Also deferred, because each is PhreeForm's own machinery and dies with it: the
+five `config_phreeform.php` hook registrations, `pos_builder.php`,
+`build_dir_html()`/`build_dir_tree()` in core (one caller: PhreeForm's report
+list) and the `PF_DEFAULT_TRIM_LENGTH` they read, the `menu_bs.php` special case
+for PhreeForm menu entries, and `PBtoR30.php`, which is a 2.x upgrade script and
+history rather than live code.

@@ -129,7 +129,7 @@
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_PRINTING_INFO; ?></th></tr>
    <tr>
 	<td><?php echo TEXT_PAPER_SIZE_INFO; ?></td>
-	<td><?php echo html_pull_down_menu('papersize', gen_build_pull_down($PaperSizes), $_POST['papersize'] ?? 'A4:210:297'); ?></td>
+	<td><?php if (function_exists('forms_paper_sizes')) echo html_pull_down_menu('papersize', gen_build_pull_down(forms_paper_sizes()), $_POST['papersize'] ?? 'A4'); ?></td>
    </tr>
 
    <tr>

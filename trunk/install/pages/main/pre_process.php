@@ -53,9 +53,9 @@ require_once('defaults.php');
 require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
 // PDF_APP is normally seeded into pb_configuration and turned into a constant
 // by application_top.php's config bootstrap, which hasn't run yet at install
-// time. Default it the same way phreeform/classes/install.php seeds it.
+// time. Defaulted here because common_classes.php's currencies::format_full()
+// takes it as a parameter default, so the file cannot be required without it.
 if (!defined('PDF_APP')) define('PDF_APP', 'TCPDF');
-require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
 // common_functions.php declares a class implementing PHPMailer's
 // OAuthTokenProvider interface, so the Composer autoloader must be available
 // before it's required — application_top.php normally does this, but install
@@ -64,7 +64,11 @@ if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN
 require_once('../includes/common_functions.php');
 require_once('../includes/common_classes.php');
 require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
-require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
+// forms_paper_sizes(), for the paper question below. Only the functions file:
+// forms/defaults.php resolves a company path, and there is no company yet.
+if (file_exists(DIR_FS_MODULES . 'forms/functions/forms.php')) {
+  require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+}
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 /**************   page specific initialization  *************************/
 // DEBUG is normally seeded into pb_configuration (see phreedom/classes/install.php)
@@ -183,11 +187,16 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		$db_password     = getenv('DB_PASSWORD') ?: db_prepare_input($_POST['db_password']);
 		$fy_month        = db_prepare_input($_POST['fy_month']);
 		$fy_year         = db_prepare_input($_POST['fy_year']);
-		// Paper for the reports and forms this install is about to seed. Checked
-		// against the known sizes rather than trusted: the value is written to
-		// PF_DEFAULT_PAPERSIZE and from there into every report definition's XML.
+		// Paper for the documents this install is about to seed. Checked against
+		// the known sizes rather than trusted: the value is written to
+		// FORMS_DEFAULT_PAPER and from there into every seeded definition.
+		//
+		// The NAME alone now — "A4", not "A4:210:297". PhreeForm keyed its list
+		// by name and dimensions because its designer carried them along; a
+		// native definition stores the name and TCPDF looks the rest up.
 		$paper_size      = db_prepare_input($_POST['papersize'] ?? '');
-		if (!isset($PaperSizes[$paper_size])) $paper_size = 'A4:210:297';
+		$known           = function_exists('forms_paper_sizes') ? forms_paper_sizes() : array();
+		if (!isset($known[$paper_size])) $paper_size = 'A4';
 
 		// error check input, user info
 		if (strlen($company_name) < 1)  $error = $messageStack->add(ERROR_TEXT_ADMIN_COMPANY_ISEMPTY, 'error');
@@ -287,19 +296,10 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  				// after. write_configure() only define()s a constant on the
 	  				// branch that INSERTS the row; on a fresh install that insert
 	  				// happens here, so writing the choice afterwards would update
-	  				// the row but leave PF_DEFAULT_PAPERSIZE defined as the shipped
-	  				// Letter — and the reports are seeded from the constant further
-	  				// down. The failure would be silent: every report simply Letter.
-	  				if ($entry == 'phreeform') $install_mod->keys['PF_DEFAULT_PAPERSIZE'] = $paper_size;
-	  				// And Forms' own key, which is what its renderers read. Stored
-	  				// as the NAME: PhreeForm keeps "A4:210:297" because its designer
-	  				// carried the dimensions along, and a native definition stores
-	  				// the name alone. Written here for the same reason as the line
-	  				// above — write_configure() only define()s on the INSERT branch,
-	  				// so a later write would update the row and leave the constant
-	  				// holding the shipped default, and the documents are seeded from
-	  				// the constant further down.
-	  				if ($entry == 'forms') $install_mod->keys['FORMS_DEFAULT_PAPER'] = explode(':', $paper_size)[0];
+	  				// the row and leave the constant holding the shipped default —
+	  				// and the documents are seeded from the constant further down.
+	  				// The failure would be silent: every document simply Letter.
+	  				if ($entry == 'forms') $install_mod->keys['FORMS_DEFAULT_PAPER'] = $paper_size;
 			    	if (admin_check_versions($entry, $install_mod->prerequisites)) {
 			    		// Check for version levels
 			    		$error = true;
@@ -388,7 +388,9 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 			// No new mechanism: it is the same per-company switch the settings
 			// page offers, set differently at the one moment the difference is
 			// knowable.
-			if (defined('MODULE_FORMS_STATUS')) write_configure('MODULE_FORMS_PRINT_BUTTONS', '1');
+			// MODULE_FORMS_PRINT_BUTTONS used to be written here, to point a new
+			// installation's Print buttons at Forms rather than PhreeForm. There
+			// is only one engine now, so there is nothing to point.
 		}
 		if (!$error) { // input admin username record, clear the tables first
 			if (DEBUG) $messageStack->debug("\n  installing users");

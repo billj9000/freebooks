@@ -210,3 +210,53 @@ function forms_restamp_native($file, $paper_size) {
   $json .= "\n";
   return @file_put_contents($file, $json) !== false;
 }
+
+/**
+ * Seed one document from a PhreeForm **xml** master, converting on the way in.
+ *
+ * The companion to forms_seed_native(), for a module that ships only xml — an
+ * extension, or somebody's own module written before any of this. It replaces
+ * ImportReport(), which did the same job by storing the xml verbatim and
+ * leaving every load to convert it afresh.
+ *
+ * This is decision L arriving early: the converter surviving as an import path
+ * rather than as a loader branch. What lands on disk is a native definition, so
+ * the company that receives it needs no legacy reader at all.
+ *
+ * Same refusal as its sibling — a document of this title already in the catalog
+ * WITH its file on disk is not replaced, because that would silently overwrite
+ * something someone may have edited.
+ *
+ * @return bool false on any failure, with a message on the stack
+ */
+function forms_seed_legacy($path, $save_path, $paper_size = '') {
+  global $messageStack;
+
+  require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
+  require_once(DIR_FS_MODULES . 'forms/classes/catalog/load.php');
+  require_once(DIR_FS_MODULES . 'forms/classes/definition/load.php');
+
+  $report = \FreeBooks\Forms\Legacy\LegacyReader::parse((string)@file_get_contents($path));
+  if ($report === null) {
+    if (isset($messageStack)) $messageStack->add(sprintf(FORMS_SEED_UNREADABLE, basename($path)), 'error');
+    return false;
+  }
+
+  $catalog = new \FreeBooks\Forms\Catalog\Catalog();
+  \FreeBooks\Forms\Catalog\ShippedDatasets::registerAll($catalog);
+  try {
+    $definition = (new \FreeBooks\Forms\Definition\DefinitionBuilder($catalog))->fromLegacy($report, '');
+    $json = (new \FreeBooks\Forms\Definition\DefinitionCodec())->encode($definition);
+  } catch (\Throwable $e) {
+    if (isset($messageStack)) $messageStack->add(sprintf(FORMS_SEED_UNREADABLE, basename($path)), 'error');
+    return false;
+  }
+
+  // Written to a temporary file beside the master so the shared seeding path
+  // below takes it, rather than teaching that path a second input format.
+  $temporary = rtrim(sys_get_temp_dir(), '/') . '/forms-seed-' . getmypid() . '.json';
+  if (@file_put_contents($temporary, $json) === false) return false;
+  $ok = forms_seed_native($temporary, $save_path, $paper_size);
+  @unlink($temporary);
+  return $ok;
+}

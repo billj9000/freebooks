@@ -480,6 +480,7 @@ define('FORMS_REPORT_TOTAL_FOR',   'Report Total For:');
 /***** seeding a company's documents *****/
 define('FORMS_SEED_DUPLICATE',     'A document called "%s" already exists, so it was not replaced.');
 define('FORMS_SEED_WRITE_ERROR',   'The document definition could not be written to %s.');
+define('FORMS_SEED_UNREADABLE',    'The document definition "%s" could not be read, so it was not installed.');
 
 /***** the paper a document may sit on *****/
 define('FORMS_PAPER_LEGAL',        'Legal');
