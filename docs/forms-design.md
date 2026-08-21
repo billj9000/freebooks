@@ -4704,3 +4704,52 @@ five `config_phreeform.php` hook registrations, `pos_builder.php`,
 list) and the `PF_DEFAULT_TRIM_LENGTH` they read, the `menu_bs.php` special case
 for PhreeForm menu entries, and `PBtoR30.php`, which is a 2.x upgrade script and
 history rather than live code.
+
+### 13.38 A borrowed key, and a permission nobody could grant
+
+Three phreedom dashboards — Company Links, Company Notes, Company To-Do — used
+`SECURITY_ID_PHREEFORM` as their own security key. They have nothing to do with
+reports; they borrowed a constant that happened to exist, and it goes with the
+module.
+
+`SECURITY_ID_DASHBOARDS` (12) replaces it, and `phreedom_admin::update()` copies
+each role's level for id 3 across on the way to version 3.9. **Copied, not
+moved**: PhreeForm still uses 3 until it is deleted, and a role that already
+carries 12 is left alone, so running it twice is harmless. A rename on its own
+would have been silent damage — a dashboard's security id decides who can see
+it, so pointing three of them at a key nobody holds makes all three disappear
+from every dashboard until somebody re-permissions them, and an absent key reads
+exactly like a denied one.
+
+#### The hole the fix would have dug
+
+Company → Roles is built from `$mainmenu`. **A security id that no menu entry
+carries has no row on that page** — so it can be seeded by an upgrade and then
+never changed by anyone: not granted, not revoked, not seen. Dashboards are not
+menu entries. The migration would have set the level once and frozen it for
+good.
+
+The roles page now renders an extra tab for permissions that belong to no menu
+entry, supplied by its own `pre_process`. Deliberately **not** by adding to
+`$mainmenu`: that array is the real navigation as well as the source of this
+page, so an entry added for a permission would render as a menu item pointing at
+no page.
+
+`verify_security_ids.php` holds the general rule, which is worth more than the
+instance: **every id the code demands — `validate_user()`, a dashboard's
+`$security_id` — must be one the roles page can offer.** 38 demanded, all
+reachable. Pointing the dashboards' row at a different key reproduces the
+failure and the tool names it.
+
+#### A golden value has to be a value that does not move
+
+Unrelated, and found four hours after §13.35 by the check that guards it: the
+baseline had captured `date` applied to **non-dates**, and `gen_locale_date()`
+answers those with TODAY. The file said `20/08/2026`; the engine, one minute
+after midnight, said `21/08/2026`.
+
+Both engines still agree — the behaviour is unchanged and shared. What was wrong
+was the pretence that it could be written down. The `date` hint is now asked
+only about things that are dates, and the drift check that caught it is the same
+one that would catch a doctored baseline. Its first real catch was a case that
+could never have been golden.

@@ -166,8 +166,10 @@ if (!is_array($baseline) || !isset($baseline['free'])) {
     foreach ($cases['free']['hints'] as $hint) {
         foreach ($cases['free']['values'] as $value) $asked[] = ['hint', $hint, $value];
     }
-    foreach ($cases['bound']['hints'] as $hint) {
-        foreach ($cases['bound']['values'] as $value) $asked[] = ['hint', $hint, $value];
+    foreach ([$cases['bound'], $cases['dates']] as $group) {
+        foreach ($group['hints'] as $hint) {
+            foreach ($group['values'] as $value) $asked[] = ['hint', $hint, $value];
+        }
     }
     foreach ($cases['codes'] as $hint => $values) {
         foreach ($values as $value) $asked[] = ['hint', $hint, $value];

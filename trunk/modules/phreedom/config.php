@@ -29,7 +29,7 @@
 // 3.7.1 => 2014-08-14 - added php_info to the admin panel
 // 3.8 => 2026-08-06 - added WebAuthn/passkey authentication
 // Module software version information
-define('MODULE_PHREEDOM_VERSION',  '3.8');
+define('MODULE_PHREEDOM_VERSION',  '3.9');
 // Menu Sort Positions
 define('MENU_HEADING_INVENTORY_ORDER',  30);
 define('MENU_HEADING_BANKING_ORDER',    40);
@@ -44,6 +44,12 @@ define('SECURITY_ID_ROLES',            5);
 define('SECURITY_ID_HELP',             6);
 define('SECURITY_ID_MY_PROFILE',       7);
 define('SECURITY_ID_CONFIGURATION',   11); // admin for all modules
+// The Company Links / Notes / To-Do dashboards. They used SECURITY_ID_PHREEFORM
+// — id 3 — which was never anything to do with them: they borrowed a constant
+// that happened to exist, and it disappears with that module. 12 is the next
+// free id, and phreedom_admin::update() copies each role's level for 3 across
+// to it, because changing a dashboard's key silently changes who can see it.
+define('SECURITY_ID_DASHBOARDS',      12);
 define('SECURITY_ID_BACKUP',          18);
 define('SECURITY_ID_ENCRYPTION',      20);
 // New Database Tables

@@ -44,9 +44,26 @@ return [
 
     /** Hints that read the company's currencies or its language. */
     'bound' => [
-        'hints'  => ['date', 'rnd_dec', 'rnd_pre', 'def_cur', 'null_dcur',
+        'hints'  => ['rnd_dec', 'rnd_pre', 'def_cur', 'null_dcur',
                      'posted_cur', 'null_pcur', 'terms'],
         'values' => [1234.5678, 0, -42.5, '2026-07-14', 'mixed Case Text', '', null, '7.91'],
+    ],
+
+    /**
+     * `date`, and only ever on things that ARE dates.
+     *
+     * Given anything else, gen_locale_date() answers with TODAY — so those
+     * cases cannot be captured at all: the baseline is right on the day it is
+     * taken and wrong the next morning. Which is exactly how this was found,
+     * by the drift check, four hours after the capture and one minute after
+     * midnight. A golden value has to be a value that does not move.
+     *
+     * The behaviour itself is unchanged and both engines still share it; what
+     * is gone is the pretence that it could be written down.
+     */
+    'dates' => [
+        'hints'  => ['date'],
+        'values' => ['2026-07-14', '2026-01-01', '2026-12-31', '1999-06-30'],
     ],
 
     /**

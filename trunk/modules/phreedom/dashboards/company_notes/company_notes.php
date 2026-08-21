@@ -23,7 +23,7 @@
 class company_notes extends ctl_panel {
 	public $dashboard_id 		= 'company_notes';
 	public $description	 		= CP_COMPANY_NOTES_DESCRIPTION;
-	public $security_id  		= SECURITY_ID_PHREEFORM;
+	public $security_id  		= SECURITY_ID_DASHBOARDS;
 	public $title		 		= CP_COMPANY_NOTES_TITLE;
 	public $version      		= 3.5;
 	

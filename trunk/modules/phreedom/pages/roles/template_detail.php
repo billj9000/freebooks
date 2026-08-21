@@ -76,7 +76,7 @@ echo $toolbar->build_toolbar();
     <ul class="nav nav-tabs fb-tabs" id="accesstabs" role="tablist">
 <?php
 $first = true;
-foreach ($mainmenu as $key => $value) {
+foreach (array_merge($mainmenu, $roles_extra_tabs ?? array()) as $key => $value) {
   if ($value['text'] == TEXT_HOME || $value['text'] == TEXT_LOGOUT) continue;
   echo '<li class="nav-item" role="presentation">' . chr(10);
   echo '  <button class="nav-link' . ($first ? ' active' : '') . '" id="tab_' . $key . '_btn" data-bs-toggle="tab" data-bs-target="#tab_' . $key . '" type="button" role="tab">' . $value['text'] . '</button>' . chr(10);
@@ -89,7 +89,7 @@ foreach ($mainmenu as $key => $value) {
 <?php
 $settings = gen_parse_permissions($uInfo->admin_security);
 $first    = true;
-foreach ($mainmenu as $key => $menu_heading) {
+foreach (array_merge($mainmenu, $roles_extra_tabs ?? array()) as $key => $menu_heading) {
   if ($menu_heading['text'] == TEXT_HOME || $menu_heading['text'] == TEXT_LOGOUT) continue;
   echo '<div class="tab-pane fade' . ($first ? ' show active' : '') . '" id="tab_' . $key . '" role="tabpanel">' . chr(10);
   echo '<table class="pkg-table table table-borderless table-hover table-sm mb-0">' . chr(10);

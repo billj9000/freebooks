@@ -134,8 +134,9 @@ foreach ($cases['free']['hints'] as $hint) {
             legacyAnswer(fn() => @ProcessData($value, $hint));
     }
 }
-foreach ($cases['bound']['hints'] as $hint) {
-    foreach ($cases['bound']['values'] as $value) {
+foreach ([$cases['bound'], $cases['dates']] as $group)
+    foreach ($group['hints'] as $hint) {
+    foreach ($group['values'] as $value) {
         $bound['hint|' . $hint . '|' . var_export($value, true)] =
             legacyAnswer(fn() => @ProcessData($value, $hint));
     }

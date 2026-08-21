@@ -22,7 +22,7 @@
 class company_to_do extends ctl_panel {
 	public $dashboard_id 		= 'company_to_do';
 	public $description	 		= CP_COMPANY_TO_DO_DESCRIPTION;
-	public $security_id  		= SECURITY_ID_PHREEFORM;
+	public $security_id  		= SECURITY_ID_DASHBOARDS;
 	public $title		 		= CP_COMPANY_TO_DO_TITLE;
 	public $version      		= 3.5; 
 	

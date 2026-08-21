@@ -300,6 +300,35 @@ class phreedom_admin {
   	if (MODULE_PHREEDOM_STATUS < 3.8) {
   	  if (!db_table_exists(TABLE_WEBAUTHN_CREDS)) $db->Execute($this->tables[TABLE_WEBAUTHN_CREDS]);
   	}
+  	if (MODULE_PHREEDOM_STATUS < 3.9) {
+  	  // The Company Links / Notes / To-Do dashboards had SECURITY_ID_PHREEFORM
+  	  // (3) as their own key — a constant they borrowed, which goes with that
+  	  // module. They are SECURITY_ID_DASHBOARDS (12) now.
+  	  //
+  	  // A rename would not have been enough. A dashboard's security id decides
+  	  // WHO CAN SEE IT, so pointing three of them at a key nobody holds makes
+  	  // all three disappear from every dashboard nobody has re-permissioned —
+  	  // silently, because an absent key reads exactly like a denied one. So
+  	  // each role's level for 3 is copied across.
+  	  //
+  	  // Copied, not moved: PhreeForm still uses 3 until it is deleted, and a
+  	  // role that already carries 12 is left alone, so running this twice is
+  	  // harmless.
+  	  $result = $db->Execute("select admin_id, admin_security from " . TABLE_USERS
+  	      . " where admin_security <> ''");
+  	  while ($result && !$result->EOF) {
+  	    $id       = (int)$result->fields['admin_id'];
+  	    $stored   = (string)$result->fields['admin_security'];
+  	    $result->MoveNext();
+  	    $levels   = gen_parse_permissions($stored);
+  	    if (!isset($levels[SECURITY_ID_PHREEFORM]) || isset($levels[SECURITY_ID_DASHBOARDS])) continue;
+  	    $levels[SECURITY_ID_DASHBOARDS] = $levels[SECURITY_ID_PHREEFORM];
+  	    $pairs = array();
+  	    foreach ($levels as $key => $level) $pairs[] = $key . ':' . $level;
+  	    $db->Execute("update " . TABLE_USERS . " set admin_security = '"
+  	        . $db->prepare_input(implode(',', $pairs)) . "' where admin_id = " . $id);
+  	  }
+  	}
 
     if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));

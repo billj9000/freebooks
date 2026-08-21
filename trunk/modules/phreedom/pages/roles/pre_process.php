@@ -23,6 +23,30 @@ gen_pull_language($module, 'admin');
 /**************  page specific initialization  *************************/
 $error  = false;
 history_filter('roles');
+
+/**
+ * Permissions that belong to no menu entry.
+ *
+ * The roles page is built from $mainmenu, so a security id no menu item carries
+ * has no row — it can be seeded by an upgrade and then never changed by anyone.
+ * SECURITY_ID_DASHBOARDS is exactly that: the Company Links, Notes and To-Do
+ * panels are dashboards, not pages, and they used to borrow the PhreeForm key
+ * precisely because it had a menu behind it.
+ *
+ * Kept OUT of $mainmenu deliberately. That array is the real navigation as well
+ * as the source of this page, so an entry added for a permission would render
+ * as a menu item pointing at no page.
+ */
+$roles_extra_tabs = array(
+  'dashboards' => array(
+    'text'    => TEXT_DASHBOARDS,
+    'submenu' => array(
+      array('text'                   => TEXT_DASHBOARD_PANELS,
+            'security_id'            => SECURITY_ID_DASHBOARDS,
+            'show_in_users_settings' => true),
+    ),
+  ),
+);
 /***************   hook for custom actions   ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/roles/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }

@@ -369,4 +369,8 @@ define('CD_OAUTH2_ERROR_NO_CURL',     'OAuth2 requires the PHP cURL extension.')
 // Password reset (token flow) - added 2026-08-09
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
+
+/***** permissions that belong to no menu entry (Company -> Roles) *****/
+define('TEXT_DASHBOARDS',        'Dashboards');
+define('TEXT_DASHBOARD_PANELS',  'Company links, notes and to-do panels');
 ?>
