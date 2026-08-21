@@ -51,7 +51,8 @@ SKIP="verify_forms_report"          # needs <report_id> <dataset>
 # harmless extra — verify_report_page_widths reads argv[1] as a paper name and
 # refuses "demo" — so they are run bare. They still check something; they just
 # check it for the whole shipped set rather than for one company.
-NO_COMPANY="verify_report_page_widths"
+# verify_page_javascript opens no database at all: it checks source, not data.
+NO_COMPANY="verify_report_page_widths verify_page_javascript"
 
 failed=0; ran=0; skipped=0
 for tool in "$HERE"/verify_*.php; do

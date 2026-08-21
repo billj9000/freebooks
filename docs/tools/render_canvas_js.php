@@ -15,23 +15,35 @@
  * Render the form canvas's script as the page emits it, and check it holds
  * together (design §13.12, §13.17).
  *
- * There is no JavaScript engine on the development machine or in the container,
- * and the canvas is the one page in Forms whose whole behaviour lives in a
- * script. A mis-nested brace there does not raise an error anybody sees: the
- * module fails to parse, every listener goes unbound, and the editor comes up
- * as a picture of a page that cannot be edited — which looks like a rendering
+ * The canvas is the one page in Forms whose whole behaviour lives in a script.
+ * A mis-nested brace there does not raise an error anybody sees: the module
+ * fails to parse, every listener goes unbound, and the editor comes up as a
+ * picture of a page that cannot be edited — which looks like a rendering
  * problem rather than a syntax one. This is the cheapest thing that catches it.
  *
  * Two checks, and it is worth being clear about which is which:
  *
  *   1. the file RENDERS — every language constant resolves, and no PHP notice
  *      lands in the middle of the script, which would break it just as surely;
- *   2. the rendered script's delimiters BALANCE.
+ *   2. the rendered script PARSES.
  *
- * The second is a scanner, not a parser. It knows about both comment forms,
- * three kinds of string and regex literals, which is enough for the mistake
- * this kind of edit actually makes. It cannot tell you the code is correct —
- * only the browser can do that — so it is a guard, not a proof.
+ * The second is done by `node --check` where node is present, and by the brace
+ * scanner further down where it is not. They are not the same check and the
+ * output says which one ran. node is a parser: it knows the language, and it
+ * knows the canvas script is a `type="module"` — the extension it is handed
+ * decides that — so `import` and top-level `await` are read as the module
+ * syntax they are rather than reported as faults. The scanner only counts
+ * delimiters. It catches the mistake this kind of edit usually makes and
+ * nothing else, so where it is all that ran, a pass is weaker than it looks.
+ *
+ * At the time of writing the application container has PHP but no node, and
+ * this tool needs a database, so in practice the scanner is what runs here and
+ * node is what runs in verify_page_javascript.php, which renders the same page
+ * without a database on a machine that has node. Putting node in the container
+ * would collapse that split, and nothing else would have to change.
+ *
+ * Neither check can tell you the code is correct — only the browser can do that
+ * — so both are guards, not proofs.
  *
  *   docker exec <c> php -d display_errors=1 \
  *       /opt/repo/docs/tools/render_canvas_js.php [company] [--print]
@@ -40,10 +52,16 @@
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
+require_once(__DIR__ . '/node_check.php');
 $company = fb_bootstrap($argv[1] ?? null);
 
 gen_pull_language('forms');
 require(DIR_FS_MODULES . 'forms/defaults.php');
+// The canvas page calls forms_document_actions_script() before its own script
+// (§13.29). Without this the page dies on an undefined function and every check
+// below is skipped in silence — which is what it did, unnoticed, from the day
+// that call was added: this tool is not named verify_* so the suite never ran it.
+require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 
 // The script is emitted only for an OPEN definition, and it reads five things
 // off the page. None of them changes its shape — the boxes are serialized as
@@ -69,11 +87,16 @@ function ok(string $what, bool $cond, string $detail = ''): void {
 
 echo "\nThe canvas script, as the page emits it\n";
 
-ok('the page emits a module script',
-   str_contains($rendered, '<script type="module">') && str_contains($rendered, '</script>'));
+// The page emits TWO inline scripts: a classic one for the document actions,
+// then the module that is the canvas. Taking "everything after the first
+// <script>" — which this did — leaves a </script> in the middle of what it then
+// calls javascript. The scanner survived that by luck; a parser does not.
+$blocks = fb_extract_script_blocks($rendered);
+$modules = array_values(array_filter($blocks, fn($b) => $b['module']));
+ok('the page emits a module script', count($modules) === 1,
+   sprintf('%d inline script(s), %d module(s)', count($blocks), count($modules)));
 
-$js = preg_replace('#^.*?<script[^>]*>#s', '', $rendered);
-$js = preg_replace('#</script>\s*$#s', '', $js);
+$js = $modules[0]['js'] ?? '';
 ok('it has a body', strlen($js) > 1000, strlen($js) . ' bytes');
 
 // A constant that did not resolve prints its own NAME, and PHP's notice text
@@ -85,6 +108,11 @@ foreach (['Warning:', 'Notice:', 'Fatal error:', 'Deprecated:'] as $noise) {
 
 /**
  * Balance {}, () and [], skipping strings, comments and regex literals.
+ *
+ * The fallback for when node is absent. Kept rather than deleted because the
+ * container this tool usually runs in has no node, and half a check there beats
+ * none — but see the note at the top: it counts delimiters, it does not know
+ * the language, and a pass from it is worth less than a pass from node.
  *
  * The regex heuristic is the standard one: a slash begins a literal only where
  * a VALUE could begin. After a name or a closing bracket it is division. The
@@ -147,8 +175,19 @@ function unbalanced(string $js): array
     return $bad;
 }
 
-$bad = unbalanced($js);
-ok('braces, brackets and parentheses balance', $bad === [], implode('; ', array_slice($bad, 0, 4)));
+$node = fb_find_node();
+if ($node !== null) {
+    // Checked as a module, which is what the <script> tag asked for. Under
+    // classic rules its import alone would be reported as an error.
+    $parsed = fb_node_check($node, $js, true);
+    ok('the script parses, as a module (node ' . fb_node_version($node) . ')',
+       $parsed['ok'], $parsed['error']);
+} else {
+    $bad = unbalanced($js);
+    ok('braces, brackets and parentheses balance', $bad === [], implode('; ', array_slice($bad, 0, 4)));
+    echo "  [--] node was not found, so the weaker of the two checks ran.\n"
+       . "       verify_page_javascript.php parses this same script where node is.\n";
+}
 
 // Every name the page hands to the browser as an inline handler, plus the
 // helpers the gestures rest on. A module has its own scope, so a function the
