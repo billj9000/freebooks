@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -48,7 +48,14 @@ $bill_add  = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . "
 
 //$debug .= 'Processing main_id = ' . $bID . ' and contact ID = ' . $cID . ' and type = ' . $type . chr(10);
 // fetch the line items
-$invoices  = fill_paid_invoice_array($bID, $cID, $type);
+//
+// A STORED record prices every row in its own currency, because the page's
+// arithmetic is in that currency and a row priced in another would not add up.
+// A new one has no currency yet, so each document comes back in its own and the
+// first row ticked is what the receipt adopts (issue #63).
+$display_code  = $bID && !empty($bill->fields['currencies_code'])  ? $bill->fields['currencies_code']  : null;
+$display_value = $bID && !empty($bill->fields['currencies_value']) ? $bill->fields['currencies_value'] : null;
+$invoices  = fill_paid_invoice_array($bID, $cID, $type, $display_code, $display_value);
 $item_list = $invoices['invoices'];
 
 // some adjustments based on what we are doing

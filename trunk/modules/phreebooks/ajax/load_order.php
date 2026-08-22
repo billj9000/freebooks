@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -315,6 +316,30 @@ if (defined('MODULE_SHIPPING_STATUS') && !empty($sContact->fields)) { // there w
   $xml .= "</ShipContact>\n";
 }
 if (!empty($order->fields)) { // there was an order to open
+  // Freight, in the DOCUMENT's currency rather than the company's.
+  //
+  // journal_main.freight is stored in the home currency like every other
+  // journal amount, and fillOrder() writes any OrderData tag straight into the
+  // form field of the same name - so the box that recalculateCurrencies() then
+  // treats as being in the display currency was holding the home-currency
+  // figure. On the usual paths it went unnoticed, because an frt line item
+  // follows in the same response and orders.js overwrites the box with the
+  // item's already-converted total.
+  //
+  // Raising a credit memo from an invoice takes the other path. There the
+  // source document's items are read by the loop above that keeps only the
+  // stock lines - frt is dropped - so nothing overwrites it, and a memo made
+  // from a USD invoice offered the pounds. (Discount escapes this because
+  // fillOrder() forces it to zero after the item loop whatever arrived.)
+  //
+  // Converted here, at the one place the value leaves the server, so both paths
+  // agree and neither has to know which of them it is. total_amount is left
+  // alone deliberately: credit_remaining above is computed against the
+  // home-currency balance of the open documents, and is right as it stands.
+  if (isset($order->fields['freight'])) {
+    $order->fields['freight'] = $currencies->format((float)$order->fields['freight'],
+        true, $currencies_code ?: DEFAULT_CURRENCY, $currencies_value ?: 1);
+  }
   $xml .= "<OrderData>\n";
   foreach ($order->fields as $key => $value) $xml .= "\t" . xmlEntry($key, strval($value));
   foreach ($item_list as $item) {

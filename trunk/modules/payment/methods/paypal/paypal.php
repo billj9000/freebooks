@@ -20,6 +20,11 @@ define('MODULE_PAYMENT_PAYPAL_VERSION', '1.0');
 require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
 
 class paypal extends payment {
+  // Safe on a foreign-currency entry (issue #63). Both outbound paths - the
+  // payment link and the PayPal invoice - are told which currency to name, and
+  // refund() has always honoured the one it is handed. The other five gateways
+  // shipped here still assume the company's, so they keep the base default.
+  public $multi_currency = true;
   public $code        = 'paypal';
   public $title       = MODULE_PAYMENT_PAYPAL_TEXT_TITLE;
   public $description = MODULE_PAYMENT_PAYPAL_TEXT_DESCRIPTION;
@@ -319,9 +324,116 @@ class paypal extends payment {
     return $approve_url;
   }
 
+  /**
+   * The line items for a PayPal invoice, built from a FreeBooks document.
+   *
+   * Lifted out of paypal_create_invoice.php so that it can be CHECKED. It was
+   * inline, which meant the only way to see what it produced was to create a
+   * real invoice on PayPal - so "is freight converted?" could not be answered
+   * without moving money, and a wrong figure was found by a person looking at
+   * the result rather than by anything here (issue #63).
+   *
+   * $rate is the document's exchange rate and is not optional detail: every
+   * journal amount is stored in the HOME currency, while $amount arrives from
+   * the page in the DOCUMENT's. Without it the lines are pounds under a dollar
+   * heading, and the rounding line at the end silently declines to close a gap
+   * of a quarter of the invoice.
+   *
+   * @return array{items: list<array<string,mixed>>, discount: float, item_total: float}
+   */
+  function build_invoice_items($fb_invoice_id, $currency, $rate, $amount, $description = 'Invoice') {
+    global $db;
+    $sos_items = $frt_items = $tax_items = [];
+    $item_total = $discount_total = 0.0;
+    $rate = (float)$rate ?: 1.0;
+
+    if ((int)$fb_invoice_id > 0 && defined('TABLE_JOURNAL_ITEM')) {
+      $rows = $db->Execute(
+        "SELECT gl_type, sku, qty, description, debit_amount, credit_amount, full_price"
+        . " FROM " . TABLE_JOURNAL_ITEM
+        . " WHERE ref_id = " . (int)$fb_invoice_id
+        . " AND gl_type IN ('sos', 'frt', 'tax', 'dsc')"
+        . " ORDER BY item_cnt"
+      );
+      while (!$rows->EOF) {
+        $row = $rows->fields;
+        $gt  = $row['gl_type'];
+
+        if ($gt === 'dsc') {
+          $discount_total += (float)$row['debit_amount'] * $rate;
+        } else {
+          $credit = (float)$row['credit_amount'] * $rate;
+          if ($credit == 0) { $rows->MoveNext(); continue; }
+
+          $qty = (float)$row['qty'];
+          if ($qty <= 0) $qty = 1;
+
+          // Use full_price (unit price) when available; fall back to credit_amount/qty.
+          // Set qty=1 in that case to avoid re-introducing division rounding.
+          // BOTH are home-currency columns, so both take the rate - freight has
+          // no full_price and comes through the second branch, which is the one
+          // a conversion is easiest to leave out of.
+          if ((float)$row['full_price'] != 0) {
+            $unit = (float)$row['full_price'] * $rate;
+          } else {
+            $unit = $credit;
+            $qty  = 1;
+          }
+
+          if ($gt === 'sos') {
+            $name = trim($row['description'] ?? '');
+            if (!empty($row['sku'])) $name = $row['sku'] . ($name ? ' ' . $name : '');
+            if (!$name) $name = 'Item';
+          } elseif ($gt === 'frt') {
+            $name = 'Shipping';
+          } else { // tax
+            $name = trim($row['description'] ?? '') ?: 'Tax';
+          }
+
+          // Format quantity: strip trailing decimal zeros (e.g. "4.00" -> "4", "0.50" -> "0.5").
+          $qty_str = rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.');
+
+          $entry = [
+            'name'        => mb_substr($name, 0, 200),
+            'quantity'    => $qty_str,
+            'unit_amount' => ['currency_code' => $currency, 'value' => number_format($unit, 2, '.', '')],
+          ];
+          if ($gt === 'sos')      { $sos_items[] = $entry; }
+          elseif ($gt === 'frt')  { $frt_items[] = $entry; }
+          else                    { $tax_items[] = $entry; }
+          $item_total += round($unit * $qty, 2);
+        }
+        $rows->MoveNext();
+      }
+    }
+
+    // Products -> Shipping -> Taxes
+    $items = array_merge($sos_items, $frt_items, $tax_items);
+
+    // Fallback to a single summary line if no rows were found.
+    if (empty($items)) {
+      $items      = [['name' => $description, 'quantity' => '1',
+                      'unit_amount' => ['currency_code' => $currency, 'value' => number_format((float)$amount, 2, '.', '')]]];
+      $item_total = (float)$amount;
+    }
+
+    // Close any rounding gap between PayPal's item sum and the FreeBooks total.
+    $paypal_total = round($item_total - $discount_total, 2);
+    $diff = round((float)$amount - $paypal_total, 2);
+    if ($diff != 0.0 && abs($diff) <= 0.05) {
+      $items[] = [
+        'name'        => 'Rounding adjustment',
+        'quantity'    => '1',
+        'unit_amount' => ['currency_code' => $currency, 'value' => number_format($diff, 2, '.', '')],
+      ];
+    }
+
+    return ['items' => $items, 'discount' => $discount_total, 'item_total' => $item_total];
+  }
+
   // Create a PayPal invoice, optionally send it. Returns invoice ID or false.
   // $fb_invoice_id: FreeBooks journal_main.id, stored so the webhook can auto-create the J18 receipt.
-  function create_paypal_invoice($fb_invoice_id, $customer, $line_items, $send = false, $discount = 0.0) {
+  function create_paypal_invoice($fb_invoice_id, $customer, $line_items, $send = false, $discount = 0.0, $currency = null) {
     global $db;
     $token = $this->get_access_token();
     if (!$token) return false;
@@ -341,7 +453,12 @@ class paypal extends payment {
     }
     if (!empty($customer['email'])) $billing_info['email_address'] = $customer['email'];
 
-    $currency = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'USD';
+    // The currency the CALLER settles in. It used to be the company's, always,
+    // which put a pound code on an invoice whose line items were dollars - and
+    // PayPal takes the code at its word (issue #63). The old value is the
+    // fallback rather than the rule, so a caller that has nothing to say about
+    // currency behaves exactly as it did.
+    if ($currency === null) $currency = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'USD';
     $detail = [
       'currency_code' => $currency,
       'invoice_date'  => date('Y-m-d'),

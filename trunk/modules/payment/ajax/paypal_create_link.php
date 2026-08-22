@@ -48,14 +48,26 @@ if ($amount <= 0) {
 $fb_invoice_id = 0;
 $description   = 'Payment';
 $cust_name     = '';
+// The currency the DOCUMENT was raised in, read here rather than posted.
+//
+// The page settles one currency at a time, so the first ticked document decides
+// it for all of them - and reading it from journal_main instead of from the
+// request means a forged post cannot name a currency the invoice was never in.
+// The amount arrives already in it, because that is what the page displays.
+$currency = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP';
 if (!empty($invoice_ids)) {
   $fb_invoice_id = (int)$invoice_ids[0];
-  $inv = $db->Execute("SELECT purchase_invoice_id, bill_primary_name, bill_email FROM " . TABLE_JOURNAL_MAIN
+  $inv = $db->Execute("SELECT purchase_invoice_id, bill_primary_name, bill_email,"
+    . " currencies_code FROM " . TABLE_JOURNAL_MAIN
     . " WHERE id = " . $fb_invoice_id . " LIMIT 1");
   if (!$inv->EOF) {
     $description = 'Invoice ' . $inv->fields['purchase_invoice_id'];
     $cust_name   = $inv->fields['bill_primary_name'];
     if ($cust_email === '') $cust_email = $inv->fields['bill_email'];
+    if (!empty($inv->fields['currencies_code'])
+        && isset($currencies->currencies[$inv->fields['currencies_code']])) {
+      $currency = $inv->fields['currencies_code'];
+    }
   }
 }
 
@@ -63,7 +75,6 @@ if (!empty($invoice_ids)) {
 $base_url   = DIR_WS_FULL_PATH;
 $return_url = $base_url . 'paypal_return.php?invoice_id=' . $fb_invoice_id;
 $cancel_url = $base_url . 'paypal_cancel.php';
-$currency   = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP';
 
 /**************   Create PayPal Order   *****************************/
 $url = $pp->create_payment_link($fb_invoice_id, $amount, $currency, $description, $return_url, $cancel_url);

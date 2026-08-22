@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,6 +27,24 @@ class payment {
   public $description;
   public $open_pos_drawer = false;
   public $show_in_pos	  = true;
+  /**
+   * Whether this method handles an entry settled in a currency other than the
+   * company's own (issue #63).
+   *
+   * False by default, and deliberately the conservative way round, exactly as
+   * refund() is: a method that transmits an amount to a gateway and names
+   * DEFAULT_CURRENCY beside it will charge the right NUMBER in the wrong
+   * currency, which is a real payment for the wrong money and not an error
+   * anybody sees. Six of the methods shipped here do that - authorizenet,
+   * firstdata, linkpoint_api, nova_xml, paypal and paypal_nvp - and until each
+   * is given the entry's code and rate, the page refuses rather than charges.
+   *
+   * Set true where it is safe: a method that transmits NO amount (cod,
+   * moneyorder, directdebit, freecharger) records the entry and nothing else,
+   * so the currency is bookkeeping; and one that is genuinely told which
+   * currency to take (square_terminal).
+   */
+  public $multi_currency   = false;
   public $pos_gl_acct;
   public $sort_order;
   public $key             = array();

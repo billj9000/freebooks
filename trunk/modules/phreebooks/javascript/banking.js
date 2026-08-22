@@ -18,6 +18,18 @@
 //
 var bill_add = new Array(0);
 
+// Two pages load this file. bills/js_include.php sets the four below before the
+// <script src> that pulls this in; bulk_bills/js_include.php does not, and knows
+// nothing about entry currencies. Defaulted here rather than assumed, because an
+// undefined global is a ReferenceError that takes out every handler on the page
+// - the whole of Pay Bills stops responding - not a feature quietly missing.
+// Written through `window` on purpose: `var` here would be hoisted and the test
+// would then be reasoning about its own declaration.
+if (typeof window.multiCurrency        === 'undefined') window.multiCurrency        = false;
+if (typeof window.defaultCurrency      === 'undefined') window.defaultCurrency      = '';
+if (typeof window.one_currency_note    === 'undefined') window.one_currency_note    = '';
+if (typeof window.legacy_currency_note === 'undefined') window.legacy_currency_note = '';
+
 function ClearForm() {
   var add_id;
   document.getElementById('id').value                     = '';
@@ -208,21 +220,81 @@ function fillBill(xml) {
 	insertValue('desc_'  + jIndex, xmlText(item, "description"));
 	insertValue('dscnt_' + jIndex, xmlText(item, "discount"));
 	insertValue('total_' + jIndex, xmlText(item, "amount_paid"));
+	// Two codes, and they are not the same question. `display_code` is what the
+	// figures above are IN; `currencies_code` is what the document was raised in.
+	// On anything posted since this page learnt about currencies they agree - the
+	// server prices a stored record's rows in the record's own currency, so that
+	// the column adds up. Where they differ the record predates that, and the row
+	// says so rather than showing a dollar figure under a pound heading.
+	var rowCurr  = xmlText(item, "currencies_code") || defaultCurrency;
+	var rowShown = xmlText(item, "display_code")    || rowCurr;
+	insertValue('curr_' + jIndex, rowShown);
+	var currCell = document.getElementById('currcell_' + jIndex);
+	if (currCell) {
+	  currCell.textContent = rowShown;
+	  if (rowCurr != rowShown) {
+	    currCell.textContent = rowShown + ' \u2260 ' + rowCurr;
+	    currCell.className   = 'text-center text-danger';
+	    currCell.title       = legacy_currency_note.replace('%s', rowShown)
+	                             .replace('%s', rowCurr).replace('%s', rowShown);
+	  }
+	}
 	if (xmlText(item, "waiting") == '1') { // waiting for invoice (no invoice number)
 		document.getElementById('desc_'  + jIndex).readOnly = true;
 		document.getElementById('dscnt_' + jIndex).readOnly = true;
 		document.getElementById('total_' + jIndex).readOnly = true;
-		document.getElementById('item_table').rows[rowCnt-1].className = 'table-warning';
-		document.getElementById('item_table').rows[rowCnt-1].cells[6].innerHTML = '&nbsp;'; // remove checkbox
+		var waitRow = document.getElementById('item_table').rows[rowCnt-1];
+		waitRow.className = 'table-warning';
+		// The LAST cell, not the seventh. The currency column moved the checkbox
+		// along by one, and an index counted from the wrong end silently blanks
+		// the amount instead.
+		waitRow.cells[waitRow.cells.length-1].innerHTML = '&nbsp;'; // remove checkbox
 	} else if (xmlText(item, "amount_paid")) {
 		document.getElementById('pay_' + jIndex).checked    = true;
 	}
 	jIndex++;
   });
+  syncEntryCurrency();
   updateTotalPrices();
   // The form now holds the record as stored. Anything that differs from here on
   // is somebody's edit - see fbDocInit() in includes/common.js.
   fbDocBaselineSoon();
+}
+
+/**
+ * The currency this entry is in, which is the currency of whatever is ticked.
+ *
+ * An entry does not choose: it takes the currency of the documents it settles,
+ * and it settles one currency at a time, because the ledger stores ONE rate per
+ * record and there is nowhere to put a second (issue #63). With nothing ticked
+ * there is nothing to be in, so the header falls back to the company's own.
+ *
+ * A stored record already has a code in the hidden field and keeps it - the
+ * server priced its rows to match, so re-deriving from the rows would agree
+ * anyway, and on a record posted before any of this existed it would not.
+ */
+function entryCurrency() {
+  var field = document.getElementById('currencies_code');
+  return (field && field.value) ? field.value : defaultCurrency;
+}
+
+function syncEntryCurrency() {
+  var field = document.getElementById('currencies_code');
+  if (!field) return;
+  if (!document.getElementById('id').value) {   // a NEW entry follows the ticks
+    var found = '';
+    var rows = document.getElementById('item_table').rows.length;
+    for (var i=1; i<=rows; i++) {
+      var box = document.getElementById('pay_'+i);
+      if (box && box.checked && document.getElementById('curr_'+i)) {
+        found = document.getElementById('curr_'+i).value;
+        break;
+      }
+    }
+    field.value = found || defaultCurrency;
+  }
+  var label = document.getElementById('currency_label');
+  if (label) label.textContent = field.value;
 }
 
 function fillAddress(type) {
@@ -280,26 +352,33 @@ function showNewBalance(xml) { // call back function
 // ******* END - AJAX balance request function pair *********/
 
 function addInvRow() {
-   var cell = Array(7);
+   var cell = [];
    var newRow = document.getElementById("item_table").insertRow(-1);
    var newCell;
    rowCnt = newRow.rowIndex;
 
    // NOTE: any change here also need to be made below for reload if action fails
-   cell[0] = '<td align="center"><input type="text" name="inv_'+rowCnt+'" id="inv_'+rowCnt+'" readonly="readonly" size="15">';
+   var first = '<td align="center"><input type="text" name="inv_'+rowCnt+'" id="inv_'+rowCnt+'" readonly="readonly" size="15">';
 // Hidden fields
-   cell[0] += '<input type="hidden" name="id_'+rowCnt+'"    id="id_'+rowCnt+'"    value="">';
-   cell[0] += '<input type="hidden" name="prcnt_'+rowCnt+'" id="prcnt_'+rowCnt+'" value="">';
-   cell[0] += '<input type="hidden" name="early_'+rowCnt+'" id="early_'+rowCnt+'" value="">';
-   cell[0] += '<input type="hidden" name="acct_'+rowCnt+'"  id="acct_'+rowCnt+'"  value="">';
+   first += '<input type="hidden" name="id_'+rowCnt+'"    id="id_'+rowCnt+'"    value="">';
+   first += '<input type="hidden" name="prcnt_'+rowCnt+'" id="prcnt_'+rowCnt+'" value="">';
+   first += '<input type="hidden" name="early_'+rowCnt+'" id="early_'+rowCnt+'" value="">';
+   first += '<input type="hidden" name="acct_'+rowCnt+'"  id="acct_'+rowCnt+'"  value="">';
+   // The DOCUMENT's currency, which is what decides whether this row may join the
+   // entry at all - one entry settles one currency (issue #63). Written on every
+   // row whether or not the column is shown, because the save reads it either way
+   // and a row with no currency would be taken for the home one.
+   first += '<input type="hidden" name="curr_'+rowCnt+'"  id="curr_'+rowCnt+'"  value="">';
 // End hidden fields
-   cell[0] += '</td>';
-   cell[1] = '<td align="center"><input type="text" name="due_'+rowCnt+'" id="due_'+rowCnt+'" readonly="readonly" size="15"></td>';
-   cell[2] = '<td align="center"><input type="text" name="amt_'+rowCnt+'" id="amt_'+rowCnt+'" readonly="readonly" size="12" style="text-align:right"></td>';
-   cell[3] = '<td align="center"><input type="text" name="desc_'+rowCnt+'" id="desc_'+rowCnt+'" size="64" maxlength="64"></td>';
-   cell[4] = '<td align="center"><input type="text" name="dscnt_'+rowCnt+'" id="dscnt_'+rowCnt+'" size="15" maxlength="20" onchange="updateRowTotal('+rowCnt+')" style="text-align:right"></td>';
-   cell[5] = '<td align="center"><input type="text" name="total_'+rowCnt+'" id="total_'+rowCnt+'" value="'+formatted_zero+'" size="15" maxlength="20" onchange="updateUnitPrice('+rowCnt+')" style="text-align:right"></td>';
-   cell[6] = '<td align="center"><input type="checkbox" name="pay_'+rowCnt+'" id="pay_'+rowCnt+'" value="1" onclick="updatePayValues('+rowCnt+')"></td>';
+   first += '</td>';
+   cell.push(first);
+   cell.push('<td align="center"><input type="text" name="due_'+rowCnt+'" id="due_'+rowCnt+'" readonly="readonly" size="15"></td>');
+   if (multiCurrency) cell.push('<td align="center" id="currcell_'+rowCnt+'"></td>');
+   cell.push('<td align="center"><input type="text" name="amt_'+rowCnt+'" id="amt_'+rowCnt+'" readonly="readonly" size="12" style="text-align:right"></td>');
+   cell.push('<td align="center"><input type="text" name="desc_'+rowCnt+'" id="desc_'+rowCnt+'" size="64" maxlength="64"></td>');
+   cell.push('<td align="center"><input type="text" name="dscnt_'+rowCnt+'" id="dscnt_'+rowCnt+'" size="15" maxlength="20" onchange="updateRowTotal('+rowCnt+')" style="text-align:right"></td>');
+   cell.push('<td align="center"><input type="text" name="total_'+rowCnt+'" id="total_'+rowCnt+'" value="'+formatted_zero+'" size="15" maxlength="20" onchange="updateUnitPrice('+rowCnt+')" style="text-align:right"></td>');
+   cell.push('<td align="center"><input type="checkbox" name="pay_'+rowCnt+'" id="pay_'+rowCnt+'" value="1" onclick="updatePayValues('+rowCnt+')"></td>');
 
    for (var i=0; i<cell.length; i++) {
 		newCell = newRow.insertCell(-1);
@@ -357,6 +436,30 @@ function updateUnitPrice(rowCnt) {
 }
 
 function updatePayValues(rowCnt) {
+	// Refused before anything is computed, because the arithmetic below is in one
+	// currency and a row in another would be added to a total it does not belong
+	// in. Untick rather than leave it: a checkbox that stays ticked and does
+	// nothing is the worse of the two ways to say no.
+	var box = document.getElementById('pay_'+rowCnt);
+	var row = document.getElementById('curr_'+rowCnt);
+	if (box && box.checked && row && row.value) {
+	  var current = entryCurrency();
+	  var anyTicked = false;
+	  var rows = document.getElementById('item_table').rows.length;
+	  for (var t=1; t<=rows; t++) {
+	    if (t != rowCnt && document.getElementById('pay_'+t) && document.getElementById('pay_'+t).checked) { anyTicked = true; break; }
+	  }
+	  // Nothing else ticked on a NEW entry and it is free to become this currency.
+	  // Anything else ticked, or a stored record, and the currency is already
+	  // settled and this row has to match it.
+	  var locked = anyTicked || document.getElementById('id').value;
+	  if (locked && row.value != current) {
+	    box.checked = false;
+	    alert(one_currency_note.replace('%s', current).replace('%s', row.value));
+	    return;
+	  }
+	}
+	syncEntryCurrency();
 	if (document.getElementById('pay_'+rowCnt).checked) {
 		var postDate = new Date(document.getElementById('post_date').value);
 		var earlyDate = new Date(document.getElementById('early_'+rowCnt).value);
@@ -374,6 +477,7 @@ function updatePayValues(rowCnt) {
 	} else {
 		document.getElementById('dscnt_'+rowCnt).value = '';
 		document.getElementById('total_'+rowCnt).value = formatCurrency('0');
+		syncEntryCurrency();   // unticking the last row releases the currency again
 	}
 	updateTotalPrices();
 }

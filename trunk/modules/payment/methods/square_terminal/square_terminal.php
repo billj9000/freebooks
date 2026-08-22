@@ -21,6 +21,8 @@ define('MODULE_PAYMENT_SQUARE_TERMINAL_VERSION', '1.0');
 require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
 
 class square_terminal extends payment {
+  // Safe on a foreign-currency entry (issue #63). Told which currency to take and to refund, in both directions.
+  public $multi_currency = true;
   public $code        = 'square_terminal';
   public $title       = MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_TITLE;
   public $description = MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_DESCRIPTION;
@@ -242,7 +244,11 @@ class square_terminal extends payment {
       . '  document.getElementById("sq_term_send").disabled = true;' . "\n"
       . '  document.getElementById("square_terminal_field_0").value = "";' . "\n"
       . '  document.getElementById("sq_term_status").innerText = sqTermStatusSending;' . "\n"
-      . '  fetch("index.php?module=phreebooks&page=ajax&op=sq_term_create&"+new URLSearchParams({amount:raw,payment_type:ptype})).then(function(r){return r.json();}).then(function(r) {' . "\n"
+      // The total on screen is in the ENTRY's currency, so the terminal has to be
+      // told which one - it was charging every amount as the company's (#63).
+      . '  var curEl = document.getElementById("currencies_code");' . "\n"
+      . '  var cur = curEl ? curEl.value : "";' . "\n"
+      . '  fetch("index.php?module=phreebooks&page=ajax&op=sq_term_create&"+new URLSearchParams({amount:raw,payment_type:ptype,currency:cur})).then(function(r){return r.json();}).then(function(r) {' . "\n"
       . '    if (r.error) {' . "\n"
       . '      document.getElementById("sq_term_status").innerText = r.error;' . "\n"
       . '      document.getElementById("sq_term_send").disabled = false;' . "\n"

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -21,6 +22,10 @@ class banking extends journal {
 	
 	function __construct() {
 		global $db;
+		// Where a blank form starts, and no longer where it finishes: the page
+		// overwrites both from the documents being settled, and before it did
+		// every receipt and payment was stamped as a home-currency one whatever
+		// it actually settled (issue #63).
 		$this->currencies_code     = DEFAULT_CURRENCY;
 		$this->currencies_value    = '1.0';
 		$this->journal_id          = JOURNAL_ID;
@@ -140,10 +145,24 @@ class banking extends journal {
 					if (class_exists($r_method)) {
 						$r_proc = new $r_method;
 						if (method_exists($r_proc, 'refund')) {
-							$dp = isset($currencies->currencies[DEFAULT_CURRENCY]['decimal_places'])
-								? (int)$currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] : 2;
-							$minor = intval(round(abs($this->total_amount) * pow(10, $dp)));
-							$refund_ref = $r_proc->refund($this->refund_payment_id, $minor, DEFAULT_CURRENCY);
+							// In the currency the ENTRY settles, not the company's.
+							//
+							// This is where the currency stops being a display
+							// question and starts being money. total_amount is the
+							// home-currency figure, as every journal amount is, so
+							// refunding it as-is sent 73.23 GBP to a card that was
+							// charged 100.00 USD - a gateway that accepts it refunds
+							// the wrong sum, and one that does not rejects the
+							// currency and the refund silently never happens. The
+							// rate is the one the entry carries, and the decimals are
+							// the settling currency's: JPY has none, and 100 yen sent
+							// as 10000 is a refund a hundred times too big (issue #63).
+							$pay_code  = $this->currencies_code ?: DEFAULT_CURRENCY;
+							$pay_rate  = $this->currencies_value ?: 1;
+							$dp = isset($currencies->currencies[$pay_code]['decimal_places'])
+								? (int)$currencies->currencies[$pay_code]['decimal_places'] : 2;
+							$minor = intval(round(abs($this->total_amount) * $pay_rate * pow(10, $dp)));
+							$refund_ref = $r_proc->refund($this->refund_payment_id, $minor, $pay_code);
 							if ($refund_ref === false) {
 								$detail = !empty($r_proc->refund_error) ? ' (' . $r_proc->refund_error . ')' : '';
 								return $this->fail_message('Payment module refund failed' . $detail . ' — transaction rolled back.');

@@ -43,9 +43,21 @@ $allowed_payment_types = ['CARD_PRESENT', 'MANUAL_CARD_ENTRY'];
 $payment_type = isset($_GET['payment_type']) ? trim($_GET['payment_type']) : 'CARD_PRESENT';
 if (!in_array($payment_type, $allowed_payment_types)) $payment_type = 'CARD_PRESENT';
 
-// Convert to smallest currency unit (cents for 2-decimal currencies).
-$decimal_places = isset($currencies->currencies[DEFAULT_CURRENCY]['decimal_places'])
-  ? (int)$currencies->currencies[DEFAULT_CURRENCY]['decimal_places']
+// The currency the entry settles in, which is not always the company's: a
+// receipt against a USD invoice is a USD charge (issue #63). Taken from the
+// page but never trusted from it - a code the currencies table does not carry
+// is a charge Square would reject, or worse accept at some other rate - so it
+// is checked against what this company actually has and falls back home.
+$charge_currency = isset($_GET['currency']) ? strtoupper(trim($_GET['currency'])) : '';
+if ($charge_currency === '' || !isset($currencies->currencies[$charge_currency])) {
+  $charge_currency = DEFAULT_CURRENCY;
+}
+
+// Convert to smallest currency unit (cents for 2-decimal currencies). The
+// decimals are the CHARGE currency's: JPY has none, and 100 yen sent as 10000
+// is a charge a hundred times too big.
+$decimal_places = isset($currencies->currencies[$charge_currency]['decimal_places'])
+  ? (int)$currencies->currencies[$charge_currency]['decimal_places']
   : 2;
 $amount_minor = intval(round($raw_amount * pow(10, $decimal_places)));
 
@@ -59,7 +71,7 @@ $payload = json_encode([
   'checkout'        => [
     'amount_money'   => [
       'amount'   => $amount_minor,
-      'currency' => DEFAULT_CURRENCY,
+      'currency' => $charge_currency,
     ],
     'payment_type'   => $payment_type,
     'device_options' => [

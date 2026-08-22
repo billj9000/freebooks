@@ -37,6 +37,11 @@ var post_error         = <?php echo $error ? "true;" : "false;"; ?>
 var account_type       = '<?php echo $account_type; ?>';
 var store_country_code = '<?php echo COMPANY_COUNTRY; ?>';
 var payments_installed = <?php echo count($payment_modules) ? 'true' : 'false'; ?>;
+// One entry settles one currency, and the page has to be able to say so (issue #63).
+var multiCurrency      = <?php echo ENABLE_MULTI_CURRENCY ? 'true' : 'false'; ?>;
+var defaultCurrency    = '<?php echo DEFAULT_CURRENCY; ?>';
+var one_currency_note  = <?php echo json_encode(BNK_JS_ONE_CURRENCY); ?>;
+var legacy_currency_note = <?php echo json_encode(BNK_WARN_LEGACY_CURRENCY); ?>;
 // printDocument() opens the form popup on the stored record, without posting
 // this one. Same URL the status list's print icon uses, less the record id.
 var printFormUrlBase   = '<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>';

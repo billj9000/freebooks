@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -123,7 +124,25 @@ function load_coa_info($types = array()) { // includes inactive accounts
   return $coa_data;
 }
 
-function fill_paid_invoice_array($id, $account_id, $type = 'c') {
+/**
+ * The open documents a receipt or payment may settle, as the page shows them.
+ *
+ * $display_code/$display_value decide the currency the AMOUNTS come back in,
+ * and the two callers want different things (issue #63):
+ *
+ *  - Building a NEW receipt, nothing is settled yet and there is no currency to
+ *    be in, so each document is priced in its own - which is the only figure the
+ *    customer would recognise, and the thing this list could not say before.
+ *  - Opening a STORED one, the record already has a currency and the arithmetic
+ *    on the page is in it. Pricing a row in some other currency there would put
+ *    two units in one column and make the total stop adding up. So the caller
+ *    passes the record's own pair and every row is shown in it.
+ *
+ * Either way the row carries `currencies_code`, the DOCUMENT's own, so the page
+ * can say when the two differ. That happens only on a record posted before this
+ * page understood currencies, where it is worth saying rather than hiding.
+ */
+function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = null, $display_value = null) {
 	// to build this data array, all current open invoices need to be gathered and then the paid part needs
 	// to be applied along with discounts taken by row.
 	global $db, $currencies;
@@ -143,7 +162,14 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c') {
 	  default: return false;
 	}
 	$open_invoices = array();
-	$sql = "select id, journal_id, post_date, terms, purch_order_id, purchase_invoice_id, total_amount, gl_acct_id 
+	// currencies_code/currencies_value come with the document because total_amount does NOT:
+	// every journal amount is stored in the HOME currency (orders/pre_process.php divides the
+	// typed figure by the rate), so a USD invoice carries its GBP carrying value and the pair
+	// above is the only thing that says what the customer was actually billed. Without them
+	// this list showed a foreign invoice as its home-currency equivalent with nothing to say
+	// so, and offered no way to settle it in the currency it was raised in (issue #63).
+	$sql = "select id, journal_id, post_date, terms, purch_order_id, purchase_invoice_id, total_amount, gl_acct_id,
+	  currencies_code, currencies_value 
 	  from " . TABLE_JOURNAL_MAIN . " 
 	  where (journal_id in " . $search_journal . " and closed = '0' and bill_acct_id = " . $account_id . ")";
 	if (!empty($paid_indeces)) $sql .= " or (id in (" . implode(',',$paid_indeces) . ") and closed = '0')";
@@ -202,6 +228,14 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c') {
 	    $line_item['amount_paid']  = -$line_item['amount_paid'];
 	  }
 	  $balance += $line_item['total_amount'];
+	  // A document written before the currency columns existed, or by a path that
+	  // never set them, has no code at all. Home currency at par is what such a
+	  // record has always meant, and is what every screen has shown it as, so that
+	  // is what it keeps rather than an empty code the formatter cannot look up.
+	  $doc_code   = $line_item['currencies_code']  ?: DEFAULT_CURRENCY;
+	  $doc_value  = $line_item['currencies_value'] ?: 1;
+	  $show_code  = $display_code ?: $doc_code;
+	  $show_value = $display_code ? ($display_value ?: 1) : $doc_value;
 	  $item_list[] = array(
 		'id'                  => $result->fields['id'],
 		'waiting'             => $result->fields['waiting'],
@@ -211,11 +245,19 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c') {
 		'post_date'           => $result->fields['post_date'],
 		'early_date'          => $due_dates['early_date'],
 		'net_date'            => gen_locale_date($due_dates['net_date']),
-		'total_amount'        => $currencies->format($line_item['total_amount']),
+		// Not the company's currency. The stored figure is the home-currency one,
+		// so format() is asked to APPLY a rate rather than to leave the number
+		// alone: 73.23 stored at 1.3656 is the 100.00 the customer sees on their
+		// invoice. Which rate is the caller's choice, above.
+		'currencies_code'     => $doc_code,      // the document's own, for saying when they differ
+		'currencies_value'    => $doc_value,
+		'display_code'        => $show_code,     // what the amounts below are in
+		'display_value'       => $show_value,
+		'total_amount'        => $currencies->format($line_item['total_amount'], true, $show_code, $show_value),
 		'gl_acct_id'          => $result->fields['gl_acct_id'],
 		'description'         => $line_item['description'],
-		'discount'            => $line_item['discount']    ? $currencies->format($line_item['discount']) : '',
-		'amount_paid'         => $line_item['amount_paid'] ? $currencies->format($line_item['amount_paid']) : '',
+		'discount'            => $line_item['discount']    ? $currencies->format($line_item['discount'],    true, $show_code, $show_value) : '',
+		'amount_paid'         => $line_item['amount_paid'] ? $currencies->format($line_item['amount_paid'], true, $show_code, $show_value) : '',
 	  );
 	  $index++;
 	}

@@ -40,6 +40,15 @@ define('BNK_TEXT_DEPOSIT_ID','Deposit Ticket ID');
 define('BNK_TEXT_PAYMENT_ID','Payment Ref #');
 define('BNK_TEXT_WITHDRAWAL','Withdrawal');
 define('BNK_TEXT_SAVE_PAYMENT_INFO','Сохранить платежную информацию');
+// Added for issue #63; not yet translated - an English string is a page that
+// works, where a missing constant is a fatal (gen_pull_language() loads ONE
+// locale file, never en_us as well).
+define('BNK_CURRENCY','Currency');
+define('BNK_CURRENCY_NOTE','Taken from the documents being settled. Amounts below are in this currency.');
+define('BNK_JS_ONE_CURRENCY','This entry is in %s. A document raised in %s has to be settled on an entry of its own, because one entry carries one currency and one exchange rate.');
+define('BNK_ERROR_MIXED_CURRENCY','The documents ticked are not all in the same currency (%s). One entry settles one currency, so please tick the ones in a single currency and enter the rest separately.');
+define('BNK_WARN_LEGACY_CURRENCY','This entry is recorded in %s and settles a document raised in %s. It was posted before this page could tell the two apart, so the amounts shown are in %s, as they were stored.');
+define('BNK_ERROR_PAYMENT_CURRENCY','%s cannot take a payment in %s - it sends the amount to the gateway as %s whatever the entry says, which would move the wrong money. Settle this one by another method, or record it without a gateway.');
 define('ORD_ADD_UPDATE','Добавить/Обновить');
 define('ORD_AP_ACCOUNT','Кт перед поставщиками');
 define('ORD_AR_ACCOUNT','Дт счет');

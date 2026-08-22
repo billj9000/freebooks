@@ -27,6 +27,13 @@ echo html_hidden_field('bill_telephone1', $order->bill_telephone1) . chr(10);
 // establish that nothing changed, so a browser that never ran it posts as
 // before rather than silently dropping an edit.
 echo html_hidden_field('doc_modified',    '1') . chr(10);
+// The currency this entry settles in, and the rate. Hidden rather than a
+// chooser: an entry does not get to pick, it takes the currency of whatever is
+// ticked below, and one entry carries one (issue #63). fillBill() fills both by
+// id when a stored record is opened, since journal_main carries the same two
+// column names.
+echo html_hidden_field('currencies_code',  isset($order->currencies_code)  ? $order->currencies_code  : DEFAULT_CURRENCY) . chr(10);
+echo html_hidden_field('currencies_value', isset($order->currencies_value) ? $order->currencies_value : '1') . chr(10);
 if (JOURNAL_ID == 18) {
   echo html_hidden_field('acct_balance', '0') . chr(10);
   echo html_hidden_field('end_balance',  '0') . chr(10);
@@ -128,7 +135,13 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
               html_pull_down_menu('gl_acct_id', $gl_array_list, $order->gl_acct_id, str_replace('">', '" onchange="loadNewBalance()">', $fs)));
         $frow(BNK_DISCOUNT_ACCOUNT,
               html_pull_down_menu('gl_disc_acct_id', $gl_array_list, $order->gl_disc_acct_id, $fs));
-        $frow(TEXT_TOTAL . (ENABLE_MULTI_CURRENCY ? ' (' . DEFAULT_CURRENCY . ')' : ''),
+        // The heading says which currency the figure is in, and it is the ENTRY's
+        // rather than the company's - it used to read (GBP) on a page settling a
+        // dollar invoice. `currency_label` is kept in step by the javascript as
+        // rows are ticked.
+        $frow(TEXT_TOTAL . (ENABLE_MULTI_CURRENCY ? ' (<span id="currency_label">'
+                . htmlspecialchars(isset($order->currencies_code) ? $order->currencies_code : DEFAULT_CURRENCY)
+                . '</span>)' : ''),
               html_input_field('total', $order->total_amount, $fcr . ' readonly'));
         if (JOURNAL_ID == 20 && $account_type == 'v') {
           $frow(BNK_ACCOUNT_BALANCE,      html_input_field('acct_balance', $currencies->format($acct_balance), $fcr . ' readonly'));
@@ -180,10 +193,17 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
       <tr>
         <th class="text-center"><?php echo BNK_INVOICE_NUM; ?></th>
         <th class="text-center"><?php echo BNK_DUE_DATE; ?></th>
-        <th class="text-center"><?php echo BNK_AMOUNT_DUE . (ENABLE_MULTI_CURRENCY ? ' (' . DEFAULT_CURRENCY . ')' : ''); ?></th>
+        <?php // Each row says its own currency, because a customer can be owed in
+              // two. The three money headings no longer name one: they used to say
+              // (GBP) on every page, which was true of what was stored and not of
+              // what the customer was billed (issue #63). ?>
+        <?php if (ENABLE_MULTI_CURRENCY) { ?>
+        <th class="text-center"><?php echo BNK_CURRENCY; ?></th>
+        <?php } ?>
+        <th class="text-center"><?php echo BNK_AMOUNT_DUE; ?></th>
         <th class="text-center"><?php echo TEXT_NOTES; ?></th>
-        <th class="text-center"><?php echo TEXT_DISCOUNT . (ENABLE_MULTI_CURRENCY ? ' (' . DEFAULT_CURRENCY . ')' : ''); ?></th>
-        <th class="text-center"><?php echo constant('BNK_' . JOURNAL_ID . '_AMOUNT_PAID') . (ENABLE_MULTI_CURRENCY ? ' (' . DEFAULT_CURRENCY . ')' : ''); ?></th>
+        <th class="text-center"><?php echo TEXT_DISCOUNT; ?></th>
+        <th class="text-center"><?php echo constant('BNK_' . JOURNAL_ID . '_AMOUNT_PAID'); ?></th>
         <th class="text-center"><?php echo TEXT_PAY; ?></th>
       </tr>
     </thead>
@@ -202,6 +222,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
           $dscnt_num = 'dscnt_' . $i;
           $total_num = 'total_' . $i;
           $pay_num   = 'pay_'   . $i;
+          $curr_num  = 'curr_'  . $i;
           if (!isset($order->$id_num)) break;
           $extra_params = ($order->$inv_num) ? '' : 'readonly ';
           $row_class    = $extra_params ? ' class="table-danger"' : '';
@@ -214,10 +235,21 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
           echo html_hidden_field($acct_num,  $order->$acct_num)  . chr(10);
           echo '</td>' . chr(10);
           echo '<td>' . html_input_field($due_num,   gen_locale_date($order->$due_num),                               'class="form-control form-control-sm text-center" readonly') . '</td>' . chr(10);
-          echo '<td>' . html_input_field($amt_num,   $currencies->format($currencies->clean_value($order->$amt_num)), 'class="form-control form-control-sm text-end" readonly')   . '</td>' . chr(10);
+          // This branch only runs after a FAILED post, so the figures are the ones
+          // the person typed and are already in the row's currency. format() is
+          // told not to apply a rate - only to punctuate - or a second post would
+          // multiply them by it again.
+          $row_curr = $order->$curr_num ?: DEFAULT_CURRENCY;
+          if (ENABLE_MULTI_CURRENCY) {
+            echo '<td class="text-center">' . htmlspecialchars($row_curr)
+               . html_hidden_field($curr_num, $row_curr) . '</td>' . chr(10);
+          } else {
+            echo html_hidden_field($curr_num, $row_curr) . chr(10);
+          }
+          echo '<td>' . html_input_field($amt_num,   $currencies->format($currencies->clean_value($order->$amt_num,   $row_curr), false, $row_curr), 'class="form-control form-control-sm text-end" readonly')   . '</td>' . chr(10);
           echo '<td>' . html_input_field($desc_num,  $order->$desc_num,                                               $extra_params . 'class="form-control form-control-sm" maxlength="64"') . '</td>' . chr(10);
-          echo '<td>' . html_input_field($dscnt_num, $currencies->format($currencies->clean_value($order->$dscnt_num)), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateRowTotal(' . $i . ')"') . '</td>' . chr(10);
-          echo '<td>' . html_input_field($total_num, $currencies->format($currencies->clean_value($order->$total_num)), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateUnitPrice(' . $i . ')"') . '</td>' . chr(10);
+          echo '<td>' . html_input_field($dscnt_num, $currencies->format($currencies->clean_value($order->$dscnt_num, $row_curr), false, $row_curr), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateRowTotal(' . $i . ')"') . '</td>' . chr(10);
+          echo '<td>' . html_input_field($total_num, $currencies->format($currencies->clean_value($order->$total_num, $row_curr), false, $row_curr), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateUnitPrice(' . $i . ')"') . '</td>' . chr(10);
           echo '<td class="text-center">' . (($extra_params) ? '&nbsp;' : html_checkbox_field($pay_num, '1', ($order->$pay_num ? true : false), '', 'onclick="updatePayValues(' . $i . ')"')) . '</td>' . chr(10);
           echo '</tr>' . chr(10);
           $i++;

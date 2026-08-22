@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -43,14 +44,14 @@ require_once(DIR_FS_WORKING . 'classes/banking.php');
 /**************   page specific initialization  *************************/
 // check to see if we need to make a payment for a specific order
 $oID               = isset($_GET['oID']) ? (int)$_GET['oID'] : false;
-$post_date         = ($_POST['post_date']) ? gen_db_date($_POST['post_date']) : date('Y-m-d', time());
+$post_date         = !empty($_POST['post_date']) ? gen_db_date($_POST['post_date']) : date('Y-m-d', time());
 $period            = gen_calculate_period($post_date);
 if (!$period) { // bad post_date was submitted
   $_REQUEST['action']    = '';
   $post_date = date('Y-m-d');
   $period    = 0;
 }
-$gl_acct_id        = ($_POST['gl_acct_id']) ? db_prepare_input($_POST['gl_acct_id']) : AP_PURCHASE_INVOICE_ACCOUNT;
+$gl_acct_id        = !empty($_POST['gl_acct_id']) ? db_prepare_input($_POST['gl_acct_id']) : AP_PURCHASE_INVOICE_ACCOUNT;
 $post_success      = false;
 $error             = false;
 $payment_modules   = array();
@@ -132,7 +133,19 @@ switch ($_REQUEST['action']) {
 	$order->purch_order_id      = db_prepare_input($_POST['purch_order_id']);  // customer PO/Ref number
 	$order->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_' . strtoupper($type) . '_WINDOW_TITLE'));
 
-	$order->total_amount        = $currencies->clean_value(db_prepare_input($_POST['total']), DEFAULT_CURRENCY);
+	// The currency this entry settles in, and the rate it settles at.
+	//
+	// Every journal amount is STORED in the home currency - that is the design,
+	// and orders/pre_process.php divides by the rate for the same reason - so the
+	// figures typed on the page are divided back here. Before this the page had
+	// no currency at all: banking.php stamped DEFAULT_CURRENCY at 1.0 whatever
+	// was being settled, and a customer paid against a USD credit memo was
+	// recorded as a pound payment (issue #63).
+	$order->currencies_code     = db_prepare_input($_POST['currencies_code'] ?? '') ?: DEFAULT_CURRENCY;
+	$order->currencies_value    = (float)db_prepare_input($_POST['currencies_value'] ?? '') ?: 1;
+	$cur_code                   = $order->currencies_code;
+	$cur_rate                   = $order->currencies_value;
+	$order->total_amount        = $currencies->clean_value(db_prepare_input($_POST['total']), $cur_code) / $cur_rate;
 	$order->gl_acct_id          = $gl_acct_id;
 	$order->gl_disc_acct_id     = db_prepare_input($_POST['gl_disc_acct_id']);
 	$order->payment_id          = db_prepare_input($_POST['payment_id']);
@@ -153,10 +166,10 @@ switch ($_REQUEST['action']) {
 		$order->item_rows[] = array(
 		  'id'      => db_prepare_input($_POST['id_' . $x]),
 		  'gl_type' => GL_TYPE,
-		  'amt'     => $currencies->clean_value(db_prepare_input($_POST['amt_' . $x])),
+		  'amt'     => $currencies->clean_value(db_prepare_input($_POST['amt_' . $x]),   $cur_code) / $cur_rate,
 		  'desc'    => db_prepare_input($_POST['desc_' . $x]),
-		  'dscnt'   => $currencies->clean_value(db_prepare_input($_POST['dscnt_' . $x])),
-		  'total'   => $currencies->clean_value(db_prepare_input($_POST['total_' . $x])),
+		  'dscnt'   => $currencies->clean_value(db_prepare_input($_POST['dscnt_' . $x]), $cur_code) / $cur_rate,
+		  'total'   => $currencies->clean_value(db_prepare_input($_POST['total_' . $x]), $cur_code) / $cur_rate,
 		  'inv'     => db_prepare_input($_POST['inv_' . $x]),
 		  'prcnt'   => db_prepare_input($_POST['prcnt_' . $x]),
 		  'early'   => db_prepare_input($_POST['early_' . $x]),
@@ -174,6 +187,40 @@ switch ($_REQUEST['action']) {
 	  $error = $messageStack->add(sprintf(ERROR_NO_CONTACT_SELECTED, $contact_type, $contact_type, ORD_ADD_UPDATE), 'error');
 	}
 	if (!$order->item_rows) $error = $messageStack->add(GL_ERROR_NO_ITEMS, 'error');
+	// One entry, one currency. The page will not let two be ticked together, but
+	// the page is not what decides: a post that arrived any other way would
+	// otherwise divide a euro figure by a dollar rate and store a number that is
+	// in no currency at all. Checked against what was TICKED rather than against
+	// the header, because the header is only the page's account of the rows.
+	$ticked_currencies = array();
+	$x = 1;
+	while (isset($_POST['id_' . $x])) {
+	  if (isset($_POST['pay_' . $x])) {
+	    $row_code = db_prepare_input($_POST['curr_' . $x] ?? '') ?: DEFAULT_CURRENCY;
+	    $ticked_currencies[$row_code] = true;
+	  }
+	  $x++;
+	}
+	if (count($ticked_currencies) > 1) {
+	  $error = $messageStack->add(sprintf(BNK_ERROR_MIXED_CURRENCY,
+	    implode(', ', array_keys($ticked_currencies))), 'error');
+	}
+	// A foreign-currency entry must not be handed to a payment method that will
+	// transmit the number and name the company's currency beside it. That is not
+	// a display fault: it is a real charge or refund for the wrong money, and
+	// nothing on the page or the gateway would show it as one. Refused here
+	// rather than corrected, because correcting it means teaching the method to
+	// send a code and a rate, which is the method's own change to make.
+	if ($order->currencies_code != DEFAULT_CURRENCY && !empty($order->shipper_code)) {
+	  $pm_class = load_specific_method('payment', $order->shipper_code);
+	  if (class_exists($pm_class)) {
+	    $pm_probe = new $pm_class;
+	    if (empty($pm_probe->multi_currency)) {
+	      $error = $messageStack->add(sprintf(BNK_ERROR_PAYMENT_CURRENCY,
+	        $pm_probe->title ?: $order->shipper_code, $order->currencies_code, DEFAULT_CURRENCY), 'error');
+	    }
+	  }
+	}
 	// check to make sure the payment method is valid
 	if (JOURNAL_ID == 18) {
 	  $payment_module = $order->shipper_code;
@@ -239,7 +286,8 @@ switch ($_REQUEST['action']) {
     // fetch the journal_main information
     $sql = "select id, shipper_code, bill_acct_id, bill_address_id, bill_primary_name, bill_contact, bill_address1,
 		bill_address2, bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_email,
-		post_date, terms, gl_acct_id, purchase_invoice_id, purch_order_id, total_amount from " . TABLE_JOURNAL_MAIN . "
+		post_date, terms, gl_acct_id, purchase_invoice_id, purch_order_id, total_amount,
+		currencies_code, currencies_value from " . TABLE_JOURNAL_MAIN . "
 		where id = " . $oID;
 	$result = $db->Execute($sql);
 	$account_id = $db->Execute("select short_name from " . TABLE_CONTACTS . " where id = " . $result->fields['bill_acct_id']);
@@ -263,8 +311,18 @@ switch ($_REQUEST['action']) {
     $order->due_1               = $due_dates['net_date'];
     $order->prcnt_1             = $due_dates['discount'];
     $order->pay_1               = true;
-    $order->amt_1               = $currencies->format($result->fields['total_amount'] - $pre_paid);
-    $order->total_1             = $currencies->format($result->fields['total_amount'] - $pre_paid);
+    // The entry takes the currency of the document it was raised from, at THAT
+    // document's rate rather than today's. A credit memo for $100 is a promise of
+    // $100, and settling it at the rate it was raised at closes it to exactly
+    // zero; today's rate would leave a few pence outstanding on a memo nobody
+    // owes anything more on. Paying at a different rate is a real thing, and a
+    // real thing this program has nowhere to post the difference to - see the
+    // manual topic, and issue #63.
+    $order->currencies_code     = $result->fields['currencies_code']  ?: DEFAULT_CURRENCY;
+    $order->currencies_value    = $result->fields['currencies_value'] ?: 1;
+    $order->curr_1              = $order->currencies_code;
+    $order->amt_1               = $currencies->format($result->fields['total_amount'] - $pre_paid, true, $order->currencies_code, $order->currencies_value);
+    $order->total_1             = $currencies->format($result->fields['total_amount'] - $pre_paid, true, $order->currencies_code, $order->currencies_value);
     $order->desc_1              = '';
 	$order->purch_order_id      = $result->fields['purch_order_id'];
 	// reset some particular values

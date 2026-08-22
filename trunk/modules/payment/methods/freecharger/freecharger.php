@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -21,6 +22,8 @@
 define('MODULE_PAYMENT_FREECHARGER_VERSION','3.3');
 require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
 class freecharger extends payment {
+  // Safe on a foreign-currency entry (issue #63). Records the entry and transmits nothing, so the currency is bookkeeping.
+  public $multi_currency = true;
   public $code        = 'freecharger'; // needs to match class name
   public $title       = MODULE_PAYMENT_FREECHARGER_TEXT_TITLE;
   public $description = MODULE_PAYMENT_FREECHARGER_TEXT_DESCRIPTION;

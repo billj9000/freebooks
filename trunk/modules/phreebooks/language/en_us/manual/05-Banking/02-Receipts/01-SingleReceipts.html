@@ -37,6 +37,28 @@
 <ol>
   <li>Follow the procedure above, except enter an unique Payment Ref that identifies the payment. Select the correct account and post the payment by clicking the Save icon.</li>
 </ol>
+<h3>Documents in another currency</h3>
+<p>An invoice or a credit memo raised in a currency other than your own is listed here in
+<strong>its own</strong> currency, with the code in the Currency column, and the amounts you
+enter are in that currency too. A credit memo for USD 100.00 is offered as 100.00, not as
+whatever that came to in your own money on the day it was raised.</p>
+<p>What is stored is different, and it is worth knowing why the two are not the same. Every
+figure in the ledger is held in your own currency, so the entry records the equivalent along
+with the currency code and the exchange rate it settled at. That is what lets a report add a
+dollar invoice to a euro one and get a sensible total.</p>
+<p><strong>One entry settles one currency.</strong> Ticking a document sets the currency for
+the whole entry, and ticking a second one in a different currency is refused &mdash; the entry
+carries a single exchange rate, and there is nowhere to record a second. Settle each currency
+on an entry of its own.</p>
+<p>The rate used is the one the <em>document</em> was raised at, not today's, so settling a
+document in full closes it exactly. That is deliberate: it means no odd few pence are left
+outstanding on something nobody owes any more. If the rate has moved and you want to record the
+difference, that is a currency gain or loss and this page does not post one for you.</p>
+<p>Some payment methods can only send money in your own currency, because they name it when
+they contact the card gateway. If you choose one of those on an entry in another currency, the
+entry is refused with a message naming the method rather than quietly charging the wrong money.
+Record it by another method, or without a gateway.</p>
+
 <h2>Related Topics</h2>
 <h4>Inventory</h4>
 <p><a href="../../04-Inventory/01-Maintenance/01-AddItem.html">Creating Inventory Items</a><br />
