@@ -88,6 +88,7 @@ $paper = (int)$forms_receipt_definition->serialTemplate->width;
             <tr>
               <th style="width:2.5rem"><?php echo FORMS_RECEIPT_COL_LINE;  ?></th>
               <th><?php echo FORMS_RECEIPT_COL_PRINTS; ?></th>
+              <th style="width:11rem"><?php echo FORMS_RECEIPT_COL_FORMAT; ?></th>
               <th style="width:5rem"><?php echo FORMS_RECEIPT_COL_WIDTH; ?></th>
               <th style="width:7rem"><?php echo FORMS_RECEIPT_COL_ALIGN; ?></th>
               <th style="width:4rem"><?php echo FORMS_RECEIPT_COL_BREAK; ?></th>
@@ -115,6 +116,16 @@ foreach ($forms_receipt_rows as $line) {
 <?php   } else { ?>
                 <span class="badge text-bg-secondary"><?php echo htmlspecialchars($cell['kind']); ?></span>
                 <span class="small text-muted"><?php echo htmlspecialchars($cell['bind']); ?></span>
+<?php   } ?>
+              </td>
+              <td>
+<?php   if ($cell['isValue']) {
+          // A raw value in a fixed number of character cells is not a cosmetic
+          // problem: 12.5 where 12.50 belongs is a column that stops lining up.
+          echo forms_format_select('name="field[' . $row . '][format]" class="form-select form-select-sm"',
+                                   $forms_receipt_formats, (string)$v['format']);
+        } else { ?>
+                <span class="text-muted">&mdash;</span>
 <?php   } ?>
               </td>
               <td>
@@ -166,7 +177,32 @@ foreach ($forms_receipt_rows as $line) {
         <button type="button" class="btn btn-primary btn-sm" onclick="formsReceiptAddText()">
           <?php echo FORMS_RECEIPT_ADD_TEXT; ?>
         </button>
-        <span class="text-muted small ms-2"><?php echo FORMS_RECEIPT_ADD_HELP; ?></span>
+
+<?php if ($forms_receipt_bindings !== array()) {
+        // The names this receipt can actually supply, sorted so the list can be
+        // read. Not a free-text box: a name that is merely plausible stores
+        // perfectly well and then prints nothing, on every receipt, for ever.
+        $names = array_keys($forms_receipt_bindings);
+        sort($names); ?>
+        <span class="d-inline-block ms-2">
+          <label class="small text-muted me-1" for="forms_receipt_new_bind">
+            <?php echo FORMS_RECEIPT_ADD_VALUE; ?></label>
+          <select id="forms_receipt_new_bind" class="form-select form-select-sm d-inline-block"
+                  style="width:auto">
+<?php   foreach ($names as $name) { ?>
+            <option value="<?php echo htmlspecialchars($name, ENT_QUOTES); ?>">
+              <?php echo htmlspecialchars($name); ?></option>
+<?php   } ?>
+          </select>
+          <?php echo forms_format_select(
+              'id="forms_receipt_new_format" class="form-select form-select-sm d-inline-block" style="width:auto"',
+              $forms_receipt_formats, ''); ?>
+          <button type="button" class="btn btn-primary btn-sm" onclick="formsReceiptAddValue()">
+            <?php echo FORMS_RECEIPT_ADD_VALUE_BTN; ?>
+          </button>
+        </span>
+<?php } ?>
+        <p class="text-muted small mb-0 mt-1"><?php echo FORMS_RECEIPT_ADD_HELP; ?></p>
       </div>
     </div>
   </div>

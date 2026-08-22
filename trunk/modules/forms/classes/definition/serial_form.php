@@ -37,7 +37,7 @@
 namespace FreeBooks\Forms\Definition;
 
 use FreeBooks\Forms\Document\{
-    Align, SerialCell, SerialField, SerialTemplate, StaticText, Table
+    Align, Binding, Field, Format, SerialCell, SerialField, SerialTemplate, StaticText, Table
 };
 
 final class SerialForm
@@ -49,9 +49,10 @@ final class SerialForm
      * The edited definition.
      *
      * @param array<string,mixed> $request  $_POST
+     * @param array<string,true>  $allowed  binding names this receipt can supply
      * @throws DefinitionException when this is not a receipt at all
      */
-    public function apply(Definition $base, array $request): Definition
+    public function apply(Definition $base, array $request, array $allowed): Definition
     {
         $this->warnings = [];
 
@@ -73,7 +74,7 @@ final class SerialForm
             }
 
             $field = $index === null
-                ? $this->create($row)
+                ? $this->create($row, $allowed)
                 : $this->rebuild($original[$index], $row);
 
             if ($field !== null) $fields[] = $field;
@@ -141,19 +142,66 @@ final class SerialForm
             }
         }
 
+        // A bound value's FORMAT is editable here and nowhere else in Forms.
+        // It has to be: a receipt prints a total in a fixed number of character
+        // cells, so an unformatted 12.5 where 12.50 belongs is not a cosmetic
+        // difference but a column that no longer lines up. An ABSENT key means
+        // the post says nothing about the format and it is carried; an empty
+        // one means the author chose "no format", which is a real answer.
+        if ($element instanceof Field && array_key_exists('format', $row)) {
+            $element = new Field($element->bind, $element->box,
+                                 $this->format((string)$row['format'], $element->format),
+                                 $element->style, $element->visible, $element->label);
+        }
+
         return new SerialField($element, $this->cell($row, $field->cell, $element instanceof Table));
     }
 
     /**
-     * A new field.
+     * A format hint, keeping any options the name already carried.
      *
-     * Literal text only. Everything else on a receipt is a BOUND value, and
-     * choosing a binding needs the dataset machinery the canvas has and this
-     * page does not — so the editor offers what it can honestly complete, and
-     * a new bound field is added where bindings are already chosen.
+     * Options are not editable and nothing writes them, but a format that had
+     * some keeps them when its name is unchanged - dropping them on an edit of
+     * a different column would be a save quietly destroying something invisible.
+     * The canvas carries them the same way, for the same reason.
      */
-    private function create(array $row): ?SerialField
+    private function format(string $name, ?Format $current): ?Format
     {
+        $name = trim($name);
+        if ($name === '') return null;
+        if ($current !== null && $current->name === $name) return $current;
+        return new Format($name);
+    }
+
+    /**
+     * A new field: either wording typed here, or a value the receipt can supply.
+     *
+     * The binding is checked against what this receipt CAN produce, never taken
+     * on the word of the post. An unknown name would be accepted by the codec,
+     * stored, and print nothing - a field that exists, occupies its cells, and
+     * is blank on every receipt from then on. Refused and said, the way the
+     * canvas refuses one.
+     *
+     * A bound field is created with no box. A receipt has no coordinates at all
+     * (§13.27), so Box(0,0) is not a position - it is the absence of one, and
+     * it is what every other field on a receipt already stores.
+     */
+    private function create(array $row, array $allowed): ?SerialField
+    {
+        $bind = trim((string)($row['bind'] ?? ''));
+        if ($bind !== '') {
+            if (!isset($allowed[$bind])) {
+                $this->warnings[] = "A new field naming '$bind', which this receipt cannot supply,"
+                                  . ' was left off it.';
+                return null;
+            }
+            return new SerialField(
+                new Field(new Binding($bind), new \FreeBooks\Forms\Document\Box(0, 0),
+                          $this->format((string)($row['format'] ?? ''), null)),
+                $this->cell($row, new SerialCell()),
+            );
+        }
+
         $text = trim((string)($row['text'] ?? ''));
         if ($text === '') {
             $this->warnings[] = 'A new field with no text was left off the receipt.';
@@ -211,6 +259,13 @@ final class SerialForm
                 'align' => $field->cell->align->value,
                 'break' => $field->cell->rowBreak ? '1' : '',
                 'text'  => $field->element instanceof StaticText ? $field->element->text : '',
+                // Round-tripped, not decorative: the page posts every row back,
+                // so a format missing from here would be an absent key on save
+                // for a field whose format the author never touched. rebuild()
+                // carries an absent key, but the SELECT would have posted an
+                // empty one, and the field would come back unformatted.
+                'format' => $field->element instanceof Field
+                    ? ($field->element->format?->name ?? '') : '',
             ];
         }
         return $rows;

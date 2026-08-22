@@ -82,6 +82,11 @@ the lines can still be edited.</p>
   <li><strong>Prints</strong> &mdash; what the field puts on the paper. Wording you typed can be
       edited here in place. A field that prints a <em>value</em> instead shows what it is bound to,
       and cannot be retyped: its wording comes from the sale.</li>
+  <li><strong>Format</strong> &mdash; how a value is printed: as money, as a date, and so on. It
+      applies only to fields that print a value; wording you typed shows a dash. This matters more
+      on a receipt than elsewhere, because a field occupies a fixed number of character cells &mdash;
+      an amount printed as <em>12.5</em> where <em>12.50</em> belongs is a column that stops lining
+      up.</li>
   <li><strong>Cell</strong> &mdash; how many characters wide the field is.</li>
   <li><strong>Position</strong> &mdash; Left, Centred or Right, meaning where within its cells the
       text is placed.</li>
@@ -95,13 +100,30 @@ its line and the tick is fixed.</p>
 
 <h3>Adding to a receipt</h3>
 
-<p><strong>Add a line of text</strong> adds wording you type yourself &mdash; a thank-you, a returns
-policy, a line of dashes. It appears at the end, and the arrows move it where you want it.</p>
+<p>Two kinds of thing can be added, and both arrive at the end of the receipt, ending their own
+line. The arrows then move the new field to where it belongs.</p>
 
-<p>Fields that print a <em>value</em> &mdash; a total, a date, the customer &mdash; cannot be added
-here. They are added where the value can be chosen, which is the form designer. An editor that let
-you add one without saying where its value came from would give you a receipt printing a blank space
-where a total should be.</p>
+<p><strong>Add a line of text</strong> adds wording you type yourself &mdash; a thank-you, a returns
+policy, a line of dashes.</p>
+
+<p><strong>or a value</strong> adds a field that prints something from the sale: a total, a date,
+the customer. The list beside the button holds every value this receipt can supply and nothing else,
+so anything you can choose is something that will print. Pick a format at the same time &mdash; an
+amount wants a money format &mdash; and change it afterwards in the Format column if it is not
+right.</p>
+
+<p>You cannot type a name of your own. A name that merely looks plausible would save perfectly well
+and then print nothing, leaving a field that takes up its cells and is blank on every receipt from
+then on.</p>
+
+<h3>If you delete something by accident</h3>
+
+<p>Before you save, nothing has happened: &times; only takes the row off the screen. Press
+<strong>Cancel</strong>, or reload the page, and the receipt is exactly as it was.</p>
+
+<p>After a save, add it back &mdash; text with <strong>Add a line of text</strong>, a value with the
+list beside it &mdash; then set its Format, Cell and Position to match, and move it into place. The
+preview shows you when it is right.</p>
 
 <h3>Saving</h3>
 

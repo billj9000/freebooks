@@ -87,7 +87,12 @@ if (!$definition->isSerial()) forms_receipt_preview_message(FORMS_RECEIPT_NOT_A_
 
 $binding = new SerialForm();
 try {
-  $edited = $binding->apply($definition, $_POST);
+  // The same allowed set the SAVE will use, from the same function. A preview
+  // that accepted a binding the save refuses would show the author a receipt
+  // they cannot keep - and they would find out at the save, having built the
+  // rest of the layout around it.
+  $edited = $binding->apply($definition, $_POST,
+      forms_binding_names($definition, new FormRunner($db, $catalog), $catalog, $db));
 } catch (\Throwable $e) {
   // A receipt edited down to nothing is the ordinary way to reach this, and it
   // is a state the author is passing THROUGH rather than one they have made.

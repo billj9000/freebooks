@@ -43,7 +43,7 @@ require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 use FreeBooks\Forms\App\FormRunner;
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionCodec, DefinitionException, DefinitionLoader, SerialForm};
-use FreeBooks\Forms\Document\SerialDocument;
+use FreeBooks\Forms\Document\{SerialDocument, SerialField};
 use FreeBooks\Forms\Render\{Formatter, SerialRenderer};
 
 $failures = 0;
@@ -134,11 +134,15 @@ foreach ($serial as $id => [$definition, $title]) {
     // page renders into its form, apply() is what the save reads back, and if
     // the two disagree the first save silently rewrites the layout.
     $editor    = new SerialForm();
+    // No allowed bindings, deliberately. Nothing here ADDS a field, so none is
+    // needed - and passing an empty set proves the round trip does not quietly
+    // depend on one, which it would if rebuild() ever started checking names it
+    // is supposed to carry untouched.
     $untouched = $editor->apply($definition, [
         'title' => $definition->title,
         'paper' => (string)$template->width,
         'field' => SerialForm::toRequest($template),
-    ]);
+    ], []);
     ok("pf_$id survives being opened and saved unchanged",
         $untouched->serialTemplate !== null
         && serialCells($untouched->serialTemplate) === serialCells($template)
@@ -155,6 +159,60 @@ foreach ($serial as $id => [$definition, $title]) {
     ok("pf_$id encodes to the same bytes twice",
         $codec->encode($back) === $codec->encode($definition),
         'the encoding is not stable');
+
+    // ── adding a value back (§13.48) ────────────────────────────────────────
+    //
+    // The editor can now put back a bound field somebody deleted. Two claims,
+    // and the second is the one that matters: it adds what the receipt CAN
+    // supply, and refuses what it cannot. A name that is merely plausible
+    // stores perfectly well and then prints nothing - a field that exists,
+    // occupies its cells and is blank on every receipt from then on.
+    $rows   = SerialForm::toRequest($template);
+    $rows[] = ['index' => '', 'bind' => 'grand_total', 'format' => 'posted_cur',
+               'width' => '10', 'align' => 'R', 'break' => '1'];
+    $adder  = new SerialForm();
+    $with   = $adder->apply($definition, [
+        'paper' => (string)$template->width,
+        'field' => $rows,
+    ], ['grand_total' => true]);
+    $fieldsAfter = $with->serialTemplate?->fields ?? [];
+    $added       = $fieldsAfter === [] ? null : $fieldsAfter[count($fieldsAfter) - 1];
+    ok("pf_$id can be given back a value it can supply",
+       $added instanceof SerialField
+       && $added->element instanceof \FreeBooks\Forms\Document\Field
+       && $added->element->bind->name === 'grand_total'
+       && $added->element->format?->name === 'posted_cur'
+       && $added->cell->width === 10,
+       'the field was not added, or not as asked');
+
+    $refuser = new SerialForm();
+    $refused = $refuser->apply($definition, [
+        'paper' => (string)$template->width,
+        'field' => $rows,
+    ], []);                                   // the same post, nothing allowed
+    ok("pf_$id refuses a value it cannot supply",
+       $refused->serialTemplate !== null
+       && count($refused->serialTemplate->fields) === count($template->fields)
+       && $refuser->warnings() !== [],
+       'a binding this receipt cannot produce was stored, or was dropped silently');
+
+    // A format the author never touched must survive a save. The page posts an
+    // empty select for a field with no format, which is a real answer meaning
+    // "none" - so the ones that HAVE a format have to post it back, and that is
+    // what toRequest() carries. Asserted because the failure is invisible:
+    // every currency on the receipt would quietly become a raw number.
+    $formats = [];
+    foreach ($template->fields as $field) {
+        if ($field->element instanceof \FreeBooks\Forms\Document\Field
+            && $field->element->format !== null) $formats[] = $field->element->format->name;
+    }
+    $kept = [];
+    foreach (($untouched->serialTemplate?->fields ?? []) as $field) {
+        if ($field->element instanceof \FreeBooks\Forms\Document\Field
+            && $field->element->format !== null) $kept[] = $field->element->format->name;
+    }
+    ok("pf_$id keeps every format through a save that touched none",
+       $kept === $formats, count($formats) . ' before, ' . count($kept) . ' after');
 }
 
 /** @return list<string> every cell, flattened, for comparing two layouts. */

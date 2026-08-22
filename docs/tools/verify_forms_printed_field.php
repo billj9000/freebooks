@@ -155,7 +155,7 @@ if ($receiptFile === null) {
        (new SerialForm())->apply($receipt, [
            'field' => SerialForm::toRequest($receipt->serialTemplate),
            'paper' => (string)$receipt->serialTemplate->width,
-       ])->printedField === 'journal_main.printed');
+       ], [])->printedField === 'journal_main.printed');
 }
 
 // ── the runner asks for it ──────────────────────────────────────────────────

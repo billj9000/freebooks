@@ -1249,6 +1249,40 @@ if ($PICKED) {
        'the page offers no way to print what was chosen');
 }
 
+if ($PAGE === 'receipt') {
+    // §13.48. A deleted value used to be unrecoverable: the editor made literal
+    // text and nothing else, and the canvas - which has the binding machinery -
+    // redirects a receipt straight back here before it loads.
+    ok('a bound value can be given a format',
+       $xpath->query("//th[normalize-space()='" . FORMS_RECEIPT_COL_FORMAT . "']")->length === 1,
+       'the lines table has no Format column');
+
+    $badge  = FORMS_RECEIPT_KIND_VALUE;
+    $values = $xpath->query("//tbody[@id='forms_receipt_fields']/tr[td/span[normalize-space()='$badge']]");
+    $withFormat = $xpath->query("//tbody[@id='forms_receipt_fields']"
+        . "/tr[td/span[normalize-space()='$badge']][.//select[contains(@name,'[format]')]]");
+    ok('every bound value on this receipt has one',
+       $values->length > 0 && $values->length === $withFormat->length,
+       $withFormat->length . ' of ' . $values->length);
+
+    // The offer and the refusal have to agree. The select is built from what
+    // the page computed; the save checks against what forms_binding_names()
+    // returns. Comparing the RENDERED options with that function is what says
+    // the two cannot drift - an author offered a name the save then refuses
+    // would build a layout round a field that vanishes when they keep it.
+    $offered = [];
+    foreach ($xpath->query("//select[@id='forms_receipt_new_bind']/option") as $option) {
+        $offered[] = (string)$option->getAttribute('value');
+    }
+    $legal = array_keys(forms_binding_names($forms_receipt_definition,
+                 new \FreeBooks\Forms\App\FormRunner($db, $rcptCatalog), $rcptCatalog, $db));
+    sort($offered); sort($legal);
+    ok('a value can be added back', $offered !== [], 'the page offers no binding to add');
+    ok('and the names offered are exactly the ones the save will accept',
+       $offered === $legal,
+       count($offered) . ' offered, ' . count($legal) . ' accepted');
+}
+
 if ($PAGE === 'print' && !$CHOOSING) {
     // The page's job is to say what it is about to print and offer a way to
     // print it. An empty selection here would mean RecordSelector failed on the

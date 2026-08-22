@@ -199,7 +199,14 @@ function forms_formats_in_use($definition): array
     }
     if (($definition?->groupFormat ?? null) !== null) $used[$definition->groupFormat->name] = true;
 
-    foreach ($definition?->template?->elements ?? array() as $element) {
+    // A receipt's fields, for the same reason forms_binding_names() takes them:
+    // they are ordinary elements kept somewhere else, and a format already on
+    // one has to stay offerable or editing that field would drop it.
+    $elements = array();
+    foreach ($definition?->serialTemplate?->fields ?? array() as $field) $elements[] = $field->element;
+    foreach ($definition?->template?->elements ?? array() as $element)   $elements[] = $element;
+
+    foreach ($elements as $element) {
         if ($element instanceof \FreeBooks\Forms\Document\Table) {
             foreach ($element->columns as $column) {
                 if ($column->format !== null) $used[$column->format->name] = true;
@@ -210,9 +217,10 @@ function forms_formats_in_use($definition): array
                 if ($part->format !== null) $used[$part->format->name] = true;
             }
         }
-        // A Field's own format has no control in either editor, so it is not
-        // offered — but it is listed, because a name that exists on the
-        // document is a name an author may reasonably want on another element.
+        // A Field's own format is edited on a RECEIPT and nowhere else: the
+        // receipt editor has a column for it, the canvas does not. Listed
+        // either way, because a name that exists on the document is a name an
+        // author may reasonably want on another element.
         if ($element instanceof \FreeBooks\Forms\Document\Field && $element->format !== null) {
             $used[$element->format->name] = true;
         }
@@ -311,7 +319,17 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
 {
     $allowed = array();
 
-    foreach ($definition->template?->elements ?? array() as $element) {
+    // A receipt keeps its fields somewhere else entirely. It has no ->template,
+    // so the loop below walked an empty list and this function answered "no
+    // names" for every receipt there is - which is why the receipt editor could
+    // not offer a binding to add. The elements themselves are the same kinds a
+    // page uses, so they go through the same loop rather than a second copy of
+    // these rules.
+    $elements = array();
+    foreach ($definition->serialTemplate?->fields ?? array() as $field) $elements[] = $field->element;
+    foreach ($definition->template?->elements ?? array() as $element)   $elements[] = $element;
+
+    foreach ($elements as $element) {
         if (($element instanceof \FreeBooks\Forms\Document\Field
              || $element instanceof \FreeBooks\Forms\Document\Barcode)
             && $element->bind->scope !== \FreeBooks\Forms\Document\Scope::Context) {
@@ -363,7 +381,12 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
             $document = $runner->runDefinition($definition, array($id),
                 array('dates' => $definition->dateDefault));
         } catch (\Throwable $e) { continue; }
-        if (!($document instanceof \FreeBooks\Forms\Document\LayoutDocument)
+        // Either shape: a page runs to a LayoutDocument and a receipt to a
+        // SerialDocument, and both carry the Records whose keys are the answer.
+        // Testing only for the first meant a receipt fell through to "no names"
+        // even where its provider had just produced them.
+        if (!($document instanceof \FreeBooks\Forms\Document\LayoutDocument
+              || $document instanceof \FreeBooks\Forms\Document\SerialDocument)
             || count($document->records) === 0) continue;
 
         $record = $document->records[0];

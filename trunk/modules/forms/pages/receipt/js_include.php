@@ -97,6 +97,58 @@ function formsReceiptRemove(button) {
   formsReceiptRenumber();
 }
 
+// A value the receipt can supply, chosen from the list beside the button.
+//
+// The row carries a `bind` and no index, which is how SerialForm::apply() tells
+// a new bound field from a new line of text. The name is checked again on the
+// server against what the receipt can produce - this select is a convenience,
+// not the guard, because a post does not have to come from this page.
+//
+// It arrives at the END and ending its line, like a new line of text: a field
+// dropped into the middle of a receipt would push everything after it onto
+// different lines, and the arrows are how an author says where it goes.
+function formsReceiptAddValue() {
+  var bind = document.getElementById('forms_receipt_new_bind');
+  if (!bind || bind.value === '') return;
+  var format = document.getElementById('forms_receipt_new_format');
+  var tbody  = document.getElementById('forms_receipt_fields');
+  var index  = tbody.rows.length;
+  var row    = document.createElement('tr');
+
+  row.innerHTML =
+      '<td class="text-muted small"></td>'
+    + '<td><input type="hidden" name="field[' + index + '][index]" value="">'
+    +     '<span class="badge text-bg-secondary"><?php echo FORMS_RECEIPT_KIND_VALUE; ?></span> '
+    +     '<span class="small text-muted"></span>'
+    +     '<input type="hidden" name="field[' + index + '][bind]" value=""></td>'
+    + '<td><select name="field[' + index + '][format]" class="form-select form-select-sm">'
+    +     <?php echo json_encode(forms_format_options($forms_receipt_formats, '')); ?> + '</select></td>'
+    + '<td><input type="number" name="field[' + index + '][width]" min="1" max="200"'
+    +     ' class="form-control form-control-sm" value="<?php echo (int)($forms_receipt_definition?->serialTemplate?->width ?? 40); ?>"></td>'
+    + '<td><select name="field[' + index + '][align]" class="form-select form-select-sm">'
+    +     '<option value="L"><?php echo FORMS_RECEIPT_ALIGN_L; ?></option>'
+    +     '<option value="C"><?php echo FORMS_RECEIPT_ALIGN_C; ?></option>'
+    +     '<option value="R"><?php echo FORMS_RECEIPT_ALIGN_R; ?></option>'
+    +     '</select></td>'
+    + '<td class="text-center"><input type="checkbox" class="form-check-input" value="1"'
+    +     ' name="field[' + index + '][break]" checked></td>'
+    + '<td class="text-nowrap">'
+    +     '<button type="button" class="btn btn-primary btn-sm" onclick="formsReceiptMove(this,-1)">&uarr;</button> '
+    +     '<button type="button" class="btn btn-primary btn-sm" onclick="formsReceiptMove(this,1)">&darr;</button> '
+    +     '<button type="button" class="btn btn-primary btn-sm" onclick="formsReceiptRemove(this)">&times;</button>'
+    +     '</td>';
+
+  // Set as VALUES rather than built into the html above: a binding name is data
+  // and concatenating it into markup is how an apostrophe in one becomes a
+  // broken row. textContent and .value escape by not parsing at all.
+  row.querySelector('input[name="field[' + index + '][bind]"]').value = bind.value;
+  row.querySelector('td:nth-child(2) span.text-muted').textContent = bind.value;
+  if (format) row.querySelector('select[name="field[' + index + '][format]"]').value = format.value;
+
+  tbody.appendChild(row);
+  formsReceiptRenumber();   // which renumbers, re-stripes, and tells the preview
+}
+
 function formsReceiptAddText() {
   var tbody = document.getElementById('forms_receipt_fields');
   var index = tbody.rows.length;
@@ -109,6 +161,7 @@ function formsReceiptAddText() {
     + '<td><input type="hidden" name="field[' + index + '][index]" value="">'
     +     '<input type="text" name="field[' + index + '][text]" class="form-control form-control-sm"'
     +     ' value="' + <?php echo json_encode(FORMS_RECEIPT_NEW_TEXT); ?> + '"></td>'
+    + '<td><span class="text-muted">&mdash;</span></td>'
     + '<td><input type="number" name="field[' + index + '][width]" min="1" max="200"'
     +     ' class="form-control form-control-sm" value="<?php echo (int)($forms_receipt_definition?->serialTemplate?->width ?? 40); ?>"></td>'
     + '<td><select name="field[' + index + '][align]" class="form-select form-select-sm">'

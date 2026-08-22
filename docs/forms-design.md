@@ -5378,3 +5378,87 @@ selection agrees. Both take their ids from the journal rather than a fixture, so
 they assert against the company rather than against a list somebody typed. The
 positive mode matters as much as the negative: a fix of the form "never fill it
 in" would pass `printbatch` and is not what anyone wants.
+
+### 13.48 Putting back a value the editor would not add
+
+§13.28 wrote the refusal down as a virtue: *"What it deliberately will not do is
+invent a binding. A new field is literal text only… an editor that offered a
+half-completed binding would produce a receipt that prints a blank where a total
+should be."* That is still the right reason. It was the wrong conclusion.
+
+The user found the hole by asking the obvious question — *"if I accidentally
+delete a line, how do I add it back?"* Before a save, nothing has happened;
+`formsReceiptRemove()` only takes the row out of the DOM. After one, a line of
+text can be retyped, and a **value cannot be added back at all.** Not awkwardly:
+the canvas is the only thing with the binding machinery, and
+`pages/canvas/pre_process.php` redirects a receipt straight back to the receipt
+editor *before it loads anything*. `DefinitionLoader::save()` overwrites in
+place with no previous version kept. So the only routes back were a Copy made
+beforehand or a company backup.
+
+The fix is not to invent a binding. It is to **offer the ones that already
+exist**, which is what the canvas does and what makes its version safe.
+
+#### The function that could not see a receipt
+
+`forms_binding_names()` computes the legal set, and it answered *nothing* for
+every receipt in existence — twice over, for two independent reasons:
+
+- it harvests from `$definition->template?->elements`, and a receipt has no
+  `->template` at all; its fields live on `serialTemplate`;
+- its fallback runs the definition against real records and reads the keys back
+  off the Record, guarded by `instanceof LayoutDocument`. A receipt runs to a
+  `SerialDocument`, so even where the provider had just produced the names, they
+  were thrown away.
+
+Both are one-line widenings, and the elements themselves go through the *same*
+loop — a receipt's fields are ordinary `Field`, `FieldBlock` and `Table`
+elements kept somewhere else, so nothing about the binding rules is restated.
+`forms_formats_in_use()` had the identical blind spot.
+
+#### The format, which is not cosmetic here
+
+Measured before deciding: 5 of the shipped receipt's 19 fields carry a format
+(`date` once, `posted_cur` four times). A value with none goes through
+`Formatter::plain()`. On a page that would be untidy; on a receipt the field
+occupies a fixed number of character cells, so `12.5` where `12.50` belongs is a
+column that stops lining up.
+
+So the receipt editor edits a plain `Field`'s format, and it is **the only place
+in Forms that does** — the canvas has never had a control for one. That is a
+deliberate asymmetry between editors, chosen over the worse asymmetry *within*
+this one, where a format could be set on a field as it was added and never
+afterwards. The standing comment in `forms_formats_in_use()` saying a Field's
+format "has no control in either editor" was true when written and is now
+corrected rather than left to mislead.
+
+Two things the round trip needed. `toRequest()` must emit the format, because
+the page posts every row back and the select posts an empty string for "none" —
+without it, the first save of an untouched receipt would strip every currency on
+it. And `rebuild()` distinguishes an **absent** key (carry) from an **empty**
+one (the author chose none), the same three-way distinction §13.30 needed for
+sub-structures.
+
+#### The check that would have caught the original hole
+
+`verify_forms_pages.php`'s receipt mode now compares the **rendered** options of
+the add-a-value select against what `forms_binding_names()` returns — the set
+the *save* checks against. Equality is the claim: the page cannot offer a name
+the save will refuse, and cannot hide one it would accept. Either drift is an
+author building a layout around a field that vanishes when they keep it. It is
+also what makes the original defect visible in hindsight: the select would have
+been empty, and empty is not equal to anything the save accepts.
+
+`verify_forms_serial.php` asserts the model — a permitted name is added with its
+format and cell, an unpermitted one is refused *and warned about* rather than
+dropped silently, and every existing format survives a save that touched none.
+The two round-trip callers in `docs/tools/` pass an empty allowed set on purpose:
+nothing there adds a field, and an empty set proves the round trip does not
+quietly depend on one.
+
+Six planted faults, each failing on the check written for it: `create()` not
+checking the allowed set; `toRequest()` dropping the format; `create()` always
+making text; the page offering a name the save refuses; the Format column header
+removed; the per-row format select removed. End to end on a real sale, adding
+`total_amount` with `posted_cur` puts `£ 4.14` on the paper — the model checks
+say the definition is right, and that says the value reaches the printer.

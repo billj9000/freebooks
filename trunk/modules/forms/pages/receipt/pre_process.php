@@ -96,6 +96,24 @@ if ($forms_receipt_definition !== null && $forms_receipt_definition->serialTempl
   $forms_receipt_definition = null;
 }
 
+// What this receipt can supply, computed before the save so the save can refuse
+// a name that is not in it. Shared with ajax/receipt_preview.php through one
+// function rather than two copies: a preview that allowed more than the save
+// would show the author a receipt they cannot keep.
+//
+// After the redirects on purpose. It can run the definition against real
+// records to find out what a provider offers, which is work worth nothing for a
+// document that is on its way to another editor.
+$forms_receipt_bindings = $forms_receipt_definition === null
+    ? array()
+    : forms_binding_names($forms_receipt_definition, $runner, $catalog, $db);
+
+// The formats offered, including any this receipt already uses that the closed
+// vocabulary does not list - dropping one of those from the select would turn
+// an author's next save into a silent reformatting of a field they never
+// touched.
+$forms_receipt_formats = forms_format_choices(forms_formats_in_use($forms_receipt_definition));
+
 /**
  * Keep the PhreeForm original beside the native file, once.
  *
@@ -124,7 +142,7 @@ if ($forms_receipt_definition !== null && ($_REQUEST['action'] ?? '') === 'save'
   } else {
     $binding = new SerialForm();
     try {
-      $edited = $binding->apply($forms_receipt_definition, $_POST);
+      $edited = $binding->apply($forms_receipt_definition, $_POST, $forms_receipt_bindings);
       foreach ($binding->warnings() as $warning) {
         $messageStack->add(sprintf(FORMS_WARN_CONVERSION, $warning), 'caution');
       }
@@ -168,6 +186,11 @@ if ($forms_receipt_definition !== null) {
         'bind'    => forms_receipt_binding($element),
         'isText'  => $element instanceof StaticText,
         'isTable' => $element instanceof Table,
+        // Only a plain bound value takes a format here. A table's formats
+        // belong to its columns and a block's to its parts, and neither is
+        // one answer for the row - offering a single box for them would
+        // silently set the wrong thing.
+        'isValue' => $element instanceof \FreeBooks\Forms\Document\Field,
       );
       $index++;
     }
