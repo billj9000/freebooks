@@ -51,7 +51,7 @@ use FreeBooks\Forms\App\{CanvasLayout, FormRunner, SampleData};
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
 use FreeBooks\Forms\Definition\{Definition, DefinitionCodec, DefinitionException, DefinitionLoader, TemplateForm};
 use FreeBooks\Forms\Document\{
-    Box, LayoutDocument, Line, PageSetup, Record, Rect, RenderOptions, Template
+    Box, Colour, LayoutDocument, Line, PageSetup, Record, Rect, RenderOptions, Style, Template
 };
 use FreeBooks\Forms\Render\{Formatter, LayoutPdfRenderer};
 
@@ -204,6 +204,48 @@ function rectangles(array $lines): array
     foreach ($lines as $line) {
         if (preg_match_all('/(?:^|\s)(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) re(?=\s|$)/',
                 $line, $all, PREG_SET_ORDER)) {
+            foreach ($all as $one) $found[] = array_map('floatval', array_slice($one, 1));
+        }
+    }
+    return $found;
+}
+
+/**
+ * Every line width SET in these operators, in points, in the order they are set.
+ *
+ * TCPDF emits `3.000000 w` on a line of its own ahead of the shape it applies
+ * to, so this can be anchored where rectangles() cannot be. A width is what a
+ * rule's thickness comes out as, and reading it back out of the file is the
+ * only way to tell a control that reaches the paper from one that merely
+ * stores a number (§13.49).
+ *
+ * @param list<string> $lines
+ * @return list<float>
+ */
+function lineWidths(array $lines): array
+{
+    $found = [];
+    foreach ($lines as $line) {
+        if (preg_match('/^(-?[\d.]+) w$/', trim($line), $one)) $found[] = (float)$one[1];
+    }
+    return $found;
+}
+
+/**
+ * Every DRAW colour set in these operators, as [r, g, b] on 0..1.
+ *
+ * `RG` is the stroking colour — the one a rule and a frame are drawn in — and
+ * is not `rg`, which fills. Matching the wrong case would report the page
+ * background as the colour of every line on it.
+ *
+ * @param list<string> $lines
+ * @return list<array{0: float, 1: float, 2: float}>
+ */
+function drawColours(array $lines): array
+{
+    $found = [];
+    foreach ($lines as $line) {
+        if (preg_match_all('/(?:^|\s)([\d.]+) ([\d.]+) ([\d.]+) RG(?=\s|$)/', $line, $all, PREG_SET_ORDER)) {
             foreach ($all as $one) $found[] = array_map('floatval', array_slice($one, 1));
         }
     }
@@ -412,6 +454,180 @@ ok('a 25 mm margin leaves the box where it was',
        $positions[0][0], $positions[0][1], $positions[1][0], $positions[1][1]) : 'not rendered');
 ok('and that box is at 40 mm, not at the margin',
    count($positions) === 2 && near($positions[0][0], pt(40.0)));
+
+// ─────────────────────────────────────────────────────────────────────────────
+echo "\n=== a rule and a box are drawn at the thickness they carry ===\n";
+
+// Issue #65: "there appears to be no way to specify a thickness for rectangles
+// or lines". The renderer had always read one — SetLineWidth(borderSize), for
+// both kinds — and the canvas had always posted it. What was missing was the
+// NAME: the panel called it *Border width*, which on the two elements that ARE
+// an outline reads as a property of something else, and the control an author
+// reached for instead was Size, which neither kind has any use for.
+//
+// So the fault was in a label, and a label is the one thing a suite like this
+// cannot see. These pin the two halves it can: that a thickness posted through
+// the canvas reaches the paper, and that a rule left without one is drawn at
+// the same width as a box left without one — which is what the manual has
+// always said and what drawLine's `?? 0` quietly did not do (§13.49).
+
+/** The widths a one-element document sets, read back out of the file. */
+$widthsOf = function ($element) use ($renderer): array {
+    $document = new LayoutDocument(
+        title:    'thickness',
+        template: new Template([$element]),
+        records:  [new Record()],
+        page:     new PageSetup(size: 'A4', orientation: 'P'),
+    );
+    return lineWidths(operators($renderer->render($document)->bytes));
+};
+
+foreach ([['a rule', 'line'], ['a box', 'rect']] as [$what, $kind]) {
+    foreach ([0.5, 3.0, 8.0] as $points) {
+        $style   = new Style(borderSize: $points);
+        $element = $kind === 'line'
+            ? new Line(new Box(20.0, 30.0, 60.0, 0.0), 'H', $style)
+            : new Rect(new Box(20.0, 30.0, 60.0, 20.0), $style);
+        $widths  = $widthsOf($element);
+        // NOT $points: the renderer converts to millimetres through PhreeForm's
+        // pervasive 0.35, which is 1pt to within 0.8%, and TCPDF converts back
+        // with the exact 72/25.4. So a 1pt rule is 0.9921pt in the file. Kept,
+        // not corrected — the whole shipped set was measured against it — and
+        // written out here so the check pins the constant instead of hiding it
+        // behind a tolerance wide enough to swallow a real error.
+        $wanted = $points * 0.35 * 72.0 / 25.4;
+        ok(sprintf('%s asked for %spt is drawn at %.4fpt', $what, $points, $wanted),
+           $widths !== [] && abs(end($widths) - $wanted) < 0.005,
+           $widths === [] ? 'no width was set at all' : sprintf('%.4f pt', end($widths)));
+    }
+}
+
+// The same again, but through the canvas rather than by building the element
+// here — the path an author's typing actually takes.
+$thicknessForm = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+$posted = $thicknessForm->apply(
+    new Definition(type: Definition::FORM, title: 'thickness', template: new Template([])),
+    ['title' => 'thickness', 'element' => [
+        ['kind' => 'line', 'x' => '20', 'y' => '30', 'w' => '60', 'h' => '0',  'borderSize' => '4'],
+        ['kind' => 'rect', 'x' => '20', 'y' => '60', 'w' => '60', 'h' => '20', 'borderSize' => '6'],
+    ]],
+    []);
+$made = $posted->template?->elements ?? [];
+ok('a thickness typed into the panel survives the save',
+   count($made) === 2
+   && ($made[0]->style?->borderSize ?? null) === 4.0
+   && ($made[1]->style?->borderSize ?? null) === 6.0,
+   sprintf('%s / %s',
+       var_export(($made[0] ?? null)?->style?->borderSize, true),
+       var_export(($made[1] ?? null)?->style?->borderSize, true)));
+ok('and nothing was warned about on the way through',
+   $thicknessForm->warnings() === [], implode(' ', $thicknessForm->warnings()));
+
+if (count($made) === 2) {
+    $drawn = lineWidths(operators($renderer->render(new LayoutDocument(
+        title: 'thickness', template: $posted->template, records: [new Record()],
+        page: new PageSetup()))->bytes));
+    $scale = 0.35 * 72.0 / 25.4;
+    ok('and both widths reach the paper, 4pt and 6pt apart',
+       count($drawn) >= 2 && abs($drawn[0] - 4.0 * $scale) < 0.005
+                          && abs($drawn[1] - 6.0 * $scale) < 0.005,
+       implode(', ', array_map(fn($w) => sprintf('%.3f', $w), $drawn)));
+}
+
+// An element with no style of its own. Every converted form carries an explicit
+// width — all of PhreeForm's lines store one, which is why this default was
+// never seen — so this is about what a NEW element does, and about the manual
+// being true where it says 1 is what an unset width draws.
+foreach ([
+    'a rule with no width set' => new Line(new Box(20.0, 30.0, 60.0, 0.0)),
+    'a box with no width set'  => new Rect(new Box(20.0, 60.0, 60.0, 20.0)),
+] as $what => $element) {
+    $widths = $widthsOf($element);
+    ok("$what is drawn at 1pt, as the manual says",
+       $widths !== [] && abs(end($widths) - 0.35 * 72.0 / 25.4) < 0.005,
+       $widths === [] ? 'no width was set at all' : sprintf('%.4f pt', end($widths)));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// And the colour half of the same panel, which had the same shape of fault.
+//
+// The renderer reads `borderColour ?? colour` for both kinds, so the inspector's
+// two swatches — *Colour* and *Border colour* — were two ways to say one thing
+// with an unstated precedence. On the shipped set that is not a nicety: every
+// rectangle in it has `borderColour` set and `colour` unset, so the swatch
+// labelled Colour could not change what was drawn on ANY of them. The panel now
+// shows one swatch on a line and a box, seeded with whichever value is in force
+// and writing to the one that wins.
+//
+// The precedence itself is what the panel is now promising, so it is pinned
+// here rather than assumed from a reading of the renderer.
+$colourOf = function ($element) use ($renderer): ?array {
+    $drawn = drawColours(operators($renderer->render(new LayoutDocument(
+        title: 'colour', template: new Template([$element]), records: [new Record()],
+        page: new PageSetup()))->bytes));
+    return $drawn === [] ? null : end($drawn);
+};
+/** PDF stroking colours are 0..1; a Colour is 0..255. */
+$isColour = fn(?array $drawn, int $r, int $g, int $b): bool =>
+    $drawn !== null && abs($drawn[0] - $r / 255) < 0.004
+                    && abs($drawn[1] - $g / 255) < 0.004
+                    && abs($drawn[2] - $b / 255) < 0.004;
+
+$silver = new Colour(192, 192, 192);
+$red    = new Colour(255, 0, 0);
+
+foreach ([
+    'a rule' => fn(?Style $style) => new Line(new Box(20.0, 30.0, 60.0, 0.0), 'H', $style),
+    'a box'  => fn(?Style $style) => new Rect(new Box(20.0, 60.0, 60.0, 20.0), $style),
+] as $what => $make) {
+    // Only `colour` — which is every line the converter wrote before it was
+    // given a border colour, and the state an author reaches by typing into the
+    // swatch the panel used to show them.
+    ok("$what with only a colour is drawn in it",
+       $isColour($colourOf($make(new Style(colour: $silver, borderSize: 2.0))), 192, 192, 192),
+       json_encode($colourOf($make(new Style(colour: $silver, borderSize: 2.0)))));
+
+    // Only `borderColour` — every rectangle in the shipped set.
+    ok("$what with only a border colour is drawn in it",
+       $isColour($colourOf($make(new Style(borderColour: $silver, borderSize: 2.0))), 192, 192, 192),
+       json_encode($colourOf($make(new Style(borderColour: $silver, borderSize: 2.0)))));
+
+    // Both, disagreeing. This is the check that says which swatch the panel
+    // must show and write: the border colour wins, so that is the one it keeps.
+    ok("$what with both drawn in the BORDER colour, not the other one",
+       $isColour($colourOf($make(new Style(colour: $red, borderColour: $silver, borderSize: 2.0))),
+                 192, 192, 192),
+       json_encode($colourOf($make(new Style(colour: $red, borderColour: $silver, borderSize: 2.0)))));
+}
+
+// The swatch writes to `borderColour`, so a colour chosen in the panel has to
+// arrive there and reach the paper — the same end-to-end claim the thickness
+// checks above make, for the other control on the same row.
+$colourForm = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+$chosen = $colourForm->apply(
+    new Definition(type: Definition::FORM, title: 'colour', template: new Template([])),
+    ['title' => 'colour', 'element' => [
+        ['kind' => 'line', 'x' => '20', 'y' => '30', 'w' => '60', 'h' => '0',
+         'borderSize' => '2', 'borderColour' => '#c0c0c0'],
+        ['kind' => 'rect', 'x' => '20', 'y' => '60', 'w' => '60', 'h' => '20',
+         'borderSize' => '2', 'borderColour' => '#c0c0c0'],
+    ]],
+    []);
+$painted = $chosen->template?->elements ?? [];
+ok('a colour chosen on a line or a box is stored as the border colour',
+   count($painted) === 2
+   && ($painted[0]->style?->borderColour?->r ?? null) === 192
+   && ($painted[1]->style?->borderColour?->r ?? null) === 192,
+   json_encode(array_map(fn($e) => $e->style?->borderColour, $painted)));
+if (count($painted) === 2) {
+    $drawn = drawColours(operators($renderer->render(new LayoutDocument(
+        title: 'colour', template: $chosen->template, records: [new Record()],
+        page: new PageSetup()))->bytes));
+    ok('and both are drawn in it',
+       count($drawn) >= 2 && $isColour($drawn[0], 192, 192, 192)
+                          && $isColour($drawn[1], 192, 192, 192),
+       json_encode($drawn));
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 echo "\n=== the boxes the canvas is given ===\n";

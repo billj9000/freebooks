@@ -377,7 +377,7 @@ if ($forms_canvas_definition === null) { ?>
             </div>
 
             <div class="row g-1 mb-2">
-              <div class="col-7">
+              <div class="col-7" id="ins_font_row">
                 <label class="form-label mb-0 small" for="ins_font"><?php echo FORMS_DESIGN_FONT; ?></label>
                 <?php // A list, not a box. The stored value is a token nobody
                       // would guess — the default face is spelled "freeserif" —
@@ -386,7 +386,7 @@ if ($forms_canvas_definition === null) { ?>
                 <?php echo html_pull_down_menu('ins_font', $forms_canvas_fonts, '',
                     'class="form-select form-select-sm"'); ?>
               </div>
-              <div class="col-5">
+              <div class="col-5" id="ins_size_row">
                 <label class="form-label mb-0 small" for="ins_size"><?php echo FORMS_DESIGN_SIZE; ?></label>
                 <input type="text" inputmode="decimal" class="form-control form-control-sm" id="ins_size">
               </div>
@@ -402,11 +402,11 @@ if ($forms_canvas_definition === null) { ?>
                     echo FORMS_CANVAS_ITALIC; ?></em></label>
                 </div>
               </div>
-              <div class="col-5">
+              <div class="col-5" id="ins_colour_row">
                 <label class="form-label mb-0 small" for="ins_colour"><?php echo FORMS_DESIGN_COLOUR; ?></label>
                 <input type="color" class="form-control form-control-sm form-control-color" id="ins_colour">
               </div>
-              <div class="col-7">
+              <div class="col-7" id="ins_align_row">
                 <label class="form-label mb-0 small" for="ins_align"><?php echo FORMS_DESIGN_COL_ALIGN; ?></label>
                 <?php echo html_pull_down_menu('ins_align', $forms_canvas_aligns, '',
                     'class="form-select form-select-sm"'); ?>
@@ -415,14 +415,19 @@ if ($forms_canvas_definition === null) { ?>
 
             <div class="row g-1 mb-2">
               <div class="col-6">
-                <label class="form-label mb-0 small" for="ins_border"><?php echo FORMS_CANVAS_BORDER; ?></label>
+                <?php // Named by the SCRIPT, not here: on a line and a box
+                      // this same control is the element's own thickness, and
+                      // the word "border" on them names a property of
+                      // something else (design §13.49). ?>
+                <label class="form-label mb-0 small" for="ins_border"
+                       id="ins_border_label"><?php echo FORMS_CANVAS_BORDER; ?></label>
                 <input type="text" inputmode="decimal" class="form-control form-control-sm" id="ins_border">
                 <?php // Zero is a hairline, not "off" — the PDF spec defines a
                       // zero line width as the thinnest the device can draw. An
                       // author reading the box as an on/off switch is wrong in
                       // the one direction that cannot be seen on screen and
                       // shows up on paper. ?>
-                <div class="form-text"><?php echo FORMS_CANVAS_BORDER_NOTE; ?></div>
+                <div class="form-text" id="ins_border_note"><?php echo FORMS_CANVAS_BORDER_NOTE; ?></div>
               </div>
               <div class="col-6 d-flex align-items-end" id="ins_bordershow_row">
                 <div class="form-check">
@@ -435,7 +440,12 @@ if ($forms_canvas_definition === null) { ?>
                 <?php // Its own colour, because a rule and the text inside it
                       // are not the same colour on 16 of the shipped elements.
                       // Left alone, the rule follows the text. ?>
-                <label class="form-label mb-0 small" for="ins_bordercolour"><?php
+                <?php // Named by the script for the same reason the width
+                      // above it is: on a line and a box this is the only
+                      // colour there is, and the swatch labelled Colour beside
+                      // it is hidden rather than left to do nothing (§13.49). ?>
+                <label class="form-label mb-0 small" for="ins_bordercolour"
+                       id="ins_bordercolour_label"><?php
                   echo FORMS_CANVAS_BORDER_COLOUR; ?></label>
                 <input type="color" class="form-control form-control-sm form-control-color"
                        id="ins_bordercolour">

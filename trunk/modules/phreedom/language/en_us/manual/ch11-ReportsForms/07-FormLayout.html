@@ -179,7 +179,7 @@ on the document.</p>
 <p>On a text element the height box is labelled <strong>Line height</strong>, because that is what it
 is: the height of one line, not of the whole element. See the note about dashed edges above.</p>
 
-<h3>Borders</h3>
+<h3>Borders, and how thick a line or a box is drawn</h3>
 
 <p>Border width is in points, and <strong>0 does not mean "no border"</strong> &mdash; it means a
 hairline, the thinnest line the printer can manage. Anything below about 0.25 comes out looking the
@@ -187,12 +187,24 @@ same as 0 on paper. 1 is the usual thin rule, and is what is used when no width 
 
 <p><strong>Draw it</strong> is what turns a border on and off, and it only appears for the elements
 that have one to turn off: text, values, address blocks, page numbers, the line-item table and
-barcodes. A box and a line <em>are</em> an outline &mdash; they always draw one &mdash; so their
-width and colour are the only settings that apply.</p>
+barcodes.</p>
+
+<p>A box and a line <em>are</em> an outline &mdash; they always draw one &mdash; so on those two the
+panel says <strong>Thickness</strong> in place of Border width. It is the same setting and the same
+points, named for what it does there: it is how thick the rule or the frame is drawn, and it is the
+only size a line or a box has. The font, size and alignment boxes are not shown for them, because
+nothing on a line or a box is drawn in a font and there is no text to line up. A new line or box
+starts at 1 point, which you can then change to anything you like.</p>
 
 <p>The border has its own colour, separate from the text. Leave it and the border follows the text
 colour; set it and the two are independent, which is how the shipped invoice draws black text inside
 a silver rule.</p>
+
+<p>A line and a box show <strong>one</strong> colour rather than two, for the same reason they show
+Thickness rather than Border width: there is no text on them for a second colour to belong to. The
+swatch is whatever the element is actually drawn in, and changing it changes what you see. On older
+forms the two settings could disagree, and the border colour was always the one that won &mdash; so
+if a line or a box looks a colour you did not choose, that swatch is now the one to change.</p>
 
 <h3>Adding, removing and overlapping</h3>
 

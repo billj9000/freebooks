@@ -5462,3 +5462,129 @@ making text; the page offering a name the save refuses; the Format column header
 removed; the per-row format select removed. End to end on a real sale, adding
 `total_amount` with `posted_cur` puts `£ 4.14` on the paper — the model checks
 say the definition is right, and that says the value reaches the printer.
+
+### 13.49 A control that worked, under a name that said it did not
+
+> "While borders can have a specified thickness, there appears to be no way to
+> specify a thickness for rectangles or lines." — issue #65
+
+Every layer of it already worked. `Style` carries `borderSize`; `drawLine()` and
+`drawRect()` both pass it to `SetLineWidth()`; `TemplateForm::toRequest()` emits
+it and `style()` reads it back; the inspector shows the box for every element
+kind, and `ins_border` has been in the redraw listener list since it was written.
+A thickness typed into that box has always reached the paper. Measured, not
+assumed: 3pt in gives `2.976378 w` in the content stream, which is 3 points
+through PhreeForm's 0.35 and back through TCPDF's exact 72/25.4.
+
+What was wrong was the **word on the label**. The box says *Border width*, and a
+border is something a thing has *around* it. A line and a box do not have an
+outline; they **are** one. So on the two elements where that control is the only
+size setting they possess, its name says it belongs to something else — and the
+author, looking for a thickness and not finding one, reaches for the control
+that sounds like it: **Size**.
+
+Size does nothing on either kind. `drawLine()` and `drawRect()` read
+`borderSize` and `borderColour ?? colour` and *nothing else* — not the font, not
+the size, not the alignment. Three controls sat on the panel for a rule and a
+box, one of them the very one an author would try first, and all three were
+inert. That is the whole defect: not a missing feature, a misleading one.
+
+**The fix is naming, and taking away.** The width control is labelled
+**Thickness** on a `line` and a `rect`, with a note to match (*"0 is a hairline,
+not 'no line'"* rather than *"no border"*), and the font, size and alignment
+controls are hidden for those two kinds. Hidden, not cleared:
+`inspectorChanged()` writes all three back on every edit and `describeSelection()`
+has just loaded them from the element, so a form opened, edited and saved
+returns the font it arrived with — the §13.44 rule that a control which is not
+on screen must not be able to clear the value behind it.
+
+**Two smaller things went with it.** A new line or box is now seeded with a
+thickness of `1` instead of a blank, so the one control that matters on a fresh
+element shows a number rather than looking like one that does not apply. And
+`drawLine()`'s default changed from `?? 0` to `?? 1`, which is what `drawRect()`
+has always done and what the manual has always said — *"1 is the usual thin
+rule, and is what is used when no width is set"*. Nothing shipped relies on the
+old value: all 64 lines in the converted set carry an explicit width of their
+own (all of them `0`), because `convertLine()` reads PhreeForm's `size` into
+`borderSize`. The default was only ever reachable by an element built without a
+style at all, which until now meant a newly added one.
+
+#### Checking a label is not possible, so check the two halves that are
+
+The fault was in a word, and no verification tool can read a word and tell you it
+misleads. `verify_forms_pages.php` already proves the control exists, that its id
+is one the page emits, and that changing it redraws the form — it proved all of
+that while the panel was misleading, and it was right every time.
+
+So `verify_forms_canvas.php` pins what *is* mechanical, in a new section that
+reads line widths back out of the content stream:
+
+- a rule and a box asked for 0.5, 3 and 8 points are drawn at those widths;
+- a thickness posted the way the canvas posts it survives `TemplateForm::apply()`
+  and reaches the paper at both values;
+- a rule with **no** width set is drawn at the same 1 point as a box with none.
+
+The expected width is written as `points × 0.35 × 72/25.4` rather than as a
+tolerance wide enough to swallow the difference. PhreeForm's 0.35 is 1pt to
+within 0.8%, deliberately kept, and a check that hid it behind ±0.02 would also
+hide a real error at 8pt. Spelling the constant into the check pins it instead.
+
+Each of the five was made to fail on purpose before being believed: reverting
+`?? 1` to `?? 0` fails the two default checks, and nulling `borderSize` in
+`style()` fails the save and the paper checks — `NULL / NULL`, `0.000, 0.000`.
+
+The manual's *Borders* topic gains the same explanation, because an author who
+reads it there will not have to discover the renaming by selecting a line.
+
+#### The same fault, one control along
+
+The user found the next one by looking at the panel the fix had just changed:
+*"Its properties include Colour and Border colour. Which one is to be used?"*
+
+`borderColour ?? colour`, for both kinds. Which means the two swatches were two
+ways to say one thing with an unstated precedence — and on the shipped set that
+is not a nicety. Measured:
+
+| | Colour | Border colour |
+|---|---|---|
+| 19 rects | **unset on every one** | set (18 black, 1 white) |
+| 59 lines | set | set to the *same* value |
+| 5 lines | unset | unset |
+
+So on **every** rectangle in the shipped set, typing into the swatch labelled
+*Colour* changed nothing at all: `borderColour` was already set and won. A dead
+control on nineteen of nineteen — §13.49's own defect wearing different clothes,
+found by asking about the panel rather than by any check.
+
+Neither swatch does anything else on these two kinds; there is no text to
+colour. So a line and a box now show **one**, labelled *Colour*, seeded with
+whichever value is in force and writing to `borderColour` — the one that wins.
+
+**The trap this had to avoid.** An `<input type=color>` cannot say *unset*: it
+shows black when nothing is stored. The panel already handled that by writing a
+swatch back only when it differs from what was loaded into it — otherwise every
+element merely *selected* would acquire an explicit black, and the file would
+change on a save where nothing about the colour was touched. Seeding the swatch
+from `borderColour ?? colour` while still comparing it against `borderColour`
+alone would have broken exactly that: select a shipped rectangle, save, and its
+`colour` is promoted to an explicit value it never had.
+
+So the seeding and the comparison are **one function**, `borderColourShown()`,
+and neither call site computes the fallback for itself.
+
+#### What can be checked, and what cannot
+
+The renderer's precedence is now something the panel *promises*, so it is pinned
+rather than read: a rule and a box with only `colour`, with only `borderColour`,
+and with the two disagreeing — silver against red, so a flipped `??` fails on
+the third rather than passing on all three. Flipping it in place fails both
+"drawn in the BORDER colour" checks with `[1,0,0]`.
+
+What is **not** checked is the browser behaviour that trap is about. The canvas
+script is a `type="module"` importing pdf.js, so the vm-based DOM harness in
+`docs/tools/js` cannot load it, and nothing in the suite runs
+`describeSelection()`. `verify_forms_pages` therefore checks the *shape*:
+`borderColourShown` appears three times — its definition and both call sites —
+and `value.borderColour || '#000000'` appears nowhere. That is a weaker claim
+than the ones around it and is written down as one. Reverting the comparison
+fails both, naming the count.

@@ -384,6 +384,11 @@ define('FORMS_CANVAS_FONT_DEFAULT', 'The report default');
 define('FORMS_CANVAS_FONT_OTHER',   '%s (already in use)');
 define('FORMS_CANVAS_BORDER_COLOUR', 'Border colour');
 define('FORMS_CANVAS_BORDER_NOTE', 'In points. 0 is a hairline, not "no border".');
+// A line and a box ARE the outline, so the width they carry is their own
+// thickness rather than a border around something else. Same control, named
+// for what it does on the element in hand (design §13.49).
+define('FORMS_CANVAS_THICKNESS',      'Thickness');
+define('FORMS_CANVAS_THICKNESS_NOTE', 'In points. 0 is a hairline, not "no line".');
 define('FORMS_CANVAS_TABLE_ON_TOP', 'The line-item table is always drawn over the other elements, whatever its place in this order.');
 
 // The line-item table's columns, and the address block's lines (§13.30).

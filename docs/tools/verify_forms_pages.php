@@ -657,6 +657,17 @@ if ($script !== '') {
     preg_match_all('/getElementById\(\s*[\'"]([A-Za-z0-9_\-]+)[\'"]\s*\)/', $script, $asked);
     $wanted = array_values(array_unique($asked[1]));
 
+    // And the same lookup wearing a helper's name. The canvas hides and shows a
+    // dozen inspector rows through `show(id, on)`, which is getElementById with
+    // a `.classList.toggle` on the end — so a mistyped id there does not return
+    // null silently, it THROWS, and takes the rest of describeSelection() with
+    // it: the panel stops filling in half way down, on one element kind only.
+    // Worse than a dead control and just as invisible to a check that reads
+    // getElementById alone, which is how three rows added in §13.49 went
+    // unexamined until this was widened.
+    preg_match_all('/\bshow\(\s*[\'"]([A-Za-z0-9_\-]+)[\'"]\s*,/', $script, $toggled);
+    foreach ($toggled[1] as $id) if (!in_array($id, $wanted, true)) $wanted[] = $id;
+
     // What the page CAN emit: every literal id in its own template, plus every
     // id this rendering actually produced — which covers the ones written by
     // shared helpers rather than by the template itself.
@@ -1445,6 +1456,33 @@ if ($PAGE === 'canvas' && !$PICKING) {
     }
     ok('every inspector control redraws the form when it changes',
        $unwired === [], implode(', ', $unwired) . ' — a control that changes nothing, silently');
+
+    // The colour swatches, which cannot say "unset".
+    //
+    // A <input type=color> shows black when nothing is stored, so the only way
+    // to tell a colour the author CHOSE from one the control merely displays is
+    // that it differs from what was loaded into it. On a line and a box what is
+    // loaded is `borderColour ?? colour` — the renderer's own precedence, so
+    // that the panel does not claim black on an element drawn in silver — and
+    // the write-back has to compare against exactly that. Compare against
+    // `value.borderColour` alone and every outline element merely SELECTED gets
+    // an explicit colour written onto it, changing the file on a save where
+    // nothing about the colour was touched.
+    //
+    // The two sites are one function so they cannot drift, and this says they
+    // still both use it. Be clear about what it is: a check on the SHAPE of the
+    // code, not on its behaviour. The canvas script is a `type="module"` that
+    // imports pdf.js, so the vm-based DOM harness in docs/tools/js cannot load
+    // it and there is nothing here that runs describeSelection(). What the
+    // behaviour rests on is the byte-identical untouched save in
+    // verify_forms_canvas, which sees the PHP half of the same claim (§13.49).
+    $usesHelper = preg_match_all('/borderColourShown\s*\(/', $script);
+    ok('the border-colour swatch is seeded and compared through one function',
+       $usesHelper >= 3,   // the declaration, the seeding, the comparison
+       "borderColourShown appears $usesHelper time(s); wanted its definition and both call sites");
+    ok('and neither site compares against a bare black instead',
+       !preg_match("/value\.borderColour\s*\|\|\s*'#0{6}'/", $script),
+       "a swatch compared against '#000000' stamps a colour onto every element merely selected");
 }
 
 if ($PICKING) {

@@ -351,7 +351,12 @@ final class LayoutPdfRenderer implements FormsRenderer
         $box    = $element->box;
         $colour = $element->style?->borderColour ?? $element->style?->colour;
         if ($colour) $this->pdf->SetDrawColor($colour->r, $colour->g, $colour->b);
-        $this->pdf->SetLineWidth(($element->style?->borderSize ?? 0) * self::PT_TO_MM);
+        // The same default a Rect gets, and the one the manual has always
+        // described: 1 point is the usual thin rule. It was 0 — a hairline,
+        // whose printed weight is the device's business rather than the
+        // document's — which no shipped form relies on, because every line the
+        // converter writes carries an explicit width of its own (§13.49).
+        $this->pdf->SetLineWidth(($element->style?->borderSize ?? 1) * self::PT_TO_MM);
         $this->pdf->Line($box->x, $box->y, $box->x + ($box->width ?? 0), $box->y + ($box->height ?? 0));
     }
 

@@ -548,8 +548,8 @@ function describeSelection() {
   set('ins_x', value.x); set('ins_y', value.y); set('ins_w', value.w); set('ins_h', value.h);
   set('ins_text', value.text); set('ins_font', value.font); set('ins_size', value.size);
   set('ins_border', value.borderSize);
-  document.getElementById('ins_colour').value       = value.colour       || '#000000';
-  document.getElementById('ins_bordercolour').value = value.borderColour || '#000000';
+  document.getElementById('ins_colour').value       = value.colour || '#000000';
+  document.getElementById('ins_bordercolour').value = borderColourShown(box, value);
   document.getElementById('ins_align').value  = value.align || '';
   document.getElementById('ins_visible').value = value.visible || 'all';
   document.getElementById('ins_bordershow').checked = value.borderShow === '1';
@@ -577,6 +577,38 @@ function describeSelection() {
   // picture is not drawn in a font.
   show('ins_weight_row',
        ['text', 'field', 'block', 'pagenum', 'table', 'barcode'].indexOf(box.kind) >= 0);
+
+  // A line and a box ARE the outline, and the width control IS their thickness
+  // — the renderer's SetLineWidth for both comes from `borderSize`. Labelled
+  // "Border width" it read as a property of something else, so the panel looked
+  // as though a rule's thickness could not be set at all; the control an author
+  // reached for instead was Size, which a rule has no use for. Both are fixed
+  // here: the width is named for what it does, and the three settings the
+  // renderer never looks at on these two kinds are taken off the panel
+  // (design §13.49, issue #65).
+  const outline = box.kind === 'line' || box.kind === 'rect';
+  document.getElementById('ins_border_label').textContent = outline
+    ? <?php echo json_encode(FORMS_CANVAS_THICKNESS); ?>
+    : <?php echo json_encode(FORMS_CANVAS_BORDER); ?>;
+  document.getElementById('ins_border_note').textContent = outline
+    ? <?php echo json_encode(FORMS_CANVAS_THICKNESS_NOTE); ?>
+    : <?php echo json_encode(FORMS_CANVAS_BORDER_NOTE); ?>;
+  // Hidden, not cleared. inspectorChanged() writes all three back on every
+  // edit, and describeSelection() has just loaded them from the element, so a
+  // form opened, edited and saved returns the font it arrived with.
+  show('ins_font_row',  !outline);
+  show('ins_size_row',  !outline);
+  show('ins_align_row', !outline);
+  // And ONE colour, not two. The renderer reads `borderColour ?? colour`, so on
+  // a line and a box the two swatches were two ways to say one thing with an
+  // unstated precedence — and on every rectangle in the shipped set, where
+  // `borderColour` is set and `colour` is not, the one labelled Colour could
+  // not change anything at all. The surviving swatch is seeded with whichever
+  // value is in force and writes to the one that wins.
+  show('ins_colour_row', !outline);
+  document.getElementById('ins_bordercolour_label').textContent = outline
+    ? <?php echo json_encode(FORMS_DESIGN_COLOUR); ?>
+    : <?php echo json_encode(FORMS_CANVAS_BORDER_COLOUR); ?>;
   show('ins_table_note', box.kind === 'table');
   show('ins_src_row',  box.kind === 'image' && box.source === 'file');
 
@@ -624,6 +656,23 @@ function describeSelection() {
 
 function set(id, text)  { document.getElementById(id).value = text === undefined ? '' : text; }
 function show(id, on)   { document.getElementById(id).classList.toggle('d-none', !on); }
+
+/**
+ * What the border-colour swatch shows, and so what a change to it is measured
+ * against. ONE function because the two call sites have to agree exactly: a
+ * colour input cannot say "unset", so the only way to tell a colour the author
+ * chose from one the control merely displays is that it differs from what was
+ * loaded into it.
+ *
+ * On a line and a box the effective colour is `borderColour ?? colour` — the
+ * renderer's own rule — so that is what is shown, and the panel is not claiming
+ * black on an element drawn in silver. Everywhere else the two are genuinely
+ * separate: black text inside a silver rule is 16 elements of the shipped set.
+ */
+function borderColourShown(box, value) {
+  const outline = box.kind === 'line' || box.kind === 'rect';
+  return (outline ? (value.borderColour || value.colour) : value.borderColour) || '#000000';
+}
 
 /** The inspector writing back. Geometry also moves the box on the page. */
 function inspectorChanged() {
@@ -674,8 +723,13 @@ function inspectorChanged() {
   // from what was loaded into it.
   const colour = document.getElementById('ins_colour').value;
   if (colour !== (value.colour || '#000000')) value.colour = colour;
+  // Against what describeSelection() PUT there, which on a line or a box is not
+  // simply `value.borderColour`. Comparing against the wrong thing would write
+  // an explicit colour onto every outline element merely selected — the file
+  // changing on a save where nothing about the colour was touched, which is the
+  // accident this three-line dance exists to avoid.
   const borderColour = document.getElementById('ins_bordercolour').value;
-  if (borderColour !== (value.borderColour || '#000000')) value.borderColour = borderColour;
+  if (borderColour !== borderColourShown(box, value)) value.borderColour = borderColour;
   const hdrBorderColour = document.getElementById('ins_hdr_bordercolour').value;
   if (hdrBorderColour !== (value.hdrBorderColour || '#000000')) value.hdrBorderColour = hdrBorderColour;
   // Never from a context element: its control is not the one on screen, and the
@@ -788,7 +842,15 @@ function formsCanvasAdd(kind) {
   values.push({ index: '', kind: kind, x: '20', y: '20', w: String(width),
                 h: height, bind: '', text: '', visible: 'all',
                 label: '', font: '', size: '', colour: '', borderColour: '', align: '',
-                borderSize: '', borderShow: '', truncate: '', bold: '', italic: '', src: '',
+                // A line and a box are given a thickness rather than left
+                // blank. Blank draws the renderer's own default — a hairline
+                // for a rule — so the one control that matters on a new
+                // element started out empty and looked like one that did not
+                // apply. 1 point is the thin rule the manual has always
+                // described, and matches what an unset box has always drawn
+                // (§13.49).
+                borderSize: (kind === 'line' || kind === 'rect') ? '1' : '',
+                borderShow: '', truncate: '', bold: '', italic: '', src: '',
                 hdrSize: '', hdrBorderSize: '', hdrBorderColour: '', hdrBorderShow: '',
                 // Empty, and explicitly so. `[]` is what tells the binder the
                 // author means none rather than means nothing — a blank is read
