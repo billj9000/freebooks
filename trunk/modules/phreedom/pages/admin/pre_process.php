@@ -28,6 +28,9 @@ if (defined('MODULE_FORMS_STATUS')) {
   gen_pull_language('forms');
   require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
 }
+// phreebooks_charts(), for the Company Manager's chart question, and
+// phreebooks_chart_insert() to seed the new company with the answer.
+if (defined('MODULE_PHREEBOOKS_STATUS')) require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
 require_once(DIR_FS_WORKING . 'classes/backup.php');
 require_once(DIR_FS_WORKING . 'classes/install.php');
@@ -166,6 +169,36 @@ switch ($_REQUEST['action']) {
 	if (!isset($known[$paper_size])) {
 	  $paper_size = defined('FORMS_DEFAULT_PAPER') ? FORMS_DEFAULT_PAPER : '';
 	}
+	// The chart of accounts the new company starts on. Checked against the
+	// shipped list rather than trusted: the value names a file read off disk.
+	//
+	// Only consulted where phreebooks is being SET UP rather than copied - a
+	// module set to 'data' brings the source company's own chart with it, and
+	// seeding a second one over the top is not what copying a company means.
+	$chart_file = db_prepare_input($_POST['chart'] ?? '');
+	$charts     = function_exists('phreebooks_charts') ? phreebooks_charts() : array();
+	if (!isset($charts[$chart_file])) $chart_file = function_exists('phreebooks_default_chart') ? phreebooks_default_chart() : '';
+	$chart_info = function_exists('phreebooks_chart_read') ? phreebooks_chart_read($chart_file) : false;
+	$seed_chart = ($_POST['phreebooks_action'] ?? '') <> 'data';
+	// Said out loud rather than left to be discovered. Copying phreebooks brings
+	// the source company's chart, and the chart chosen above is not used - which
+	// is right, but it is not what the form looked like it was offering, and the
+	// copied journal then stops the chart being swapped afterwards.
+	if (!$seed_chart && $chart_info) {
+	  $messageStack->add(sprintf(SETUP_CO_MGR_CHART_IGNORED, $chart_info['description']), 'caution');
+	}
+
+	// The demonstration data names US account numbers literally, so a chart
+	// numbered any other way would take every demo record and post it at an
+	// account that is not there. Downgraded to a plain install of the module
+	// rather than refused outright, so the rest of the copy still happens.
+	if ($seed_chart && $chart_info && !$chart_info['demo']) {
+	  $demoted = array();
+	  foreach ($loaded_modules as $entry) {
+	    if (($_POST[$entry . '_action'] ?? '') == 'demo') { $_POST[$entry . '_action'] = 'core'; $demoted[] = $entry; }
+	  }
+	  if (!empty($demoted)) $messageStack->add(sprintf(SETUP_CO_MGR_CHART_NO_DEMO, $chart_info['description'], implode(', ', $demoted)), 'caution');
+	}
 	// error check company name and company full name
 	if (!$db_name || !$co_name)           $error = $messageStack->add(SETUP_CO_MGR_ERROR_EMPTY_FIELD,'error');
 	if ($db_name == $_SESSION['company']) $error = $messageStack->add(SETUP_CO_MGR_DUP_DB_NAME,'error');
@@ -201,6 +234,15 @@ switch ($_REQUEST['action']) {
 		// Seed the NEW company's stored setting with the chosen paper. write_configure()
 		// writes into $db, which now points at the new database.
 		if ($entry == 'forms' && $paper_size <> '') $install_mod->keys['FORMS_DEFAULT_PAPER'] = $paper_size;
+		// Same one moment, same reason as the paper above: these keys are
+		// INSERTED here, and write_configure() only define()s the constant on
+		// the branch that inserts. Only keys the module declares are taken, so
+		// a chart cannot introduce settings of its own by misspelling a tag.
+		if ($entry == 'phreebooks' && $seed_chart && $chart_info) {
+		  foreach ($chart_info['defaults'] as $chart_key => $chart_acct) {
+		    if (array_key_exists($chart_key, $install_mod->keys)) $install_mod->keys[$chart_key] = $chart_acct;
+		  }
+		}
 	    $task        = $_POST[$entry . '_action'];
 		if ($entry == 'phreedom') $task = 'data'; // force complete copy of phreedom module
 	    switch ($task) {
@@ -270,11 +312,42 @@ switch ($_REQUEST['action']) {
 	    }
 	  }
 	}
-	if (!$error && $_POST['phreebooks_action'] <> 'data') { // install fiscal year if the phreebooks data is not copied
+	// The currency the new company keeps its books in, where its chart names one.
+	//
+	// phreedom is always copied whole, so the new database arrives holding the
+	// SOURCE company's currency table - and every rate in it is quoted against
+	// the source's default. Pointing DEFAULT_CURRENCY at something else without
+	// touching those rates would leave each one out by the old default's rate,
+	// so the table is re-quoted against the new one first. Dividing through by
+	// the new default's own rate does exactly that, and leaves its own row at 1,
+	// which is the convention currency::btn_update() maintains.
+	//
+	// A currency the source company never had cannot be re-quoted from anything,
+	// so that is said rather than guessed at.
+	if (!$error && $seed_chart && $chart_info && $chart_info['currency'] <> '') {
+	  $wanted = $chart_info['currency'];
+	  $result = $db->Execute("select value from " . TABLE_CURRENCIES . " where code = '" . db_input($wanted) . "'");
+	  $rate   = $result->RecordCount() > 0 ? (float)$result->fields['value'] : 0;
+	  if ($rate > 0) {
+	    $db->Execute("update " . TABLE_CURRENCIES . " set value = value / " . $rate . ", last_updated = now()");
+	    // Updates the row, not the constant - write_configure() only define()s on
+	    // insert, and this row was copied in. Nothing below reads it, and the new
+	    // company is opened in a fresh request.
+	    write_configure('DEFAULT_CURRENCY', $wanted);
+	  } else {
+	    $messageStack->add(sprintf(SETUP_CO_MGR_CHART_NO_CURRENCY, $wanted, $chart_info['description']), 'caution');
+	  }
+	}
+	if (!$error && $seed_chart) { // install fiscal year if the phreebooks data is not copied
 	  $db->Execute("TRUNCATE TABLE " . TABLE_ACCOUNTING_PERIODS);
 	  require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 	  $dates = gen_get_dates();
 	  validate_fiscal_year($dates['ThisYear'], '1', $dates['ThisYear'] . '-' . $dates['ThisMonth'] . '-01');
+	  // Before the history records, not after: build_and_check_account_history_records()
+	  // writes one row per account per period, so an empty chart gives it nothing
+	  // to build. Creating a company with phreebooks set to anything but 'data'
+	  // used to leave it with no chart of accounts at all.
+	  if ($chart_info) phreebooks_chart_insert($chart_info['accounts']);
 	  build_and_check_account_history_records();
 	  // NOT gen_auto_update_period(): it asks gen_calculate_period(), which
 	  // short-circuits on CURRENT_ACCOUNTING_PERIOD_START/END — constants that

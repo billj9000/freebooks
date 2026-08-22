@@ -208,6 +208,8 @@ define('GL_CHART_IMPORT_DESC','or custom chart to import: ');
 define('GL_CHART_DELETE_WARNING','NOTE: Current chart of accounts cannot be deleted if journal entries are present!');
 define('GL_JOURNAL_NOT_EMTPY','The general journal is not empty, the current chart of accounts cannot be deleted!');
 define('GL_ACCOUNT_DUPLICATE','The gl account: %s already exists!. The account will not be added.');
+define('GL_CHART_NOT_READ','The chart of accounts %s could not be read. Nothing has been imported.');
+define('GL_CHART_DEFAULTS_SET','The receivables and payables default accounts have been set to the ones named by the %s.');
 define('GL_INFO_HEADING_ONLY', 'This account is a heading and cannot accept posted values?');
 define('GL_INFO_PRIMARY_ACCT_ID', 'If this account is a sub-account, select primary account:');
 define('ERROR_ACCT_TYPE_REQ','The GL Account Type is required!');

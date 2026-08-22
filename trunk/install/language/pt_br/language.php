@@ -20,6 +20,8 @@
 define('LANGUAGE','Português (BR)');
 define('HTML_PARAMS','lang="pt-BR" xml:lang="pt-BR"');
 define('CHARSET', 'UTF-8');
+define('TEXT_CHART_INFO', 'Select the chart of accounts this company keeps its books on. The chart decides both the accounts the company starts with and which of them the receivables and payables settings point at, so it is worth picking the one that matches the country and trading form. It can be replaced later, from Setup, only while the general journal is still empty.');
+define('MSG_CHART_NO_DEMO', 'The demonstration data uses the US Retail account numbers, so it cannot be loaded against the %s. The company has been installed without it.');
 // template_welcome
 define('LANGUAGE_TEXT','Idiomas Disponíveis para Instalação: ');
 define('TITLE_WELCOME','Bemvindo - PhreeBooks Contabilidade');

@@ -42,10 +42,41 @@ $tax_rates_vend    = new tax_rates_vend();
 switch ($_REQUEST['action']) {
   case 'import':
 	validate_security($security_level, 3);
-  	$delete_chart = ($_POST['delete_chart']) ? true : false;
-	$std_chart    = db_prepare_input($_POST['std_chart']);
+  	$delete_chart = !empty($_POST['delete_chart']);
+	// basename(): the value names a file this page then reads off disk, and a
+	// level 3 user is not the same thing as a user who may name any path on the
+	// server. phreebooks_chart_read() checks it against the shipped list too.
+	$std_chart    = basename(db_prepare_input($_POST['std_chart'] ?? ''));
 	// first verify the file was uploaded ok
 	if (!$std_chart) if (!validate_upload('file_name', 'text', 'txt')) break;
+
+	// The new chart is read BEFORE anything is emptied. Replacing truncates two
+	// tables, and doing that first meant a file that turned out not to be a
+	// chart left the company with no chart of accounts at all and nothing to
+	// put back.
+	//
+	// A shipped chart is read through phreebooks_chart_read(), which knows where
+	// the charts for this locale actually are - this page used to list them out
+	// of en_us when the locale had no charts directory of its own but then read
+	// each one back from the locale's path, so the drop down offered names that
+	// could not be opened. An uploaded file is parsed as it always was.
+	if ($std_chart) {
+	  $chart_info = phreebooks_chart_read($std_chart);
+	  if (!$chart_info) { $messageStack->add(sprintf(GL_CHART_NOT_READ, $std_chart), 'error'); break; }
+	  $chart_accounts = $chart_info['accounts'];
+	} else {
+	  $chart_info = false;
+	  $accounts   = xml_to_object(file_get_contents($_FILES['file_name']['tmp_name']));
+	  if (is_object($accounts) && isset($accounts->ChartofAccounts)) $accounts = $accounts->ChartofAccounts; // just pull the first one
+	  // A file that is not a chart parses to a string or to false, and reading
+	  // ->account off either is how an unhelpful upload became an unhelpful
+	  // warning rather than a message saying what was wrong.
+	  if (!is_object($accounts)) { $messageStack->add(sprintf(GL_CHART_NOT_READ, $_FILES['file_name']['name']), 'error'); break; }
+	  if (isset($accounts->account) && is_object($accounts->account)) $accounts->account = array($accounts->account); // in case of only one chart entry
+	  $chart_accounts = (isset($accounts->account) && is_array($accounts->account)) ? $accounts->account : array();
+	}
+	if (empty($chart_accounts)) { $messageStack->add(sprintf(GL_CHART_NOT_READ, $std_chart ? $std_chart : $_FILES['file_name']['name']), 'error'); break; }
+
 	if ($delete_chart) {
 	  $result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " limit 1");
 	  if ($result->RecordCount() > 0) {
@@ -55,26 +86,33 @@ switch ($_REQUEST['action']) {
 	  $db->Execute("TRUNCATE TABLE " . TABLE_CHART_OF_ACCOUNTS);
 	  $db->Execute("TRUNCATE TABLE " . TABLE_CHART_OF_ACCOUNTS_HISTORY);
 	}
-	$filename = $std_chart ? (DIR_FS_WORKING.'language/'.$_SESSION['language'].'/charts/'.$std_chart) : $_FILES['file_name']['tmp_name'];
-	$accounts = xml_to_object(file_get_contents($filename));
-	if (is_object($accounts->ChartofAccounts)) $accounts = $accounts->ChartofAccounts; // just pull the first one
-	if (is_object($accounts->account)) $accounts->account = array($accounts->account); // in case of only one chart entry
-	if (is_array($accounts->account)) foreach ($accounts->account as $account) {
-	  $result = $db->Execute("select id from " . TABLE_CHART_OF_ACCOUNTS . " where id = '" . $account->id . "'");
-	  if ($result->RecordCount() > 0) {
-	    $messageStack->add(sprintf(GL_ACCOUNT_DUPLICATE, $account->id),'error');
-		continue;
-	  }
-	  $sql_data_array = array(
-	    'id'              => $account->id,
-		'description'     => $account->description,
-		'heading_only'    => $account->heading,
-		'primary_acct_id' => $account->primary,
-		'account_type'    => $account->type,
-	  );
-	  db_perform(TABLE_CHART_OF_ACCOUNTS, $sql_data_array, 'insert');
+	foreach (phreebooks_chart_insert($chart_accounts) as $duplicate) {
+	  $messageStack->add(sprintf(GL_ACCOUNT_DUPLICATE, $duplicate),'error');
 	}
 	build_and_check_account_history_records();
+	// A chart REPLACED is a chart whose numbering has just changed underneath
+	// every receivables and payables default, so the chart's own answers are
+	// taken with it. Merging into an existing chart leaves them alone: those
+	// settings are about the accounts already in use, not the ones just added.
+	//
+	// Redirected afterwards because write_configure() only define()s a constant
+	// on the branch that INSERTS the row. These rows exist, so it updates them
+	// and the constants this request already holds stay as they were - the
+	// settings tabs alongside this one read those constants, and would show the
+	// old accounts while the database held the new. Messages survive the
+	// redirect; they are kept in the session.
+	if ($delete_chart && $chart_info && !empty($chart_info['defaults'])) {
+	  $applied = false;
+	  foreach ($chart_info['defaults'] as $chart_key => $chart_acct) {
+	    if (!array_key_exists($chart_key, $install->keys)) continue;
+	    write_configure($chart_key, $chart_acct);
+	    $applied = true;
+	  }
+	  if ($applied) {
+	    $messageStack->add(sprintf(GL_CHART_DEFAULTS_SET, $chart_info['description']), 'success');
+	    gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
+	  }
+	}
 	break;
   case 'save':
 	validate_security($security_level, 3);
@@ -129,17 +167,8 @@ $sel_inv_due = array( // invoice date versus due date for aging
  array('id' => '1', 'text' => BNK_DUE_DATE),
 );
 
-// load available charts based on language
-if (is_dir($dir = DIR_FS_WORKING.'language/'.$_SESSION['language'].'/charts')) { $charts = scandir($dir); }
-  else { $charts = scandir(DIR_FS_WORKING . 'language/en_us/charts'); }
-$sel_chart = array(array('id' => '0', 'text' => TEXT_SELECT));
-foreach ($charts as $chart) {
-  if (strpos($chart, 'xml')) {
-	$temp = xml_to_object(file_get_contents(DIR_FS_WORKING . 'language/' . $_SESSION['language'] . '/charts/' . $chart));
-	if ($temp->ChartofAccounts) $temp = $temp->ChartofAccounts;
-    $sel_chart[] = array('id' => $chart, 'text' => $temp->description);
-  }
-}
+// the charts shipped for this locale, listed and read out of the same directory
+$sel_chart = array_merge(array(array('id' => '0', 'text' => TEXT_SELECT)), gen_build_pull_down(phreebooks_charts()));
 
 // some pre-defined gl accounts
 $cash_chart = gen_coa_pull_down(2, false, true, false, $restrict_types = array(0));    // cash types only

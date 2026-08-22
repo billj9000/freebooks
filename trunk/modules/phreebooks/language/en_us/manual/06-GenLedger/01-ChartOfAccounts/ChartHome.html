@@ -27,6 +27,15 @@
   <li>Accounts cannot be deleted if they have been used in a journal entry.</li>
   <li>Accounts should be checked as inactive if they are no longer used but have past journal entries against it.</li>
 </ul>
+<h3>Loading a supplied chart of accounts</h3>
+<p>FreeBooks supplies charts for the UK, Ireland and the United States, in sole trader/partnership and limited company/corporation forms. One of them is chosen when the company is created; a different one can be loaded afterwards from the Chart of Accounts tab.</p>
+<ol>
+  <li>Select Company -&gt; Configuration -&gt; FreeBooks, then open the Chart of Accounts tab.</li>
+  <li>Pick a chart from the list, or choose an XML file of your own.</li>
+  <li>Tick <strong>Replace current chart of accounts</strong> to discard what is there and start again on the new chart. This is only possible while the general journal is still empty, and it moves the receivables and payables default accounts onto the ones the new chart names.</li>
+  <li>Left unticked, the new accounts are added alongside the existing ones. Any account number already in use is reported and skipped, and the existing defaults are left as they are.</li>
+  <li>Press Import.</li>
+</ol>
 <h3>Adding a general ledger account</h3>
 <ol>
   <li>Select Company -&gt; Configuration -&gt; FreeBooks, then open the Chart of Accounts tab.</li>

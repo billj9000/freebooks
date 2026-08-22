@@ -24,6 +24,7 @@ class phreedom_admin {
 	public $keys			= array();// Load configuration constants for this module, must match entries in admin tabs
 	public $dirlist			= array();// add new directories to store images and data
 	public $tables			= array();// Load tables
+	public $default_currency = 'USD';// the currency the books are kept in; set from the chosen chart of accounts
 
   function __construct() {
 	// Load configuration constants for this module, must match entries in admin tabs
@@ -206,14 +207,39 @@ class phreedom_admin {
   function install($module) {
     global $db, $messageStack;
 	$error = false;
-	// load some default currency values
+	// Load some default currency values.
+	//
+	// `value` is what one unit of the currency is worth in the DEFAULT one, so
+	// the default's own row must be 1 and the rest must be quoted against it -
+	// that is the convention currency::btn_update() writes and format() reads,
+	// and it is why the rates below are held per US dollar and then divided
+	// through by the default's. Seeding a GBP company from a table quoted in
+	// dollars would leave every foreign amount out by the dollar rate.
+	//
+	// Indicative only, and only until the rates are next updated; the exchange
+	// server does the real work whenever multi-currency is switched on.
 	$db->Execute("TRUNCATE TABLE " . TABLE_CURRENCIES);
-	$currencies_list = array(
-	  array('title' => 'US Dollar', 'code' => 'USD', 'symbol_left' => '$', 'symbol_right' => '',    'decimal_point' => '.', 'thousands_point' => ',', 'decimal_places' => '2', 'decimal_precise' => '2', 'value' => 1.00000000, 'last_updated' => date('Y-m-d H:i:s')),
-	  array('title' => 'Euro',      'code' => 'EUR', 'symbol_left' => '',  'symbol_right' => 'EUR', 'decimal_point' => '.', 'thousands_point' => ',', 'decimal_places' => '2', 'decimal_precise' => '2', 'value' => 0.75000000, 'last_updated' => date('Y-m-d H:i:s')),
+	$per_usd = array(
+	  'USD' => array('title' => 'US Dollar',      'symbol_left' => '$', 'symbol_right' => '', 'rate' => 1.00),
+	  'EUR' => array('title' => 'Euro',           'symbol_left' => '€', 'symbol_right' => '', 'rate' => 0.92),
+	  'GBP' => array('title' => 'Pound Sterling', 'symbol_left' => '£', 'symbol_right' => '', 'rate' => 0.79),
 	);
-	foreach($currencies_list as $entry) db_perform(TABLE_CURRENCIES, $entry, 'insert');
-	write_configure('DEFAULT_CURRENCY', 'USD');
+	$default = isset($per_usd[$this->default_currency]) ? $this->default_currency : 'USD';
+	foreach ($per_usd as $code => $entry) {
+	  db_perform(TABLE_CURRENCIES, array(
+	    'title'           => $entry['title'],
+	    'code'            => $code,
+	    'symbol_left'     => $entry['symbol_left'],
+	    'symbol_right'    => $entry['symbol_right'],
+	    'decimal_point'   => '.',
+	    'thousands_point' => ',',
+	    'decimal_places'  => '2',
+	    'decimal_precise' => '2',
+	    'value'           => round($entry['rate'] / $per_usd[$default]['rate'], 8),
+	    'last_updated'    => date('Y-m-d H:i:s'),
+	  ), 'insert');
+	}
+	write_configure('DEFAULT_CURRENCY', $default);
 	// Enter some data into table current status
 	$db->Execute("TRUNCATE TABLE " . TABLE_CURRENT_STATUS);
 	$db->Execute("insert into " . TABLE_CURRENT_STATUS . " set id = 1");

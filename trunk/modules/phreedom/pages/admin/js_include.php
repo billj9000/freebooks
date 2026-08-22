@@ -211,4 +211,61 @@ function subjectDelete(subject, id) {
   submitSeq(id, 'delete');
 }
 
+// Which charts the shipped demonstration data can be loaded against. The demo
+// records name US account numbers literally, so a chart numbered any other way
+// would take every one of them and post it at an account that is not there.
+//
+// The page enforces this on its own when the form comes back; this only says so
+// while the choice is still being made.
+var fbChartAllowsDemo = <?php
+  $chart_demo = array();
+  if (function_exists('phreebooks_charts')) {
+    // Named apart from pre_process.php's own $chart_file/$chart_info: this
+    // file is included into the same scope, after it has run.
+    foreach (array_keys(phreebooks_charts()) as $js_chart_file) {
+      $js_chart = phreebooks_chart_read($js_chart_file);
+      $chart_demo[$js_chart_file] = ($js_chart && $js_chart['demo']) ? 1 : 0;
+    }
+  }
+  echo json_encode($chart_demo);
+?>;
+
+function chartSelect() {
+  var chart = document.getElementById('chart');
+  if (!chart) return;
+
+  // The chart is only used where the general ledger is being SET UP. Copying
+  // phreebooks brings the source company's own chart, its journal and its
+  // account numbering with it, and seeding a second chart over the top is not
+  // what copying a company means - so the choice does nothing, and saying so
+  // here is the difference between an informed decision and a surprise. A
+  // chart cannot be swapped afterwards either: the importer refuses once the
+  // journal has anything in it, which a copied company's does.
+  var pbData  = document.querySelector('input[type=radio][name="phreebooks_action"][value="data"]');
+  var copying = !!(pbData && pbData.checked);
+  var note    = document.getElementById('chart_note');
+  chart.disabled = copying;
+  if (note) note.style.display = copying ? '' : 'none';
+
+  // Demonstration data only where the chosen chart admits it.
+  var allowed = copying || fbChartAllowsDemo[chart.value] !== 0;
+  document.querySelectorAll('input[type=radio][value="demo"]').forEach(function (radio) {
+    if (!/_action$/.test(radio.name)) return;
+    radio.disabled = !allowed;
+    if (!allowed && radio.checked) {
+      var core = document.querySelector('input[type=radio][name="' + radio.name + '"][value="core"]');
+      if (core) core.checked = true;
+    }
+  });
+}
+
+// Both directions: the chart governs the demo columns, and the phreebooks row
+// governs whether the chart applies at all.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('input[type=radio][name="phreebooks_action"]').forEach(function (radio) {
+    radio.addEventListener('change', chartSelect);
+  });
+  chartSelect();
+});
+
 </script>

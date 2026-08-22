@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ChartofAccounts>
+  <description>UK - Limited Company Chart of Accounts (VAT)</description>
+  <country>GB</country>
+  <currency>GBP</currency>
+  <demo>0</demo>
+  <defaults>
+	<AR_DEFAULT_GL_ACCT>1100</AR_DEFAULT_GL_ACCT>
+	<AR_DEF_GL_SALES_ACCT>4000</AR_DEF_GL_SALES_ACCT>
+	<AR_SALES_RECEIPTS_ACCOUNT>1020</AR_SALES_RECEIPTS_ACCOUNT>
+	<AR_DISCOUNT_SALES_ACCOUNT>4900</AR_DISCOUNT_SALES_ACCOUNT>
+	<AR_DEF_FREIGHT_ACCT>4300</AR_DEF_FREIGHT_ACCT>
+	<AR_DEF_DEPOSIT_ACCT>1020</AR_DEF_DEPOSIT_ACCT>
+	<AR_DEF_DEP_LIAB_ACCT>2400</AR_DEF_DEP_LIAB_ACCT>
+	<AP_DEFAULT_INVENTORY_ACCOUNT>1200</AP_DEFAULT_INVENTORY_ACCOUNT>
+	<AP_DEFAULT_PURCHASE_ACCOUNT>2000</AP_DEFAULT_PURCHASE_ACCOUNT>
+	<AP_PURCHASE_INVOICE_ACCOUNT>1020</AP_PURCHASE_INVOICE_ACCOUNT>
+	<AP_DEF_FREIGHT_ACCT>6800</AP_DEF_FREIGHT_ACCT>
+	<AP_DISCOUNT_PURCHASE_ACCOUNT>6900</AP_DISCOUNT_PURCHASE_ACCOUNT>
+	<AP_DEF_DEPOSIT_ACCT>1020</AP_DEF_DEPOSIT_ACCT>
+	<AP_DEF_DEP_LIAB_ACCT>2400</AP_DEF_DEP_LIAB_ACCT>
+  </defaults>
+  <account>
+    <id>1000</id>
+	<description>Petty Cash</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>0</type>
+  </account>
+  <account>
+    <id>1020</id>
+	<description>Bank Current Account</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>0</type>
+  </account>
+  <account>
+    <id>1030</id>
+	<description>Bank Deposit Account</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>0</type>
+  </account>
+  <account>
+    <id>1050</id>
+	<description>Merchant Account</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>0</type>
+  </account>
+  <account>
+    <id>1100</id>
+	<description>Trade Debtors</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>2</type>
+  </account>
+  <account>
+    <id>1150</id>
+	<description>Provision for Doubtful Debts</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>2</type>
+  </account>
+  <account>
+    <id>1200</id>
+	<description>Stock</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>4</type>
+  </account>
+  <account>
+    <id>1300</id>
+	<description>VAT on Purchases (Input Tax)</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>6</type>
+  </account>
+  <account>
+    <id>1400</id>
+	<description>Prepayments</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>6</type>
+  </account>
+  <account>
+    <id>1450</id>
+	<description>Other Debtors</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>6</type>
+  </account>
+  <account>
+    <id>1500</id>
+	<description>Plant and Machinery</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>8</type>
+  </account>
+  <account>
+    <id>1520</id>
+	<description>Fixtures and Fittings</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>8</type>
+  </account>
+  <account>
+    <id>1540</id>
+	<description>Motor Vehicles</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>8</type>
+  </account>
+  <account>
+    <id>1560</id>
+	<description>Office and Computer Equipment</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>8</type>
+  </account>
+  <account>
+    <id>1900</id>
+	<description>Accumulated Depreciation</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>10</type>
+  </account>
+  <account>
+    <id>2000</id>
+	<description>Trade Creditors</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>20</type>
+  </account>
+  <account>
+    <id>2100</id>
+	<description>VAT on Sales (Output Tax)</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2110</id>
+	<description>VAT Liability</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2200</id>
+	<description>PAYE Payable</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2210</id>
+	<description>National Insurance Payable</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2220</id>
+	<description>Pension Contributions Payable</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2230</id>
+	<description>Net Wages Payable</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2300</id>
+	<description>Corporation Tax Payable</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2400</id>
+	<description>Customer Deposits</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2450</id>
+	<description>Accruals</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2500</id>
+	<description>Current Portion of Loans</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2550</id>
+	<description>Credit Card Control Account</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>22</type>
+  </account>
+  <account>
+    <id>2700</id>
+	<description>Bank Loans</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>24</type>
+  </account>
+  <account>
+    <id>2750</id>
+	<description>Hire Purchase and Finance Leases</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>24</type>
+  </account>
+  <account>
+    <id>2800</id>
+	<description>Directors' Loan Account</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>24</type>
+  </account>
+  <account>
+    <id>3000</id>
+	<description>Ordinary Share Capital</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>40</type>
+  </account>
+  <account>
+    <id>3050</id>
+	<description>Share Premium Account</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>40</type>
+  </account>
+  <account>
+    <id>3400</id>
+	<description>Dividends Paid</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>42</type>
+  </account>
+  <account>
+    <id>3800</id>
+	<description>Retained Earnings</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>44</type>
+  </account>
+  <account>
+    <id>4000</id>
+	<description>Sales - Goods</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>4010</id>
+	<description>Sales - Services</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>4020</id>
+	<description>Sales - Export</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>4300</id>
+	<description>Carriage Charged to Customers</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>4400</id>
+	<description>Interest Received</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>4450</id>
+	<description>Other Income</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>4900</id>
+	<description>Discounts Allowed</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>30</type>
+  </account>
+  <account>
+    <id>5000</id>
+	<description>Purchases</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>32</type>
+  </account>
+  <account>
+    <id>5100</id>
+	<description>Carriage Inwards</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>32</type>
+  </account>
+  <account>
+    <id>5200</id>
+	<description>Subcontractors</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>32</type>
+  </account>
+  <account>
+    <id>5300</id>
+	<description>Direct Labour</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>32</type>
+  </account>
+  <account>
+    <id>5900</id>
+	<description>Stock Adjustments</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>32</type>
+  </account>
+  <account>
+    <id>6000</id>
+	<description>Wages and Salaries</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6010</id>
+	<description>Directors' Remuneration</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6050</id>
+	<description>Employer's National Insurance</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6060</id>
+	<description>Employer's Pension Contributions</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6070</id>
+	<description>Staff Welfare and Training</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6150</id>
+	<description>Bad Debts Written Off</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6200</id>
+	<description>Rent</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6250</id>
+	<description>Business Rates and Water</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6300</id>
+	<description>Light and Heat</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6350</id>
+	<description>Repairs and Maintenance</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6400</id>
+	<description>Insurance</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6450</id>
+	<description>Printing, Postage and Stationery</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6500</id>
+	<description>Telephone and Internet</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6550</id>
+	<description>Computer Software and Support</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6600</id>
+	<description>Advertising and Promotion</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6650</id>
+	<description>Commissions Payable</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6700</id>
+	<description>Accountancy and Legal Fees</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6750</id>
+	<description>Equipment Hire and Leasing</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6800</id>
+	<description>Carriage Outwards</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6850</id>
+	<description>Bank Charges and Interest</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6900</id>
+	<description>Purchase Discounts Received</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>6950</id>
+	<description>Motor Expenses</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>7000</id>
+	<description>Travel and Subsistence</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>7050</id>
+	<description>Depreciation</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>7100</id>
+	<description>Profit or Loss on Disposal of Assets</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>7150</id>
+	<description>Sundry Expenses</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+  <account>
+    <id>7200</id>
+	<description>Corporation Tax</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>34</type>
+  </account>
+</ChartofAccounts>

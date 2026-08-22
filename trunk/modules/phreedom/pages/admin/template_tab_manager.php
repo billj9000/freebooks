@@ -52,6 +52,14 @@
           <td><?php echo SETUP_CO_MGR_CO_NAME; ?></td>
           <td><?php echo html_input_field('co_name', $co_name, 'size="50"', true); ?></td>
         </tr>
+<?php if (function_exists('phreebooks_charts')) { // phreebooks supplies the list; skip the row if it is not installed ?>
+        <tr>
+          <td><?php echo SETUP_CO_MGR_CHART; ?></td>
+          <td><?php echo html_pull_down_menu('chart', gen_build_pull_down(phreebooks_charts()), $_POST['chart'] ?? phreebooks_default_chart(), 'class="form-select form-select-sm" onchange="chartSelect()"'); ?>
+            <div id="chart_note" class="small text-muted mt-1" style="display:none"><?php echo SETUP_CO_MGR_CHART_IGNORED_HINT; ?></div>
+          </td>
+        </tr>
+<?php } ?>
 <?php if (function_exists('forms_paper_sizes')) { // Forms supplies the list; skip the row if it is not installed ?>
         <tr>
           <td><?php echo SETUP_CO_MGR_PAPER_SIZE; ?></td>

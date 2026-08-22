@@ -44,6 +44,8 @@ define('TEXT_DB_INFO','Database Informatie');
 define('TEXT_FISCAL_INFO','Fiscale Informatie');
 define('TEXT_COMPANY_NAME','Voer een korte naam in voor uw bedrijf. Dit wordt getoond in een keuze menu tijdens het inloggen.');
 define('TEXT_INSTALL_DEMO_DATA','Wil u voor iedere module demo data installeren? Aantekening: Als u Ja selecteert, worden de tabellen geleegd voordat de demodata wordt opgeslagen.');
+define('TEXT_CHART_INFO', 'Select the chart of accounts this company keeps its books on. The chart decides both the accounts the company starts with and which of them the receivables and payables settings point at, so it is worth picking the one that matches the country and trading form. It can be replaced later, from Setup, only while the general journal is still empty.');
+define('MSG_CHART_NO_DEMO', 'The demonstration data uses the US Retail account numbers, so it cannot be loaded against the %s. The company has been installed without it.');
 define('TEXT_USER_NAME','Voer de gebruikersnaam in van de adminstrator');
 define('TEXT_USER_PASSWORD','Voer het wachwoord in voor de administrator');
 define('TEXT_UER_PW_CONFIRM','Voer nog maals het wachtwoord in.');

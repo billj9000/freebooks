@@ -40,9 +40,6 @@ define('DIR_FS_MY_FILES','../' . PATH_TO_MY_FILES);
 // application_top.php normally defines this; phreedom/config.php's $mainmenu
 // array (built during the 'install' action, below) depends on it.
 define('FILENAME_DEFAULT', 'index');
-// Set the default chart to load
-$default_chart = DIR_FS_MODULES . 'phreebooks/language/en_us/charts/USA_Retail.xml';
-
 require_once('functions/install.php');
 $lang = !empty($_GET['lang']) ? $_GET['lang'] : DEFAULT_LANGUAGE;
 $_SESSION['language'] = $lang;
@@ -172,7 +169,7 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		break;
 	case 'install':
 		$company_name    = db_prepare_input($_POST['company_name']);
-		$company_demo    = db_prepare_input($_POST['company_demo']);
+		$company_demo    = db_prepare_input($_POST['company_demo'] ?? 0);
 		$user_username   = db_prepare_input($_POST['user_username']);
 		$user_password   = db_prepare_input($_POST['user_password']);
 		$user_pw_confirm = db_prepare_input($_POST['user_pw_confirm']);
@@ -197,6 +194,26 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		$paper_size      = db_prepare_input($_POST['papersize'] ?? '');
 		$known           = function_exists('forms_paper_sizes') ? forms_paper_sizes() : array();
 		if (!isset($known[$paper_size])) $paper_size = 'A4';
+
+		// The chart of accounts this company keeps its books on. Checked against
+		// the shipped list rather than trusted: the value names a file that gets
+		// read off disk, and it decides both the accounts seeded and - through
+		// the chart's own <defaults> block - which account each AR/AP setting is
+		// pointed at.
+		$chart_file = db_prepare_input($_POST['chart'] ?? '');
+		$charts     = function_exists('phreebooks_charts') ? phreebooks_charts() : array();
+		if (!isset($charts[$chart_file])) $chart_file = function_exists('phreebooks_default_chart') ? phreebooks_default_chart() : '';
+		$chart_info = function_exists('phreebooks_chart_read') ? phreebooks_chart_read($chart_file) : false;
+
+		// The demonstration data names US account numbers literally, so it only
+		// means anything on a chart numbered that way. Refused here rather than
+		// loaded into nonsense: a demo company whose every SKU posts to an
+		// account that does not exist looks like it worked until the first
+		// invoice is saved.
+		if ($company_demo && $chart_info && !$chart_info['demo']) {
+			$company_demo = 0;
+			$messageStack->add(sprintf(MSG_CHART_NO_DEMO, $chart_info['description']), 'caution');
+		}
 
 		// error check input, user info
 		if (strlen($company_name) < 1)  $error = $messageStack->add(ERROR_TEXT_ADMIN_COMPANY_ISEMPTY, 'error');
@@ -300,6 +317,25 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  				// and the documents are seeded from the constant further down.
 	  				// The failure would be silent: every document simply Letter.
 	  				if ($entry == 'forms') $install_mod->keys['FORMS_DEFAULT_PAPER'] = $paper_size;
+	  				// Same reasoning, and the same one moment, for the chart's own
+	  				// account choices: these keys are INSERTED here, and it is the
+	  				// insert that define()s the constant. Written afterwards they
+	  				// would update the row and leave the constant - which the rest
+	  				// of this request reads - holding the shipped US numbers.
+	  				//
+	  				// Only keys the module actually declares are taken, so a chart
+	  				// cannot introduce settings of its own by misspelling a tag.
+	  				if ($entry == 'phreebooks' && $chart_info) {
+	  					foreach ($chart_info['defaults'] as $chart_key => $chart_acct) {
+	  						if (array_key_exists($chart_key, $install_mod->keys)) $install_mod->keys[$chart_key] = $chart_acct;
+	  					}
+	  				}
+	  				// The currency is phreedom's to seed, and it seeds the whole
+	  				// rate table against whichever one is default, so it has to be
+	  				// told before install() runs rather than corrected after.
+	  				if ($entry == 'phreedom' && $chart_info && $chart_info['currency'] <> '') {
+	  					$install_mod->default_currency = $chart_info['currency'];
+	  				}
 			    	if (admin_check_versions($entry, $install_mod->prerequisites)) {
 			    		// Check for version levels
 			    		$error = true;
@@ -426,26 +462,12 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		  		if ($runaway > 10) break;
 		  	}
 		  	if (DEBUG) $messageStack->debug("\n  loading chart of accounts");
-			// load the retail chart as default if the chart of accounts table is empty
+			// load the chosen chart if the chart of accounts table is empty
 		  	$result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " limit 1");
 		  	$entries_exist = $result->RecordCount() > 0 ? true : false;
 		  	$result = $db->Execute("select id from " . TABLE_CHART_OF_ACCOUNTS . " limit 1");
 		  	$chart_exists = $result->RecordCount() > 0 ? true : false;
-		  	if (!$entries_exist && !$chart_exists) {
-		  		$accounts = xml_to_object(file_get_contents($default_chart));
-		  		if (is_object($accounts->ChartofAccounts)) $accounts = $accounts->ChartofAccounts; // just pull the first one
-		  		if (is_object($accounts->account)) $accounts->account = array($accounts->account); // in case of only one chart entry
-		  		if (is_array($accounts->account)) foreach ($accounts->account as $account) {
-		  			$sql_data_array = array(
-			    		'id'              => $account->id,
-			    		'description'     => $account->description,
-			    		'heading_only'    => $account->heading,
-			    		'primary_acct_id' => $account->primary,
-			    		'account_type'    => $account->type,
-		  			);
-		  			db_perform(TABLE_CHART_OF_ACCOUNTS, $sql_data_array, 'insert');
-		  		}
-		  	}
+		  	if (!$entries_exist && !$chart_exists && $chart_info) phreebooks_chart_insert($chart_info['accounts']);
 		  	if (DEBUG) $messageStack->debug("\n  building and checking chart history");
 		  	build_and_check_account_history_records();
 		  	if (DEBUG) $messageStack->debug("\n  updating current period");

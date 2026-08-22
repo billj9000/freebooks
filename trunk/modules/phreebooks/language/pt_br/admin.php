@@ -53,6 +53,8 @@ define('GL_ERROR_CANT_MAKE_HEADING','Esta conta tem saldo. Não pode ser convert
 define('GL_INFO_PRIMARY_ACCT_ID','Esta conta é uma sub-conta, selecione uma conta primária:');
 define('ERROR_ACCT_TYPE_REQ','O Tipo de Conta CG é obrigatório!');
 define('GL_ACCOUNT_DUPLICATE','A conta: %s já existe!. A conta não será inserida.');
+define('GL_CHART_NOT_READ','The chart of accounts %s could not be read. Nothing has been imported.');
+define('GL_CHART_DEFAULTS_SET','The receivables and payables default accounts have been set to the ones named by the %s.');
 define('GL_INFO_HEADING_ONLY','Esta conta é de resumo e não pode aceitar lançamentos?');
 define('GL_JOURNAL_NOT_EMTPY','O Diário Geral não está vazio, o Plano de Contas corrente não pode ser excluído!');
 define('GL_CHART_IMPORT_DESC','ou Plano de Contas customizado para importar: ');

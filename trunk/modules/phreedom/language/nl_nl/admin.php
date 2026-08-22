@@ -91,6 +91,11 @@ define('SETUP_CO_MGR_ERROR_EMPTY_FIELD','Database naam en bedrijfsnaam kunnen ni
 define('SETUP_CO_MGR_MOD_SELECT','Selecteer de module om te kopieeren / maken met de data.');
 define('SETUP_CO_MGR_CO_NAME','Volledige Bedrijfsnaam ');
 define('SETUP_CO_MGR_PAPER_SIZE','Paper size for newly installed reports and forms ');
+define('SETUP_CO_MGR_CHART','Chart of accounts for a newly installed general ledger ');
+define('SETUP_CO_MGR_CHART_IGNORED','The chart of accounts was not used: phreebooks is set to copy all of its data, so the new company keeps the chart, journal and account numbering of the company it was copied from. The %s was not loaded. To start a company on a different chart, set phreebooks to default data instead.');
+define('SETUP_CO_MGR_CHART_IGNORED_HINT','Not used while phreebooks is set to copy all data &mdash; the new company keeps the source company\'s chart. Set phreebooks to default data to choose one.');
+define('SETUP_CO_MGR_CHART_NO_DEMO','The demonstration data uses the US Retail account numbers, so it cannot be loaded against the %s. These modules have been set up without it: %s');
+define('SETUP_CO_MGR_CHART_NO_CURRENCY','This company does not hold the %s currency, so the new company could not be switched to it for the %s. Set its currency under Setup once it is open.');
 define('SETUP_CO_MGR_DB_PW','Database Wachtwoord ');
 define('SETUP_CO_MGR_DB_USER','Database gebruikers Naam ');
 define('SETUP_CO_MGR_DB_NAME','Database Naam ');

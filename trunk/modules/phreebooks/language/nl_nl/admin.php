@@ -174,6 +174,8 @@ define('GL_CHART_IMPORT_DESC','Of importeer een aangepast rekenschema');
 define('GL_CHART_DELETE_WARNING','Aantekening huidige grootboekrekeningen kunnen hier verwijderd worden als er boekingen op gemaakt zijn.');
 define('GL_JOURNAL_NOT_EMTPY','Het algemene Journaal is niet leeg. Het huidige rekenschema kan niet verwijderd worden');
 define('GL_ACCOUNT_DUPLICATE','De grootboek: %s bestaat reeds!. Het zal daarom niet nog een keer toegevoegd worden.');
+define('GL_CHART_NOT_READ','The chart of accounts %s could not be read. Nothing has been imported.');
+define('GL_CHART_DEFAULTS_SET','The receivables and payables default accounts have been set to the ones named by the %s.');
 define('GL_INFO_HEADING_ONLY','Dit rekening is een Groep en kan geen boekingen aanvaarden? ');
 define('GL_INFO_PRIMARY_ACCT_ID','Als dit rekeningnummer een sub-rekening is, selecteer dan de primaire rekening:');
 define('ERROR_ACCT_TYPE_REQ','Het Rekeningnummer type is vereist!');

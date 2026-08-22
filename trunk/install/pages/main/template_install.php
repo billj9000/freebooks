@@ -56,6 +56,10 @@
 	<td><?php echo html_input_field('company_name', $_POST['company_name'] ?? ''); ?></td>
    </tr>
    <tr>
+	<td><?php echo TEXT_CHART_INFO; ?></td>
+	<td><?php if (function_exists('phreebooks_charts')) echo html_pull_down_menu('chart', gen_build_pull_down(phreebooks_charts()), $_POST['chart'] ?? phreebooks_default_chart(), 'onchange="chartSelect()"'); ?></td>
+   </tr>
+   <tr>
 	<td><?php echo TEXT_INSTALL_DEMO_DATA; ?></td>
 	<td><?php echo html_pull_down_menu('company_demo', $sel_yes_no, $_POST['company_demo'] ?? 0); ?></td>
    </tr>
@@ -138,3 +142,4 @@
   </tbody>
 	</table>
 </form>
+<script type="text/javascript">chartSelect();</script>

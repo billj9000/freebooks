@@ -20,14 +20,20 @@
 <body>
 
 <h1 align="center"> Chart of Accounts</h1>
-<p>FreeBooks ships with four example charts of accounts, and loads one of them automatically the first time a company is set up:</p>
+<p>FreeBooks ships with eight example charts of accounts. The installer asks which one to use, and the same question is asked again when a further company is created from <strong>Company &gt; Configuration &gt; Company Manager</strong>:</p>
 <ul>
+  <li>UK - Sole Trader and Partnership (VAT)</li>
+  <li>UK - Limited Company (VAT) &mdash; preselected</li>
+  <li>Ireland - Sole Trader and Partnership (VAT)</li>
+  <li>Ireland - Limited Company (VAT)</li>
   <li>US - General store (LLC and Partnerships)</li>
   <li>US - General store (Corporations, S Corporations)</li>
-  <li>US - Retail store (LLC and Partnerships) &mdash; the default</li>
+  <li>US - Retail store (LLC and Partnerships)</li>
   <li>US - Retail store (Corporations, S Corporations)</li>
 </ul>
-<p><strong>NOTE:</strong> the installer currently loads the Retail (LLC/Partnerships) chart automatically; there is no setup-time option to pick a different one of the four, and no way to supply a custom chart of your own. If a different starting chart is needed, the closest options today are to edit accounts afterward through <strong>General Ledger &gt; Chart of Accounts</strong>, or to have a developer point the installer at a different chart file (see the file format below) before running setup.</p>
+<p>The choice does two things beyond seeding the accounts themselves. It sets the default accounts the receivables and payables pages post to &mdash; each chart names its own, so a chart numbered differently does not leave those settings pointing at accounts that are not there. And where the chart names a currency, it sets the currency the company keeps its books in: the UK charts ask for sterling, the Irish ones for euro, the US ones for dollars.</p>
+<p><strong>Demonstration data.</strong> The sample customers, suppliers and stock that the installer can load name US account numbers directly, so they can only be loaded against the two US Retail charts. Choosing any other chart turns the demonstration data off; the installer says so if it had been asked for. Since a UK chart is preselected, an install left at its defaults is a clean company with no sample data &mdash; pick a US Retail chart to try FreeBooks with data already in it.</p>
+<p><strong>Changing the chart afterwards.</strong> A different chart can be imported later from <strong>Company &gt; Configuration &gt; FreeBooks &gt; Chart of Accounts</strong>, either from the shipped list or from an XML file of your own. Ticking <em>Replace current chart of accounts</em> discards the existing chart and takes the new chart's default accounts with it &mdash; that is only possible while the general journal is still empty. Left unticked, the accounts are merged into the chart already in place and the existing defaults are left alone.</p>
 <p>Each chart is an XML file under <code>modules/phreebooks/language/en_us/charts/</code>. An account entry looks like this:</p>
 <p><code>&lt;account&gt;<br />
 &nbsp;&nbsp;&lt;id&gt;1100&lt;/id&gt;<br />
@@ -36,6 +42,17 @@
 &nbsp;&nbsp;&lt;primary&gt;&lt;/primary&gt;<br />
 &nbsp;&nbsp;&lt;type&gt;2&lt;/type&gt;<br />
 &lt;/account&gt;</code></p>
+<p>Ahead of the accounts, a chart may describe itself. All four entries are optional; a chart without them is read exactly as charts were before they existed:</p>
+<p><code>&lt;description&gt;UK - Limited Company Chart of Accounts (VAT)&lt;/description&gt;<br />
+&lt;country&gt;GB&lt;/country&gt;<br />
+&lt;currency&gt;GBP&lt;/currency&gt;<br />
+&lt;demo&gt;0&lt;/demo&gt;<br />
+&lt;defaults&gt;<br />
+&nbsp;&nbsp;&lt;AR_DEFAULT_GL_ACCT&gt;1100&lt;/AR_DEFAULT_GL_ACCT&gt;<br />
+&nbsp;&nbsp;&lt;AR_DEF_GL_SALES_ACCT&gt;4000&lt;/AR_DEF_GL_SALES_ACCT&gt;<br />
+&nbsp;&nbsp;...<br />
+&lt;/defaults&gt;</code></p>
+<p><code>&lt;description&gt;</code> is what the drop down shows. <code>&lt;currency&gt;</code> is the currency the books are kept in. <code>&lt;demo&gt;0&lt;/demo&gt;</code> withholds the demonstration data, which is right for any chart not numbered as the US Retail charts are. <code>&lt;defaults&gt;</code> names which of the chart's own accounts each receivables and payables setting means; only settings FreeBooks already has are taken, so a misspelt entry is ignored rather than creating a setting of its own.</p>
 <p>The Account types (the <code>&lt;type&gt;</code> value) are:</p>
 <p>0 - Cash<br />
   2 - Accounts Receivable<br />

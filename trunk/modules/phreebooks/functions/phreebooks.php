@@ -125,6 +125,138 @@ function load_coa_info($types = array()) { // includes inactive accounts
 }
 
 /**
+ * Where the shipped charts of accounts live, for the locale in play.
+ *
+ * A locale with its own charts directory gets it; anything else falls back to
+ * en_us, which in practice is every locale - only en_us has charts.
+ *
+ * The fallback used to be applied by halves: the settings page scanned en_us
+ * for the LIST but then read each file back from the session locale's path, so
+ * a locale directory that existed without charts in it produced a drop down of
+ * names that could not be opened. One function answers the question now, and
+ * every caller reads from the directory it was listed out of.
+ */
+function phreebooks_chart_dir(): string {
+  $locale = !empty($_SESSION['language']) ? basename($_SESSION['language'])
+          : (defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : 'en_us');
+  $dir    = DIR_FS_MODULES . 'phreebooks/language/' . $locale . '/charts/';
+  return is_dir($dir) ? $dir : DIR_FS_MODULES . 'phreebooks/language/en_us/charts/';
+}
+
+/**
+ * One chart of accounts file, read.
+ *
+ * Beyond the account list a chart may say three things about itself, all
+ * optional so that the charts written before any of this existed still parse:
+ *
+ *  - <currency> the currency the company keeps its books in.
+ *  - <demo>     whether the shipped demonstration data may be loaded against
+ *               it. The demo records name US account numbers literally, so they
+ *               only mean anything on a chart numbered the way those charts
+ *               are. A chart that says nothing is taken to allow it, which is
+ *               what the four US charts shipped before this did.
+ *  - <defaults> which of the chart's OWN accounts each AR/AP setting means.
+ *
+ * That last one is the point of the exercise. The settings were shipped holding
+ * literal account numbers taken from one chart, so every other chart quietly
+ * pointed its defaults at accounts that did not exist - true of USA_General
+ * from the day it was added, not just of anything added since.
+ *
+ * Returns false rather than a half read chart if the file is not one.
+ */
+function phreebooks_chart_read($file) {
+  $name = basename((string)$file);
+  $path = phreebooks_chart_dir() . $name;
+  if (substr($name, -4) <> '.xml' || !is_file($path)) return false;
+  $xml = xml_to_object(file_get_contents($path));
+  if (is_object($xml) && isset($xml->ChartofAccounts)) $xml = $xml->ChartofAccounts; // just the first one
+  if (!is_object($xml)) return false;
+  $accounts = isset($xml->account) ? $xml->account : array();
+  if (is_object($accounts)) $accounts = array($accounts); // a chart of one account
+  if (!is_array($accounts)) $accounts = array();
+  $defaults = array();
+  if (isset($xml->defaults) && is_object($xml->defaults)) {
+    foreach (get_object_vars($xml->defaults) as $key => $value) {
+      if (is_object($value) || is_array($value)) continue;
+      $defaults[strtoupper($key)] = trim((string)$value);
+    }
+  }
+  $description = (isset($xml->description) && is_string($xml->description) && $xml->description <> '')
+    ? $xml->description : substr($name, 0, -4);
+  return array(
+    'file'        => $name,
+    'description' => $description,
+    'country'     => (isset($xml->country)  && is_string($xml->country))  ? $xml->country  : '',
+    'currency'    => (isset($xml->currency) && is_string($xml->currency)) ? $xml->currency : '',
+    'demo'        => !isset($xml->demo) || (string)$xml->demo <> '0',
+    'defaults'    => $defaults,
+    'accounts'    => $accounts,
+  );
+}
+
+/**
+ * The charts a company can be seeded from, file name => the chart's own
+ * description. Mirrors forms_paper_sizes(): one list, offered by the installer,
+ * the company manager and the settings page alike.
+ */
+function phreebooks_charts(): array {
+  $charts = array();
+  $files  = @scandir(phreebooks_chart_dir());
+  if (!is_array($files)) return $charts;
+  foreach ($files as $file) {
+    if (substr($file, -4) <> '.xml') continue;
+    $chart = phreebooks_chart_read($file);
+    if ($chart) $charts[$chart['file']] = $chart['description'];
+  }
+  return $charts;
+}
+
+/**
+ * The chart a form starts on before anybody has chosen.
+ *
+ * Only the preselection - every form still offers the whole list, and the
+ * installer and the company manager both check what came back against it.
+ *
+ * Asked of the list rather than named as a constant so that removing a chart
+ * from the shipped set cannot leave the forms pointing at a file that is not
+ * there. If the preferred one is gone, the first chart alphabetically stands in.
+ */
+function phreebooks_default_chart(): string {
+  $charts    = phreebooks_charts();
+  $preferred = 'GB_Limited.xml';
+  if (isset($charts[$preferred])) return $preferred;
+  return count($charts) ? (string)array_key_first($charts) : '';
+}
+
+/**
+ * Put a chart's accounts into the chart of accounts table.
+ *
+ * Returns the ids it did NOT write because the table already held them, so the
+ * one caller that merges into a live chart (the settings page importer) can say
+ * which, and the two that seed an empty one can ignore it.
+ */
+function phreebooks_chart_insert($accounts): array {
+  global $db;
+  $skipped = array();
+  if (!is_array($accounts)) return $skipped;
+  foreach ($accounts as $account) {
+    if (!is_object($account)) continue;
+    $id = isset($account->id) ? trim((string)$account->id) : '';
+    if ($id === '') continue;
+    $result = $db->Execute("select id from " . TABLE_CHART_OF_ACCOUNTS . " where id = '" . db_input($id) . "'");
+    if ($result->RecordCount() > 0) { $skipped[] = $id; continue; }
+    db_perform(TABLE_CHART_OF_ACCOUNTS, array(
+      'id'              => $id,
+      'description'     => isset($account->description) ? $account->description : '',
+      'heading_only'    => isset($account->heading)     ? $account->heading     : '0',
+      'primary_acct_id' => isset($account->primary)     ? $account->primary     : '',
+      'account_type'    => isset($account->type)        ? $account->type        : '0',
+    ), 'insert');
+  }
+  return $skipped;
+}
+
+/**
  * The open documents a receipt or payment may settle, as the page shows them.
  *
  * $display_code/$display_value decide the currency the AMOUNTS come back in,
