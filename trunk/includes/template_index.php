@@ -59,7 +59,10 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
 <?php } ?>
   </script>
   <script src="includes/datatables.min.js"></script>
-  <script type="text/javascript" src="includes/common.js"></script>
+  <?php // Versioned: a page-specific script may call into this one, and orders.js
+     // is itself versioned - so without this the browser can pair a fresh caller
+     // with a cached callee and the page dies on an undefined function. ?>
+  <script type="text/javascript" src="includes/common.js?v=<?php echo filemtime(DIR_FS_INCLUDES . 'common.js'); ?>"></script>
   <script type="text/javascript" src="jodit/jodit.min.js"></script>
   <script type="text/javascript">
   function initJoditEditors() {

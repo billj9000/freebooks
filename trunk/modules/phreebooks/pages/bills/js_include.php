@@ -187,4 +187,4 @@ function fillPayment() {
 
 // -->
 </script>
-<script type="text/javascript" src="modules/phreebooks/javascript/banking.js"></script>
+<script type="text/javascript" src="modules/phreebooks/javascript/banking.js?v=<?php echo filemtime(DIR_FS_MODULES . 'phreebooks/javascript/banking.js'); ?>"></script>
