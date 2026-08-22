@@ -39,14 +39,42 @@ class backup {
   }
 
   function copy_db_table($source_db, $table_list, $type = 'data', $params = '') {
-  	global $messageStack;
+  	global $db, $messageStack;
     $error = false;
-	if (is_array($table_list)) foreach($table_list as $table) {
-	  if (!$this->dump_db_table($source_db, $table, $type, $params)) return false;
-	  $result = $this->db_executeSql($this->source_dir . $this->source_file);
-	  if (count($result['errors']) > 0) {
-	    return $messageStack->add(SETUP_CO_MGR_ERROR_1,'error');
+	// Replay the rows under the SOURCE server's own rules, and put the
+	// destination session back afterwards.
+	//
+	// A copy has to be able to write whatever the source holds, and a source
+	// running without strict mode is allowed to hold things its own columns do
+	// not permit - an ENUM whose value is none of its members comes back as the
+	// empty string, and a strict destination refuses it. That refusal aborts the
+	// copy partway, leaving a half-built company, over rows the source has been
+	// serving happily for months.
+	//
+	// This does not make the data good: it copies it as faithfully as a dump
+	// and restore of the same server would, which is all a copy promises. Rows
+	// like that are worth finding and fixing at the source, where the fix is a
+	// correction rather than a guess made mid-copy.
+	$restore_mode = null;
+	$source_mode  = $source_db->Execute("select @@session.sql_mode as sql_mode");
+	$dest_mode    = $db->Execute("select @@session.sql_mode as sql_mode");
+	if ($source_mode && $dest_mode && $source_mode->fields['sql_mode'] <> $dest_mode->fields['sql_mode']) {
+	  $restore_mode = $dest_mode->fields['sql_mode'];
+	  $db->Execute("SET SESSION sql_mode = '" . db_input($source_mode->fields['sql_mode']) . "'");
+	}
+	try {
+	  if (is_array($table_list)) foreach($table_list as $table) {
+	    if (!$this->dump_db_table($source_db, $table, $type, $params)) return false;
+	    $result = $this->db_executeSql($this->source_dir . $this->source_file);
+	    if (count($result['errors']) > 0) {
+	      return $messageStack->add(SETUP_CO_MGR_ERROR_1,'error');
+	    }
 	  }
+	} finally {
+	  // Every exit from the loop above is a return, so this cannot be left to
+	  // the end of the function - the session would keep the source's rules for
+	  // the rest of the request, and everything written after it.
+	  if ($restore_mode !== null) $db->Execute("SET SESSION sql_mode = '" . db_input($restore_mode) . "'");
 	}
 	return $error;
   }
@@ -102,11 +130,40 @@ class backup {
 				$sql_head = "INSERT INTO $table (`" . join('`,`', $keys) . '`) VALUES ' . lnbr;
 				$chunk_query .= $sql_head;
 			  }
+			  // A NULL is written as NULL, not as ''. Quoting every column meant a
+			  // nullable one came back as an empty string, and for a DATETIME that
+			  // is not a value any strict server will take - which is every server
+			  // at its defaults. It is only invisible here because this stack runs
+			  // with sql_mode empty, where '' is silently accepted and stored as
+			  // 0000-00-00 00:00:00: the column stops being NULL and every
+			  // `IS NULL` test against it quietly changes its answer.
+			  //
+			  // Both the company copy and the whole-database backup are written by
+			  // this loop, so the same fault made a backup unrestorable onto a
+			  // stock server the moment any nullable column held a NULL - which
+			  // users.locked_until and users.pw_reset_expires always do.
+			  // Newlines inside a value are escaped, so a row is always ONE physical
+			  // line. db_executeSql() replays this file with file() - a statement per
+			  // line, trim()med, rejoined with a space - so a value containing a
+			  // newline was split across lines and could not survive: at best the
+			  // newline became a space and the indentation was lost, at worst a
+			  // fragment starting '#' or '-' was skipped as a comment, or one holding
+			  // a ';' ended the statement early and the restore stopped on a syntax
+			  // error partway through a table.
+			  //
+			  // That is the whole-database backup as much as the company copy, and it
+			  // was silent in the mangling case: notes on documents, product copy and
+			  // label templates came back as one long line and nothing said so.
+			  //
+			  // addslashes() first (quotes and backslashes), then the newlines, so a
+			  // value that genuinely contains a backslash followed by n is already
+			  // \\n by the time this runs and cannot be confused with one.
 			  $data = array();
 			  foreach ($temp_array as $value) {
-				$data[] = addslashes($value);
+				$data[] = $value === null ? 'NULL'
+				  : "'" . str_replace(array("\n", "\r"), array('\\n', '\\r'), addslashes($value)) . "'";
 			  }
-			  $chunk_query .= "('" . implode("', '", $data) . "')";
+			  $chunk_query .= '(' . implode(', ', $data) . ')';
 			  $row_number++;
 			  $count++;
 			  if ($row_number == $total_rows) {
