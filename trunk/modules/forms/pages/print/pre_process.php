@@ -99,9 +99,11 @@ $forms_plan     = null;
 $forms_selection = null;
 
 // ── which form ───────────────────────────────────────────────────────────────
-if ($forms_rID) {
-  $forms_report = forms_print_load($forms_rID);
-} elseif ($forms_gID !== '') {
+// The group is listed whether or not a form has already been chosen. Choosing
+// one used to REPLACE the list with the delivery screen, which is what made
+// printing two successive pages in one window; the list now stays and the
+// choice is shown in it, so the popup only ever grows (§13.46).
+if ($forms_gID !== '') {
   // Forms only. A group can hold reports too, and a Print button on an order
   // means the form, not the listing.
   $result = $db->Execute("select id, doc_title from " . TABLE_PHREEFORM . "
@@ -110,15 +112,26 @@ if ($forms_rID) {
     $forms_choices[] = array('id' => (int)$result->fields['id'], 'text' => (string)$result->fields['doc_title']);
     $result->MoveNext();
   }
-  if (count($forms_choices) === 1) {
-    $forms_rID    = $forms_choices[0]['id'];
-    $forms_report = forms_print_load($forms_rID);
-  } elseif ($forms_choices === []) {
+  if ($forms_choices === []) {
     $messageStack->add(sprintf(FORMS_PRINT_NO_FORMS, $forms_gID), 'error');
   }
-} else {
+  // The first form is chosen for you, so the delivery options are on the screen
+  // the moment it opens and printing the usual document is one click. First is
+  // alphabetical by title and means nothing else - it is not a default anybody
+  // set - so the list stays visible with the choice showing in it, and changing
+  // it is one click too.
+  //
+  // The unattended case must NOT inherit this: autoprint would then print
+  // whichever form happens to sort first, unasked. js_include.php declines when
+  // the page offers more than one, which is the same refusal expressed where it
+  // can still see how many there were.
+  if (!$forms_rID && $forms_choices !== []) $forms_rID = $forms_choices[0]['id'];
+} elseif (!$forms_rID) {
   $messageStack->add(FORMS_PRINT_NOTHING_ASKED, 'error');
 }
+// rID without gID is the document list's way in: it knows the form and has no
+// group to offer, so there is nothing to list and the load is all that is left.
+if ($forms_rID) $forms_report = forms_print_load($forms_rID);
 
 // ── which records ────────────────────────────────────────────────────────────
 if ($forms_report) {
@@ -336,27 +349,61 @@ $forms_cc_email   = (string)($_POST['cc_email']   ?? '');
 $forms_bcc_email  = (string)($_POST['bcc_email']  ?? '');
 [$forms_from_name, $forms_from_email] = forms_email_sender(
     (string)($_POST['from_email'] ?? ''), (string)($_POST['from_name'] ?? ''));
+//
+// ONLY when they all go to the same place. The Sales Invoice Manager's "Print
+// Selected" sends every ticked invoice as one IN_LIST, and those invoices need
+// not belong to one customer. This used to read the FIRST record's address and
+// fill it in, which put one customer in the To field of an email whose single
+// attachment holds everybody's invoices. Nothing about the screen said so: the
+// address was real, the name beside it was real, and a person checking the To
+// field would find it correct for one of the documents being sent.
+//
+// So the address is offered only where the selection agrees on it. Where it
+// does not, the field is left empty and the template says why - the empty field
+// is the point, not an omission to be helpfully filled.
+$forms_email_many = false;
 if ($forms_to_email === '' && $forms_selection && !$forms_selection->isEmpty()
     && $forms_plan && $forms_plan->recordTable === 'journal_main'
     && $forms_plan->recordKey === 'id') {
-  $first  = (int)$forms_selection->ids[0];
-  $result = $db->Execute("select bill_primary_name, bill_email from " . TABLE_JOURNAL_MAIN
-      . " where id = " . $first);
-  if ($result && !$result->EOF) {
-    $forms_to_email = (string)$result->fields['bill_email'];
-    $forms_to_name  = (string)$result->fields['bill_primary_name'];
+  $ids    = array_map('intval', $forms_selection->ids);
+  // Grouped on the ADDRESS, not on the row: two invoices for one customer can
+  // carry different contact names and the same mailbox, and declining those
+  // would be refusing to fill in a field that has only one right answer.
+  $result = $db->Execute("select distinct bill_email from " . TABLE_JOURNAL_MAIN
+      . " where id in (" . implode(',', $ids) . ")");
+  $addresses = array();
+  while ($result && !$result->EOF) {
+    $addresses[] = (string)$result->fields['bill_email'];
+    $result->MoveNext();
+  }
+  if (count($addresses) === 1) {
+    $forms_to_email = $addresses[0];
+    $named = $db->Execute("select bill_primary_name from " . TABLE_JOURNAL_MAIN
+        . " where id = " . $ids[0]);
+    if ($named && !$named->EOF) $forms_to_name = (string)$named->fields['bill_primary_name'];
+  } elseif (count($addresses) > 1) {
+    $forms_email_many = true;
   }
 }
-if ($forms_to_email === '') {   // still nothing: take what the caller offered
+// still nothing: take what the caller offered. Not where the records disagree -
+// a hint from the caller is one address too, and the objection is to any single
+// address standing for a selection that has more than one.
+if ($forms_to_email === '' && !$forms_email_many) {
   $forms_to_email = (string)($_REQUEST['rEmail'] ?? '');
   $forms_to_name  = (string)($_REQUEST['rName']  ?? '');
 }
 
-$forms_subject = (string)($_POST['subject'] ?? '');
+// A different form was picked from the group. Its subject and message replace
+// what is on screen, because those came from the form that was showing and are
+// the definition's words rather than the person's - the same reason PhreeForm
+// re-fetched them on the radio. The recipient fields above ARE the person's,
+// typed or looked up, and survive the change.
+$forms_reselect = ($_REQUEST['action'] ?? '') === 'reselect';
+$forms_subject  = $forms_reselect ? '' : (string)($_POST['subject'] ?? '');
 if ($forms_subject === '' && $forms_report) {
   $forms_subject = $forms_report->title . ' ' . TEXT_FROM . ' ' . COMPANY_NAME;
 }
-$forms_body = (string)($_POST['message_body'] ?? '');
+$forms_body = $forms_reselect ? '' : (string)($_POST['message_body'] ?? '');
 if ($forms_body === '' && $forms_report) {
   $forms_body = $forms_report->emailMessage !== ''
               ? forms_fill_tokens($forms_report->emailMessage, $forms_report->title)

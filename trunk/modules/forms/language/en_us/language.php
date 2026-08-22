@@ -65,8 +65,7 @@ define('FORMS_ROW_IS_FORM',        'a form — laid out under Tools → Form Lay
 
 /***** printing a form from the document that owns it (?module=forms&page=print) *****/
 define('FORMS_PRINT_TITLE',        'Print Document');
-define('FORMS_PRINT_CHOOSE',       'Choose a form');
-define('FORMS_PRINT_CHOOSE_BTN',   'Use this form');
+define('FORMS_PRINT_CHOOSE',       'Choose a different one if you need it.');
 define('FORMS_PRINT_WHAT',         'What will be printed');
 define('FORMS_PRINT_RECORDS',      'Records selected');
 define('FORMS_PRINT_DOCUMENT',     'Document');
@@ -85,6 +84,7 @@ define('FORMS_PRINT_EMAIL_SUBJECT','Subject');
 define('FORMS_PRINT_EMAIL_MESSAGE','Message');
 define('FORMS_PRINT_EMAIL_BODY',   'Please find attached your %s from %s.');
 define('FORMS_PRINT_EMAIL_NO_ADDRESS', 'Enter an address to send it to.');
+define('FORMS_PRINT_EMAIL_MANY',   'These documents are for more than one customer and would be sent as a single attachment, so no address has been filled in.');
 define('FORMS_PRINT_NO_FORMS',     'No forms are defined in group %s.');
 define('FORMS_PRINT_NOTHING_ASKED','No form was named. This page is opened from the document being printed.');
 define('FORMS_PRINT_NO_RECORDS',   'Nothing was selected to print.');

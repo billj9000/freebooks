@@ -44,37 +44,15 @@ echo html_hidden_field('action', '') . chr(10);
      : htmlspecialchars(FORMS_PRINT_TITLE);
 ?></h1>
 
-<?php if (!$forms_report && $forms_choices) { // several forms in this group ?>
-<div class="fb-card card mb-2">
-  <div class="card-header py-1 fb-widget-header"><?php echo FORMS_PRINT_CHOOSE; ?></div>
-  <div class="card-body">
-    <table class="table table-borderless table-hover mb-0">
-      <thead class="table-dark"><tr><th><?php echo FORMS_COL_TITLE; ?></th><th class="text-end"><?php echo FORMS_COL_ACTIONS; ?></th></tr></thead>
-      <tbody>
-      <?php foreach ($forms_choices as $index => $choice) { ?>
-        <tr class="<?php echo $index % 2 ? 'even' : 'odd'; ?>">
-          <td><?php echo htmlspecialchars($choice['text']); ?></td>
-          <td class="text-end">
-            <a class="btn btn-primary btn-sm" href="<?php
-              // The '&amp;' is not decoration. gen_get_all_get_params() joins with
-              // '&amp;' and returns NO trailing separator, so concatenating
-              // 'rID=' directly glues it onto the last value — the link came out
-              // as "…&xmin=1372rID=91", rID never arrived, and the page simply
-              // re-rendered this same chooser. A button that appears to do
-              // nothing is exactly what that looks like from the outside.
-              echo html_href_link(FILENAME_DEFAULT,
-                gen_get_all_get_params(array('rID', 'action')) . '&amp;rID=' . (int)$choice['id'], 'SSL');
-            ?>"><?php echo FORMS_PRINT_CHOOSE_BTN; ?></a>
-          </td>
-        </tr>
-      <?php } ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-<?php } ?>
-
-<?php if ($forms_report && $forms_plan) { ?>
+<?php
+// The group's forms and the delivery options are ONE screen. They were two:
+// this card listed the forms with a button beside each, and the button was a
+// link that navigated the popup to the same page again with rID set, replacing
+// the list with the delivery screen. Two pages in one window, and the second
+// looked nothing like the first. The list now lives where the document's name
+// goes, so choosing changes a value on the screen the person is already on.
+$forms_several = count($forms_choices) > 1;
+if ($forms_several || ($forms_report && $forms_plan)) { ?>
 <div class="fb-card card mb-2">
   <div class="card-header py-1 fb-widget-header"><?php echo FORMS_PRINT_WHAT; ?></div>
   <div class="card-body">
@@ -88,8 +66,27 @@ echo html_hidden_field('action', '') . chr(10);
               // administrator is looking at the catalogue. ?>
         <tr>
           <td style="width:35%"><?php echo FORMS_PRINT_DOCUMENT; ?></td>
-          <td><?php echo htmlspecialchars((string)$forms_report->title); ?></td>
+          <td><?php
+            if (!$forms_several) {
+              echo htmlspecialchars((string)$forms_report->title);
+            } else {
+              // The first is checked by pre_process.php. It is not a default
+              // anybody chose - it is whatever sorts first by title - so the
+              // list stays on screen with the choice showing in it, and the
+              // line below says the selection is there to be changed.
+              foreach ($forms_choices as $choice) {
+                $picked = ((int)$choice['id'] === (int)$forms_rID);
+                printf('<div class="form-check">%s<label class="form-check-label" for="rID_%d">%s</label></div>' . chr(10),
+                  html_radio_field('rID', (int)$choice['id'], $picked, '',
+                                   'class="form-check-input" onclick="formsPick()"'),
+                  (int)$choice['id'], htmlspecialchars((string)$choice['text']));
+              }
+              printf('<div class="small text-muted">%s</div>' . chr(10),
+                     htmlspecialchars(FORMS_PRINT_CHOOSE));
+            }
+          ?></td>
         </tr>
+        <?php if ($forms_report && $forms_plan) { ?>
         <tr>
           <td><?php echo FORMS_PRINT_FOR; ?></td>
           <td><?php
@@ -109,6 +106,7 @@ echo html_hidden_field('action', '') . chr(10);
             }
           ?></td>
         </tr>
+        <?php } ?>
       </tbody>
     </table>
   </div>
@@ -134,7 +132,16 @@ echo html_hidden_field('action', '') . chr(10);
           </tr>
           <tr>
             <td><?php echo FORMS_PRINT_EMAIL_TO; ?></td>
-            <td><?php echo html_input_field('to_email', $forms_to_email, 'class="form-control form-control-sm"'); ?></td>
+            <td><?php
+              echo html_input_field('to_email', $forms_to_email, 'class="form-control form-control-sm"');
+              // Why it is empty. One attachment carries every selected record,
+              // so an address filled in from one of them would send the rest to
+              // somebody with no right to them.
+              if (!empty($forms_email_many)) {
+                printf(chr(10) . '<div class="small text-danger">%s</div>',
+                       htmlspecialchars(FORMS_PRINT_EMAIL_MANY));
+              }
+            ?></td>
           </tr>
           <tr>
             <td><?php echo FORMS_PRINT_EMAIL_NAME; ?></td>

@@ -5236,3 +5236,145 @@ identifier check on the hook's table name left the tool **green**, because the
 injected name happened to comment out the bound placeholder and the database
 refused it. Refused by luck, not by the guard. The assertion now requires the
 refusal to name the identifier check, which fails the moment the check is gone.
+
+### 13.46 Printing was two pages in one window
+
+PhreeForm's print popup asked everything at once. Its `popup_gen` showed the
+group's forms as a radio list, the delivery method beside them, and the email
+fields under that — one screen, one shape, and the person pressed Print when
+they had answered it.
+
+Forms split that in two without ever deciding to. `pages/print/template_main.php`
+had two cards under mutually exclusive conditions: a chooser when
+`!$forms_report && $forms_choices`, and the what/deliver pair when
+`$forms_report && $forms_plan`. Each entry in the chooser was an `<a>` back to
+the same page with `rID` set. So choosing navigated the popup, replacing a card
+listing forms with two cards that looked nothing like it. Both states were
+correct, both were tested, and nobody had written down that they were meant to
+be one screen — which is why it survived: **there is no check for a page that
+works twice instead of once.**
+
+The fix is small because the merge is a merge, not a rewrite. `pre_process.php`
+now lists the group whether or not a form is resolved, so the list survives the
+choice; the auto-resolve is kept but narrowed to its real meaning, that a group
+of one is an answer rather than a question. `template_main.php` puts the radios
+where the document's *name* used to be, in the Document row of "What will be
+printed" — the chooser is not a step before the card, it is a value inside it.
+
+#### Why choosing re-renders the page
+
+The radio submits (`formsPick()`), and the page comes back. That looks heavier
+than an htmx swap of the two email fields, which is what PhreeForm's
+`fetchEmailMsg()` did, so it is worth saying why it is not:
+
+almost everything on that page comes from the chosen definition. The record
+selection runs against `$forms_plan->recordTable` and `recordKey`; whether the
+form can run at all is `planDefinition()`; the recipient lookup is guarded on
+the plan's table; the subject and body are the definition's own words. PhreeForm
+refreshed the message and left the rest as it was, which was wrong in a way
+nobody would notice until two forms in a group disagreed about their record
+table. Re-rendering costs one small request and runs *the same code that drew
+the page on arrival*, so the two cannot disagree.
+
+Two things had to be said explicitly because a form remembers state a link does
+not. `formsPick()` resets `form.target` to `_self`: a View earlier in the page's
+life left it on `_blank`, and reselecting would then open the popup's own reload
+in a tab. And the subject and body are dropped on `action=reselect` rather than
+being read back from `$_POST` — they belong to the form that *was* showing, and
+keeping them would carry one form's covering letter onto another's invoice. The
+recipient fields are the person's, typed or looked up, and are kept.
+
+#### The preselection, and the one place it must not reach
+
+The first form by title is chosen on arrival, so printing the usual document is
+one click rather than two. First means nothing beyond alphabetical: it is not a
+default anybody set, no property of a form earns it, and renaming a form moves
+it. That is why the list stays on screen with the choice showing in it — the
+preselection is a starting point offered in the open, not an answer given on the
+person's behalf.
+
+`autoprint` must **not** inherit it, and this is the sharp edge of the change.
+That path exists for the Square Terminal: the browser is on the payment screen,
+nobody is looking at the print window, and it prints without a click. Before the
+preselection it was safe by accident — a group of several forms showed a chooser
+and no View button, so the readiness test failed and nothing printed. With the
+first form now chosen, the button is there, and unattended printing would send
+whichever form sorts first. Attended, that is a starting point somebody can see
+and change; unattended, it is the wrong invoice layout going out with nobody
+watching.
+
+So `js_include.php` counts the options and declines when there is more than one.
+It counts them rather than being told, because by the time that script runs the
+page no longer says how large the group was — the DOM is the only remaining
+witness. `verify_forms_pages.php` asserts the count is there, against the
+shipped script rather than the rendered page, since the refusal only happens in
+a browser.
+
+#### The check that would have caught it
+
+`verify_forms_pages.php` had a `printgroup` mode asserting the chooser offered
+`> 1` link. It passed throughout, because *offering a choice* was never the
+defect — **replacing the screen to take it** was, and the tool had no vocabulary
+for that. It now asserts the choice is offered by controls that stay put, that
+no anchor navigates away carrying an `rID`, and that the record the caller asked
+for survives in the form's own action URL rather than in a link built per option.
+
+The claim that the two screens are one cannot be made from that mode alone: it
+renders the group as it arrives, with the preselection in place. A `printpicked`
+mode renders the same group with a choice posted — deliberately the **last**
+form by title, against a page that preselects the first, so that what it proves
+is an explicit choice beating the default rather than the default agreeing with
+itself. That pairing, one mode for the arrival and one for the choice, is what
+makes "choosing does not cost the list" a testable sentence.
+
+Planted faults, to be sure the checks bite. Dropping `formsPick()` from the
+radios; making the list conditional on nothing being chosen; removing the
+preselection; preselecting the last form instead of the first; removing
+`autoprint`'s guard; and letting the preselection override the posted `rID`.
+All six fail, each on the check written for it. One that does **not** fail, and
+should not: checking every radio in the template. Whether the delivery card
+appears is a server-side fact about `$forms_rID`, and the check reads it
+there rather than in the markup.
+
+One trap worth recording, since it cost a false failure: the first version of
+the delivery-card assertion used `str_contains($output, 'forms_print_view')`.
+That id appears in `js_include.php` as well, where `autoprint` tests it to
+decide whether the page is ready, so the substring is present on a page that
+offers no button at all. The assertion reads the *element*, through XPath.
+
+### 13.47 One address for a selection that had several
+
+"Print Selected" on the Sales Invoice Manager sends every ticked invoice as one
+`IN_LIST`. The print page then filled the email **To** field from
+`$forms_selection->ids[0]` — one record's `bill_email` and `bill_primary_name`,
+whatever the rest of the selection said.
+
+Email attaches a **single document holding every selected record**. So a batch
+spanning three customers arrived with one of them in the To field, and sending
+it would have put all three customers' invoices in that one mailbox.
+
+What makes this worth writing down is how well it hid. The field was not blank,
+not malformed, not obviously stale: a real address, the matching name beside it,
+and *correct for one of the documents being sent*. Anyone checking the To field
+against an invoice on screen could confirm it and be wrong. The selector orders
+ascending by key, so `ids[0]` is the lowest id, and the manager lists newest
+first — which put the address of the invoice at the **bottom** of what had been
+ticked into the field, the least likely row to be checked against it.
+
+The address is a fact about the selection, not about a record in it. It is now
+offered only where the selection agrees: `select distinct bill_email` over the
+selected ids, and one row means one answer. Grouped on the address rather than
+the row, because two invoices for one customer can carry different contact names
+and the same mailbox, and declining those would refuse to fill in a field with
+only one right answer. More than one row leaves the field empty and the template
+says why — an empty field alone is indistinguishable from a customer with no
+address on file. The caller's own `rEmail` hint is declined in that case too: a
+hint is one address as well, and the objection is to any single address standing
+for a selection that has more than one.
+
+`printbatch` and `printbatchone` in `verify_forms_pages.php` are two modes
+because the answer turns on one fact a single record cannot show — whether the
+selection agrees. Both take their ids from the journal rather than a fixture, so
+they assert against the company rather than against a list somebody typed. The
+positive mode matters as much as the negative: a fix of the form "never fill it
+in" would pass `printbatch` and is not what anyone wants.

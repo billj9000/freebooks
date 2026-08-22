@@ -46,7 +46,7 @@
 // 'print', driven through parameters taken from what was actually rendered or
 // proven elsewhere. Listing them means the suite exercises what clicking the
 // button does, rather than only that the button is wired.
-const FORMS_PAGES = ['main', 'datasets', 'datasetsnew', 'admin', 'design', 'designpick', 'canvas', 'canvaspick', 'receipt', 'print', 'printgroup', 'run', 'printrun'];
+const FORMS_PAGES = ['main', 'datasets', 'datasetsnew', 'admin', 'design', 'designpick', 'canvas', 'canvaspick', 'receipt', 'print', 'printgroup', 'printpicked', 'printbatch', 'printbatchone', 'run', 'printrun'];
 
 if (!isset($argv[2])) {
     $failed = 0;
@@ -137,6 +137,20 @@ define('DIR_FS_WORKING', DIR_FS_MODULES . $module . '/');
 $RUNNING  = $PAGE === 'run';
 $PRINTING = $PAGE === 'printrun';
 $CHOOSING = $PAGE === 'printgroup';
+// The same group with one of its forms chosen. A mode of its own because the
+// claim it checks cannot be made from either of the others: that choosing does
+// not COST the list. Rendering the chooser proves the list exists; rendering a
+// chosen form by rID proves the delivery options exist; only rendering the
+// group WITH a choice can show both on one screen, which is the whole of
+// §13.46.
+$PICKED   = $PAGE === 'printpicked';
+// Several records at once, which is what the Sales Invoice Manager's "Print
+// Selected" sends. Two modes because the answer differs on one fact the page
+// cannot see from a single record: whether the selection agrees on who it is
+// for. BATCH spans more than one customer and must fill in nobody; BATCHONE is
+// several invoices for one customer and must fill in that one.
+$BATCH    = $PAGE === 'printbatch';
+$BATCHONE = $PAGE === 'printbatchone';
 // The datasets EDITOR is a branch of the datasets page, and the list view is
 // what the suite rendered until now — so the form that actually saves a dataset
 // had never been rendered by anything. That is where the missing CSRF token
@@ -153,6 +167,8 @@ $CANVASPICK = $PAGE === 'canvaspick';
 if ($RUNNING)  $PAGE = 'main';
 if ($PRINTING) $PAGE = 'print';
 if ($CHOOSING) $PAGE = 'print';
+if ($PICKED)   $PAGE = 'print';
+if ($BATCH || $BATCHONE) $PAGE = 'print';
 if ($DEFINING) $PAGE = 'datasets';
 if ($PICKING)  $PAGE = 'design';
 if ($CANVASPICK) $PAGE = 'canvas';
@@ -193,7 +209,8 @@ if ($PAGE === 'print') {
         echo "  [--] no form on this company produced a record; nothing to print\n";
         exit(0);
     }
-    $source = $CHOOSING ? sys_get_temp_dir() . '/forms-print-group-' . $company : $printTarget;
+    $source = ($CHOOSING || $PICKED) ? sys_get_temp_dir() . '/forms-print-group-' . $company
+                                    : $printTarget;
     if (!file_exists($source)) {
         echo "  [--] no multi-form group on this company; nothing to choose between\n";
         exit(0);
@@ -205,6 +222,54 @@ if ($PAGE === 'print') {
     $_GET['module'] = $_REQUEST['module'] = 'forms';
     $_GET['page']   = $_REQUEST['page']   = 'print';
     if ($PRINTING) $_REQUEST['action'] = $_GET['action'] = 'view';
+    if ($BATCH || $BATCHONE) {
+        // The ids come from the journal, so the pair genuinely does or does not
+        // agree — a hand-written list would be asserting against a fixture
+        // rather than against the company.
+        if ($BATCH) {
+            $q = $db->Execute("select min(id) id from " . TABLE_JOURNAL_MAIN . "
+                where journal_id = 12 and bill_email <> '' group by bill_email order by id limit 2");
+        } else {
+            $q = $db->Execute("select group_concat(id) ids, count(*) n from " . TABLE_JOURNAL_MAIN . "
+                where journal_id = 12 and bill_email <> ''
+                group by bill_email having n > 1 order by n desc limit 1");
+        }
+        $ids = [];
+        while ($q && !$q->EOF) {
+            foreach (explode(',', (string)($q->fields['ids'] ?? $q->fields['id'])) as $one) {
+                if (ctype_digit(trim($one))) $ids[] = (int)trim($one);
+            }
+            $q->MoveNext();
+        }
+        $ids = array_slice(array_values(array_unique($ids)), 0, 3);
+        if (count($ids) < 2) {
+            printf("  [--] this company has no %s to select; nothing to render\n",
+                   $BATCH ? 'invoices for two different customers'
+                          : 'customer with two invoices');
+            exit(0);
+        }
+        $_GET['xfld'] = $_REQUEST['xfld'] = 'journal_main.id';
+        $_GET['xcr']  = $_REQUEST['xcr']  = 'IN_LIST';
+        $_GET['xmin'] = $_REQUEST['xmin'] = implode(',', $ids);
+        unset($_GET['xmax'], $_REQUEST['xmax']);
+    }
+    if ($PICKED) {
+        // The LAST by title, deliberately: the page preselects the first, so
+        // posting the first would assert nothing the printgroup mode does not
+        // already assert. What has to be shown is that an explicit choice beats
+        // the preselection. Taken from the database rather than hard-coded, for
+        // the same reason the rest of this tool takes its ids there: a fixture
+        // id that no longer exists is a check that reports a green nothing.
+        $other = $db->Execute("select id from " . TABLE_PHREEFORM . "
+            where doc_group = '" . db_input((string)($_GET['gID'] ?? '')) . "'
+              and doc_ext = 'frm' order by doc_title desc limit 1");
+        if (!$other || $other->EOF) {
+            echo "  [--] the multi-form group holds no form to choose; nothing to render\n";
+            exit(0);
+        }
+        $_POST['rID']    = $_REQUEST['rID']    = (int)$other->fields['id'];
+        $_POST['action'] = $_REQUEST['action'] = 'reselect';
+    }
 }
 
 // The editor is opened FROM a report, so with no rID it correctly says nothing
@@ -1056,29 +1121,132 @@ if ($listing !== '') {
 // through a file rather than re-including the page in the run process: a second
 // include re-defines the page's constants, and the noise buries what is being
 // checked.
-if ($CHOOSING) {
-    // The chooser branch. Its links were built by concatenating 'rID=' onto
-    // gen_get_all_get_params(), which returns no trailing separator — so the id
-    // fused with the previous value, never arrived, and clicking simply
-    // re-rendered this page. Nothing else in the suite touched it, because
-    // every other check drives rID directly.
-    $links = $xpath->query("//a[contains(@class,'btn')]");
-    ok('it offers a choice of forms', $links->length > 1, $links->length . ' link(s)');
-    $bad = [];
-    foreach ($links as $link) {
-        $href = html_entity_decode((string)$link->getAttribute('href'));
-        $query = [];
-        parse_str((string)parse_url($href, PHP_URL_QUERY), $query);
-        if (!filter_var($href, FILTER_VALIDATE_URL)
-            || ($query['module'] ?? '') !== 'forms'
-            || ($query['page'] ?? '') !== 'print'
-            || !ctype_digit((string)($query['rID'] ?? ''))
-            || !ctype_digit((string)($query['xmin'] ?? ''))) {
-            $bad[] = substr($href, -70);
+if ($CHOOSING || $PICKED) {
+    // The choice used to be a column of LINKS, each one navigating the popup to
+    // this same page with rID set — which replaced the list with the delivery
+    // screen. Two pages in one window, and this is the check that would have
+    // let that come back: it asserts the choice is offered by controls that
+    // stay on the screen, and that nothing links away carrying an rID.
+    //
+    // (The links had a defect of their own worth remembering, because nothing
+    // else in the suite could see it: they were built by concatenating 'rID='
+    // onto gen_get_all_get_params(), which returns no trailing separator, so
+    // the id fused with the previous value, never arrived, and clicking merely
+    // re-rendered the page. Every other check drives rID directly.)
+    $radios = $xpath->query("//input[@type='radio'][@name='rID']");
+    ok('it offers a choice of forms', $radios->length > 1, $radios->length . ' option(s)');
+
+    $bad = $values = [];
+    foreach ($radios as $radio) {
+        $value = (string)$radio->getAttribute('value');
+        if (!ctype_digit($value) || isset($values[$value])) { $bad[] = $value ?: '(empty)'; continue; }
+        $values[$value] = true;
+        // Choosing has to re-enter this page, not follow a link out of it.
+        if (!str_contains((string)$radio->getAttribute('onclick'), 'formsPick')) {
+            $bad[] = $value . ' has no formsPick()';
         }
     }
-    ok('every choice links to this page with a numeric rID, and leaves xmin intact',
+    ok('every option is a distinct numeric rID that re-enters this page',
        $bad === [], implode(' | ', array_slice($bad, 0, 3)));
+
+    // The shape that was removed. An anchor carrying an rID is the two-page
+    // chooser returning, whatever it looks like.
+    $away = [];
+    foreach ($xpath->query('//a[@href]') as $link) {
+        $query = [];
+        parse_str((string)parse_url(html_entity_decode((string)$link->getAttribute('href')),
+                                    PHP_URL_QUERY), $query);
+        if (isset($query['rID'])) $away[] = substr((string)$link->getAttribute('href'), -70);
+    }
+    ok('no link navigates away to choose', $away === [], implode(' | ', array_slice($away, 0, 3)));
+
+    // The record the caller asked for has to survive being on the same page as
+    // the chooser: it travels in the form's own action URL now rather than in a
+    // link built per option, and a form that lost it would print the wrong
+    // record rather than fail.
+    $forms = $xpath->query("//form[@name='forms_print']");
+    $action = $forms->length ? html_entity_decode((string)$forms->item(0)->getAttribute('action')) : '';
+    $query  = [];
+    parse_str((string)parse_url($action, PHP_URL_QUERY), $query);
+    ok('the form carries the record the caller asked for',
+       ctype_digit((string)($query['xmin'] ?? '')), $action);
+}
+
+if ($CHOOSING) {
+    // Arriving with nothing asked of the page, the first form is chosen for you
+    // so that printing the usual document is one click. The claim is only that
+    // it IS the first by title, because that is all the preselection means — it
+    // is not a default anybody set, and no other property of a form earns it.
+    $first = $db->Execute("select id from " . TABLE_PHREEFORM . "
+        where doc_group = '" . db_input((string)($_GET['gID'] ?? '')) . "'
+          and doc_ext = 'frm' order by doc_title limit 1");
+    $checked = $xpath->query("//input[@type='radio'][@name='rID'][@checked]");
+    ok('the first form by title is chosen on arrival',
+       $checked->length === 1 && $first && !$first->EOF
+       && (string)$checked->item(0)->getAttribute('value') === (string)$first->fields['id'],
+       $checked->length . ' checked');
+
+    // The ELEMENT, not the string. js_include.php names that id too — it is how
+    // autoprint tests whether the page is ready — so a substring search finds it
+    // on a page that offers no button at all, and reported the delivery card as
+    // showing when it was not.
+    ok('so the delivery options are there on arrival',
+       $xpath->query("//button[@id='forms_print_view']")->length === 1,
+       'the page offers no way to print the form it chose');
+
+    // The unattended path must NOT inherit the preselection: nobody is watching
+    // to see which form was picked, and alphabetical order is not a decision.
+    // Asserted against the shipped script rather than the rendered page, since
+    // the refusal only happens in a browser.
+    $autoprint = (string)file_get_contents(DIR_FS_WORKING . 'pages/print/js_include.php');
+    ok('autoprint still declines a group it would have to guess between',
+       str_contains($autoprint, "querySelectorAll('input[type=\"radio\"][name=\"rID\"]').length > 1"),
+       'nothing in js_include.php counts the options before printing unattended');
+}
+
+if ($BATCH || $BATCHONE) {
+    // The address is a fact about the SELECTION, not about one record in it.
+    // Email attaches a single document holding every selected record, so an
+    // address taken from one of them sends the rest to somebody entitled to
+    // none of them. That is what this used to do: it read $ids[0] and filled
+    // the field in, and the field looked right — a real address, a real name,
+    // correct for one of the invoices being sent.
+    $to = $xpath->query("//input[@name='to_email']");
+    $filled = $to->length ? trim((string)$to->item(0)->getAttribute('value')) : '';
+    $said   = str_contains($output, FORMS_PRINT_EMAIL_MANY);
+
+    if ($BATCH) {
+        ok('a selection spanning several customers fills in no address',
+           $to->length === 1 && $filled === '', 'the To field arrived holding an address');
+        // An empty field on its own is indistinguishable from a customer with
+        // no email on file. The page has to say which.
+        ok('and says why the field is empty', $said,
+           'nothing on the page explains the empty To field');
+    } else {
+        ok('several invoices for one customer still fill in that customer',
+           $to->length === 1 && $filled !== '', 'the To field arrived empty');
+        ok('and say nothing about several customers', !$said,
+           'the page warns about several customers for a selection that has one');
+    }
+}
+
+if ($PICKED) {
+    // §13.46, in one line: choosing does not cost the list. And the choice is
+    // the one that was made, not the one the page would have made — the mode
+    // posts the LAST form by title against a page that preselects the first.
+    $other = $db->Execute("select id from " . TABLE_PHREEFORM . "
+        where doc_group = '" . db_input((string)($_GET['gID'] ?? '')) . "'
+          and doc_ext = 'frm' order by doc_title desc limit 1");
+    $checked = $xpath->query("//input[@type='radio'][@name='rID'][@checked]");
+    ok('choosing keeps the list on screen',
+       $checked->length === 1, 'expected exactly one option checked');
+    ok('and the form chosen is the one asked for, not the preselected one',
+       $checked->length === 1 && $other && !$other->EOF
+       && (string)$checked->item(0)->getAttribute('value') === (string)$other->fields['id'],
+       $checked->length ? (string)$checked->item(0)->getAttribute('value') : 'none checked');
+    ok('and the delivery options are on that same screen',
+       $xpath->query("//button[@id='forms_print_view']")->length === 1,
+       'the page offers no way to print what was chosen');
 }
 
 if ($PAGE === 'print' && !$CHOOSING) {

@@ -33,6 +33,26 @@ function formsPrint(action) {
   form.submit();
 }
 
+// Picking a different form out of the group.
+//
+// Answered by the page rather than by a fragment of it, because more changes
+// than the name: the records the form selects come from its own plan, whether
+// it can run at all comes from the definition, and the email subject and
+// message are the definition's words. PhreeForm fetched just the message over
+// AJAX and left the rest stale. Re-rendering costs one small request and is the
+// same code that drew the page on arrival, so the two cannot disagree.
+//
+// target is set back to _self explicitly: a View earlier in this page's life
+// left it on _blank, and reselecting would then open the popup's own reload in
+// a tab.
+function formsPick() {
+  const form = document.forms['forms_print'];
+  if (!form) return;
+  form.action.value = 'reselect';
+  form.target = '_self';
+  form.submit();
+}
+
 // &autoprint=1 — show the document without a click.
 //
 // Square Terminal sends it: the browser is already on the payment screen and
@@ -43,13 +63,20 @@ function formsPrint(action) {
 // this only has to press the button.
 //
 // The View button's presence IS the readiness test, since template_main.php
-// draws it only once a form is resolved and records selected. When the group
-// holds several forms the chooser is showing instead, and there is nothing to
-// guess between: printing the wrong document unasked is worse than waiting for
-// a click. Into _self rather than a new tab, so the popup that opened for this
-// becomes the viewer instead of spawning a second window.
+// draws it only once a form is resolved and records selected. Into _self rather
+// than a new tab, so the popup that opened for this becomes the viewer instead
+// of spawning a second window.
+//
+// A group holding several forms is refused outright. The page now arrives with
+// the first of them chosen so that an ATTENDED print is one click - but nobody
+// is watching this one, and the person who would have seen which form was
+// selected is not there to see it. Printing whichever form sorts first, unasked,
+// is worse than printing nothing; alphabetical order is not a decision anyone
+// made. Counting the options is how that is known here, because by this point
+// the page no longer says how large the group was.
 document.addEventListener('DOMContentLoaded', function() {
   if (new URLSearchParams(window.location.search).get('autoprint') !== '1') return;
+  if (document.querySelectorAll('input[type="radio"][name="rID"]').length > 1) return;
   if (!document.getElementById('forms_print_view')) return;
   const form = document.forms['forms_print'];
   if (!form) return;
