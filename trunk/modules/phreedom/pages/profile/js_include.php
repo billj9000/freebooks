@@ -69,7 +69,7 @@ var PK_STRINGS = {
   cancelled:   '<?php echo addslashes(TEXT_PASSKEY_MSG_CANCELLED); ?>'
 };
 </script>
-<script src="modules/phreedom/includes/webauthn/passkey.js" defer></script>
+<script src="modules/phreedom/includes/webauthn/passkey.js?v=<?php echo filemtime(DIR_FS_MODULES . 'phreedom/includes/webauthn/passkey.js'); ?>" defer></script>
 <script>
 addLoadEvent(function () {
   var btn = document.getElementById('pk-add-btn');

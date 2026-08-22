@@ -34,7 +34,15 @@
  *     there;
  *  3. the document-modified tracking DECIDES correctly - js/verify_document_
  *     modified.js runs the real scripts against a stub DOM and walks the states
- *     that decide whether opening a document rewrites it (issue #64).
+ *     that decide whether opening a document rewrites it (issue #64);
+ *  4. every script of OURS is included with a version. A script served from an
+ *     unchanging URL can be answered from a browser's cache indefinitely, and
+ *     the deploy that changes it changes nothing the browser can see. Pair that
+ *     with a caller that IS fresh - a versioned file, or the page's own inline
+ *     script - and the caller reaches a function the cached copy does not have.
+ *     That is not hypothetical: it took the invoice page down in production the
+ *     morning after issue #64 shipped, when a versioned orders.js met a cached
+ *     common.js.
  *
  * The first two say the code runs. Only the third says it is right, and only
  * about that one behaviour. Nothing here replaces opening the page.
@@ -133,6 +141,55 @@ foreach (fb_page_js_pages() as $page => $spec) {
 }
 foreach (glob($stem . '.*') as $stale) @unlink($stale);
 
+// ---------------------------------------------------------------------------
+echo "\nEvery script of ours is served from a versioned URL\n";
+
+// Third-party code, which we do not change, so a stale copy is a stale copy of
+// the same thing. Ours must carry a version; theirs may or may not.
+$vendored = [
+    'ext/', 'jodit/', 'vendor/',
+    'includes/datatables.min.js',
+    'modules/phreedom/includes/wz_tooltip/',
+    'modules/phreedom/includes/qz-tray/',
+    'modules/doc_ctl/includes/wunderbaum/',
+    'extensions/Modules/zencart/ZenCartFiles/',   // ZenCart's own, run on their side
+    'extensions/Modules/doc_ctl/includes/jstree/',
+    // Third-party (BigDump, Alexey Ozerov, GPL 2009). It pulls in common.js
+    // but calls nothing out of it, so a stale copy there breaks nothing, and
+    // editing somebody else's file to satisfy our convention is not worth it.
+    'modules/phreedom/includes/bigdump/',
+];
+$bare = [];
+$scanned = 0;
+foreach (['trunk', 'extensions'] as $tree) {
+    $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(fb_repo_root() . '/' . $tree));
+    foreach ($dir as $file) {
+        if (!$file->isFile() || $file->getExtension() !== 'php') continue;
+        $rel = substr($file->getPathname(), strlen(fb_repo_root()) + 1);
+        foreach ($vendored as $skip) if (str_contains($rel, $skip)) continue 2;
+        $body = (string)file_get_contents($file->getPathname());
+        if (!str_contains($body, '<script')) continue;
+        $scanned++;
+        if (!preg_match_all('#<script\b[^>]*\bsrc\s*=\s*"([^"]+)"#i', $body, $m, PREG_SET_ORDER)) continue;
+        foreach ($m as $hit) {
+            $src = $hit[1];
+            if (!preg_match('#\.js(\?|$|"|<)#i', $src) && !str_contains($src, '.js')) continue;
+            foreach ($vendored as $skip) if (str_contains($src, $skip)) continue 2;
+            if (str_contains($src, '?')) continue;              // versioned somehow
+            // Which line, so the report points at something.
+            $line = 0;
+            foreach (explode("\n", $body) as $i => $text) {
+                if (str_contains($text, $src)) { $line = $i + 1; break; }
+            }
+            $bare[] = sprintf('%s:%d  %s', $rel, $line, $src);
+        }
+    }
+}
+ok(sprintf('no unversioned script of ours (%d file(s) with a <script> scanned)', $scanned),
+   $bare === []);
+foreach ($bare as $b) printf("         %s\n", $b);
+
+// ---------------------------------------------------------------------------
 echo "\nWhat opening a document does to it (issue #64)\n";
 // work_orders keeps printDocument() inside its js_include.php rather than in a
 // script of its own, so the suite needs that branch rendered. Rendered here,

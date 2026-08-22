@@ -94,4 +94,4 @@ function selectContact(input) {
 
 // -->
 </script>
-<script type="text/javascript" src="modules/contacts/javascript/contacts.js"></script>
+<script type="text/javascript" src="modules/contacts/javascript/contacts.js?v=<?php echo filemtime(DIR_FS_MODULES . 'contacts/javascript/contacts.js'); ?>"></script>

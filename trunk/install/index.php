@@ -58,7 +58,7 @@ require_once('pages/main/pre_process.php');
     var combo_image_on  = '';
     var combo_image_off = '';
   </script>
-<script type="text/javascript" src="../includes/common.js"></script>
+<script type="text/javascript" src="../includes/common.js?v=<?php echo filemtime(__DIR__ . '/../includes/common.js'); ?>"></script>
   <?php require_once('pages/main/js_include.php'); ?>
  </head>
 <body>
