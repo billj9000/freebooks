@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="11.10">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Reports and Forms.Receipts">
+<meta name="doc_index_2" content="Point of Sale.Receipt Layout">
+<!-- glossay items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<meta name="doc_glossary_1" content="Receipt printer form:A document laid out for a till printer. It has no page and no positions - its fields print in order, each given a width in characters, and several fields can share one printed line.">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Changing a Receipt's Layout">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Changing a Receipt's Layout</title>
+</head>
+
+<body>
+
+<h1 align="center">Changing a Receipt's Layout</h1>
+
+<p>A till receipt is not laid out like an invoice. An invoice sits on a page and every item on it has
+a position; a receipt has no page and no positions at all. Its fields simply print in order, each
+given a width in characters, and that is the whole of its layout.</p>
+
+<p>So a receipt has an editor of its own, and it looks like what it produces: a list of lines, and in
+each line the fields written into it.</p>
+
+<h3>Getting to it</h3>
+
+<p>Open <em>Tools &rarr; Form Layout</em>. Receipts are marked in that list, and opening one lands on
+this editor rather than on the layout canvas &mdash; the list knows which kind of document each one
+is, so you do not have to. Changing a receipt needs the same permission as changing any other form.</p>
+
+<h3>The one thing worth knowing first</h3>
+
+<p>Fields on a receipt <strong>overlay each other</strong>. They do not sit side by side.</p>
+
+<p>Each line starts as a row of blank character cells as wide as the paper, and every field on that
+line is written <em>over</em> what is there already &mdash; pushed to the left, to the right, or
+centred. That is how a label and an amount end up on one line: <em>Subtotal</em> written to the left
+and its value written to the right are two fields writing into the same forty cells, not two boxes
+placed at two points.</p>
+
+<p>Tick <strong>Ends line</strong> on the last field of a line. That is what sends the line to the
+printer and starts a fresh one.</p>
+
+<p>This behaviour is hard to picture and easy to see, which is why the preview is beside you the
+whole time.</p>
+
+<h3>The preview</h3>
+
+<p>The panel on the right shows a <strong>real sale printed through the receipt engine itself</strong>
+&mdash; not an impression of one. It refreshes as you change things, before you save, so you never
+have to commit to a change to find out what it does.</p>
+
+<p>Above it is a character ruler. Use it: a cell width of 15 means nothing on its own, only against
+the column it lands in.</p>
+
+<p>If the company has no point-of-sale entries there is nothing to print, so the preview says so and
+the lines can still be edited.</p>
+
+<h3>This receipt</h3>
+
+<ul>
+  <li><strong>Name</strong> &mdash; what the receipt is called in the form list.</li>
+  <li><strong>Paper width</strong> &mdash; how many characters fit across the paper. It is what a new
+      field is given and what the ruler measures. It does not cut anything short: a line longer than
+      this is still printed, and the printer decides what becomes of it.</li>
+</ul>
+
+<h3>The lines</h3>
+
+<p>Each row of the table is one field. Reading across:</p>
+
+<ul>
+  <li><strong>Line</strong> &mdash; the line number, shown once against the first field of each
+      line. Fields sharing a line are the ones with no number of their own.</li>
+  <li><strong>Prints</strong> &mdash; what the field puts on the paper. Wording you typed can be
+      edited here in place. A field that prints a <em>value</em> instead shows what it is bound to,
+      and cannot be retyped: its wording comes from the sale.</li>
+  <li><strong>Cell</strong> &mdash; how many characters wide the field is.</li>
+  <li><strong>Position</strong> &mdash; Left, Centred or Right, meaning where within its cells the
+      text is placed.</li>
+  <li><strong>Ends line</strong> &mdash; tick on the last field of each line.</li>
+  <li><strong>Move</strong> &mdash; the arrows move a field earlier or later, and &times; removes
+      it. Order is layout here, so moving a field is how you re-arrange a receipt.</li>
+</ul>
+
+<p>The item list is a field like any other, but it prints whole lines of its own, so it always ends
+its line and the tick is fixed.</p>
+
+<h3>Adding to a receipt</h3>
+
+<p><strong>Add a line of text</strong> adds wording you type yourself &mdash; a thank-you, a returns
+policy, a line of dashes. It appears at the end, and the arrows move it where you want it.</p>
+
+<p>Fields that print a <em>value</em> &mdash; a total, a date, the customer &mdash; cannot be added
+here. They are added where the value can be chosen, which is the form designer. An editor that let
+you add one without saying where its value came from would give you a receipt printing a blank space
+where a total should be.</p>
+
+<h3>Saving</h3>
+
+<p>Nothing is written until you press <strong>Save</strong>; the preview costs nothing and changes
+nothing. <strong>Cancel</strong> returns to the form list and leaves the receipt as it was.</p>
+
+<p>Receipts are printed from the point-of-sale screen in the ordinary way, through the Print button
+on the sale. See <a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a>.</p>
+
+<h3>Related Links</h3>
+<p><a href="07-FormLayout.html" target="mainFrame">Changing a Form's Layout</a><br>
+<a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a><br>
+<a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a><br>
+<a href="04-PaperSize.html" target="mainFrame">Paper Size</a></p>
+</body>
+</html>

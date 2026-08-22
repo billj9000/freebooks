@@ -31,7 +31,10 @@ if ($forms_ready) {
 } else {
   $toolbar->icon_list['print']['show'] = false;
 }
-$toolbar->add_help('11.02');
+// 11.09, the topic about printing a document you have open - which is what
+// this window IS. It pointed at 11.02, "Designing Reports and Forms", so the
+// Help button on the print window opened the designer's documentation.
+$toolbar->add_help('11.09');
 echo $toolbar->build_toolbar();
 
 echo html_form('forms_print', FILENAME_DEFAULT, gen_get_all_get_params(array('action')));

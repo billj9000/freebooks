@@ -20,28 +20,50 @@
 <body>
 
 <h1 align="center">Reports and Forms Settings</h1>
-<p>Module-wide settings for Reports and Forms (as opposed to settings on an individual report or form) are found in its admin settings, under three tabs.</p>
 
-<h3>General</h3>
-<p>Defaults applied to newly-created reports and forms (each can still be overridden per-report):</p>
+<p>Settings that apply to the whole module &mdash; as opposed to settings on an individual report or
+form &mdash; live on the <strong>Forms Module Settings</strong> page. Go to <em>Company &rarr; Module
+Administration</em> and click the properties icon beside <strong>Forms Module</strong>.</p>
+
+<h3>Settings</h3>
+
+<p>Each of these is a fallback. A report or form that states its own value keeps it; these apply
+only where the document is silent.</p>
+
 <ul>
-  <li>Default column width and page margin.</li>
-  <li>Default text for the two title lines (for example, defaulting to the report's own name and a "Report Generated" date line).</li>
-  <li>Default paper size and orientation.</li>
-  <li>Name-trim length used when listing reports and forms in the folder browser.</li>
-  <li>Heading row spacing.</li>
-  <li><strong>PDF engine</strong> &mdash; FPDF (lighter, the default) or TCPDF. TCPDF is required for UTF-8 text and for bar codes; if a form uses a bar code element, TCPDF must be selected here.</li>
+  <li><strong>Default paper size</strong> &mdash; the paper a document sits on when its own layout
+      does not say. Changing it affects documents created afterwards; to move the ones already
+      installed, use <em>Re-stamp Paper Size</em> below. See
+      <a href="04-PaperSize.html" target="mainFrame">Paper Size</a>.</li>
+  <li><strong>Row spacing</strong> &mdash; extra space between the rows of a report table, in
+      points. The shipped value is 2.</li>
+  <li><strong>Default column width</strong> &mdash; width in millimetres for a report column whose
+      definition declares none. The shipped value is 25.</li>
 </ul>
 
-<h3>Stats</h3>
-<p>Usage statistics for reports and forms.</p>
+<p>The page also carries a reminder that printing requires the <strong>Forms &mdash; run and print
+documents</strong> permission, which is not set here but under <em>Company &rarr; User
+Security</em>. See <a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a>.</p>
 
 <h3>Tools</h3>
-<p>A structure verification/rebuild utility: it re-scans the reports and forms folder structure, clears out any database entries that no longer have a matching saved file, and moves any orphaned reports or forms it finds into a Miscellaneous folder rather than losing them. It reads both formats &mdash; the older definitions and those saved by the Forms designer &mdash; so it is safe to use on a company holding a mixture of the two, which is what restoring an older backup leaves behind. Any file it cannot read as either is left exactly where it is, and it tells you how many there were.</p>
-<p><strong>Re-stamp Paper Size</strong> rewrites the page size of every stored report and form to the default paper size set on the General tab. The default above applies only to reports created after it is changed; this is what moves the ones already installed. See <a href="04-PaperSize.html" target="mainFrame">Paper Size</a>.</p>
+
+<p>Two maintenance actions, shown only to a role that could use them. Both ask for confirmation
+first.</p>
+
+<p><strong>Re-stamp Paper Size</strong> re-targets every stored report and form onto the current
+default paper size. Element positions are <em>not</em> moved, so a form drawn for a wider page will
+sit closer to the right edge on a narrower one &mdash; worth checking a form or two afterwards. Any
+file whose page setting cannot be located is left untouched, and it tells you how many there
+were.</p>
+
+<p><strong>Document List Verification / Rebuild</strong> rebuilds the document list from the
+definition files on disk. It reloads the folder structure, re-files any document whose folder has
+gone missing, and clears list entries that no longer have a file behind them. Use it after a restore
+has left the list disagreeing with what is actually stored.</p>
 
 <h3>Related Links</h3>
 <p><a href="02-Designing.html" target="mainFrame">Designing Reports and Forms</a><br>
-<a href="04-PaperSize.html" target="mainFrame">Paper Size</a></p>
+<a href="04-PaperSize.html" target="mainFrame">Paper Size</a><br>
+<a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a></p>
 </body>
 </html>

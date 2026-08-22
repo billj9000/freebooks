@@ -27,18 +27,24 @@
   <li><strong>Forms</strong> &mdash; documents with a fixed, positioned layout, such as an invoice, a check, or a shipping label. Forms always render as PDF. "Letters" (mail-merge style templated documents) are built as a specialized kind of Form rather than a separate document type.</li>
 </ul>
 <h3>Where to find it</h3>
-<p>The main entry point is <strong>Tools &gt; Reports</strong>, which lists every report and form you have access to. Most other areas of FreeBooks also have their own <strong>Reports</strong> menu entry &mdash; under Customers, Vendors, Employees, Inventory, Banking, and General Ledger &mdash; which opens the same browser pre-filtered to that area's reports and forms.</p>
-<p>Access to Reports and Forms is controlled by a single permission level that covers the whole module; there isn't a separate permission per report.</p>
+<p>Reports and forms are listed separately, because what you do with one is not what you do with the other.</p>
+<ul>
+  <li><strong>Tools &gt; Reports</strong> lists the reports, grouped under the area each belongs to &mdash; Customers, Vendors, General Ledger, Inventory and so on &mdash; with a filter box for finding one by name.</li>
+  <li><strong>Tools &gt; Form Layout</strong> lists the forms, which are laid out rather than run. A form prints one record at a time, so it is opened from the document it belongs to and not from a list.</li>
+  <li><strong>Tools &gt; Report Datasets</strong> defines which tables a report may draw on. It is the rarest of the three to hold.</li>
+</ul>
+<p>Those are three separate permissions rather than one: running and printing, writing a report or form, and defining datasets. A role can be given any of them without the others, so somebody may print every invoice in the company and still not be able to change how one looks. There is no permission per individual report.</p>
 <h3>In this chapter</h3>
-<p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports and Forms</a> &mdash; finding a report or form, running it, choosing an output format, and emailing the result.<br />
+<p><a href="01-BrowsingRunning.html" target="mainFrame">Browsing and Running Reports</a> &mdash; finding a report, running it, choosing an output format, and emailing the result.<br />
 <a href="02-Designing.html" target="mainFrame">Designing Reports and Forms</a> &mdash; building a new report or form: data sources, filters, columns, and layout.<br />
 <a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a> &mdash; module-wide defaults and maintenance tools.<br />
 <a href="04-PaperSize.html" target="mainFrame">Paper Size</a> &mdash; choosing Letter, A4 or another size, and moving existing reports onto it.<br />
-<a href="05-PrintButtons.html" target="mainFrame">Which Engine the Print Buttons Use</a> &mdash; switching the Print buttons over to the Forms module, and switching them back.<br />
+<a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a> &mdash; where they are, what they print, and the permission they need.<br />
 <a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a> &mdash; changing the columns, grouping, sorting, filters and page layout of an existing report, with a live preview.<br />
 <a href="07-FormLayout.html" target="mainFrame">Changing a Form's Layout</a> &mdash; moving, resizing and adding the items on an invoice, order or statement, against the real printed page.<br />
 <a href="08-ValueFormats.html" target="mainFrame">Value Formats</a> &mdash; the list of formats a column or a line can be given, and what each one prints.<br />
-<a href="09-PrintingOpenDocument.html" target="mainFrame">Printing a Document You Have Open</a> &mdash; why Print no longer saves the document, when the Save button greys out, and printing with read-only access.</p>
+<a href="09-PrintingOpenDocument.html" target="mainFrame">Printing a Document You Have Open</a> &mdash; why Print no longer saves the document, when the Save button greys out, and printing with read-only access.<br />
+<a href="10-ReceiptEditor.html" target="mainFrame">Changing a Receipt's Layout</a> &mdash; editing a till receipt, which has lines and character widths rather than a page and positions.</p>
 <h3>Related Links</h3>
 <p><a href="../../../../../phreebooks/language/en_us/manual/06-GenLedger/03-Utilities/UtilitiesHome.html" target="mainFrame">General Ledger Utilities</a> &mdash; the CSV export option mentioned there uses this same report engine.</p>
 </body>

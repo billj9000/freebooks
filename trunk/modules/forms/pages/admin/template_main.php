@@ -24,7 +24,11 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 if ($security_level > 2) $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
 else                     $toolbar->icon_list['save']['show']   = false;
-$toolbar->add_help('11.05');
+// 11.03, the settings topic. This pointed at 11.05 because that topic was
+// about the Print-buttons ENGINE SWITCH, which this page used to hold; the
+// switch went with PhreeForm and the Help button was left aimed at a page
+// about something else.
+$toolbar->add_help('11.03');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>

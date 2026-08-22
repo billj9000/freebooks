@@ -28,7 +28,11 @@ $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'form
 // on a list their document is not on.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, 'module=forms&page=canvas', 'SSL') . '\'"';
-$toolbar->add_help('11.06');
+// 11.10, the receipt editor's own topic. This pointed at 11.06, "Editing a
+// Report" - a receipt is not a report, and 11.07 is no better because that
+// describes moving boxes on a page, which is exactly what a receipt has none
+// of. Neither existing topic could be right; this one was written for it.
+$toolbar->add_help('11.10');
 echo $toolbar->build_toolbar();
 
 // Reaching here with nothing loaded means the definition named could not be

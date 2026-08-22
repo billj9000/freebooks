@@ -10,76 +10,44 @@
 <!-- glossary terms are imploded with a colon separator -->
 <!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
 <!-- Title - Used as the table of contents and index reference title (one required)-->
-<meta name="doc_title" content="Browsing and Running Reports and Forms">
+<meta name="doc_title" content="Browsing and Running Reports">
 <!-- End of meta tags -->
 
 <link rel="stylesheet" type="text/css" href="../stylesheet.css">
-<title>Browsing and Running Reports and Forms</title>
+<title>Browsing and Running Reports</title>
 </head>
 
 <body>
 
-<h1 align="center">Browsing and Running Reports and Forms</h1>
+<h1 align="center">Browsing and Running Reports</h1>
 
-<h3>The Home tab</h3>
-<p>Opening Reports and Forms lands on a Home tab with two lists: <strong>My Reports</strong> (reports you've personally saved or favorited) and <strong>Recently Added</strong> (the newest reports and forms available to you).</p>
+<h3>Where things are listed</h3>
 
-<h3>Browsing folders</h3>
-<p>Reports and forms are organized into folders, much like a file browser. Click a folder to open it; a breadcrumb at the top lets you navigate back up. Each row shows an icon indicating whether it's a folder, a report, or a form. Use the search box to filter the current list by title. An empty folder can be deleted; folders containing reports or forms cannot.</p>
-
-<h3>Opening a report or form</h3>
-<p>Selecting a report or form shows its details &mdash; type (Report or Form), group, creation date, and last update &mdash; along with a toolbar:</p>
-<ul>
-  <li><strong>Open/Run</strong> &mdash; runs the report or form.</li>
-  <li><strong>Edit/Design</strong> &mdash; opens it in the designer (requires an elevated permission level; see <a href="02-Designing.html" target="mainFrame">Designing Reports and Forms</a>).</li>
-  <li><strong>Rename</strong>, <strong>Copy</strong>, and <strong>Delete</strong> &mdash; each requiring a corresponding permission level.</li>
-  <li><strong>Export</strong> &mdash; downloads the report or form's definition as a zipped XML file, for backup or transfer to another company.</li>
-</ul>
-
-<h3>Running a report</h3>
-<p>Running a report presents up to three tabs:</p>
-<ul>
-  <li><strong>Criteria</strong> &mdash; filters for this run (a date/period range, an account, a status, etc., depending on how the report was designed).</li>
-  <li><strong>Fields</strong> &mdash; lets you re-pick, reorder, or resize the columns for this run only, without changing the saved report design.</li>
-  <li><strong>Page Setup</strong> &mdash; lets you override paper size, margins, and fonts for this run only.</li>
-</ul>
-<p>A report can be exported as <strong>PDF</strong>, <strong>CSV</strong>, <strong>XML</strong>, or <strong>HTML</strong>.</p>
-
-<h3>Running a form</h3>
-<p>Forms only present a Criteria tab (and only when more than one form could apply &mdash; see below) and always produce a <strong>PDF</strong>.</p>
-<p>Many places in FreeBooks that print or email a specific document &mdash; an invoice, a packing slip, a check &mdash; open a form directly for that one record rather than making you browse for it. If more than one form is available for that document type, you're asked to pick which one; if only one exists, it opens automatically with no picker shown.</p>
-
-<h3>Saving a personalized copy</h3>
-<p>After running a report, you can save your current Criteria/Fields/Page Setup choices as your own personal copy, without changing the original shared report that everyone else uses.</p>
-
-<h3>Viewing vs. emailing</h3>
-<p>Output can be viewed/downloaded directly in the browser, or emailed. When emailing, the subject and body default to a template that can include the report or form's own title, the current date, and your company name, and both are editable before sending.</p>
-
-<h3>Where the Forms engine lists things</h3>
-
-<p>The Forms engine keeps reports and forms on two separate pages, because almost nothing you can
-do to one applies to the other.</p>
+<p>Reports and forms are kept on two separate pages, because almost nothing you can do to one
+applies to the other.</p>
 
 <ul>
-  <li><em>Tools &rarr; Reports (Forms)</em> lists <strong>reports</strong>, which you run as a PDF
-      or a CSV, email, and edit. They are grouped under the area they belong to &mdash; Customers,
+  <li><em>Tools &rarr; Reports</em> lists <strong>reports</strong> &mdash; the ones you run as a PDF
+      or a spreadsheet, email, and edit. They are grouped under the area they belong to: Customers,
       Vendors, General Ledger, Inventory and so on.</li>
-  <li><em>Tools &rarr; Form Layout</em> lists <strong>forms</strong>, grouped by folder:
-      Invoices/Packing Slips, Purchase Orders, Customer Statements, Bank Checks. That page is for
-      laying a form out, so it needs permission to write documents.</li>
+  <li><em>Tools &rarr; Form Layout</em> lists <strong>forms</strong>, grouped by folder: Invoices and
+      Packing Slips, Purchase Orders, Customer Statements, Bank Cheques. That page is for laying a
+      form out, so it needs permission to write documents.</li>
 </ul>
 
 <p>A form is not run from a list at all. It prints one record at a time, so you open it from the
 document it belongs to &mdash; the order, invoice or statement &mdash; and use that document's own
-Print button. Listing forms beside reports only ever offered a button that could not know which
-record you meant.</p>
+Print button. See <a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a> and
+<a href="09-PrintingOpenDocument.html" target="mainFrame">Printing a Document You Have Open</a>.
+Listing forms beside reports only ever offered a button that could not know which record you
+meant.</p>
 
 <h3>Finding a report</h3>
 
-<p>The list is grouped under the area each report belongs to. Click a heading to fold that group
-away, and type in the <strong>Filter by name</strong> box above the list to narrow it to the reports
-whose name or group contains what you typed. Filtering looks inside folded groups as well, so a
-report you are searching for is never hidden by a group that happens to be shut.</p>
+<p>Click a group heading to fold that group away, and type in the <strong>Filter by name</strong>
+box above the list to narrow it to the reports whose name or group contains what you typed.
+Filtering looks inside folded groups as well, so a report you are searching for is never hidden by a
+group that happens to be shut.</p>
 
 <h3>Running a report</h3>
 
@@ -89,9 +57,9 @@ rest:</p>
 
 <ul>
   <li><strong>CSV</strong> &mdash; the same report as a spreadsheet file rather than a page.</li>
-  <li><strong>Email</strong> &mdash; sends it as a PDF attachment.</li>
-  <li><strong>Options</strong> &mdash; runs it over a different date range, accounting period or
-      account, for this one run only. Nothing you choose here is saved to the report.</li>
+  <li><strong>Email&hellip;</strong> &mdash; sends it as a PDF attachment.</li>
+  <li><strong>Options&hellip;</strong> &mdash; runs it over a different date range, accounting period
+      or account, for this one run only. Nothing you choose here is saved to the report.</li>
 </ul>
 
 <p>Options only appears on reports that have something to ask. A report with no date field in it
@@ -105,13 +73,14 @@ anything is produced.</p>
 
 <p>If you can write reports as well as run them, each row also shows the dataset or calculation that
 serves it, under the name. That is the answer to &ldquo;why can this report not see that
-field&rdquo;. Everybody sees a warning beside any report the Forms engine cannot serve, with the
-reason.</p>
+field&rdquo;. Everybody sees a warning beside any report that cannot be served, with the reason.</p>
 
-<p>To email a <strong>report</strong>, choose <strong>Email</strong> from that same menu. The dialog
-opens with the report's name at the top, the run options in it, and the message below, so what is
-sent covers exactly what the options ask for &mdash; a report emailed and the same report downloaded
-always cover the same ground. Leave the subject empty to send it under the report's own name.</p>
+<h3>Emailing a report</h3>
+
+<p>Choose <strong>Email&hellip;</strong> from that same menu. The dialog opens with the report's name
+at the top, the run options in it, and the message below, so what is sent covers exactly what the
+options ask for &mdash; a report emailed and the same report downloaded always cover the same
+ground. Leave the subject empty to send it under the report's own name.</p>
 
 <p>Five address fields are offered, on reports and on forms alike:</p>
 
@@ -128,7 +97,29 @@ always cover the same ground. Leave the subject empty to send it under the repor
 <p>Leave CC or BCC empty if you do not need them. If the message cannot be sent, the page says why
 and keeps everything you typed, so only the mistake needs correcting.</p>
 
-<h3>Worked example: printing or emailing a customer invoice</h3>
-<p>From the Sales/Invoice screen, the invoice's own print/email button opens Reports and Forms already scoped to that one invoice record and automatically selects the correct invoice form (skipping the picker if only one invoice form is defined). If you choose to email it, the customer's billing name and email address are filled in automatically from the invoice. The Save icon on the invoice form's toolbar renders the PDF and either displays it or sends the email, depending on which button was pressed.</p>
+<h3>Creating and changing reports</h3>
+
+<p>Running a report and writing one are separate permissions, so these buttons appear only for a
+role that holds the second. Where they do:</p>
+
+<ul>
+  <li><strong>New</strong>, above the list, starts an empty report. To start from one that is nearly
+      right, copy that instead.</li>
+  <li><strong>Copy</strong> beside a report duplicates it, leaving the original alone. This is the
+      safe way to alter a shipped report: change the copy, and an upgrade cannot overwrite your
+      work.</li>
+  <li><strong>Edit</strong> opens it in the report editor &mdash; see
+      <a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a>.</li>
+  <li><strong>Delete</strong> is shown at the highest permission level only.</li>
+</ul>
+
+<p>Forms are changed the same way but on their own page, with the layout editor rather than the
+report editor: <a href="07-FormLayout.html" target="mainFrame">Changing a Form's Layout</a>.</p>
+
+<h3>Related Links</h3>
+<p><a href="05-PrintButtons.html" target="mainFrame">The Print Buttons</a><br>
+<a href="06-ReportEditor.html" target="mainFrame">Editing a Report</a><br>
+<a href="07-FormLayout.html" target="mainFrame">Changing a Form's Layout</a><br>
+<a href="03-AdminSettings.html" target="mainFrame">Reports and Forms Settings</a></p>
 </body>
 </html>
