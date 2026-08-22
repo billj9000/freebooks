@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -41,12 +42,12 @@ function changePageResults() {
 }
 
 function printSalesOrder(id) {
-  var printWin = window.open("index.php?module=phreeform&page=popup_form&gn=<?php echo SO_POPUP_FORM_TYPE; ?>&mID="+id+"&cr0=<?php echo TABLE_JOURNAL_MAIN; ?>.id:"+id,"forms","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("index.php?module=phreeform&page=popup_form&gn=<?php echo SO_POPUP_FORM_TYPE; ?>&mID="+id+"&cr0=<?php echo TABLE_JOURNAL_MAIN; ?>.id:"+id,"forms","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
 }
 
 function printOrder(id) {
-  var printWin = window.open("index.php?module=phreeform&page=popup_form&gn=<?php echo POPUP_FORM_TYPE; ?>&mID="+id+"&cr0=<?php echo TABLE_JOURNAL_MAIN; ?>.id:"+id,"forms","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("index.php?module=phreeform&page=popup_form&gn=<?php echo POPUP_FORM_TYPE; ?>&mID="+id+"&cr0=<?php echo TABLE_JOURNAL_MAIN; ?>.id:"+id,"forms","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
 }
 

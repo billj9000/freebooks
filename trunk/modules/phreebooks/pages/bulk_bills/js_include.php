@@ -28,7 +28,7 @@ function init() {
   checkShipAll();
 
 <?php if ($post_success && $_REQUEST['action'] == 'print') { ?>
-  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.purchase_invoice_id', 'RANGE', $print_crit['min'], $print_crit['max']); ?>","reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.purchase_invoice_id', 'RANGE', $print_crit['min'], $print_crit['max']); ?>","reportFilter","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
 <?php } ?>
 }

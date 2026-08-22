@@ -46,7 +46,7 @@ function init() {
 ?>
 <?php if ($post_success && $_REQUEST['action'] == 'print'): ?>
   ClearForm();
-  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL', $oID); ?>", "popup_gen", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL', $oID); ?>", "popup_gen", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
 <?php endif; ?>
 }
@@ -118,7 +118,7 @@ function ClearForm() {
 }
 
 function billsAcctList() {
-  window.open("index.php?module=contacts&page=popup_accts&type=" + account_type + "&form=bills_deposit&fill=bill&jID=" + journalID + "&search_text=" + document.getElementById('search').value, "accounts", "width=850px,height=550px,resizable=1,scrollbars=1,top=150,left=100");
+  window.open("index.php?module=contacts&page=popup_accts&type=" + account_type + "&form=bills_deposit&fill=bill&jID=" + journalID + "&search_text=" + document.getElementById('search').value, "accounts", "width=850,height=550,resizable=1,scrollbars=1,top=150,left=100");
 }
 
 function loadNewBalance() {

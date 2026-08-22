@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -70,7 +71,7 @@ function init() {
   // Print of an unchanged receipt never posts at all - printDocument() opens the
   // popup directly and this page is not reloaded.
   if (isset($_GET['print']) && $_REQUEST['action'] == 'edit') { ?>
-  var printWin = window.open(printFormUrlBase + <?php echo json_encode((string)$oID); ?>,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open(printFormUrlBase + <?php echo json_encode((string)$oID); ?>,"reportFilter","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   if (printWin) printWin.focus();
 <?php } ?>
   document.getElementById('search').addEventListener('change', function(){

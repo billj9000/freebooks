@@ -72,7 +72,7 @@ function serialList(id) {
     var curDef  = document.getElementById(id).value;
     var sku     = document.getElementById("sku_"+rowID).value;
     var storeID = document.getElementById("source_store_id").value || '0';
-    window.open("index.php?module=inventory&page=popup_serial&def="+curDef+"&sku="+sku+"&rowID="+rowID+"&storeID="+storeID,"serialize","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+    window.open("index.php?module=inventory&page=popup_serial&def="+curDef+"&sku="+sku+"&rowID="+rowID+"&storeID="+storeID,"serialize","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   } else {
     alert('<?php echo "Quantity must be 1 or -1 for serialized items!"; ?>');
   }

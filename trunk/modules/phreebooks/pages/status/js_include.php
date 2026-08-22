@@ -95,7 +95,7 @@ function clearInvoiceSelection() {
 function printSelectedInvoices() {
   var ids = getInvoiceSelection();
   if (!ids.length) return;
-  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'IN_LIST'); ?>" + ids.join(','), "reportFilter", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'IN_LIST'); ?>" + ids.join(','), "reportFilter", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
   clearInvoiceSelection();
 }
@@ -110,7 +110,7 @@ function deliveryList(oID) {
 }
 
 function printOrder(id) {
-  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>"+id,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>"+id,"reportFilter","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
 }
 

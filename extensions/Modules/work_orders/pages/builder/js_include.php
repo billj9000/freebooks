@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -48,7 +49,7 @@ function check_form() {
 function itemList(rowCnt) {
   var storeID = '0';
   var rowCnt = '1';
-  window.open("index.php?module=inventory&page=popup_inv&rowID="+rowCnt+"&storeID="+storeID+"&search_text="+document.getElementById('sku').value,"inventory","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=inventory&page=popup_inv&rowID="+rowCnt+"&storeID="+storeID+"&search_text="+document.getElementById('sku').value,"inventory","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function loadSkuDetails(iID) {
@@ -85,7 +86,7 @@ function copyItem(id) {
 }
 
 function taskList(id) {
-  window.open("index.php?module=work_orders&page=popup_tasks&rowID="+id,"popup_tasks","width=900px,height=500px,resizable=1,scrollbars=1,top=50,left=50");
+  window.open("index.php?module=work_orders&page=popup_tasks&rowID="+id,"popup_tasks","width=900,height=500,resizable=1,scrollbars=1,top=50,left=50");
 }
 
 function addTaskRow() {

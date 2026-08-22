@@ -72,12 +72,12 @@ function AccountListResp(xml) {
     ajaxBillData(cID, 0, journalID);
   } else { // search result <> 1
 	var search_text = document.getElementById('search').value;
-    window.open('index.php?module=phreebooks&page=popup_bills_accts&list=1&jID='+journalID+"&type="+account_type+"&search_text="+search_text,"invoices","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+    window.open('index.php?module=phreebooks&page=popup_bills_accts&list=1&jID='+journalID+"&type="+account_type+"&search_text="+search_text,"invoices","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   }
 }
 
 function OpenOrdrList(currObj) {
-  window.open('index.php?module=phreebooks&page=popup_bills&list=1&jID='+journalID+"&type="+account_type,"invoices","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open('index.php?module=phreebooks&page=popup_bills&list=1&jID='+journalID+"&type="+account_type,"invoices","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function popupWindowCvv() {
@@ -97,7 +97,7 @@ function printDocument() {
   }
   if (id != '' && (!fbDocCanSave() || !fbDocModified())) {
 	var printWin = window.open(printFormUrlBase + encodeURIComponent(id), "reportFilter",
-	  "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+	  "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 	if (printWin) printWin.focus();
 	return;
   }

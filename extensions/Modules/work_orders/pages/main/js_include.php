@@ -92,7 +92,7 @@ function deleteWO(id) {
 function InventoryList(rowCnt) {
   var storeID = document.getElementById('store_id').value;
   var sku     = document.getElementById('sku').value;
-  window.open("index.php?module=inventory&page=popup_inv&type=v&f1=ma&rowID="+rowCnt+"&storeID="+storeID+"&cID=0&search_text="+sku,"inventory","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=inventory&page=popup_inv&type=v&f1=ma&rowID="+rowCnt+"&storeID="+storeID+"&cID=0&search_text="+sku,"inventory","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function loadSkuDetails(iID, rowCnt) {
@@ -165,7 +165,7 @@ function fillwoDetail(xml) { // call back function
   if (xmlText(xml, "sName"))  details += "&sName=" +xmlText(xml, "sName");
   if (xmlText(xml, "rEmail")) details += "&rEmail="+xmlText(xml, "rEmail");
   if (xmlText(xml, "rName"))  details += "&rName=" +xmlText(xml, "rName");
-  var printWin = window.open(details,"reportFilter","width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+  var printWin = window.open(details,"reportFilter","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
   printWin.focus();
 }
 

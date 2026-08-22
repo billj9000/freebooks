@@ -80,7 +80,7 @@ function OpenGLList() {
 }
 
 function OpenRecurList(currObj) {
-  window.open("index.php?module=phreebooks&page=popup_recur&jID="+journalID,"recur","width=400px,height=300px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=phreebooks&page=popup_recur&jID="+journalID,"recur","width=400,height=300,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function verifyCopy() {

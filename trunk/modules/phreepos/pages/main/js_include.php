@@ -278,7 +278,7 @@ function orderFillAddress(xml, type, fill_address) {
           rowCnt++;
         }
         if (show_status == 1) {
-          window.open("index.php?module=phreebooks&page=popup_status&id="+id,"contact_status","width=500px,height=300px,resizable=0,scrollbars=1,top=150,left=200");
+          window.open("index.php?module=phreebooks&page=popup_status&id="+id,"contact_status","width=500,height=300,resizable=0,scrollbars=1,top=150,left=200");
         }
         break;
     }
@@ -415,7 +415,7 @@ function AccountList(currObj) {
 	if( firstguess != secondguess && firstguess != text_search && firstguess != ''){
 		  guess = firstguess;
 	}
-	window.open("index.php?module=contacts&page=popup_accts&type=c&fill=bill&jID=19&search_text="+guess,"accounts","width=850px,height=550px,resizable=1,scrollbars=1,top=150,left=100");
+	window.open("index.php?module=contacts&page=popup_accts&type=c&fill=bill&jID=19&search_text="+guess,"accounts","width=850,height=550,resizable=1,scrollbars=1,top=150,left=100");
 }
 
 function InventoryList(rowCnt) {
@@ -426,7 +426,7 @@ function InventoryList(rowCnt) {
   if (cid) url += "&cID="+cid;
   if (sku) url += "&search_text="+sku;
   if (sid) url += "&storeID="+sid;
-  window.open(url, "inventory", "width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open(url, "inventory", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function serialList(rowID) {
@@ -985,7 +985,7 @@ function changeOfTill(){
 function InventoryProp(elementID) {
   var sku = document.getElementById('sku_'+elementID).value;
   if (sku != text_search && sku != '') {
-	  window.open("index.php?module=inventory&page=main&action=properties&sku="+sku+'&rowID='+elementID,"inventory","width=800px,height=600px,resizable=1,scrollbars=1,top=50,left=50");
+	  window.open("index.php?module=inventory&page=main&action=properties&sku="+sku+'&rowID='+elementID,"inventory","width=800,height=600,resizable=1,scrollbars=1,top=50,left=50");
   }
 }
 
@@ -1134,7 +1134,7 @@ function ajaxPrintAndClean(xml) {
     OpenDrawer();
   } else if (print) {
     var order_id = xmlText(xml, "order_id");
-    var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>" + order_id, "popup_gen", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+    var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>" + order_id, "popup_gen", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
     printWin.focus();
   }
 }
@@ -1172,7 +1172,7 @@ function PrintPreviousReceipt(xml) {
     }).catch(function(e) { alert('Print error: ' + e); });
   } else {
     var order_id = xmlText(xml, "order_id");
-    var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>" + order_id, "reportFilter", "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+    var printWin = window.open("<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>" + order_id, "reportFilter", "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
     printWin.focus();
   }
   document.getElementById('sku').focus();
@@ -1197,7 +1197,7 @@ function OpenDrawer(){
 }
 
 function OpenOrdrList(currObj) {
-	  window.open("index.php?module=phreebooks&page=popup_orders&jID="+journalID,"search_po","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+	  window.open("index.php?module=phreebooks&page=popup_orders&jID="+journalID,"search_po","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 // start other transactions

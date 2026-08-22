@@ -20,7 +20,7 @@
  * Save on orders, invoices, receipts and work orders, so "does nothing" would
  * be somebody unable to invoice a customer.
  *
- * Three checks, and they are not the same claim:
+ * Five checks, and they are not the same claim:
  *
  *  1. the standalone scripts PARSE - node --check on the files as shipped;
  *  2. every BRANCH of each js_include.php parses. These are PHP that prints
@@ -43,9 +43,16 @@
  *     That is not hypothetical: it took the invoice page down in production the
  *     morning after issue #64 shipped, when a versioned orders.js met a cached
  *     common.js.
+ *  5. every window.open() asks for its size in bare integers. The feature
+ *     string is not CSS and "width=700px" is not a width; browsers read the
+ *     leading digits today, and a stricter one would drop the size and hand
+ *     Firefox a TAB where a popup was meant. Print opens a popup, so this is
+ *     the same button again.
  *
  * The first two say the code runs. Only the third says it is right, and only
- * about that one behaviour. Nothing here replaces opening the page.
+ * about that one behaviour. The last two say nothing about the code at all -
+ * they are about what the browser is asked for, which is where the two faults
+ * that reached users both came from. Nothing here replaces opening the page.
  *
  *   php docs/tools/verify_page_javascript.php
  *
@@ -188,6 +195,50 @@ foreach (['trunk', 'extensions'] as $tree) {
 ok(sprintf('no unversioned script of ours (%d file(s) with a <script> scanned)', $scanned),
    $bare === []);
 foreach ($bare as $b) printf("         %s\n", $b);
+
+// ---------------------------------------------------------------------------
+echo "\nEvery window.open() asks for a size the browser will honour\n";
+
+// window.open()'s third argument is not CSS. Its values are parsed as bare
+// integers, so "width=700px" states a size in a unit the feature string has no
+// notion of. Browsers currently read the leading digits and discard the rest,
+// which is how every popup in FreeBooks opened at the right size for years
+// while asking for the wrong thing. The reason to care is not tidiness: a
+// parser that stopped being generous would drop the size feature entirely, and
+// Firefox opens a window.open with NO size features as a TAB rather than a
+// popup. The symptom would not be a mis-sized window - it would be the Print
+// form appearing somewhere the person was not looking for it.
+$sized  = ['width', 'height', 'top', 'left', 'screenX', 'screenY',
+           'innerWidth', 'innerHeight', 'outerWidth', 'outerHeight'];
+$united = [];
+$looked = 0;
+foreach (['trunk', 'extensions'] as $tree) {
+    $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(fb_repo_root() . '/' . $tree));
+    foreach ($dir as $file) {
+        if (!$file->isFile() || !in_array($file->getExtension(), ['php', 'js', 'html'], true)) continue;
+        $rel = substr($file->getPathname(), strlen(fb_repo_root()) + 1);
+        foreach ($vendored as $skip) if (str_contains($rel, $skip)) continue 2;
+        $body = (string)file_get_contents($file->getPathname());
+        if (!str_contains($body, 'window.open')) continue;
+        $looked++;
+        foreach (explode("\n", $body) as $i => $text) {
+            // Only lines that are part of a feature string. An unquoted HTML
+            // attribute - <td width=100%> - matches the unit pattern and is no
+            // such thing, so the line has to name window.open itself or carry
+            // one of the flags that appear nowhere else. A feature string split
+            // across lines is caught by the second test; one split so that a
+            // continuation carries neither is not, and would have to be seen by
+            // eye.
+            if (!str_contains($text, 'window.open')
+                && !preg_match('/\b(resizable|scrollbars|toolbar|menubar|location|directories|status)=/', $text)) continue;
+            if (!preg_match_all('/\b(' . implode('|', $sized) . ')\s*=\s*-?\d+\s*([a-zA-Z%]+)/', $text, $m, PREG_SET_ORDER)) continue;
+            foreach ($m as $hit) $united[] = sprintf('%s:%d  %s=<n>%s', $rel, $i + 1, $hit[1], $hit[2]);
+        }
+    }
+}
+ok(sprintf('every window feature is a bare integer (%d file(s) with a window.open scanned)', $looked),
+   $united === []);
+foreach ($united as $u) printf("         %s\n", $u);
 
 // ---------------------------------------------------------------------------
 echo "\nWhat opening a document does to it (issue #64)\n";

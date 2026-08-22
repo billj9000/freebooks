@@ -180,7 +180,7 @@ function orderFillAddress(xml, type, fill_address) {
 		  rowCnt++;
 		}
 		if (show_status == '1') {
-		  window.open("index.php?module=phreebooks&page=popup_status&form=orders&id="+id,"contact_status","width=500px,height=300px,resizable=0,scrollbars=1,top=150,left=200");
+		  window.open("index.php?module=phreebooks&page=popup_status&form=orders&id="+id,"contact_status","width=500,height=300,resizable=0,scrollbars=1,top=150,left=200");
 		}
 		break;
 	  case 'ship':
@@ -376,7 +376,7 @@ function printDocument() {
   }
   if (id != '' && (!fbDocCanSave() || !fbDocModified())) {
 	var printWin = window.open(printFormUrlBase + encodeURIComponent(id), "popup_gen",
-	  "width=700px,height=550px,resizable=1,scrollbars=1,top=150px,left=200px");
+	  "width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 	if (printWin) printWin.focus();
 	return;
   }
@@ -421,20 +421,20 @@ function AccountListResp(xml) {
 	  case '18': fill = 'both'; break;
 	  default:
     }
-    window.open("index.php?module=contacts&page=popup_accts&type="+account_type+"&fill="+fill+"&jID="+journalID+"&search_text="+document.getElementById('search').value,"accounts","width=850px,height=550px,resizable=1,scrollbars=1,top=150,left=100");
+    window.open("index.php?module=contacts&page=popup_accts&type="+account_type+"&fill="+fill+"&jID="+journalID+"&search_text="+document.getElementById('search').value,"accounts","width=850,height=550,resizable=1,scrollbars=1,top=150,left=100");
   }
 }
 
 function DropShipList(currObj) {
-	window.open("index.php?module=contacts&page=popup_accts&type=c&fill=ship&jID="+journalID+"&search_text="+document.getElementById('ship_search').value,"accounts","width=850px,height=550px,resizable=1,scrollbars=1,top=150,left=100");
+	window.open("index.php?module=contacts&page=popup_accts&type=c&fill=ship&jID="+journalID+"&search_text="+document.getElementById('ship_search').value,"accounts","width=850,height=550,resizable=1,scrollbars=1,top=150,left=100");
 }
 
 function OpenOrdrList(currObj) {
-  window.open("index.php?module=phreebooks&page=popup_orders&jID="+journalID,"search_po","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=phreebooks&page=popup_orders&jID="+journalID,"search_po","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function OpenRecurList(currObj) {
-  window.open("index.php?module=phreebooks&page=popup_recur&jID="+journalID,"recur","width=400px,height=300px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=phreebooks&page=popup_recur&jID="+journalID,"recur","width=400,height=300,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function InventoryList(rowCnt) {
@@ -446,7 +446,7 @@ function InventoryList(rowCnt) {
   }else{
 	  var strict = 0;
   }
-  window.open("index.php?module=inventory&page=popup_inv&f2="+strict+"&type="+account_type+"&rowID="+rowCnt+"&storeID="+storeID+"&cID="+cID+"&search_text="+sku,"inventory","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=inventory&page=popup_inv&f2="+strict+"&type="+account_type+"&rowID="+rowCnt+"&storeID="+storeID+"&cID="+cID+"&search_text="+sku,"inventory","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function PriceManagerList(elementID) {
@@ -455,22 +455,22 @@ function PriceManagerList(elementID) {
 	alert(warn_price_sheet);
 	return;
   }
-  window.open("index.php?module=inventory&page=popup_prices&rowId="+elementID+"&sku="+sku+"&type="+account_type,"prices","width=550px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=inventory&page=popup_prices&rowId="+elementID+"&sku="+sku+"&type="+account_type,"prices","width=550,height=550,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function TermsList() {
   var terms = document.getElementById('terms').value;
-  window.open("index.php?module=contacts&page=popup_terms&type="+account_type+"&form=orders&val="+terms,"terms","width=500px,height=300px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=contacts&page=popup_terms&type="+account_type+"&form=orders&val="+terms,"terms","width=500,height=300,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function FreightList() {
-  window.open("index.php?module=shipping&page=popup_shipping&form=orders","shipping","width=900px,height=650px,resizable=1,scrollbars=1,top=150,left=200");
+  window.open("index.php?module=shipping&page=popup_shipping&form=orders","shipping","width=900,height=650,resizable=1,scrollbars=1,top=150,left=200");
 }
 
 function convertQuote() {
   var id = document.getElementById('id').value;
   if (id != '') {
-	window.open("index.php?module=phreebooks&page=popup_convert&oID="+id,"popup_convert","width=500px,height=300px,resizable=1,scrollbars=1,top=150,left=200");
+	window.open("index.php?module=phreebooks&page=popup_convert&oID="+id,"popup_convert","width=500,height=300,resizable=1,scrollbars=1,top=150,left=200");
   } else {
     alert(cannot_convert_quote);
   }
@@ -479,7 +479,7 @@ function convertQuote() {
 function convertSO() {
   var id = document.getElementById('id').value;
   if (id != '') {
-	window.open("index.php?module=phreebooks&page=popup_convert_po&oID="+id,"popup_convert_po","width=500px,height=300px,resizable=1,scrollbars=1,top=150,left=200");
+	window.open("index.php?module=phreebooks&page=popup_convert_po&oID="+id,"popup_convert_po","width=500,height=300,resizable=1,scrollbars=1,top=150,left=200");
   } else {
     alert(cannot_convert_so);
   }
@@ -499,13 +499,13 @@ function serialList(id) {
 			var rowID   = id.replace("serial_", "");
 			var sku     = document.getElementById("sku_"+rowID).value;
 			var storeID = document.getElementById("store_id").value;
-			window.open("index.php?module=inventory&page=popup_serial&def="+curDef+"&sku="+sku+"&rowID="+rowID+"&storeID="+storeID,"serialize","width=700px,height=550px,resizable=1,scrollbars=1,top=150,left=200");
+			window.open("index.php?module=inventory&page=popup_serial&def="+curDef+"&sku="+sku+"&rowID="+rowID+"&storeID="+storeID,"serialize","width=700,height=550,resizable=1,scrollbars=1,top=150,left=200");
 			break;
 	}
 }
 
 function openBarCode() {
-  window.open("index.php?module=phreebooks&page=popup_bar_code&jID="+journalID,"bar_code","width=300px,height=150px,resizable=1,scrollbars=1,top=110,left=200");
+  window.open("index.php?module=phreebooks&page=popup_bar_code&jID="+journalID,"bar_code","width=300,height=150,resizable=1,scrollbars=1,top=110,left=200");
 }
 
 function downloadAttachment() {
@@ -1380,7 +1380,7 @@ function fillInventory(xml) {
 function InventoryProp(elementID) {
   var sku = document.getElementById('sku_'+elementID).value;
   if (sku != text_search && sku != '') {
-	  window.open("index.php?module=inventory&page=main&action=properties&sku="+sku+'&rowID='+elementID,"inventory","width=800px,height=600px,resizable=1,scrollbars=1,top=50,left=50");
+	  window.open("index.php?module=inventory&page=main&action=properties&sku="+sku+'&rowID='+elementID,"inventory","width=800,height=600,resizable=1,scrollbars=1,top=50,left=50");
   }
 }
 
@@ -1409,7 +1409,7 @@ function ContactProp() {
   if (bill_acct_id == 0 || bill_acct_id == '') {
 	alert(no_contact_id);
   } else {
-    window.open("index.php?module=contacts&page=main&type="+type+"&action=properties&cID="+bill_acct_id,"contacts","width=800px,height=700px,resizable=1,scrollbars=1,top=50,left=50");
+    window.open("index.php?module=contacts&page=main&type="+type+"&action=properties&cID="+bill_acct_id,"contacts","width=800,height=700,resizable=1,scrollbars=1,top=50,left=50");
   }
 }
 
