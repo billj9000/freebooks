@@ -170,7 +170,7 @@ class orders extends journal {
 		  $this->period        = gen_calculate_period($this->post_date, true);
 		  $this->journal_main_array['post_date']     = $this->post_date;
 		  $this->journal_main_array['period']        = $this->period;
-		  $this->journal_main_array['terminal_date'] = $this->terminal_date;
+		  $this->journal_main_array['terminal_date'] = $this->column_empty($this->terminal_date, 'null');
 		  if (!$this->validate_purchase_invoice_id()) return false;
 		  $messageStack->debug("\n\n  re-posting recur id = " . $this->id);
 		  if (!$this->Post('edit')) return false;
@@ -207,7 +207,7 @@ class orders extends journal {
 		  }
 		  $this->journal_main_array['post_date']     = $this->post_date;
 		  $this->journal_main_array['period']        = $this->period;
-		  $this->journal_main_array['terminal_date'] = $this->terminal_date;
+		  $this->journal_main_array['terminal_date'] = $this->column_empty($this->terminal_date, 'null');
 		  if (in_array($this->journal_id, array(4, 10, 12, 19)) && $first_purchase_invoice_id == '') {
 			$this->increment_purchase_invoice_id(true);
 		  }
@@ -225,7 +225,7 @@ class orders extends journal {
 	  $this->journal_main_array['id']                  = $first_id;
 	  $this->journal_main_array['post_date']           = $first_post_date;
 	  $this->journal_main_array['purchase_invoice_id'] = $first_purchase_invoice_id;
-	  $this->journal_main_array['terminal_date']       = $first_terminal_date;
+	  $this->journal_main_array['terminal_date']       = $this->column_empty($first_terminal_date, 'null');
 	} else {
 	  if (!$this->validate_purchase_invoice_id()) return false;
 	  if (!$this->Post($this->id ? 'edit' : 'insert')) return false;
@@ -375,6 +375,7 @@ class orders extends journal {
 	if ($debit_credit == 'debit' || $debit_credit == 'credit') {
 	  $total = 0;
 	  for ($i=0; $i<count($this->item_rows); $i++) {
+		$terminal_date = ''; // not every journal_id below sets one
 		switch ($this->journal_id) { // determine to pick from the qty or pstd value 
 		  case  3: 
 		  case  4:
@@ -401,21 +402,21 @@ class orders extends journal {
 		if ($this->item_rows[$i][$qty_pstd]) { // make sure the quantity line is set and not zero
 		  $this->journal_rows[] = array(
 			'id'                      => $this->item_rows[$i]['id'],	// retain the db id (used for updates)
-			'item_cnt'                => $this->item_rows[$i]['item_cnt'],
-		    'so_po_item_ref_id'       => $this->item_rows[$i]['so_po_item_ref_id'],	// item reference id for so/po line items
+			'item_cnt'                => $this->column_empty($this->item_rows[$i]['item_cnt'], 0),
+		    'so_po_item_ref_id'       => $this->column_empty($this->item_rows[$i]['so_po_item_ref_id'], 0),	// item reference id for so/po line items
 			'gl_type'                 => $this->gl_type,
 			'sku'                     => $this->item_rows[$i]['sku'],
 			'qty'                     => $this->item_rows[$i][$qty_pstd],
 			'description'             => $this->item_rows[$i]['desc'],
-			$debit_credit . '_amount' => $this->item_rows[$i]['total'],
-			'full_price'              => $this->item_rows[$i]['full'],
+			$debit_credit . '_amount' => $this->column_empty($this->item_rows[$i]['total'], 0),
+			'full_price'              => $this->column_empty($this->item_rows[$i]['full'], 0),
 			'gl_account'              => $this->item_rows[$i]['acct'],
 			'taxable'                 => $this->item_rows[$i]['tax'],
 			'serialize_number'        => $this->item_rows[$i]['serial'],
 			'project_id'              => $this->item_rows[$i]['proj'],
-			'purch_package_quantity'  => $this->item_rows[$i]['purch_package_quantity'],
+			'purch_package_quantity'  => $this->column_empty($this->item_rows[$i]['purch_package_quantity'], 0),
 			'post_date'               => $this->post_date,
-			'date_1'                  => $this->item_rows[$i]['date_1'] ? $this->item_rows[$i]['date_1'] : $terminal_date,
+			'date_1'                  => $this->column_empty($this->item_rows[$i]['date_1'] ? $this->item_rows[$i]['date_1'] : $terminal_date, '0000-00-00 00:00:00'),
 		  );
 		  $total += $this->item_rows[$i]['total'];
 		}

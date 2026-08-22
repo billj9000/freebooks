@@ -288,17 +288,17 @@ class contacts_admin {
 			(12, 'v', 'BackMeUp', '0', '', '', '', '', '2000', '', '', '', '0::::2500.00', '', '0', '', now(), NULL, NULL, NULL),
 			(13, 'v', 'Closed Cases', '0', '', '', '', '', '2000', '', '', '', '0::::2500.00', '', '0', '', now(), NULL, NULL, NULL),
 			(14, 'v', 'MegaWatts', '0', '', '', '', '', '2000', '', '', 'MW20070301', '0::::2500.00', '', '0', '', now(), NULL, NULL, NULL),
-			(15, 'v', 'Slipped Disk', '0', '', '', '', '', '2000', '', '', '', '0::::2500.00', '', '', '', now(), NULL, NULL, NULL),
+			(15, 'v', 'Slipped Disk', '0', '', '', '', '', '2000', '', '', '', '0::::2500.00', '', '0', '', now(), NULL, NULL, NULL),
 			(16, 'e', 'John', '0', 'John', '', 'Smith', '', 'b', '', 'Sales', '', '::::', '', '0', '', now(), NULL, NULL, NULL),
 			(17, 'e', 'Mary', '0', 'Mary', '', 'Johnson', '', 'e', '', 'Accounting', '', '::::', '', '0', '', now(), NULL, NULL, NULL);");
 	// Data for table departments
 	$db->Execute("TRUNCATE TABLE " . TABLE_DEPARTMENTS);
 	$db->Execute("INSERT INTO " . TABLE_DEPARTMENTS . " (id, description_short, description, subdepartment, primary_dept_id, department_type, department_inactive) VALUES
-			('1', 'Sales', 'Sales', '0', '', 2, '0'),
-			('2', 'Administration', 'Administration and Operations', '0', '', 1, '0'),
-			('3', 'Accounting', 'Accounting and Finance', '0', '', 1, '0'),
-			('4', 'Shipping', 'Shipping Operation', '0', '', 4, '0'),
-			('5', 'Warehouse', 'Materials Receiving', '0', '', 4, '0');");
+			('1', 'Sales', 'Sales', '0', 0, 2, '0'),
+			('2', 'Administration', 'Administration and Operations', '0', 0, 1, '0'),
+			('3', 'Accounting', 'Accounting and Finance', '0', 0, 1, '0'),
+			('4', 'Shipping', 'Shipping Operation', '0', 0, 4, '0'),
+			('5', 'Warehouse', 'Materials Receiving', '0', 0, 4, '0');");
 	// Data for table departments_types
 	$db->Execute("TRUNCATE TABLE " . TABLE_DEPT_TYPES);
 	$db->Execute("INSERT INTO " . TABLE_DEPT_TYPES . " (id, description) VALUES

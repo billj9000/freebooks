@@ -999,9 +999,101 @@ function gen_db_date($raw_date = '', $separator = '/') {
 /**************************************************************************************************************/
 // Section 2. Database Functions
 /**************************************************************************************************************/
+  /**
+   * TRIAL DIAGNOSTIC, 2026-08-22. An empty string handed to a column that is not
+   * a string: report it, and write what the column means by empty instead.
+   *
+   * db_perform() quotes every value, so a form field left blank arrives at a
+   * DATE or a DOUBLE as ''. A server with sql_mode empty coerced that silently -
+   * which is what FreeBooks has always relied on - while a server at its
+   * defaults refuses the whole statement and the save fails with nothing
+   * written. The local database was switched to strict to find these; static
+   * analysis flagged 89 candidates but cannot tell which can really be empty at
+   * runtime, so the answer is collected from real use instead.
+   *
+   * LOGGING IS ALWAYS ON. COERCING IS OPT-IN, via FB_EMPTY_COLUMN_COERCE=1, and
+   * off by default so that the safe behaviour is the one you get by forgetting.
+   *
+   * The two are separated because they carry different risk. Logging costs a
+   * line in a file and changes nothing, so it is safe anywhere - including a
+   * live site, where the traffic is what makes the collection worth having.
+   * Coercing is not: on a server that is ALREADY lax, MySQL turns '' into
+   * 0000-00-00 for a nullable date while this would write NULL, and PHP tests
+   * of the shape `$date <> '0000-00-00'` answer differently for the two. That is
+   * a behaviour change, and a diagnostic is not the reason to make one on
+   * somebody's live ledger. Where the server is STRICT the coercion earns its
+   * risk, because the alternative is the save failing outright.
+   *
+   * Costs nothing on the ordinary path: returns immediately unless some value is
+   * actually '', and the column types are read once per table per request.
+   */
+  function db_perform_empty_check($table, $data) {
+    static $meta = array();
+    global $db;
+    $suspect = false;
+    foreach ($data as $value) if ($value === '') { $suspect = true; break; }
+    if (!$suspect) return $data;
+    if (!isset($meta[$table])) {
+      $meta[$table] = array();
+      $result = $db->Execute("select column_name, data_type, is_nullable, column_default, extra
+        from information_schema.columns where table_schema = database() and table_name = '" . db_input($table) . "'");
+      while (!$result->EOF) { $meta[$table][$result->fields['column_name']] = $result->fields; $result->MoveNext(); }
+    }
+    $stringy = array('varchar','char','text','tinytext','mediumtext','longtext','enum','set','blob','mediumblob','longblob');
+    $coerce  = getenv('FB_EMPTY_COLUMN_COERCE') === '1';
+    foreach ($data as $column => $value) {
+      if ($value !== '' || !isset($meta[$table][$column])) continue;
+      $info = $meta[$table][$column];
+      if (in_array($info['data_type'], $stringy)) continue;
+      // MariaDB 10.2+ reports a default as the EXPRESSION it was declared with,
+      // not as a value, and two of those shapes bite:
+      //   DEFAULT NULL          comes back as the four-character string NULL
+      //   DEFAULT '0000-00-00'  comes back WITH its quotes, as '0000-00-00'
+      //   DEFAULT current_timestamp() comes back as a function call
+      // Used verbatim, the first writes the word NULL into a date column, the
+      // second writes the quote marks as data, and the third writes a function
+      // name. Unwrapped here, and anything still looking like an expression is
+      // treated as "no usable default" and falls through to the rules below.
+      $default = $info['column_default'];
+      if ($default !== null) {
+        if (strcasecmp($default, 'NULL') === 0)                                  $default = null;
+        elseif (strlen($default) >= 2 && $default[0] === "'" && substr($default, -1) === "'")
+                                                 $default = str_replace("''", "'", substr($default, 1, -1));
+        elseif (strpos($default, '(') !== false)                                 $default = null;
+      }
+      if (strpos($info['extra'], 'auto_increment') !== false) { // omitting it is how the next id is asked for
+        if ($coerce) unset($data[$column]);
+        $became = '(omit, auto_increment)';
+      } elseif ($default !== null && $default !== '') {
+        if ($coerce) $data[$column] = $default;
+        $became = "'" . $default . "'";
+      } elseif ($info['is_nullable'] == 'YES') {
+        if ($coerce) $data[$column] = 'null';
+        $became = 'NULL';
+      } else { // no default and no NULL allowed: the zero of its own type
+        $zero = in_array($info['data_type'], array('date')) ? '0000-00-00'
+          : (in_array($info['data_type'], array('datetime','timestamp')) ? '0000-00-00 00:00:00' : 0);
+        if ($coerce) $data[$column] = $zero;
+        $became = "'" . $zero . "'";
+      }
+      $caller = '';
+      foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+        if (isset($frame['file']) && basename($frame['file']) <> 'common_functions.php') {
+          $caller = str_replace(DIR_FS_ADMIN, '', $frame['file']) . ':' . ($frame['line'] ?? '?');
+          break;
+        }
+      }
+      @error_log(sprintf("%s  %s.%s given '' -> %s %s   at %s%s",
+        date('Y-m-d H:i:s'), $table, $column, $coerce ? 'wrote' : 'WOULD write', $became, $caller, PHP_EOL),
+        3, DIR_FS_MY_FILES . 'empty_column_writes.log');
+    }
+    return $data;
+  }
+
   function db_perform($table, $data, $action = 'insert', $parameters = '') {
     global $db;
     if (!is_array($data)) return false;
+    $data = db_perform_empty_check($table, $data);
     if ($action == 'insert') {
       $query = 'insert into ' . $table . ' (';
       foreach (array_keys($data) as $columns) {

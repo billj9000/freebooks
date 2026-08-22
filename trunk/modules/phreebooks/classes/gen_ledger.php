@@ -97,6 +97,13 @@ class journal {
 		for ($i = 0; $i < count($glEntry->journal_rows); $i++) {
 		  $messageStack->debug("\n  journal_rows = " . arr2string($glEntry->journal_rows[$i]));
 		  $glEntry->journal_rows[$i]['ref_id'] = $glEntry->id;	// link the rows to the journal main id
+		  // A NEW line has no id yet and arrives as ''. journal_item.id is
+		  // `int NOT NULL AUTO_INCREMENT`, and '' is not an integer, so a server
+		  // at its defaults refuses the whole row - adding a line to any document
+		  // would fail with nothing saved. Dropped from the array rather than
+		  // sent as 0, because omitting the column is how AUTO_INCREMENT is asked
+		  // for the next value; db_insert_id() puts it back on the line below.
+		  if (($glEntry->journal_rows[$i]['id'] ?? '') === '') unset($glEntry->journal_rows[$i]['id']);
 		  db_perform(TABLE_JOURNAL_ITEM, $glEntry->journal_rows[$i], 'insert');
 		  if (!($glEntry->journal_rows[$i]['id'] ?? null)) $glEntry->journal_rows[$i]['id'] = db_insert_id();
 		}
@@ -1333,35 +1340,59 @@ class journal {
 /*******************************************************************************************************************/
 // START General Functions
 /*******************************************************************************************************************/
+  /**
+   * What a NON-STRING column should be given when the page left the box empty.
+   *
+   * db_perform() quotes every value it is handed, so an empty box arrives at a
+   * DATE or a DOUBLE as the string '', which is not a date and not a number. A
+   * server with sql_mode empty took it, coerced it to 0000-00-00 or to 0, and
+   * said nothing. A server at its defaults - every stock MariaDB, and so every
+   * other install - refuses the whole INSERT, and the save fails with nothing
+   * written.
+   *
+   * The empty is passed in rather than assumed because it is the column's
+   * answer and it differs by column: journal_main.terminal_date is `date NULL`
+   * and means NULL; journal_item.date_1 is `datetime NOT NULL` and means the
+   * zero datetime; journal_item.purch_package_quantity has shipped BOTH
+   * nullable and NOT NULL (an updater changes it), so it means 0, which is
+   * valid either way and which its only reader already treats as "not set".
+   *
+   * 'null' is db_perform()'s own literal for an unquoted NULL, which is why
+   * that is what a nullable column is given rather than PHP null.
+   */
+  function column_empty($value, $empty) {
+	return ($value === '' || $value === null) ? $empty : $value;
+  }
+
   function build_journal_main_array() { // maps/prepares the fields to the journal_main fields
 	$main_record = array();
 	if (isset($this->id)) if ($this->id)   $main_record['id']                  = $this->id; // retain id if known for re-post references
-	if (isset($this->period))              $main_record['period']              = $this->period;
-	if (isset($this->journal_id))          $main_record['journal_id']          = $this->journal_id;
+	if (isset($this->period))              $main_record['period']              = $this->column_empty($this->period, 0);
+	if (isset($this->journal_id))          $main_record['journal_id']          = $this->column_empty($this->journal_id, 0);
 	if (isset($this->post_date))           $main_record['post_date']           = $this->post_date;
-	if (isset($this->store_id))            $main_record['store_id']            = $this->store_id;
+	if (isset($this->store_id))            $main_record['store_id']            = $this->column_empty($this->store_id, 0);
 	$main_record['description'] = (isset($this->description)) ? $this->description : sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'));
 	if (isset($this->closed))              $main_record['closed']              = $this->closed;
 	if (isset($this->closed_date))         $main_record['closed_date']         = $this->closed_date;
-	if (isset($this->freight))             $main_record['freight']             = $this->freight;
-	if (isset($this->freight_tax_id))      $main_record['freight_tax_id']      = $this->freight_tax_id;
+	if (isset($this->freight))             $main_record['freight']             = $this->column_empty($this->freight, 0);
+	if (isset($this->freight_tax_id))      $main_record['freight_tax_id']      = $this->column_empty($this->freight_tax_id, 0);
 	if (isset($this->discount))            $main_record['discount']            = $this->discount;
 	if (isset($this->shipper_code))        $main_record['shipper_code']        = $this->shipper_code;
 	if (isset($this->ship_packages))       $main_record['ship_packages']       = $this->ship_packages;
 	if (isset($this->terms))               $main_record['terms']               = $this->terms;
-	if (isset($this->sales_tax))           $main_record['sales_tax']           = $this->sales_tax;
-	if (isset($this->total_amount))        $main_record['total_amount']        = $this->total_amount;
+	if (isset($this->sales_tax))           $main_record['sales_tax']           = $this->column_empty($this->sales_tax, 0);
+	if (isset($this->total_amount))        $main_record['total_amount']        = $this->column_empty($this->total_amount, 0);
 	if (isset($this->currencies_code))     $main_record['currencies_code']     = $this->currencies_code;
-	if (isset($this->currencies_value))    $main_record['currencies_value']    = $this->currencies_value;
-	if (isset($this->so_po_ref_id))        $main_record['so_po_ref_id']        = $this->so_po_ref_id;
+	if (isset($this->currencies_value))    $main_record['currencies_value']    = $this->column_empty($this->currencies_value, 1);
+	if (isset($this->so_po_ref_id))        $main_record['so_po_ref_id']        = $this->column_empty($this->so_po_ref_id, 0);
 	if (isset($this->purchase_invoice_id)) $main_record['purchase_invoice_id'] = $this->purchase_invoice_id;
 	if (isset($this->purch_order_id))      $main_record['purch_order_id']      = $this->purch_order_id;
-	if (isset($this->admin_id))            $main_record['admin_id']            = $this->admin_id;
-	if (isset($this->rep_id))              $main_record['rep_id']              = $this->rep_id;
+	if (isset($this->admin_id))            $main_record['admin_id']            = $this->column_empty($this->admin_id, 0);
+	if (isset($this->rep_id))              $main_record['rep_id']              = $this->column_empty($this->rep_id, 0);
 	if (isset($this->waiting))             $main_record['waiting']             = $this->waiting;
 	if (isset($this->gl_acct_id))          $main_record['gl_acct_id']          = $this->gl_acct_id;
-	if (isset($this->bill_acct_id))        $main_record['bill_acct_id']        = $this->bill_acct_id;
-	if (isset($this->bill_address_id))     $main_record['bill_address_id']     = $this->bill_address_id;
+	if (isset($this->bill_acct_id))        $main_record['bill_acct_id']        = $this->column_empty($this->bill_acct_id, 0);
+	if (isset($this->bill_address_id))     $main_record['bill_address_id']     = $this->column_empty($this->bill_address_id, 0);
 	if (isset($this->bill_primary_name))   $main_record['bill_primary_name']   = $this->bill_primary_name;
 	if (isset($this->bill_contact))        $main_record['bill_contact']        = $this->bill_contact;
 	if (isset($this->bill_address1))       $main_record['bill_address1']       = $this->bill_address1;
@@ -1372,8 +1403,8 @@ class journal {
 	if (isset($this->bill_country_code))   $main_record['bill_country_code']   = $this->bill_country_code;
 	if (isset($this->bill_telephone1))     $main_record['bill_telephone1']     = $this->bill_telephone1;
 	if (isset($this->bill_email))          $main_record['bill_email']          = $this->bill_email;
-	if (isset($this->ship_acct_id))        $main_record['ship_acct_id']        = $this->ship_acct_id;
-	if (isset($this->ship_address_id))     $main_record['ship_address_id']     = $this->ship_address_id;
+	if (isset($this->ship_acct_id))        $main_record['ship_acct_id']        = $this->column_empty($this->ship_acct_id, 0);
+	if (isset($this->ship_address_id))     $main_record['ship_address_id']     = $this->column_empty($this->ship_address_id, 0);
 	if (isset($this->ship_primary_name))   $main_record['ship_primary_name']   = $this->ship_primary_name;
 	if (isset($this->ship_contact))        $main_record['ship_contact']        = $this->ship_contact;
 	if (isset($this->ship_address1))       $main_record['ship_address1']       = $this->ship_address1;
@@ -1384,9 +1415,9 @@ class journal {
 	if (isset($this->ship_country_code))   $main_record['ship_country_code']   = $this->ship_country_code;
 	if (isset($this->ship_telephone1))     $main_record['ship_telephone1']     = $this->ship_telephone1;
 	if (isset($this->ship_email))          $main_record['ship_email']          = $this->ship_email;
-	if (isset($this->terminal_date))       $main_record['terminal_date']       = $this->terminal_date;
+	if (isset($this->terminal_date))       $main_record['terminal_date']       = $this->column_empty($this->terminal_date, 'null');
 	if (isset($this->drop_ship))           $main_record['drop_ship']           = $this->drop_ship;
-	if (isset($this->recur_id))            $main_record['recur_id']            = $this->recur_id;
+	if (isset($this->recur_id))            $main_record['recur_id']            = $this->column_empty($this->recur_id, 0);
 	if (isset($this->notes))              $main_record['notes']               = $this->notes;
 	return $main_record;
   }

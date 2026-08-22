@@ -255,12 +255,12 @@ class banking extends journal {
 			for ($i=0; $i<count($this->item_rows); $i++) {
 				if ($this->item_rows[$i]['dscnt'] <> 0) {
 					$this->journal_rows[] = array(
-						'so_po_item_ref_id'       => $this->item_rows[$i]['id'],
+						'so_po_item_ref_id'       => $this->column_empty($this->item_rows[$i]['id'], 0),
 						'gl_type'                 => 'dsc',
 						'description'             => TEXT_DISCOUNT,
 						'gl_account'              => $this->gl_disc_acct_id,
 						'serialize_number'        => $this->item_rows[$i]['inv'],
-						$debit_credit . '_amount' => $this->item_rows[$i]['dscnt']);
+						$debit_credit . '_amount' => $this->column_empty($this->item_rows[$i]['dscnt'], 0));
 					$discount += $this->item_rows[$i]['dscnt'];
 				}
 			}
@@ -276,7 +276,7 @@ class banking extends journal {
 			for ($i=0; $i<count($this->item_rows); $i++) {	
 				$total_paid = $this->item_rows[$i]['dscnt'] + $this->item_rows[$i]['total'];
 				$this->journal_rows[] = array(
-					'so_po_item_ref_id'       => $this->item_rows[$i]['id'], // link purch/rec id here for multi-id payments
+					'so_po_item_ref_id'       => $this->column_empty($this->item_rows[$i]['id'], 0), // link purch/rec id here for multi-id payments
 					'gl_type'                 => $this->item_rows[$i]['gl_type'],
 					'description'             => $this->item_rows[$i]['desc'],
 					$debit_credit . '_amount' => $total_paid,
