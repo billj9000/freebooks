@@ -39,7 +39,7 @@ while (!$cp_boxes->EOF) {
       $dashboard  = $box['dashboard_id'];
       $module_id  = $box['module_id'];
       $params     = unserialize($box['params']);
-      if (file_exists(DIR_FS_MODULES . "$module_id/dashboards/$dashboard/$dashboard.php")):
+      if (defined('MODULE_' . strtoupper($module_id) . '_STATUS') && file_exists(DIR_FS_MODULES . "$module_id/dashboards/$dashboard/$dashboard.php")):
         load_method_language(DIR_FS_MODULES . "$module_id/dashboards/$dashboard");
         require_once(DIR_FS_MODULES . "$module_id/dashboards/$dashboard/$dashboard.php");
         $new_box            = new $dashboard;
