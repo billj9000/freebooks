@@ -366,13 +366,20 @@ class inventory {
 	    $sql_data_array = $fields->what_to_save();
 	    // handle the checkboxes
 	    $sql_data_array['inactive'] = isset($_POST['inactive']) ? $_POST['inactive'] : '0'; // else unchecked
+	    // Reorder/Minimum arrive blank on a new item until the user sets them; both
+	    // columns are DOUBLE NOT NULL DEFAULT '0', so give them their own default
+	    // rather than handing db_perform() '' for a non-string column.
+	    foreach (array('reorder_quantity', 'minimum_stock_level') as $key) {
+	    	if (($sql_data_array[$key] ?? '') === '') $sql_data_array[$key] = 0;
+	    }
 	    foreach(array('quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order', 'quantity_on_allocation', 'creation_date', 'last_update', 'last_journal_date' ) as $key){
 	    	unset($sql_data_array[$key]);
-	    }     
+	    }
 		$sql_data_array['last_update'] = date('Y-m-d H-i-s');
 		if ($_SESSION['admin_security'][SECURITY_ID_PURCHASE_INVENTORY] > 1){
 			$sql_data_array['item_cost'] = $this->store_purchase_array();
-			$sql_data_array['vendor_id'] = $this->min_vendor_id;
+			// No purchase row set a vendor (e.g. a brand new item) - vendor_id int NOT NULL DEFAULT '0'.
+			$sql_data_array['vendor_id'] = ($this->min_vendor_id ?? '') !== '' ? $this->min_vendor_id : 0;
 		} else{
 			if (isset($sql_data_array['item_cost'])) unset($sql_data_array['item_cost']);
 		}
@@ -508,8 +515,11 @@ class inventory {
 			$sql_data_array['sku'] = $this->sku;
 			$this->purchase_array[$i]['id']	= isset($_POST['row_id_array'][$key]) ? $_POST['row_id_array'][$key] : '';
 			if(isset($_POST['vendor_id_array'][$key])) {
-				$sql_data_array['vendor_id'] 					= $_POST['vendor_id_array'][$key];
-				$this->purchase_array[$i]['vendor_id'] 				= $_POST['vendor_id_array'][$key];
+				// vendor_id int NOT NULL DEFAULT '0' - a row can be saved with the
+				// vendor left blank (e.g. only a description or cost was entered).
+				$vendor_id_value								= ($_POST['vendor_id_array'][$key] !== '') ? $_POST['vendor_id_array'][$key] : 0;
+				$sql_data_array['vendor_id'] 					= $vendor_id_value;
+				$this->purchase_array[$i]['vendor_id'] 				= $vendor_id_value;
 			}
 			if(isset($_POST['vendor_sku_array'][$key])) {
 				$sql_data_array['vendor_sku'] 					= $_POST['vendor_sku_array'][$key];
