@@ -154,6 +154,20 @@ class zencart {
             }
         }
 
+        // Product Bundles: quantity_on_hand on the bundle's own row isn't the real stock
+        // figure - available quantity is computed from the BOM components (same formula
+        // the Inventory Manager list uses), less anything already committed to open sales
+        // orders, the same way every other type's available quantity is computed above.
+        if (($inv['inventory_type'] ?? '') === 'pb') {
+            $vr = $db->Execute(
+                "SELECT MIN(FLOOR(i.quantity_on_hand / a.qty)) AS v FROM " . TABLE_INVENTORY_ASSY_LIST . " a"
+                . " INNER JOIN " . TABLE_INVENTORY . " i ON a.sku = i.sku"
+                . " WHERE a.ref_id = " . $id . " AND a.qty > 0"
+            );
+            $virtual_stock = (!$vr->EOF && $vr->fields['v'] !== null) ? (float)$vr->fields['v'] : 0.0;
+            $product['quantity'] = max(0.0, $virtual_stock - (float)($inv['quantity_on_sales_order'] ?? 0));
+        }
+
         // Extension hook for site-specific product attributes
         if (file_exists(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php')) {
             include(DIR_FS_MODULES . 'zencart/custom/extra_product_attrs.php');
@@ -255,9 +269,23 @@ class zencart {
                 $price = (float)$result->fields['full_price'];
             }
 
+            // Product Bundles: same BOM-derived virtual stock as buildProductPayload() above -
+            // quantity_on_hand on the bundle's own row isn't the real figure.
+            if ($inv_type === 'pb') {
+                $vr = $db->Execute(
+                    "SELECT MIN(FLOOR(i.quantity_on_hand / a.qty)) AS v FROM " . TABLE_INVENTORY_ASSY_LIST . " a"
+                    . " INNER JOIN " . TABLE_INVENTORY . " i ON a.sku = i.sku"
+                    . " WHERE a.ref_id = " . $inv_id . " AND a.qty > 0"
+                );
+                $virtual_stock = (!$vr->EOF && $vr->fields['v'] !== null) ? (float)$vr->fields['v'] : 0.0;
+                $qty = max(0.0, $virtual_stock - (float)$result->fields['quantity_on_sales_order']);
+            } else {
+                $qty = max(0.0, (float)$result->fields['quantity_on_hand'] - (float)$result->fields['quantity_on_sales_order']);
+            }
+
             $bulk_products[] = [
                 'products_model' => $model,
-                'quantity'       => max(0.0, (float)$result->fields['quantity_on_hand'] - (float)$result->fields['quantity_on_sales_order']),
+                'quantity'       => $qty,
                 'price'          => $price,
             ];
             $result->MoveNext();
