@@ -38,6 +38,11 @@ $toolbar->add_help('07.04.01');
 echo $toolbar->build_toolbar($add_search = true);
 ?>
 <h1><?php echo BOX_INV_MAINTAIN; ?></h1>
+<div id="filter_bar" class="d-flex align-items-center gap-2 mb-2">
+  <span><?php echo TEXT_FILTERS; ?></span>
+  <label><?php echo TEXT_SHOW_INACTIVE . '&nbsp;' . html_checkbox_field('f0', '1', $f0); ?></label>
+  <button type="button" class="btn btn-primary btn-sm" onclick="document.forms[0].submit()"><?php echo TEXT_APPLY; ?></button>
+</div>
 
 <div class="pkg-wrap">
 
@@ -101,7 +106,7 @@ echo $toolbar->build_toolbar($add_search = true);
     } else {
       $qty_in_stock = $query_result->fields['quantity_on_hand'];
     }
-    $row_class = ($odd ? 'odd' : 'even') . ($query_result->fields['inactive'] ? ' table-warning' : '');
+    $row_class = ($odd ? 'odd' : 'even') . ($query_result->fields['inactive'] ? ' fb-inactive-row' : '');
   ?>
     <tr class="<?php echo $row_class; ?>" style="cursor:pointer">
       <td onclick="submitSeq(<?php echo $query_result->fields['id'] . ', \'edit\''; ?>)"><?php echo htmlspecialchars($query_result->fields['sku']); ?></td>

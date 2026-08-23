@@ -270,6 +270,11 @@ tr.row-info    > td { background-color: #cff4fc !important; }
   color:            #ffffff;
 }
 
+/* Inactive items — Bootstrap's own .table sets a per-td color that beats an
+   inherited color from the row, .text-muted included, so this greys the td
+   directly the same way row-hold above colours it directly. */
+.pkg-table > tbody > tr.fb-inactive-row > td { color: #808080; }
+
 /* ── pkg-table tfoot: gloss-wave section background ────────────── */
 /* Matches original <tfoot class="ui-widget-header"> — gradient spans all rows */
 .pkg-table > tfoot {

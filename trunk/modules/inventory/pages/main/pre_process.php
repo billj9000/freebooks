@@ -33,7 +33,9 @@ $type        = isset($_REQUEST['inventory_type']) ? $_REQUEST['inventory_type'] 
 history_filter('inventory');
 $first_entry = isset($_GET['add']) ? true : false;
 // load the filters
-$f0 = $_GET['f0'] = isset($_POST['action']) ? (isset($_POST['f0']) ? '1' : '0') : $_GET['f0']; // show inactive checkbox
+$_SESSION['inv_f0'] = isset($_SESSION['inv_f0']) ? $_SESSION['inv_f0'] : '0'; // show inactive checkbox - default hidden
+if ($_SERVER['REQUEST_METHOD'] == 'POST') $_SESSION['inv_f0'] = isset($_POST['f0']) ? '1' : '0';
+$f0 = $_SESSION['inv_f0'];
 $f1 = $_GET['f1'] = isset($_POST['f1']) ? $_POST['f1'] : $_GET['f1']; // inventory_type dropdown
 $id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID']);
 // getting the right inventory type.
@@ -246,6 +248,7 @@ switch ($_REQUEST['action']) {
 	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
   	  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 	}
+	if (!$f0) $criteria[] = "(a.inactive = '0' or a.inactive = '')"; // hide inactive unless requested
 	// build search filter string
 	$search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';
 	$field_list = array('a.id as id', 'a.sku as sku', 'inactive', 'inventory_type', 'description_short', 'full_price', 
