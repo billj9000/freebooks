@@ -72,6 +72,7 @@ define('ORD_ROW_DELETE_ALERT','Точно хотите удалить эту с�
 define('ORD_SHIP_CARRIER','Доставщик');
 define('ORD_SHIP_TO','Адрес доставки:');
 define('ORD_SHIPPED','Отправленный');
+define('TEXT_RESTOCK','Вернуть на склад');
 define('ORD_SUBTOTAL','Подитог');
 define('ORD_TAX_RATE','Налоговая ставка');
 define('ORD_TAXABLE','Облагаемый');

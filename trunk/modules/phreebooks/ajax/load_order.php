@@ -229,6 +229,7 @@ if (!empty($order->fields)) {
 			  $item_list[$i]['description'] 			= $ordr_items->fields['description'];
 			  $item_list[$i]['gl_account']  			= $ordr_items->fields['gl_account'];
 			  $item_list[$i]['taxable']     			= $ordr_items->fields['taxable'];
+			  $item_list[$i]['restock']     			= $ordr_items->fields['restock'];
 			  $item_list[$i]['serialize']   			= $ordr_items->fields['serialize_number'];
 			  $item_list[$i]['proj_id']     			= $ordr_items->fields['project_id'];
 			  $item_list[$i]['purch_package_quantity']	= $ordr_items->fields['purch_package_quantity'];
@@ -256,6 +257,7 @@ if (!empty($order->fields)) {
 			'description'				=> $ordr_items->fields['description'],
 			'gl_account'  				=> $ordr_items->fields['gl_account'],
 			'taxable'     				=> $ordr_items->fields['taxable'],
+			'restock'     				=> $ordr_items->fields['restock'],
 			'serialize'   				=> $ordr_items->fields['serialize_number'],
 			'proj_id'     				=> $ordr_items->fields['project_id'],
 			'purch_package_quantity'	=> $ordr_items->fields['purch_package_quantity'],

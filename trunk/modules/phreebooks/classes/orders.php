@@ -412,6 +412,7 @@ class orders extends journal {
 			'full_price'              => $this->column_empty($this->item_rows[$i]['full'], 0),
 			'gl_account'              => $this->item_rows[$i]['acct'],
 			'taxable'                 => $this->item_rows[$i]['tax'],
+			'restock'                 => $this->item_rows[$i]['restock'] ?? '1',	// issue #71: credit memo re-stock flag
 			'serialize_number'        => $this->item_rows[$i]['serial'],
 			'project_id'              => $this->item_rows[$i]['proj'],
 			'purch_package_quantity'  => $this->column_empty($this->item_rows[$i]['purch_package_quantity'], 0),

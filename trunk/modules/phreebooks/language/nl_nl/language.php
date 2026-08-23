@@ -87,6 +87,7 @@ define('TEXT_RECEIVED','Ontvangen');
 define('TEXT_REMIT_TO','Opdracht om:');
 define('TEXT_REFERENCE_NUMBER','Factuur/Order Nummer');
 define('TEXT_RETURNED','Geretourneerd');
+define('TEXT_RESTOCK','Terug op voorraad');
 define('TEXT_PAY_TO','Betaal aan:');
 define('TEXT_RECEIVE_FROM','Ontvangen van:');
 define('ORD_SHIP_CARRIER','Koerier');

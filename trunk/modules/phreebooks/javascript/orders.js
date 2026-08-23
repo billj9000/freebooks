@@ -319,6 +319,13 @@ function fillOrder(xml) {
 		  insertValue('weight_'  + jIndex,           xmlText(item, "weight"));
 		  insertValue('serial_'  + jIndex,           xmlText(item, "serialize"));
 		  insertValue('stock_'  + jIndex,            xmlText(item, "stock"));
+		  if (journalID == '13') { // issue #71: restore the re-stock flag and its visibility
+			  var restockCb2 = document.getElementById('restock_'+jIndex);
+			  if (restockCb2) {
+				  restockCb2.checked = xmlText(item, "restock") != '0';
+				  restockCb2.style.display = (xmlText(item, "stock") == 'NA') ? 'none' : '';
+			  }
+		  }
 		  insertValue('inactive_'  + jIndex,         xmlText(item, "inactive"));
 		  insertValue('lead_' + jIndex,              xmlText(item, "lead"));
 		  insertValue('price_' + jIndex,             unitPrice);
@@ -676,6 +683,15 @@ function addInvRow() {
   newCell.innerHTML = cell;
   newCell.align  = 'center';
   newCell.style.whiteSpace = 'nowrap';
+  // issue #71: hidden by default (matches template_main.php's default for a not-yet-
+  // identified item) - shown once the sku lookup below confirms a stock-tracked type.
+  if (journalID == '13') {
+    cell    = '<input type="checkbox" class="restock-cb form-check-input" name="restock_'+rowCnt+'" id="restock_'+rowCnt+'" value="1" checked style="float:none;margin:0;display:none" />';
+    newCell = newRow.insertCell(-1);
+    newCell.innerHTML = cell;
+    newCell.align  = 'center';
+    newCell.style.whiteSpace = 'nowrap';
+  }
   cell    = '<input type="text" name="sku_'+rowCnt+'" id="sku_'+rowCnt+'" size="'+(max_sku_len+1)+'" maxlength="'+max_sku_len+'" onfocus="clearField(\'sku_'+rowCnt+'\', \''+text_search+'\')" onkeydown="checkEnterEvent(event, '+rowCnt+');" onblur="setField(\'sku_'+rowCnt+'\', \''+text_search+'\'); loadSkuDetails(0, '+rowCnt+')" />&nbsp;';
   cell   += buildIcon(icon_path+'16x16/actions/system-search.png', text_search, 'id="sku_open_'+rowCnt+'" align="top" style="cursor:pointer" onclick="InventoryList('+rowCnt+')"');
   cell   += buildIcon(icon_path+'16x16/actions/document-properties.png', text_properties, 'id="sku_prop_'+rowCnt+'" align="top" style="cursor:pointer; display:none;" onclick="InventoryProp('+rowCnt+')"');
@@ -1271,6 +1287,10 @@ function fillInventory(xml) {
   document.getElementById('sku_prop_'+rowCnt).style.display = '';
   document.getElementById('weight_'  +rowCnt).value = xmlText(xml, "item_weight");
   document.getElementById('stock_'   +rowCnt).value = xmlText(xml, "branch_qty_in_stock");
+  if (journalID == '13') { // issue #71: 'NA' stock means a non-stock type - nothing to restock
+    var restockCb = document.getElementById('restock_'+rowCnt);
+    if (restockCb) restockCb.style.display = (xmlText(xml, "branch_qty_in_stock") == 'NA') ? 'none' : '';
+  }
   document.getElementById('lead_'    +rowCnt).value = xmlText(xml, "lead_time");
   document.getElementById('inactive_'+rowCnt).value = xmlText(xml, "inactive");
   var currency_code = xmlText(xml, "currency_code") || defaultCurrency;

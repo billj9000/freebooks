@@ -297,6 +297,7 @@ switch ($_REQUEST['action']) {
 		'full'              		=> $currencies->clean_value(db_prepare_input($_POST['full_' . $x]),  $order->currencies_code) / $order->currencies_value,
 		'acct'              		=> db_prepare_input($_POST['acct_' . $x]),
 		'tax'               		=> db_prepare_input($_POST['tax_' . $x]),
+		'restock'           		=> (JOURNAL_ID == 13) ? (isset($_POST['restock_' . $x]) ? '1' : '0') : '1',
 		'total'             		=> $currencies->clean_value(db_prepare_input($_POST['total_' . $x]), $order->currencies_code) / $order->currencies_value,
 		'weight'            		=> db_prepare_input($_POST['weight_' . $x]),
 		'serial'            		=> db_prepare_input($_POST['serial_' . $x]),

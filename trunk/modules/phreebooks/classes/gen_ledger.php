@@ -660,6 +660,10 @@ class journal {
 			$inv_list['qty'] = -$inv_list['qty'];
 		  case 13: // a customer credit memo, qty stays positive
 		  case 16:
+			// issue #71: an unticked Re-stock line still credits the customer/vendor
+			// (handled entirely outside this function) but the item isn't coming
+			// back, so skip the COGS reversal same as a blank sku always has.
+			if (in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0') break;
 			if ($inv_type == 'pb') {
 			  if ($this->journal_id == 16) return $this->fail_message(GL_ERROR_PB_CANNOT_ADJUST);
 			  if (!$this->calculate_bundle_cogs($inv_list)) return false;
@@ -712,7 +716,11 @@ class journal {
 		  break;
 		default:
 	  }
-	  if (!$this->update_inventory_status($this->journal_rows[$i]['sku'] ?? null, $str_field, $post_qty, $item_cost, $this->journal_rows[$i]['description'], $full_price)) return false;
+	  // issue #71: same rule as the COGS skip above - treat the row as if it had
+	  // no sku for the stock write itself, without touching the real sku.
+	  $restock_sku = $this->journal_rows[$i]['sku'] ?? null;
+	  if (in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0') $restock_sku = null;
+	  if (!$this->update_inventory_status($restock_sku, $str_field, $post_qty, $item_cost, $this->journal_rows[$i]['description'], $full_price)) return false;
 	}
 	$messageStack->debug("\n  end Posting Inventory.");
 	return true;
@@ -758,7 +766,10 @@ class journal {
 	  default:
 		$db_field = 'quantity_on_sales_order';
 	}
-	for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku']) {
+	// issue #71: an unticked Re-stock line was never posted to inventory (see
+	// Post_inventory), so treat it the same way a blank sku always has here -
+	// skip the row entirely rather than reversing an adjustment that never happened.
+	for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku'] && !(in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0')) {
 	  switch ($this->journal_id) {
 		case  4:
 		case 10:

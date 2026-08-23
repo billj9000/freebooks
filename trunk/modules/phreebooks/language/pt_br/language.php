@@ -246,6 +246,7 @@ define('TEXT_PO_BAL','Saldo OC');
 define('ORD_SHIP_CARRIER','Transportador');
 define('TEXT_SO_BAL','Saldo OV');
 define('TEXT_RETURNED','Devolvido');
+define('TEXT_RESTOCK','Repor no Estoque');
 define('TEXT_PAY_TO','Pagar Para:');
 define('TEXT_RECEIVE_FROM','Recebido de:');
 define('TEXT_REFERENCE_NUMBER','Referência #');

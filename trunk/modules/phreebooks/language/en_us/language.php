@@ -87,6 +87,7 @@ define('TEXT_RECEIVED','Received');
 define('TEXT_REMIT_TO', 'Remit to:');
 define('TEXT_REFERENCE_NUMBER','Reference #');
 define('TEXT_RETURNED','Returned');
+define('TEXT_RESTOCK','Re-stock');
 define('TEXT_PAY_TO','Pay To:');
 define('TEXT_RECEIVE_FROM','Receive From:');
 define('ORD_SHIP_CARRIER', 'Carrier');

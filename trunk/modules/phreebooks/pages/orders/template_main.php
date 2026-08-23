@@ -372,6 +372,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
       <th><?php echo TEXT_ITEM; ?></th>
       <th><?php echo TEXT_COLUMN_1_TITLE; ?></th>
       <th><?php echo TEXT_COLUMN_2_TITLE; ?></th>
+      <?php if (JOURNAL_ID == 13) echo '<th class="text-center"><label class="d-inline-flex align-items-center gap-1 mb-0" style="cursor:pointer">' . html_checkbox_field('restock_all', '1', true, '', 'class="form-check-input" style="float:none;margin:0" onclick="document.querySelectorAll(\'.restock-cb\').forEach(function(cb){cb.checked=this.checked;}, this)"') . TEXT_RESTOCK . '</label></th>' . chr(10); ?>
       <th><?php echo TEXT_SKU; ?></th>
       <th><?php echo TEXT_DESCRIPTION; ?></th>
       <th><?php echo TEXT_GL_ACCOUNT; ?></th>
@@ -384,6 +385,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
       <th><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small'); ?></th>
       <th><?php echo TEXT_COLUMN_1_TITLE; ?></th>
       <th><?php echo TEXT_COLUMN_2_TITLE; ?></th>
+      <?php if (JOURNAL_ID == 13) echo '<th class="text-center"><label class="d-inline-flex align-items-center gap-1 mb-0" style="cursor:pointer">' . html_checkbox_field('restock_all', '1', true, '', 'class="form-check-input" style="float:none;margin:0" onclick="document.querySelectorAll(\'.restock-cb\').forEach(function(cb){cb.checked=this.checked;}, this)"') . TEXT_RESTOCK . '</label></th>' . chr(10); ?>
       <th><?php echo TEXT_SKU; ?></th>
       <th colspan="3"><?php echo TEXT_DESCRIPTION; ?></th>
       <th colspan="2"><?php echo TEXT_PROJECT; ?></th>
@@ -424,6 +426,12 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
           $imgSerialView = in_array($invType->fields['inventory_type'], array('sr','sa')) ? "" : "display:none;";
           if (in_array(JOURNAL_ID, array(6,7,12,13))) echo html_icon('actions/tab-new.png', TEXT_SERIAL_NUMBER, 'small', 'id="imgSerial_'.$i.'" align="top" style="cursor:pointer;'.$imgSerialView.'" onclick="serialList(\'serial_' . $i . '\')"');
           echo '</td>' . chr(10);
+          if (JOURNAL_ID == 13) {
+            // issue #71: ticked (default) restocks this line on post; a non-stock
+            // item has nothing to restock, so its checkbox stays hidden.
+            $show_restock = (strpos(COG_ITEM_TYPES, $invType->fields['inventory_type'] ?? '') !== false || ($invType->fields['inventory_type'] ?? '') == 'pb');
+            echo '  <td class="text-center">' . html_checkbox_field('restock_' . $i, '1', ($order->item_rows[$j]['restock'] ?? '1') != '0', '', 'class="restock-cb form-check-input" style="float:none;margin:0' . ($show_restock ? '' : ';display:none') . '"') . '</td>' . chr(10);
+          }
           echo '  <td class="text-center">';
           echo html_input_field('sku_' . $i, $order->item_rows[$j]['sku'], ($sku_enable ? '' : ' readonly="readonly"') . ' size="' . (MAX_INVENTORY_SKU_LENGTH + 1) . '" maxlength="' . MAX_INVENTORY_SKU_LENGTH . '" onfocus="clearField(\'sku_' . $i . '\', \'' . TEXT_SEARCH . '\')" onkeydown="checkEnterEvent(event,' . $i . ');" onblur="setField(\'sku_' . $i . '\', \'' . TEXT_SEARCH . '\'); loadSkuDetails(0, ' . $i . ')"') . chr(10);
           echo html_icon('status/folder-open.png', TEXT_SEARCH, 'small', 'id="sku_open_' . $i . '" align="top" style="cursor:pointer' . ($sku_enable ? '' : ';display:none') . '" onclick="InventoryList(' . $i . ')"') . chr(10);

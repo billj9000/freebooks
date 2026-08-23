@@ -158,6 +158,7 @@ class phreebooks_admin {
 		  credit_amount double default '0',
 		  gl_account varchar(15) NOT NULL default '',
 		  taxable int(11) NOT NULL default '0',
+		  restock enum('0','1') NOT NULL default '1',
 		  full_price DOUBLE NOT NULL default '0',
 		  serialize enum('0','1') NOT NULL default '0',
 		  serialize_number varchar(24) default NULL,
@@ -385,6 +386,9 @@ class phreebooks_admin {
 	}
 	if (MODULE_PHREEBOOKS_STATUS < 3.80) {
 		include_once(DIR_FS_MODULES . 'phreebooks/updates/R40toR41.php');
+	}
+	if (MODULE_PHREEBOOKS_STATUS < 3.81) {
+		include_once(DIR_FS_MODULES . 'phreebooks/updates/R41toR42.php');
 	}
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));
