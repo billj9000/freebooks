@@ -38,14 +38,14 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 		$this->bom 			= null;
 		parent::get_item_by_id($id);
 		$this->get_bom_list();
-		$this->allow_edit_bom = (($this->last_journal_date == '0000-00-00 00:00:00' || $this->last_journal_date == '') && ($this->quantity_on_hand == 0|| $this->quantity_on_hand == '')) ? true : false;
+		$this->allow_edit_bom = $this->bom_editable($this->last_journal_date, $this->quantity_on_hand);
 	}
 
 	function get_item_by_sku($sku){
 		$this->bom 			= null;
 		parent::get_item_by_sku($sku);
 		$this->get_bom_list();
-		$this->allow_edit_bom = (($this->last_journal_date == '0000-00-00 00:00:00' || $this->last_journal_date == '') && ($this->quantity_on_hand == 0|| $this->quantity_on_hand == '')) ? true : false;
+		$this->allow_edit_bom = $this->bom_editable($this->last_journal_date, $this->quantity_on_hand);
 	}
 
 	function copy($id, $newSku){
@@ -92,6 +92,26 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
 	}
 
+	/**
+	 * Whether the parts list may still be changed.
+	 *
+	 * An assembly that has been built or posted must not have its recipe rewritten
+	 * underneath the journal rows that recorded it, so a date or a quantity locks it.
+	 * That is a rule about an ASSEMBLY STEP, and a product bundle has none: it is never
+	 * built and holds no stock of its own, so nothing about it is ever locked in. pb
+	 * overrides this to true.
+	 *
+	 * It has to be one overridable rule rather than the same expression written out at
+	 * each site. pb already set allow_edit_bom = true when LOADING an item, but save()
+	 * re-derived it from the database and the override did not reach that far, so a
+	 * bundle that had ever been sold rendered an editable BOM, reported a successful
+	 * save and threw the change away.
+	 */
+	function bom_editable($last_journal_date, $quantity_on_hand) {
+		return (($last_journal_date == '0000-00-00 00:00:00' || $last_journal_date == '')
+		     && ($quantity_on_hand == 0 || $quantity_on_hand == '')) ? true : false;
+	}
+
 	function save(){
 		global $db, $currencies, $messageStack;
 		$bom_list = array();
@@ -116,7 +136,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 		$this->bom = $bom_list;
 		if (!parent::save()) return false;
 		$result = $db->Execute("select last_journal_date, quantity_on_hand  from " . TABLE_INVENTORY . " where id = " . $this->id);
-		$this->allow_edit_bom = (($result->fields['last_journal_date'] == '0000-00-00 00:00:00' || $result->fields['last_journal_date'] == '') && ($result->fields['quantity_on_hand'] == 0|| $result->fields['quantity_on_hand'] == '')) ? true : false;
+		$this->allow_edit_bom = $this->bom_editable($result->fields['last_journal_date'], $result->fields['quantity_on_hand']);
 		if($error) return false;
 	  	if ($this->allow_edit_bom == true) { // only update if no posting has been performed
 	  		$result = $db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . $this->id);
@@ -125,6 +145,8 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 				unset($list_array['full_price']);
 				db_perform(TABLE_INVENTORY_ASSY_LIST, $list_array, 'insert');
 			}
+	  	} elseif ($bom_list) { // locked, and the rest of the item saved - say so
+	  		$messageStack->add(INV_BOM_LOCKED, 'caution');
 	  	}
 	  	return true;
 	}

@@ -123,6 +123,7 @@ define('INV_ADJ_VALUE', 'Adj. Value');
 define('INV_ROUNDING', 'Rounding');
 define('INV_RND_VALUE', 'Rnd. Value');
 define('INV_BOM','Bill of Materials');
+define('INV_BOM_LOCKED','Bill of Materials not saved: this item has been posted or holds stock, so its parts list is locked.');
 define('INV_ADJ_DELETE_ALERT', 'Are you sure you want to delete this Inventory Adjustment?');
 define('INV_MSG_DELETE_INV_ITEM', 'Are you sure you want to delete this inventory item?');
 define('INV_SERIAL_POPUP_TITLE', 'Please select the SKU serial number from the list below:');

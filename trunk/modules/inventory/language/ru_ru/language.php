@@ -107,6 +107,7 @@ define('INV_ADJ_VALUE','Кол единиц');
 define('INV_ROUNDING','Округление');
 define('INV_RND_VALUE','Rnd. Value');
 define('INV_BOM','Оплата материалов');
+define('INV_BOM_LOCKED','Спецификация не сохранена: позиция проведена или имеет остаток, поэтому список материалов заблокирован.');
 define('INV_ADJ_DELETE_ALERT','Are you sure you want to delete this Inventory Adjustment?');
 define('INV_MSG_DELETE_INV_ITEM','Точно хотите удалить единицу?');
 define('INV_XFER_FROM_STORE','Перенести из магазина ID');

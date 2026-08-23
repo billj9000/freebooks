@@ -105,6 +105,7 @@ define('INV_ADJ_VALUE','Gecorrigeerde waarde');
 define('INV_ROUNDING','Afronden');
 define('INV_RND_VALUE','Afgeronde waarde');
 define('INV_BOM','Lijst van Onderdelen');
+define('INV_BOM_LOCKED','Lijst van Onderdelen niet opgeslagen: dit artikel is geboekt of heeft voorraad, dus de lijst is vergrendeld.');
 define('INV_ADJ_DELETE_ALERT','Weet u zeker dat u deze voorraad wijziging wilt verwijderen?');
 define('INV_MSG_DELETE_INV_ITEM','Weet u zeker dat u dit Voorraad item wilt verwijderen?');
 define('INV_XFER_FROM_STORE','Transporteer van Winkel ID');

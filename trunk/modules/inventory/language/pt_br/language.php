@@ -117,6 +117,7 @@ define('INV_XFER_TO_STORE','Para o Local ID');
 define('INV_ADJ_DELETE_ALERT','Tem certeza de que quer remover este Ajuste de Inventário?');
 define('INV_MSG_DELETE_INV_ITEM','Tem certeza de que quer remover este Item de Inventário');
 define('INV_BOM','Lista de Materiais');
+define('INV_BOM_LOCKED','Lista de materiais não salva: este item foi lançado ou possui estoque, portanto sua lista de peças está bloqueada.');
 define('INV_ADJ_VALUE','Aju. Valor');
 define('INV_ROUNDING','Arredondamento');
 define('INV_RND_VALUE','Valor Arredondamento');
