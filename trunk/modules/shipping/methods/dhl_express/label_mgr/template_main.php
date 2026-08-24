@@ -312,7 +312,6 @@ $sel_sm = 'class="form-select form-select-sm"';
           <th><?php echo TEXT_QUANTITY; ?></th>
           <th><?php echo TEXT_WEIGHT; ?></th>
           <th>L</th><th>W</th><th>H</th>
-          <th><?php echo TEXT_VALUE; ?></th>
         </tr>
       </thead>
       <tbody id="item_table">
@@ -339,9 +338,6 @@ $sel_sm = 'class="form-select form-select-sm"';
           <td><input type="text" class="form-control form-control-sm text-end" style="width:5em"
                      name="hgt_<?php echo $rowCnt; ?>" id="hgt_<?php echo $rowCnt; ?>"
                      value="<?php echo htmlspecialchars($package['height']); ?>"></td>
-          <td><input type="text" class="form-control form-control-sm text-end" style="width:7em"
-                     name="ins_<?php echo $rowCnt; ?>" id="ins_<?php echo $rowCnt; ?>"
-                     value="<?php echo htmlspecialchars($package['value']); ?>"></td>
         </tr>
           <?php $rowCnt++; endforeach;
         endif; ?>
@@ -388,7 +384,7 @@ $sel_sm = 'class="form-select form-select-sm"';
           <th><?php echo DHL_TEXT_HS_CODE; ?></th>
           <th class="text-end"><?php echo TEXT_QUANTITY; ?></th>
           <th><?php echo DHL_TEXT_UNIT_WEIGHT; ?> (<?php echo htmlspecialchars($sInfo->pkg_weight_unit ?? SHIPPING_DEFAULT_WEIGHT); ?>)</th>
-          <th><?php echo DHL_TEXT_UNIT_VALUE; ?></th>
+          <th><?php echo DHL_TEXT_UNIT_VALUE; ?> (<?php echo htmlspecialchars($home_currency); ?>)</th>
         </tr>
       </thead>
       <tbody>
@@ -413,10 +409,19 @@ $sel_sm = 'class="form-select form-select-sm"';
                      style="width:8em" name="li_wt_<?php echo $n; ?>" id="li_wt_<?php echo $n; ?>"
                      value="<?php echo number_format((float)$item['weight'], 3); ?>"
                      maxlength="10" onchange="updateWeight()"></td>
-          <td><input type="text" class="form-control form-control-sm text-end"
-                     style="width:8em" name="li_val_<?php echo $n; ?>" id="li_val_<?php echo $n; ?>"
-                     value="<?php echo number_format((float)$item['value'], 2); ?>"
-                     maxlength="10" onchange="updateWeight()"></td>
+          <td>
+            <input type="text" class="form-control form-control-sm text-end"
+                   style="width:8em" name="li_val_<?php echo $n; ?>" id="li_val_<?php echo $n; ?>"
+                   value="<?php echo number_format((float)$item['value'], 2); ?>"
+                   maxlength="10" onchange="updateWeight()">
+            <?php if ($order_currency && $order_currency !== $home_currency):
+              $li_conv = number_format(round((float)$item['value'] * (float)($sInfo->currencies_value ?: 1), 2), 2);
+            ?>
+            <span class="badge" style="background-color:#2191c0;font-size:10px;border-radius:0">
+              <?php echo $li_conv . ' ' . htmlspecialchars($order_currency); ?>
+            </span>
+            <?php endif; ?>
+          </td>
         </tr>
         <?php endforeach; ?>
       </tbody>

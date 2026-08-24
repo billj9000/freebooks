@@ -73,13 +73,12 @@ switch ($_REQUEST['action'] ?? '') {
     $block = array();
     if ($cc_email)  $block['EMAIL_CC_ADDRESS']  = $cc_email;
     if ($bcc_email) $block['EMAIL_BCC_ADDRESS'] = $bcc_email;
-    $ok = true;
+    $attachments = array();
     foreach ($content_list as $item) {
-      if ($item['type'] === 'pdf' && $item['path']) {
-        if (!validate_send_mail($to_name ?: $to_email, $to_email, $subject, $body,
-          $from_name, $from_email, $block, array('file' => $item['path']))) $ok = false;
-      }
+      if ($item['type'] === 'pdf' && $item['path']) $attachments[] = array('file' => $item['path']);
     }
+    $ok = empty($attachments) ? true : validate_send_mail($to_name ?: $to_email, $to_email, $subject, $body,
+      $from_name, $from_email, $block, $attachments);
     header('Content-Type: application/json');
     echo json_encode($ok ? ['status' => 'ok'] : ['status' => 'error']);
     exit;

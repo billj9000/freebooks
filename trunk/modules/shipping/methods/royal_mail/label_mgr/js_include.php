@@ -138,8 +138,6 @@ function addRow() {
       ' name="wt_' + rowCnt + '" id="wt_' + rowCnt + '" value=""' +
       ' onchange="updateWeight()">',
     buildFormatSelect(rowCnt, defaultFmt),
-    '<input type="text" class="form-control form-control-sm text-end" style="width:7em"' +
-      ' name="ins_' + rowCnt + '" id="ins_' + rowCnt + '" value="0.00">',
   ];
   cells.forEach(function(html, i) {
     var td = newRow.insertCell(-1);
@@ -153,7 +151,6 @@ function removeRow(delRowCnt) {
   for (var i = delRowCnt; i < tbl.rows.length; i++) {
     document.getElementById('qty_' + i).value = document.getElementById('qty_' + (i + 1)).value;
     document.getElementById('wt_'  + i).value = document.getElementById('wt_'  + (i + 1)).value;
-    document.getElementById('ins_' + i).value = document.getElementById('ins_' + (i + 1)).value;
     // Copy format select value
     var fSrc = document.getElementById('fmt_' + (i + 1));
     var fDst = document.getElementById('fmt_' + i);

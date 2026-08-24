@@ -93,8 +93,6 @@ function addRow(len, wid, hgt) {
       ' name="wid_' + rowCnt + '" id="wid_' + rowCnt + '" value="' + wv + '">',
     '<input type="text" class="form-control form-control-sm text-end" style="width:5em"' +
       ' name="hgt_' + rowCnt + '" id="hgt_' + rowCnt + '" value="' + hv + '">',
-    '<input type="text" class="form-control form-control-sm text-end" style="width:7em"' +
-      ' name="ins_' + rowCnt + '" id="ins_' + rowCnt + '" value="0.00">',
   ];
   cells.forEach(function(html) {
     var td = newRow.insertCell(-1);
@@ -111,7 +109,6 @@ function removeRow(delRowCnt) {
     document.getElementById('len_' + i).value = document.getElementById('len_' + (i + 1)).value;
     document.getElementById('wid_' + i).value = document.getElementById('wid_' + (i + 1)).value;
     document.getElementById('hgt_' + i).value = document.getElementById('hgt_' + (i + 1)).value;
-    document.getElementById('ins_' + i).value = document.getElementById('ins_' + (i + 1)).value;
   }
   tbl.deleteRow(-1);
   updateWeight();

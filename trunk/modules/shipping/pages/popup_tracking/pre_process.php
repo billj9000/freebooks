@@ -97,10 +97,17 @@ if ($sID) {
   $ship_date_only    = substr($cInfo->ship_date, 0, 10);
   $label_file_path   = SHIPPING_DEFAULT_LABEL_DIR . $cInfo->carrier . '/' . str_replace('-', '/', $ship_date_only) . '/';
   if (!empty(glob($label_file_path . $cInfo->tracking_id . '*.pdf'))) {
+    // Paperless Trade commercial invoice (DHL) is saved alongside the label as
+    // "{tracking}-invoice.pdf" but was never a shipping_log row of its own, so it
+    // has to be picked back up from disk when re-opening a previously booked shipment.
+    $label_ids = array($cInfo->tracking_id);
+    if (is_file($label_file_path . $cInfo->tracking_id . '-invoice.pdf')) {
+      $label_ids[] = $cInfo->tracking_id . '-invoice';
+    }
     $label_viewer_url = html_href_link(FILENAME_DEFAULT,
       'module=shipping&page=popup_label_viewer&method=' . $cInfo->carrier .
       '&date='       . $ship_date_only .
-      '&labels='     . $cInfo->tracking_id .
+      '&labels='     . implode(':', $label_ids) .
       '&to_name='    . urlencode($cInfo->recipient_name  ?? '') .
       '&to_email='   . urlencode($cInfo->recipient_email ?? '') .
       '&from_name='  . urlencode(defined('COMPANY_NAME')  ? COMPANY_NAME  : '') .

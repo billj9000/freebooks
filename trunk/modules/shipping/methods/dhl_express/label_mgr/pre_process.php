@@ -67,7 +67,6 @@ switch ($_REQUEST['action']) {
           'length' => $_POST['len_' . $i],
           'width'  => $_POST['wid_' . $i],
           'height' => $_POST['hgt_' . $i],
-          'value'  => $_POST['ins_' . $i],
         );
       }
     }
@@ -265,7 +264,7 @@ switch ($_REQUEST['action']) {
                 $h  = (float)($pkg['height'] ?? 0);
               }
               for ($j = 0; $j < $qty; $j++) {
-                $sInfo->package[] = ['weight' => $w, 'length' => $l, 'width' => $wd, 'height' => $h, 'value' => 0];
+                $sInfo->package[] = ['weight' => $w, 'length' => $l, 'width' => $wd, 'height' => $h];
                 $weight_total += $w;
               }
             }
@@ -285,11 +284,13 @@ switch ($_REQUEST['action']) {
         while (!$li_result->EOF) {
           $f   = $li_result->fields;
           $qty = (float)$f['qty'];
-          // Purchases use debit_amount; sales use credit_amount. full_price (unit) takes priority when set.
+          // Purchases use debit_amount; sales use credit_amount. This is the actually-transacted
+          // amount; full_price is only a snapshot list price taken when the SKU was added to the
+          // order and goes stale if the line's price is edited afterwards, so it's a fallback only.
           $line_total = !empty($sInfo->is_purchase) ? (float)$f['debit_amount'] : (float)$f['credit_amount'];
-          $unit_price = (float)$f['full_price'] > 0
-            ? (float)$f['full_price']
-            : ($qty > 0 ? $line_total / $qty : 0);
+          $unit_price = ($qty > 0 && $line_total > 0)
+            ? $line_total / $qty
+            : (float)$f['full_price'];
           $sInfo->line_items[] = array(
             'sku'         => $f['sku'],
             'description' => $f['customs_description'] ?: ($f['description'] ?: ''),

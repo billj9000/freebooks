@@ -1862,8 +1862,13 @@ function validate_ajax_user($token = 0) {
       // uniquely so two people emailing the same invoice cannot overwrite each
       // other, and the result arrived as "Invoice-fdaec59de5bc-pdf" with no
       // extension. Callers passing only 'file' are unaffected.
+      // Accepts either a single ['file'=>.., 'name'=>..] shape (existing callers) or a list of
+      // such arrays, so one call can attach multiple files to the same email.
       if (gen_not_null($attachments_list)) {
-        $mail->addAttachment($attachments_list['file'], $attachments_list['name'] ?? '');
+        $files = isset($attachments_list['file']) ? array($attachments_list) : $attachments_list;
+        foreach ($files as $file) {
+          if (!empty($file['file'])) $mail->addAttachment($file['file'], $file['name'] ?? '');
+        }
       }
       if (EMAIL_USE_HTML && trim($email_html) != '' && ADMIN_EXTRA_EMAIL_FORMAT == 'HTML') {
         $mail->isHTML(true);
