@@ -195,7 +195,9 @@ class inventory {
 			'account_sales_income'   	=> $this->account_sales_income,
 		    'account_inventory_wage'	=> $this->account_inventory_wage,
 			'account_cost_of_sales'  	=> $this->account_cost_of_sales,
-			'serialize'					=> $this->serialize,
+			// serialize enum('0','1') NOT NULL - never set on this class by any form field,
+			// so it must be defaulted here rather than passed through blank.
+			'serialize'					=> $this->serialize ?: '0',
 			'creation_date'				=> date('Y-m-d H:i:s'),
 			'last_update'				=> date('Y-m-d H:i:s'),
 			);
@@ -717,7 +719,7 @@ class inventory {
 			'account_sales_income'   	=> $this->account_sales_income,
 		    'account_inventory_wage'	=> $this->account_inventory_wage,
 			'account_cost_of_sales'  	=> $this->account_cost_of_sales,
-			'serialize'					=> $this->serialize,
+			'serialize'					=> $this->serialize ?: '0',
 			'item_cost'              	=> $item_cost,
 			'full_price'             	=> $full_price,
 			'creation_date'				=> date('Y-m-d H:i:s'),
