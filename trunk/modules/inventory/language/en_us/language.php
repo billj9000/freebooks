@@ -25,6 +25,7 @@ define('INV_TYPES_MS','Master Stock Item');
 define('INV_TYPES_MB','Master Stock Assembly');
 define('INV_TYPES_AS','Item Assembly');
 define('INV_TYPES_PB','Product Bundle');
+define('INV_TYPES_MP','Master Product Bundle');
 define('INV_TYPES_SA','Serialized Assembly');
 define('INV_TYPES_NS','Non-stock Item');
 define('INV_TYPES_LB','Labor');
@@ -35,6 +36,7 @@ define('INV_TYPES_AI','Activity Item');
 define('INV_TYPES_DS','Description');
 define('INV_TYPES_IA','Item Assembly Part');
 define('INV_TYPES_MI','Master Stock Sub Item');
+define('INV_TYPES_PC','Product Bundle Part');
 
 define('INV_TEXT_FIFO','FIFO');
 define('INV_TEXT_LIFO','LIFO');
@@ -203,6 +205,9 @@ define('INV_ADJ_QTY_ZERO','Cannot adjust inventory with a zero quantity!');
 define('INV_MS_ERROR_DELETE_HISTORY_EXISTS','Cannot delete sku %s since there is a record in the inventory_history table.');
 define('INV_MS_ERROR_DELETE_ASSEMBLY_PART','Cannot delete sku %s since it is part of an assembly. Will mark as inactive.');
 define('INV_MS_ERROR_CANNOT_DELETE','The sku %s cannot be deleted because there are matching journal entries. Will mark as inactive.');
+define('INV_ERROR_CANNOT_COPY','This inventory type cannot be copied.');
+define('INV_PC_ERROR_CANNOT_DELETE_SEPARATE','Product Bundle Parts are not allowed to be deleted separately!');
+define('INV_MSG_MP_BOM_OVERWRITE','This will (re)generate the Bill of Materials for all {n} variant(s) of this item from the template above. Any per-variant edits already made will be lost. Continue?');
 define('INV_STOCK_LEVEL_ADJ','Inventory stock levels need adjusting. New minimum stock = %s');
 define('INV_STOCK_MEDIAN','Check monthly usage, median value (%s) is out of range to average sales (%s).');
 // java script errors and messages

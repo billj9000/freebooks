@@ -48,7 +48,7 @@ if ($_REQUEST['action'] == 'properties') {
     $toolbar->icon_list['delete']['show'] = false;
   }
   if ($security_level > 2 || $first_entry) {
-    $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
+    $toolbar->icon_list['save']['params'] = 'onclick="saveDocument()"';
     $toolbar->add_icon('post_next', 'onclick="submitToDo(\'post_next\')"', 11);
     $toolbar->icon_list['post_next']['icon'] = 'actions/go-next.png';
     $toolbar->icon_list['post_next']['text'] = TEXT_SAVE_AND_COPY_TO_NEW;

@@ -639,7 +639,7 @@ class journal {
 			$inv_list['qty'] = -$inv_list['qty'];
 		  case  6:
 		  case 21:
-			if ($inv_type == 'pb') {
+			if (in_array($inv_type, ['pb', 'pc'])) {
 			  if (!$this->calculate_bundle_cogs($inv_list)) return false;
 			} else {
 			  if (!$this->calculate_COGS($inv_list)) return false;
@@ -652,7 +652,7 @@ class journal {
 			}
 			break;
 		  case 14:
-			if ($inv_type == 'pb') return $this->fail_message(GL_ERROR_PB_CANNOT_ASSEMBLE);
+			if (in_array($inv_type, ['pb', 'pc'])) return $this->fail_message(GL_ERROR_PB_CANNOT_ASSEMBLE);
 			$assy_cost = $this->calculate_assembly_list($inv_list); // for assembly parts list
 			if ($assy_cost === false) return false; // there was an error
 			break;
@@ -664,7 +664,7 @@ class journal {
 			// (handled entirely outside this function) but the item isn't coming
 			// back, so skip the COGS reversal same as a blank sku always has.
 			if (in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0') break;
-			if ($inv_type == 'pb') {
+			if (in_array($inv_type, ['pb', 'pc'])) {
 			  if ($this->journal_id == 16) return $this->fail_message(GL_ERROR_PB_CANNOT_ADJUST);
 			  if (!$this->calculate_bundle_cogs($inv_list)) return false;
 			} else {
@@ -798,7 +798,7 @@ class journal {
 		  }
 		  $inv_type_r = $db->Execute("SELECT inventory_type, id FROM " . TABLE_INVENTORY . " WHERE sku='" . db_input($this->journal_rows[$i]['sku']) . "'");
 		  $sku_inv_type = (!$inv_type_r->EOF) ? $inv_type_r->fields['inventory_type'] : '';
-		  if ($sku_inv_type == 'pb') {
+		  if (in_array($sku_inv_type, ['pb', 'pc'])) {
 			$bundle_id = $inv_type_r->fields['id'];
 			$bom = $db->Execute("SELECT sku, qty FROM " . TABLE_INVENTORY_ASSY_LIST . " WHERE ref_id = " . (int)$bundle_id);
 			while (!$bom->EOF) {
@@ -847,7 +847,7 @@ class journal {
 	}
 	$type = $result->fields['inventory_type'];
 	// only update items that are to be tracked in inventory (non-stock and bundles are tracked for SO only)
-	if (strpos(COG_ITEM_TYPES, $type) !== false || (in_array($type, ['ns', 'pb']) && $field <> 'quantity_on_hand')) {
+	if (strpos(COG_ITEM_TYPES, $type) !== false || (in_array($type, ['ns', 'pb', 'pc']) && $field <> 'quantity_on_hand')) {
 	  $sql = "UPDATE ".TABLE_INVENTORY." SET $field=$field+$adjustment, ";
 	  if ($item_cost) $sql .= "item_cost=$item_cost, ";
 	  $sql .= "last_journal_date = now() WHERE sku='$sku'";

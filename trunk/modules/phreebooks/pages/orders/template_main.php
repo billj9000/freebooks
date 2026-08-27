@@ -429,7 +429,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
           if (JOURNAL_ID == 13) {
             // issue #71: ticked (default) restocks this line on post; a non-stock
             // item has nothing to restock, so its checkbox stays hidden.
-            $show_restock = (strpos(COG_ITEM_TYPES, $invType->fields['inventory_type'] ?? '') !== false || ($invType->fields['inventory_type'] ?? '') == 'pb');
+            $show_restock = (strpos(COG_ITEM_TYPES, $invType->fields['inventory_type'] ?? '') !== false || in_array($invType->fields['inventory_type'] ?? '', ['pb', 'pc']));
             echo '  <td class="text-center">' . html_checkbox_field('restock_' . $i, '1', ($order->item_rows[$j]['restock'] ?? '1') != '0', '', 'class="restock-cb form-check-input" style="float:none;margin:0' . ($show_restock ? '' : ';display:none') . '"') . '</td>' . chr(10);
           }
           echo '  <td class="text-center">';

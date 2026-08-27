@@ -28,6 +28,7 @@ $inventory_types = array(
   'mb' => INV_TYPES_MB,
   'ma' => INV_TYPES_AS,
   'pb' => INV_TYPES_PB,
+  'mp' => INV_TYPES_MP,
   'sa' => INV_TYPES_SA,
   'ns' => INV_TYPES_NS,
   'lb' => INV_TYPES_LB,
@@ -41,6 +42,7 @@ $inventory_types = array(
 $inventory_types_plus       = $inventory_types;
 $inventory_types_plus['ia'] = INV_TYPES_IA;
 $inventory_types_plus['mi'] = INV_TYPES_MI;
+$inventory_types_plus['pc'] = INV_TYPES_PC;
 
 asort ($inventory_types);
 asort ($inventory_types_plus);

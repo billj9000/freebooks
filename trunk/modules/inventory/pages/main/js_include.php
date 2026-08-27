@@ -67,6 +67,21 @@ function init() {
   var st = document.getElementById('search_text');
   if (st) { st.focus(); st.select(); }
   if (typeof update_full_price_incl_tax === 'function') update_full_price_incl_tax(true, false, false);
+  if (typeof fbDocInit === 'function') { fbDocInit('inventory'); fbDocBaselineSoon(); }
+}
+
+// Master Product Bundle / Master Stock Assembly saves (re)generate every listed variant's
+// Bill of Materials from the template above, discarding any per-variant edits already made -
+// warn before that happens rather than after.
+function saveDocument() {
+  if (typeof fbDocNeedsSaving === 'function' && !fbDocNeedsSaving()) return;
+  var typeEl = document.getElementById('inventory_type');
+  if (typeEl && (typeEl.value === 'mp' || typeEl.value === 'mb')) {
+    var body = document.getElementById('sku_list_body');
+    var childCount = body ? body.rows.length : 0;
+    if (childCount > 0 && !confirm('<?php echo addslashes(INV_MSG_MP_BOM_OVERWRITE); ?>'.replace('{n}', childCount))) return;
+  }
+  submitToDo('save');
 }
 
 function check_form() {

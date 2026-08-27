@@ -232,19 +232,19 @@ class inventory_admin {
 			case 'full_price_with_tax':
 			case 'product_margin':
 			case 'product_markup':
-				$temp['inventory_type'] = 'ci:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv';
+				$temp['inventory_type'] = 'ci:ia:lb:ma:mb:mi:mp:ms:ns:pb:pc:sa:sf:si:sr:sv';
 				break;
 			case 'image_with_path':
-				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mb:mi:mp:ms:ns:pb:pc:sa:si:sr';
 				break;
 			case 'cost_method':
-				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:si';
+				$temp['inventory_type'] = 'ia:ma:mb:mi:mp:ms:ns:pb:pc:si';
 				break;
 			case 'item_weight':
-				$temp['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mb:mi:mp:ms:ns:pb:pc:sa:si:sr';
 				break;
 			case 'quantity_on_hand':
-				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:pc:sa:si:sr';
 				break;
 			case 'minimum_stock_level':
 			case 'reorder_quantity':
@@ -255,16 +255,16 @@ class inventory_admin {
 				$temp['inventory_type'] = 'ia:mi:sa:si:sr';
 				break;
 			case 'quantity_on_sales_order':
-				$temp['inventory_type'] = 'ia:ma:mi:pb:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mi:pb:pc:sa:si:sr';
 				break;
 			case 'lead_time':
-				$temp['inventory_type'] = 'ai:ia:lb:ma:mb:mi:ms:ns:sa:sf:si:sr:sv';
+				$temp['inventory_type'] = 'ai:ia:lb:ma:mb:mi:mp:ms:ns:sa:sf:si:sr:sv';
 				break;
 			case 'upc_code':
-				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr';
+				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:pc:sa:si:sr';
 				break;
 			default:
-				$temp['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv';
+				$temp['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:mp:ms:ns:pb:pc:sa:sf:si:sr:sv';
 		}
 		$updateDB = $db->Execute("update " . TABLE_EXTRA_FIELDS . " set params = '" . serialize($temp) . "' where id = '".$result->fields['id']."'");
 		$result->MoveNext();
@@ -504,6 +504,28 @@ class inventory_admin {
 			}
 			$db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET params='" . serialize($params) . "' WHERE id='" . $pb_fields->fields['id'] . "'");
 			$pb_fields->MoveNext();
+		}
+	}
+	if (version_compare(MODULE_INVENTORY_STATUS, '3.9', '<')) {
+		// Add Master Product Bundle (mp) / Product Bundle Part (pc) to xtra_fields
+		// visibility lists. pc is structurally a pb (virtual bundle, no assembly step
+		// of its own) and mp is structurally an mb (attribute master + BOM template
+		// that generates children), so each new type simply joins wherever its
+		// counterpart already appears rather than needing its own hand-curated list
+		// per field - the same approach this block used to add pb itself at 3.8.
+		$mp_fields = $db->Execute("SELECT id, params FROM " . TABLE_EXTRA_FIELDS . " WHERE module_id = 'inventory'");
+		while (!$mp_fields->EOF) {
+			$params  = unserialize($mp_fields->fields['params']);
+			$types   = array_filter(explode(':', $params['inventory_type'] ?? ''), function($t) { return $t !== ''; });
+			$changed = false;
+			if (in_array('mb', $types) && !in_array('mp', $types)) { $types[] = 'mp'; $changed = true; }
+			if (in_array('pb', $types) && !in_array('pc', $types)) { $types[] = 'pc'; $changed = true; }
+			if ($changed) {
+				sort($types);
+				$params['inventory_type'] = implode(':', $types);
+				$db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET params='" . serialize($params) . "' WHERE id='" . $mp_fields->fields['id'] . "'");
+			}
+			$mp_fields->MoveNext();
 		}
 	}
 	if (!$error) {
