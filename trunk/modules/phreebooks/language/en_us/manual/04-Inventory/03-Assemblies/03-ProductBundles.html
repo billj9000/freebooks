@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.04.03.03">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+		<meta name="doc_index_1" content="Inventory.Product Bundles">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<meta name="doc_glossary_1" content="Product Bundle:An inventory item made up of other inventory items, sold as one line, that holds no stock of its own - available quantity is calculated from its components' stock whenever it is displayed.">
+<meta name="doc_glossary_2" content="Master Product Bundle:A Product Bundle that varies by attribute (for example, a kit sold in more than one colour). Defining attributes on a Master Product Bundle generates one Product Bundle Part per combination.">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Product Bundles">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>Inventory - Product Bundles</title>
+</head>
+
+<body>
+
+<h1 align="center">Inventory - Product Bundles</h1>
+<p>A Product Bundle is an inventory item made up of one or more other inventory items and sold as a single line, without ever being built or receiving a stock adjustment of its own. Unlike an Item Assembly, there is no separate assembly step: the quantity available for a Product Bundle is calculated on the fly from its components' stock on hand, so it always reflects what could currently be put together. A Product Bundle's Bill of Materials can always be edited, since it is never locked by posting or by holding stock of its own.</p>
+<h4>Adding a Product Bundle</h4>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Add Item.</li>
+  <li>Enter a SKU and select "Product Bundle" as the inventory type.</li>
+  <li>Fill in the item's description and other general fields as with any other inventory item.</li>
+  <li>On the Bill of Materials tab, add one row per component SKU and the quantity of that component used per bundle.</li>
+  <li>Press Save. The bundle's quantity on hand will show the number of complete bundles that could currently be assembled from stock on hand.</li>
+</ol>
+<h2>Master Product Bundles - bundles that vary by attribute</h2>
+<p>Some bundles need to be sold in more than one variation of otherwise identical contents - for example, a kit sold in red or blue, where only the colour of one component changes. A Master Product Bundle works the same way a Master Stock Item does for plain stock items: it holds the attribute definitions and a template Bill of Materials, and FreeBooks generates one Product Bundle Part per attribute combination automatically. Each generated part is a normal Product Bundle in every other respect - it has its own quantity on hand, calculated the same way, and its own copy of the Bill of Materials - but it can only be created, renamed or deleted through its Master Product Bundle, not on its own.</p>
+<h4>Adding a Master Product Bundle</h4>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Add Item.</li>
+  <li>Enter a SKU and select "Master Product Bundle" as the inventory type.</li>
+  <li>On the Master Stock Attributes tab, define one or two attributes (for example, Colour) and their possible values.</li>
+  <li>On the Bill of Materials tab, enter the template recipe that every variation will start from.</li>
+  <li>Press Save. FreeBooks creates one Product Bundle Part per attribute combination, appending the attribute codes to the master's SKU (for example, <em>KIT001-RD</em>), and copies the template Bill of Materials into each one.</li>
+</ol>
+<p><strong>Note:</strong> when the feature was introduced, each generated Product Bundle Part starts out with an identical copy of the master's Bill of Materials - it is not automatically adjusted per attribute (for example, a Colour attribute does not automatically swap a component for its colour-matched equivalent). If a variation needs a different component, open that Product Bundle Part directly and edit its Bill of Materials tab. Re-saving the Master Product Bundle afterwards will copy its template Bill of Materials back into every part again, overwriting any such per-variation edits - so make per-variation component changes last, after the master's own recipe is finalized.</p>
+<h3>Related Topics</h3>
+<h4>Inventory</h4>
+<p> <a href="AssembliesHome.html">Inventory assemblies</a><br />
+    <a href="../01-Maintenance/01-AddItem.html">Adding inventory items</a><br />
+    <a href="../01-Maintenance/02-EditItem.html">Editing inventory items</a><br />
+    <a href="../01-Maintenance/04-DeleteItem.html">Deleting inventory items</a></p>
+<p>&nbsp;</p>
+</body>
+</html>

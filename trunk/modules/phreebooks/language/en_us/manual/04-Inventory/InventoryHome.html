@@ -26,6 +26,7 @@
 <p>Master-Stock - Master-stock items are items that contain attributes associated with the item. For example, a shirt item would have the attributes size and color associated with each item. FreeBooks will assign a unique item id to each variation to track inventory activity of each size/color item but retain the link to the master stock item for reporting activity. Master-stock item movement and cost is tracked in the general ledger. </p>
 <p>Serialized - Serialized items are items that are assembled and sold  by an unique serial number. Serialized item movement and cost are tracked in the general ledger. </p>
 <p>Assemblies - Item assemblies consist of one or more inventory items grouped together and sold as an individual item. This inventory type can also be used to group items sold as packages. Assembly item movement and cost is tracked in the general ledger. </p>
+<p>Product Bundle - Like an assembly, a Product Bundle consists of one or more inventory items sold as an individual item, but it is never built and holds no stock of its own: its available quantity is calculated from its components' stock whenever it is displayed. A Master Product Bundle is the attribute-varying form of a Product Bundle (for example, a kit sold in more than one colour) - see <a href="03-Assemblies/03-ProductBundles.html">Product Bundles and Master Product Bundles</a>.</p>
 <p>Non-stock - Non-stock items are physical items whose costs are not tracked in the general ledger. They may include supplies, packaging material, assembly materials, etc. </p>
 <p>Labor - Labor items are associated with employee chargeable time. Labor may be applied to either internal work order activities as well as labor charges to customer for services performed. Labor is typically charged by a time unit (hourly, daily, etc).</p>
 <p>Service - Service items are items that typically represent a fixed charged for a service. For example, a packaging charge or handling would be a service. Service costs are tracked in the general ledger. </p>
@@ -44,7 +45,8 @@
     <a href="01-Maintenance/02-EditItem.html">Editing inventory items</a><br />
     <a href="01-Maintenance/03-CopyItem.html">Copying inventory items</a><br />
     <a href="01-Maintenance/04-DeleteItem.html">Delete inventory items</a><br />
-    <a href="03-Assemblies/AssembliesHome.html">Entering an inventory assembly</a></p>
+    <a href="03-Assemblies/AssembliesHome.html">Entering an inventory assembly</a><br />
+    <a href="03-Assemblies/03-ProductBundles.html">Product Bundles and Master Product Bundles</a></p>
 <h3>Inventory Categories</h3>
 <p> <a href="04-Tabs/TabsHome.html">Add inventory field tabs (categories)</a><br />
     <a href="04-Tabs/01-TabsEdit.html">Editing an inventory field tab (category) </a><br />
