@@ -195,12 +195,27 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 
 	function remove(){
 		global $db;
-		$ms_array = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		$ms_array  = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		// captured separately (rather than reusing $ms_array) so the image-cleanup loop
+		// below still gets a fresh, unconsumed cursor over the same rows.
+		$child_ids = array();
+		$child_id_result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		while (!$child_id_result->EOF) {
+			$child_ids[] = (int)$child_id_result->fields['id'];
+			$child_id_result->MoveNext();
+		}
 		parent::remove();
 		$db->Execute("delete from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->sku . "'");
 		$db->Execute("delete from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
 		$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku like '" . $this->sku . "-%'");
+		// the 'sku' delete only catches rows where THIS master is used as someone else's
+		// component - it never touches the master's own template row or any child's own
+		// BOM row, both keyed by ref_id, so those were left orphaned.
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
+		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$this->id);
+		if (!empty($child_ids)) {
+			$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id in (" . implode(',', $child_ids) . ")");
+		}
 		while(!$ms_array->EOF){
 			if($ms_array->fields['image_with_path'] != ''){
 				$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . $ms_array->fields['image_with_path'] ."'");
@@ -265,6 +280,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 				if($idx0[0] != ''){
 					$sku_list[] = $this->sku . '-' . $idx0[0];
 					$variables[$this->sku . '-' . $idx0[0]]['idx0'] = $idx0[1];
+					$variables[$this->sku . '-' . $idx0[0]]['code0'] = $idx0[0];
 				}
 			} else {
 				for ($j = 0; $j < count($attr1); $j++) {
@@ -275,6 +291,30 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 						$variables[$this->sku . '-' . $idx0[0] . $idx1[0]]['idx1'] = $idx1[1];
 					}
 				}
+			}
+		}
+		// Phase 2: a BOM line naming an ms-typed master resolves to the mi child matching
+		// each variant's own attribute code (e.g. H707 -> H707-RD for the RD variant),
+		// instead of every variant sharing the literal master SKU. Single-attribute
+		// bundles only - a two-attribute bundle keeps the Phase 1 literal-copy behaviour,
+		// since which axis should drive a given linked component is not yet expressible.
+		// All-or-nothing: if any variant can't resolve, nothing is generated this save.
+		$resolved_bom = array();
+		foreach ($sku_list as $sku) {
+			$resolved_bom[$sku] = $bom_list;
+			if (!empty($attr1)) continue;
+			foreach ($resolved_bom[$sku] as $k => $list_array) {
+				$linked = $db->Execute("select inventory_type from " . TABLE_INVENTORY . " where sku = '" . db_input($list_array['sku']) . "'");
+				if ($linked->fields['inventory_type'] != 'ms') continue;
+				$child_sku = $list_array['sku'] . '-' . $variables[$sku]['code0'];
+				$child = $db->Execute("select description_short from " . TABLE_INVENTORY . " where sku = '" . db_input($child_sku) . "' and inventory_type = 'mi'");
+				if ($child->RecordCount() == 0) {
+					$messageStack->add(sprintf(INV_ERROR_MP_LINKED_VARIANT_MISSING, $child_sku, $list_array['sku'], $sku), 'error');
+					$this->get_ms_list();
+					return false;
+				}
+				$resolved_bom[$sku][$k]['sku']         = $child_sku;
+				$resolved_bom[$sku][$k]['description'] = $child->fields['description_short'];
 			}
 		}
 		// either update, delete or insert sub skus depending on sku list
@@ -308,7 +348,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 				);
 				db_perform(TABLE_INVENTORY_PURCHASE, $purchase_data_array, 'insert');
 			}
-			foreach($bom_list as $list_array) {
+			foreach($resolved_bom[$sku] as $list_array) {
 				$list_array['ref_id'] = $new_id;
 				unset($list_array['item_cost']);
 				unset($list_array['full_price']);
@@ -348,7 +388,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 			// unlike ia's real-stock siblings which can lock a child's own recipe.
 			$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . $sku."'");
 			$temp = $db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . $result->fields['id']);
-			foreach($bom_list as $list_array) {
+			foreach($resolved_bom[$sku] as $list_array) {
 				$list_array['ref_id'] = $result->fields['id'];
 				unset($list_array['item_cost']);
 				unset($list_array['full_price']);

@@ -29,6 +29,7 @@ define('INV_TYPES_PC','Product Bundle Part');
 define('INV_ERROR_CANNOT_COPY','This inventory type cannot be copied.');
 define('INV_PC_ERROR_CANNOT_DELETE_SEPARATE','Product Bundle Parts are not allowed to be deleted separately!');
 define('INV_MSG_MP_BOM_OVERWRITE','This will (re)generate the Bill of Materials for all {n} variant(s) of this item from the template above. Any per-variant edits already made will be lost. Continue?');
+define('INV_ERROR_MP_LINKED_VARIANT_MISSING','No %s variant of %s exists - needed to generate %s. Fix this before saving.');
 define('INV_TEXT_FIFO','FIFO');
 define('INV_TEXT_LIFO','LIFO');
 define('INV_TEXT_AVERAGE','Средний');

@@ -204,6 +204,7 @@ define('INV_TYPES_PC','Parte Pacote de Produto');
 define('INV_ERROR_CANNOT_COPY','Este tipo de estoque não pode ser copiado.');
 define('INV_PC_ERROR_CANNOT_DELETE_SEPARATE','Partes de Pacote de Produto não podem ser excluídas separadamente!');
 define('INV_MSG_MP_BOM_OVERWRITE','Isso irá (re)gerar a Lista de Materiais para todas as {n} variação(ões) deste item a partir do modelo acima. Quaisquer edições já feitas por variação serão perdidas. Continuar?');
+define('INV_ERROR_MP_LINKED_VARIANT_MISSING','Não existe a variação %s de %s - necessária para gerar %s. Corrija isso antes de salvar.');
 define('INV_TYPES_DS','Descrição');
 define('INV_TYPES_CI','Item Cobrável');
 define('INV_TYPES_AI','Item Atividade');

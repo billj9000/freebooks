@@ -208,6 +208,7 @@ define('INV_MS_ERROR_CANNOT_DELETE','The sku %s cannot be deleted because there 
 define('INV_ERROR_CANNOT_COPY','This inventory type cannot be copied.');
 define('INV_PC_ERROR_CANNOT_DELETE_SEPARATE','Product Bundle Parts are not allowed to be deleted separately!');
 define('INV_MSG_MP_BOM_OVERWRITE','This will (re)generate the Bill of Materials for all {n} variant(s) of this item from the template above. Any per-variant edits already made will be lost. Continue?');
+define('INV_ERROR_MP_LINKED_VARIANT_MISSING','No %s variant of %s exists - needed to generate %s. Fix this before saving.');
 define('INV_STOCK_LEVEL_ADJ','Inventory stock levels need adjusting. New minimum stock = %s');
 define('INV_STOCK_MEDIAN','Check monthly usage, median value (%s) is out of range to average sales (%s).');
 // java script errors and messages

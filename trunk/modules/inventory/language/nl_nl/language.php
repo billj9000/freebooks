@@ -208,6 +208,7 @@ define('PRICE_SHEET_DEFAULT_DELETED','De Standaard prijslijst is verwijderd, sel
 define('INV_ERROR_CANNOT_COPY','Dit voorraad type kan niet gecopieerd worden.');
 define('INV_PC_ERROR_CANNOT_DELETE_SEPARATE','Productbundel onderdelen kunnen niet los verwijderd worden!');
 define('INV_MSG_MP_BOM_OVERWRITE','Hiermee wordt de materiaallijst voor alle {n} variant(en) van dit item opnieuw opgebouwd vanuit de sjabloon hierboven. Reeds gemaakte aanpassingen per variant gaan hierbij verloren. Doorgaan?');
+define('INV_ERROR_MP_LINKED_VARIANT_MISSING','Er bestaat geen %s variant van %s - nodig om %s te genereren. Los dit op voordat u opslaat.');
 define('TEXT_PACKAGE_QUANTITY','Verpakkings Eenheid');
 define('INV_MSG_DELETE_VENDOR_ROW','Weet u zeker dat u deze leverancier wil verwijderen.');
 define('TEXT_AVERAGE_USE','Gemiddeld Gebruik (deze Maand uitgesloten)');

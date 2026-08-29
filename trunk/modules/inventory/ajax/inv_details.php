@@ -248,6 +248,19 @@ if ($jID == 4 ) {
 //put it all together
 // build the core inventory data
 foreach ($inventory_array as $key => $value) $xml .= "\t" . xmlEntry($key, $value);
+// An ms master's own attribute definition, so a Master Product Bundle picking this
+// master into its BOM can offer to pre-fill its own attribute list from it (prefixed
+// ms_* - these are inventory_ms_list columns, not TABLE_INVENTORY fields, so there's
+// no risk of colliding with $inventory_array above).
+if ($inventory_array['inventory_type'] == 'ms') {
+  $ms_row = $db->Execute("select attr_0, attr_name_0, attr_1, attr_name_1 from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($sku) . "'");
+  if ($ms_row->RecordCount() > 0) {
+    $xml .= "\t" . xmlEntry('ms_attr_0',      $ms_row->fields['attr_0']);
+    $xml .= "\t" . xmlEntry('ms_attr_name_0', $ms_row->fields['attr_name_0']);
+    $xml .= "\t" . xmlEntry('ms_attr_1',      $ms_row->fields['attr_1']);
+    $xml .= "\t" . xmlEntry('ms_attr_name_1', $ms_row->fields['attr_name_1']);
+  }
+}
 // build the assembly information
 //print_r($inventory_array);
 if (!empty($bom)) foreach ($bom as $value) {

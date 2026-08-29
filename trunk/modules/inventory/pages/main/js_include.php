@@ -334,13 +334,46 @@ function processSkuDetails(xml) {
   xml = parseXml(xml); if (!xml) return;
   var rowID = xmlText(xml, "rID"), sku = xmlText(xml, "sku");
   var type  = xmlText(xml, "inventory_type");
-  if (!sku || type == 'ms' || type == 'mb') { InventoryList(rowID); return; }
+  // A Master Product Bundle's BOM may legitimately name an ms-typed master directly -
+  // it gets resolved to the matching mi child per generated variant at save time (see
+  // mp.php::save()). Every other BOM context still wants a real, priceable/stockable
+  // item, not the ambiguous master, so the guard stays for mb and for everything else.
+  var editingType = document.getElementById('inventory_type') ? document.getElementById('inventory_type').value : '';
+  var allowMaster = (editingType === 'mp' && type === 'ms');
+  if (!sku || (!allowMaster && (type == 'ms' || type == 'mb'))) { InventoryList(rowID); return; }
+  if (allowMaster) adoptMasterAttributes(xml);
   document.getElementById('sku_'+rowID).value          = sku;
   document.getElementById('desc_'+rowID).value         = xmlText(xml, "description_short");
   if (document.getElementById('qty_'+rowID).value == 0) document.getElementById('qty_'+rowID).value = 1;
   document.getElementById('item_cost_'+rowID).value    = formatCurrency(xmlText(xml, "item_cost"));
   document.getElementById('sales_price_'+rowID).value  = formatCurrency(xmlText(xml, "sales_price"));
   bomTotalValues();
+}
+
+// Offer this bundle's own attribute list from a linked ms master's, the first time one
+// is picked into a still-empty attribute list - a pre-fill, not a lock: every added
+// value lands as a normal, deletable entry in the Master Stock Attributes tab, and
+// only attr_0 is adopted (never attr_1) so the bundle stays single-attribute, which is
+// what the server-side resolution in mp.php::save() requires.
+function adoptMasterAttributes(xml) {
+  var idx0 = document.getElementById('attr_index_0');
+  if (!idx0 || idx0.length > 0) return; // already has attributes - don't clobber
+  var attr0 = xmlText(xml, 'ms_attr_0');
+  if (!attr0) return;
+  var nameEl = document.getElementById('attr_name_0');
+  if (nameEl && !nameEl.value) nameEl.value = xmlText(xml, 'ms_attr_name_0');
+  attr0.split(',').forEach(function(pair) {
+    if (!pair) return;
+    var opt = document.createElement('option');
+    opt.text  = pair.replace(':', ' : ');
+    opt.value = pair;
+    idx0.options.add(opt);
+  });
+  // masterStockTitle() writes into the sku list's first body row, so it must run after
+  // masterStockBuildSkus() has actually created one - calling it first, with the table
+  // still in its pre-attribute empty state, is what threw "rows[1] is undefined".
+  masterStockBuildSkus();
+  masterStockTitle(0);
 }
 
 function InventoryProp(rID) {

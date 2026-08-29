@@ -202,12 +202,27 @@ class mb extends inventory {//Master Build (combination of Master Stock Item and
 	
 	function remove(){
 		global $db;
-		$ms_array = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		$ms_array  = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		// captured separately (rather than reusing $ms_array) so the image-cleanup loop
+		// below still gets a fresh, unconsumed cursor over the same rows.
+		$child_ids = array();
+		$child_id_result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		while (!$child_id_result->EOF) {
+			$child_ids[] = (int)$child_id_result->fields['id'];
+			$child_id_result->MoveNext();
+		}
 		parent::remove();
 		$db->Execute("delete from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->sku . "'");
 		$db->Execute("delete from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
 		$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku like '" . $this->sku . "-%'");
+		// the 'sku' delete only catches rows where THIS master is used as someone else's
+		// component - it never touches the master's own template row or any child's own
+		// BOM row, both keyed by ref_id, so those were left orphaned.
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
+		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$this->id);
+		if (!empty($child_ids)) {
+			$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id in (" . implode(',', $child_ids) . ")");
+		}
 		while(!$ms_array->EOF){
 			if($ms_array->fields['image_with_path'] != ''){
 				$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . $ms_array->fields['image_with_path'] ."'");
