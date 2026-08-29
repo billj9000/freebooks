@@ -170,8 +170,8 @@ class inventory_admin {
 		  sku varchar(24) NOT NULL default '',
 		  attr_name_0 varchar(16) NULL,
 		  attr_name_1 varchar(16) NULL,
-		  attr_0 varchar(255) NULL,
-		  attr_1 varchar(255) NULL,
+		  attr_0 text NULL,
+		  attr_1 text NULL,
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;",
 	  TABLE_INVENTORY_PURCHASE => "CREATE TABLE " . TABLE_INVENTORY_PURCHASE . " (
@@ -527,6 +527,14 @@ class inventory_admin {
 			}
 			$mp_fields->MoveNext();
 		}
+	}
+	if (version_compare(MODULE_INVENTORY_STATUS, '3.10', '<')) {
+		// attr_0/attr_1 held every attribute code:description pair for a master as one
+		// comma-list - varchar(255) was already tight for two or three values and simply
+		// too small once a real master (14 hose colours, each with its own description)
+		// tried to save. No fixed length is safe here since the list only grows with the
+		// business's own data, so widen to text rather than pick another number to outgrow.
+		$db->Execute("ALTER TABLE " . TABLE_INVENTORY_MS_LIST . " CHANGE attr_0 attr_0 TEXT NULL, CHANGE attr_1 attr_1 TEXT NULL");
 	}
 	if (!$error) {
 		xtra_field_sync_list('inventory', TABLE_INVENTORY);
