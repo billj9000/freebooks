@@ -517,6 +517,12 @@ class currencies {
 
   // omits the symbol_left and symbol_right (just the formattted number to the precision number of decimals))
   function precise($number, $calculate_currency_value = true, $currency_type = DEFAULT_CURRENCY, $currency_value = '') {
+    // this is a display-formatting sink called from all over the app on whatever value
+    // a caller has to hand - including, in practice, a literal "NaN" string a client-side
+    // calculation wrote into a hidden field (e.g. a margin/markup divide-by-zero when an
+    // item has no cost entered), which PHP 8 fatals on ("string * float") rather than
+    // coercing. Treat non-numeric input as 0 instead of trusting the caller.
+    if (!is_numeric($number)) $number = 0;
     if ($calculate_currency_value) {
 	  $rate = ($currency_value) ? $currency_value : $this->currencies[$currency_type]['value'];
 	  $format_string = number_format($number * $rate, $this->currencies[$currency_type]['decimal_precise'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
@@ -527,6 +533,7 @@ class currencies {
   }
 
   function format_full($number, $calculate_currency_value = true, $currency_type = DEFAULT_CURRENCY, $currency_value = '', $output_format = PDF_APP) {
+    if (!is_numeric($number)) $number = 0; // see precise() above - same non-numeric-input guard
     if ($calculate_currency_value) {
 	  $rate = ($currency_value) ? $currency_value : $this->currencies[$currency_type]['value'];
 	  $format_number = number_format($number * $rate, $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
