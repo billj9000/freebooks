@@ -57,22 +57,27 @@
 	$previous_price = 0;
 	$previous_qty   = 0;
 	for ($i=0, $j=1; $i < MAX_NUM_PRICE_LEVELS; $i++, $j++) {
+		// These tokens are hand-rolled colon/semicolon-encoded config (price sheet
+		// levels), not typed data - cast each one at extraction so a blank, corrupt,
+		// or otherwise non-numeric token becomes 0 instead of a raw string reaching
+		// the arithmetic below (PHP 8 fatals on e.g. string * float when it isn't a
+		// numeric string).
 		$level_info = explode(':', $price_levels[$i]);
-		$price      = $level_info[0] ? $level_info[0] : ($i==0 ? $full_price : 0);
-		$qty        = $level_info[1] ? $level_info[1] : $j;
-		$src        = $level_info[2] ? $level_info[2] : 0;
-		$adj        = $level_info[3] ? $level_info[3] : 0;
-		$adj_val    = $level_info[4] ? $level_info[4] : 0;
-		$rnd        = $level_info[5] ? $level_info[5] : 0;
-		$rnd_val    = $level_info[6] ? $level_info[6] : 0;
+		$price      = $level_info[0] ? (float)$level_info[0] : ($i==0 ? (float)$full_price : 0);
+		$qty        = $level_info[1] ? (float)$level_info[1] : $j;
+		$src        = $level_info[2] ? (int)$level_info[2] : 0;
+		$adj        = $level_info[3] ? (int)$level_info[3] : 0;
+		$adj_val    = $level_info[4] ? (float)$level_info[4] : 0;
+		$rnd        = $level_info[5] ? (int)$level_info[5] : 0;
+		$rnd_val    = $level_info[6] ? (float)$level_info[6] : 0;
 		if ($j == 1) $src++; // for the first element, the Not Used selection is missing
 
 		switch ($src) {
-			case 0: $price = 0;                  break; // Not Used
-			case 1: 			                 break; // Direct Entry
-			case 2: $price = $item_cost;         break; // Last Cost
-			case 3: $price = $full_price;        break; // Retail Price
-			case 4: $price = $first_level_price; break; // Price Level 1
+			case 0: $price = 0;                                 break; // Not Used
+			case 1: 			                                break; // Direct Entry
+			case 2: $price = (float)$item_cost;                 break; // Last Cost
+			case 3: $price = (float)$full_price;                break; // Retail Price
+			case 4: $price = (float)($first_level_price ?? 0);  break; // Price Level 1
 		}
 
 		switch ($adj) {
