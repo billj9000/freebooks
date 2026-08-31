@@ -368,10 +368,14 @@ class inventory {
 	    $sql_data_array = $fields->what_to_save();
 	    // handle the checkboxes
 	    $sql_data_array['inactive'] = isset($_POST['inactive']) ? $_POST['inactive'] : '0'; // else unchecked
-	    // Reorder/Minimum arrive blank on a new item until the user sets them; both
-	    // columns are DOUBLE NOT NULL DEFAULT '0', so give them their own default
-	    // rather than handing db_perform() '' for a non-string column.
-	    foreach (array('reorder_quantity', 'minimum_stock_level') as $key) {
+	    // All DOUBLE NOT NULL DEFAULT '0' columns that arrive blank until the user (or a
+	    // client-side calculation) sets them - reorder/minimum on a new item, the shipping
+	    // dimensions, and the price/margin fields a zero-cost item (e.g. an mp/ms master)
+	    // leaves untouched. Give each its own default rather than handing db_perform() ''
+	    // for a non-string column.
+	    foreach (array('reorder_quantity', 'minimum_stock_level', 'item_weight', 'item_length',
+	                    'item_width', 'item_height', 'full_price', 'full_price_with_tax',
+	                    'product_margin', 'product_markup') as $key) {
 	    	if (($sql_data_array[$key] ?? '') === '') $sql_data_array[$key] = 0;
 	    }
 	    foreach(array('quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order', 'quantity_on_allocation', 'creation_date', 'last_update', 'last_journal_date' ) as $key){

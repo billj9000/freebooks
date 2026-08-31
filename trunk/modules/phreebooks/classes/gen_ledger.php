@@ -506,7 +506,7 @@ class journal {
 		$purchase_invoice_id = $this->purchase_invoice_id ? $this->purchase_invoice_id : $this->journal_main_array['purchase_invoice_id'];
 		$history_array = array(
 		  'ref_id'              => $this->id, 
-		  'so_po_ref_id'        => $this->so_po_ref_id ?? null,
+		  'so_po_ref_id'        => $this->column_empty($this->so_po_ref_id ?? null, 'null'),
 		  'acct_id'             => $this->bill_acct_id, 
 		  'journal_id'          => $this->journal_id, 
 		  'purchase_invoice_id' => $purchase_invoice_id,

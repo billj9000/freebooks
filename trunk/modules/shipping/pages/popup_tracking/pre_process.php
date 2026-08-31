@@ -63,8 +63,8 @@ switch ($_REQUEST['action']) {
 		'carrier'      => db_prepare_input($_POST['carrier']),
 		'ref_id'       => db_prepare_input($_POST['ref_id']),
 		'method'       => db_prepare_input($_POST['method']),
-		'ship_date'    => gen_db_date($_POST['ship_date']),
-		'deliver_date' => gen_db_date($_POST['deliver_date']),
+		'ship_date'    => gen_db_date($_POST['ship_date']) ?: '0000-00-00 00:00:00',
+		'deliver_date' => gen_db_date($_POST['deliver_date']) ?: '0000-00-00 00:00:00',
 		'tracking_id'  => db_prepare_input($_POST['tracking_id']),
 		'cost'         => $currencies->clean_value($_POST['cost']),
 	);

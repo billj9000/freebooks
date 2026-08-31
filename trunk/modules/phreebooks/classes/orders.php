@@ -406,7 +406,7 @@ class orders extends journal {
 		    'so_po_item_ref_id'       => $this->column_empty($this->item_rows[$i]['so_po_item_ref_id'], 0),	// item reference id for so/po line items
 			'gl_type'                 => $this->gl_type,
 			'sku'                     => $this->item_rows[$i]['sku'],
-			'qty'                     => $this->item_rows[$i][$qty_pstd],
+			'qty'                     => $this->column_empty($this->item_rows[$i][$qty_pstd], 0),
 			'description'             => $this->item_rows[$i]['desc'],
 			$debit_credit . '_amount' => $this->column_empty($this->item_rows[$i]['total'], 0),
 			'full_price'              => $this->column_empty($this->item_rows[$i]['full'], 0),
