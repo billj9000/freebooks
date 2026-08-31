@@ -8,6 +8,11 @@
   <iso3>AFG</iso3>
 </country>
 <country>
+  <name>Åland Islands</name>
+  <iso2>AX</iso2>
+  <iso3>ALA</iso3>
+</country>
+<country>
   <name>Albania</name>
   <iso2>AL</iso2>
   <iso3>ALB</iso3>
@@ -128,12 +133,17 @@
   <iso3>BTN</iso3>
 </country>
 <country>
-  <name>Bolivia</name>
+  <name>Bolivia, Plurinational State of</name>
   <iso2>BO</iso2>
   <iso3>BOL</iso3>
 </country>
 <country>
-  <name>Bosnia and Herzegowina</name>
+  <name>Bonaire, Sint Eustatius and Saba</name>
+  <iso2>BQ</iso2>
+  <iso3>BES</iso3>
+</country>
+<country>
+  <name>Bosnia and Herzegovina</name>
   <iso2>BA</iso2>
   <iso3>BIH</iso3>
 </country>
@@ -178,6 +188,11 @@
   <iso3>BDI</iso3>
 </country>
 <country>
+  <name>Cabo Verde</name>
+  <iso2>CV</iso2>
+  <iso3>CPV</iso3>
+</country>
+<country>
   <name>Cambodia</name>
   <iso2>KH</iso2>
   <iso3>KHM</iso3>
@@ -191,11 +206,6 @@
   <name>Canada</name>
   <iso2>CA</iso2>
   <iso3>CAN</iso3>
-</country>
-<country>
-  <name>Cape Verde</name>
-  <iso2>CV</iso2>
-  <iso3>CPV</iso3>
 </country>
 <country>
   <name>Cayman Islands</name>
@@ -248,6 +258,11 @@
   <iso3>COG</iso3>
 </country>
 <country>
+  <name>Congo, The Democratic Republic of the</name>
+  <iso2>CD</iso2>
+  <iso3>COD</iso3>
+</country>
+<country>
   <name>Cook Islands</name>
   <iso2>CK</iso2>
   <iso3>COK</iso3>
@@ -258,7 +273,7 @@
   <iso3>CRI</iso3>
 </country>
 <country>
-  <name>Cote D\'Ivoire</name>
+  <name>Côte d'Ivoire</name>
   <iso2>CI</iso2>
   <iso3>CIV</iso3>
 </country>
@@ -273,12 +288,17 @@
   <iso3>CUB</iso3>
 </country>
 <country>
+  <name>Curaçao</name>
+  <iso2>CW</iso2>
+  <iso3>CUW</iso3>
+</country>
+<country>
   <name>Cyprus</name>
   <iso2>CY</iso2>
   <iso3>CYP</iso3>
 </country>
 <country>
-  <name>Czech Republic</name>
+  <name>Czechia</name>
   <iso2>CZ</iso2>
   <iso3>CZE</iso3>
 </country>
@@ -301,11 +321,6 @@
   <name>Dominican Republic</name>
   <iso2>DO</iso2>
   <iso3>DOM</iso3>
-</country>
-<country>
-  <name>East Timor</name>
-  <iso2>TP</iso2>
-  <iso3>TMP</iso3>
 </country>
 <country>
   <name>Ecuador</name>
@@ -338,6 +353,11 @@
   <iso3>EST</iso3>
 </country>
 <country>
+  <name>Eswatini</name>
+  <iso2>SZ</iso2>
+  <iso3>SWZ</iso3>
+</country>
+<country>
   <name>Ethiopia</name>
   <iso2>ET</iso2>
   <iso3>ETH</iso3>
@@ -366,11 +386,6 @@
   <name>France</name>
   <iso2>FR</iso2>
   <iso3>FRA</iso3>
-</country>
-<country>
-  <name>France Metropolitan</name>
-  <iso2>FX</iso2>
-  <iso3>FXX</iso3>
 </country>
 <country>
   <name>French Guiana</name>
@@ -448,12 +463,17 @@
   <iso3>GTM</iso3>
 </country>
 <country>
+  <name>Guernsey</name>
+  <iso2>GG</iso2>
+  <iso3>GGY</iso3>
+</country>
+<country>
   <name>Guinea</name>
   <iso2>GN</iso2>
   <iso3>GIN</iso3>
 </country>
 <country>
-  <name>Guinea-bissau</name>
+  <name>Guinea-Bissau</name>
   <iso2>GW</iso2>
   <iso3>GNB</iso3>
 </country>
@@ -468,9 +488,14 @@
   <iso3>HTI</iso3>
 </country>
 <country>
-  <name>Heard and Mc Donald Islands</name>
+  <name>Heard Island and McDonald Islands</name>
   <iso2>HM</iso2>
   <iso3>HMD</iso3>
+</country>
+<country>
+  <name>Holy See (Vatican City State)</name>
+  <iso2>VA</iso2>
+  <iso3>VAT</iso3>
 </country>
 <country>
   <name>Honduras</name>
@@ -503,7 +528,7 @@
   <iso3>IDN</iso3>
 </country>
 <country>
-  <name>Iran (Islamic Republic of)</name>
+  <name>Iran, Islamic Republic of</name>
   <iso2>IR</iso2>
   <iso3>IRN</iso3>
 </country>
@@ -516,6 +541,11 @@
   <name>Ireland</name>
   <iso2>IE</iso2>
   <iso3>IRL</iso3>
+</country>
+<country>
+  <name>Isle of Man</name>
+  <iso2>IM</iso2>
+  <iso3>IMN</iso3>
 </country>
 <country>
   <name>Israel</name>
@@ -536,6 +566,11 @@
   <name>Japan</name>
   <iso2>JP</iso2>
   <iso3>JPN</iso3>
+</country>
+<country>
+  <name>Jersey</name>
+  <iso2>JE</iso2>
+  <iso3>JEY</iso3>
 </country>
 <country>
   <name>Jordan</name>
@@ -603,7 +638,7 @@
   <iso3>LBR</iso3>
 </country>
 <country>
-  <name>Libyan Arab Jamahiriya</name>
+  <name>Libya</name>
   <iso2>LY</iso2>
   <iso3>LBY</iso3>
 </country>
@@ -623,14 +658,9 @@
   <iso3>LUX</iso3>
 </country>
 <country>
-  <name>Macau</name>
+  <name>Macao</name>
   <iso2>MO</iso2>
   <iso3>MAC</iso3>
-</country>
-<country>
-  <name>Macedonia, The Former Yugoslav Republic of</name>
-  <iso2>MK</iso2>
-  <iso3>MKD</iso3>
 </country>
 <country>
   <name>Madagascar</name>
@@ -711,6 +741,11 @@
   <name>Mongolia</name>
   <iso2>MN</iso2>
   <iso3>MNG</iso3>
+</country>
+<country>
+  <name>Montenegro</name>
+  <iso2>ME</iso2>
+  <iso3>MNE</iso3>
 </country>
 <country>
   <name>Montserrat</name>
@@ -802,11 +837,6 @@
   </region>
 </country>
 <country>
-  <name>Netherlands Antilles</name>
-  <iso2>AN</iso2>
-  <iso3>ANT</iso3>
-</country>
-<country>
   <name>New Caledonia</name>
   <iso2>NC</iso2>
   <iso3>NCL</iso3>
@@ -842,6 +872,11 @@
   <iso3>NFK</iso3>
 </country>
 <country>
+  <name>North Macedonia</name>
+  <iso2>MK</iso2>
+  <iso3>MKD</iso3>
+</country>
+<country>
   <name>Northern Mariana Islands</name>
   <iso2>MP</iso2>
   <iso3>MNP</iso3>
@@ -865,6 +900,11 @@
   <name>Palau</name>
   <iso2>PW</iso2>
   <iso3>PLW</iso3>
+</country>
+<country>
+  <name>Palestine, State of</name>
+  <iso2>PS</iso2>
+  <iso3>PSE</iso3>
 </country>
 <country>
   <name>Panama</name>
@@ -917,14 +957,14 @@
   <iso3>QAT</iso3>
 </country>
 <country>
-  <name>Reunion</name>
+  <name>Réunion</name>
   <iso2>RE</iso2>
   <iso3>REU</iso3>
 </country>
 <country>
   <name>Romania</name>
   <iso2>RO</iso2>
-  <iso3>ROM</iso3>
+  <iso3>ROU</iso3>
 </country>
 <country>
   <name>Russian Federation</name>
@@ -937,6 +977,16 @@
   <iso3>RWA</iso3>
 </country>
 <country>
+  <name>Saint Barthélemy</name>
+  <iso2>BL</iso2>
+  <iso3>BLM</iso3>
+</country>
+<country>
+  <name>Saint Helena, Ascension and Tristan da Cunha</name>
+  <iso2>SH</iso2>
+  <iso3>SHN</iso3>
+</country>
+<country>
   <name>Saint Kitts and Nevis</name>
   <iso2>KN</iso2>
   <iso3>KNA</iso3>
@@ -945,6 +995,16 @@
   <name>Saint Lucia</name>
   <iso2>LC</iso2>
   <iso3>LCA</iso3>
+</country>
+<country>
+  <name>Saint Martin (French part)</name>
+  <iso2>MF</iso2>
+  <iso3>MAF</iso3>
+</country>
+<country>
+  <name>Saint Pierre and Miquelon</name>
+  <iso2>PM</iso2>
+  <iso3>SPM</iso3>
 </country>
 <country>
   <name>Saint Vincent and the Grenadines</name>
@@ -997,7 +1057,12 @@
   <iso3>SGP</iso3>
 </country>
 <country>
-  <name>Slovakia (Slovak Republic)</name>
+  <name>Sint Maarten (Dutch part)</name>
+  <iso2>SX</iso2>
+  <iso3>SXM</iso3>
+</country>
+<country>
+  <name>Slovakia</name>
   <iso2>SK</iso2>
   <iso3>SVK</iso3>
 </country>
@@ -1027,6 +1092,11 @@
   <iso3>SGS</iso3>
 </country>
 <country>
+  <name>South Sudan</name>
+  <iso2>SS</iso2>
+  <iso3>SSD</iso3>
+</country>
+<country>
   <name>Spain</name>
   <iso2>ES</iso2>
   <iso3>ESP</iso3>
@@ -1035,16 +1105,6 @@
   <name>Sri Lanka</name>
   <iso2>LK</iso2>
   <iso3>LKA</iso3>
-</country>
-<country>
-  <name>St. Helena</name>
-  <iso2>SH</iso2>
-  <iso3>SHN</iso3>
-</country>
-<country>
-  <name>St. Pierre and Miquelon</name>
-  <iso2>PM</iso2>
-  <iso3>SPM</iso3>
 </country>
 <country>
   <name>Sudan</name>
@@ -1057,14 +1117,9 @@
   <iso3>SUR</iso3>
 </country>
 <country>
-  <name>Svalbard and Jan Mayen Islands</name>
+  <name>Svalbard and Jan Mayen</name>
   <iso2>SJ</iso2>
   <iso3>SJM</iso3>
-</country>
-<country>
-  <name>Swaziland</name>
-  <iso2>SZ</iso2>
-  <iso3>SWZ</iso3>
 </country>
 <country>
   <name>Sweden</name>
@@ -1082,7 +1137,7 @@
   <iso3>SYR</iso3>
 </country>
 <country>
-  <name>Taiwan</name>
+  <name>Taiwan, Province of China</name>
   <iso2>TW</iso2>
   <iso3>TWN</iso3>
 </country>
@@ -1100,6 +1155,11 @@
   <name>Thailand</name>
   <iso2>TH</iso2>
   <iso3>THA</iso3>
+</country>
+<country>
+  <name>Timor-Leste</name>
+  <iso2>TL</iso2>
+  <iso3>TLS</iso3>
 </country>
 <country>
   <name>Togo</name>
@@ -1127,7 +1187,7 @@
   <iso3>TUN</iso3>
 </country>
 <country>
-  <name>Turkey</name>
+  <name>Türkiye</name>
   <iso2>TR</iso2>
   <iso3>TUR</iso3>
 </country>
@@ -1424,12 +1484,7 @@
   <iso3>VUT</iso3>
 </country>
 <country>
-  <name>Vatican City State (Holy See)</name>
-  <iso2>VA</iso2>
-  <iso3>VAT</iso3>
-</country>
-<country>
-  <name>Venezuela</name>
+  <name>Venezuela, Bolivarian Republic of</name>
   <iso2>VE</iso2>
   <iso3>VEN</iso3>
 </country>
@@ -1439,17 +1494,17 @@
   <iso3>VNM</iso3>
 </country>
 <country>
-  <name>Virgin Islands (British)</name>
+  <name>Virgin Islands, British</name>
   <iso2>VG</iso2>
   <iso3>VGB</iso3>
 </country>
 <country>
-  <name>Virgin Islands (U.S.)</name>
+  <name>Virgin Islands, U.S.</name>
   <iso2>VI</iso2>
   <iso3>VIR</iso3>
 </country>
 <country>
-  <name>Wallis and Futuna Islands</name>
+  <name>Wallis and Futuna</name>
   <iso2>WF</iso2>
   <iso3>WLF</iso3>
 </country>
@@ -1462,11 +1517,6 @@
   <name>Yemen</name>
   <iso2>YE</iso2>
   <iso3>YEM</iso3>
-</country>
-<country>
-  <name>Zaire</name>
-  <iso2>ZR</iso2>
-  <iso3>ZAR</iso3>
 </country>
 <country>
   <name>Zambia</name>
