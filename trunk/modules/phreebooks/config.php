@@ -36,8 +36,10 @@
 // 3.78 => adds notes column to journal_main
 // 3.79 => adds carrier_order_id column to shipping_log
 // 3.80 => adds vendor_sku to inventory_purchase, purchase order export profiles
+// 3.81 => adds restock flag to journal_item
+// 3.82 => adds ship_complete flag to inventory
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.81);
+define('MODULE_PHREEBOOKS_VERSION',    3.82);
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);

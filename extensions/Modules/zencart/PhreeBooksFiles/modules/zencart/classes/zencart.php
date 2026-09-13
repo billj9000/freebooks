@@ -166,6 +166,41 @@ class zencart {
             );
             $virtual_stock = (!$vr->EOF && $vr->fields['v'] !== null) ? (float)$vr->fields['v'] : 0.0;
             $product['quantity'] = max(0.0, $virtual_stock - (float)($inv['quantity_on_sales_order'] ?? 0));
+
+            // What the parcel actually contains, so ZenCart's box-packing can pack the
+            // pieces separately instead of quoting for a carton nothing travels in. The
+            // key is sent for every bundle: ZenCart tells "no pieces" ([]) from "not sent"
+            // (absent) with array_key_exists, and an absent key means "leave what you have".
+            // A bundle that ships complete IS one piece, so it sends [] and ZenCart falls
+            // back to the product's own weight and dimensions.
+            if (!empty($inv['ship_complete'])) {
+                $product['bundleComponents'] = [];
+            } else {
+                $pieces = $this->buildBundleComponents($id);
+                $product['bundleComponents'] = $pieces;
+
+                // Derive the parcel weight from the very pieces being sent, rather than
+                // trusting the stored column. item_weight is only recalculated when the
+                // bundle is SAVED (pb::save()), so any bundle not re-saved since - which is
+                // every one of them the day this ships - would otherwise send accurate
+                // pieces alongside its old hand-entered placeholder. Deriving here makes the
+                // two agree by construction: the declared weight is always exactly the sum
+                // of what is in the parcel, whatever the save history.
+                //
+                // A ships-complete bundle is deliberately NOT derived: its weight is the
+                // real packed parcel, packaging included, which is a fact only the user has.
+                //
+                // An empty BOM is left alone on purpose. Summing nothing gives 0, and a 0 kg
+                // product quotes silently wrong on Royal Mail and Parcelforce, which read the
+                // product's own weight - the exact failure this feature exists to remove.
+                if (!empty($pieces)) {
+                    $weight = 0.0;
+                    foreach ($pieces as $piece) {
+                        $weight += (float)$piece['qty'] * (float)$piece['weight'];
+                    }
+                    $product['productWeight'] = round($weight, 4);
+                }
+            }
         }
 
         // Extension hook for site-specific product attributes
@@ -174,6 +209,45 @@ class zencart {
         }
 
         return $product;
+    }
+
+    // The shipping pieces of one bundle, as ZenCart's 'bundleComponents' entries: cm and
+    // kg, matching productZencartLength / productWeight.
+    //
+    // Zero dimensions are sent through exactly as they are held. A component with no
+    // measurements packs as zero volume, which is what happens today - substituting a
+    // guess here would quietly change quotes on real orders.
+    //
+    // Kept separate from the pb branch above so an mb/mp master can attach the same shape
+    // to each attributes.variants[] entry when per-variant bundles are pushed.
+    public function buildBundleComponents(int $id): array
+    {
+        global $db;
+
+        $rows   = [];
+        $result = $db->Execute(
+            "SELECT a.sku, a.qty, i.item_weight, i.item_length, i.item_width, i.item_height"
+            . " FROM " . TABLE_INVENTORY_ASSY_LIST . " a"
+            . " LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = a.sku"
+            . " WHERE a.ref_id = " . $id
+            . " ORDER BY a.id"
+        );
+        while (!$result->EOF) {
+            $rows[] = [
+                // Diagnostic only - nothing on the ZenCart side joins on it, and a piece
+                // need not exist in the ZenCart catalogue at all.
+                'sku'    => (string)$result->fields['sku'],
+                // Float, not int: fractional quantities are real here - a length of hose
+                // cut from continuous stock is stored as 0.27 of its component SKU.
+                'qty'    => (float)$result->fields['qty'],
+                'length' => (float)($result->fields['item_length'] ?? 0),
+                'width'  => (float)($result->fields['item_width']  ?? 0),
+                'height' => (float)($result->fields['item_height'] ?? 0),
+                'weight' => (float)($result->fields['item_weight'] ?? 0),
+            ];
+            $result->MoveNext();
+        }
+        return $rows;
     }
 
     // Push current available quantity (quantity_on_hand less quantity_on_sales_order) and

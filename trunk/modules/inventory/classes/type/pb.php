@@ -48,6 +48,51 @@ class pb extends ma {
 		parent::get_bom_list();
 	}
 
+	/**
+	 * A bundle that ships as its separate parts weighs what is in it, so item_weight is
+	 * derived rather than typed. Without this it is an ordinary field inherited from ma,
+	 * and a blank one becomes 0 on save (inventory::save()) - a 0 kg parcel that Royal
+	 * Mail and Parcelforce, which quote on the product's own weight, price silently
+	 * wrong, while DHL weighs the packed pieces and quotes correctly.
+	 *
+	 * Ticking "ships complete" hands the field back: the real parcel weight, packaging
+	 * included, is then a fact only the user knows, and it deliberately overrides the
+	 * sum of the contents.
+	 *
+	 * The figure MUST come from $_POST, not from the database. ma::save() writes the
+	 * inventory row before it rewrites inventory_assy_list, so reading the BOM back here
+	 * would return the PREVIOUS parts list and leave the weight one edit behind.
+	 */
+	function save() {
+		if (empty($_POST['ship_complete'])) {
+			$_POST['item_weight'] = (string)round($this->derive_bom_weight(), 4);
+		}
+		return parent::save();
+	}
+
+	/**
+	 * Sum of each posted component's weight x quantity. Components whose SKU is unknown
+	 * contribute nothing - ma::save() is what reports a bad SKU, and doing it here too
+	 * would put the same error on screen twice.
+	 */
+	function derive_bom_weight() {
+		global $db, $currencies;
+		$total = 0.0;
+		$skus  = $_POST['assy_sku'] ?? array();
+		$qtys  = $_POST['assy_qty'] ?? array();
+		for ($x = 0; $x < count($skus); $x++) {
+			$sku = trim(db_prepare_input($skus[$x]));
+			if ($sku == '') continue;
+			$qty = (float)$currencies->clean_value(db_prepare_input($qtys[$x] ?? 0));
+			if ($qty == 0) continue;
+			$result = $db->Execute("select item_weight from " . TABLE_INVENTORY
+				. " where sku = '" . db_input($sku) . "' limit 1");
+			if ($result->EOF) continue;
+			$total += $qty * (float)$result->fields['item_weight'];
+		}
+		return $total;
+	}
+
 	function get_virtual_stock() {
 		global $db;
 		if (!$this->id) return 0;

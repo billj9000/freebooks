@@ -20,6 +20,13 @@ $wt_unit  = defined('SHIPPING_DEFAULT_WEIGHT_UNIT')
   ? (['LBS' => 'lb', 'KGS' => 'kg'][SHIPPING_DEFAULT_WEIGHT_UNIT] ?? SHIPPING_DEFAULT_WEIGHT_UNIT) : '';
 $dim_unit = defined('SHIPPING_DEFAULT_PKG_DIM_UNIT')
   ? (['IN' => 'in', 'CM' => 'cm'][SHIPPING_DEFAULT_PKG_DIM_UNIT] ?? SHIPPING_DEFAULT_PKG_DIM_UNIT) : '';
+
+// A bundle that ships as its separate parts has no weight of its own to type: it is the
+// sum of what is in it, recalculated from the Bill of Materials on every save (see
+// pb::save()). Showing the field read-only says so without hiding the figure. Ticking
+// "ships complete" hands the field back, because the parcel's real weight - packaging
+// and all - is then a fact only the user knows.
+$wt_derived = isset($cInfo->ship_complete) && empty($cInfo->ship_complete);
 ?>
 
 <?php if (isset($cInfo->item_weight) || isset($cInfo->item_length)): ?>
@@ -44,7 +51,11 @@ $dim_unit = defined('SHIPPING_DEFAULT_PKG_DIM_UNIT')
           <?php echo INV_ENTRY_ITEM_WEIGHT; ?>
           <?php if ($wt_unit): ?><small class="text-muted">(<?php echo htmlspecialchars($wt_unit); ?>)</small><?php endif; ?>
         </label>
-        <?php echo html_input_field('item_weight', $currencies->precise($cInfo->item_weight), 'class="form-control form-control-sm text-end" style="width:100px" maxlength="9"', false); ?>
+        <?php echo html_input_field('item_weight', $currencies->precise($cInfo->item_weight),
+          'class="form-control form-control-sm text-end" style="width:100px" maxlength="9"' . ($wt_derived ? ' readonly="readonly"' : ''), false); ?>
+        <?php if ($wt_derived): ?>
+        <small class="text-muted d-block"><?php echo INV_ITEM_WEIGHT_DERIVED_HELP; ?></small>
+        <?php endif; ?>
       </div>
       <?php endif; ?>
 
@@ -81,9 +92,19 @@ $dim_unit = defined('SHIPPING_DEFAULT_PKG_DIM_UNIT')
       <?php if (isset($cInfo->ships_in_own_box)): ?>
       <div class="col-auto d-flex align-items-end pb-1">
         <div class="form-check">
-          <?php echo html_checkbox_field('ships_in_own_box', '1', !empty($cInfo->ships_in_own_box), 'class="form-check-input"', false); ?>
+          <?php echo html_checkbox_field('ships_in_own_box', '1', !empty($cInfo->ships_in_own_box), '', 'class="form-check-input"'); ?>
           <label class="form-check-label"><?php echo INV_ENTRY_SHIPS_IN_OWN_BOX; ?></label>
         </div>
+      </div>
+      <?php endif; ?>
+
+      <?php if (isset($cInfo->ship_complete)): ?>
+      <div class="col-auto d-flex align-items-end pb-1">
+        <div class="form-check">
+          <?php echo html_checkbox_field('ship_complete', '1', !empty($cInfo->ship_complete), '', 'class="form-check-input" onclick="shipCompleteToggle()"'); ?>
+          <label class="form-check-label"><?php echo INV_ENTRY_SHIP_COMPLETE; ?></label>
+        </div>
+        <small class="text-muted ms-2"><?php echo INV_SHIP_COMPLETE_HELP; ?></small>
       </div>
       <?php endif; ?>
 

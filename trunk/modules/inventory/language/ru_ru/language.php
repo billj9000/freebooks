@@ -203,4 +203,22 @@ define('TEXT_SPECIAL_PRICING','Спец цены');
 define('PRICE_SHEET_MSG_DELETE','Точно хотите удалить этот прайс?');
 define('TEXT_INVOICE_NUM',      'Счёт №');
 
+// Shipping tab - awaiting translation, English text so the tab renders
+define('INV_TAB_SHIPPING',              'Shipping');
+define('INV_SHIPPING_DIMENSIONS',       'Package Dimensions');
+define('INV_SHIPPING_EXT_DIMS_HELP',    'External dimensions of the item as packaged, used for box-packing calculations.');
+define('INV_ENTRY_ITEM_LENGTH',         'Length');
+define('INV_ENTRY_ITEM_WIDTH',          'Width');
+define('INV_ENTRY_ITEM_HEIGHT',         'Height');
+define('INV_ENTRY_SHIPS_IN_OWN_BOX',    'Ships in its own box');
+define('INV_ENTRY_SHIP_COMPLETE',       'Ships complete (one parcel)');
+define('INV_SHIP_COMPLETE_HELP',        'Tick if the bundle is packed and sent as a single parcel. Leave clear and it ships as its separate parts.');
+define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Calculated from the Bill of Materials.');
+define('INV_SHIPPING_CUSTOMS',          'Customs / Export');
+define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Country of Origin');
+define('INV_ENTRY_HS_CODE',             'HS Code');
+define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
+define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
+define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+
 ?>

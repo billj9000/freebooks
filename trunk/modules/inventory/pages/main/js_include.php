@@ -411,6 +411,16 @@ function bomTotalValues() {
   if (ts) ts.value = formatCurrency(salesPrice);
 }
 
+// A bundle that ships as its separate parts derives its weight from the Bill of
+// Materials, so the field is read-only; ticking "ships complete" hands it back.
+// The figure itself is recalculated server-side on save (pb::save()) - this only
+// keeps the field from looking editable when it isn't.
+function shipCompleteToggle() {
+  var cb = document.getElementById('ship_complete'), wt = document.getElementById('item_weight');
+  if (!cb || !wt) return;
+  wt.readOnly = !cb.checked;
+}
+
 // ── Where Used ───────────────────────────────────────────────────────
 
 function ajaxWhereUsed() {
