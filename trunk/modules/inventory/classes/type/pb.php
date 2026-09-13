@@ -64,8 +64,29 @@ class pb extends ma {
 	 * would return the PREVIOUS parts list and leave the weight one edit behind.
 	 */
 	function save() {
+		global $messageStack, $currencies;
+		$bom_weight = $this->derive_bom_weight();
 		if (empty($_POST['ship_complete'])) {
-			$_POST['item_weight'] = (string)round($this->derive_bom_weight(), 4);
+			$_POST['item_weight'] = (string)round($bom_weight, 4);
+		} else {
+			// A declared parcel weight is the one figure here with nothing to check it
+			// against - the contents no longer constrain it, which is the whole point of
+			// ticking the box. So say so when it is below the sum of what is in the
+			// parcel, because that is not a judgement call about packaging, it is
+			// physically impossible: a box cannot weigh less than the things inside it.
+			//
+			// A caution, never an error. The user may be mid-edit, or may know something
+			// the Bill of Materials does not, and refusing the save would be worse than
+			// storing a figure they can see is flagged.
+			//
+			// Skipped for an empty Bill of Materials: nothing to compare against, and 0
+			// would flag every such bundle for no reason. The epsilon only keeps rounding
+			// noise from tripping it, not a real shortfall.
+			$declared = (float)$currencies->clean_value(db_prepare_input($_POST['item_weight'] ?? 0));
+			if ($bom_weight > 0 && $declared < ($bom_weight - 0.001)) {
+				$messageStack->add(sprintf(INV_SHIP_COMPLETE_WEIGHT_LOW,
+					$currencies->precise($declared), $currencies->precise($bom_weight)), 'caution');
+			}
 		}
 		return parent::save();
 	}

@@ -213,6 +213,7 @@ define('INV_ENTRY_ITEM_HEIGHT',         'Height');
 define('INV_ENTRY_SHIPS_IN_OWN_BOX',    'Ships in its own box');
 define('INV_ENTRY_SHIP_COMPLETE',       'Ships complete (one parcel)');
 define('INV_SHIP_COMPLETE_HELP',        'Tick if the bundle is packed and sent as a single parcel. Leave clear and it ships as its separate parts.');
+define('INV_SHIP_COMPLETE_WEIGHT_LOW',  'Ships complete is ticked, but the weight entered (%s) is below the Bill of Materials total (%s). A parcel cannot weigh less than its contents - check the weight, or the parts list.');
 define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Calculated from the Bill of Materials.');
 define('INV_SHIPPING_CUSTOMS',          'Customs / Export');
 define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Country of Origin');
