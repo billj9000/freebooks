@@ -37,7 +37,7 @@ define('TEXT_IMP_ERMSG11','O arquivo foi importado com sucesso!');
 define('TEXT_IMP_ERMSG10','Ocorreu um erro inesperado no carregamento do arquivo!');
 define('TEXT_IMP_ERMSG9',' foi importado com sucesso!');
 define('TEXT_IMP_ERMSG5','Erro desconhecido de upload no php, php retornou erro # ');
-define('TEXT_IMP_ERMSG6','O arquivo não foi reconhecido pelo servidor como um arquivo de texto.');
+define('TEXT_IMP_ERMSG6','Este tipo de arquivo não pode ser enviado aqui. Os tipos aceitos são: %s.');
 define('TEXT_IMP_ERMSG7','O arquivo carregado não contém nenhuma informação!');
 define('TEXT_IMP_ERMSG8','O sistema não encontrou um relatório válido para importar no arquivo carregado!');
 define('TEXT_IMP_ERMSG4','Não foi selecionado arquivo para upload.');

@@ -44,5 +44,8 @@ define('TEXT_USED','Usado');
 define('TEXT_VEHICLE','Veículo');
 define('TEXT_TABS','Abas');
 define('TEXT_SOFTWARE','Software');
+define('ASSETS_IMAGE_PATH_ERROR','Erro no caminho especificado para carregar a imagem!');
+define('ASSETS_IMAGE_FILE_TYPE_ERROR','Este arquivo não é uma imagem legível. Verifique se é realmente um JPEG, PNG ou GIF.');
+define('ASSETS_IMAGE_FILE_WRITE_ERROR','Houve um problema ao gravar o arquivo de imagem na pasta especificada.');
 
 ?>

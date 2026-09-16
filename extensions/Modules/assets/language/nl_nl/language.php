@@ -53,6 +53,9 @@ define('ASSETS_ENTRY_IMAGE_PATH','Afbeelding Adres');
 define('ASSETS_MSG_COPY_INTRO','Voer Id in voor de nieuwe activa.');
 define('ASSETS_MSG_RENAME_INTRO','Voer id in om activa te hernoemen.');
 define('ASSETS_LOG_ASSETS','Activa - ');
+define('ASSETS_IMAGE_PATH_ERROR','Fout in het adres voor het uploaden van de afbeelding!');
+define('ASSETS_IMAGE_FILE_TYPE_ERROR','Dat bestand is geen leesbare afbeelding. Controleer of het echt een JPEG, PNG of GIF is.');
+define('ASSETS_IMAGE_FILE_WRITE_ERROR','Er was een probleem met het opslaan van het bestand in de directory.');
 if (!defined('TEXT_NO_IMAGE')) define('TEXT_NO_IMAGE','Geen Afbeelding');
 /************ Javascript defines *********/
 define('ASSETS_MSG_DELETE_ASSET','Weet u zeker dat u dit wil verwijderen?');

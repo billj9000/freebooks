@@ -347,9 +347,8 @@ define('INV_LABEL_TIME_STAMP_VALUE', 'System field to track the last date and ti
 define('INV_FIELD_NAME_RULES','Fieldnames cannot contain spaces or special characters and must be 64 characters or less.');
 define('INV_CATEGORY_CANNOT_DELETE','Cannot delete category. It is being used by field: ');
 define('INV_CANNOT_DELETE_SYSTEM','Fields in the System category cannot be deleted!');
-define('INV_IMAGE_PATH_ERROR','Error in the path specified for the upload image!');
-define('INV_IMAGE_FILE_TYPE_ERROR','Error in the uploaded image file. Not an acceptable file type.');
-define('INV_IMAGE_FILE_WRITE_ERROR','There was a problem writing the image file to the specified directory.');
+// INV_IMAGE_* now live in the inventory module's language.php, alongside the code that
+// raises them. Defining them here too collides when both files load.
 define('INV_FIELD_RESERVED_WORD','The field name entered is a reserved word. Please choose a new field name.');
 // Audit Log Messages
 define('GEN_LOG_LOGIN','User Login -> ');

@@ -223,6 +223,9 @@ define('INV_TYPES_SI','Item Estoque');
 define('INV_WHAT_TO_CALCULATE','Digite 1 para recalcular a margem \n Digite 2 para recalcular o preço de venda \n Digite 3 ?');
 define('INV_CHEAPER_ELSEWHERE','SKU %s é mais barato em outro lugar.');
 define('INV_IMAGE_DUPLICATE_NAME','O nome da imagem já foi utilizado na base de dados. Altere o nome para continuar. ');
+define('INV_IMAGE_PATH_ERROR','Erro no caminho especificado para carregar a imagem!');
+define('INV_IMAGE_FILE_TYPE_ERROR','Este arquivo não é uma imagem legível. Verifique se é realmente um JPEG, PNG ou GIF.');
+define('INV_IMAGE_FILE_WRITE_ERROR','Houve um problema ao gravar o arquivo de imagem na pasta especificada.');
 define('TEXT_INVOICE_NUM',        'Nº Fatura');
 
 // Shipping tab - awaiting translation, English text so the tab renders

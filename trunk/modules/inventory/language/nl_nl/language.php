@@ -222,6 +222,9 @@ define('INV_CALCULATING_ERROR', 'Wanneer FreeBooks de prijs inclusief btw uitrek
 define('INV_WHAT_TO_CALCULATE','toets een 1 om marge te herberekenen \ntoets een 2 om verkoop prijzen te herberekenen op basis van marge \ntoets een 3 om verkoop prijzen te herberekenen op basis van opslag');
 define('INV_CHEAPER_ELSEWHERE','artikel %s is goedkoper ergens anders.');
 define('INV_IMAGE_DUPLICATE_NAME','De naam van de afbeelding staat al in de database, verander de bestands naam om verder te kunnen gaan. ');
+define('INV_IMAGE_PATH_ERROR','Fout in het adres voor het uploaden van de afbeelding!');
+define('INV_IMAGE_FILE_TYPE_ERROR','Dat bestand is geen leesbare afbeelding. Controleer of het echt een JPEG, PNG of GIF is.');
+define('INV_IMAGE_FILE_WRITE_ERROR','Er was een probleem met het opslaan van het bestand in de directory.');
 define('ITEM_IS_OUT_OF_STOCK', 'voorraad is op');
 define('TEXT_SAVE_AND_COPY_TO_NEW', 'Bewaren en Kopieren naar Nieuw ');
 define('TEXT_INVOICE_NUM',          'Factuur #');

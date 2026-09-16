@@ -24,10 +24,9 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/phreedom/language/pt_br/admin.php
 
-define('INV_IMAGE_FILE_TYPE_ERROR','Erro ao subir arquivo de imagem. Formato não aceitável.');
-define('INV_IMAGE_FILE_WRITE_ERROR','Houve um problema ao gravar o arquivo de imagem na pasta especificada.');
+// INV_IMAGE_* now live in the inventory module's language.php, alongside the code that
+// raises them. Defining them here too collides when both files load.
 define('GEN_ADM_TOOLS_SEQ_DESC','Alterações na sequência podem ser feitas aqui.<br />ATENÇÃO 1: FreeBooks não permite sequências duplicadas, certifique-se que a nova sequência não conflite com os valores já lançados.<br />ATENÇÃO 2: O próximo número de depósito pe gerado pelo sistema e utiliza a data corrente.<br />ATENÇÃO 3: o próximo número de cheuqe pode ser digitado na tela de pagamento antes de lançar um pagamento e será sequenciado a partir do número lançado.');
-define('INV_IMAGE_PATH_ERROR','EErro no caminho especificado para carregar a imagem!');
 define('INV_CANNOT_DELETE_SYSTEM','Campos da categoria Sistema não podem ser removidos!');
 define('INV_CATEGORY_CANNOT_DELETE','Não é possível remover a categoria. Está em uso pelo campo: ');
 define('INV_FIELD_NAME_RULES','Nomes de campos não podem conter espaços ou caracteres especiais e podem ter no máximo 64 caracteres.');

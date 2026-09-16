@@ -408,7 +408,12 @@ class inventory {
 	  		if (!validate_path($file_path)) {
 				$messageStack->add(INV_IMAGE_PATH_ERROR, 'error');
 				return false;
-	  		} elseif (!validate_upload('inventory_image', 'image', 'jpg')) {
+	  		// The extensions my_files/.htaccess will actually serve back - an image saved
+	  		// under any other extension would upload and then 403 when the page displayed it.
+	  		} elseif (!validate_upload('inventory_image', 'image', array('jpg', 'jpeg', 'png', 'gif'))) {
+				return false; // validate_upload() has already said what was wrong
+	  		} elseif (@getimagesize($temp_file_name) === false) {
+	  			// An allowed extension is not proof of an image; make the content agree with it.
 				$messageStack->add(INV_IMAGE_FILE_TYPE_ERROR, 'error');
 				return false;
 	  		} else { // passed all test, write file

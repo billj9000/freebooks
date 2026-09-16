@@ -176,7 +176,12 @@ switch ($_REQUEST['action']) {
 		if (!validate_path($file_path)) {
 			$messageStack->add(ASSETS_IMAGE_PATH_ERROR, 'error');
 			$error = true;
-		} elseif (!validate_upload('asset_image', 'image', 'jpg')) {
+		// The extensions my_files/.htaccess will actually serve back - an image saved
+		// under any other extension would upload and then 403 when the page displayed it.
+		} elseif (!validate_upload('asset_image', 'image', array('jpg', 'jpeg', 'png', 'gif'))) {
+			$error = true; // validate_upload() has already said what was wrong
+		} elseif (@getimagesize($temp_file_name) === false) {
+			// An allowed extension is not proof of an image; make the content agree with it.
 			$messageStack->add(ASSETS_IMAGE_FILE_TYPE_ERROR, 'error');
 			$error = true;
 		} else { // passed all test, write file

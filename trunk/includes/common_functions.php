@@ -1731,7 +1731,9 @@ function validate_ajax_user($token = 0) {
 	if (in_array($ext, $extension)) {
 		return true;
 	}
-	$messageStack->add(TEXT_IMP_ERMSG6, 'error');
+	// Name the extensions actually accepted - this is reached by image uploads as well as
+	// text imports, so the message cannot assume the file was meant to be text.
+	$messageStack->add(sprintf(TEXT_IMP_ERMSG6, implode(', ', $extension)), 'error');
 	return false;
   }
 

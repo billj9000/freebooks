@@ -29,9 +29,8 @@ define('GEN_LOG_LOGIN','Inloggen Gebruiker -> ');
 define('GEN_LOG_LOGIN_FAILED','Inloggen van gebruiker mislukt - id -> ');
 define('GEN_LOG_LOGOFF','Gebruikker Uitgelogd -> ');
 define('INV_FIELD_RESERVED_WORD','De ingevoerde naam is een gereserveerd woord. Kies alstublieft een andere naam.');
-define('INV_IMAGE_FILE_WRITE_ERROR','Er was een probleem met het opslaan van het bestand in de directory.');
-define('INV_IMAGE_FILE_TYPE_ERROR','Fout in de geüploade image-bestand. Niet aanvaardbaar bestandstype.');
-define('INV_IMAGE_PATH_ERROR','Fout in het adres voor het uploaden van de afbeelding!');
+// INV_IMAGE_* now live in the inventory module's language.php, alongside the code that
+// raises them. Defining them here too collides when both files load.
 define('INV_CANNOT_DELETE_SYSTEM','Velden in de categorie Systeem kunnen niet verwijderd worden');
 define('INV_CATEGORY_CANNOT_DELETE','Kan categorie niet verwijderen. Het wordt gebruikt door veld: ');
 define('INV_FIELD_NAME_RULES','Veld namen kunnen geen spaties bevatten of speciale tekens en moeten korter zijn dan 65 tekens');

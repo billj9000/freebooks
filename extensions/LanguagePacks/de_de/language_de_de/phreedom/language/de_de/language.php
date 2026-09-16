@@ -372,7 +372,7 @@ define ('TEXT_IMP_ERMSG2', 'Die Dateigröße überschreitet die MAX_FLE_SIZE Dir
 define ('TEXT_IMP_ERMSG3', 'Die Datei wurde nicht vollständig hochgeladen Bitte versuchen Sie es..');
 define ('TEXT_IMP_ERMSG4', 'Keine Datei ausgewählt wurde zum Hochladen.');
 define ('TEXT_IMP_ERMSG5', 'Unbekannt php Upload Fehler, php mit Fehler #');
-define ('TEXT_IMP_ERMSG6', 'Diese Datei wird vom Server nicht als Text-Datei gemeldet.');
+define ('TEXT_IMP_ERMSG6', 'Dieser Dateityp kann hier nicht hochgeladen werden. Zulassige Dateitypen sind: %s.');
 define ('TEXT_IMP_ERMSG7', 'Die hochgeladene Datei enthält keine Daten!');
 define ('TEXT_IMP_ERMSG8', 'PhreeBooks nicht finden konnten, eine gültige Bericht in der hochgeladenen Datei importieren');
 define ('TEXT_IMP_ERMSG9', 'wurde erfolgreich importiert!');

@@ -411,7 +411,7 @@ define('TEXT_IMP_ERMSG2','The filesize exceeds the MAX_FILE_SIZE directive in th
 define('TEXT_IMP_ERMSG3','The file was not completely uploaded. Please retry.');
 define('TEXT_IMP_ERMSG4','No file was selected to upload.');
 define('TEXT_IMP_ERMSG5','Unknown php upload error, php returned error # ');
-define('TEXT_IMP_ERMSG6','This file is not reported by the server as a text file.');
+define('TEXT_IMP_ERMSG6','That file type cannot be uploaded here. Accepted file types are: %s.');
 define('TEXT_IMP_ERMSG7','The uploaded file does not contain any data!');
 define('TEXT_IMP_ERMSG8','FreeBooks could not find a valid report to import in the uploaded file!');
 define('TEXT_IMP_ERMSG9',' was successfully imported!');

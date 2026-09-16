@@ -396,7 +396,7 @@ define('TEXT_IMP_ERMSG2','Het bestand overschrijd MAX_FILE_SIZE richtlijn in de 
 define('TEXT_IMP_ERMSG3','Het bestand is niet volledig geupload. Probeer opnieuw.');
 define('TEXT_IMP_ERMSG4','Er is geen bestand geselecteerd om up te loaden.');
 define('TEXT_IMP_ERMSG5','Onbekende php upload error, php retour error # ');
-define('TEXT_IMP_ERMSG6','Het bestand kan niet geidentificeerd worden als tekst bestand.');
+define('TEXT_IMP_ERMSG6','Dit bestandstype kan hier niet geupload worden. Toegestane bestandstypen zijn: %s.');
 define('TEXT_IMP_ERMSG7','Het bestand bevat geen data!');
 define('TEXT_IMP_ERMSG8','FreeBooks kon geen geldig rapport vinden om het geüploade bestand te verwerken!');
 define('TEXT_IMP_ERMSG9',' is successfully geïmporteerd!');

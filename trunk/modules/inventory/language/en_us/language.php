@@ -252,6 +252,9 @@ define('INV_CALCULATING_ERROR', 'When FreeBooks has to calculate the full price 
 define('INV_WHAT_TO_CALCULATE','enter 1 to recalculate the margin \nenter 2 to recalculate the sales prices based on margin \nenter 3 to recalculate the sales prices based on markup');
 define('INV_CHEAPER_ELSEWHERE','sku %s is cheaper elsewhere.');
 define('INV_IMAGE_DUPLICATE_NAME','The name of the image is already used in the database, Change the file name to continu. ');
+define('INV_IMAGE_PATH_ERROR','Error in the path specified for the upload image!');
+define('INV_IMAGE_FILE_TYPE_ERROR','That file is not a readable image. Check that it really is a JPEG, PNG or GIF.');
+define('INV_IMAGE_FILE_WRITE_ERROR','There was a problem writing the image file to the specified directory.');
 define('ITEM_IS_OUT_OF_STOCK', 'item is out of stock');
 define('TEXT_SAVE_AND_COPY_TO_NEW', 'Save and Copy to New');
 define('TEXT_EXTRA_FIELDS', 'Custom Fields');

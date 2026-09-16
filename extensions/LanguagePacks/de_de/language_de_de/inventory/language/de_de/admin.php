@@ -99,9 +99,8 @@ define ('INV_LABEL_TIME_STAMP_VALUE', 'Feld System zur letzten Datum und Uhrzeit
 define ('INV_FIELD_NAME_RULES', 'Feldnamen nicht enthalten können Leer-oder Sonderzeichen und muss 64 Zeichen lang sein.');
 define ('INV_CATEGORY_CANNOT_DELETE', 'kann nicht gelöscht Kategorie Es wird von Feld verwendet.');
 define ('INV_CANNOT_DELETE_SYSTEM', 'Felder in der Kategorie System kann nicht gelöscht werden!');
-define ('INV_IMAGE_PATH_ERROR', 'Fehler in den Pfad für den Upload Bild angegeben!');
-define ('INV_IMAGE_FILE_TYPE_ERROR', 'Fehler in der hochgeladenen Bild-Datei nicht akzeptabel Dateityp..');
-define ('INV_IMAGE_FILE_WRITE_ERROR', 'Es wurde ein Problem beim Schreiben der Image-Datei in das angegebene Verzeichnis.');
+// INV_IMAGE_* now live in this module's language.php, alongside the code that raises
+// them. Defining them here too collides when both files load.
 define ('INV_FIELD_RESERVED_WORD', 'Der Name des Feldes eingegeben ist ein reserviertes Wort Bitte wählen Sie ein neues Feld Name..');
 
 define ('INV_TOOLS_VALIDATE_SO_PO', 'Validate Bestandsmenge auf Auftrag Werte');

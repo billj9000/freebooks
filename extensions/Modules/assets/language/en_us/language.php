@@ -53,6 +53,9 @@ define('ASSETS_ENTRY_IMAGE_PATH','Image Relative Path');
 define('ASSETS_MSG_COPY_INTRO','Enter the asset ID for the new asset.');
 define('ASSETS_MSG_RENAME_INTRO','Enter the new asset ID to rename this asset.');
 define('ASSETS_LOG_ASSETS','Assets - ');
+define('ASSETS_IMAGE_PATH_ERROR','Error in the path specified for the upload image!');
+define('ASSETS_IMAGE_FILE_TYPE_ERROR','That file is not a readable image. Check that it really is a JPEG, PNG or GIF.');
+define('ASSETS_IMAGE_FILE_WRITE_ERROR','There was a problem writing the image file to the specified directory.');
 if (!defined('TEXT_NO_IMAGE')) define('TEXT_NO_IMAGE','No Image');
 /************ Javascript defines *********/
 define('ASSETS_MSG_DELETE_ASSET','Are you sure you want to delete this asset?');

@@ -135,6 +135,10 @@ define('INV_ENTRY_INVENTORY_DESC_PURCHASE','Описание (для закуп�
 define('INV_ENTRY_VENDOR_SKU','Артикул поставщика');
 define('INV_ENTRY_IMAGE_PATH','Папка изображений');
 define('INV_ENTRY_SELECT_IMAGE','Выберите изображение');
+define('INV_IMAGE_DUPLICATE_NAME','The name of the image is already used in the database, Change the file name to continu. ');
+define('INV_IMAGE_PATH_ERROR','Error in the path specified for the upload image!');
+define('INV_IMAGE_FILE_TYPE_ERROR','That file is not a readable image. Check that it really is a JPEG, PNG or GIF.');
+define('INV_IMAGE_FILE_WRITE_ERROR','There was a problem writing the image file to the specified directory.');
 define('INV_ENTRY_ACCT_SALES','Счет Продаж/Доходов');
 define('INV_ENTRY_ACCT_INV','Счет оборотных фондов');
 define('INV_ENTRY_ACCT_COS','Себестоимость - Счет');
