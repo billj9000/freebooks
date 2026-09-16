@@ -10,7 +10,7 @@
 <!-- glossary terms are imploded with a colon separator -->
 <meta name="doc_glossary_1" content="Product Bundle:An inventory item made up of other inventory items, sold as one line, that holds no stock of its own - available quantity is calculated from its components' stock whenever it is displayed.">
 <meta name="doc_glossary_2" content="Master Product Bundle:A Product Bundle that varies by attribute (for example, a kit sold in more than one colour). Defining attributes on a Master Product Bundle generates one Product Bundle Part per combination.">
-<meta name="doc_glossary_3" content="Ships complete:A Product Bundle that is packed and sent as a single parcel rather than as its separate parts. Its Item Weight is the real weight of that parcel, packaging included, instead of being calculated from the Bill of Materials.">
+<meta name="doc_glossary_3" content="Ships as one item:A Product Bundle that is packed and shipped as a single item rather than as its separate components. Its Item Weight is the real weight of the packed item, packaging included, instead of being calculated from the Bill of Materials.">
 <!-- Title - Used as the table of contents and index reference title (one required)-->
 <meta name="doc_title" content="Product Bundles">
 <!-- End of meta tags -->
@@ -32,10 +32,10 @@
   <li>Press Save. The bundle's quantity on hand will show the number of complete bundles that could currently be assembled from stock on hand.</li>
 </ol>
 <h4>How a bundle is shipped</h4>
-<p>A Product Bundle is usually sent as its separate parts rather than as one lump, and a shipping quote is only as good as what the carrier is told the parcel contains. The Shipping tab therefore asks one question about every bundle: <strong>Ships complete (one parcel)</strong>.</p>
+<p>A Product Bundle is usually shipped as its separate components rather than as one lump, and a shipping quote is only as good as what the carrier is told it is carrying. The Shipping tab therefore asks one question about every bundle: <strong>Ships as one item</strong>.</p>
 <ul>
   <li><strong>Left clear</strong> - the default - the bundle ships as its separate parts. Its weight is calculated from the Bill of Materials, each component's weight multiplied by the quantity used, and recalculated every time the bundle is saved; the Item Weight field is shown read-only to say so. Change a component's weight, or change the recipe, and the bundle's weight follows on the next save.</li>
-  <li><strong>Ticked</strong>, the bundle is packed and sent as a single parcel. Item Weight becomes editable and should be given the real weight of that parcel, packaging included - it deliberately overrides the sum of the contents, because only you know what the packed parcel weighs. The Length, Width and Height on the same tab then describe the box it actually travels in.</li>
+  <li><strong>Ticked</strong>, the bundle is packed and shipped as one item. Item Weight becomes editable and should be given the real weight of that packed item, packaging included - it deliberately overrides the sum of the contents, because only you know what it weighs once packed. The Length, Width and Height on the same tab then describe the box it actually travels in.</li>
 </ul>
 <p>This is a different question from <strong>Ships in its own box</strong>, which sits beside it: that one says the item needs no outer packaging around it. A bundle may well want both ticked.</p>
 <h2>Master Product Bundles - bundles that vary by attribute</h2>
