@@ -5,3 +5,7 @@ trunk/my_files/
 # Site-specific customization hooks for the ZenCart module — deploy-only,
 # never generic shipped code. See extensions/Modules/zencart/README.md.
 extensions/Modules/zencart/PhreeBooksFiles/modules/zencart/custom/
+
+# Claude Code local settings: per-machine permission rules, not shared.
+# The skills under .claude/skills/ ARE shared and are committed.
+.claude/settings.local.json

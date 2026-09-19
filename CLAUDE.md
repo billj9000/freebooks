@@ -37,25 +37,6 @@ Every request enters through `trunk/index.php`, which:
 
 URL parameters drive routing: `?module=phreebooks&page=journal&jID=12`
 
-### Module Structure
-
-Every module under `trunk/modules/` follows the same layout:
-
-```
-{module}/
-├── config.php          # Module metadata, menu definitions, TABLE_* constants, security IDs
-├── defaults.php        # Module-level PHP constants
-├── pages/{page}/
-│   ├── pre_process.php     # Business logic; reads $_GET/$_POST, writes to $messageStack
-│   ├── template_main.php   # HTML output
-│   └── js_include.php      # Page-specific JavaScript
-├── ajax/               # One file per AJAX op, returns JSON or HTML fragment
-├── classes/            # Reusable business-logic classes for this module
-├── functions/          # Helper functions
-├── language/en_us/     # Translatable strings
-└── custom/             # Drop-in overrides (same sub-structure); loaded instead of originals when present
-```
-
 ### Core Modules
 
 | Module | Responsibility |
@@ -92,40 +73,13 @@ All new pages must use the **FreeBooks Bootstrap/htmx theme**. Concretely:
 
 Do not introduce new jQuery-only UI patterns or custom CSS frameworks on new pages.
 
-### Bootstrap Page Conversion Rules
-
-When converting an existing jQuery UI page to Bootstrap, follow these rules. Detailed notes are in memory file `reference_phreebooks_tab_conversion.md`.
-
-**Every converted page must:**
-- Set `$use_bootstrap_nav = true;` in `pre_process.php`
-- Every `fb-card` must have `<div class="card-header py-1 fb-widget-header">Title</div>` — gives the blue gloss-wave header (`#a6c9e2` border, `#fcfdfd` body)
-- Use `table-dark` on `<thead>` — freebooks.css overrides this to the gloss-wave gradient
-- Use Bootstrap `form-control`/`form-select` on inputs in **form/detail cards** (transaction details, payment fields, etc.)
-
-**Address/contact blocks** (stacked name/address inputs with clearField placeholders):
-- Use **plain inputs with `size=` attributes** — no `form-control` class
-- Use plain `<select>` with `style="width:100%"` — no `form-select` class
-- This matches the orders page and makes placeholder text look like labels rather than form fields
-
-**Fieldset-style sections** (grouped content with a floating title in the border):
-- Use `<div class="fb-fieldset mb-2">` + `<div class="fb-fieldset-legend">Title</div>` — do **not** use native `<fieldset>`/`<legend>` elements
-- `fb-fieldset` and `fb-fieldset-legend` are defined in `trunk/ext/bootstrap5/freebooks.css`
-- This approach is CSS-only so it can be restyled per theme; native `<fieldset>` fights CSS overrides
-- Use for standalone utility/tool pages (e.g. admin_tools); use `fb-card`/`fb-widget-header` for dashboard-style panels with a filled header bar
-
-**Tab pages** — see the tab conversion checklist in the memory reference.
+Converting an EXISTING jQuery UI page is a different job with its own rules — see the `bootstrap-page-conversion` skill.
 
 ### Documenting in the Help Module
 
 User-facing documentation lives in the **phreehelp** manual. When a change affects how users interact with FreeBooks, add or update a manual topic.
 
-- **Content location:** `modules/{module}/language/en_us/manual/{chNN-Chapter}/{NN-Topic}.html` — plain HTML topic files grouped into chapter subdirectories (`ch01-Introduction` … `ch20-Glossary`). Put a topic in the module it belongs to (e.g. login/accounts → `phreedom/…/ch06-UsersSecurity`).
-- **Required `<head>` meta tags:** `doc_pos` (dotted table-of-contents position, e.g. `06.04`; a topic nests under its parent, so `06.04` sits under the chapter landing page whose `doc_pos` is `06`) and `doc_title`. Optional: `doc_index_1`/`doc_index_2` (left-hand index, `Group.Label`) and `doc_glossary_N` (`term:definition`). The `<title>` and the stripped body text feed manual search.
-- **Model new topics on an existing sibling** (e.g. `ch06-UsersSecurity/03-Passkeys.html`) for meta layout, tone, and the Related Topics footer. Keep `doc_pos` unique, and add a link from the chapter landing page's Related Topics list.
-- **Locale fallback:** the scanner uses `language/{locale}/manual` for a module if that directory exists, else falls back to `en_us` for that module's *entire* manual. In practice only `en_us` has content — add topics there; do **not** create partial per-locale manual dirs (that would hide all the en_us topics for that module in that locale).
-- **A reindex is required to see changes.** The TOC and search are indexed into the phreehelp table (`TABLE_PHREEHELP`) by `synchronize()`, which runs only when the `PHREEHELP_FORCE_RELOAD` runtime config is `1`; a new/edited HTML file does **not** appear until then. Fresh installs and module updates set the flag automatically; otherwise set `PHREEHELP_FORCE_RELOAD=1` (it resets to `0` after the next Help open reindexes). Applies on every deploy target, including production.
-- **Context-sensitive help:** a page wires its toolbar Help button with `$toolbar->add_help('NN.NN')`, where the argument is the target topic's `doc_pos`. Pre-auth pages (login/password reset) have no toolbar, so their topics are reached via browse/search only.
-- **Manual HTML files are content, not source code** — they do **not** take the FreeBooks copyright header block (see File Header Policy); match the existing topic files.
+The how — file locations, the required `<head>` meta tags, locale fallback, the reindex requirement and context-sensitive help wiring — is in the `help-manual-topic` skill.
 
 ## No Private Names in Anything Committed
 
