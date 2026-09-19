@@ -493,7 +493,7 @@ real defects: table borders were not drawn at all, the heading box was a rule to
 doubled line under every heading), and the boxes around `Data` totals vanished from every page but
 the last.
 
-**Pagination cannot be proven from the library as it stands.** The only multi-page record (PO 1234,
+**Pagination cannot be proven from the library as it stands.** The only multi-page record (the proving PO,
 211 lines) belongs to a query-driven form, and no `entry_builder` form is long enough to break a
 page — the largest sales invoice is 18 lines. So the same real record is made to paginate in *both*
 engines by shrinking the item table on a copy of `pf_91` (`make_forms_proving_templates.php`): same
@@ -526,7 +526,7 @@ One assertion is there purely to stop drift: `Formatter::RESOLUTION_HINTS` and
 hint the renderer refuses but the converter fails to re-point prints a raw id on a customer-facing
 document. That is exactly the defect it caught — the Purchase Order's Buyer box printing `1`.
 
-**That it reproduces real output** is empirical. PO 1234 (`pf_73`, 210 lines) renders through
+**That it reproduces real output** is empirical. The proving PO (`pf_73`, 210 lines) renders through
 `QueryDocumentProvider` at 8 pages, matching the legacy engine's 8:
 
 | Comparison | Differing pixels (8 pages) |
@@ -705,7 +705,7 @@ Not yet validated; resolve during implementation.
    Modelled as the `CONTINUED_ON_OVERFLOW` visibility variant, and it remains the one place the
    seam is not perfectly one-directional.
 
-   **Verified 2026-08-10 against real output** (PO 1234, `pf_73`, 211 lines → 8 pages): pages 1–7
+   **Verified 2026-08-10 against real output** (the proving PO, `pf_73`, 211 lines → 8 pages): pages 1–7
    render "Continued", page 8 renders the real total (6,800.17). The behaviour is exactly as
    modelled, so the residual risk is implementation rather than unknown semantics.
 
@@ -748,10 +748,10 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
 | Proving document | Path | Proves |
 |---|---|---|
 | **Invoice** (`pf_91`, 12–18 lines, EUR/USD/GBP) | `DocumentProvider` | `LayoutDocument` expressiveness, `Record`/`TypedValue`, per-record currency (`posted_cur`) |
-| **PO 1234** (`pf_73`, 211 lines → 8 pages) | query-driven | Pagination, `Ttl` "Continued" (risk 1), the dataset/catalog path |
+| **The proving PO** (`pf_73`, 211 lines → 8 pages) | query-driven | Pagination, `Ttl` "Continued" (risk 1), the dataset/catalog path |
 
 1. **Step 0 — baseline (done 2026-08-10).** Captured from PhreeForm on the test container: five
-   invoices plus PO 1234, each snapshotting the resolved data crossing into the renderer *and* the
+   invoices plus the proving PO, each snapshotting the resolved data crossing into the renderer *and* the
    PDF bytes. Kept local, not committed. See §8.1.
 2. **Step 1 — the seam (done 2026-08-10).** `Document`, `LayoutDocument`, `Record`, `TypedValue`,
    `Binding`, `FormsRenderer`, `RenderedOutput` — pure value objects, no behaviour. Guarded by
@@ -770,13 +770,13 @@ sufficient — the Invoice has no `Ttl` and never paginates; the Purchase Order 
      Pagination verified on a six-page proving form: identical page count, identical text, 2 pixels
      per page. See §8.3.
 
-     PO 1234 could **not** be used: `pf_73` is query-driven, so no provider can supply it until the
+     The proving PO could **not** be used: `pf_73` is query-driven, so no provider can supply it until the
      step-5 catalog exists. Neither could any `Ttl` be diffed — see risk 1.
 5. **The dataset + field catalog (done 2026-08-12).** Four shipped datasets (Transactions, General
    Ledger, Inventory, Audit Trail), parameterised filters, a query builder, `ExecutePrepared()` on
    `queryFactory`, and `QueryDocumentProvider` — which unblocks the query-driven half of the
    library. `rep_id`/`admin_id` are resolved provider-side as promised. Verified by
-   `verify_forms_catalog.php` (66 guarantees) and against PO 1234; see §8.4.
+   `verify_forms_catalog.php` (66 guarantees) and against the proving PO; see §8.4.
 6. **The reports path (data + CSV done 2026-08-12).** `ReportDocumentProvider` folds a dataset
    into a `TableDocument` with group breaks and totals; `ReportConverter` maps a legacy report
    definition; `CsvRenderer` renders it. **Row-set parity holds across 13 reports** — every data

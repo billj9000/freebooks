@@ -29,9 +29,9 @@
  * Two things make that fold less obvious than it looks, and both are handled
  * here rather than left to the caller:
  *
- *   1. **Joins multiply rows.** PO 1234 has 211 line items but the dataset's
- *      address_book join returns 422 rows, because a vendor has more than one
- *      address on file. The legacy form dealt with this by filtering
+ *   1. **Joins multiply rows.** The proving PO has 211 line items but the
+ *      dataset's address_book join returns 422 rows, because a vendor has more
+ *      than one address on file. The legacy form dealt with this by filtering
  *      address_book.type — a *data* concern the caller must state, since only
  *      the caller knows which address a given document wants. What the provider
  *      does guarantee is that duplicate LINES are not emitted: line rows are

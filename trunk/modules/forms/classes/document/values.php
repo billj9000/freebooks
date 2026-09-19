@@ -65,8 +65,8 @@ enum Align: string
  *
  * ContinuedOnOverflow is the pagination-aware case (design doc open risk 1):
  * a total renders placeholder text on every page but the last, where it
- * resolves to the real value. Verified against PO 1234 — 8 pages, "Continued"
- * on 1–7, the real total on page 8.
+ * resolves to the real value. Verified against the proving PO — 8 pages,
+ * "Continued" on 1–7, the real total on page 8.
  */
 enum Visibility
 {

@@ -25,9 +25,9 @@
  * numbering, and a total that reads "Continued" until the last page (design doc
  * risk 1). None of it can be proven against the real library:
  *
- *   - The only multi-page record in the data (PO 1234, 211 lines) belongs to
- *     pf_73, which has no special_class. Query-driven forms need the dataset
- *     catalog, which is step 5 — so no provider can supply it yet.
+ *   - The only multi-page record in the data (the proving PO, 211 lines)
+ *     belongs to pf_73, which has no special_class. Query-driven forms need
+ *     the dataset catalog, which is step 5 — so no provider can supply it yet.
  *   - No entry_builder form paginates: the largest sales invoice is 18 lines and
  *     the table box holds far more.
  *   - No entry_builder form carries a Ttl either, and cannot: PhreeForm's
