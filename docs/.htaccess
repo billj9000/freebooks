@@ -1,0 +1,54 @@
+# +-----------------------------------------------------------------+
+# |                          FreeBooks ERP                          |
+# +-----------------------------------------------------------------+
+# | Copyright(c) 2026 Bill Jones                                    |
+# +-----------------------------------------------------------------+
+# | This program is free software: you can redistribute it and/or   |
+# | modify it under the terms of the GNU General Public License as  |
+# | published by the Free Software Foundation, either version 3 of  |
+# | the License, or any later version.                              |
+# |                                                                 |
+# | This program is distributed in the hope that it will be useful, |
+# | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+# | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+# | GNU General Public License for more details.                    |
+# +-----------------------------------------------------------------+
+#  Path: /docs/.htaccess
+#
+#
+# This directory is NOT part of the application. It holds development tooling
+# and design notes, and nothing the application serves ever links into it.
+#
+# It nevertheless ships inside the web root on the container targets, because
+# the Dockerfile's build context is copied wholesale (`COPY . .`) and the
+# deployed copy of this directory is how the verification tools are reached
+# over `fly ssh console` / `docker exec`. Reached over the FILESYSTEM, which is
+# what those tools are for — never over HTTP.
+#
+# Without this file they were readable over HTTP by anyone: `Options -Indexes`
+# stops the listing, but a request for a known path is answered, and every
+# shell script, python script and JSON baseline under tools/ came back 200 with
+# its contents. The .php tools mostly refuse — fb_bootstrap() exits on
+# `PHP_SAPI !== 'cli'`, which covers 40 of the 50, with 4 more carrying a SAPI
+# guard of their own — but that is a guard inside the tools, not a policy about
+# the directory, and the nine with neither were relying on luck.
+#
+# So the same deny the application already applies to includes/, modules/ and
+# my_files/ applies here, with NO exceptions list: unlike those three, this
+# directory has no file the browser is ever supposed to fetch.
+#
+# Needs AllowOverride All (or at least Limit), which php-app/Dockerfile sets.
+###############################
+
+# deny *everything*, with nothing allowed back
+<FilesMatch ".*">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+IndexIgnore */*
