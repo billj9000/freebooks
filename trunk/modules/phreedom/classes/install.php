@@ -305,7 +305,9 @@ class phreedom_admin {
   	  foreach ($this->tables as $table => $create_table_sql) {
 	    if (!db_table_exists($table)) if (!$db->Execute($create_table_sql)) $error = true;
 	  }
-	  write_configure(PHREEHELP_FORCE_RELOAD, '1');
+	  // The NAME, quoted — see phreehelp/classes/install.php for why the bare
+	  // constant wrote nothing.
+	  write_configure('PHREEHELP_FORCE_RELOAD', '1');
 	}
     if (MODULE_PHREEDOM_STATUS < 3.2) {
 	  if (!db_field_exists(TABLE_USERS, 'is_role')) $db->Execute("ALTER TABLE ".TABLE_USERS." ADD is_role ENUM('0','1') NOT NULL DEFAULT '0' AFTER admin_id");

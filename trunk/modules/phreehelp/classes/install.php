@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -64,7 +65,13 @@ class phreehelp_admin {
 		if (!db_table_exists($table)) if (!$db->Execute($create_table_sql)) $error = true;
 	  }
 	}
-	write_configure(PHREEHELP_FORCE_RELOAD, '1');
+	// The NAME, quoted. Passing the constant hands write_configure() its VALUE
+	// — '0' or '1' — and neither does what was meant: '0' is falsy, so the
+	// function returns at its own `if (!$constant)` guard and writes nothing at
+	// all, which is precisely the case this line exists for. A module update
+	// therefore never asked for the reindex, and a new or edited manual topic
+	// stayed invisible until somebody set the flag by hand.
+	write_configure('PHREEHELP_FORCE_RELOAD', '1');
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
    	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_' . strtoupper($module) . '_VERSION')), 'success');
