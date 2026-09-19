@@ -741,20 +741,16 @@ function describeSelection() {
       <?php echo json_encode(FORMS_CANVAS_PARTS_EDIT); ?>
         .replace('%d', subRows(value.parts).length);
   }
-  // A binding the author can retarget, and one they cannot. A company constant
-  // — the company's own phone number or tax number — is not in the palette,
-  // because the palette holds what the RECORD supplies; so the select had no
-  // option to match and showed an empty box on an element that is bound
-  // perfectly well. It reads as a fault and is not one. The name goes in as
-  // words instead, and nothing is offered to change: TemplateForm::binding()
-  // refuses to retarget a context binding whatever is posted.
+  // One control for both kinds of binding (§13.55). A company detail used to be
+  // shown as read-only words here — the palette held only what the RECORD
+  // supplies, so the select had no option to match and showed an empty box on
+  // an element bound perfectly well. That also made a company detail impossible
+  // to ADD: the only ones on any form were the ones it was born with. The
+  // palette now carries both groups and TemplateForm decides the scope from the
+  // name, so the select is live whatever the element is currently bound to.
   const bindable = box.kind === 'field' || box.kind === 'barcode'
                    || (box.kind === 'image' && box.source === 'bound');
-  show('ins_bind_row',       bindable && !box.context);
-  show('ins_bind_fixed_row', bindable && !!box.context);
-  if (box.context) {
-    document.getElementById('ins_bind_fixed').textContent = value.bind || box.label;
-  }
+  show('ins_bind_row', bindable);
   highlight(selected);
 }
 
@@ -905,13 +901,11 @@ function inspectorChanged() {
   if (borderColour !== borderColourShown(box, value)) value.borderColour = borderColour;
   const hdrBorderColour = document.getElementById('ins_hdr_bordercolour').value;
   if (hdrBorderColour !== (value.hdrBorderColour || '#000000')) value.hdrBorderColour = hdrBorderColour;
-  // Never from a context element: its control is not the one on screen, and the
-  // select still holds whatever the last record-bound element put there. Today
-  // that select reads empty for a company constant anyway — the palette has no
-  // matching option — but relying on a control being empty because nothing
-  // matches it is exactly the kind of accident that stops being true when the
-  // palette changes.
-  const bind = box.context ? '' : document.getElementById('ins_bind').value;
+  // Written for every bindable element, company details included. The guard
+  // that used to stand here skipped context elements because their control was
+  // not the one on screen; now it is, and skipping would make a company detail
+  // the one binding an author could see and not change.
+  const bind = document.getElementById('ins_bind').value;
   if (bind !== '') value.bind = bind;
   const src = document.getElementById('ins_src').value;
   if (src !== '') value.src = src;

@@ -419,24 +419,21 @@ if ($forms_canvas_definition === null) { ?>
 <?php } ?>
             </div>
 
+            <?php
+              // One control, two groups: the fields this record supplies, then
+              // the company's own details at the end (§13.55). A company detail
+              // used to be shown here as read-only words, because the palette
+              // held record fields only and the select would have shown an
+              // empty box on an element bound perfectly well — which also meant
+              // one could never be ADDED. Now the name decides where the value
+              // comes from, and both are choosable.
+            ?>
             <div class="mb-2" id="ins_bind_row">
               <label class="form-label mb-0 small" for="ins_bind"><?php echo FORMS_CANVAS_BIND; ?></label>
               <?php echo html_pull_down_menu('ins_bind', array_merge(
-                  array(array('id' => '', 'text' => FORMS_DESIGN_GROUP_NONE)), $forms_canvas_palette),
+                  array(array('id' => '', 'text' => FORMS_DESIGN_GROUP_NONE)), $forms_canvas_bindable),
                   '', 'class="form-select form-select-sm"'); ?>
               <div class="form-text"><?php echo FORMS_CANVAS_BIND_NOTE; ?></div>
-            </div>
-
-            <!--
-              A company constant is bound but not choosable: the palette holds
-              what the RECORD can supply, and this is not the record's. The
-              select above would show an empty box on an element that is bound
-              perfectly well, so it is swapped for the name in words.
-            -->
-            <div class="mb-2 d-none" id="ins_bind_fixed_row">
-              <label class="form-label mb-0 small"><?php echo FORMS_CANVAS_BIND; ?></label>
-              <div class="form-control form-control-sm bg-body-secondary" id="ins_bind_fixed"></div>
-              <div class="form-text"><?php echo FORMS_CANVAS_BIND_COMPANY; ?></div>
             </div>
 
             <div class="row g-1 mb-2">

@@ -137,6 +137,48 @@ final class TemplateForm
                                 'I25', 'S25', 'EAN8', 'EAN13', 'UPCA', 'UPCE',
                                 'CODABAR', 'CODE11', 'MSI'];
 
+    /**
+     * The company's own details, which an element may be bound to instead of a
+     * field of the record (§13.55).
+     *
+     * These are CONTEXT bindings: the same value on every record a form prints,
+     * read from the configuration rather than from the transaction. They were
+     * absent from the palette until §13.55, which meant an author could keep one
+     * an existing form already had but could never add one.
+     *
+     * **This is the list the company settings page edits**, and that is the only
+     * defensible source for it. The first version of this constant copied the
+     * nine names out of `forms_report_context()` instead, which was the wrong
+     * oracle twice over (§13.56):
+     *
+     *   - that function serves a REPORT's heading band, where only the company
+     *     name is really used, so its list had never had to be complete — it was
+     *     missing `COMPANY_WEBSITE`, `COMPANY_FAX`, `COMPANY_TELEPHONE2`,
+     *     `COMPANY_ZONE` and `COMPANY_ID`, four of which stored forms already
+     *     bind;
+     *   - and it carried `COMPANY_STATE_PROVINCE`, which this application does
+     *     not define ANYWHERE. Not seeded, not on the settings page, not read by
+     *     any code. The state or province is `COMPANY_ZONE`.
+     *
+     * A FORM never depended on that list: `FormRunner::contextFor()` reads the
+     * names off the template and resolves whatever is defined, which is why the
+     * thirteen-odd forms binding `COMPANY_WEBSITE` and `COMPANY_FAX` have always
+     * printed correctly. Only the PALETTE was narrow.
+     *
+     * A name outside this set is NOT a context binding, whatever it is called.
+     * The set is closed for the same reason the operator list is: an author
+     * picks from what exists, never types an identifier. Closed, but it must be
+     * closed around the right thing — `verify_forms_canvas.php` holds it against
+     * the settings page that edits these values.
+     */
+    public const CONTEXT_NAMES = [
+        'COMPANY_NAME', 'COMPANY_ID',
+        'COMPANY_ADDRESS1', 'COMPANY_ADDRESS2', 'COMPANY_CITY_TOWN',
+        'COMPANY_ZONE', 'COMPANY_POSTAL_CODE', 'COMPANY_COUNTRY',
+        'COMPANY_TELEPHONE1', 'COMPANY_TELEPHONE2', 'COMPANY_FAX',
+        'COMPANY_EMAIL', 'COMPANY_WEBSITE',
+    ];
+
     /** Every provider supplies its line items under this one name. */
     private const DEFAULT_SOURCE = 'items';
 
@@ -518,6 +560,11 @@ final class TemplateForm
     private function newBinding(array $row, array $allowed, string $what): ?Binding
     {
         $name = trim((string)($row['bind'] ?? ''));
+        // The NAME decides the scope, which is the whole mental model this
+        // control now asks an author to hold: one list, and where a value comes
+        // from follows from which entry was picked.
+        if (in_array($name, self::CONTEXT_NAMES, true)) return Binding::context($name);
+
         if ($name === '' || !isset($allowed[$name])) {
             $this->warnings[] = "$what names no field this form can supply; it was not saved.";
             return null;
@@ -756,9 +803,21 @@ final class TemplateForm
     /**
      * A submitted binding, or the one it had.
      *
-     * The single gate every author-supplied name passes through. A Context
-     * binding is left alone: those are company constants, not fields of the
-     * record, and they are not in the palette.
+     * The single gate every author-supplied name passes through, and the NAME
+     * decides the scope: one of the company's own details is a Context binding,
+     * anything else is a field of the record.
+     *
+     * That rule replaced a flat refusal (§13.55). A Context binding used to be
+     * left alone entirely — correctly, while the palette held only record
+     * fields: the canvas sent nothing for such an element, so the only way here
+     * was a stale page or a hand-made post, and both deserved an answer rather
+     * than an edit that appeared to work and did not. Now the control is a real
+     * dropdown carrying both groups, so refusing what it offers would be the
+     * surprise instead.
+     *
+     * An Aggregate binding keeps its scope and its field list: it is a total,
+     * not a place a value is read from, and re-pointing one through this
+     * control would silently turn a sum into a single field.
      *
      * @param array<string,mixed> $row
      * @param array<string,true>  $allowed
@@ -767,21 +826,25 @@ final class TemplateForm
     {
         $name = trim((string)($row['bind'] ?? ''));
         if ($name === '' || $name === $current->name) return $current;
-        // Refused, and SAID so. This used to return quietly, which was safe and
-        // silent — the canvas sends nothing for a context element, so the only
-        // way here is a stale page or a hand-made post, and both deserve an
-        // answer rather than an edit that appears to work and does not.
-        if ($current->scope === Scope::Context) {
-            $this->warnings[] = "$what is one of the company's own details, so it cannot be pointed"
-                              . " at '$name'; it was left as it was.";
-            return $current;
+
+        if (in_array($name, self::CONTEXT_NAMES, true)) {
+            if ($current->scope === Scope::Aggregate) {
+                $this->warnings[] = "$what is a total, so it cannot be pointed at '$name';"
+                                  . ' it was left as it was.';
+                return $current;
+            }
+            return Binding::context($name);
         }
 
         if (!isset($allowed[$name])) {
             $this->warnings[] = "$what names '$name', which this form cannot supply; it was left as it was.";
             return $current;
         }
-        return new Binding($name, $current->scope, $current->sumOf);
+        // Leaving Context behind: a company detail re-pointed at a field of the
+        // record is a RECORD binding, or it would keep looking for a constant
+        // by that name and print nothing.
+        $scope = $current->scope === Scope::Context ? Scope::Record : $current->scope;
+        return new Binding($name, $scope, $current->sumOf);
     }
 
     // ── sub-structures: a table's columns, a block's parts ───────────────────

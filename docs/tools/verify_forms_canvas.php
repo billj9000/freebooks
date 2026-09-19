@@ -1608,6 +1608,121 @@ if ($victim === null) {
            implode(' ', $warnings));
     }
 
+    //
+    // The same gate on the FIELD route, which §13.55 opened.
+    //
+    // A field's binding used to be record-only — a context one was refused
+    // outright — so the constant-injection question could only be asked of a
+    // block's parts. Now the Shows control offers company details, and "offers
+    // company details" must mean the NINE, not "any PHP constant the process
+    // happens to have defined". DB_SERVER_PASSWORD is the sharp one: it is a
+    // real constant, defined by configure.php, holding the database password.
+    //
+    // Both routes are checked, because they take different paths through the
+    // class: re-pointing an existing field goes through binding(), and a NEW
+    // field goes through newBinding(), which has its own copy of the test.
+    // Built here rather than found in the assembled form, because the first
+    // draft looked for a plain bound field in that form, did not find one, and
+    // reported a SKIP — a gate on the constant-injection route that quietly
+    // never ran. A fixture this check makes itself always runs.
+    $repointBase = new Definition(type: Definition::FORM, title: 'repoint',
+        template: new Template([
+            new \FreeBooks\Forms\Document\Field(
+                \FreeBooks\Forms\Document\Binding::record('post_date'), new Box(20, 20, 60, 5)),
+        ]));
+    $repoint = function (string $name) use ($repointBase): array {
+        $form = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+        $rows = TemplateForm::toRequest($repointBase->template);
+        $rows[0]['bind'] = $name;
+        $out = $form->apply($repointBase, ['title' => 'repoint', 'element' => $rows],
+                            ['post_date' => true]);
+        return [$out->template->elements[0]->bind, $form->warnings()];
+    };
+
+    [$bound, $warnings] = $repoint('DB_SERVER_PASSWORD');
+    ok('a field cannot be re-pointed at an arbitrary PHP constant',
+       $bound->name !== 'DB_SERVER_PASSWORD' && $warnings !== [], $bound->name);
+
+    // And that the nine DO work, or the gate above is passing by refusing
+    // everything — which would be a feature that never shipped.
+    [$bound, $warnings] = $repoint('COMPANY_EMAIL');
+    ok('but it can be pointed at one of the company details, as Context',
+       $bound->name === 'COMPANY_EMAIL'
+       && $bound->scope === \FreeBooks\Forms\Document\Scope::Context,
+       $bound->name . ' / ' . $bound->scope->name
+       . ($warnings ? ' — ' . implode(' ', $warnings) : ''));
+
+    // Back again: a company detail re-pointed at a field of the record must
+    // become a RECORD binding, or it keeps looking for a constant by that name
+    // and prints nothing.
+    $backForm = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+    $ctxBase  = new Definition(type: Definition::FORM, title: 'back',
+        template: new Template([
+            new \FreeBooks\Forms\Document\Field(
+                \FreeBooks\Forms\Document\Binding::context('COMPANY_EMAIL'), new Box(20, 20, 60, 5)),
+        ]));
+    $rows = TemplateForm::toRequest($ctxBase->template);
+    $rows[0]['bind'] = 'post_date';
+    $back = $backForm->apply($ctxBase, ['title' => 'back', 'element' => $rows],
+                             ['post_date' => true])->template->elements[0]->bind;
+    ok('and a company detail re-pointed at a record field becomes a record binding',
+       $back->name === 'post_date'
+       && $back->scope === \FreeBooks\Forms\Document\Scope::Record,
+       $back->name . ' / ' . $back->scope->name);
+
+    // A NEW field, which is the route an author takes to ADD one and the whole
+    // point of the change. Same two questions.
+    $adding = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+    $made = $adding->apply(
+        new Definition(type: Definition::FORM, title: 'add', template: new Template([])),
+        ['title' => 'add', 'element' => [
+            ['kind' => 'field', 'x' => '20', 'y' => '20', 'w' => '60', 'h' => '5',
+             'bind' => 'COMPANY_EMAIL'],
+            ['kind' => 'field', 'x' => '20', 'y' => '30', 'w' => '60', 'h' => '5',
+             'bind' => 'DB_SERVER_PASSWORD'],
+        ]], []);
+    $madeElements = $made->template?->elements ?? [];
+    ok('a new field can be added bound to a company detail',
+       count($madeElements) === 1
+       && $madeElements[0]->bind->name === 'COMPANY_EMAIL'
+       && $madeElements[0]->bind->scope === \FreeBooks\Forms\Document\Scope::Context,
+       count($madeElements) . ' element(s) made');
+    ok('and one naming any other constant is not created at all',
+       count($madeElements) === 1 && $adding->warnings() !== [],
+       implode(' ', $adding->warnings()));
+
+    //
+    // The offered list against the page that EDITS these values (§13.56).
+    //
+    // The first draft of this check compared against forms_report_context(),
+    // which was the wrong oracle and hid the bug it was supposed to find: that
+    // function fills a REPORT's heading band, where only the company name is
+    // really used, so its list had never needed to be complete — and it carried
+    // COMPANY_STATE_PROVINCE, a name this application defines nowhere at all.
+    // The check passed, reporting "8 of 9 carry a value on this company", which
+    // reads like a company with no state rather than like a phantom constant.
+    //
+    // The company settings tab is the honest source: every COMPANY_ value a
+    // user can type on that page is one they can expect to put on a document,
+    // and a name not on that page is one nobody can ever set.
+    $settingsPage = (string)@file_get_contents(
+        DIR_FS_MODULES . 'phreedom/pages/admin/template_tab_company.php');
+    preg_match_all('/\bCOMPANY_[A-Z0-9_]+/', $settingsPage, $found);
+    $editable = array_values(array_unique($found[0]));
+
+    ok('the company settings page could be read', $editable !== [],
+       'nothing to compare against, so the checks below prove nothing');
+
+    $phantom = array_values(array_diff(TemplateForm::CONTEXT_NAMES, $editable));
+    ok('every company detail the editor offers is one the settings page can set',
+       $phantom === [],
+       implode(', ', $phantom) . ' — offered but settable nowhere, so it can only print blank');
+
+    $unreachable = array_values(array_diff($editable, TemplateForm::CONTEXT_NAMES));
+    ok('and every one the settings page sets can be put on a form',
+       $unreachable === [], implode(', ', $unreachable) . ' — settable but not offered');
+
+
     // The separator vocabulary the editor offers has to be the one the renderer
     // performs. A name in one list and not the other is an address block that
     // loses its line breaks with nothing reporting anything.

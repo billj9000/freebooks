@@ -6354,3 +6354,160 @@ The fourth is the one guarding somebody else's feature rather than this one, and
 it is asserted rather than assumed: it only means anything on a company holding
 more than one kind of transaction, so it checks that more than one journal comes
 back rather than trusting that it would.
+
+### 13.55 A company detail could be kept but never added
+
+> "In the FreeBooks Form Layout editor, how to add a COMPANY_EMAIL field?"
+
+You could not. The answer took some finding, because nothing about the editor
+said so — the control simply had no such entry, and an element that already
+carried one showed its name as read-only words with a note explaining that it
+could not be changed.
+
+Three separate refusals stood in the way, and each was right on its own terms:
+
+- the **Shows** palette is `forms_binding_names()`, which answers *what does the
+  RECORD supply* — company constants are not the record's;
+- `newBinding()` minted `Binding::record(...)` unconditionally, so a new Value
+  element could never be anything else;
+- `binding()` refused to re-point an existing Context binding at all.
+
+The third existed **because** of the first: with no context names in the
+palette, the canvas sent nothing for such an element, so the only way into that
+branch was a stale page or a hand-made post — and both deserved an answer rather
+than an edit that appeared to work and did not.
+
+The upshot was that the only company details on any form were the ones the form
+was born with. `COMPANY_EMAIL` is on five of the shipped definitions; a form
+without it could only get one by copying a form that had it, or by hand-editing
+the definition file.
+
+#### The name decides the scope
+
+One control, two groups: the record's fields, then the company's details
+appended at the end rather than merged into the sort — a list that runs to
+eighty entries on an invoice does not need nine more scattered through it. Which
+kind of binding an element gets follows from **which name was picked**, which is
+the whole mental model the change asks an author to hold.
+
+`binding()` loses its flat refusal and gains the same rule in both directions: a
+record field re-pointed at a company detail becomes Context, and a company
+detail re-pointed at a record field becomes Record — the second half mattering
+because a Context binding left pointing at a record field's name would go on
+looking for a constant by that name and print nothing. An **Aggregate** binding
+is still refused: a total is not a place a value is read from, and re-pointing
+one through this control would silently turn a sum into a single field.
+
+#### The list is closed, and that is the security boundary
+
+"Offers company details" has to mean **the nine**, not "any PHP constant this
+process happens to have defined". `DB_SERVER_PASSWORD` is the sharp case: a real
+constant, defined by `configure.php`, holding the database password.
+
+The guard is membership of `TemplateForm::CONTEXT_NAMES`, not a `defined()` test
+and not a `COMPANY_` prefix. `verify_forms_canvas.php` already tested this on
+block PARTS, which was the only route a context binding could previously be
+smuggled through; the field route is new surface and now carries the same gate
+and the same tests. **Measured**: replacing the membership test with `defined()`
+— the plausible wrong implementation — fails three checks, one of them reporting
+`DB_SERVER_PASSWORD` bound to a field.
+
+#### One list, three readers
+
+The names were written out inside `forms_report_context()`. They are now
+`TemplateForm::CONTEXT_NAMES`, read by that function, by the palette, and by the
+gate. A second copy would drift the first time a constant was added.
+
+*(Which list, though, turned out to be the question — see §13.56.)*
+
+The **condition** palette stays record-only. A test against a company detail
+returns the same answer for every record, so it decides nothing — and a control
+that offers a choice with no effect is worse than one that does not.
+
+#### Verification, and a check that was passing by not running
+
+Eight new checks: the constant gate on both the re-point and the create route,
+a company detail accepted on both, the scope flipping correctly in both
+directions, the aggregate refusal, and the palette carrying all nine.
+
+Two of them were wrong on their first draft, in opposite ways worth recording.
+
+**One asked the wrong oracle, and I misread what it told me.** "Every company
+detail the editor offers is resolved by the renderer" failed, naming
+`COMPANY_STATE_PROVINCE`. I explained that away as a business with no state or
+province and weakened the check. It was not that: the constant does not exist
+anywhere in this application, and the list I had built the palette from was the
+wrong list. §13.56 has the whole of it.
+
+**One asked for nothing at all.** The re-point gate looked for a plain bound
+field in an assembled fixture, did not find one, and reported a SKIP — a
+security check that quietly never ran. It now builds its own one-field fixture,
+so it always runs. That is the §12.1 convention doing its job: the skip was
+printed, which is the only reason it was noticed.
+
+### 13.56 The wrong list, and a check that agreed with it
+
+> "COMPANY_WEBSITE does not appear to be available"
+
+§13.55 opened the palette to the company's own details and took the set of names
+from `forms_report_context()`. That was the wrong source, and the check written
+to guard it was pointed at the same wrong source — so it passed.
+
+#### What the right list is
+
+The company settings page edits **thirteen** `COMPANY_*` values. The palette
+offered **nine**, and one of those nine does not exist.
+
+| missing from the palette | on stored forms |
+|---|---|
+| `COMPANY_WEBSITE` | 9 forms bind it |
+| `COMPANY_FAX` | 13 forms |
+| `COMPANY_ZONE` | 14 forms |
+| `COMPANY_TELEPHONE2` | — |
+| `COMPANY_ID` | — |
+
+| offered but not real | |
+|---|---|
+| `COMPANY_STATE_PROVINCE` | referenced in exactly one place in the codebase: the list itself. Not seeded, not on the settings page, read by no code. The state or province is `COMPANY_ZONE`. |
+
+So an author could be offered a name that can only ever print blank, while three
+names their own forms already used were absent.
+
+#### Why the source was wrong
+
+`forms_report_context()` fills a **report's** heading band. In practice only
+`COMPANY_NAME` is drawn from it, so its list had never needed to be complete and
+nothing had ever exercised the rest of it. Borrowing it for a **form's** palette
+assumed a completeness it had never had to have.
+
+A form was never affected: `FormRunner::contextFor()` reads the names off the
+template and resolves whatever is `defined()`, so the forms binding
+`COMPANY_WEBSITE` and `COMPANY_ZONE` have always printed correctly. Measured on
+a real company through the actual runner — website 15 chars, zone 5, email 16,
+and `COMPANY_FAX` empty because that company has no fax number. **This was a
+missing-feature bug, never a data bug**, which is worth stating plainly because
+the first instinct on finding it was that nine forms had been printing blank.
+
+#### The check that agreed with the bug
+
+The guard compared the palette against `forms_report_context()` — the same list
+the palette had been built from. Two copies of one mistake agree, and it reported
+"8 of 9 company detail(s) carry a value on this company", which reads like a
+company with no state rather than like a constant that does not exist.
+
+It failed once, honestly, naming `COMPANY_STATE_PROVINCE`. I read that as a UK
+business having no state or province and **weakened the check to accommodate
+it** — replacing "everything offered is resolved" with a one-directional test
+that let the phantom through. The evidence was right there and was argued away.
+
+The lesson is about the oracle, not the assertion. A check is only worth what
+its comparison source is worth, and "the list the code already had" is not a
+source — it is the thing under test. The guard now compares against
+`phreedom/pages/admin/template_tab_company.php`: every `COMPANY_*` a user can
+type on that page must be offerable, and every name offered must be settable
+there. Both directions are measured — putting the phantom back fails by name,
+and dropping three names fails the other way.
+
+That is the same shape as §13.54's guard against a copied `switch`: harvest from
+the part of the application that actually owns the fact, never from a second copy
+of it.

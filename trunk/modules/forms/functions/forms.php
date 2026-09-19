@@ -244,9 +244,11 @@ function forms_formats_in_use($definition): array
 function forms_report_context(): \FreeBooks\Forms\Document\Context
 {
     $values = array();
-    foreach (array('COMPANY_NAME', 'COMPANY_ADDRESS1', 'COMPANY_ADDRESS2', 'COMPANY_CITY_TOWN',
-                   'COMPANY_STATE_PROVINCE', 'COMPANY_POSTAL_CODE', 'COMPANY_COUNTRY',
-                   'COMPANY_TELEPHONE1', 'COMPANY_EMAIL') as $name) {
+    // The list lives on TemplateForm, which is also what the canvas offers an
+    // author (§13.55). Two copies would drift the first time a constant was
+    // added: the palette would offer a name this function never resolves, and
+    // the element would print blank with nothing to say why.
+    foreach (\FreeBooks\Forms\Definition\TemplateForm::CONTEXT_NAMES as $name) {
         if (defined($name) && (string)constant($name) !== '') {
             $values[$name] = \FreeBooks\Forms\Document\TypedValue::text((string)constant($name));
         }

@@ -215,11 +215,28 @@ foreach ((new ImageStore(FORMS_DIR_IMAGES))->names() as $name) {
 $forms_canvas_max_mb = ImageStore::MAX_BYTES >> 20;
 
 // The palette, and the choices the inspector offers.
+//
+// Two palettes, and the difference is the point (§13.55).
+//
+// `$forms_canvas_palette` is what the RECORD supplies — the fields that differ
+// per invoice. A condition tests one of those, because a test against a company
+// constant gives the same answer for every record and so decides nothing.
+//
+// `$forms_canvas_bindable` is that list PLUS the company's own details, and it
+// fills the Shows control: an element may print a field of the record or one of
+// the company's details, and which it is follows from the name. Appended rather
+// than merged into the sort, so they cluster at the end of a list that can run
+// to eighty entries instead of scattering through it.
 $forms_canvas_palette = array();
 foreach (array_keys($forms_canvas_bindings) as $name) {
   $forms_canvas_palette[] = array('id' => $name, 'text' => $name);
 }
 sort($forms_canvas_palette);
+
+$forms_canvas_bindable = $forms_canvas_palette;
+foreach (TemplateForm::CONTEXT_NAMES as $forms_canvas_constant) {
+  $forms_canvas_bindable[] = array('id' => $forms_canvas_constant, 'text' => $forms_canvas_constant);
+}
 
 // The faces on offer, plus whatever this form already uses. A definition may
 // name a face this list does not carry — a customised install, an older

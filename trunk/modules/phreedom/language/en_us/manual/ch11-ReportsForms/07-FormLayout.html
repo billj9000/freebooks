@@ -207,6 +207,31 @@ swatch is whatever the element is actually drawn in, and changing it changes wha
 forms the two settings could disagree, and the border colour was always the one that won &mdash; so
 if a line or a box looks a colour you did not choose, that swatch is now the one to change.</p>
 
+<h3>Showing a company detail</h3>
+
+<p>The <strong>Shows</strong> list has two parts. First the fields this form can supply &mdash; the
+values that differ from one invoice to the next. Then, at the end, your <strong>company details</strong>
+&mdash; every value on the Company Settings page:</p>
+
+<ul>
+  <li><code>COMPANY_NAME</code> and <code>COMPANY_ID</code></li>
+  <li><code>COMPANY_ADDRESS1</code>, <code>COMPANY_ADDRESS2</code>, <code>COMPANY_CITY_TOWN</code>,
+      <code>COMPANY_ZONE</code> (county or state), <code>COMPANY_POSTAL_CODE</code>,
+      <code>COMPANY_COUNTRY</code></li>
+  <li><code>COMPANY_TELEPHONE1</code>, <code>COMPANY_TELEPHONE2</code>, <code>COMPANY_FAX</code></li>
+  <li><code>COMPANY_EMAIL</code>, <code>COMPANY_WEBSITE</code></li>
+</ul>
+
+<p>Pick one of those and the element prints that detail on every record. To add your company email to
+a form: <strong>Add an element &rarr; Value</strong>, then choose <code>COMPANY_EMAIL</code> from the
+bottom of the Shows list, and drag it where you want it.</p>
+
+<p>Company details are edited in <em>Company Settings</em>, not here &mdash; change the address there
+and every form showing it follows. A detail you have left blank prints nothing rather than a gap.</p>
+
+<p>These are the only constants on offer. The list is deliberately closed: it holds what Company
+Settings can set, not every setting the system has.</p>
+
 <h3>Text of more than one line</h3>
 
 <p>The <strong>Text</strong> box holds as many lines as you like &mdash; press Enter for a new one.

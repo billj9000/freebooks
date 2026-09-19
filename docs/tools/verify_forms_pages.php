@@ -1949,9 +1949,38 @@ if ($PAGE === 'canvas' && !$CANVASPICK) {
         if ($value !== '') $offered[] = $value;
     }
     ok('the binding palette offers something', $offered !== [], count($offered) . ' name(s)');
-    $strangers = array_diff($offered, array_keys($forms_canvas_bindings));
-    ok('every name the palette offers is one this form can supply', $strangers === [],
-       implode(', ', array_slice($strangers, 0, 5)));
+
+    // TWO groups since §13.55: the fields this record supplies, and the
+    // company's own details. A stranger is a name in neither — the page
+    // inviting exactly what TemplateForm then refuses.
+    //
+    // The company half is checked against TemplateForm's own constant rather
+    // than against a list written here, because that constant is what the save
+    // accepts AND what forms_report_context() resolves; a third copy would be a
+    // third thing to drift.
+    $context   = \FreeBooks\Forms\Definition\TemplateForm::CONTEXT_NAMES;
+    $strangers = array_diff($offered, array_keys($forms_canvas_bindings), $context);
+    ok('every name the palette offers is one this form can supply, or a company detail',
+       $strangers === [], implode(', ', array_slice($strangers, 0, 5)));
+
+    $absent = array_diff($context, $offered);
+    ok('and every company detail is actually on offer', $absent === [],
+       implode(', ', $absent) . ' — missing from the control, so it cannot be added');
+
+    // The CONDITION palette stays record-only: a test against a company detail
+    // gives the same answer for every record, so it decides nothing.
+    $whenOffered = [];
+    foreach ($xpath->query("//select[@id='ins_when_bind']/option") as $option) {
+        $value = (string)$option->getAttribute('value');
+        if ($value !== '') $whenOffered[] = $value;
+    }
+    if ($whenOffered === []) {
+        echo "  [--] no condition control in this rendering, so its palette was not examined\n";
+    } else {
+        ok('a condition is not offered a company detail to test',
+           array_intersect($whenOffered, $context) === [],
+           implode(', ', array_intersect($whenOffered, $context)));
+    }
 
     // Adding is limited to the kinds that need no sub-structure: a Table or a
     // FieldBlock created here would have no columns and no parts.

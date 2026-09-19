@@ -355,8 +355,7 @@ define('FORMS_CANVAS_RECORD_OTHER','%s could not be printed by this form, so ano
 define('FORMS_CANVAS_LABEL',      'Name');
 define('FORMS_CANVAS_LABEL_NOTE', 'What this element is called in the list. Leave it empty and it is described by what it is.');
 define('FORMS_CANVAS_BIND',       'Shows');
-define('FORMS_CANVAS_BIND_NOTE',  'Only the values this form can supply are offered.');
-define('FORMS_CANVAS_BIND_COMPANY', 'One of your company details. Change it in Company Settings; it cannot be pointed at anything else here.');
+define('FORMS_CANVAS_BIND_NOTE',  'The fields this form can supply, then your company details (COMPANY_...) at the end. A company detail is the same on every record and is changed in Company Settings.');
 define('FORMS_CANVAS_BORDER',     'Border width');
 define('FORMS_CANVAS_BORDER_SHOW','Draw it');
 define('FORMS_CANVAS_VISIBLE',    'Appears on');
