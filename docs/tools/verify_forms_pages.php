@@ -1483,6 +1483,37 @@ if ($PAGE === 'canvas' && !$PICKING) {
     ok('and neither site compares against a bare black instead',
        !preg_match("/value\.borderColour\s*\|\|\s*'#0{6}'/", $script),
        "a swatch compared against '#000000' stamps a colour onto every element merely selected");
+
+    // A pending edit is committed before the selection moves (§13.50).
+    //
+    // The canvas preventDefault()s its pointerdown — it has to, or a shift-click
+    // paints a text selection across the page — and a suppressed pointerdown
+    // takes the browser's focus change with it. So the field the author was
+    // typing in never blurs, never fires the `change` this listener list is
+    // built on, and describeSelection() writes the next element's numbers over
+    // the edit. The control also KEEPS focus, which leaves `change` measuring
+    // against a value the field has not held for several clicks; that is what
+    // made the loss look random rather than total.
+    //
+    // Shape again, and for the same reason as the swatches above: nothing here
+    // runs the module. Two claims, because either alone would pass while the
+    // fault was live — the function existing proves nothing if it is never
+    // called, and a call proves nothing if it lands after boxAt() has already
+    // read a layer that inspectorChanged() is about to rebuild.
+    //
+    // The slice is the handler's OWN opening — from the listener to the line
+    // that reads the layer — rather than the whole file, because a call
+    // anywhere else would satisfy a looser pattern while the handler did
+    // nothing. Reverting the call fails this; so does moving it below boxAt(),
+    // which would hand the drag a div that inspectorChanged() has replaced.
+    $opening = preg_match("/addEventListener\('pointerdown'.*?const div = boxAt\(/s",
+                          $script, $found) ? $found[0] : '';
+    ok('the canvas pointerdown handler could be read', $opening !== '',
+       'nothing to look in, so the check below proves nothing');
+    ok('a pending inspector edit is committed before the canvas changes selection',
+       preg_match('/function commitInspector\s*\(/', $script)
+       && preg_match('/commitInspector\s*\(\s*\)\s*;/', $opening),
+       'a border typed and then clicked away from is discarded, silently');
 }
 
 if ($PICKING) {

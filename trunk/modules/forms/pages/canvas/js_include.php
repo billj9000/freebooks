@@ -674,6 +674,37 @@ function borderColourShown(box, value) {
   return (outline ? (value.borderColour || value.colour) : value.borderColour) || '#000000';
 }
 
+/**
+ * Commit whatever the inspector is still holding, before anything moves on.
+ *
+ * pointerdown on the canvas is preventDefault()ed — to refuse a shift-click's
+ * text selection, and to own the drag that may follow — and a suppressed
+ * pointerdown takes the browser's focus change with it. So a field the author
+ * has just typed in never blurs, never fires `change`, and describeSelection()
+ * paints the next element's numbers straight over the edit: the change is gone
+ * without so much as a redraw to say it happened.
+ *
+ * The second half is worse, because it is the half that looks random. The
+ * control KEEPS focus across the selection change, so the value `change` is
+ * measured against — whatever the field held when focus first arrived — goes
+ * stale, while describeSelection() rewrites the field underneath it. A later
+ * edit that happens to land back on that stale value fires no `change` at all.
+ * That is why setting a border to 0 was sometimes remembered and sometimes not:
+ * it depended on what the border had been on whichever element the author last
+ * clicked into the field on, which is not a thing anybody can see.
+ *
+ * Blurring here puts both right. The pending edit is committed against the
+ * element it was typed for — inspectorChanged() runs while `selected` is still
+ * that element — and the next focus starts a fresh baseline.
+ */
+function commitInspector() {
+  const active = document.activeElement;
+  if (active && typeof active.blur === 'function'
+      && document.getElementById('forms_canvas_inspector').contains(active)) {
+    active.blur();
+  }
+}
+
 /** The inspector writing back. Geometry also moves the box on the page. */
 function inspectorChanged() {
   if (selected === null) return;
@@ -1302,6 +1333,10 @@ layer.addEventListener('pointerdown', function (event) {
   // that the context menu immediately interrupts, leaving the canvas holding a
   // gesture the author cannot finish.
   if (event.button !== 0) return;
+  // Before the selection moves, and before place() rebuilds what boxAt() is
+  // about to look through: a field the author was typing in has to be written
+  // back to the element it was typed for.
+  commitInspector();
   // A gesture owns the highlight from here until it ends.
   hovering = null;
 

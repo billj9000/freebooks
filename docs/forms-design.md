@@ -5588,3 +5588,130 @@ script is a `type="module"` importing pdf.js, so the vm-based DOM harness in
 and `value.borderColour || '#000000'` appears nowhere. That is a weaker claim
 than the ones around it and is written down as one. Reverting the comparison
 fails both, naming the count.
+
+### 13.50 The edit the canvas threw away
+
+> "I select a form element in the layout and I change the border size, e.g. from
+> the default (1) to 0. If I select another form element and then reselect the
+> original element, the border is still 1."
+
+The inspector writes back on `change`. That is the right event — one redraw per
+edit, not one per keystroke — and every control is in the listener list, which
+§13.44 made a checked fact. What nobody had asked was *when* `change` actually
+fires, and the canvas had quietly arranged for it not to.
+
+**The canvas suppresses its own pointerdown.** It has to: a shift-click's
+default action is to extend the document's text selection, which paints a blue
+swathe across the page the first time an author tries to build a group, and the
+handler owns the drag that may follow. So all three branches — the band, the
+modified click, the plain one — end in `event.preventDefault()`.
+
+A prevented `pointerdown` takes the browser's **focus change** with it. The
+compatibility `mousedown` never fires, and focusing is *its* default action. So
+the field the author had been typing in does not blur. It does not fire
+`change`. And `describeSelection()`, running a few lines later, writes the next
+element's numbers straight over the edit. The change is gone, and nothing on
+screen says so — no error, no redraw, not even a flicker. That is the whole of
+the first symptom, and it is total: clicking another element on the canvas
+*always* discarded a pending edit.
+
+#### The half that looked random
+
+> "sometimes I will see the layout being redrawn and sometimes it is not. If the
+> layout is redrawn, the border change will be remembered."
+
+The control also **keeps focus** across the selection change — it was never
+blurred, so nothing took it away. And `change` is not fired by a value being
+different from the last stored one; it is fired by a value being different from
+**the value the field held when focus arrived**. Focus arrived several clicks
+ago, on some other element, and `describeSelection()` has been rewriting the
+field underneath it ever since without resetting that baseline.
+
+So the sequence that loses an edit **even with Enter pressed** is ordinary use —
+an author setting the border to 0 on one element after another:
+
+1. element A. Focus lands on *Border width* while it reads `1`: the baseline is
+   `1`. The author types `0` and presses Enter. `0` ≠ `1`, so `change` fires,
+   the edit is kept, the form redraws — and the baseline is now `0`;
+2. they click element B on the canvas. No blur, so focus and that `0` baseline
+   both stay put, while `describeSelection()` repaints the field with B's `1`;
+3. they type `0` and press Enter. The value is `0`. The baseline is `0`. The
+   browser sees nothing to report, `change` never fires, and the edit is thrown
+   away by the key that is supposed to commit it.
+
+Step 1 works and step 3 does not, and they are the same keystrokes on the same
+control.
+
+Whether the edit survived depended on what the border had been on whichever
+element the author last *clicked into the field on* — a value not shown anywhere
+and no longer on screen. Hence "sometimes", and hence the reliable tell the user
+spotted: the redraw *is* the `change` event. If the form redrew, `change` fired
+and `inspectorChanged()` ran; if it did not, nothing was written.
+
+#### The fix is to blur, before anything else happens
+
+`commitInspector()` blurs the focused control if it is one of the inspector's,
+and the canvas `pointerdown` calls it first — before `boxAt()`, before the
+selection moves.
+
+That one line puts both halves right. `inspectorChanged()` runs while `selected`
+is still the element the value was typed for, so the edit lands where it was
+meant to; and the next focus starts a **fresh baseline**, so `change` measures
+against what the field actually showed. Enter becomes reliable because the
+baseline is no longer stale, not because Enter was changed.
+
+Before `boxAt()` and not after, because `inspectorChanged()` calls `place()`,
+which rebuilds every box div in the layer. A `commitInspector()` placed lower
+would hand the drag a `div` that no longer exists.
+
+Nothing else needed it. The Elements list selects on `click`, and the toolbar's
+buttons are ordinary focusable controls — in both cases `mousedown`'s default
+action blurs the field and fires `change` *before* the selection moves, which is
+exactly the ordering the canvas had opted out of.
+
+#### What is checked
+
+The shape, and for the reason §13.49 already gives: the canvas script is a
+`type="module"` importing pdf.js, so the vm-based DOM harness cannot load it and
+nothing in the suite runs a real `pointerdown`. `verify_forms_pages` slices out
+the handler's opening — from `addEventListener('pointerdown'` to the
+`const div = boxAt(` that ends it — and requires the call inside that slice.
+
+The slice is the point. A check for `commitInspector()` anywhere in the file
+passes while the handler does nothing, and a check for it anywhere *after* a
+`pointerdown` passes on the function's own definition further up. Both were
+tried and both were too weak: with the call removed they still said PASS.
+Against the slice, removing the call fails, and so does moving it below the
+`const div = boxAt(...)` line that closes the slice — which is the ordering
+that matters, since `place()` will have replaced the div by then.
+
+What is still not checked *by the suite* is the browser behaviour itself — that
+a prevented `pointerdown` suppresses focus, and that `change` measures against
+the value at focus. Nothing in `docs/tools` can run a browser.
+
+They were nevertheless **measured**, outside the suite, by driving a headless
+Chrome over the DevTools protocol against a reduced page: one text field, two
+boxes, a `pointerdown` that preventDefaults, and a `describeSelection()` that
+repaints the field. Trusted input events, so the default actions the whole
+defect turns on actually happen. The same three steps were run with the commit
+in place and without it:
+
+| after | without `commitInspector()` | with it |
+|---|---|---|
+| 1. on A, type `0`, Enter | `A=0` — committed | `A=0` |
+| | focus still in the field | focus still in the field |
+| 2. type `7`, click box B | **`A=0`** — the 7 is gone | `A=7` |
+| | **focus STILL in the field** | focus left it |
+| 3. on B, type `0`, Enter | **`B=1`** — no `change` at all | `B=0` |
+
+Three `change` events fire with the fix and **one** without it. Line 2 of that
+table is the first symptom — an edit discarded by a click, with focus visibly
+never moving — and line 3 is the second: Enter pressed on a field showing `1`,
+set to `0`, and nothing happens, because the baseline `change` is measured
+against was last set two elements ago.
+
+The reduction is not the page, and that is the limit of the claim: it pins the
+browser's behaviour and the shape of the fix, not the canvas's own wiring. What
+pins the wiring is the slice check above, and what pointed at all of it was the
+report — three symptoms that no other explanation fits, including the one the
+user found for us, that a redraw and a remembered change are the same event.
