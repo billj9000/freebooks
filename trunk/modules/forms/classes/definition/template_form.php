@@ -69,8 +69,9 @@
 namespace FreeBooks\Forms\Definition;
 
 use FreeBooks\Forms\Document\{
-    Align, Barcode, Binding, BlockPart, Box, Colour, Column, Element, Field, FieldBlock, Format,
-    Image, Line, PageNumber, Rect, Scope, StaticText, Style, Table, Template, Visibility
+    Align, Barcode, Binding, BlockPart, Box, Colour, Column, Condition, ConditionOp, Element, Field,
+    FieldBlock, Format, Image, Line, PageNumber, Rect, Scope, StaticText, Style, Table, Template,
+    Visibility
 };
 
 final class TemplateForm
@@ -293,6 +294,15 @@ final class TemplateForm
                 'pattern'    => $element instanceof PageNumber ? $element->pattern : '',
                 'symbology'  => $element instanceof Barcode ? $element->symbology : '',
                 'visible'    => self::keyFor(self::VISIBILITY, $element->visible) ?? 'all',
+
+                // Three flat keys rather than one nested structure, because the
+                // canvas submits `element[i][key]` and nothing deeper — the
+                // same constraint that sends a column list through as JSON. A
+                // condition is three scalars, so it needs no encoding at all.
+                'when_bind'  => $element->when?->bind->name  ?? '',
+                'when_op'    => $element->when?->op->value   ?? ConditionOp::Equals->value,
+                'when_value' => $element->when?->value       ?? '',
+
                 'label'      => (string)($element->label ?? ''),
                 'font'       => (string)($style?->font ?? ''),
                 'size'       => $style?->size === null ? '' : self::number($style->size),
@@ -347,13 +357,7 @@ final class TemplateForm
         $label   = trim((string)($row['label'] ?? '')) ?: null;
         $what    = 'element ' . ($position + 1);
 
-        // CARRIED, not read from the row — the canvas has no control for a
-        // condition yet (§13.51 stage 1). Carrying it is not tidiness: without
-        // this line, opening a form that has one and pressing Save silently
-        // strips every condition in it, and the page it prints afterwards looks
-        // entirely reasonable. That is the §13.30 "carried, not emptied" rule,
-        // and it has to be in place BEFORE an author can ever make one.
-        $when    = $original->when;
+        $when    = $this->condition($row, $original->when, $allowed, $what);
 
         return match (true) {
             $original instanceof StaticText =>
@@ -450,45 +454,49 @@ final class TemplateForm
         $visible = $this->visibility($row, Visibility::AllPages);
         $label   = trim((string)($row['label'] ?? '')) ?: null;
         $what    = 'new element ' . ($position + 1);
+        // Read rather than assumed null: the canvas seeds a new element's row
+        // from the panel, and an element added while a condition is on screen
+        // should be the element the author is looking at.
+        $when    = $this->condition($row, null, $allowed, $what);
 
         return match ($kind) {
-            'text'  => new StaticText((string)($row['text'] ?? ''), $box, $style, $visible, $label),
-            'rect'  => new Rect($box, $style, $visible, $label),
-            'line'  => new Line($box, 'H', $style, $visible, $label),
+            'text'  => new StaticText((string)($row['text'] ?? ''), $box, $style, $visible, $label, $when),
+            'rect'  => new Rect($box, $style, $visible, $label, $when),
+            'line'  => new Line($box, 'H', $style, $visible, $label, $when),
 
             // Kept even with no file chosen yet. The renderer skips an image
             // whose src is empty or missing — deliberately, so that a missing
             // picture cannot abort a document — so an element added now and
             // filled in a moment later draws nothing in between rather than
             // breaking the page it is being placed on.
-            'image' => new Image($this->imageFile($row, '', $what), $box, $style, $visible, $label),
+            'image' => new Image($this->imageFile($row, '', $what), $box, $style, $visible, $label, '', $when),
 
             // Created empty unless the row already carries a structure — which
             // it does when the canvas seeds one, and does not when the element
             // is added bare and filled in afterwards.
             'block' => new FieldBlock($this->parts($row, [], $allowed, $what),
-                                      $box, $style, $visible, $label),
+                                      $box, $style, $visible, $label, $when),
             'table' => new Table(self::DEFAULT_SOURCE,
                                  $this->columns($row, [], $allowed, $what), $box,
-                                 null, $style, $visible, $label),
+                                 null, $style, $visible, $label, $when),
 
             // The default pattern is the ELEMENT's, not this class's: a page
             // number added with nothing typed should read the way every
             // converted one does.
             'pagenum' => new PageNumber($box, $this->pattern($row, '{page} / {pages}'),
-                                        $style, $visible, $label),
+                                        $style, $visible, $label, $when),
 
-            'barcode' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label): ?Element {
+            'barcode' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label, $when): ?Element {
                 $bind = $this->newBinding($row, $allowed, $what);
                 return $bind === null ? null
                      : new Barcode($bind, $box, $this->symbology($row, 'C128', $what),
-                                   $style, $visible, $label);
+                                   $style, $visible, $label, $when);
             })(),
 
-            'field' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label): ?Element {
+            'field' => (function () use ($row, $allowed, $what, $box, $style, $visible, $label, $when): ?Element {
                 $bind = $this->newBinding($row, $allowed, $what);
                 return $bind === null ? null
-                     : new Field($bind, $box, null, $style, $visible, $label);
+                     : new Field($bind, $box, null, $style, $visible, $label, $when);
             })(),
             default => null,
         };
@@ -674,6 +682,75 @@ final class TemplateForm
     {
         $key = (string)($row['visible'] ?? '');
         return self::VISIBILITY[$key] ?? $fallback;
+    }
+
+    /**
+     * When this element prints, or what it was already conditioned on (§13.51).
+     *
+     * The three answers of `subRows()`, for the same reason and with the same
+     * distinction. An ABSENT `when_bind` is a post that says nothing about the
+     * condition — a page cached from before this control existed — and says
+     * nothing is not says none; it CARRIES. A present but blank one is an
+     * author who cleared the field, and clears the condition.
+     *
+     * Every failure below leans the same way: towards the element continuing to
+     * print. That is not symmetry, it is the only safe direction. A binding
+     * refused, an operator not recognised — each could just as easily be
+     * expressed as "condition nothing can satisfy", and that spelling removes
+     * the element from every page of every print with nothing on screen to say
+     * why. A mistyped binding elsewhere in this editor leaves an empty box an
+     * author can see; this is the one control where the same mistake leaves
+     * nothing at all, so it is refused loudly and the old condition kept.
+     *
+     * @param array<string,mixed> $row
+     * @param array<string,true>  $allowed
+     */
+    private function condition(array $row, ?Condition $current, array $allowed, string $what): ?Condition
+    {
+        if (!array_key_exists('when_bind', $row)) return $current;
+
+        $name = trim((string)($row['when_bind'] ?? ''));
+        if ($name === '') return null;
+
+        $opKey = trim((string)($row['when_op'] ?? ''));
+        $value = (string)($row['when_value'] ?? '');
+
+        // UNCHANGED is not a change, and must not be re-examined — the same
+        // short-circuit binding() makes one line below, and for a sharper
+        // reason here. The palette a caller computes is not always the palette
+        // the condition was set against: a tool checking that a form survives
+        // an untouched save passes none at all, and a page that cannot run the
+        // form to observe its provider's fields computes a smaller one. Re-
+        // gating then reports a condition nobody touched as a name this form
+        // cannot supply, on a save where nothing happened. Measured: an
+        // untouched save of the invoice warned about both of its bank blocks.
+        if ($current !== null && $current->bind->name === $name
+            && $current->op->value === $opKey && $current->value === $value) {
+            return $current;
+        }
+
+        $op = ConditionOp::tryFrom($opKey);
+        if ($op === null) {
+            $this->warnings[] = "$what asks to print on '$opKey', which is not a test this editor"
+                              . ' knows; the condition was left as it was.';
+            return $current;
+        }
+
+        // The same gate every other author-supplied name goes through. A
+        // condition is not exempt because it draws nothing: it reads a field,
+        // and a field the form cannot supply resolves to nothing, which would
+        // silently make the test "is blank" whatever the author chose.
+        if (!isset($allowed[$name])) {
+            $this->warnings[] = "$what is conditioned on '$name', which this form cannot supply;"
+                              . ' the condition was left as it was.';
+            return $current;
+        }
+
+        // Record scope, always. The palette holds what the RECORD supplies, so
+        // there is nothing else it could be — and an Aggregate condition would
+        // mean something different in each renderer, which is not a thing to
+        // let an author make by accident.
+        return new Condition(Binding::record($name), $op, $value);
     }
 
     /**

@@ -145,6 +145,35 @@ sort($groups);
 ok('the source names some form groups', $groups !== [], 'found none');
 printf("  %d group(s): %s\n", count($groups), implode(', ', $groups));
 
+// Every one of them accounted for by the canvas's record picker (§13.54).
+//
+// RecordSelector carries a copy of the journal-to-form-type mapping that lives
+// as a `switch` in phreebooks/pages/status/pre_process.php. A copy of a switch
+// goes stale the first time a journal is added, and the symptom is quiet: the
+// picker offers the wrong records, or none, for a form type nobody thought to
+// check. This is the check — the application's own list of form types, against
+// the two lists that class keeps.
+//
+// UNRESTRICTED is what makes the check readable rather than merely passing: a
+// group in it has been considered and deliberately left alone, with the reason
+// written down, which is a different thing from a group nobody has met yet.
+$mapped = \FreeBooks\Forms\App\RecordSelector::restrictedGroups();
+$known  = array_merge($mapped, array_keys(\FreeBooks\Forms\App\RecordSelector::UNRESTRICTED));
+$adrift = array_values(array_diff($groups, $known));
+ok('every form type the application sends is one the record picker knows about',
+   $adrift === [],
+   implode(', ', $adrift) . ' — the canvas would offer the wrong records for these');
+printf("  [--] %d restricted by journal, %d deliberately unrestricted\n",
+       count($mapped), count(\FreeBooks\Forms\App\RecordSelector::UNRESTRICTED));
+
+// And the other direction: a group this class restricts that the application no
+// longer sends is a restriction nothing can reach, which is dead weight rather
+// than a fault — reported, not failed.
+$unsent = array_values(array_diff($mapped, $groups));
+if ($unsent !== []) {
+    printf("  [--] restricted but no Print button sends it: %s\n", implode(', ', $unsent));
+}
+
 $catalog = new Catalog();
 ShippedDatasets::registerAll($catalog);
 $runner = new FormRunner($db, $catalog);

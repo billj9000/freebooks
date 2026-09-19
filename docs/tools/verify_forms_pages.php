@@ -682,6 +682,15 @@ if ($script !== '') {
     preg_match_all('/html_form\(\s*[\'"]([A-Za-z0-9_\-]+)[\'"]/', $canEmit, $forms);
     foreach ($forms[1] as $name) $present[$name] = true;
 
+    // And a select's, for the same reason: html_pull_down_menu() takes the id
+    // as its first argument too. Missing until a select built that way sat
+    // inside a conditional block — the canvas's record picker, which renders
+    // only when the form HAS records — and the check then reported a dead
+    // control on every form that has none. The id was in the template all
+    // along, spelled as an argument rather than as an attribute.
+    preg_match_all('/html_pull_down_menu\(\s*[\'"]([A-Za-z0-9_\-]+)[\'"]/', $canEmit, $menus);
+    foreach ($menus[1] as $name) $present[$name] = true;
+
     $missing = [];
     foreach ($wanted as $id) if (!isset($present[$id])) $missing[] = $id;
 
@@ -1261,6 +1270,28 @@ if ($PICKED) {
 }
 
 if ($PAGE === 'receipt') {
+    //
+    // A control that carries an element's own TEXT must be one that can hold a
+    // line break (§13.52).
+    //
+    // <input type="text"> applies the HTML value sanitization algorithm, which
+    // STRIPS carriage returns and line feeds — it does not replace them with a
+    // space, it removes them, so a bank block loaded into one reads back as a
+    // single run-on line. Measured in a real browser: 'Bank One\\r\\nSort' came
+    // back as 'Bank OneSort'. The editor then writes that flattened value over
+    // the stored one on the next edit to ANY control of that element, and says
+    // nothing about it.
+    //
+    // Checked by TAG rather than by "is it a textarea", because the failure is
+    // the single-line input specifically; a contenteditable or anything else
+    // that can hold a newline would be a different design and not a regression.
+    $flat = $xpath->query("//input[@type='text'][contains(@name,'[text]')]");
+    $kept = $xpath->query("//textarea[contains(@name,'[text]')]");
+    ok("a receipt line's text can hold a line break",
+       $flat->length === 0,
+       $flat->length . ' single-line input(s) carrying an element text');
+    echo '  [--] ' . $kept->length . " text cell(s) on this receipt\n";
+
     // §13.48. A deleted value used to be unrecoverable: the editor made literal
     // text and nothing else, and the canvas - which has the binding machinery -
     // redirects a receipt straight back here before it loads.
@@ -1506,6 +1537,10 @@ if ($PAGE === 'canvas' && !$PICKING) {
     // anywhere else would satisfy a looser pattern while the handler did
     // nothing. Reverting the call fails this; so does moving it below boxAt(),
     // which would hand the drag a div that inspectorChanged() has replaced.
+    // Whether this rendering drew the editor at all, rather than the list of
+    // forms. The panel-shaped checks below are skipped when it did not.
+    $hasPanel = $xpath->query("//*[@id='forms_canvas_inspector']")->length === 1;
+
     $opening = preg_match("/addEventListener\('pointerdown'.*?const div = boxAt\(/s",
                           $script, $found) ? $found[0] : '';
     ok('the canvas pointerdown handler could be read', $opening !== '',
@@ -1514,6 +1549,143 @@ if ($PAGE === 'canvas' && !$PICKING) {
        preg_match('/function commitInspector\s*\(/', $script)
        && preg_match('/commitInspector\s*\(\s*\)\s*;/', $opening),
        'a border typed and then clicked away from is discarded, silently');
+
+    //
+    // A control that carries an element's own TEXT must be one that can hold a
+    // line break (§13.52).
+    //
+    // <input type="text"> applies the HTML value sanitization algorithm, which
+    // STRIPS carriage returns and line feeds — it does not replace them with a
+    // space, it removes them, so a bank block loaded into one reads back as a
+    // single run-on line. Measured in a real browser: 'Bank One\\r\\nSort' came
+    // back as 'Bank OneSort'. The editor then writes that flattened value over
+    // the stored one on the next edit to ANY control of that element, and says
+    // nothing about it.
+    //
+    // Checked by TAG rather than by "is it a textarea", because the failure is
+    // the single-line input specifically; a contenteditable or anything else
+    // that can hold a newline would be a different design and not a regression.
+    // On this page there is the second reason as well: ins_text sits inside
+    // forms_canvas_form, where Enter in a text input is implicit submission —
+    // a save, from the key an author presses to finish a line.
+    //
+    // Guarded on the panel being there at all. This page draws either the list
+    // of forms or the editor, never both, so a rendering with no inspector must
+    // SKIP rather than fail — and must say it skipped, or a rendering that
+    // asked nothing looks like one whose answer was yes.
+    //
+    // The record picker (§13.53), against the records the selector would offer.
+    //
+    // Two ways this goes wrong quietly. A picker built from a different query
+    // than the endpoint uses offers records the endpoint will not draw — the
+    // author picks one and the page does not change. And a picker that renders
+    // EMPTY on a company that has records looks exactly like a company that has
+    // none, which is the state the canvas already reports for a different
+    // reason, so the two would be indistinguishable on screen.
+    // The GROUP goes in too, or this asks a different question from the one the
+    // page answers: since §13.54 the picker offers only the journal a form's
+    // group prints through, so an expectation computed without it is the old,
+    // unrestricted list and fails by exactly the restriction working.
+    if ($forms_canvas_plan !== null && $forms_canvas_plan->runnable()
+        && $forms_canvas_definition !== null) {
+        $offered = [];
+        foreach ($xpath->query("//select[@id='forms_canvas_record']/option") as $option) {
+            $offered[] = (string)$option->getAttribute('value');
+        }
+        $expected = array_map('strval', array_keys(
+            (new \FreeBooks\Forms\App\RecordSelector($db))->recent(
+                $forms_canvas_plan->recordTable, $forms_canvas_plan->recordKey, 20,
+                $forms_canvas_definition->group)));
+
+        if ($expected === []) {
+            echo "  [--] this form has no records to choose between, so the picker was not examined\n";
+        } else {
+            ok('the record picker offers the records the endpoint would draw',
+               $offered === $expected,
+               count($offered) . ' offered, ' . count($expected) . ' expected');
+        }
+    }
+
+    if ($hasPanel) {
+        ok("the canvas text box can hold a line break",
+           $xpath->query("//textarea[@id='ins_text']")->length === 1
+           && $xpath->query("//input[@id='ins_text']")->length === 0,
+           'a multi-line element is flattened on the next edit to any of its controls');
+    } else {
+        echo "  [--] no inspector in this rendering, so the text box was not examined\n";
+    }
+
+    //
+    // A condition an author can set, and can see the effect of (§13.51).
+    //
+    // The listener check above already covers the three controls being wired —
+    // they are ins_* controls on the rendered page, so leaving one out of the
+    // list fails there. What it cannot see is the three things underneath that,
+    // each of which fails silently in its own way.
+    //
+    // Written back UNCONDITIONALLY, which is the opposite of the rule the
+    // colour swatches follow. TemplateForm carries an absent key, so a
+    // condition written back only when non-empty is a condition that cannot be
+    // cleared: the field empties, nothing is posted, and the old condition
+    // comes back on the next load looking as though the edit never happened.
+    $changed = preg_match('/function inspectorChanged\s*\(.*?\n\}/s', $script, $found)
+        ? $found[0] : '';
+    ok('the inspector writer could be read', $changed !== '',
+       'nothing to look in, so the checks below prove nothing');
+    // Anchored to the START of a line, so `if (x) value.when_bind = ...` fails
+    // it. An unanchored pattern would pass on exactly the guarded write this
+    // check exists to forbid, which is the same trap the pointerdown slice
+    // above was written to avoid.
+    foreach (['when_bind', 'when_op', 'when_value'] as $key) {
+        ok("a condition's $key is written back on every edit",
+           (bool)preg_match('/\n\s*value\.' . $key . '\s*=\s*document\.getElementById/', $changed),
+           'a condition cleared in the panel comes back on the next load');
+    }
+
+    // The tests on offer, against the tests that exist. A list written out in
+    // the page drifts from the enum the save accepts the first time one is
+    // added, and the symptom is an option that is refused with a warning the
+    // author cannot act on.
+    //
+    // Absent is not failed. This page draws either the list of forms or the
+    // editor, never both, and the inspector exists only in the second — the
+    // same reason the id check further up compares against the template's
+    // SOURCE as well as its output. Reported as a skip rather than passed over,
+    // so that a rendering which has no panel cannot be mistaken for one whose
+    // panel agreed with the enum.
+    $ops = $xpath->query("//select[@id='ins_when_op']");
+    if ($hasPanel && $ops->length === 1) {
+        $offered = [];
+        foreach ($xpath->query('.//option', $ops->item(0)) as $option) {
+            $offered[] = (string)$option->getAttribute('value');
+        }
+        ok('the tests on offer are the tests the save accepts',
+           $offered === array_column(\FreeBooks\Forms\Document\ConditionOp::cases(), 'value'),
+           implode(',', $offered));
+    } else {
+        echo "  [--] no inspector in this rendering, so the condition tests were not compared\n";
+    }
+
+    // The ghost, and the only part of it that can be got wrong invisibly. An
+    // empty header split on a comma yields one empty string, which Number()s to
+    // zero — so a form with NO conditions would fade its first element, on
+    // every draw, for no reason anyone could trace back to conditions.
+    ok('the canvas is told which elements a condition kept off the page',
+       str_contains($script, "X-Forms-Suppressed"),
+       'nothing fades, so stacked elements cannot be told apart');
+    ok('an empty suppressed list fades nothing',
+       (bool)preg_match("/X-Forms-Suppressed.*?filter\(/s", $script),
+       'the first element of every unconditioned form would fade');
+
+    // And the endpoint's side of it. Rendered BEFORE delivery, because the
+    // answer is only known once the drawing has happened and a header cannot
+    // follow a body — inlining the render back into deliver() sends the header
+    // with an empty list every time, which looks like "no conditions" rather
+    // than like a bug.
+    $endpoint = (string)file_get_contents(DIR_FS_MODULES . 'forms/ajax/canvas_pdf.php');
+    ok('the render endpoint sends the suppressed list after rendering',
+       (bool)preg_match('/\$rendered\s*=\s*\$renderer->render\(.*?X-Forms-Suppressed/s', $endpoint),
+       'the header would always say none');
 }
 
 if ($PICKING) {

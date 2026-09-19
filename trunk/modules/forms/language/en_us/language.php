@@ -341,6 +341,17 @@ define('FORMS_CANVAS_W',          'Width (mm)');
 define('FORMS_CANVAS_H',          'Height (mm)');
 define('FORMS_CANVAS_LINE_HEIGHT','Line height (mm)');
 define('FORMS_CANVAS_TEXT',       'Text');
+define('FORMS_CANVAS_TEXT_NOTE',  'Press Enter for a new line.');
+// Which record the underlay is drawn from (design 13.53). "Showing" rather than
+// "Record", because the control answers a question about the picture on screen
+// and not about the form being edited - the form is drawn for every record, and
+// this is the one it happens to be drawn for right now.
+define('FORMS_CANVAS_RECORD',      'Showing');
+define('FORMS_CANVAS_RECORD_OR',   'or find');
+define('FORMS_CANVAS_RECORD_FIND', 'reference');
+define('FORMS_CANVAS_RECORD_SHOW', 'Show');
+define('FORMS_CANVAS_RECORD_NONE', 'Nothing matched %s.');
+define('FORMS_CANVAS_RECORD_OTHER','%s could not be printed by this form, so another record is shown.');
 define('FORMS_CANVAS_LABEL',      'Name');
 define('FORMS_CANVAS_LABEL_NOTE', 'What this element is called in the list. Leave it empty and it is described by what it is.');
 define('FORMS_CANVAS_BIND',       'Shows');
@@ -353,6 +364,24 @@ define('FORMS_CANVAS_VIS_ALL',    'Every page');
 define('FORMS_CANVAS_VIS_FIRST',  'The first page only');
 define('FORMS_CANVAS_VIS_LAST',   'The last page only');
 define('FORMS_CANVAS_VIS_CONTINUED', 'The last page, "Continued" before it');
+// When an element prints at all, as a test against the record (design 13.51).
+// The operator labels read as the middle of a sentence - "Currency is one of" -
+// because the control above them names the field and the one after holds the
+// value, so the three read left to right as what they do.
+define('FORMS_CANVAS_WHEN',        'Prints when');
+define('FORMS_CANVAS_WHEN_ALWAYS', 'Always');
+define('FORMS_CANVAS_WHEN_NOTE',   'Leave this as Always and the element prints on every record. To print different wording for different records, put several elements in the same place, each with a different test.');
+define('FORMS_CANVAS_WHEN_LIST_NOTE', 'Separate several values with commas.');
+define('FORMS_CANVAS_WHEN_EQUALS',     'is');
+define('FORMS_CANVAS_WHEN_NOTEQUALS',  'is not');
+define('FORMS_CANVAS_WHEN_IN',         'is one of');
+define('FORMS_CANVAS_WHEN_NOTIN',      'is none of');
+define('FORMS_CANVAS_WHEN_ISEMPTY',    'is blank');
+define('FORMS_CANVAS_WHEN_ISNOTEMPTY', 'is not blank');
+define('FORMS_CANVAS_WHEN_GREATER',    'is more than');
+define('FORMS_CANVAS_WHEN_LESS',       'is less than');
+define('FORMS_CANVAS_WHEN_MARK',    'Prints only on some records');
+define('FORMS_CANVAS_WHEN_GHOSTED', 'Faded elements do not print for the record shown here. Choose a different record to see them.');
 define('FORMS_CANVAS_FORWARD',    'Bring forward');
 define('FORMS_CANVAS_BACKWARD',   'Send backward');
 define('FORMS_CANVAS_CONFIRM_DELETE', 'Remove this element from the form?');

@@ -66,6 +66,30 @@ const values = <?php echo json_encode($forms_canvas_values, JSON_UNESCAPED_SLASH
 // row or a second guess at the same rule written in JavaScript.
 boxes.forEach(function (box) { box.described = box.label; });
 
+// Which elements a condition kept off the page the server has just drawn
+// (design 13.51). Positions into `boxes`, sent back by the render endpoint as a
+// header, because the answer is the renderer's own rather than a second test
+// written here that would be free to disagree with it.
+//
+// It can be one edit out of date, and knowingly so: place() runs the instant an
+// element is dragged or deleted, while the picture underneath is still being
+// fetched. The next draw() corrects it. Ghosting the wrong outline for a moment
+// is a smaller cost than not ghosting at all, which is an author looking at
+// three boxes stacked on one another with no way to tell which one is printing.
+let suppressed = new Set();
+
+// Which record the underlay is drawn from (§13.53), and a reference the author
+// has typed but not yet been answered about.
+//
+// Held here rather than read off the controls at request time, because the two
+// disagree in the case that matters: the select shows what was ASKED FOR, and
+// the endpoint may have drawn something else — a record this form declines, a
+// reference that matched nothing. The page is corrected from the answer, and
+// `wantedRecord` is what is re-sent on every later redraw so that editing an
+// element does not quietly return the canvas to the newest invoice.
+let wantedRecord    = '';
+let wantedReference = '';
+
 const canEdit = <?php echo $security_level > 2 ? 'true' : 'false'; ?>;
 const source = <?php echo json_encode(html_href_link(FILENAME_DEFAULT,
     'module=forms&page=ajax&op=canvas_pdf&rID=' . (int)$forms_canvas_id, 'SSL')); ?>;
@@ -87,6 +111,52 @@ const COLOURS = {
 };
 
 function say(message) { status.textContent = message; }
+
+/**
+ * The page corrected from the answer: which record the endpoint actually drew.
+ *
+ * Three cases, and only one of them is "what you asked for". A record can be
+ * declined by the form's own filters — the newest row of journal_main is rarely
+ * an invoice — and a typed reference can match nothing at all. Both fall back to
+ * a record that does build, which is the right behaviour and is indistinguishable
+ * from success unless it is said.
+ *
+ * The drawn record is added to the list when it is not already in it, because a
+ * reference typed from memory reaches records older than the twenty the page was
+ * built with, and a select that cannot show the answer would snap back to the
+ * wrong entry on the next redraw.
+ */
+function recordDrawn(key, label) {
+  const picker = document.getElementById('forms_canvas_record');
+  const says   = document.getElementById('forms_canvas_record_says');
+  if (!picker || !says) return;          // no records to choose between
+
+  const asked = wantedReference !== '' ? wantedReference : wantedRecord;
+  key   = key   ? decodeURIComponent(key)   : '';
+  label = label ? decodeURIComponent(label) : key;
+
+  if (key !== '') {
+    if (!Array.from(picker.options).some(function (o) { return o.value === key; })) {
+      picker.add(new Option(label, key));
+    }
+    picker.value  = key;
+    wantedRecord  = key;
+  }
+  // Answered, so it must not be re-sent: leaving it set would make every later
+  // redraw repeat a search whose answer is already on screen, and would override
+  // the list the moment the author used it.
+  wantedReference = '';
+  const find = document.getElementById('forms_canvas_record_find');
+  if (find) find.value = '';
+
+  let note = '';
+  if (asked !== '' && key === '') {
+    note = <?php echo json_encode(FORMS_CANVAS_RECORD_NONE); ?>.replace('%s', asked);
+  } else if (asked !== '' && key !== '' && asked !== key && asked !== label) {
+    note = <?php echo json_encode(FORMS_CANVAS_RECORD_OTHER); ?>.replace('%s', asked);
+  }
+  says.textContent = note;
+}
 
 /**
  * Fetch the page.
@@ -112,6 +182,14 @@ async function load(edited) {
       request = { method: 'POST', body: body, credentials: 'same-origin' };
     }
 
+    // On the URL either way. The endpoint reads $_REQUEST, so one spelling
+    // serves both the stored-form GET and the edited-form POST — and a record
+    // choice that travelled only on the POST would be forgotten by every
+    // redraw that did not carry the elements with it.
+    let url = source;
+    if (wantedRecord !== '')    url += '&rcd='    + encodeURIComponent(wantedRecord);
+    if (wantedReference !== '') url += '&rcdref=' + encodeURIComponent(wantedReference);
+
     // Abandon whatever was already in the air: its answer is about a canvas
     // that no longer exists, and letting it finish would paint the older page
     // over the newer one.
@@ -121,7 +199,7 @@ async function load(edited) {
 
     say(edited ? <?php echo json_encode(FORMS_CANVAS_DRAWING); ?>
                : <?php echo json_encode(FORMS_CANVAS_LOADING); ?>);
-    const response = await fetch(source, request);
+    const response = await fetch(url, request);
     if (!response.ok) throw new Error('HTTP ' + response.status);
     // The endpoint answers with HTML when it cannot build the document, because
     // pdf.js reports a failed fetch as an opaque parse error. Reading the type
@@ -134,6 +212,18 @@ async function load(edited) {
     }
     document.getElementById('forms_canvas_sampled').classList
         .toggle('d-none', response.headers.get('X-Forms-Sampled') !== '1');
+
+    // An empty header is no elements, not every element: split('') on '' gives
+    // one empty string, which Number()s to 0 and would ghost the first box on
+    // every form that has no conditions at all.
+    recordDrawn(response.headers.get('X-Forms-Record'),
+                response.headers.get('X-Forms-Record-Label'));
+
+    const off = (response.headers.get('X-Forms-Suppressed') || '')
+        .split(',').filter(function (part) { return part !== ''; });
+    suppressed = new Set(off.map(Number));
+    document.getElementById('forms_canvas_ghosted').classList
+        .toggle('d-none', suppressed.size === 0);
 
     // A binding the form cannot supply is refused when the picture is drawn,
     // exactly as it would be on save. An author who only discovers that when
@@ -217,10 +307,20 @@ function place() {
                  +            'inset -6px  6px 0 -5px ' + colour + ','
                  +            'inset  6px -6px 0 -5px ' + colour + ','
                  +            'inset -6px -6px 0 -5px ' + colour + ';' : '');
+    // Faded, not hidden and not restyled. An element whose condition does not
+    // hold for the record on screen is still on the form and still has to be
+    // selectable - it is the one the author has come to edit - so it keeps its
+    // outline, its handles and its place in the order. Opacity is used rather
+    // than a border treatment because dashed already means two other things
+    // here, a line height and an unmeasured picture, and a third meaning on the
+    // same channel is a legend nobody can hold in their head.
+    if (suppressed.has(index)) div.style.opacity = '0.35';
     div.title = box.label + '  (' + box.x + ', ' + box.y + ') '
               + box.width + ' × ' + box.height + ' mm'
               + (box.grows ? '\n' + <?php echo json_encode(FORMS_CANVAS_GROWS); ?> : '')
-              + (box.unmeasured ? '\n' + <?php echo json_encode(FORMS_CANVAS_UNMEASURED); ?> : '');
+              + (box.unmeasured ? '\n' + <?php echo json_encode(FORMS_CANVAS_UNMEASURED); ?> : '')
+              + (suppressed.has(index)
+                   ? '\n' + <?php echo json_encode(FORMS_CANVAS_WHEN_GHOSTED); ?> : '');
     layer.appendChild(div);
   });
   highlight(null);
@@ -552,6 +652,10 @@ function describeSelection() {
   document.getElementById('ins_bordercolour').value = borderColourShown(box, value);
   document.getElementById('ins_align').value  = value.align || '';
   document.getElementById('ins_visible').value = value.visible || 'all';
+  document.getElementById('ins_when_bind').value  = value.when_bind  || '';
+  document.getElementById('ins_when_op').value    = value.when_op    || 'eq';
+  document.getElementById('ins_when_value').value = value.when_value || '';
+  showWhenControls();
   document.getElementById('ins_bordershow').checked = value.borderShow === '1';
   set('ins_hdr_size', value.hdrSize);
   set('ins_hdr_border', value.hdrBorderSize);
@@ -658,6 +762,34 @@ function set(id, text)  { document.getElementById(id).value = text === undefined
 function show(id, on)   { document.getElementById(id).classList.toggle('d-none', !on); }
 
 /**
+ * How much of the condition to show, and what to say underneath it.
+ *
+ * Read off the CONTROLS rather than off the stored value, because it is called
+ * from two places that disagree about which is current: describeSelection() has
+ * just written the controls from the element, and inspectorChanged() has just
+ * read them from the author. The controls are right in both.
+ *
+ * Two things are hidden rather than disabled. The test and the value do not
+ * exist until a field is chosen - "Always" is the answer on almost every
+ * element of almost every form, and an operator offered beside it is a question
+ * nobody asked. And `is blank` takes no value, so the box beside it is a box an
+ * author will type into and then wonder why it did nothing.
+ */
+function showWhenControls() {
+  const bind = document.getElementById('ins_when_bind').value;
+  const op   = document.getElementById('ins_when_op').value;
+  show('ins_when_test_row', bind !== '');
+  show('ins_when_value_col', bind !== '' && op !== 'empty' && op !== 'notempty');
+
+  const note = bind === ''
+    ? <?php echo json_encode(FORMS_CANVAS_WHEN_NOTE); ?>
+    : ((op === 'in' || op === 'nin')
+        ? <?php echo json_encode(FORMS_CANVAS_WHEN_LIST_NOTE); ?> : '');
+  document.getElementById('ins_when_note').textContent = note;
+  show('ins_when_note', note !== '');
+}
+
+/**
  * What the border-colour swatch shows, and so what a change to it is measured
  * against. ONE function because the two call sites have to agree exactly: a
  * colour input cannot say "unset", so the only way to tell a colour the author
@@ -737,6 +869,16 @@ function inspectorChanged() {
   value.borderSize = document.getElementById('ins_border').value.trim();
   value.align      = document.getElementById('ins_align').value;
   value.visible    = document.getElementById('ins_visible').value;
+  // Written for EVERY element and unconditionally, which is the opposite of the
+  // rule the colour swatches follow - and deliberately. A colour control cannot
+  // say "unset", so writing it always would invent one; these three CAN say it,
+  // and "Always" is exactly what an empty field means. Writing them only
+  // sometimes would make clearing a condition impossible: TemplateForm carries
+  // an absent key, so a cleared field that was never sent would come back.
+  value.when_bind  = document.getElementById('ins_when_bind').value;
+  value.when_op    = document.getElementById('ins_when_op').value;
+  value.when_value = document.getElementById('ins_when_value').value;
+  showWhenControls();
   value.borderShow = document.getElementById('ins_bordershow').checked ? '1' : '';
   // The heading row's four. Written for EVERY element, not only a table: the
   // binder decides what to do with them by element kind, and a value posted
@@ -883,6 +1025,13 @@ function formsCanvasAdd(kind) {
                 borderSize: (kind === 'line' || kind === 'rect') ? '1' : '',
                 borderShow: '', truncate: '', bold: '', italic: '', src: '',
                 hdrSize: '', hdrBorderSize: '', hdrBorderColour: '', hdrBorderShow: '',
+                // Unconditional, and the keys PRESENT rather than absent. The
+                // binder treats an absent key as "says nothing" and carries
+                // what was there, which for a new element is nothing either
+                // way — but the inspector reads these to fill its controls, and
+                // an undefined here would leave a new element showing whatever
+                // condition the last one selected had.
+                when_bind: '', when_op: 'eq', when_value: '',
                 // Empty, and explicitly so. `[]` is what tells the binder the
                 // author means none rather than means nothing — a blank is read
                 // as "say nothing about it", which for a NEW element would
@@ -1546,6 +1695,7 @@ window.formsCanvasRedo   = formsCanvasRedo;
 // the only symptom was that changing them appeared to have no effect.
 ['ins_label','ins_x','ins_y','ins_w','ins_h','ins_text','ins_font','ins_size','ins_border',
  'ins_align','ins_visible','ins_bordershow','ins_colour','ins_bordercolour',
+ 'ins_when_bind','ins_when_op','ins_when_value',
  'ins_bold','ins_italic','ins_bind','ins_src',
  'ins_pattern','ins_symbology',
  'ins_hdr_size','ins_hdr_border','ins_hdr_bordershow','ins_hdr_bordercolour'].forEach(function (id) {
@@ -1606,7 +1756,16 @@ function fillList() {
     row.innerHTML =
         '<td style="width:8px;padding-right:0"><span style="display:inline-block;width:8px;height:8px;'
       + 'background:' + (COLOURS[box.kind] || COLOURS.unknown) + '"></span></td>'
-      + '<td class="small">' + escapeHtml(box.label) + '</td>'
+      + '<td class="small">' + escapeHtml(box.label)
+      // Marked in the LIST because that is where stacked elements are reached
+      // from: three bank blocks at one position are one box on the page and
+      // three rows here, and without a mark the rows are three identical
+      // labels. The dot is titled rather than lettered, so it needs no room and
+      // no translation.
+      + (values[index] && values[index].when_bind
+          ? ' <span title="' + escapeHtml(<?php echo json_encode(FORMS_CANVAS_WHEN_MARK); ?>)
+            + '">&#9671;</span>' : '')
+      + '</td>'
       + '<td class="small text-muted text-end text-nowrap">'
       + box.x + ', ' + box.y + '</td>';
     // Clearing `hovering` too: the canvas highlight has been taken over from
@@ -1654,6 +1813,40 @@ document.getElementById('forms_canvas_render').addEventListener('click', functio
   clearTimeout(timer);
   load(true);
 });
+
+// The record picker (§13.53). Both ways in end at the same redraw, and BOTH
+// redraw with `edited` true: the author has a canvas in front of them that may
+// differ from what is stored, and answering "show me the euro invoice" by
+// throwing away their unsaved layout would be a worse surprise than the one
+// they asked to fix.
+const recordPicker = document.getElementById('forms_canvas_record');
+if (recordPicker) {
+  recordPicker.addEventListener('change', function () {
+    commitInspector();
+    wantedRecord    = this.value;
+    wantedReference = '';
+    clearTimeout(timer);
+    load(true);
+  });
+
+  const findRecord = function () {
+    const typed = document.getElementById('forms_canvas_record_find').value.trim();
+    if (typed === '') return;
+    commitInspector();
+    wantedReference = typed;
+    clearTimeout(timer);
+    load(true);
+  };
+  document.getElementById('forms_canvas_record_go').addEventListener('click', findRecord);
+  // Enter in the reference box searches rather than submitting the form it sits
+  // inside — which would SAVE, from a key pressed to ask a question (§13.52).
+  document.getElementById('forms_canvas_record_find')
+      .addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    findRecord();
+  });
+}
 
 // Only present when this author may write: the control is not rendered at all
 // below level 3, and the endpoint refuses at the same level.

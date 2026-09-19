@@ -199,6 +199,12 @@ if ($forms_canvas_definition === null) { ?>
 <div class="alert alert-warning py-2 px-3 small mb-2 d-none" id="forms_canvas_sampled">
   <?php echo FORMS_CANVAS_SAMPLED; ?>
 </div>
+<?php // Shown only when something IS faded. An explanation standing on a page
+      // where nothing is faded teaches an author to read past it, which is how
+      // the one notice that matters gets missed. ?>
+<div class="alert alert-info py-2 px-3 small mb-2 d-none" id="forms_canvas_ghosted">
+  <?php echo FORMS_CANVAS_WHEN_GHOSTED; ?>
+</div>
 <?php // Anything the redraw refused — a binding this form cannot supply, say —
       // said now rather than when the author saves. ?>
 <div class="alert alert-warning py-2 px-3 small mb-2 d-none" id="forms_canvas_warnings"></div>
@@ -253,6 +259,47 @@ if ($forms_canvas_definition === null) { ?>
     </span>
   </div>
   <div class="card-body p-2">
+    <?php
+      // WHICH record the page is of (§13.53).
+      //
+      // Its own row rather than another control in the header, because it is
+      // the only one there that changes what is on the page rather than how the
+      // page is looked at — and because it needs three controls, not one.
+      //
+      // Two ways in, and both are needed. The list is the recent records, which
+      // is what an author wants when any example will do. The box is for when
+      // one will not: a euro invoice cannot be found by scrolling a list of the
+      // newest twenty on a company that mostly invoices in sterling, and the
+      // author knows the number.
+      //
+      // Hidden entirely where the form has no records to choose between - a
+      // fresh install, or a form whose table this cannot name. The canvas falls
+      // back to invented values there and says so in its own banner; a picker
+      // offering nothing beside it would be a second, quieter way of saying the
+      // same thing.
+    ?>
+    <?php if ($forms_canvas_records) { ?>
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+      <label class="small mb-0" for="forms_canvas_record"><?php echo FORMS_CANVAS_RECORD; ?></label>
+      <?php
+        $forms_canvas_record_menu = array();
+        foreach ($forms_canvas_records as $forms_canvas_key => $forms_canvas_label) {
+          $forms_canvas_record_menu[] = array('id' => (string)$forms_canvas_key,
+                                              'text' => $forms_canvas_label);
+        }
+        echo html_pull_down_menu('forms_canvas_record', $forms_canvas_record_menu, '',
+            'class="form-select form-select-sm d-inline-block" style="width:auto;max-width:22rem"');
+      ?>
+      <span class="small text-muted"><?php echo FORMS_CANVAS_RECORD_OR; ?></span>
+      <input type="text" class="form-control form-control-sm d-inline-block" style="width:10rem"
+             id="forms_canvas_record_find"
+             placeholder="<?php echo FORMS_CANVAS_RECORD_FIND; ?>">
+      <button type="button" class="btn btn-primary btn-sm" id="forms_canvas_record_go">
+        <?php echo FORMS_CANVAS_RECORD_SHOW; ?>
+      </button>
+      <span class="small text-muted" id="forms_canvas_record_says"></span>
+    </div>
+    <?php } ?>
     <div class="row g-2">
       <div class="col-lg-9">
         <div style="overflow:auto;max-height:78vh;background:#e9edf2;padding:0.5rem">
@@ -325,9 +372,25 @@ if ($forms_canvas_definition === null) { ?>
               </div>
             </div>
 
+            <?php
+              // A TEXTAREA, and the distinction is not cosmetic. An <input
+              // type=text> applies the HTML value sanitization algorithm, which
+              // STRIPS carriage returns and line feeds - not replacing them
+              // with a space, simply removing them - so a bank block loaded
+              // into one came back as a single run-on line, and the next edit
+              // to any control on that element wrote the flattened value back
+              // over the stored one. Silently. Four elements of the shipped
+              // invoice carry line breaks, so this was not hypothetical.
+              //
+              // It also stops Enter submitting the form. This control sits
+              // inside forms_canvas_form, and Enter in a text input is implicit
+              // submission - which on this page means a save, from a key an
+              // author presses to finish a line.
+            ?>
             <div class="mb-2" id="ins_text_row">
               <label class="form-label mb-0 small" for="ins_text"><?php echo FORMS_CANVAS_TEXT; ?></label>
-              <input type="text" class="form-control form-control-sm" id="ins_text">
+              <textarea class="form-control form-control-sm" id="ins_text" rows="3"></textarea>
+              <div class="form-text"><?php echo FORMS_CANVAS_TEXT_NOTE; ?></div>
             </div>
 
             <div class="mb-2 d-none" id="ins_src_row">
@@ -490,6 +553,37 @@ if ($forms_canvas_definition === null) { ?>
               <label class="form-label mb-0 small" for="ins_visible"><?php echo FORMS_CANVAS_VISIBLE; ?></label>
               <?php echo html_pull_down_menu('ins_visible', $forms_canvas_visibility, 'all',
                   'class="form-select form-select-sm"'); ?>
+            </div>
+
+            <!--
+              Which RECORDS this element prints for, where the control above is
+              which PAGES. Two questions, deliberately next to each other and
+              deliberately not merged: a total can be last-page-only AND print
+              only where there is a balance left to pay.
+
+              The field comes first and the test after it, so the three controls
+              read left to right as the sentence they make - "Currency is one of
+              GBP, EUR". The test and the value are hidden until a field is
+              chosen, because "Always" is the answer for almost every element on
+              almost every form and an operator offered beside it is a question
+              nobody was asking.
+            -->
+            <div class="mb-2">
+              <label class="form-label mb-0 small" for="ins_when_bind"><?php echo FORMS_CANVAS_WHEN; ?></label>
+              <?php echo html_pull_down_menu('ins_when_bind', array_merge(
+                  array(array('id' => '', 'text' => FORMS_CANVAS_WHEN_ALWAYS)), $forms_canvas_palette),
+                  '', 'class="form-select form-select-sm"'); ?>
+              <div class="row g-1 mt-1 d-none" id="ins_when_test_row">
+                <div class="col-5">
+                  <?php echo html_pull_down_menu('ins_when_op', $forms_canvas_when_ops,
+                      \FreeBooks\Forms\Document\ConditionOp::Equals->value,
+                      'class="form-select form-select-sm"'); ?>
+                </div>
+                <div class="col-7" id="ins_when_value_col">
+                  <input type="text" class="form-control form-control-sm" id="ins_when_value">
+                </div>
+              </div>
+              <div class="form-text" id="ins_when_note"><?php echo FORMS_CANVAS_WHEN_NOTE; ?></div>
             </div>
 
             <?php // The line-item table is drawn AFTER the rest, whatever its

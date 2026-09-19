@@ -46,10 +46,11 @@ require(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
-use FreeBooks\Forms\App\{CanvasLayout, FormRunner, ImageStore, DocumentStore, DocumentStoreException};
+use FreeBooks\Forms\App\{CanvasLayout, FormRunner, ImageStore, DocumentStore, DocumentStoreException,
+                          RecordSelector};
 use FreeBooks\Forms\Catalog\{Catalog, CustomDatasetStore, SchemaInspector, ShippedDatasets};
 use FreeBooks\Forms\Definition\{DefinitionException, DefinitionLoader, TemplateForm};
-use FreeBooks\Forms\Document\{Align, Template, Visibility};
+use FreeBooks\Forms\Document\{Align, ConditionOp, Template, Visibility};
 
 $forms_canvas_id = isset($_REQUEST['rID']) ? (int)$_REQUEST['rID'] : 0;
 $forms_canvas_new_id = 0;   // set when an action just made a document to open
@@ -66,6 +67,7 @@ $forms_canvas_definition = null;
 $forms_canvas_plan       = null;
 $forms_canvas_boxes      = array();
 $forms_canvas_values     = array();
+$forms_canvas_records    = array();
 
 // New, Copy, Rename and Delete, before anything is loaded — a copy opens the
 // COPY and not the document it was made from, and a delete has no document to
@@ -123,6 +125,25 @@ if ($forms_canvas_definition !== null) {
   if (!$forms_canvas_plan->runnable()) {
     $messageStack->add(sprintf(FORMS_ERROR_CANNOT_RUN, implode(' ', $forms_canvas_plan->notes)), 'error');
   }
+
+  // The records the author may draw the page from (§13.53). Offered rather than
+  // chosen for them: the canvas takes the newest record this form will print,
+  // which is right until an element only prints on SOME records — and then the
+  // one variant an author most needs to look at is the one their newest invoice
+  // is least likely to be.
+  //
+  // Only a list. Whether a given record actually builds is the endpoint's to
+  // discover by trying, and duplicating that here would mean running the form
+  // twenty times to draw a page once.
+  //
+  // Restricted to the kind of transaction this form prints (§13.54). The
+  // document's GROUP is what says which — a provider-backed form carries no
+  // filters at all — and without it the list was every recent row of
+  // journal_main: receipts and sales orders offered while laying out an
+  // invoice, which is a list an author has to ignore rather than use.
+  $forms_canvas_records = (new RecordSelector($db))->recent(
+      $forms_canvas_plan->recordTable, $forms_canvas_plan->recordKey, 20,
+      $forms_canvas_definition->group);
 }
 
 /**
@@ -229,6 +250,19 @@ $forms_canvas_visibility = array(
   array('id' => 'last',      'text' => FORMS_CANVAS_VIS_LAST),
   array('id' => 'continued', 'text' => FORMS_CANVAS_VIS_CONTINUED),
 );
+
+// The tests an element's condition may use (design 13.51). Built from the enum
+// rather than written out, for the same reason as the separators below: a list
+// an author reads that has drifted from the list the save accepts is an editor
+// offering a choice it will then refuse.
+$forms_canvas_when_ops = array();
+foreach (ConditionOp::cases() as $forms_canvas_op) {
+  $forms_canvas_when_ops[] = array(
+    'id'   => $forms_canvas_op->value,
+    'text' => constant('FORMS_CANVAS_WHEN_' . strtoupper($forms_canvas_op->name)),
+  );
+}
+
 $forms_canvas_addable = array();
 foreach (TemplateForm::ADDABLE as $kind) {
   $forms_canvas_addable[] = array('id' => $kind, 'text' => constant('FORMS_CANVAS_ADD_'

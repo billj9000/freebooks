@@ -79,6 +79,23 @@ final class LayoutPdfRenderer implements FormsRenderer
     /** Set only while the deferred pass is drawing; true on the final page. */
     private ?bool $deferredIsLastPage = null;
 
+    /**
+     * Template positions a condition kept off the page, for the record drawn
+     * last (§13.51).
+     *
+     * Here so that the canvas can ghost those outlines, and here rather than
+     * worked out again by the caller so that the editor's answer is the one the
+     * drawing actually used. A second implementation of the same test is a
+     * second implementation to disagree, and it would disagree exactly where it
+     * matters — on the element an author is looking at and cannot see.
+     *
+     * The LAST record, because a batch of forty invoices has forty answers and
+     * only the editor asks the question, where there is one.
+     *
+     * @var list<int>
+     */
+    private array $suppressed = [];
+
     public function __construct(
         private readonly Formatter $formatter,
         private readonly string    $defaultFont    = 'helvetica',
@@ -154,9 +171,24 @@ final class LayoutPdfRenderer implements FormsRenderer
 
     // ── one record ───────────────────────────────────────────────────────────
 
+    /** @return list<int> template positions a condition kept off the last record's pages */
+    public function suppressed(): array
+    {
+        return $this->suppressed;
+    }
+
     private function renderRecord(Record $record): void
     {
         $this->record = $record;
+
+        // Asked once, before anything draws, and with the same predicate the
+        // drawing uses. Cheap — one comparison per element on a template of at
+        // most about seventy — and it cannot fall out of step with what is
+        // actually put on the page.
+        $this->suppressed = [];
+        foreach ($this->document->template->elements as $index => $element) {
+            if (!$this->appliesTo($element)) $this->suppressed[] = $index;
+        }
 
         // Pass 1 places the content and discovers how many pages the record
         // takes. TCPDF fires Header() on AddPage(), which draws the repeating

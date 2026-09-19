@@ -51,7 +51,8 @@ use FreeBooks\Forms\App\{CanvasLayout, FormRunner, SampleData};
 use FreeBooks\Forms\Catalog\{Catalog, ShippedDatasets};
 use FreeBooks\Forms\Definition\{Definition, DefinitionCodec, DefinitionException, DefinitionLoader, TemplateForm};
 use FreeBooks\Forms\Document\{
-    Box, Colour, LayoutDocument, Line, PageSetup, Record, Rect, RenderOptions, Style, Template
+    Box, Colour, LayoutDocument, Line, PageSetup, Record, Rect, RenderOptions, StaticText, Style,
+    Template
 };
 use FreeBooks\Forms\Render\{Formatter, LayoutPdfRenderer};
 
@@ -522,6 +523,74 @@ ok('a thickness typed into the panel survives the save',
        var_export(($made[1] ?? null)?->style?->borderSize, true)));
 ok('and nothing was warned about on the way through',
    $thicknessForm->warnings() === [], implode(' ', $thicknessForm->warnings()));
+
+
+// ── a text element of more than one line (§13.52) ────────────────────────────
+//
+// The browser's half of this is not reachable from here — a text input strips
+// line feeds on assignment, which is why the control is a textarea and why
+// verify_forms_pages checks the tag. What IS reachable is everything after it,
+// and every step of that has to leave the breaks alone: the panel's own
+// round trip, the binder, and the renderer that draws the result.
+//
+// The spelling matters and is not ours to choose. A form POST normalises line
+// breaks to CRLF, measured in a real browser, which is the spelling the
+// migrated definitions already carry — so both are fed through here rather than
+// only the tidy one.
+$multiForm = new TemplateForm(FORMS_DIR_IMAGES, forms_font_names());
+foreach (["\r\n" => 'as a browser posts it', "\n" => 'as a file may hold it'] as $eol => $how) {
+    $body  = 'MARKERONE' . $eol . 'MARKERTWO';
+    $built = $multiForm->apply(
+        new Definition(type: Definition::FORM, title: 'lines', template: new Template([])),
+        ['title' => 'lines', 'element' => [
+            ['kind' => 'text', 'x' => '20', 'y' => '30', 'w' => '80', 'h' => '5', 'text' => $body],
+        ]],
+        []);
+    $stored = ($built->template?->elements[0] ?? null)?->text;
+    ok("a text element keeps its line break, $how", $stored === $body,
+       var_export($stored, true));
+}
+
+// And a round trip through the panel, which is the case an author reaches by
+// opening a migrated invoice and nudging anything on one of its bank blocks.
+$block = new Template([new StaticText("MARKERONE\r\nMARKERTWO", new Box(20, 30, 80, 5))]);
+$again = (new TemplateForm(FORMS_DIR_IMAGES, forms_font_names()))->apply(
+    new Definition(type: Definition::FORM, title: 'lines', template: $block),
+    ['title' => 'lines', 'element' => TemplateForm::toRequest($block)], []);
+ok('and keeps it through the panel and back',
+   ($again->template?->elements[0] ?? null)?->text === "MARKERONE\r\nMARKERTWO",
+   var_export(($again->template?->elements[0] ?? null)?->text, true));
+
+// Drawn as two lines, not one. MultiCell breaks on a line feed, so this is the
+// check that the stored break reaches the PAGE rather than merely the file.
+//
+// Counted as text-positioning operations rather than looked for as text, and
+// that is not fastidiousness: this renderer draws in freeserif, a TrueType face
+// that TCPDF writes as subset GLYPH INDICES, so searching the content stream
+// for a marker finds nothing and every assertion built on it passes vacuously.
+// Measured while building verify_forms_conditions — the same string came back
+// once in helvetica and not at all in freeserif. How many times the text cursor
+// is placed is the same question asked in a way no font can hide.
+// The baselines the text was actually written on, which is the same measure —
+// and the same operator pattern — the block-separator check further down uses.
+// TCPDF writes text as the ARRAY form `[(...)] TJ` preceded by a `Td`, so the
+// distinct y coordinates ARE the lines.
+$drawnLines = function (string $body) use ($renderer): int {
+    $bytes = $renderer->render(new LayoutDocument(
+        title: 'lines',
+        template: new Template([new StaticText($body, new Box(20, 30, 80, 5))]),
+        records: [new Record()], page: new PageSetup('A4', 'P')),
+        new RenderOptions(filename: 'lines.pdf'))->bytes;
+    $rows = [];
+    foreach (operators($bytes) as $line) {
+        if (preg_match('/([0-9.]+) ([0-9.]+) Td \[\(/', $line, $at)) $rows[(string)$at[2]] = true;
+    }
+    return count($rows);
+};
+$asOne = $drawnLines('MARKERONE MARKERTWO');
+$asTwo = $drawnLines("MARKERONE\r\nMARKERTWO");
+ok('a two-line text element is drawn on two lines', $asTwo === $asOne + 1,
+   "$asOne placement(s) on one line, $asTwo on two");
 
 if (count($made) === 2) {
     $drawn = lineWidths(operators($renderer->render(new LayoutDocument(

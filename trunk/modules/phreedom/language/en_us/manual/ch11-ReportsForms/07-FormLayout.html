@@ -10,6 +10,7 @@
 <!-- glossay items - used to build glossary (zero or more)-->
 <!-- glossary terms are imploded with a colon separator -->
 <meta name="doc_glossary_1" content="Element:One item on a form - a piece of fixed text, a value from the record, a line, a box, an image or the table of line items.">
+<meta name="doc_glossary_2" content="Condition:A test on one of the record's values that decides whether an element prints. An element with no condition prints on every record.">
 <!-- Title - Used as the table of contents and index reference title (one required)-->
 <meta name="doc_title" content="Changing a Form's Layout">
 <!-- End of meta tags -->
@@ -205,6 +206,88 @@ Thickness rather than Border width: there is no text on them for a second colour
 swatch is whatever the element is actually drawn in, and changing it changes what you see. On older
 forms the two settings could disagree, and the border colour was always the one that won &mdash; so
 if a line or a box looks a colour you did not choose, that swatch is now the one to change.</p>
+
+<h3>Text of more than one line</h3>
+
+<p>The <strong>Text</strong> box holds as many lines as you like &mdash; press Enter for a new one.
+A block of bank details, a payment-methods note or a registered-address footer is one text element,
+not one per line.</p>
+
+<p>Give the element enough width for the longest line. Height is the height of <em>one</em> line
+rather than of the whole block, so the text carries on below the outline you see on the page; the
+dashed bottom edge is the page saying so.</p>
+
+<h3>Printing something only on some records</h3>
+
+<p>By default every element prints on every record the form is run for. <strong>Prints when</strong>
+changes that: choose a value, a test and something to compare against, and the element is printed
+only for records that pass the test. Leave it as <em>Always</em> &mdash; which is how every element
+starts &mdash; and nothing changes.</p>
+
+<p>This is how one invoice carries different bank details for different currencies. Put three text
+elements in the same place on the page, one above the other, and give each a different test:</p>
+
+<ul>
+  <li>the sterling account, where <em>Currency</em> <strong>is one of</strong> <code>GBP</code></li>
+  <li>the euro account, where <em>Currency</em> <strong>is one of</strong> <code>EUR</code></li>
+  <li>the account for everything else, where <em>Currency</em> <strong>is none of</strong>
+      <code>GBP,EUR</code></li>
+</ul>
+
+<p>Every invoice then prints exactly one of the three. <strong>is none of</strong> is how you cover
+"anything I have not listed" &mdash; without it a customer paying in a currency nobody thought of
+would get no bank details at all.</p>
+
+<p>The tests are:</p>
+
+<ul>
+  <li><strong>is</strong> and <strong>is not</strong> &mdash; an exact match. Capital letters do not
+      matter, so <code>eur</code> and <code>EUR</code> are the same thing.</li>
+  <li><strong>is one of</strong> and <strong>is none of</strong> &mdash; several values, separated by
+      commas.</li>
+  <li><strong>is blank</strong> and <strong>is not blank</strong> &mdash; whether the record has any
+      value there at all. These take nothing to compare against, so the box disappears.</li>
+  <li><strong>is more than</strong> and <strong>is less than</strong> &mdash; numbers compare as
+      numbers, and dates as dates. <em>Balance due</em> <strong>is more than</strong> <code>0</code>
+      is how you print an overdue notice only on invoices that are still owed; <strong>is</strong>
+      <code>0</code> on a second element is how you print PAID on the rest.</li>
+</ul>
+
+<p>Only the values this form can supply are offered, the same list the <strong>Shows</strong> box
+uses. A condition works on any kind of element, not only text &mdash; a box, a line, a barcode, a
+logo and the line-item table can each be given one.</p>
+
+<h3>Seeing which one will print</h3>
+
+<p>Elements with a condition are marked in the element list with a small diamond, which is how you
+tell three stacked elements apart when only one outline is visible on the page.</p>
+
+<p>On the page itself, an element that would <em>not</em> print for the record shown underneath is
+<strong>faded</strong>. The picture behind the outlines is one real record from your company, so
+with a sterling invoice showing you will see the sterling block drawn solid and the other two faded.
+They are still there, still selectable, and still saved &mdash; fading says only "not this one".</p>
+
+<p><strong>Showing</strong>, above the page, is which record you are looking at. Pick another from
+the list to see the form drawn for it &mdash; that is how you check a faded element by going and
+finding a record it does print for.</p>
+
+<p>The list holds the most recent records <em>of the kind this form prints</em>. Laying out a sales
+invoice, you are offered sales invoices &mdash; not the sales orders, receipts and purchase orders
+that share the same underlying table.</p>
+
+<p>When the one you want is not among them &mdash; the euro invoice you raised in March &mdash; type
+its number in the box beside the list and press <strong>Show</strong>. Any reference works: an
+invoice number, an order number, whatever your company numbers that kind of document by. The search
+is restricted the same way, so a number that belongs to a purchase order will not be offered while
+you are editing an invoice.</p>
+
+<p>Two things the page will tell you rather than leave you guessing. If nothing matches what you
+typed, it says so. And if the record you chose is one this form cannot print &mdash; a purchase
+order picked while you are laying out an invoice &mdash; it draws a different one and says that
+too, so a page that did not change is never a mystery.</p>
+
+<p>Changing the record does not touch your layout. Unsaved changes stay exactly as they were, and
+the page is redrawn with them.</p>
 
 <h3>Adding, removing and overlapping</h3>
 

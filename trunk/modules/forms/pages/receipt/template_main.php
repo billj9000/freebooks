@@ -110,9 +110,15 @@ foreach ($forms_receipt_rows as $line) {
                 <input type="hidden" name="field[<?php echo $row; ?>][index]"
                        value="<?php echo htmlspecialchars($v['index']); ?>">
 <?php   if ($cell['isText']) { ?>
-                <input type="text" name="field[<?php echo $row; ?>][text]"
-                       class="form-control form-control-sm"
-                       value="<?php echo htmlspecialchars($v['text']); ?>">
+<?php     // A textarea for the reason the canvas has one: a text input strips
+          // line feeds outright. Here nothing has one yet - no shipped receipt
+          // carries a multi-line field - but SerialRenderer::overlay() splits
+          // its value on "\n" and pads EACH part to the cell width, so the
+          // renderer was built expecting one and only the editor refused. A
+          // single row, so the grid keeps its shape. ?>
+                <textarea name="field[<?php echo $row; ?>][text]" rows="1"
+                          class="form-control form-control-sm"><?php
+                    echo htmlspecialchars($v['text']); ?></textarea>
 <?php   } else { ?>
                 <span class="badge text-bg-secondary"><?php echo htmlspecialchars($cell['kind']); ?></span>
                 <span class="small text-muted"><?php echo htmlspecialchars($cell['bind']); ?></span>

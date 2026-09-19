@@ -115,34 +115,63 @@ $plan = $runner->planDefinition($definition);
 if (!$plan->runnable()) forms_canvas_fail(implode(' ', $plan->notes));
 
 /**
- * A record this form could print, newest first.
+ * A record this form could print, newest first — the one the author asked for
+ * ahead of the rest (§13.53).
  *
  * The form's own filters are what make a Purchase Order a purchase order, and
  * they are already converted — so the ids come from asking the record table for
  * rows, and whether any of them actually builds a document is settled by trying.
+ *
+ * The schema-checking this used to do inline now lives in RecordSelector, which
+ * was already the module's answer to "which records", already checks a column
+ * against the schema rather than quoting it, and already knows what a record is
+ * CALLED. The picker needs that last part and this endpoint needed the first
+ * two; having them in one place is what stops the canvas and the print page
+ * naming the same invoice differently.
  */
-$candidates = array();
-if ($plan->recordTable !== '' && preg_match('/^[a-z_][a-z0-9_]*$/i', $plan->recordKey)) {
-  $qualified = (defined('DB_PREFIX') ? DB_PREFIX : '') . $plan->recordTable;
-  $columns   = array();
-  $meta = $db->Execute("select column_name from information_schema.columns
-    where table_schema = database() and table_name = '" . $db->prepare_input($qualified) . "'");
-  while ($meta && !$meta->EOF) {
-    $columns[strtolower((string)$meta->fields['column_name'])] = true;
-    $meta->MoveNext();
-  }
-  if (isset($columns[strtolower($plan->recordKey)])) {
-    $rows = $db->Execute("select distinct `" . $plan->recordKey . "` from `" . $qualified . "`
-      order by `" . $plan->recordKey . "` desc limit 8");
-    while ($rows && !$rows->EOF) {
-      $value = (string)$rows->fields[$plan->recordKey];
-      if ($value !== '') $candidates[] = $value;
-      $rows->MoveNext();
-    }
-  }
+$selector  = new RecordSelector($db);
+$available = $selector->recent($plan->recordTable, $plan->recordKey, 20, $definition->group);
+
+// What the author picked, first in the queue and never the only one. A record
+// that no longer builds — deleted, or edited out of this form's filters since
+// the page was opened — must fall back to whatever does rather than drop the
+// canvas to invented data, which would read as "this form is broken now".
+$forms_canvas_wanted = trim((string)($_REQUEST['rcd'] ?? ''));
+
+// A reference typed rather than chosen — an invoice number remembered, which is
+// how an author asks for a record that is not among the recent ones. Resolved
+// HERE rather than through an endpoint of its own: the answer is only useful as
+// a page to look at, and a separate lookup would mean a round trip whose only
+// result is a second round trip. The first match wins, newest first.
+$forms_canvas_reference = trim((string)($_REQUEST['rcdref'] ?? ''));
+if ($forms_canvas_reference !== '') {
+  $matched = $selector->findByReference($plan->recordTable, $plan->recordKey,
+                                        $forms_canvas_reference, 1, $definition->group);
+  $forms_canvas_wanted = $matched === array() ? $forms_canvas_wanted
+                                              : (string)array_key_first($matched);
+}
+
+// strval, because PHP turns a numeric-string array key into an INTEGER. The
+// record keys here are '516' and friends, so array_keys() hands back ints and a
+// strict comparison against the posted string never matches — which would not
+// have failed loudly, merely sent every choice down the slower path below.
+$candidates = array_map('strval', array_keys($available));
+if ($forms_canvas_wanted !== '' && in_array($forms_canvas_wanted, $candidates, true)) {
+  $candidates = array_merge(array($forms_canvas_wanted),
+      array_values(array_diff($candidates, array($forms_canvas_wanted))));
+} elseif ($forms_canvas_wanted !== ''
+          && $selector->label($plan->recordTable, $plan->recordKey, $forms_canvas_wanted,
+                              $definition->group) !== null) {
+  // Not in the recent list is not the same as not a record: an author who
+  // searched out an old invoice by its number is asking for one this list was
+  // never going to hold. One lookup settles whether it is a key of the record
+  // table at all — and the value reaches that query escaped, never as an
+  // identifier.
+  array_unshift($candidates, $forms_canvas_wanted);
 }
 
 $document = null;
+$forms_canvas_drawn = '';
 foreach ($candidates as $candidate) {
   try {
     $built = $runner->runDefinition($definition, array($candidate),
@@ -150,7 +179,15 @@ foreach ($candidates as $candidate) {
   } catch (\Throwable $e) {
     continue;   // a record the form's own filters exclude is not an error
   }
-  if ($built instanceof LayoutDocument && count($built->records) > 0) { $document = $built; break; }
+  if ($built instanceof LayoutDocument && count($built->records) > 0) {
+    $document = $built;
+    // Which one it settled on, not which one was asked for. The two differ
+    // whenever the first choice is a record this form declines, and an author
+    // told the wrong one would go looking for a fault in the layout that is
+    // really a fault in their choice of record.
+    $forms_canvas_drawn = (string)$candidate;
+    break;
+  }
 }
 
 // Nothing on this company matches: render the same template against invented
@@ -216,5 +253,29 @@ if ($forms_canvas_warnings) {
   header('X-Forms-Warnings: ' . str_replace(array("\r", "\n"), ' ',
       substr(implode(' ', $forms_canvas_warnings), 0, 500)));
 }
-(new HttpDelivery(HttpDelivery::INLINE))
-    ->deliver($renderer->render($document, new RenderOptions(filename: 'canvas.pdf')));
+
+// Rendered BEFORE delivery rather than inside the call, because the answer to
+// "which elements did a condition keep off this page" is only known once the
+// drawing has happened, and a header cannot follow a body.
+//
+// The renderer is asked rather than the condition re-tested here. Re-testing
+// would be four lines and would be a second implementation of the predicate,
+// free to disagree with the first — and it would disagree precisely on the
+// element the author is looking at and cannot see, which is the case this
+// whole header exists to make visible (§13.51).
+$rendered = $renderer->render($document, new RenderOptions(filename: 'canvas.pdf'));
+header('X-Forms-Suppressed: ' . implode(',', $renderer->suppressed()));
+// Which record the page is of. Sent even when it is the one that was asked for,
+// because the page cannot tell the difference between "your choice" and "your
+// choice was declined and this is the fallback" without being told.
+header('X-Forms-Record: ' . rawurlencode($forms_canvas_drawn));
+// And what it is CALLED, because a record reached by typing a reference is not
+// in the list the page was built with, so the page has no label for it and a
+// bare key is not something an author can check their answer against.
+header('X-Forms-Record-Label: ' . rawurlencode($forms_canvas_drawn === '' ? ''
+    : ($available[$forms_canvas_drawn]
+       ?? $selector->label($plan->recordTable, $plan->recordKey, $forms_canvas_drawn,
+                           $definition->group)
+       ?? $forms_canvas_drawn)));
+
+(new HttpDelivery(HttpDelivery::INLINE))->deliver($rendered);

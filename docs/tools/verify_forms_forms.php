@@ -362,5 +362,107 @@ if ($woForm === null) {
     ok('...and running it anyway throws rather than fatals', $threw);
 }
 
+
+// ── offering an author a record to draw against (§13.53) ─────────────────────
+//
+// The canvas's record picker asks this class three questions the print page
+// never did: what records are there, what is one called, and which one does a
+// person's own reference name. All three reach a query, two of them carrying a
+// value somebody typed, so they are checked here for what they return AND for
+// what they refuse.
+echo "\n=== the records an author may draw a form against ===\n";
+
+$recent = $selector->recent('journal_main', 'id', 5);
+ok('recent() offers records from the record table', count($recent) > 0 && count($recent) <= 5,
+   count($recent) . ' offered');
+ok('and names every one of them', $recent !== []
+   && count(array_filter($recent, fn($label) => trim((string)$label) !== '')) === count($recent));
+
+// The no-regression property, and the reason recent() does not simply drop what
+// it cannot name: this list is also the list the canvas TRIES, so a record table
+// with no reference columns must still yield candidates or the canvas silently
+// stops showing real data for those forms.
+$unnamed = $selector->recent('inventory', 'id', 3);
+// Compared as strings on both sides, because PHP turns a numeric-string array
+// key into an integer — so the keys come back as ints and the labels as the
+// strings they were built from. Worth knowing rather than working around: a
+// caller doing a strict in_array() against these keys matches nothing.
+ok('a table it cannot name still yields records, labelled by their own key',
+   $unnamed !== [] && array_map('strval', array_keys($unnamed)) === array_values($unnamed),
+   count($unnamed) . ' offered');
+
+// Restricted to the kind of transaction a form actually prints (§13.54).
+// journal_main holds every transaction there is, so an unrestricted list offered
+// receipts and sales orders while an author laid out an invoice.
+$journalOf = function (array $records) use ($db): array {
+    if ($records === []) return [];
+    $ids = implode(',', array_map('intval', array_keys($records)));
+    $out = [];
+    $r = $db->Execute("select distinct journal_id from " . TABLE_JOURNAL_MAIN . " where id in ($ids)");
+    while ($r && !$r->EOF) { $out[] = (int)$r->fields['journal_id']; $r->MoveNext(); }
+    sort($out);
+    return $out;
+};
+foreach (['cust:inv' => 12, 'cust:so' => 10, 'vend:po' => 4] as $group => $journal) {
+    $only = $selector->recent('journal_main', 'id', 20, $group);
+    if ($only === []) {
+        echo "  [--] this company has no $group records, so the restriction was not exercised\n";
+        continue;
+    }
+    ok("a $group picker offers only journal $journal",
+       $journalOf($only) === [$journal], implode(',', $journalOf($only)));
+}
+
+// Unrestricted stays unrestricted: the print page passes no group and must keep
+// seeing what it always saw. Only meaningful where the company holds more than
+// one kind of transaction, which is why it is asserted rather than assumed.
+$mixed = $journalOf($selector->recent('journal_main', 'id', 20));
+ok('with no group, every kind of transaction is still offered', count($mixed) > 1,
+   implode(',', $mixed) . ' — the print page would have lost records');
+
+// A group nobody has mapped must not restrict to nothing, which is the failure
+// a wrong guess would produce: a picker gone empty with no reason on screen.
+ok('a group the map does not know restricts nothing',
+   $journalOf($selector->recent('journal_main', 'id', 20, 'no:such-group')) === $mixed);
+
+$oneKey = (string)array_key_first($recent);
+ok('label() names a record that exists',
+   trim((string)$selector->label('journal_main', 'id', $oneKey)) !== '');
+ok('and answers null for one that does not',
+   $selector->label('journal_main', 'id', '999999999') === null);
+ok('and null for a blank id, rather than the first record it finds',
+   $selector->label('journal_main', 'id', '') === null);
+
+// A reference is what a person calls a record — an invoice number — and it is
+// typed, so it is the value most likely to arrive malformed.
+$reference = trim((string)($db->Execute("select purchase_invoice_id from " . TABLE_JOURNAL_MAIN
+    . " where purchase_invoice_id <> '' order by id desc limit 1")->fields['purchase_invoice_id'] ?? ''));
+if ($reference === '') {
+    echo "  [--] no record on this company carries a reference, so the search was not exercised\n";
+} else {
+    $found = $selector->findByReference('journal_main', 'id', $reference, 5);
+    ok('findByReference() finds a record by what a person calls it', $found !== [],
+       'searched for a reference this company holds and found nothing');
+    ok('and the record it found carries that reference',
+       $found !== [] && str_contains((string)reset($found), $reference),
+       $found === [] ? 'nothing found' : (string)reset($found));
+}
+ok('a reference nothing matches finds nothing, rather than everything',
+   $selector->findByReference('journal_main', 'id', 'zzz-no-such-reference-zzz') === []);
+
+// The identifier rule, in the two places these methods could have broken it.
+// A column name is never quoted into a query, it is refused — so a plan naming
+// a column the table has lost answers empty rather than erroring, and a value
+// carrying quotes is escaped rather than closing the string.
+ok('a key column the table does not have is refused, not quoted',
+   $selector->recent('journal_main', 'no_such_column_at_all', 3) === []);
+ok('a key column that is not an identifier at all is refused',
+   $selector->recent('journal_main', 'id`; drop table x; --', 3) === []);
+$quoted = "' or '1'='1";
+ok('a reference carrying quotes matches nothing rather than everything',
+   $selector->findByReference('journal_main', 'id', $quoted) === []);
+ok('and so does an id carrying them',
+   $selector->label('journal_main', 'id', $quoted) === null);
+
 echo "\n" . ($failures === 0 ? "PASS\n" : "FAIL - $failures check(s) failed.\n");
 exit($failures === 0 ? 0 : 1);

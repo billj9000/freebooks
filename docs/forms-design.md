@@ -973,8 +973,9 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `diff_forms_provider.php` | Every ported `DocumentProvider` matches a PhreeForm baseline, field for field and line for line | yes | **0 differences** across 4 forms / 16 records |
 | `verify_forms_native.php` | Every definition converts to the native format, re-encodes byte-stably, loads back as native, and renders **identical PDF bytes** through it (§13.7 step 1) | yes | **PASS both companies** — 56 of 57 convert, 56/56 byte-identical on `demo`, 51/51 on `production` |
 | `verify_forms_designer.php` | Opening a report in the editor and saving it untouched returns the same definition and prints the same bytes; a field the dataset does not declare is refused; the original is kept on first save (§13.7 step 2) | yes | **PASS both companies** — 38 of 38 reports survive an untouched save |
-| `verify_forms_canvas.php` | The geometry the canvas overlay rests on, read back out of the PDF content stream: page size, absolute (not margin-relative) placement, both orientations, five paper sizes; and that a form opened and saved untouched is unchanged (§13.7 steps 3–4) | yes | **PASS both companies** — 61 checks; found `Letter` rendering as A4 |
-| `verify_forms_conditions.php` | An element that prints for some records and not others (§13.51): what each operator means, the format omitting a null condition, a save carrying one it cannot edit, and both renderers honouring it — the deferred last-page pass included | yes | **PASS — 54 checks**; measured against four deliberate reverts |
+| `verify_forms_canvas.php` | The geometry the canvas overlay rests on, read back out of the PDF content stream: page size, absolute (not margin-relative) placement, both orientations, five paper sizes; that a form opened and saved untouched is unchanged (§13.7 steps 3–4); and that a text element's line breaks survive the binder, the panel and the page (§13.52) | yes | **PASS both companies** — 192 checks; found `Letter` rendering as A4 |
+| `verify_forms_forms.php` | That a form runs at all, and that the record picker offers records of the right kind (§13.54) — restricted by journal for the nine groups the application defines a Print button for, unrestricted for the rest | yes | **PASS both companies** |
+| `verify_forms_conditions.php` | An element that prints for some records and not others (§13.51): what each operator means, the format omitting a null condition, the editor setting/clearing/refusing one, and both renderers honouring it — the deferred last-page pass included | yes | **PASS — 64 checks**; measured against six deliberate reverts |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -1691,11 +1692,12 @@ here blocks step 6 — which is the distinction that keeps step 6 finishable.
 
 9. **Conditional content — an element that prints for some records and not others.** Added
    2026-09-19, after the question "how would an invoice show different bank details per currency?".
-   **Stage 0 is DONE — see §13.51**: `Condition` on every `Element`, the format, both renderers,
-   and the carry-through that stops a save discarding one. It is not user-visible and deliberately
-   so — that is the half that is expensive to change once definitions carry it. What remains is the
-   inspector control, and a record picker on the canvas, without which an author cannot see the
-   variant they are editing. Both are set out at the end of §13.51.
+   **Stages 0 and 1 are DONE — see §13.51**: `Condition` on every `Element`, the format, both
+   renderers, the inspector's three controls, and the faded outline that says which of several
+   stacked elements is the one printing. **Stage 2 is DONE too — see §13.53**: the canvas says which
+   record it is drawing and lets an author choose another, by list or by reference, which is what
+   makes a faded variant something you can go and look at. What remains is conditional block parts,
+   wanted only if stacking proves clumsy in practice.
 
 #### ~~Step 6 must also move the four render-to-string call sites~~ — DONE
 
@@ -5738,14 +5740,16 @@ user found for us, that a redraw and a remembered change are the same event.
 > "In the Forms editor … a Text element in an invoice might contain different
 > bank payment details depending on the currency."
 
-A form today prints the same elements for every record it is run against. The
-wanted thing is narrower than it first sounds: not a document that computes, but
-an element that knows whether it applies.
+A form printed the same elements for every record it was run against. The wanted
+thing is narrower than it first sounds: not a document that computes, but an
+element that knows whether it applies.
 
-**Stage 0 is built and is the whole of what follows here** — the model, the
-format and both renderers, with no editor in front of any of it. Nothing is
-user-visible yet, and that is deliberate: this is the half that is expensive to
-change once definitions are carrying it, and it can be proved on its own.
+**Stages 0 and 1 are built.** Stage 0 is the model, the format and both
+renderers, with no editor in front of any of it — the half that is expensive to
+change once definitions are carrying it, and one that can be proved on its own.
+Stage 1 is the three controls in the inspector, and the two things that make
+several elements sharing one box workable: a mark in the element list, and a
+faded outline on the page.
 
 #### The shape: a condition on the element, not alternatives inside one
 
@@ -5846,14 +5850,86 @@ an **empty cell** rather than no cell: receipt cells are positioned by
 accumulation, so dropping one slides every field after it along the line — every
 column of the row going crooked to hide one value.
 
-#### Two things that had to be done before any editor exists
+#### The editor, and the one control that breaks the panel's own rule
 
-**`TemplateForm` carries the condition.** The canvas has no control for one, so
-every save posts rows that say nothing about it — and without the carry, opening
-a form that has a condition and pressing Save silently strips every one in it,
-leaving a page that prints perfectly reasonably. This is the §13.30 "carried,
-not emptied" rule, and it has to be in place *before* an author can ever make a
-condition, not after.
+Three controls beside Visible: the field, the test, and the value. They read
+left to right as the sentence they make — *Currency is one of GBP, EUR* — and
+the last two are hidden until a field is chosen, because **Always** is the
+answer on almost every element of almost every form, and an operator offered
+beside it is a question nobody asked. `is blank` and `is not blank` hide the
+value box too: a box left standing beside them is a box an author will type into
+and then wonder about.
+
+The tests on offer are built from `ConditionOp::cases()` rather than written out
+in the page — the rule the block separators already follow, because a list an
+author reads that has drifted from the list the save accepts is an editor
+offering a choice it will then refuse. `verify_forms_pages` compares the
+rendered `<option>` values against the enum, and writing the list out by hand
+fails it.
+
+**The three are written back unconditionally, which is the opposite of what the
+colour swatches do**, and the asymmetry is the point. A colour input cannot say
+"unset" — it shows black when nothing is stored — so writing it always would put
+an explicit black on every element merely selected. A condition field *can* say
+unset, and empty is exactly what **Always** means. Writing it only when
+non-empty would make a condition impossible to CLEAR: `TemplateForm` carries an
+absent key, so the emptied field would post nothing, the old condition would be
+carried, and it would come back on the next load looking as though the edit had
+never happened. The shape check is anchored to the start of a line so that
+`if (bind !== '') value.when_bind = …` fails it — an unanchored pattern passes
+on precisely the guarded write it exists to forbid, which is the same trap the
+§13.50 slice was written to avoid.
+
+`TemplateForm::condition()` leans every failure the same way: **towards the
+element continuing to print.** A binding refused, an operator not recognised —
+each could as easily be spelled "a test nothing satisfies", and that spelling
+removes the element from every page of every print with nothing on screen to say
+why. Both warn, and both keep what was there.
+
+#### Saying which of three stacked elements is the one printing
+
+Three text blocks sharing one box are ONE outline on the page and three rows in
+the element list. Two things fix that, and neither is optional if the editor is
+to be usable at all.
+
+**A mark in the list** — a small diamond on any row whose element has a
+condition, titled rather than lettered so it needs no room and no translation.
+
+**A faded outline on the page.** An element whose condition does not hold for
+the record drawn underneath is shown at a third opacity. Faded, not hidden and
+not restyled: it is still on the form, still selectable, still in the order — it
+is the element the author has come to edit. Opacity rather than a border
+treatment, because dashed already means two other things here (a line height, an
+unmeasured picture) and a third meaning on the same channel is a legend nobody
+can hold in their head.
+
+**The renderer is asked, not asked again.** `LayoutPdfRenderer` records which
+template positions its own predicate kept off the page — one pass, before it
+draws — and `canvas_pdf.php` returns them as `X-Forms-Suppressed`. Re-testing
+the condition in the endpoint would be four lines and would be a second
+implementation free to disagree with the first; it would disagree exactly on the
+element an author is looking at and cannot see, which is what the header exists
+to make visible. The endpoint therefore renders BEFORE delivering rather than
+inside the call, since the answer is only known once the drawing has happened
+and a header cannot follow a body.
+
+Two limits worth stating. The fade can be one edit out of date — `place()` runs
+the instant an element is dragged, while the picture underneath is still being
+fetched, and the next draw corrects it; ghosting the wrong outline for a moment
+is a smaller cost than not ghosting at all. And an empty header is NO elements,
+not every element: `''.split(',')` yields one empty string, which `Number()`s to
+0 and would fade the first element of every form that has no conditions at all.
+That one has a check of its own, because the symptom is untraceable to
+conditions.
+
+#### Two things that had to be done before any editor existed
+
+**`TemplateForm` carries the condition** where a post says nothing about it.
+Written in stage 0, when the canvas had no control at all and a save would
+otherwise have stripped every condition in a form — and still earning its place
+now the control exists, because a page cached from before this shipped posts
+exactly that shape. The §13.30 "carried, not emptied" rule, per key: an ABSENT
+`when_bind` carries, a PRESENT but blank one clears.
 
 **`adopt_forms_layouts.php` classifies `when` as content.** Its classification
 decides what may be adopted from a real installation into a public repository
@@ -5878,7 +5954,7 @@ is an exception.
 
 #### Verification
 
-`docs/tools/verify_forms_conditions.php` — **54 checks, all passing**. It writes
+`docs/tools/verify_forms_conditions.php` — **64 checks, all passing**. It writes
 nothing and is safe against a live company; it needs one only for TCPDF's fonts
 and the formatter's currency table.
 
@@ -5887,10 +5963,18 @@ and the formatter's currency table.
 | 28 | every operator against the values that make it awkward — `"0.00"` vs `0`, `eur` vs `EUR`, `9 < 10`, a trailing comma, a date, a `false`, a name the record does not supply |
 | 10 | the format: round-trip stability, the three-variant template surviving encode/decode, no `when` key on an element without one, and three malformed conditions refused rather than ignored |
 | 3 | a save that knows nothing about conditions keeps all three elements, their conditions, and re-encodes byte-identically |
-| 10 | both renderers: one variant of three drawn per currency, a rectangle and a rule, a table's rows and heading, a bound field, and the deferred last-page pass |
+| 8 | the editor: a condition set, CLEARED, carried past a stale post, and refused twice — on a field the form cannot supply, and on a test that does not exist |
+| 12 | both renderers: one variant of three drawn per currency, a rectangle and a rule, a table's rows and heading, a bound field, the deferred last-page pass, and the suppressed list the canvas fades from |
 | 3 | a receipt field blanked without moving the cells after it |
 
-**Measured against four deliberate reverts**, because a check that cannot fail
+The canvas itself is shape-checked in `verify_forms_pages.php`, where the rest
+of the inspector is held — nothing in `docs/tools` can run that module (§13.50).
+Three of those checks are worth naming: the ids the script looks up against the
+ids the page can emit, which is how a typo in a new control is caught; the
+`<option>` values against the enum; and the unconditional write-back, anchored
+so a guarded one fails.
+
+**Measured against six deliberate reverts**, because a check that cannot fail
 proves nothing:
 
 | reverted | checks that failed |
@@ -5899,6 +5983,14 @@ proves nothing:
 | the gate on the `Table` | **1**, the table check alone |
 | `TemplateForm` carrying `$original->when` | 2 — the condition lost, the re-encode no longer identical |
 | the codec omitting a null `when` | **1**, the shipping-set guarantee |
+| the write-back guarded by `if (bind !== '')` | **1**, and only with the anchored pattern |
+| the operator list written out by hand | **1**, the enum comparison |
+
+Plus two on the canvas side, each failing exactly one check: not filtering the
+empty `X-Forms-Suppressed` header, and sending it before the render rather than
+after. A deliberate typo in one of the new control ids fails the id-coverage
+check, which is the evidence that the new ids are actually inside its net rather
+than merely near it.
 
 One finding from building it, worth recording because it made the tool lie
 rather than fail. The first run reported that *nothing had been drawn at all*.
@@ -5911,27 +6003,354 @@ the face for its own legibility, and says so; the checks that count drawing
 
 #### What is not built
 
-Stages 1–3, in the order they are worth doing.
+Stage 3. ~~Stage 2, the record picker, is **DONE** — see §13.53, which also
+records where the estimate above was wrong.~~
 
-1. **The editor.** Three inspector controls beside Visible, reusing the existing
-   binding palette; `TemplateForm` reading them through the same `$allowed` gate
-   as a field binding, so a condition on a name the form cannot supply warns and
-   keeps rather than silently never matching. Plus the two things that make
-   stacked boxes workable at all: a marker in the Elements list, and a ghosted
-   outline for an element whose condition does not match the previewed record.
-2. **A record picker on the canvas.** `ajax/canvas_pdf.php` takes the first of
-   the eight most recent records that renders, and the author has no say. With
-   conditional content that means the EUR variant cannot be seen unless the
-   newest invoice happens to be in EUR. `RecordSelector` already resolves ids
-   and labels, so this is reuse. Wanted independently; conditions are what turn
-   it from a nicety into a requirement.
 3. **Conditional block parts**, if stacking proves clumsy rather than merely
    inelegant. The repeater UI exists since §13.30 — but a `BlockPart` has only a
    binding and no literal text, so the bank-details case needs literal parts
    first, which is a second change and not obviously wanted.
 
-**The failure mode to design stage 1 around** is that a wrong condition prints
-nothing and says nothing. A mistyped binding gives an empty box you can see; a
-condition that never matches removes the element from every page of every print.
-The `$allowed` gate stops the common cause and the canvas markers make the rest
-visible, but nothing else in the editor fails this quietly.
+**The failure mode stage 1 was designed around** is that a wrong condition
+prints nothing and says nothing. A mistyped binding gives an empty box you can
+see; a condition that never matches removes the element from every page of every
+print. Three things answer it, and they are the reason the stage is as large as
+it is: the `$allowed` gate refuses the common cause loudly, the diamond says an
+element has a condition at all, and the fade says which records it is missing.
+Nothing else in this editor fails as quietly, which is why none of the three was
+treated as polish.
+
+### 13.52 A text box that could not hold a line
+
+> "How to insert a line break in a text field?"
+
+You could not, and the answer to why turned out to be worse than the question.
+
+**The control was `<input type="text">`.** That control applies the HTML value
+sanitization algorithm, which *strips* carriage returns and line feeds — it does
+not replace them with a space, it removes them. Measured in a real browser
+rather than read off a specification:
+
+| assigned | `<input type="text">` | `<textarea>` |
+|---|---|---|
+| `Bank One\r\nSort 00-00-00` | `Bank OneSort 00-00-00` | `Bank One\nSort 00-00-00` |
+
+So there was no way to type one. That alone would be a missing feature.
+
+#### The half that was destructive
+
+Multi-line text elements already existed. They came through the migration from
+the old editor, which had a multi-line box; on the company this was found on,
+**four elements of one invoice carry line breaks** — two bank-transfer blocks, a
+payment-methods block and a registered-address footer.
+
+The path those took was:
+
+1. `describeSelection()` assigns the stored text into the control — the browser
+   strips the breaks on the way in;
+2. `inspectorChanged()` reads the control back into `values[i].text`, writing the
+   flattened string over the stored one;
+3. a save posts that.
+
+So selecting one of those blocks and changing **anything** on that element —
+the border, a colour, a number typed into X — turned it into one run-on line.
+Silently, with the element still looking selected and correct. A drag is safe,
+because a drag writes x and y directly; it was the panel that did it.
+
+The same control, and so the same fault, was in the receipt editor.
+
+#### The fix, and what had to be measured before making it
+
+Both become `<textarea>`. That is three lines of markup, and the reason it took
+longer than three lines is that the claim "a textarea fixes it" is about four
+layers, only the first of which is the control. Driven through a real headless
+browser, posting a real form at a real server:
+
+| step | result |
+|---|---|
+| textarea holds the value | `Bank One\nSort 00-00-00` |
+| copied to the hidden field `formsCanvasSave()` submits | unchanged — `hidden` has no sanitization algorithm |
+| what the server received | `text=Bank+One%0D%0ASort+00-00-00` |
+
+The last row is the one worth keeping. A form POST **normalises line breaks to
+CRLF**, which is exactly the spelling the migrated definitions already carry —
+so editing a legacy block does not rewrite its line endings, and an untouched
+save was never at risk either way, because `values[i].text` is only overwritten
+when the panel actually fires. An earlier guess that this would produce a real
+diff was wrong, and measuring is what corrected it.
+
+The receipt's control changed for a reason of its own, and not by symmetry.
+`SerialRenderer::overlay()` already splits its value on `\n` and pads **each
+part** to the cell width — the renderer was built expecting a multi-line field.
+No shipped receipt has one, so nothing there was at risk; only the editor was
+refusing what the renderer could draw.
+
+A second thing came free. `ins_text` sits inside `forms_canvas_form`, where
+Enter in a text input is implicit form submission — which on this page means a
+save, from the key an author presses to finish a line. A textarea ends that.
+
+#### Verification
+
+Two shape checks and four behavioural ones.
+
+The shape checks ask whether the control that carries an element's own text is a
+single-line input, on the canvas and on the receipt page, and reverting either
+to `<input type="text">` fails exactly the corresponding one. They are written
+as "no single-line input carries an element text" rather than "it is a textarea",
+because the fault is the input specifically; something else that can hold a
+newline would be a different design rather than a regression.
+
+The behavioural checks live in `verify_forms_canvas.php`: a line break survives
+the binder in both spellings, `\r\n` as a browser posts it and `\n` as a file may
+hold it; it survives a round trip through the panel; and the stored break
+reaches the **page**, not merely the file.
+
+That last one had to be measured by counting distinct text baselines — the
+`Td [(` coordinates — rather than by looking for the words. This renderer draws
+in `freeserif`, and TCPDF writes TrueType faces as subset glyph indices, so a
+marker searched for in the content stream is never found and every assertion
+built on it passes vacuously. The same trap as §13.51's first run, met a second
+time, and the block-separator check further up the same file had already solved
+it: how many times the text cursor is placed is the same question asked in a way
+no font can hide.
+
+**One self-inflicted finding, recorded because the lesson is about the tool and
+not the feature.** The first draft of these checks reused the variable name
+`$posted`, which a *later, unrelated* check in the same file reads — so adding a
+passing check broke a passing one four lines below it. It was caught only
+because the whole tool's output was read rather than the new lines grepped out
+of it. A long verification script is a shared namespace, and `git diff` does not
+show what a name collides with.
+
+### 13.53 Which record the canvas is drawing
+
+§13.51 left one thing undone and named it the thing an author would ask for
+first: the canvas drew whichever record it could find, and with conditional
+content the variant worth looking at is exactly the one it would not pick.
+
+The endpoint took the eight newest rows of the record table, tried each, and
+used the first that built. That is a good default — it is almost always *an*
+invoice — and it is useless for the case conditions exist to serve. A euro bank
+block cannot be judged against a sterling invoice, and on a company that mostly
+invoices in sterling no list of recent records will contain one.
+
+#### What §13.51 assumed, and what was actually there
+
+> "`RecordSelector` already resolves ids and labels, so this is reuse."
+
+Half right, and the wrong half was load-bearing. `RecordSelector` answers *which
+records does this URL name* — `&xfld=…&xcr=EQUAL&xmin=1234`, sent by a Print
+button somewhere else in the application. Every caller arrives already knowing
+which record it wants. There was no list, no "what records are there", and no
+way to find one by what a person calls it; and the print page, the only other
+place that chooses records, takes its selection from the URL and renders no
+chooser at all. So there was nothing to lift.
+
+What *was* reusable, and mattered more than the code: the class already refuses
+a column name rather than quoting it, and already knows what a record is called.
+Both had to stay true of the new questions.
+
+#### Two ways in, because one does not cover it
+
+| control | for |
+|---|---|
+| a list of recent records, labelled | any example will do — the common case |
+| a box to type a reference | *this* one, an invoice number remembered |
+
+The list alone fails the motivating case. The box alone makes an author type
+something before they can see anything. Both are small; neither is optional.
+
+A typed reference is resolved in `canvas_pdf.php` rather than through a lookup
+endpoint of its own. The answer is only useful as a page to look at, so a
+separate lookup would be a round trip whose only outcome is a second round trip.
+`findByReference()` tries each of the table's reference columns in the order
+that decides what a record is *called*, so a record found by its number is
+labelled by that same number rather than by a different one.
+
+#### Three answers, and only one of them is "yes"
+
+A chosen record can be declined by the form's own filters — the newest row of
+`journal_main` is rarely an invoice — and a typed reference can match nothing.
+Both fall back to a record that does build, which is right and is
+indistinguishable from success unless it is said. So the endpoint reports which
+record it actually drew, and what that record is called, and the page corrects
+itself from the answer: the list gains the record if it did not have it, the
+reference box clears, and a note says so when the answer is not what was asked.
+
+The label travels because a reference typed from memory reaches records older
+than the list the page was built with. Without it the page would have a key and
+nothing to call it, which is not something an author can check an answer
+against.
+
+#### The list is also the try-list, and that constrains it
+
+`recent()` returns a record that nothing can name keyed by its own id rather
+than dropping it. Dropping it reads better and would be a regression: this same
+list is what the endpoint tries, so a record table with no reference columns —
+a custom dataset's — would go from drawing real data to drawing invented data,
+silently, with only the sampled banner to hint at it.
+
+**One trap worth recording, because it fails quietly rather than loudly.** PHP
+turns a numeric-string array key into an integer, so `array_keys()` on a map of
+record ids hands back `516` where the posted value is `'516'`, and a strict
+`in_array()` never matches. It did not break anything — the chosen record simply
+took the slower branch and still ended up first — which is precisely why it
+would have lived there indefinitely. It was found by a verification check
+comparing keys against values, not by the feature misbehaving.
+
+#### Verification
+
+`verify_forms_forms.php` gained fourteen checks on the three new methods:
+what they return, what they name, and what they refuse. The refusals are the
+half worth naming, because this class sits inside the §3 blast radius and two of
+these methods now carry a value somebody typed:
+
+- a key column the table does not have → empty, not quoted into a query;
+- a key column that is not an identifier at all → the same;
+- a reference carrying `' or '1'='1` → matches nothing, rather than everything;
+- an id carrying the same → `null`, not the first record in the table.
+
+`verify_forms_pages.php` compares the rendered `<option>` values against what
+`RecordSelector::recent()` would return, so a picker built from a different
+query than the endpoint uses cannot pass — an author picking a record and
+watching the page not change is the failure it exists to prevent. It skips, and
+says it skipped, on a rendering whose form has no records to choose between.
+
+Measured against reverts, as the rest of this work has been:
+
+| reverted | result |
+|---|---|
+| the picker built from a different query than the endpoint uses | **fails** — "3 offered, 20 expected" |
+| `recent()` dropping the rows it cannot name | **fails** — "0 offered" |
+| `label()`'s guard against a blank id | **passes**, and honestly so |
+
+The third is worth keeping in the record rather than quietly dropping. That
+guard is not observable: without it the lookup asks for every recent key and
+still answers null, so no check can tell the two apart. What it saves is the
+query, on a page that redraws as fast as an author can drag. The check beside it
+— that a blank id does not return the first record in the table — is real, and
+would catch a naive implementation; it simply does not catch the removal of this
+particular line.
+
+#### Unchanged is not a change
+
+`TemplateForm::binding()` has always short-circuited when a submitted name
+equals the one already stored — it returns before the palette is consulted at
+all. `condition()` did not, and that difference was not visible until a real
+invoice carried a real condition.
+
+The palette a caller computes is not always the palette a condition was set
+against. A tool checking that a form survives an untouched save passes **none**;
+a caller that cannot run the form to observe what its provider supplies computes
+a smaller one. Re-gating then reports a condition nobody touched as a name the
+form cannot supply — a warning on a save where nothing happened.
+
+Measured, on a company whose invoice carries conditions on two of its bank
+blocks: an untouched save warned about both, and the knock-on took a second,
+unrelated check down with it. Fixed by giving `condition()` the same
+short-circuit, with a check that an untouched save with an empty palette warns
+about nothing, and a second check that a condition which *did* change is still
+gated — so the short-circuit cannot quietly become a hole.
+
+**This was found by a suite run, and very nearly missed by a bad one.** The run
+that first reported it was unreliable: reverted files were being swapped into the
+same container while it was reading them, which produced a second failure that
+did not exist. Two lessons, and the second is the one worth keeping — a
+verification run and a revert experiment must not share a container, and a
+failure seen once under those conditions is not evidence until it is seen again
+cleanly.
+
+#### A gap in the id check, found by using it
+
+The canvas page has long been held to "every id the script looks up is one the
+page can emit", which is what catches a typo in a new control. It knew that
+`html_form()` derives an id from its first argument. It did not know that
+`html_pull_down_menu()` does the same.
+
+That went unnoticed because every other menu on the page renders
+unconditionally, so its id was always present in the RENDERED output even though
+it appears nowhere in the template as an `id=` attribute. The record picker is
+the first select that renders only sometimes — a form with no records has no
+picker — and on such a form the check reported a dead control that was nothing
+of the kind. The id was in the template all along, spelled as an argument.
+Taught, rather than worked around by giving the markup a literal id it does not
+need.
+
+
+### 13.54 Most of the records on offer were the wrong kind
+
+> "I drop down the 'Showing' selector while editing a Sales Invoice layout. Most
+> entries in the list are not Sales Invoices."
+
+§13.53 built the picker and filtered it by the record TABLE. That is not the
+discriminator. `journal_main` holds every transaction there is, and what makes a
+form a Sales Invoice is the journal its records sit in.
+
+Measured on a real company, the twenty newest rows of `journal_main` were:
+
+| journal | kind | rows |
+|---|---|---|
+| 18 | cash receipts | 7 |
+| 12 | sales invoices | 6 |
+| 10 | sales orders | 6 |
+| 4 | purchase orders | 1 |
+
+So six of twenty were the thing being laid out. A list an author has to read
+past is worse than no list, because it implies a promise it does not keep.
+
+#### The discriminator is not in the definition
+
+The obvious place to look is the form's own filters, and for a provider-backed
+form there are none: `pf_91` carries zero filters, no dataset, and a plan naming
+only `journal_main` and `id`. Nothing in the document says which journal it is
+for.
+
+What does say is its **group** — `cust:inv` — and the place that decides which
+group a journal prints through is a `switch` in
+`phreebooks/pages/status/pre_process.php`. That is the application's own answer,
+so it is the one copied: nine groups, one journal each.
+
+`bnk:deps`, `cust:stmt`, `vend:stmt`, `inv:wo` and `pos:rcpt` are not in it. Two
+are per-contact and have no journal column, one has a table to itself, one is
+edited in a different editor entirely, and `bnk:deps` has no Print button
+anywhere to say which journal it means. Each is listed in an `UNRESTRICTED`
+constant **with its reason**, which is what makes the difference visible between
+a group considered and left alone and a group nobody has met yet.
+
+**An unknown group restricts nothing.** That is the safe direction and it is
+deliberate: a wrong guess would empty the picker for a form whose author has no
+way to see why, where offering too much is merely the behaviour they had
+yesterday. The print page, which passes no group at all, is unchanged.
+
+The restriction applies to a typed reference too — searching `1234` while laying
+out an invoice must not answer with the purchase order that carries that number.
+
+#### A copy of a switch goes stale
+
+That is the real risk here, and it fails quietly: add a journal and the picker
+offers the wrong records, or none, for a form type nobody thought to re-check.
+
+`verify_forms_print_buttons.php` already harvests every `POPUP_FORM_TYPE` the
+application defines, for a different purpose. That harvest is the application's
+own list of form types, so the check is: every one of them is either restricted
+or deliberately unrestricted. Eleven found, nine restricted, two unrestricted
+with reasons. Dropping `cust:inv` from the map fails it by name.
+
+The other direction is reported rather than failed: a group this restricts that
+no Print button sends any more is dead weight, not a fault.
+
+#### Verification
+
+| check | measured |
+|---|---|
+| `cust:inv` offers only journal 12 | passes; without the restriction, `4,10,12,18` |
+| `cust:so` offers only journal 10 | passes; same failure without it |
+| `vend:po` offers only journal 4 | passes; same failure without it |
+| no group offers every kind | passes — the print page keeps what it had |
+| an unknown group restricts nothing | passes |
+| every form type the application sends is accounted for | passes; fails by name when the map is made stale |
+
+The fourth is the one guarding somebody else's feature rather than this one, and
+it is asserted rather than assumed: it only means anything on a company holding
+more than one kind of transaction, so it checks that more than one journal comes
+back rather than trusting that it would.

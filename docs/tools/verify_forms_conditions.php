@@ -19,9 +19,8 @@
 /**
  * Forms — an element that prints for some records and not others. See §13.51.
  *
- * This is the stage-0 proof: the model, the format and both renderers, with no
- * editor in front of any of it. What it has to establish, in the order that a
- * failure would matter:
+ * The model, the format, the editor's side of it, and both renderers. What it
+ * has to establish, in the order that a failure would matter:
  *
  *   1. **Comparison means what an author will assume.** The whole feature is
  *      one predicate, and the cases it gets wrong are invisible — an element
@@ -32,12 +31,21 @@
  *      before conditions existed.** All 57 shipped definitions are in that
  *      state, and a format change that rewrote every one of them to say
  *      nothing would be a diff nobody could review.
- *   3. **A condition survives a save.** The canvas has no control for one yet,
- *      so the danger is not that it cannot be edited but that it is silently
- *      DISCARDED by a save of anything else on the form.
+ *   3. **A condition can be set, cleared, and left alone.** Cleared is the
+ *      awkward one: TemplateForm carries an absent key, so a panel that wrote
+ *      the field back only when it held something would make clearing
+ *      impossible — the old condition returning on the next load as though the
+ *      edit had never happened. Both refusals — a field the form cannot supply,
+ *      a test the editor does not know — lean towards the element continuing to
+ *      print, because the other spelling removes it from every page of every
+ *      print with nothing on screen to say why.
  *   4. **The renderers agree**, and in particular that the page renderer's
  *      deferred pass — the one that draws totals, and the one that does not go
  *      through visibleOnCurrentPage() — honours a condition like every other.
+ *
+ * What is NOT here is the canvas itself: the three controls, the faded outline
+ * and the mark in the element list are shape checks in verify_forms_pages.php,
+ * where the rest of the inspector is held.
  *
  * Nothing here writes: it builds documents in memory and reads the PDFs back.
  * Safe against a live company, and it needs a company only for TCPDF's fonts
@@ -269,6 +277,99 @@ ok('the saved definition is byte-identical to the one loaded',
 
 
 // ─────────────────────────────────────────────────────────────────────────────
+echo "\n=== the editor setting one ===\n";
+
+/** The three-element form, with element 0's condition replaced by $row's keys. */
+$edit = function (array $row) use ($form, $withCondition, $conditioned): array {
+    $rows    = TemplateForm::toRequest($conditioned);
+    $rows[0] = array_merge($rows[0], $row);
+    $applied = $form->apply($withCondition, ['element' => $rows],
+                            ['currencies_code' => true, 'balance_due' => true]);
+    return [$applied->template->elements[0]->when, $form->warnings()];
+};
+
+ok('toRequest carries a condition out to the panel',
+   TemplateForm::toRequest($conditioned)[0]['when_bind'] === 'currencies_code'
+   && TemplateForm::toRequest($conditioned)[0]['when_op'] === 'in'
+   && TemplateForm::toRequest($conditioned)[0]['when_value'] === 'GBP');
+
+// An element with no condition still gets the keys, with an operator already
+// chosen — the panel needs something in the select, and a blank option there
+// would be a fourth way to say "always".
+$none = TemplateForm::toRequest(new Template([new StaticText('x', new Box(1, 1))]))[0];
+ok('an unconditioned element goes out as Always with an operator ready',
+   $none['when_bind'] === '' && $none['when_op'] === 'eq' && $none['when_value'] === '');
+
+[$when, $warnings] = $edit(['when_bind' => 'balance_due', 'when_op' => 'gt', 'when_value' => '0']);
+ok('a condition typed in the panel is stored',
+   $when?->bind->name === 'balance_due' && $when?->op === ConditionOp::Greater
+   && $when?->value === '0', $warnings ? implode(' ', $warnings) : 'no condition');
+
+// Clearing. This is the one that a "write it back only when set" panel gets
+// wrong: the field empties, nothing is posted, the absent key is carried, and
+// the condition comes back looking as though the edit never happened.
+[$when, ] = $edit(['when_bind' => '', 'when_op' => 'in', 'when_value' => 'GBP']);
+ok('clearing the field clears the condition', $when === null);
+
+// An older page, which says nothing about conditions at all. Says nothing is
+// not says none, and this is the distinction that kept stage 0 safe before any
+// of these controls existed.
+$rows = TemplateForm::toRequest($conditioned);
+foreach ($rows as $i => $row) {
+    unset($rows[$i]['when_bind'], $rows[$i]['when_op'], $rows[$i]['when_value']);
+}
+$stale = $form->apply($withCondition, ['element' => $rows], ['currencies_code' => true]);
+ok('a post that says nothing about conditions carries them',
+   $stale->template->elements[0]->when?->value === 'GBP');
+
+// Both refusals lean the same way: the element keeps printing, and the old
+// condition is kept. Spelling either as "a test nothing satisfies" would remove
+// the element from every page of every print with nothing on screen to say why.
+[$when, $warnings] = $edit(['when_bind' => 'not_a_field', 'when_op' => 'eq', 'when_value' => 'x']);
+ok('a condition on a field the form cannot supply is refused, and said',
+   $when?->value === 'GBP' && $warnings !== [], implode(' ', $warnings));
+
+[$when, $warnings] = $edit(['when_bind' => 'balance_due', 'when_op' => 'matches', 'when_value' => 'x']);
+ok('a test this editor does not know is refused, and said',
+   $when?->value === 'GBP' && $warnings !== [], implode(' ', $warnings));
+
+// A round trip through the panel with nothing touched. The canvas posts every
+// key on every save, so this is what an author does by opening a form and
+// pressing Save - the case that must not change a byte.
+ok('a condition survives the panel untouched',
+   $codec->encode($form->apply($withCondition,
+       ['element' => TemplateForm::toRequest($conditioned)],
+       ['currencies_code' => true])) === $json);
+
+// The same save with an EMPTY palette, which is not a contrived case: a caller
+// that cannot run the form to observe what its provider supplies computes a
+// smaller list than the one the condition was set against, and this tool's own
+// untouched-save check passes none at all.
+//
+// Unchanged is not a change. Re-gating a condition nobody touched reports it as
+// a name the form cannot supply, on a save where nothing happened — which is
+// exactly what it did, measured against a real invoice carrying a condition on
+// two of its bank blocks, until condition() grew the short-circuit binding()
+// has always had.
+$quiet = new TemplateForm();
+$kept  = $quiet->apply($withCondition, ['element' => TemplateForm::toRequest($conditioned)], []);
+ok('an untouched save warns about nothing, even with no palette to check against',
+   $quiet->warnings() === [], implode(' ', $quiet->warnings()));
+ok('and keeps every condition it was given',
+   $codec->encode($kept) === $json);
+
+// The short-circuit must not become a hole: a CHANGED condition is still gated,
+// whatever the element already carried.
+$moved = new TemplateForm();
+$rows  = TemplateForm::toRequest($conditioned);
+$rows[0]['when_value'] = 'USD';
+$rows[0]['when_bind']  = 'not_a_field';
+$moved->apply($withCondition, ['element' => $rows], ['currencies_code' => true]);
+ok('but a condition that DID change is still checked',
+   $moved->warnings() !== [], 'a changed condition passed ungated');
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 echo "\n=== the page renderer ===\n";
 
 /** One record, in the currency named. */
@@ -357,6 +458,24 @@ ok('a conditional LAST-PAGE element prints when there is a balance',
 ok('and gives way to the stamp when there is not',
    marks($clear, 'MARKERPAID') > 0 && marks($clear, 'MARKERDUE') === 0,
    sprintf('due %d, paid %d', marks($clear, 'MARKERDUE'), marks($clear, 'MARKERPAID')));
+
+// What the canvas is told, so it can fade the outlines that are not printing.
+// Asked of the renderer rather than worked out again, so this is also the check
+// that the two cannot disagree: the numbers below come from the same pass that
+// decided what to draw.
+$renderer->render(new LayoutDocument(
+    title: 'conditions', template: $conditioned, records: [$record('EUR')],
+    context: new Context(), page: new PageSetup('A4', 'P'),
+), new RenderOptions(filename: 'c.pdf'));
+ok('the renderer reports which elements a condition kept off the page',
+   $renderer->suppressed() === [0, 2], implode(',', $renderer->suppressed()));
+
+$renderer->render(new LayoutDocument(
+    title: 'conditions', template: new Template([new StaticText('PLAIN', new Box(20, 40, 60, 6))]),
+    records: [$record('EUR')], context: new Context(), page: new PageSetup('A4', 'P'),
+), new RenderOptions(filename: 'c.pdf'));
+ok('a form with no conditions reports none suppressed',
+   $renderer->suppressed() === [], implode(',', $renderer->suppressed()));
 
 // A bound field, which is where an author will put a condition second.
 $fielded = new Template([
