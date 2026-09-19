@@ -134,6 +134,132 @@ final readonly class Binding
 }
 
 /**
+ * How a Condition compares the value it resolved against the one the author
+ * typed.
+ *
+ * A closed list, and that is the point rather than a limitation. The obvious
+ * alternative — an expression typed into a box — is PhreeForm's mistake in a
+ * new costume: it puts author-supplied syntax in front of an evaluator living
+ * in the render layer, which is the shape §3.3 refuses for joins and §13.31
+ * has already walked back once, when the format box turned out to be free text
+ * over a vocabulary that was closed all along. An author picks a binding, picks
+ * an operator, and types a value. They never supply syntax.
+ *
+ * `NotIn` is not symmetry for its own sake. It is the only way to say
+ * "otherwise" without a grouping concept: three bank blocks conditioned on
+ * GBP, EUR, and not-GBP-or-EUR cover every record between them, and the third
+ * needs no knowledge of the other two.
+ */
+enum ConditionOp: string
+{
+    case Equals     = 'eq';
+    case NotEquals  = 'ne';
+    case In         = 'in';        // $value is a comma-separated list
+    case NotIn      = 'nin';
+    case IsEmpty    = 'empty';     // $value is ignored
+    case IsNotEmpty = 'notempty';
+    case Greater    = 'gt';
+    case Less       = 'lt';
+}
+
+/**
+ * Whether an element prints for the record being rendered.
+ *
+ * `Visibility` already answers "does this print on THIS PAGE"; this answers
+ * "does this print for THIS RECORD", and the two are independent — a total may
+ * be last-page-only AND only appear when there is a balance left to pay.
+ *
+ * The comparison is pure: it is handed a value somebody else resolved. That
+ * split is deliberate, because resolving a binding means knowing about scopes,
+ * records and aggregates, which is the renderer's business — and it is what
+ * lets both renderers share one predicate without either of them owning it.
+ *
+ * Everything compares as TEXT, with two exceptions worth stating because they
+ * are the cases an author will meet first:
+ *
+ *   - **Two numbers compare as numbers.** A Money value arriving from the
+ *     database as the string "0.00" must satisfy `equals 0`, and by string it
+ *     would not. This is also what makes `gt`/`lt` useful at all.
+ *   - **Text compares case-insensitively.** `eur` matching nothing where the
+ *     record says `EUR` is a trap with no case on the other side of it.
+ *
+ * A date needs no rule of its own: a TypedValue::date() holds `Y-m-d`, which
+ * sorts correctly as a string, so `lt 2026-01-01` means what it looks like.
+ */
+final readonly class Condition
+{
+    public function __construct(
+        public Binding     $bind,
+        public ConditionOp $op,
+        /** For In/NotIn, a comma-separated list. Ignored by IsEmpty/IsNotEmpty. */
+        public string      $value = '',
+    ) {}
+
+    public function satisfiedBy(?TypedValue $value): bool
+    {
+        $left = self::text($value);
+
+        return match ($this->op) {
+            ConditionOp::IsEmpty    => $left === '',
+            ConditionOp::IsNotEmpty => $left !== '',
+            ConditionOp::Equals     => self::same($left, $this->value),
+            ConditionOp::NotEquals  => !self::same($left, $this->value),
+            ConditionOp::In         => self::anyOf($left, $this->value),
+            ConditionOp::NotIn      => !self::anyOf($left, $this->value),
+            ConditionOp::Greater    => self::compare($left, $this->value) > 0,
+            ConditionOp::Less       => self::compare($left, $this->value) < 0,
+        };
+    }
+
+    /**
+     * The resolved value as text.
+     *
+     * A bool is spelled '1'/'0' rather than cast, because PHP casts false to
+     * the empty string — which would make every false value indistinguishable
+     * from a missing one, and `IsEmpty` quietly mean "false or absent".
+     */
+    private static function text(?TypedValue $value): string
+    {
+        $raw = $value?->raw;
+        if ($raw === null)                      return '';
+        if (is_bool($raw))                      return $raw ? '1' : '0';
+        if ($raw instanceof \DateTimeInterface) return $raw->format('Y-m-d');
+        return trim((string)$raw);
+    }
+
+    private static function same(string $left, string $right): bool
+    {
+        $right = trim($right);
+        return is_numeric($left) && is_numeric($right)
+            ? (float)$left === (float)$right
+            : mb_strtolower($left) === mb_strtolower($right);
+    }
+
+    /**
+     * Blank entries are skipped, so a trailing comma is forgiving rather than
+     * load-bearing. A list that is entirely blank therefore matches nothing,
+     * which shows up as an element that never prints — a loud authoring error,
+     * where the alternative silently matched every empty value instead.
+     */
+    private static function anyOf(string $left, string $list): bool
+    {
+        foreach (explode(',', $list) as $candidate) {
+            if (trim($candidate) === '') continue;
+            if (self::same($left, $candidate)) return true;
+        }
+        return false;
+    }
+
+    private static function compare(string $left, string $right): int
+    {
+        $right = trim($right);
+        return is_numeric($left) && is_numeric($right)
+            ? (float)$left <=> (float)$right
+            : strcmp(mb_strtolower($left), mb_strtolower($right));
+    }
+}
+
+/**
  * A presentation hint applied at render time.
  *
  * Deliberately an open string rather than an enum: PhreeForm's 14 processing

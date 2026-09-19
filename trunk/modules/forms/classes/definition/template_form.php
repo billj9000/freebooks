@@ -347,25 +347,33 @@ final class TemplateForm
         $label   = trim((string)($row['label'] ?? '')) ?: null;
         $what    = 'element ' . ($position + 1);
 
+        // CARRIED, not read from the row — the canvas has no control for a
+        // condition yet (§13.51 stage 1). Carrying it is not tidiness: without
+        // this line, opening a form that has one and pressing Save silently
+        // strips every condition in it, and the page it prints afterwards looks
+        // entirely reasonable. That is the §13.30 "carried, not emptied" rule,
+        // and it has to be in place BEFORE an author can ever make one.
+        $when    = $original->when;
+
         return match (true) {
             $original instanceof StaticText =>
-                new StaticText((string)($row['text'] ?? $original->text), $box, $style, $visible, $label),
+                new StaticText((string)($row['text'] ?? $original->text), $box, $style, $visible, $label, $when),
 
             $original instanceof Field =>
                 new Field($this->binding($row, $original->bind, $allowed, $what),
-                          $box, $original->format, $style, $visible, $label),
+                          $box, $original->format, $style, $visible, $label, $when),
 
             $original instanceof Barcode =>
                 new Barcode($this->binding($row, $original->bind, $allowed, $what),
                             $box, $this->symbology($row, $original->symbology, $what),
-                            $style, $visible, $label),
+                            $style, $visible, $label, $when),
 
             // Parts and columns are edited here now (§13.30) — but only when
             // the post actually carries them. Absent, they are carried, which
             // is what stops a stale page from emptying a table.
             $original instanceof FieldBlock =>
                 new FieldBlock($this->parts($row, $original->parts, $allowed, $what),
-                               $box, $style, $visible, $label),
+                               $box, $style, $visible, $label, $when),
 
             // The source and the heading style stay carried: every provider
             // supplies its line items under one name, so a source picker would
@@ -375,7 +383,7 @@ final class TemplateForm
                 new Table($original->source,
                           $this->columns($row, $original->columns, $allowed, $what), $box,
                           $this->headerStyleFrom($row, $original->headerStyle),
-                          $style, $visible, $label),
+                          $style, $visible, $label, $when),
 
             // Two different edits behind one element type: a bound image takes
             // a VALUE from the record, a fixed one names a FILE. Both go
@@ -386,16 +394,16 @@ final class TemplateForm
                 new Image($original->src instanceof Binding
                             ? $this->binding($row, $original->src, $allowed, $what)
                             : $this->imageFile($row, (string)$original->src, $what),
-                          $box, $style, $visible, $label, $original->pathPrefix),
+                          $box, $style, $visible, $label, $original->pathPrefix, $when),
 
             $original instanceof PageNumber =>
-                new PageNumber($box, $this->pattern($row, $original->pattern), $style, $visible, $label),
+                new PageNumber($box, $this->pattern($row, $original->pattern), $style, $visible, $label, $when),
 
             $original instanceof Line =>
-                new Line($box, $original->lineType, $style, $visible, $label),
+                new Line($box, $original->lineType, $style, $visible, $label, $when),
 
             $original instanceof Rect =>
-                new Rect($box, $style, $visible, $label),
+                new Rect($box, $style, $visible, $label, $when),
 
             default => null,
         };

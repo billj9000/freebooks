@@ -126,7 +126,12 @@ function fb_is_content(string $path): bool
     // cloned from a real installation: the labels were the give-away, and they
     // would have been adopted without a second ask if this line were not here.
     return (bool)preg_match('/^form\.elements\.\d+\.(text|label|src|source|format|type|visible)$/', $path)
-        || (bool)preg_match('/^form\.elements\.\d+\.(bind|parts)\./', $path)
+        // `when` is here for both halves of the rule at once (§13.51): it
+        // decides whether the element says anything at all, and its `value` is
+        // free text an author typed — a currency code, or just as easily a
+        // customer's name — so it is exactly the wording this classification
+        // exists to keep out of a public repository.
+        || (bool)preg_match('/^form\.elements\.\d+\.(bind|parts|when)\./', $path)
         || (bool)preg_match('/^form\.elements\.\d+\.columns\.\d+\.(key|field|bind|heading|total|format)$/', $path)
         || (bool)preg_match('/^report\.columns\.\d+\.(key|field|bind|heading|total|format)$/', $path)
         || (bool)preg_match('/^report\.(groupBy|resolved)/', $path)

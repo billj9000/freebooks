@@ -127,9 +127,10 @@ final class SerialRenderer implements FormsRenderer
     {
         $element = $field->element;
         $cell    = $field->cell;
+        $applies = $this->appliesTo($element);
 
         if ($element instanceof Table) {
-            return $this->placeTable($element, $line);
+            return $applies ? $this->placeTable($element, $line) : $line;
         }
 
         $text = match (true) {
@@ -143,6 +144,13 @@ final class SerialRenderer implements FormsRenderer
             default                        => null,
         };
         if ($text === null) return $line;
+
+        // A suppressed field is an EMPTY CELL, not a missing one (§13.51). Its
+        // width still has to be laid down, because cells are positioned by
+        // accumulation rather than by coordinate — dropping one would slide
+        // every field after it along the line, which on a till receipt is
+        // every column of the row going crooked to hide one value.
+        if (!$applies) $text = '';
 
         // PhreeForm's TBlk assigned the block straight to $oneline, where every
         // other kind overlaid it. The difference is visible: an overlay onto an
@@ -252,6 +260,20 @@ final class SerialRenderer implements FormsRenderer
     {
         $value = $row[$column->bind->name] ?? null;
         return $value === null ? '' : $this->formatter->format($value, $column->format, $this->record?->currency);
+    }
+
+    /**
+     * Whether this field prints for the record being drawn (§13.51).
+     *
+     * A receipt has no coordinates and no pages, so there is nothing here of
+     * the page renderer's two-pass machinery — but the model is shared, a
+     * SerialField wrapping the same Element, and a condition that held on one
+     * renderer and not the other would be a definition that means two things.
+     */
+    private function appliesTo(Element $element): bool
+    {
+        $when = $element->when;
+        return $when === null || $when->satisfiedBy($this->resolve($when->bind));
     }
 
     private function resolve(Binding $binding): ?TypedValue

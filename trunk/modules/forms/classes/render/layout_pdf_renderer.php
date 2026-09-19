@@ -167,7 +167,9 @@ final class LayoutPdfRenderer implements FormsRenderer
         $this->groupFirstPage = $this->pdf->getPage();
 
         foreach ($this->document->template->elements as $element) {
-            if ($element instanceof Table) $this->drawTable($element, $record);
+            if ($element instanceof Table && $this->appliesTo($element)) {
+                $this->drawTable($element, $record);
+            }
         }
 
         // Pass 2: the extent is known, so deferred content can be placed. Each
@@ -257,10 +259,39 @@ final class LayoutPdfRenderer implements FormsRenderer
         return $this->groupLastPage === null;
     }
 
+    /**
+     * Whether this element prints for the record being drawn (§13.51).
+     *
+     * Independent of `visibleOnCurrentPage()`, and asked separately because the
+     * two are genuinely different questions: that one is about pagination and
+     * changes between pages of one record, this one is about the record and
+     * cannot. A last-page total that only appears when there is a balance left
+     * to pay needs both to say yes.
+     *
+     * Asked HERE, at the top of drawElement(), rather than in
+     * visibleOnCurrentPage() — which looks like the natural home and is not.
+     * drawDeferredElements() never calls that method: it reads `->visible`
+     * itself, because a ContinuedOnOverflow element has to be drawn on exactly
+     * the pages where that method says no. A condition tested only there would
+     * therefore work on every element except totals, which is the shape of bug
+     * §13.50 was — right in the common case, silently wrong in one branch.
+     * drawElement() is the one gate every element kind passes through.
+     *
+     * A Table is the exception and is tested at its own call site, because it
+     * is placed by renderRecord() before any of this runs.
+     */
+    private function appliesTo(Element $element): bool
+    {
+        $when = $element->when;
+        return $when === null || $when->satisfiedBy($this->resolve($when->bind));
+    }
+
     // ── elements ─────────────────────────────────────────────────────────────
 
     private function drawElement(Element $element): void
     {
+        if (!$this->appliesTo($element)) return;
+
         match (true) {
             $element instanceof StaticText => $this->drawText($element, $element->text),
             $element instanceof Field      => $this->drawText($element, $this->fieldText($element)),

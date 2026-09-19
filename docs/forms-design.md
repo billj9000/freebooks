@@ -974,6 +974,7 @@ change to the seam, catalog or renderers; these numbers are the regression basel
 | `verify_forms_native.php` | Every definition converts to the native format, re-encodes byte-stably, loads back as native, and renders **identical PDF bytes** through it (§13.7 step 1) | yes | **PASS both companies** — 56 of 57 convert, 56/56 byte-identical on `demo`, 51/51 on `production` |
 | `verify_forms_designer.php` | Opening a report in the editor and saving it untouched returns the same definition and prints the same bytes; a field the dataset does not declare is refused; the original is kept on first save (§13.7 step 2) | yes | **PASS both companies** — 38 of 38 reports survive an untouched save |
 | `verify_forms_canvas.php` | The geometry the canvas overlay rests on, read back out of the PDF content stream: page size, absolute (not margin-relative) placement, both orientations, five paper sizes; and that a form opened and saved untouched is unchanged (§13.7 steps 3–4) | yes | **PASS both companies** — 61 checks; found `Letter` rendering as A4 |
+| `verify_forms_conditions.php` | An element that prints for some records and not others (§13.51): what each operator means, the format omitting a null condition, a save carrying one it cannot edit, and both renderers honouring it — the deferred last-page pass included | yes | **PASS — 54 checks**; measured against four deliberate reverts |
 
 **Run the suite against both companies — neither alone is sufficient.** `production` carries the
 transaction volume; `demo` is the only company with employees, assets and work orders. Four reports
@@ -1673,12 +1674,28 @@ here blocks step 6 — which is the distinction that keeps step 6 finishable.
    thrown a session's tidying away to gain one column. What the hand-run did instead was graft the
    one thing that was new.
 
+   **Conditions change the shape of this entry, and not for the better.** A company's copy and the
+   master can now differ in whether an element prints at all, so "keep the company's geometry, take
+   the master's content" has a third category to place: a condition is content by
+   `adopt_forms_layouts.php`'s classification (§13.51), and adopting one along with a master's
+   wording could suppress an element the company prints today. Same rule as the rest of that
+   paragraph — where both have touched the same thing there is no honest automatic answer — but a
+   condition is the case where being wrong is silent.
+
    Generalising that is the work, and most of it exists already: `adopt_forms_layouts.php` computes
    precisely the needed diff in precisely the needed categories — what the company changed against
    the master it was seeded from, split into geometry, appearance and content. An update action is
    that diff read in the other direction: take the master's content changes, keep the company's
    geometry, show both before writing, and keep a backup. Where the two have touched the same thing
    there is no honest automatic answer, and saying so per element beats guessing.
+
+9. **Conditional content — an element that prints for some records and not others.** Added
+   2026-09-19, after the question "how would an invoice show different bank details per currency?".
+   **Stage 0 is DONE — see §13.51**: `Condition` on every `Element`, the format, both renderers,
+   and the carry-through that stops a save discarding one. It is not user-visible and deliberately
+   so — that is the half that is expensive to change once definitions carry it. What remains is the
+   inspector control, and a record picker on the canvas, without which an author cannot see the
+   variant they are editing. Both are set out at the end of §13.51.
 
 #### ~~Step 6 must also move the four render-to-string call sites~~ — DONE
 
@@ -5715,3 +5732,206 @@ browser's behaviour and the shape of the fix, not the canvas's own wiring. What
 pins the wiring is the slice check above, and what pointed at all of it was the
 report — three symptoms that no other explanation fits, including the one the
 user found for us, that a redraw and a remembered change are the same event.
+
+### 13.51 An element that prints for some records and not others
+
+> "In the Forms editor … a Text element in an invoice might contain different
+> bank payment details depending on the currency."
+
+A form today prints the same elements for every record it is run against. The
+wanted thing is narrower than it first sounds: not a document that computes, but
+an element that knows whether it applies.
+
+**Stage 0 is built and is the whole of what follows here** — the model, the
+format and both renderers, with no editor in front of any of it. Nothing is
+user-visible yet, and that is deliberate: this is the half that is expensive to
+change once definitions are carrying it, and it can be proved on its own.
+
+#### The shape: a condition on the element, not alternatives inside one
+
+`Element` already carries a `Visibility`, which answers *which pages does this
+print on*. A condition answers *which records*, and the two are independent — a
+total may be last-page-only **and** appear only when there is a balance left to
+pay. So `?Condition $when` sits beside `$visible` on the base class, last in the
+signature like `$label`, which is why adding it moved no existing call site.
+
+```php
+final readonly class Condition {
+    public Binding $bind; public ConditionOp $op; public string $value;
+}
+```
+
+The bank block is then three `StaticText` elements sharing one box:
+
+| element | when |
+|---|---|
+| GBP bank details | `currencies_code` **in** `GBP` |
+| EUR bank details | `currencies_code` **in** `EUR` |
+| everything else | `currencies_code` **not in** `GBP,EUR` |
+
+`NotIn` is not symmetry for its own sake. It is the only way to say *otherwise*
+without inventing a grouping concept, and the third element needs no knowledge
+of the other two.
+
+The obvious alternative — alternatives held **inside** a text element, one box
+with N strings — is nicer for exactly this example and worse for everything
+else. It is a tenth element kind, costing the palette, the codec, the canvas,
+the converters and every verification tool, and it only ever serves text. A
+condition on `Element` serves all nine kinds: a PAID stamp, a barcode only on
+shipped orders, a rule that underlines a section which itself only sometimes
+appears. Choosing between alternatives is then the general case of several
+elements whose conditions do not overlap, rather than a mechanism of its own.
+
+The other alternative, and the one to keep refusing, is an expression typed into
+a box — `{{if currency == 'EUR'}}`. That puts author-supplied syntax in front of
+an evaluator living in the render layer, which is the shape §3.3 refuses for
+joins and which §13.31 has already walked back once, when the format box turned
+out to be free text over a vocabulary that was closed all along. An author picks
+a binding, picks an operator, and types a value. They never supply syntax, and
+the condition reads only values the document had already loaded.
+
+Nothing in the provider had to change for the worked example. `EntryProvider`
+copies every `journal_main` column onto the record, so `currencies_code` is
+already an addressable binding on the Invoice.
+
+#### What an operator means, and the four cases that are not obvious
+
+Everything compares as text, with exceptions that exist because each is a case
+an author meets in the first ten minutes:
+
+- **Two numbers compare as numbers.** A money column arrives from the database
+  as the string `"0.00"` and must satisfy `equals 0`; by string it would not.
+  It is also what makes `gt`/`lt` mean anything: by `strcmp`, `9` is not less
+  than `10`.
+- **Text compares case-insensitively.** `eur` matching nothing where the record
+  says `EUR` is a trap with no case on the other side of it.
+- **A date needs no rule of its own.** `TypedValue::date()` holds `Y-m-d`, which
+  sorts correctly as a string, so `lt 2026-01-01` means what it looks like.
+- **A boolean is spelled `1`/`0` rather than cast.** PHP casts `false` to the
+  empty string, which would make every false value indistinguishable from a
+  missing one and quietly redefine `IsEmpty` as "false or absent".
+
+A blank `in` list matches nothing, so `in ''` is an element that never prints —
+a loud authoring error, where the tempting alternative silently matched every
+empty value instead. Blank entries within a list are skipped, so a trailing
+comma is forgiving rather than load-bearing.
+
+#### Where it is evaluated, and the branch that would have been missed
+
+Both renderers resolve the binding themselves and hand the value to a pure
+`Condition::satisfiedBy()`. That split is what lets them share one predicate
+without either owning it: resolution means knowing about scopes, records and
+aggregates, which is the renderer's business; comparison is not.
+
+In `LayoutPdfRenderer` the test is at the top of `drawElement()`, and **not** in
+`visibleOnCurrentPage()`, which looks like the natural home and is not.
+`drawDeferredElements()` never calls that method — it reads `->visible` itself,
+because a `ContinuedOnOverflow` element has to be drawn on exactly the pages
+where `visibleOnCurrentPage()` says no. A condition tested only there would work
+on every element **except totals**, and say nothing about it: the shape of the
+defect in §13.50, right in the common case and silently wrong in one branch.
+`drawElement()` is the one gate every element kind passes through.
+
+A `Table` is the exception and is tested at its own call site, because
+`renderRecord()` places it before any of that runs. The verification below has a
+check for exactly this, and reverting the table's guard fails that check **and
+no other** — which is the evidence that the second call site is necessary rather
+than defensive.
+
+`SerialRenderer` gets the same predicate. A receipt has no coordinates and no
+pages, but a `SerialField` wraps the same `Element`, and a condition that held on
+one renderer and not the other would be a definition meaning two different
+things depending on which printer it reached. There, a suppressed field leaves
+an **empty cell** rather than no cell: receipt cells are positioned by
+accumulation, so dropping one slides every field after it along the line — every
+column of the row going crooked to hide one value.
+
+#### Two things that had to be done before any editor exists
+
+**`TemplateForm` carries the condition.** The canvas has no control for one, so
+every save posts rows that say nothing about it — and without the carry, opening
+a form that has a condition and pressing Save silently strips every one in it,
+leaving a page that prints perfectly reasonably. This is the §13.30 "carried,
+not emptied" rule, and it has to be in place *before* an author can ever make a
+condition, not after.
+
+**`adopt_forms_layouts.php` classifies `when` as content.** Its classification
+decides what may be adopted from a real installation into a public repository
+without being asked twice. A condition decides whether an element says anything
+at all, and its `value` is free text an author typed — a currency code, or just
+as easily a customer's name — so it is squarely what that rule exists to catch.
+
+#### The format
+
+`when` is written next to `visible`, and **omitted entirely when null**. That is
+codec rule 1 doing real work: every one of the 57 shipped definitions has a
+condition on no element, and a spelled-out `"when": null` on each of their ~42
+elements would rewrite the whole shipping set to say nothing. `verify_forms_native`
+still passes unchanged, which is the check that matters most here.
+
+Decoding is strict, and for a sharper reason than the other decoders have. An
+operator the codec cannot read must not be treated as "no condition": that
+prints an element on every record its author meant to restrict, and a form that
+prints **more** than it should is the failure nobody reports. Nor can it be
+treated as never, which hides the element entirely. Neither is a reading, so it
+is an exception.
+
+#### Verification
+
+`docs/tools/verify_forms_conditions.php` — **54 checks, all passing**. It writes
+nothing and is safe against a live company; it needs one only for TCPDF's fonts
+and the formatter's currency table.
+
+| Group | What it pins |
+|---|---|
+| 28 | every operator against the values that make it awkward — `"0.00"` vs `0`, `eur` vs `EUR`, `9 < 10`, a trailing comma, a date, a `false`, a name the record does not supply |
+| 10 | the format: round-trip stability, the three-variant template surviving encode/decode, no `when` key on an element without one, and three malformed conditions refused rather than ignored |
+| 3 | a save that knows nothing about conditions keeps all three elements, their conditions, and re-encodes byte-identically |
+| 10 | both renderers: one variant of three drawn per currency, a rectangle and a rule, a table's rows and heading, a bound field, and the deferred last-page pass |
+| 3 | a receipt field blanked without moving the cells after it |
+
+**Measured against four deliberate reverts**, because a check that cannot fail
+proves nothing:
+
+| reverted | checks that failed |
+|---|---|
+| the gate in `drawElement()` | 7 — every variant drawn at once, both deferred cases, the bound field |
+| the gate on the `Table` | **1**, the table check alone |
+| `TemplateForm` carrying `$original->when` | 2 — the condition lost, the re-encode no longer identical |
+| the codec omitting a null `when` | **1**, the shipping-set guarantee |
+
+One finding from building it, worth recording because it made the tool lie
+rather than fail. The first run reported that *nothing had been drawn at all*.
+The renderer's default face is `freeserif`, a TrueType font, and TCPDF writes
+those as subset **glyph indices** — a marker searched for in the content stream
+is never found. A core face writes ASCII. Measured directly: the same string
+drawn twice came back 1 in `helvetica` and 0 in `freeserif`. The tool now fixes
+the face for its own legibility, and says so; the checks that count drawing
+*operators* rather than text pass in either.
+
+#### What is not built
+
+Stages 1–3, in the order they are worth doing.
+
+1. **The editor.** Three inspector controls beside Visible, reusing the existing
+   binding palette; `TemplateForm` reading them through the same `$allowed` gate
+   as a field binding, so a condition on a name the form cannot supply warns and
+   keeps rather than silently never matching. Plus the two things that make
+   stacked boxes workable at all: a marker in the Elements list, and a ghosted
+   outline for an element whose condition does not match the previewed record.
+2. **A record picker on the canvas.** `ajax/canvas_pdf.php` takes the first of
+   the eight most recent records that renders, and the author has no say. With
+   conditional content that means the EUR variant cannot be seen unless the
+   newest invoice happens to be in EUR. `RecordSelector` already resolves ids
+   and labels, so this is reuse. Wanted independently; conditions are what turn
+   it from a nicety into a requirement.
+3. **Conditional block parts**, if stacking proves clumsy rather than merely
+   inelegant. The repeater UI exists since §13.30 — but a `BlockPart` has only a
+   binding and no literal text, so the bank-details case needs literal parts
+   first, which is a second change and not obviously wanted.
+
+**The failure mode to design stage 1 around** is that a wrong condition prints
+nothing and says nothing. A mistyped binding gives an empty box you can see; a
+condition that never matches removes the element from every page of every print.
+The `$allowed` gate stops the common cause and the canvas markers make the rest
+visible, but nothing else in the editor fails this quietly.

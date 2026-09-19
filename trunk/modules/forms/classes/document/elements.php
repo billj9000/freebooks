@@ -48,6 +48,23 @@ abstract readonly class Element
         public ?Style     $style   = null,
         public Visibility $visible = Visibility::AllPages,
         public ?string    $label   = null,   // designer-facing description only
+        /**
+         * When this element prints, as a test against the record — null being
+         * "always", which is what every element written before this existed
+         * means and what the codec writes nothing for.
+         *
+         * It sits on Element rather than inside a text element because the
+         * question is not "which of these strings" but "does this print at
+         * all", and that question is worth asking of every kind: a PAID stamp,
+         * a barcode only on shipped orders, the rule that underlines a section
+         * which itself only sometimes appears. Several elements sharing one box
+         * with conditions that do not overlap is then the general case of
+         * choosing between alternatives, rather than a mechanism of its own.
+         *
+         * Last in the signature, like $label, so that adding it moved no
+         * existing call site.
+         */
+        public ?Condition $when    = null,
     ) {}
 }
 
@@ -60,8 +77,9 @@ final readonly class StaticText extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -75,8 +93,9 @@ final readonly class Field extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -107,8 +126,9 @@ final readonly class FieldBlock extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -151,8 +171,9 @@ final readonly class Table extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -165,8 +186,9 @@ final readonly class Line extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -178,8 +200,9 @@ final readonly class Rect extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -206,8 +229,11 @@ final readonly class Image extends Element
         ?string $label = null,
         /** Folder, relative to the company's files, for a BOUND src only. */
         public string $pathPrefix = '',
+        // After $pathPrefix, not before it: Image is the one element whose own
+        // payload trails $label, and the codec passes both positionally.
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -223,8 +249,9 @@ final readonly class PageNumber extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }
 
@@ -238,7 +265,8 @@ final readonly class Barcode extends Element
         ?Style $style = null,
         Visibility $visible = Visibility::AllPages,
         ?string $label = null,
+        ?Condition $when = null,
     ) {
-        parent::__construct($box, $style, $visible, $label);
+        parent::__construct($box, $style, $visible, $label, $when);
     }
 }

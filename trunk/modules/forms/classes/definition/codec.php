@@ -47,9 +47,9 @@ namespace FreeBooks\Forms\Definition;
 
 use FreeBooks\Forms\Catalog\{FieldExpression, Filter, FilterOperator, Sort, SortDirection};
 use FreeBooks\Forms\Document\{
-    Align, Barcode, Binding, BlockPart, Box, Colour, Column, Element, Field, FieldBlock, Format,
-    Image, Line, PageNumber, PageSetup, Rect, ReportColumn, ReportStyle, Scope, StaticText, Style,
-    SerialCell, SerialField, SerialTemplate, Table, Template, Visibility
+    Align, Barcode, Binding, BlockPart, Box, Colour, Column, Condition, ConditionOp, Element, Field,
+    FieldBlock, Format, Image, Line, PageNumber, PageSetup, Rect, ReportColumn, ReportStyle, Scope,
+    StaticText, Style, SerialCell, SerialField, SerialTemplate, Table, Template, Visibility
 };
 
 final class DefinitionCodec
@@ -343,7 +343,29 @@ final class DefinitionCodec
 
         $this->put($out, 'style',   $this->styleToArray($element->style), null);
         $this->put($out, 'visible', $this->keyFor(self::VISIBILITY, $element->visible), 'all');
+        // Next to 'visible', because they answer the same question about two
+        // different things: which pages, and which records.
+        $this->put($out, 'when',    $this->conditionToArray($element->when), null);
         $this->put($out, 'label',   $element->label, null);
+        return $out;
+    }
+
+    /**
+     * An element's condition, or nothing at all when it has none.
+     *
+     * Omitted rather than written as null, which is rule 1 doing real work
+     * here: every one of the 57 shipped definitions has a condition on no
+     * element, and a spelled-out `"when": null` on each of their ~42 elements
+     * would rewrite every file in the shipping set to say nothing.
+     *
+     * @return array<string,mixed>|null
+     */
+    private function conditionToArray(?Condition $when): ?array
+    {
+        if ($when === null) return null;
+
+        $out = ['bind' => $this->bindingToArray($when->bind), 'op' => $when->op->value];
+        $this->put($out, 'value', $when->value, '');
         return $out;
     }
 
@@ -583,6 +605,32 @@ final class DefinitionCodec
         );
     }
 
+    /**
+     * An element's condition.
+     *
+     * Strict, by rule 3, and for a sharper reason than the other decoders have.
+     * An operator this does not recognise cannot be treated as "no condition":
+     * that would print an element on every record which its author meant to
+     * print on some, and a form that prints MORE than it should is the one
+     * failure nobody reports. Nor can it be treated as never — that hides the
+     * element entirely. Neither is a reading, so it is an exception.
+     */
+    private function conditionFromArray(mixed $data, string $tag): ?Condition
+    {
+        if ($data === null) return null;
+        if (!is_array($data)) {
+            throw new DefinitionException("The condition on a '$tag' element must be an object.");
+        }
+
+        $opKey = (string)($data['op'] ?? '');
+        $op    = ConditionOp::tryFrom($opKey);
+        if ($op === null) {
+            throw new DefinitionException("Unknown condition operator '$opKey' on a '$tag' element.");
+        }
+        return new Condition($this->bindingFromArray($data['bind'] ?? null), $op,
+            (string)($data['value'] ?? ''));
+    }
+
     /** @param array<string,mixed> $data */
     private function elementFromArray(array $data): Element
     {
@@ -600,14 +648,15 @@ final class DefinitionCodec
             throw new DefinitionException("Unknown visibility '$visibleKey' on a '$tag' element.");
         }
         $visible = self::VISIBILITY[$visibleKey];
+        $when    = $this->conditionFromArray($data['when'] ?? null, $tag);
 
         switch ($tag) {
             case 'text':
-                return new StaticText((string)($data['text'] ?? ''), $box, $style, $visible, $label);
+                return new StaticText((string)($data['text'] ?? ''), $box, $style, $visible, $label, $when);
 
             case 'field':
                 return new Field($this->bindingFromArray($data['bind'] ?? null), $box,
-                    $this->formatFromValue($data['format'] ?? null), $style, $visible, $label);
+                    $this->formatFromValue($data['format'] ?? null), $style, $visible, $label, $when);
 
             case 'block':
                 $parts = [];
@@ -618,7 +667,7 @@ final class DefinitionCodec
                         format:    $this->formatFromValue($part['format'] ?? null),
                     );
                 }
-                return new FieldBlock($parts, $box, $style, $visible, $label);
+                return new FieldBlock($parts, $box, $style, $visible, $label, $when);
 
             case 'table':
                 $columns = [];
@@ -634,27 +683,28 @@ final class DefinitionCodec
                     );
                 }
                 return new Table((string)($data['source'] ?? 'items'), $columns, $box,
-                    $this->styleFromArray($data['headerStyle'] ?? null), $style, $visible, $label);
+                    $this->styleFromArray($data['headerStyle'] ?? null), $style, $visible, $label, $when);
 
             case 'line':
-                return new Line($box, (string)($data['lineType'] ?? 'solid'), $style, $visible, $label);
+                return new Line($box, (string)($data['lineType'] ?? 'solid'), $style, $visible, $label, $when);
 
             case 'rect':
-                return new Rect($box, $style, $visible, $label);
+                return new Rect($box, $style, $visible, $label, $when);
 
             case 'image':
                 $src = $data['src'] ?? '';
                 return new Image(
                     is_array($src) ? $this->bindingFromArray($src['bind'] ?? null) : (string)$src,
-                    $box, $style, $visible, $label, (string)($data['pathPrefix'] ?? ''));
+                    $box, $style, $visible, $label,
+                    (string)($data['pathPrefix'] ?? ''), $when);
 
             case 'pagenum':
                 return new PageNumber($box, (string)($data['pattern'] ?? '{page} / {pages}'),
-                    $style, $visible, $label);
+                    $style, $visible, $label, $when);
 
             case 'barcode':
                 return new Barcode($this->bindingFromArray($data['bind'] ?? null), $box,
-                    (string)($data['symbology'] ?? 'C128'), $style, $visible, $label);
+                    (string)($data['symbology'] ?? 'C128'), $style, $visible, $label, $when);
         }
 
         // Unreachable: the ELEMENTS check above covers every tag. Kept so that
