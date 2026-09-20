@@ -122,7 +122,7 @@ $sql_log = "$webroot/my_files/sql_errors.log";
 $err_log = "$webroot/my_files/errors.log";
 $lines   = function ($f) { return file_exists($f) ? count(file($f)) : 0; };
 
-$fail = array(); $pass = 0; $noise = array();
+$fail = array(); $skip = array(); $blocked = array(); $pass = 0; $noise = array();
 foreach ($urls as $u) {
     list($kind, $url, $name) = $u;
     $s0 = $lines($sql_log); $e0 = $lines($err_log);
@@ -157,16 +157,31 @@ foreach ($urls as $u) {
         elseif (strpos($res['body'], 'admin_pass') !== false)     $why[] = 'session lost - showed the login form';
         elseif (!preg_match('~</html>\s*$~i', $res['body']))      $why[] = 'body does not end with </html> - truncated';
     }
+    // An ajax operation that declines a request is not broken, and it is not
+    // working either - it was never exercised. A GET carries none of the
+    // parameters these expect, so "Bad record submitted" is the operation
+    // behaving correctly and saying so. Counting that as a failure buries the
+    // real ones; counting it as a pass claims a test that did not happen.
+    $refused = '';
     if ($kind === 'ajax' && preg_match('~<error>(.*?)</error>~s', $res['body'], $em)) {
-        $why[] = 'ajax error: ' . substr(trim($em[1]), 0, 60);
+        $msg = trim(strip_tags(preg_replace('~<!\[CDATA\[|\]\]>~', '', $em[1])));
+        if ($why) $why[] = 'ajax error: ' . substr($msg, 0, 60);   // broken AND complained
+        // A permission refusal is a different thing again: no parameters would
+        // help, because this user does not hold the security id. That is the
+        // crawl account's doing, not the application's, and it means the
+        // operation cannot be covered until the account is given the right.
+        elseif (stripos($msg, 'permission') !== false) $blocked[] = array($name, substr($msg, 0, 60));
+        else      $refused = $msg;
     }
 
-    if ($why) $fail[] = array($name, $url, implode('; ', $why));
+    if ($why)            $fail[] = array($name, $url, implode('; ', $why));
+    elseif ($refused)    $skip[] = array($name, substr($refused, 0, 72));
     else { $pass++; if ($verbose) printf("  ok    %s\n", $name); }
 }
 
 // ---- report ---------------------------------------------------------------
-printf("\n%d of %d opened cleanly.\n", $pass, count($urls));
+printf("\n%d of %d opened cleanly; %d declined the request, %d refused this user.\n",
+       $pass, count($urls), count($skip), count($blocked));
 if ($noise) {
     arsort($noise);
     printf("\nwarnings and deprecations seen along the way (%d kinds, %d lines)\n%s\n",
@@ -177,6 +192,18 @@ if ($noise) {
         if (++$shown >= 12) { printf("  ... and %d more kinds\n", count($noise) - $shown); break; }
     }
     echo "  (not failures - but several become errors in PHP 9)\n";
+}
+if ($skip) {
+    printf("\nnot exercised - the operation declined the request (%d)\n"
+         . "a GET carries no parameters, so these need driving properly before anything is known about them\n%s\n",
+           count($skip), str_repeat('-', 76));
+    foreach ($skip as $k) printf("  %-34s %s\n", $k[0], $k[1]);
+}
+if ($blocked) {
+    printf("\nnot exercised - this account lacks the permission (%d)\n"
+         . "grant the crawl user these security ids, or they stay untested for ever\n%s\n",
+           count($blocked), str_repeat('-', 76));
+    foreach ($blocked as $b) printf("  %-34s %s\n", $b[0], $b[1]);
 }
 if ($fail) {
     printf("\n%d need looking at\n%s\n", count($fail), str_repeat('-', 76));
