@@ -4,7 +4,13 @@ FreeBooks is an open-source ERP/accounting web application for small businesses,
 
 ## Deployment
 
-FreeBooks can be deployed directly to any PHP 8.x-capable web server (Apache or Nginx) with a MySQL/MariaDB database — no Docker required. Deploy the `trunk/` directory as the web root, then visit `/install/` in a browser to run the installer.
+FreeBooks can be deployed directly to any PHP 8.x-capable web server (Apache or Nginx) with a
+MariaDB database — no Docker required. Deploy the `trunk/` directory as the web root, then visit
+`/install/` in a browser to run the installer.
+
+**MySQL is not supported yet.** The schema declares `DEFAULT '0000-00-00'` on a number of date
+columns, which MySQL 8 rejects outright at `CREATE TABLE`, so the installer cannot complete there.
+Support for MySQL 8 is a goal for the 1.0.0 release; until this note says otherwise, use MariaDB.
 
 For a containerised setup, see the [freebooks-docker](https://github.com/billj9000/freebooks-docker) repository.
 
