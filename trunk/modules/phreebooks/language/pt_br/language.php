@@ -170,6 +170,8 @@ define('ORD_FREIGHT_GL_ACCT','Conta Frete CG');
 define('ORD_JS_NO_CID','A informação de Contato deve ser carregada neste formulário antes que as propriedades possam ser recuperadas.');
 define('ORD_ERROR_NOT_CUR_PERIOD','Suas permissões não permitem lançar para outro período que não o corrente!');
 define('ORD_ERROR_BAD_JOURNAL_ID','That document type (journal %s) is not one this page handles.');
+define('ORD_ERROR_NOTHING_SELECTED','No document was selected, so there is nothing to convert.');
+define('PB_ERROR_NO_VENDOR_GIVEN','No vendor was given, so there is no low stock to report.');
 define('ORD_ERROR_DEL_NOT_CUR_PERIOD','Suas permissões não permitem remover uma ordem de outro período que não o corrente!');
 define('ORD_WARN_FORM_HAS_DATA','Este formulário esta sendo limpo mas há itens na tabela. Pressione OK para limpar a tabela, Cancelar, para manter os itens na lista.');
 define('ORD_WARN_FORM_MODIFIED','Parece que já há informação neste formulário. Quer procurar por um contato existente?');

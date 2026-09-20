@@ -172,6 +172,8 @@ define('ORD_WARN_FORM_MODIFIED','There appears to be data in this form already. 
 define('ORD_WARN_FORM_HAS_DATA','This form is being cleared but there are items in the table. Press OK to clear the table, Cancel to retain the items in the list.');
 define('ORD_ERROR_NOT_CUR_PERIOD','Your permissions prevent you from posting to a period other than the current period!');
 define('ORD_ERROR_BAD_JOURNAL_ID','That document type (journal %s) is not one this page handles.');
+define('ORD_ERROR_NOTHING_SELECTED','No document was selected, so there is nothing to convert.');
+define('PB_ERROR_NO_VENDOR_GIVEN','No vendor was given, so there is no low stock to report.');
 define('ORD_ERROR_DEL_NOT_CUR_PERIOD','Your permissions prevent you from deleting an order from a period other than the current period!');
 define('ORD_DISCOUNT_GL_ACCT','Discount GL Account');
 define('ORD_FREIGHT_GL_ACCT','Freight GL Account');

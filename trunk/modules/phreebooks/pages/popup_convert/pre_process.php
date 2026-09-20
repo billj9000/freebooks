@@ -103,7 +103,13 @@ switch ($_REQUEST['action']) {
 }
 
 /*****************   prepare to display templates  *************************/
-$result       = $db->Execute("select journal_id from " . TABLE_JOURNAL_MAIN . " where id = " . $id);
+// Without an id this built "where id = " and ended on the crash page. There is
+// nothing to convert if nothing was named.
+if (!is_numeric($id)) {
+  $messageStack->add(ORD_ERROR_NOTHING_SELECTED, 'error');
+  gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreebooks&page=main', 'SSL'));
+}
+$result       = $db->Execute("select journal_id from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$id);
 $jID          = $result->fields['journal_id'];
 $account_type = ($jID == 3 ? 'v' : 'c');
 

@@ -21,11 +21,19 @@
 $security_level = validate_ajax_user();
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
-$contact_id = db_prepare_input($_GET['contact_id']);
+$contact_id = db_prepare_input($_GET['contact_id'] ?? '');
 $xml = NULL;
+// The id is interpolated into the WHERE clause. Absent, it made "ref_1 = " and a
+// syntax error, answered to the browser as an ajax reply quoting raw SQL. A
+// contact nobody named has no stored payments, which is an empty answer rather
+// than an error.
+if (!is_numeric($contact_id)) {
+	echo createXmlHeader() . createXmlFooter();
+	die;
+}
 
 $enc_data = new encryption();
-$sql = "select id, hint, enc_value from ".TABLE_DATA_SECURITY." where module='contacts' and ref_1 = $contact_id";
+$sql = "select id, hint, enc_value from ".TABLE_DATA_SECURITY." where module='contacts' and ref_1 = " . (int)$contact_id;
 $result = $db->Execute($sql);
 while (!$result->EOF) {
 	$data = $enc_data->decrypt($_SESSION['admin_encrypt'], $result->fields['enc_value']);

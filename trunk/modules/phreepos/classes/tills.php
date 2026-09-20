@@ -249,9 +249,14 @@ class tills {
   
   function get_till_info($till_id){
   	global $db;
-  	$sql = "select * from " . $this->db_table . " where till_id = " . $till_id;
+  	// An id that never arrived built "where till_id = " with nothing after it -
+  	// a syntax error, which reaches the user as the crash page or an ajax reply
+  	// carrying raw SQL. Nothing is loaded for a till that was not asked for.
+  	if (!is_numeric($till_id)) return false;
+  	$sql = "select * from " . $this->db_table . " where till_id = " . (int)$till_id;
     $result = $db->Execute($sql);
     foreach ($result->fields as $key => $value) $this->$key = $value;
+    return true;
   }
   
   function get_default_till_info(){

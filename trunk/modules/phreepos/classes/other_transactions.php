@@ -193,9 +193,13 @@ class other_transactions {
   	
   	function get_transaction_info($id){
   		global $db;
-  		$sql = "select * from " . $this->db_table . " where ot_id = " . $id;
+  		// See tills::get_till_info - an absent id made a syntax error out of the
+  		// statement rather than an empty result.
+  		if (!is_numeric($id)) return false;
+  		$sql = "select * from " . $this->db_table . " where ot_id = " . (int)$id;
         $result = $db->Execute($sql);
         foreach ($result->fields as $key => $value) $this->$key = $value;
+        return true;
   	}
   	
   	function __destruct(){

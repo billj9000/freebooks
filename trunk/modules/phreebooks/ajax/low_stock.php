@@ -22,11 +22,20 @@ $xml   = NULL;
 $security_level = validate_ajax_user();
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
-$cID = db_prepare_input($_GET['cID']); //vendor
-$sID = db_prepare_input($_GET['sID']); //store
-$rID = db_prepare_input($_GET['rID']); //row
-if (isset($sID) && ENABLE_MULTI_BRANCH) $where = " store_id = $sID and ";
-$where .= " p.vendor_id = $cID";	
+$cID = db_prepare_input($_GET['cID'] ?? ''); //vendor
+$sID = db_prepare_input($_GET['sID'] ?? ''); //store
+$rID = db_prepare_input($_GET['rID'] ?? ''); //row
+// Both ids go straight into the WHERE clause. Without a vendor that read
+// " p.vendor_id = " and the statement died of a syntax error, which came back to
+// the browser as an ajax reply quoting raw SQL. There is no low stock to report
+// for a vendor nobody named.
+if (!is_numeric($cID)) {
+  echo createXmlHeader() . xmlEntry('error', PB_ERROR_NO_VENDOR_GIVEN) . createXmlFooter();
+  die;
+}
+$where = '';
+if (is_numeric($sID) && ENABLE_MULTI_BRANCH) $where = " store_id = " . (int)$sID . " and ";
+$where .= " p.vendor_id = " . (int)$cID;	
 if (ENABLE_MULTI_BRANCH) {
   $quantity_where = "remaining";
   // Grouped by sku, every other column is bare - which ONLY_FULL_GROUP_BY, the
