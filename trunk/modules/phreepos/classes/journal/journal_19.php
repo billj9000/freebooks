@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -277,8 +278,10 @@ class journal_19 extends journal {
 		$this->journal_rows[] = array(
 			'qty'            => '1',
 			'gl_type'        => 'rnd',		// code for discount charges
-			'debit_amount'   => ($this->rounding_amt < 0) ? -$this->rounding_amt : '',
-			'credit_amount'  => ($this->rounding_amt > 0) ? $this->rounding_amt  : '',
+			// journal_item.debit_amount/credit_amount are `double`, so the unused
+			// side of the rounding row is 0, not '', which a strict server refuses.
+			'debit_amount'   => ($this->rounding_amt < 0) ? -$this->rounding_amt : 0,
+			'credit_amount'  => ($this->rounding_amt > 0) ? $this->rounding_amt  : 0,
 			'description'    => MENU_HEADING_PHREEPOS . '-' . TEXT_ROUNDING_OF,
 			'gl_account'     => $this->rounding_gl_acct_id,
 			'taxable'        => '0',
