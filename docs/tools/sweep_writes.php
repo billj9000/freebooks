@@ -126,7 +126,7 @@ function sql_of_call($src, $open) {
 
 $findings = array('db_perform' => array(), 'raw' => array(), 'omitted' => array());
 $stats = array('files' => 0, 'db_perform_calls' => 0, 'raw_calls' => 0,
-               'checked' => 0, 'unresolved_table' => 0, 'unparsed_raw' => 0);
+               'checked' => 0, 'unresolved_table' => 0, 'unparsed_raw' => 0, 'dynamic_array' => 0);
 
 $files = array();
 foreach (array('modules', 'includes') as $dir) {
@@ -151,9 +151,19 @@ foreach ($files as $file) {
             if ($call[2][0] === 'array(') {
                 $body = substr($src, $call[0][1], 4000);
             } else {
+                // The nearest assignment BEFORE this call, not the last one in the
+                // file. A page that builds $sql_data_array several times - most of
+                // them do - was being read against whichever block happened to
+                // come last, which reported columns as missing that the relevant
+                // block supplies. wo_main.revision was flagged that way while
+                // sitting in plain sight five lines above its own insert.
                 $var = preg_quote($call[2][0], '/');
-                if (!preg_match_all("/$var\s*=\s*array\((.*?)\n\s*\);/s", $src, $mm)) continue;
-                $body = end($mm[1]);
+                if (!preg_match_all("/$var\s*=\s*array\((.*?)\n\s*\);/s", $src, $mm, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) continue;
+                $body = null;
+                foreach ($mm as $cand) {
+                    if ($cand[0][1] < $call[0][1]) $body = $cand[1][0];   // keep the latest one still above
+                }
+                if ($body === null) continue;
             }
             if (!preg_match_all("/'([a-z_0-9]+)'\s*=>\s*([^,\n]+)/", $body, $pairs, PREG_SET_ORDER)) continue;
 
@@ -166,7 +176,27 @@ foreach ($files as $file) {
             if (!$is_update) {
                 $supplied = array();
                 foreach ($pairs as $pp) $supplied[$pp[1]] = true;
-                foreach ($cols[$tbl] as $cname => $ci) {
+                // A column can also be set after the literal, as
+                // $sql_data_array['admin_pass'] = ...  Reading only the literal
+                // reports a column as omitted when the line below supplies it.
+                // This is file-scope rather than flow-sensitive, so it can
+                // over-suppress; between the two, a false clear on a column that
+                // IS set somewhere is less misleading than a standing false
+                // alarm nobody can silence.
+                $vname = $call[2][0] === 'array(' ? null : $call[2][0];
+                if ($vname && preg_match_all('/' . preg_quote($vname, '/') . "\\[\\s*'([a-z_0-9]+)'\\s*\\]\\s*=[^=]/", $src, $asg)) {
+                    foreach ($asg[1] as $set) $supplied[$set] = true;
+                }
+                // An array filled through a variable key - $output_array[$key] =
+                // $value, inside a foreach over a row - has contents no static
+                // reader can know. The copy pages build their arrays that way and
+                // most of the columns arrive through the switch's default branch.
+                // Saying "cannot tell" is the honest answer; saying "omitted"
+                // produced a finding for a column sitting five lines above the
+                // insert that copies it.
+                $dynamic = $vname && preg_match('/' . preg_quote($vname, '/') . '\\[\\s*\\$/', $src);
+                if ($dynamic) { $stats['dynamic_array']++; $supplied = null; }
+                foreach (($supplied === null ? array() : $cols[$tbl]) as $cname => $ci) {
                     if ($ci['is_nullable'] !== 'NO' || $ci['column_default'] !== null) continue;
                     if (strpos($ci['extra'], 'auto_increment') !== false) continue;
                     // enum and set are the exception, measured on MariaDB 11.4 and
@@ -260,6 +290,7 @@ report('columns an INSERT omits that cannot be omitted', $findings['omitted'], $
 
 printf("\nscanned %d files: %d db_perform calls, %d raw UPDATE statements, %d column writes checked\n",
     $stats['files'], $stats['db_perform_calls'], $stats['raw_calls'], $stats['checked']);
-printf("could NOT resolve: %d statements whose table was unknown, %d raw statements not parsed\n",
-    $stats['unresolved_table'], $stats['unparsed_raw']);
+printf("could NOT resolve: %d statements whose table was unknown, %d raw statements not parsed,\n"
+     . "                  %d inserts whose array is built through a variable key\n",
+    $stats['unresolved_table'], $stats['unparsed_raw'], $stats['dynamic_array']);
 echo "Every finding is a candidate: a static sweep cannot know what a variable holds.\n";

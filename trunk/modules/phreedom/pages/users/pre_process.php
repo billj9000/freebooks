@@ -113,6 +113,12 @@ switch ($_REQUEST['action']) {
 		db_perform(TABLE_USERS, $sql_data_array, 'update', 'admin_id = ' . (int)$admin_id);
 		gen_add_audit_log(sprintf(GEN_LOG_USER, TEXT_UPDATE), db_prepare_input($_POST['admin_name']));
 	  } else {
+		// admin_pass is NOT NULL with no default, so an INSERT must supply it: omit
+		// it and a server at its defaults refuses the whole row. A role has no
+		// password, and a new user given none starts without one -
+		// pw_validate_password() refuses an empty stored hash outright, so neither
+		// can be logged in to. A lax server was storing this same '' implicitly.
+		if (!isset($sql_data_array['admin_pass'])) $sql_data_array['admin_pass'] = '';
 		db_perform(TABLE_USERS, $sql_data_array);
 		$admin_id = db_insert_id();
 		gen_add_audit_log(sprintf(GEN_LOG_USER, TEXT_ADD), db_prepare_input($_POST['admin_name']));
@@ -154,6 +160,9 @@ switch ($_REQUEST['action']) {
 		  $output_array[$key] = $value;
 	  }
 	}
+	// The copy deliberately leaves the password behind, but the column is NOT NULL
+	// with no default, so it has to be said rather than left out.
+	$output_array['admin_pass'] = '';
 	db_perform(TABLE_USERS, $output_array, 'insert');
 	$new_id = db_insert_id();
 	$messageStack->add(GEN_MSG_COPY_SUCCESS, 'success');
