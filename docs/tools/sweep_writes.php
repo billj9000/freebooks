@@ -50,7 +50,8 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $STRINGY = array('varchar','char','text','tinytext','mediumtext','longtext',
                  'blob','mediumblob','longblob');   // enum/set are NOT strings here
 $cols = array();
-foreach ($pdo->query("select table_name, column_name, data_type, column_type
+foreach ($pdo->query("select table_name, column_name, data_type, column_type,
+                             is_nullable, column_default, extra
                       from information_schema.columns where table_schema = database()")
               ->fetchAll(PDO::FETCH_ASSOC) as $c) {
     $cols[strtolower($c['table_name'])][strtolower($c['column_name'])] = $c;
@@ -123,7 +124,7 @@ function sql_of_call($src, $open) {
     return preg_replace('/\s*\.\s*/', ' ', $arg);
 }
 
-$findings = array('db_perform' => array(), 'raw' => array());
+$findings = array('db_perform' => array(), 'raw' => array(), 'omitted' => array());
 $stats = array('files' => 0, 'db_perform_calls' => 0, 'raw_calls' => 0,
                'checked' => 0, 'unresolved_table' => 0, 'unparsed_raw' => 0);
 
@@ -155,6 +156,31 @@ foreach ($files as $file) {
                 $body = end($mm[1]);
             }
             if (!preg_match_all("/'([a-z_0-9]+)'\s*=>\s*([^,\n]+)/", $body, $pairs, PREG_SET_ORDER)) continue;
+
+            // A column that is NOT NULL, has no default and is not auto_increment
+            // must be supplied: omit it and a server at its defaults refuses the
+            // whole row. This is the shape of the known inventory.serialize bug,
+            // where every brand new item fails to save. Only INSERTs can suffer
+            // it - an UPDATE names the columns it changes and no others.
+            $is_update = (bool)preg_match("/,\s*'update'/", substr($src, $call[0][1], 4000));
+            if (!$is_update) {
+                $supplied = array();
+                foreach ($pairs as $pp) $supplied[$pp[1]] = true;
+                foreach ($cols[$tbl] as $cname => $ci) {
+                    if ($ci['is_nullable'] !== 'NO' || $ci['column_default'] !== null) continue;
+                    if (strpos($ci['extra'], 'auto_increment') !== false) continue;
+                    // enum and set are the exception, measured on MariaDB 11.4 and
+                    // MySQL 8.4: omitting one is accepted, because its implicit
+                    // default is its first declared member. varchar, int and date
+                    // are all refused. Do not reason about this from the manual -
+                    // it was tested, and the answer was not what was expected.
+                    if (in_array($ci['data_type'], array('enum','set'))) continue;
+                    if (isset($supplied[$cname])) continue;
+                    $findings['omitted'][] = array($tbl, $cname, $ci['column_type'], '(not supplied)',
+                        'NOT NULL, no default: the row is refused', $short . ':' . $line_of($call[0][1]), 'suspect');
+                }
+            }
+
             foreach ($pairs as $pair) {
                 list(, $col, $expr) = $pair;
                 if (!isset($cols[$tbl][$col])) continue;
@@ -230,6 +256,7 @@ function report($title, $rows, $show_safe) {
 
 report('db_perform() writes that cannot be proven non-blank', $findings['db_perform'], $show_safe);
 report('raw UPDATE writes into non-string columns', $findings['raw'], $show_safe);
+report('columns an INSERT omits that cannot be omitted', $findings['omitted'], $show_safe);
 
 printf("\nscanned %d files: %d db_perform calls, %d raw UPDATE statements, %d column writes checked\n",
     $stats['files'], $stats['db_perform_calls'], $stats['raw_calls'], $stats['checked']);
