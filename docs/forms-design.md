@@ -1601,7 +1601,7 @@ committing them, and teaching the installer to seed those instead.
 
 Three traps in that, all of which fail silently:
 
-- **`ImportReport()` is where the paper size is stamped** (§11 paper-size work, commit `5db3ccd`).
+- **`ImportReport()` is where the paper size is stamped** (§11 paper-size work, commit `8b67473`).
   A native seeding path that does not do the same loses the installer's Letter/A4 choice on exactly
   the installs that just made it. **Re-stamp has the same hole**: it is a textual substitution on
   XML and would skip every native file.
@@ -1701,7 +1701,7 @@ here blocks step 6 — which is the distinction that keeps step 6 finishable.
 
 #### ~~Step 6 must also move the four render-to-string call sites~~ — DONE
 
-**All four were switched in `cf8c94d2` and the receipt work that followed it** (§13.26, §13.28).
+**All four were switched in `688832fe` and the receipt work that followed it** (§13.26, §13.28).
 Each now tries `forms_render_to_string()` first and falls back to `get_report_details()` /
 `BuildForm()`, so step 6's job here is to delete the fallback rather than to write the branch.
 
@@ -2336,7 +2336,7 @@ module** rather than across the tree.
 
 Converting our own shipped set found what converting customers' definitions never could, because
 **every byte comparison in the suite is Forms-native against Forms-legacy, both through the same
-converter** — a gap in it agrees with itself. All three are in `b46f321e`:
+converter** — a gap in it agrees with itself. All three are in `dd87ddac`:
 
 - **A blank where a price belongs.** Sales Order, Customer Quotes and Vendor Credit Memo ask for
   `journal_item.credit_amount / journal_item.qty`, which mapped to nothing. `item_unit_price` divides
