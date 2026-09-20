@@ -112,6 +112,11 @@ case "$action" in
     docker exec -i "$APP" sh -c "cat > $MY_FILES/$name/config.php" <<PHPCONF
 <?php
 // Disposable test company - created by docs/tools/test_company.sh. Safe to delete.
+// The _TITLE constant is not optional: the company selector calls
+// constant("\$name_TITLE") for every directory under my_files, and a missing one
+// is an uncaught Error that ends the request with an empty 200 - no page, no
+// message, nothing in the browser to say what happened.
+define('${name}_TITLE','Test copy (${name})');
 define('DB_SERVER_USERNAME','fbtest');
 define('DB_SERVER_PASSWORD','fbtest');
 define('DB_SERVER_HOST','$server');
