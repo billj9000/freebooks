@@ -187,9 +187,17 @@ foreach (array_intersect_key($ref_cols, $fresh_cols) as $t => $cols) {
 
 printf("\n%d columns missing from a fresh install, %d only in one, %d typed differently.\n",
        $missing, $extra, $differ);
-echo $missing || $extra || $differ
-   ? "The baseline does not yet reproduce a working database.\n"
-   : "A fresh install and an upgraded database agree.\n";
+// The verdict must count the tables too. It did not, and said the two agreed
+// while three tables were missing outright - a false pass of exactly the kind
+// this tool exists to catch.
+$agree = !$missing && !$extra && !$differ && !$only_ref && !$only_new;
+if (!$agree && ($only_ref || $only_new)) {
+    printf("%d table(s) exist on one side only.\n", count($only_ref) + count($only_new));
+}
+echo $agree
+   ? "A fresh install and an upgraded database agree.\n"
+   : "The baseline does not yet reproduce a working database.\n";
+exit($agree ? 0 : 1);
 
 if ($fake->failures && $verbose) {
     echo "\nstatements the fresh install could not run:\n";

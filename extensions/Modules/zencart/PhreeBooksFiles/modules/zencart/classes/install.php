@@ -66,6 +66,14 @@ class zencart_admin {
   function install($module) {
     global $db, $messageStack;
 	$error = false;
+	// zc_ship_notify was created in update() only, so an installation that had
+	// never been upgraded simply did not have it - the same fault the whole
+	// baseline exercise is about, one module further out. Created here too;
+	// IF NOT EXISTS makes it harmless where update() got there first.
+	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SHIP_NOTIFY . " ("
+	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
+	    . "notified_at DATETIME NOT NULL"
+	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8");
 	if (!db_field_exists(TABLE_INVENTORY, 'catalog')) { // setup new tab in table inventory
 	  $result = $db->Execute("select id FROM ".TABLE_EXTRA_TABS." WHERE tab_name='ZenCart'");
 	  if ($result->RecordCount() == 0) {

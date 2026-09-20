@@ -99,6 +99,17 @@ class phreebooks_admin {
 	);
 	// Load tables
 	$this->tables = array(
+	  TABLE_PURCHASE_EXPORT_PROFILE => "CREATE TABLE " . TABLE_PURCHASE_EXPORT_PROFILE . " (
+		  id int(11) NOT NULL auto_increment,
+		  profile_name varchar(64) NOT NULL default '',
+		  file_extension varchar(8) NOT NULL default 'txt',
+		  header_template text,
+		  line_template text,
+		  footer_template text,
+		  line_ending varchar(4) NOT NULL default 'crlf',
+		  inactive int(1) NOT NULL default '0',
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
 	  TABLE_ACCOUNTING_PERIODS => "CREATE TABLE " . TABLE_ACCOUNTING_PERIODS . " (
 		  period int(11) NOT NULL default '0',
 		  fiscal_year int(11) NOT NULL default '0',

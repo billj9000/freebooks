@@ -22,7 +22,21 @@ class payment_admin {
 	public $prerequisites 	= array();// modules required and rev level for this module to work properly
 	public $keys			= array();// Load configuration constants for this module, must match entries in admin tabs
 	public $dirlist			= array();// add new directories to store images and data
-	public $tables			= array();// Load tables
+	// pb_paypal_orders was created by paypal.php the first time it was needed, so
+	// it existed only on installations that had taken a PayPal payment. A table
+	// the application depends on belongs in the schema, not in a code path.
+	public $tables = array(
+	  'pb_paypal_orders' => "CREATE TABLE pb_paypal_orders (
+		  id INT AUTO_INCREMENT PRIMARY KEY,
+		  paypal_order_id VARCHAR(64) NOT NULL,
+		  fb_invoice_id INT NOT NULL,
+		  capture_id VARCHAR(64),
+		  source_type VARCHAR(16) NOT NULL DEFAULT 'order',
+		  status VARCHAR(32) DEFAULT 'PENDING',
+		  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		  UNIQUE KEY uk_order (paypal_order_id)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+	);
 	
   function __construct() {
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
