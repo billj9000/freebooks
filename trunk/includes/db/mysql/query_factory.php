@@ -110,6 +110,43 @@ class queryFactory {
 HTML;
     }
 
+    /**
+     * Append a failed statement to my_files/sql_errors.log.
+     *
+     * Everything else this class does with a failure is transient: the web path
+     * redirects to the crash page, the ajax path returns an <error> element, and
+     * write_debug() opens trace.txt with mode 'w', so each failure erases the one
+     * before it. A cron job gets none of them - gen_redirect() is a no-op header()
+     * and an exit, so it ends with status 0 and nothing written down.
+     *
+     * So this is the only durable record that a statement was refused, which is
+     * what a database at its default settings does to writes a lax one accepted.
+     * It is also the only evidence anyone has when an installation misbehaves and
+     * the user reports a blank page.
+     *
+     * Appends, never truncates, and never throws: a logger that can bring down the
+     * request it is describing is worse than no logger.
+     */
+    private function log_sql_error($sql, $e) {
+        if (!defined('DIR_FS_MY_FILES')) return;   // too early, or a harness without one
+        try {
+            $caller = '';
+            foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+                if (isset($frame['file']) && basename($frame['file']) <> 'query_factory.php') {
+                    $caller = (defined('DIR_FS_ADMIN') ? str_replace(DIR_FS_ADMIN, '', $frame['file']) : $frame['file'])
+                            . ':' . ($frame['line'] ?? '?');
+                    break;
+                }
+            }
+            $page = $_POST['page'] ?? $_GET['page'] ?? (PHP_SAPI === 'cli' ? 'cli' : '');
+            @error_log(sprintf("%s  %s  %s  at %s  page=%s%s  sql=%s%s",
+                date('Y-m-d H:i:s'), $e->getCode(), preg_replace('/\s+/', ' ', $e->getMessage()),
+                $caller, $page, PHP_EOL, preg_replace('/\s+/', ' ', trim($sql)), PHP_EOL),
+                3, DIR_FS_MY_FILES . 'sql_errors.log');
+        } catch (Throwable $ignored) {   // never let logging break the request
+        }
+    }
+
     function Execute($zf_sql, $zf_limit = false, $zf_cache = false, $zf_cachetime = 0) {
         global $zc_cache, $messageStack;
         if ($zf_limit !== false) {
@@ -140,6 +177,7 @@ HTML;
             $obj->result     = $stmt->columnCount() > 0 ? $stmt->fetchAll() : [];
             $obj->_load_cursor();
         } catch (PDOException $e) {
+            $this->log_sql_error($zf_sql, $e);
             $page = $_POST['page'] ?? $_GET['page'] ?? '';
             if ($page === 'ajax') {
                 if (is_object($messageStack) && method_exists($messageStack, 'debug')) {

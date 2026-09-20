@@ -1030,21 +1030,47 @@ function gen_db_date($raw_date = '', $separator = '/') {
   function db_perform_empty_check($table, $data) {
     static $meta = array();
     global $db;
+    // '' is not the only blank that reaches a column. db_input() casts with
+    // (string)($x ?? ''), and (string)false is '' too, so an unset property or a
+    // ?? null arrives at a DATE or a DOUBLE as the empty string with nothing to
+    // show for it. All three are the same write and all three are checked.
+    //
+    // A zero date is picked up as well, though it is legal here: MariaDB's
+    // defaults omit NO_ZERO_DATE. It is logged, never coerced, because the
+    // columns holding them are to become nullable and this is the only way to
+    // find which code paths still write one. Both tests are string comparisons,
+    // so the early return still costs nothing on the usual call.
     $suspect = false;
-    foreach ($data as $value) if ($value === '') { $suspect = true; break; }
+    foreach ($data as $value) {
+      if (db_value_is_blank($value) || db_value_is_zero_date($value)) { $suspect = true; break; }
+    }
     if (!$suspect) return $data;
     if (!isset($meta[$table])) {
       $meta[$table] = array();
-      $result = $db->Execute("select column_name, data_type, is_nullable, column_default, extra
+      $result = $db->Execute("select column_name, data_type, column_type, is_nullable, column_default, extra
         from information_schema.columns where table_schema = database() and table_name = '" . db_input($table) . "'");
       while (!$result->EOF) { $meta[$table][$result->fields['column_name']] = $result->fields; $result->MoveNext(); }
     }
-    $stringy = array('varchar','char','text','tinytext','mediumtext','longtext','enum','set','blob','mediumblob','longblob');
+    // enum and set are deliberately NOT in this list. They look like strings and
+    // were treated as such, which made the check blind to all of them - and '' is
+    // refused for an enum unless it is a declared member, which is exactly the
+    // failure that aborted a company copy once already.
+    $stringy = array('varchar','char','text','tinytext','mediumtext','longtext','blob','mediumblob','longblob');
     $coerce  = getenv('FB_EMPTY_COLUMN_COERCE') === '1';
     foreach ($data as $column => $value) {
-      if ($value !== '' || !isset($meta[$table][$column])) continue;
+      if (!isset($meta[$table][$column])) continue;
       $info = $meta[$table][$column];
+      // A zero date is a separate matter: legal today, logged so the migration
+      // that makes these columns nullable knows which writers to change.
+      if (db_value_is_zero_date($value) && in_array($info['data_type'], array('date','datetime','timestamp'))) {
+        db_log_empty_write($table, $column, "zero date '" . $value . "'", 'kept', false);
+        continue;
+      }
+      if (!db_value_is_blank($value)) continue;
       if (in_array($info['data_type'], $stringy)) continue;
+      // An enum or a set may legitimately declare '' as one of its values. Only
+      // the ones that do not are a problem.
+      if (in_array($info['data_type'], array('enum','set')) && db_enum_allows_blank($info['column_type'])) continue;
       // MariaDB 10.2+ reports a default as the EXPRESSION it was declared with,
       // not as a value, and two of those shapes bite:
       //   DEFAULT NULL          comes back as the four-character string NULL
@@ -1071,23 +1097,76 @@ function gen_db_date($raw_date = '', $separator = '/') {
         if ($coerce) $data[$column] = 'null';
         $became = 'NULL';
       } else { // no default and no NULL allowed: the zero of its own type
-        $zero = in_array($info['data_type'], array('date')) ? '0000-00-00'
-          : (in_array($info['data_type'], array('datetime','timestamp')) ? '0000-00-00 00:00:00' : 0);
+        if (in_array($info['data_type'], array('enum','set'))) {
+          $members = db_enum_members($info['column_type']);   // an enum's zero is its first value
+          $zero    = count($members) ? $members[0] : '';
+        } else {
+          $zero = in_array($info['data_type'], array('date')) ? '0000-00-00'
+            : (in_array($info['data_type'], array('datetime','timestamp')) ? '0000-00-00 00:00:00' : 0);
+        }
         if ($coerce) $data[$column] = $zero;
         $became = "'" . $zero . "'";
       }
-      $caller = '';
-      foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
-        if (isset($frame['file']) && basename($frame['file']) <> 'common_functions.php') {
-          $caller = str_replace(DIR_FS_ADMIN, '', $frame['file']) . ':' . ($frame['line'] ?? '?');
-          break;
-        }
-      }
-      @error_log(sprintf("%s  %s.%s given '' -> %s %s   at %s%s",
-        date('Y-m-d H:i:s'), $table, $column, $coerce ? 'wrote' : 'WOULD write', $became, $caller, PHP_EOL),
-        3, DIR_FS_MY_FILES . 'empty_column_writes.log');
+      db_log_empty_write($table, $column, db_value_describe($value), $became, $coerce);
     }
     return $data;
+  }
+
+  /**
+   * The three shapes of blank that reach a column as the empty string.
+   *
+   * db_input() is addslashes((string)($x ?? '')), so a PHP null and a false both
+   * arrive as '' with nothing in the array to show for it. Checking only for ''
+   * meant every one of those went unseen - no log line, and no coercion either.
+   */
+  function db_value_is_blank($value) {
+    return $value === '' || $value === null || $value === false;
+  }
+
+  function db_value_is_zero_date($value) {
+    return is_string($value) && strncmp($value, '0000-00-00', 10) === 0;
+  }
+
+  function db_value_describe($value) {
+    if ($value === null)  return 'null';
+    if ($value === false) return 'false';
+    return "''";
+  }
+
+  /**
+   * The declared values of an enum or set, out of a column_type such as
+   * enum('0','1'). information_schema gives the declaration, not a list, so it
+   * has to be parsed; a member containing a quote is doubled inside it.
+   */
+  function db_enum_members($column_type) {
+    if (!preg_match('/^(?:enum|set)\((.*)\)$/is', trim($column_type), $m)) return array();
+    if (!preg_match_all("/'((?:[^']|'')*)'/", $m[1], $vals)) return array();
+    return array_map(function ($v) { return str_replace("''", "'", $v); }, $vals[1]);
+  }
+
+  function db_enum_allows_blank($column_type) {
+    return in_array('', db_enum_members($column_type), true);
+  }
+
+  /**
+   * One line per suspect write, appended. 'kept' in place of wrote/WOULD write
+   * marks a value that was recorded but deliberately left alone.
+   */
+  function db_log_empty_write($table, $column, $given, $became, $coerce) {
+    if (!defined('DIR_FS_MY_FILES')) return;
+    $caller = '';
+    foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+      if (isset($frame['file']) && basename($frame['file']) <> 'common_functions.php') {
+        $caller = (defined('DIR_FS_ADMIN') ? str_replace(DIR_FS_ADMIN, '', $frame['file']) : $frame['file'])
+                . ':' . ($frame['line'] ?? '?');
+        break;
+      }
+    }
+    $verb = $became === 'kept' ? 'kept' : ($coerce ? 'wrote' : 'WOULD write');
+    @error_log(sprintf("%s  %s.%s given %s -> %s %s   at %s%s",
+      date('Y-m-d H:i:s'), $table, $column, $given, $verb,
+      $became === 'kept' ? 'as given' : $became, $caller, PHP_EOL),
+      3, DIR_FS_MY_FILES . 'empty_column_writes.log');
   }
 
   function db_perform($table, $data, $action = 'insert', $parameters = '') {
