@@ -170,11 +170,15 @@ foreach ($urls as $u) {
         // help, because this user does not hold the security id. That is the
         // crawl account's doing, not the application's, and it means the
         // operation cannot be covered until the account is given the right.
-        elseif (stripos($msg, 'permission') !== false) $blocked[] = array($name, substr($msg, 0, 60));
+        elseif (stripos($msg, 'permission') !== false) { $blocked[] = array($name, substr($msg, 0, 60)); $refused = '-'; }
         else      $refused = $msg;
     }
 
     if ($why)            $fail[] = array($name, $url, implode('; ', $why));
+    // '-' marks a URL already recorded under $blocked: it must not fall through
+    // to the pass count as well. The four labels operations were being counted
+    // in both places, and the totals gave it away - 203 outcomes for 199 URLs.
+    elseif ($refused === '-') { /* counted under $blocked */ }
     elseif ($refused)    $skip[] = array($name, substr($refused, 0, 72));
     else { $pass++; if ($verbose) printf("  ok    %s\n", $name); }
 }

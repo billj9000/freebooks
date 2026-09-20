@@ -35,6 +35,7 @@ define('CP_ADD_REMOVE_BOXES','Add/Remove Profile Boxes');
 define('CP_CHANGE_PROFILE','change profile...');
 define('HEADING_TITLE_USER_INFORMATION','Инфо пользователей');
 define('GEN_HEADING_PLEASE_SELECT','Выбирите...');
+define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
 define('TEXT_ACCOUNT_TYPE','Account Type');
 define('TEXT_ACCOUNTING_PERIOD','Период учета');
 define('TEXT_ACCT_DESCRIPTION','Account Description');

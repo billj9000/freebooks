@@ -31,6 +31,7 @@ define('CP_CHANGE_PROFILE','Add Dashboard Items to this Menu ...');
 define('HEADING_TITLE_USER_INFORMATION','User Information');
 define('HEADING_TITLE_ROLE_DETAIL','Role Detail Information');
 define('GEN_HEADING_PLEASE_SELECT','Please Select ...');
+define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
 // General Text
 define('TEXT_ACCOUNT_TYPE', 'Account Type');
 define('TEXT_ACCOUNTING_PERIOD', 'Accounting Period');

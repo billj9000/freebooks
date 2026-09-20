@@ -66,6 +66,19 @@ if (!$user_validated) {
   unset($_SESSION['pb_jID']);
   unset($_SESSION['pb_type']);
 }
+// A module can sit on disk without being installed. The optional ones are copied
+// in from extensions/ and only become real when their STATUS is written, and
+// until then application_top never loads their config.php - so their constants,
+// the security ids and table names, do not exist. Routing to one anyway reaches
+// its first constant and dies there: a blank page, or an ajax reply carrying an
+// uncaught Error. Dispatch only to what is installed.
+//
+// $loaded_modules is built by application_top for an authenticated request; if
+// it is absent this is the login path, which routes nowhere but phreedom.
+if (!empty($loaded_modules) && $module <> 'phreedom' && !in_array($module, $loaded_modules, true)) {
+  $messageStack->add(sprintf(GEN_ERROR_MODULE_NOT_INSTALLED, htmlspecialchars($module)), 'error');
+  gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
+}
 if ($page == 'ajax') {
   $pre_process_path = DIR_FS_MODULES . $module . 'custom/ajax/' . $_GET['op'] . '.php';
   if (file_exists($pre_process_path)) { require($pre_process_path); die; }

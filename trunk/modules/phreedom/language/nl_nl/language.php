@@ -326,6 +326,7 @@ define('TEXT_ACCOUNTING_PERIOD','Boekhoud Periode');
 define('TEXT_ACCT_DESCRIPTION','Grootboekrekening Omschrijving');
 define('TEXT_ACCOUNT_TYPE','Grootboekrekening Type');
 define('GEN_HEADING_PLEASE_SELECT','Selecteer alstublieft...');
+define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
 define('HEADING_TITLE_ROLE_DETAIL','Detail Informatie Rol');
 define('HEADING_TITLE_USER_INFORMATION','Gebruikers Informatie');
 define('CP_CHANGE_PROFILE','Voeg Dashboard Items toe aan dit Menu ...');
