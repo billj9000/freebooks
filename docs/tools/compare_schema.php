@@ -114,6 +114,12 @@ foreach (array_merge($core, $extra) as $m) {
 $GLOBALS['db'] = $db = $fake;                 // everything below writes to the scratch
 $built = 0;
 foreach ($modules as $mod) {
+    // install() writes user-facing strings - log entries, tab titles - so the
+    // module's language file has to be loaded first, exactly as the installer
+    // does it. Without this, four installers died on an undefined constant and
+    // took their whole contribution with them.
+    if (function_exists('gen_pull_language')) { @gen_pull_language($mod); @gen_pull_language($mod, 'admin'); }
+    if (file_exists(DIR_FS_MODULES . $mod . '/defaults.php')) @include_once DIR_FS_MODULES . $mod . '/defaults.php';
     try { require_once DIR_FS_MODULES . $mod . '/classes/install.php'; } catch (Throwable $e) { continue; }
     $class = $mod . '_admin';
     if (!class_exists($class)) continue;
@@ -123,7 +129,16 @@ foreach ($modules as $mod) {
     // current_status, and the columns one module adds to another's table. A
     // comparison that runs only $this->tables would report those as missing and
     // send someone to fix what is not broken.
-    if (method_exists($inst, 'install')) { try { $inst->install($mod); } catch (Throwable $e) {} }
+    // Swallowing what install() throws is how a module's whole contribution
+    // disappears without trace: zencart adds six columns to inventory and all
+    // six were reported missing because its installer had died on line one.
+    if (method_exists($inst, 'install')) {
+        try { $inst->install($mod); }
+        catch (Throwable $e) {
+            $fake->failures[] = array('sql' => $mod . '_admin::install()',
+                                      'err' => get_class($e) . ': ' . $e->getMessage());
+        }
+    }
 }
 $GLOBALS['db'] = $db = $real;                 // back to the reference for reading
 

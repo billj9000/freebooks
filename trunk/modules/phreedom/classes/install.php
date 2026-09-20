@@ -173,6 +173,10 @@ class phreedom_admin {
 		  admin_store_id int(11) NOT NULL default '0',
 		  admin_prefs text,
 		  admin_security text,
+		  failed_attempts int(11) NOT NULL default '0',
+		  locked_until datetime NULL default NULL,
+		  pw_reset_token char(64) NULL default NULL,
+		  pw_reset_expires datetime NULL default NULL,
 		  PRIMARY KEY (admin_id),
 		  KEY idx_admin_name_zen (admin_name)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;",

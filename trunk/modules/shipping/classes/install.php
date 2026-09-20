@@ -119,6 +119,9 @@ class shipping_admin {
 		  tracking_id varchar(32) NOT NULL default '',
 		  cost double NOT NULL default '0',
 		  notes varchar(255) NOT NULL default '',
+		  recipient_name varchar(64) NOT NULL default '',
+		  recipient_email varchar(100) NOT NULL default '',
+		  carrier_order_id varchar(64) NOT NULL default '',
 		  PRIMARY KEY  (id),
 		  KEY ref_id (ref_id)
 		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
