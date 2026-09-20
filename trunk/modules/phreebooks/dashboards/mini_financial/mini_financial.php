@@ -185,7 +185,13 @@ class mini_financial extends ctl_panel {
 		  where h.period >= " . $first_period . " and h.period <= " . $period . " and c.account_type = " . $type . " 
 		  group by h.account_id order by c.id";
 		$ytd_period = $db->Execute($sql);
-		$sql = "select beginning_balance 
+		// ONLY_FULL_GROUP_BY, which MySQL 8 has on by default, refuses a bare
+		// column beside a GROUP BY unless the server can prove it unique per
+		// group. chart_of_accounts_history holds one row per account per period
+		// but declares no unique key saying so, so it cannot. min() over a single
+		// row is that row's value, and the alias is kept because the caller reads
+		// fields['beginning_balance'].
+		$sql = "select min(beginning_balance) as beginning_balance 
 		  from " . TABLE_CHART_OF_ACCOUNTS . " c inner join " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " h on c.id = h.account_id
 		  where h.period = " . $first_period . " and c.account_type = " . $type . " 
 		  group by h.account_id order by c.id";

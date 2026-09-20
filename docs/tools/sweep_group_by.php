@@ -60,6 +60,26 @@ foreach (glob("$webroot/modules/*/config.php") as $cfg) {
 uksort($tables, function ($a, $b) { return strlen($b) - strlen($a); });
 
 /**
+ * Blank out comments, keeping every byte position and line break.
+ *
+ * A commented-out statement is not a statement. is_budget.php carries a copy of
+ * the opening-balance query inside a block comment, noted as not needed, and it
+ * was being reported as a fault to fix. Offsets are preserved rather than the text
+ * removed, so line numbers still point where a person would look.
+ */
+function strip_comments($src) {
+    $out = '';
+    foreach (token_get_all($src) as $t) {
+        if (is_array($t) && ($t[0] === T_COMMENT || $t[0] === T_DOC_COMMENT)) {
+            $out .= preg_replace('/[^\n]/', ' ', $t[1]);      // keep the newlines
+        } else {
+            $out .= is_array($t) ? $t[1] : $t;
+        }
+    }
+    return $out;
+}
+
+/**
  * From the start of a SELECT to the end of the PHP expression that holds it:
  * the terminating ; or ) at depth zero, outside quotes. Quotes and the
  * concatenation joins are then removed, leaving something SQL-shaped.
@@ -116,7 +136,7 @@ foreach (array('modules', 'includes') as $dir) {
 sort($files);
 
 foreach ($files as $file) {
-    $src = file_get_contents($file);
+    $src = strip_comments(file_get_contents($file));
     if (stripos($src, 'group by') === false) continue;
     $short = str_replace("$webroot/", '', $file);
     // Anchor on the statement itself. Most of these are assembled into a

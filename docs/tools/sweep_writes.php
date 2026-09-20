@@ -67,6 +67,26 @@ foreach (glob("$webroot/modules/*/config.php") as $cfg) {
 }
 
 /**
+ * Blank out comments, keeping every byte position and line break.
+ *
+ * A commented-out statement is not a statement. is_budget.php carries a copy of
+ * the opening-balance query inside a block comment, noted as not needed, and it
+ * was being reported as a fault to fix. Offsets are preserved rather than the text
+ * removed, so line numbers still point where a person would look.
+ */
+function strip_comments($src) {
+    $out = '';
+    foreach (token_get_all($src) as $t) {
+        if (is_array($t) && ($t[0] === T_COMMENT || $t[0] === T_DOC_COMMENT)) {
+            $out .= preg_replace('/[^\n]/', ' ', $t[1]);      // keep the newlines
+        } else {
+            $out .= is_array($t) ? $t[1] : $t;
+        }
+    }
+    return $out;
+}
+
+/**
  * Can this PHP expression put a blank into the column?
  *
  * The previous sweep treated ANY ternary as guarded, which is how the two
@@ -140,7 +160,7 @@ foreach (array('modules', 'includes') as $dir) {
 sort($files);
 
 foreach ($files as $file) {
-    $src = file_get_contents($file);
+    $src = strip_comments(file_get_contents($file));
     $short = str_replace("$webroot/", '', $file);
     $stats['files']++;
     $line_of = function ($pos) use ($src) { return substr_count($src, "\n", 0, $pos) + 1; };

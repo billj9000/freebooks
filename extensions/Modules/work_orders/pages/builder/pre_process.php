@@ -183,7 +183,10 @@ switch ($_REQUEST['action']) {
 	$result = $db->Execute("select id, wo_title, sku_id, description, allocate, ref_doc, ref_spec, revision, last_usage
 		from " . TABLE_WO_MAIN . " where id = " . (int)$id);
 	foreach ($result->fields as $key => $value) $$key = $value;
-	$result = $db->Execute("select id, max(revision) as revision from " . TABLE_WO_MAIN . " where wo_title = '" . db_input($wo_title) . "' group by wo_title");
+	// The id was selected and never read, and a bare column beside a GROUP BY is
+	// refused by ONLY_FULL_GROUP_BY - which MySQL 8 has on by default. Only the
+	// highest revision is wanted here.
+	$result = $db->Execute("select max(revision) as revision from " . TABLE_WO_MAIN . " where wo_title = '" . db_input($wo_title) . "' group by wo_title");
 	$highest_rev = $result->fields['revision'];
 	// set some filters
 	if ($revision < $highest_rev) {
