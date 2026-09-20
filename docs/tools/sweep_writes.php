@@ -120,8 +120,12 @@ function sql_of_call($src, $open) {
     if ($end === null) return null;
     $arg = substr($src, $i + 1, $end - $i - 1);
     if (!preg_match('/^\s*"?\s*update\s/i', $arg)) return false;  // a SELECT or similar: out of scope, not a failure
-    $arg = str_replace('"', '', $arg);
-    return preg_replace('/\s*\.\s*/', ' ', $arg);
+    // Collapse only the dots that join PHP strings - those sit against a quote.
+    // A blanket /\s*\.\s*/ also eats SQL's own qualifiers, turning
+    // h.account_id into "h account_id" and every statement into a syntax error.
+    $arg = preg_replace('/"\s*\.\s*/', '', $arg);
+    $arg = preg_replace('/\s*\.\s*"/', '', $arg);
+    return str_replace('"', '', $arg);
 }
 
 $findings = array('db_perform' => array(), 'raw' => array(), 'omitted' => array());
