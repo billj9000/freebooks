@@ -84,9 +84,14 @@ if (!preg_match('/<option value="(\d+)">[^<]*\(' . preg_quote($company, '/') . '
     && !preg_match('/<option value="(\d+)">' . preg_quote($company, '/') . '/i', $login['body'], $c)) {
     fwrite(STDERR, "company '$company' is not in the selector\n"); exit(1);
 }
+// language is posted as its VALUE ('en_us'), unlike company which is an index.
+// Posting a number instead put "1" in the session and the backup page then tried
+// to include modules/phreedom/includes/bigdump/language/1/language.php - a fatal
+// this crawler caused itself and briefly reported as a defect.
+preg_match('/<select[^>]*name="language".*?<option value="([a-z_]+)"/s', $login['body'], $lang);
 $r = http('/index.php?module=phreedom&page=main&action=validate', array(
     'csrf_token' => $token, 'admin_name' => $user, 'admin_pass' => $pass,
-    'company' => $c[1], 'language' => 1));
+    'company' => $c[1], 'language' => $lang[1] ?? 'en_us'));
 $check = http('/index.php?module=phreebooks&page=journal&jID=2');
 if (strpos($check['body'], 'admin_pass') !== false || $check['body'] === '') {
     fwrite(STDERR, "login failed (POST returned {$r['code']})\n"); exit(1);
