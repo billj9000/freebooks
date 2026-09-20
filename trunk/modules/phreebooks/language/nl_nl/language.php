@@ -165,6 +165,7 @@ define('TEXT_SAVE_OPEN_NEXT','Bewaar -  Open Volgende Factuur');
 define('ORD_WARN_FORM_MODIFIED','Er lijkt al data in het formulier te staan wil u zoeken naar bestaande contacten? ');
 define('ORD_WARN_FORM_HAS_DATA','Dit het formulier wordt geschoond, maar er zijn items in tabel. Druk op OK om de tabel op te schonen, Annuleren om de lijst met items te het behouden.');
 define('ORD_ERROR_NOT_CUR_PERIOD','Uw machtigingen voorkomen dat u wijzigingen mag doen in een andere periode dan de huidige periode! ');
+define('ORD_ERROR_BAD_JOURNAL_ID','That document type (journal %s) is not one this page handles.');
 define('ORD_ERROR_DEL_NOT_CUR_PERIOD','Uw machtigingen te voorkomen dat u een order mag verwijderen in een andere periode dan de huidige periode! ');
 define('ORD_DISCOUNT_GL_ACCT','Kortings Grootboekrekening');
 define('ORD_FREIGHT_GL_ACCT','Vracht Grootboekrekening');

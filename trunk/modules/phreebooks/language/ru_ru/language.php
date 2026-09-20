@@ -150,6 +150,7 @@ define('TEXT_SAVE_OPEN_PREVIOUS','Сохранить - Открыть преды
 define('TEXT_SAVE_OPEN_NEXT','Сохранить - Открыть следующий счет');
 define('ORD_WARN_FORM_MODIFIED','Данные введенные в форму уже существуют. Хотите найти существующий контакт?');
 define('ORD_ERROR_NOT_CUR_PERIOD','Your permissions prevent you from posting to a period other than the current period!');
+define('ORD_ERROR_BAD_JOURNAL_ID','That document type (journal %s) is not one this page handles.');
 define('ORD_ERROR_DEL_NOT_CUR_PERIOD','Ваши полномочия не позоляют удалять заказы за период отличный от текущего!');
 define('ORD_DISCOUNT_GL_ACCT','Счет учета скидок');
 define('ORD_FREIGHT_GL_ACCT','Счет расходов на доставку');

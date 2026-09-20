@@ -28,7 +28,13 @@ switch (JOURNAL_ID) {
   case 12: $security_token = SECURITY_ID_SALES_INVOICE;      break;
   case 13: $security_token = SECURITY_ID_SALES_CREDIT;       break;
   default:
-	die('No valid journal id found (filename: modules/orders.php), Journal ID needs to be passed to this script to identify the action required.');
+	// A journal id this page does not serve. It used to die() with a developer's
+	// sentence naming a file that no longer exists, which reached the user as a
+	// blank page carrying one line of text and no way back. The application has
+	// its own way of saying this.
+	global $messageStack;
+	$messageStack->add(sprintf(ORD_ERROR_BAD_JOURNAL_ID, (int)JOURNAL_ID), 'error');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
 }
 $security_level = validate_user($security_token);
 /**************  include page specific files    *********************/

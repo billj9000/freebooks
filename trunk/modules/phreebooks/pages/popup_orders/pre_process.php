@@ -51,7 +51,11 @@ switch (JOURNAL_ID) {
 		define('GL_TYPE','pwp');	// purchase with payment
 		break;
 	default:
-		die('No valid journal id found (filename: modules/phreebooks/popup.php), Journal ID needs to be passed to this script to identify the correct procedure.');
+		// A journal id this page does not serve. It used to die() with a
+		// developer's sentence naming a file that no longer exists, which
+		// reached the user as a blank page and no way back.
+		$messageStack->add(sprintf(ORD_ERROR_BAD_JOURNAL_ID, (int)JOURNAL_ID), 'error');
+		gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
 }
 history_filter('pb_pop_orders');
 $date        = gen_db_date($_REQUEST['search_date']);
