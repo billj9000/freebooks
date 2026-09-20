@@ -189,7 +189,10 @@ class phreedom_admin {
 		  UNIQUE KEY idx_cred_id (cred_id),
 		  KEY idx_admin_id (admin_id),
 		  KEY idx_user_handle (user_handle)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+		// COLLATE is explicit on purpose: left out, MariaDB 11.4 picks its own
+		// utf8mb4_uca1400_ai_ci, which MySQL does not have, and the table cannot
+		// then be restored onto one. utf8mb4_unicode_ci exists on both.
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_USERS_PROFILES => "CREATE TABLE " . TABLE_USERS_PROFILES . " (
 		  id int(11) NOT NULL auto_increment,
 		  user_id int(11) NOT NULL default '0',
