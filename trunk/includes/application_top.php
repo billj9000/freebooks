@@ -67,6 +67,14 @@ session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, '
 session_start();
 $session_started = true;
 if (empty($_SESSION['csrf_token'])) $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+// Which page of a list is being looked at. Thirty pages compute their SQL offset
+// as MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1), fifty-eight times over,
+// and do it BEFORE splitPageResults applies its own max(1, ...) guard - so a page
+// opened without the parameter asks for LIMIT -20,20, which is a syntax error and
+// a trip to the crash page. Settling it once here fixes all of them, and quiets
+// the undefined-key warnings they each emitted on the way. Nothing distinguishes
+// an absent list from page 1: no page tests isset($_REQUEST['list']).
+$_REQUEST['list'] = max(1, (int)($_REQUEST['list'] ?? 1));
 // set the language
 if   (isset($_GET['language'])) { $_SESSION['language'] = $_GET['language']; } 
 elseif (empty($_SESSION['language'])) { $_SESSION['language'] = defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : 'en_us'; }
