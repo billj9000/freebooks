@@ -143,12 +143,21 @@ foreach ($modules as $mod) {
 $GLOBALS['db'] = $db = $real;                 // back to the reference for reading
 
 // ---- compare --------------------------------------------------------------
+/**
+ * Each column as "type/collation". The collation has to be in there: charset is
+ * not part of column_type, so a table built utf8mb3 and one built utf8mb4 look
+ * identical to a comparison that reads the type alone - and the charset is half
+ * of what 1.0.0 is changing. A column with no collation (a number, a date)
+ * compares as its type only.
+ */
 function columns(PDO $pdo, $schema) {
     $out = array();
-    $st = $pdo->prepare("select table_name, column_name, column_type
+    $st = $pdo->prepare("select table_name, column_name, column_type, collation_name
                          from information_schema.columns where table_schema = ?");
     $st->execute(array($schema));
-    foreach ($st->fetchAll(PDO::FETCH_NUM) as $r) $out[strtolower($r[0])][strtolower($r[1])] = $r[2];
+    foreach ($st->fetchAll(PDO::FETCH_NUM) as $r) {
+        $out[strtolower($r[0])][strtolower($r[1])] = $r[2] . ($r[3] ? ' / ' . $r[3] : '');
+    }
     return $out;
 }
 $fresh_cols = columns($probe, $scratch);

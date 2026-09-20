@@ -72,7 +72,7 @@ class contacts_admin {
 		  notes text,
 		  PRIMARY KEY (address_id),
 		  KEY customer_id (ref_id,type)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_CONTACTS => "CREATE TABLE " . TABLE_CONTACTS . " (
 		  id int(11) NOT NULL auto_increment,
 		  type char(1) NOT NULL default 'c',
@@ -102,7 +102,7 @@ class contacts_admin {
 		  PRIMARY KEY (id),
 		  KEY type (type),
 		  KEY short_name (short_name)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_CONTACTS_LOG => "CREATE TABLE " . TABLE_CONTACTS_LOG . " (
 		  log_id int(11) NOT NULL auto_increment,
 		  contact_id int(11) NOT NULL default '0',
@@ -111,7 +111,7 @@ class contacts_admin {
 		  action varchar(32) NOT NULL default '',
 		  notes text,
 		  PRIMARY KEY (log_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_DEPARTMENTS => "CREATE TABLE " . TABLE_DEPARTMENTS . " (
 		  id int(11) NOT NULL auto_increment,
 		  description_short varchar(30) NOT NULL default '',
@@ -122,12 +122,12 @@ class contacts_admin {
 		  department_inactive enum('0','1') NOT NULL default '0',
 		  PRIMARY KEY (id),
 		  KEY type (department_type)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_DEPT_TYPES => "CREATE TABLE " . TABLE_DEPT_TYPES . " (
 		  id int(11) NOT NULL auto_increment,
 		  description varchar(30) NOT NULL default '',
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_PROJECTS_COSTS => "CREATE TABLE " . TABLE_PROJECTS_COSTS . " (
 		  cost_id int(8) NOT NULL auto_increment,
 		  description_short varchar(16) collate utf8_unicode_ci NOT NULL default '',
@@ -136,7 +136,7 @@ class contacts_admin {
 		  inactive enum('0','1') collate utf8_unicode_ci NOT NULL default '0',
 		  PRIMARY KEY (cost_id),
 		  KEY description_short (description_short)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_PROJECTS_PHASES => "CREATE TABLE " . TABLE_PROJECTS_PHASES . " (
 		  phase_id int(8) NOT NULL auto_increment,
 		  description_short varchar(16) collate utf8_unicode_ci NOT NULL default '',
@@ -146,7 +146,7 @@ class contacts_admin {
 		  inactive enum('0','1') collate utf8_unicode_ci NOT NULL default '0',
 		  PRIMARY KEY (phase_id),
 		  KEY description_short (description_short)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
   }
 

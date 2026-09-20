@@ -67,7 +67,7 @@ class phreepos_admin {
   			max_discount        	varchar(64)   NOT NULL default '',
   			tax_id 					INT(11) 			   default '-1',
   			PRIMARY KEY (till_id)
-  		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+  		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
   		TABLE_PHREEPOS_OTHER_TRANSACTIONS => "CREATE TABLE " .TABLE_PHREEPOS_OTHER_TRANSACTIONS . " (
   			ot_id	 				int(11) NOT NULL auto_increment,
   			till_id          	  	int(11)                default '0',
@@ -77,7 +77,7 @@ class phreepos_admin {
   			use_tax  			 	enum('0','1') NOT NULL default '0',
   			taxable 				int(11) 	  NOT NULL default '0',
   			PRIMARY KEY (ot_id)
-  		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+  		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

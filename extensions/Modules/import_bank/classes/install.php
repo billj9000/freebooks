@@ -48,7 +48,7 @@ class import_bank_admin {
   			gl_acct_id          	varchar(15)   NOT NULL default '',
   			bank_account        	varchar(64)   NOT NULL default '',
   			PRIMARY KEY (kt_id)
-  		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+  		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

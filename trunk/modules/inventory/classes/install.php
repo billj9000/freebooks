@@ -124,7 +124,7 @@ class inventory_admin {
 		  attachments text,
 		  PRIMARY KEY (id),
 		  INDEX (sku)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_INVENTORY_ASSY_LIST => "CREATE TABLE " . TABLE_INVENTORY_ASSY_LIST . " (
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
@@ -133,7 +133,7 @@ class inventory_admin {
 		  qty double NOT NULL default '0',
 		  PRIMARY KEY (id),
 		  KEY ref_id (ref_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_INVENTORY_COGS_OWED => "CREATE TABLE " . TABLE_INVENTORY_COGS_OWED . " (
 		  id int(11) NOT NULL auto_increment,
 		  journal_main_id int(11) NOT NULL default '0',
@@ -144,7 +144,7 @@ class inventory_admin {
 		  PRIMARY KEY (id),
 		  KEY sku (sku),
 		  INDEX (store_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_INVENTORY_COGS_USAGE => "CREATE TABLE " . TABLE_INVENTORY_COGS_USAGE . " (
 		  id int(11) NOT NULL auto_increment,
 		  journal_main_id int(11) NOT NULL default '0',
@@ -152,7 +152,7 @@ class inventory_admin {
 		  inventory_history_id int(11) NOT NULL default '0',
 		  PRIMARY KEY (id),
 		  INDEX (journal_main_id, inventory_history_id)
-		) ENGINE=innodb DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=innodb DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_INVENTORY_HISTORY => "CREATE TABLE " . TABLE_INVENTORY_HISTORY . " (
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
@@ -171,7 +171,7 @@ class inventory_admin {
 		  KEY remaining (remaining),
 		  INDEX (store_id),
 		  INDEX (journal_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_INVENTORY_MS_LIST => "CREATE TABLE " . TABLE_INVENTORY_MS_LIST . " (
 		  id int(11) NOT NULL auto_increment,
 		  sku varchar(24) NOT NULL default '',
@@ -180,7 +180,7 @@ class inventory_admin {
 		  attr_0 text NULL,
 		  attr_1 text NULL,
 		  PRIMARY KEY (id)
-		) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_INVENTORY_PURCHASE => "CREATE TABLE " . TABLE_INVENTORY_PURCHASE . " (
 		  id int(11) NOT NULL auto_increment,
 		  sku varchar(24) NOT NULL default '',
@@ -194,14 +194,14 @@ class inventory_admin {
 		  price_sheet_v varchar(32) default NULL,
 		  PRIMARY KEY (id),
 		  INDEX (sku)
-		) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_INVENTORY_SPECIAL_PRICES => "CREATE TABLE " . TABLE_INVENTORY_SPECIAL_PRICES . " (
 		  id int(11) NOT NULL auto_increment,
 		  inventory_id int(11) NOT NULL default '0',
 		  price_sheet_id int(11) NOT NULL default '0',
 		  price_levels varchar(255) NOT NULL default '',
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_PRICE_SHEETS => "CREATE TABLE " . TABLE_PRICE_SHEETS . " (
 		  id int(11) NOT NULL auto_increment,
 		  sheet_name varchar(32) NOT NULL default '',
@@ -213,7 +213,7 @@ class inventory_admin {
 		  default_sheet enum('0','1') NOT NULL default '0',
 		  default_levels varchar(255) NOT NULL default '',
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
   }
 

@@ -47,7 +47,7 @@ class phreehelp_admin {
 		  doc_text text collate utf8_unicode_ci,
 		  PRIMARY KEY (id),
 		  FULLTEXT KEY doc_title (doc_title, doc_text)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

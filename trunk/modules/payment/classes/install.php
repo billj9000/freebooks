@@ -35,7 +35,7 @@ class payment_admin {
 		  status VARCHAR(32) DEFAULT 'PENDING',
 		  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		  UNIQUE KEY uk_order (paypal_order_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	);
 	
   function __construct() {

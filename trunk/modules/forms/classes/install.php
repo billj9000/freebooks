@@ -130,7 +130,7 @@ class forms_admin {
           create_date date default NULL,
           last_update date default NULL,
           PRIMARY KEY (id)
-        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
       TABLE_FORMS_DATASETS => "CREATE TABLE " . TABLE_FORMS_DATASETS . " (
           id          varchar(64)  NOT NULL,
@@ -140,7 +140,7 @@ class forms_admin {
           create_date datetime     NULL,
           last_update datetime     NULL,
           PRIMARY KEY (id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
     $this->notes = array(
       'Forms runs the existing report catalog; PhreeForm is unaffected and stays available.',

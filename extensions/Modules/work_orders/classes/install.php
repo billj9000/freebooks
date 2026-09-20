@@ -51,14 +51,14 @@ class work_orders_admin {
 		  revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		  last_usage date NOT NULL DEFAULT '0000-00-00',
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_WO_STEPS => "CREATE TABLE " . TABLE_WO_STEPS  . " (
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
 		  step int(3) NOT NULL,
 		  task_id int(11) NOT NULL,
 		  PRIMARY KEY  (id)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_WO_JOURNAL_MAIN => "CREATE TABLE " . TABLE_WO_JOURNAL_MAIN  . " (
 		  id int(11) NOT NULL auto_increment,
 		  wo_num varchar(16) NOT NULL default 'WO-00001',
@@ -72,7 +72,7 @@ class work_orders_admin {
 		  close_date date default NULL,
 		  notes text collate utf8_unicode_ci,
 		  PRIMARY KEY  (id)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_WO_JOURNAL_ITEM => "CREATE TABLE " . TABLE_WO_JOURNAL_ITEM  . " (
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
@@ -92,7 +92,7 @@ class work_orders_admin {
 		  PRIMARY KEY  (id),
 		  KEY ref_id (ref_id),
 		  KEY step (step)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_WO_TASK => "CREATE TABLE " . TABLE_WO_TASK  . " (
 		  id int(11) NOT NULL auto_increment,
 		  task_name varchar(32) NOT NULL,
@@ -107,7 +107,7 @@ class work_orders_admin {
 		  data_entry enum('0','1') NOT NULL default '0',
 		  erp_entry enum('0','1') NOT NULL default '0',
 		  PRIMARY KEY  (id)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

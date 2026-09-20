@@ -77,7 +77,7 @@ class cp_action_admin {
 			next_capa_num varchar(255) default NULL,
 			notes_audit text,
 			PRIMARY KEY (id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

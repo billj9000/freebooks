@@ -104,7 +104,7 @@ class shipping_admin {
 		  carrier varchar(32) NOT NULL default '',
 		  PRIMARY KEY (id),
 		  UNIQUE KEY package_code (package_code)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_SHIPPING_LOG => "CREATE TABLE " . TABLE_SHIPPING_LOG . " (
 		  id int(11) NOT NULL auto_increment,
 		  shipment_id int(11) NOT NULL default '0',
@@ -124,7 +124,7 @@ class shipping_admin {
 		  carrier_order_id varchar(64) NOT NULL default '',
 		  PRIMARY KEY  (id),
 		  KEY ref_id (ref_id)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

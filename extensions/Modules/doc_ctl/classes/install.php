@@ -62,7 +62,7 @@ class doc_ctl_admin {
 		  params text collate utf8_unicode_ci default NULL,
 		  PRIMARY KEY (id),
 		  FULLTEXT KEY title (file_name, description)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
   }
 

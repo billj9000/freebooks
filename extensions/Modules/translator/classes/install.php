@@ -44,7 +44,7 @@ class translator_admin {
 		  translation text collate utf8_unicode_ci DEFAULT '',
 		  translated enum('0','1') NOT NULL default '0',
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
   }
 

@@ -73,7 +73,7 @@ class zencart_admin {
 	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SHIP_NOTIFY . " ("
 	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
 	    . "notified_at DATETIME NOT NULL"
-	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8");
+	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 	if (!db_field_exists(TABLE_INVENTORY, 'catalog')) { // setup new tab in table inventory
 	  $result = $db->Execute("select id FROM ".TABLE_EXTRA_TABS." WHERE tab_name='ZenCart'");
 	  if ($result->RecordCount() == 0) {
@@ -244,7 +244,7 @@ class zencart_admin {
 	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SHIP_NOTIFY . " ("
 	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
 	    . "notified_at DATETIME NOT NULL"
-	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8");
+	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
 	// Master enable switch (default off) — gates all ZenCart traffic; see functions/zencart.php + cron
 	if (!defined('ZENCART_ENABLED')) write_configure('ZENCART_ENABLED', '0');

@@ -49,7 +49,7 @@ class vin_lookup_admin {
           admin_id       int(11)      NOT NULL DEFAULT 0,
           PRIMARY KEY (id),
           UNIQUE KEY idx_vrm (vrm)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
   }
 

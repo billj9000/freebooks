@@ -109,7 +109,7 @@ class phreebooks_admin {
 		  line_ending varchar(4) NOT NULL default 'crlf',
 		  inactive int(1) NOT NULL default '0',
 		  PRIMARY KEY (id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_ACCOUNTING_PERIODS => "CREATE TABLE " . TABLE_ACCOUNTING_PERIODS . " (
 		  period int(11) NOT NULL default '0',
 		  fiscal_year int(11) NOT NULL default '0',
@@ -118,7 +118,7 @@ class phreebooks_admin {
 		  date_added date NOT NULL default '0000-00-00',
 		  last_update timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
 		  PRIMARY KEY  (period)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_ACCOUNTS_HISTORY => "CREATE TABLE " . TABLE_ACCOUNTS_HISTORY . " (
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
@@ -130,7 +130,7 @@ class phreebooks_admin {
 		  post_date datetime default NULL,
 		  PRIMARY KEY  (id),
 		  KEY acct_id (acct_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_CHART_OF_ACCOUNTS => "CREATE TABLE " . TABLE_CHART_OF_ACCOUNTS . " (
 		  id char(15) NOT NULL default '',
 		  description char(64) NOT NULL default '',
@@ -141,7 +141,7 @@ class phreebooks_admin {
 		  PRIMARY KEY (id),
 		  KEY type (account_type),
 		  KEY heading_only (heading_only)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_CHART_OF_ACCOUNTS_HISTORY => "CREATE TABLE " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " (
 		  id int(11) NOT NULL auto_increment,
 		  period int(11) NOT NULL default '0',
@@ -154,7 +154,7 @@ class phreebooks_admin {
 		  PRIMARY KEY  (id),
 		  KEY period (period),
 		  KEY account_id (account_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_JOURNAL_ITEM => "CREATE TABLE " . TABLE_JOURNAL_ITEM . " (
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
@@ -181,7 +181,7 @@ class phreebooks_admin {
 		  KEY ref_id (ref_id),
 		  KEY so_po_item_ref_id (so_po_item_ref_id),
 		  KEY reconciled (reconciled)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_JOURNAL_MAIN => "CREATE TABLE " . TABLE_JOURNAL_MAIN . " (
 		  id int(11) NOT NULL auto_increment,
 		  period int(2) NOT NULL default '0',
@@ -244,7 +244,7 @@ class phreebooks_admin {
 		  KEY post_date (post_date),
 		  KEY closed (closed),
 		  KEY bill_acct_id (bill_acct_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_TAX_AUTH => "CREATE TABLE " . TABLE_TAX_AUTH . " (
 		  tax_auth_id int(3) NOT NULL auto_increment,
 		  type varchar(1) NOT NULL DEFAULT 'c',
@@ -255,7 +255,7 @@ class phreebooks_admin {
 		  tax_rate float NOT NULL default '0',
 		  PRIMARY KEY  (tax_auth_id),
 		  KEY description_short (description_short)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_TAX_RATES => "CREATE TABLE " . TABLE_TAX_RATES . " (
 		  tax_rate_id int(3) NOT NULL auto_increment,
 		  type varchar(1) NOT NULL DEFAULT 'c',
@@ -265,7 +265,7 @@ class phreebooks_admin {
 		  freight_taxable enum('0','1') NOT NULL default '0',
 		  PRIMARY KEY  (tax_rate_id),
 		  KEY description_short (description_short)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_RECONCILIATION => "CREATE TABLE " . TABLE_RECONCILIATION . " (
 		  id int(11) NOT NULL auto_increment,
 		  period int(11) NOT NULL default '0',
@@ -274,7 +274,7 @@ class phreebooks_admin {
 		  cleared_items text,
 		  PRIMARY KEY  (id),
 		  KEY period (period)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;",
     );
   }
 

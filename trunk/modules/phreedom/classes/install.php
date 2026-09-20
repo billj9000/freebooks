@@ -106,12 +106,12 @@ class phreedom_admin {
 		  amount DOUBLE NOT NULL DEFAULT '0',
 		  PRIMARY KEY (id),
 		  KEY idx_page_accessed_zen (reference_id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;",
 	  TABLE_CONFIGURATION => "CREATE TABLE " . TABLE_CONFIGURATION . " (
 		  configuration_key varchar(64) NOT NULL default '',
 		  configuration_value text,
 		  PRIMARY KEY (configuration_key)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_CURRENCIES => "CREATE TABLE " . TABLE_CURRENCIES . " (
 		  currencies_id int(11) NOT NULL auto_increment,
 		  title varchar(32) NOT NULL default '',
@@ -125,11 +125,11 @@ class phreedom_admin {
 		  value DOUBLE NOT NULL DEFAULT '0',
 		  last_updated datetime default NULL,
 		  PRIMARY KEY  (currencies_id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_CURRENT_STATUS => "CREATE TABLE " . TABLE_CURRENT_STATUS . " (
 		  id int(11) NOT NULL auto_increment,
 		  PRIMARY KEY (id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_DATA_SECURITY => "CREATE TABLE " . TABLE_DATA_SECURITY . " (
 		  id int(11) NOT NULL auto_increment,
 		  module varchar(32) NOT NULL DEFAULT '',
@@ -139,7 +139,7 @@ class phreedom_admin {
 		  enc_value varchar(255) NOT NULL DEFAULT '',
 		  exp_date date NOT NULL DEFAULT '2049-12-31',
 		  PRIMARY KEY (id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_EXTRA_FIELDS => "CREATE TABLE " . TABLE_EXTRA_FIELDS . " (
 		  id int(10) NOT NULL auto_increment,
 		  module_id varchar(32) NOT NULL default '',
@@ -152,7 +152,7 @@ class phreedom_admin {
 		  use_in_inventory_filter enum('0','1') NOT NULL DEFAULT '0',
 		  params text,
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_EXTRA_TABS => "CREATE TABLE " . TABLE_EXTRA_TABS . " (
 		  id int(3) NOT NULL auto_increment,
 		  module_id varchar(32) NOT NULL default '',
@@ -160,7 +160,7 @@ class phreedom_admin {
 		  description varchar(80) NOT NULL default '',
 		  sort_order int(2) NOT NULL default '0',
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_USERS => "CREATE TABLE " . TABLE_USERS . " (
 		  admin_id int(11) NOT NULL auto_increment,
 		  is_role enum('0','1') NOT NULL default '0',
@@ -179,7 +179,7 @@ class phreedom_admin {
 		  pw_reset_expires datetime NULL default NULL,
 		  PRIMARY KEY (admin_id),
 		  KEY idx_admin_name_zen (admin_name)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;",
 	  TABLE_WEBAUTHN_CREDS => "CREATE TABLE " . TABLE_WEBAUTHN_CREDS . " (
 		  id int(11) NOT NULL auto_increment,
 		  admin_id int(11) NOT NULL default '0',
@@ -207,7 +207,7 @@ class phreedom_admin {
 		  row_id int(3) NOT NULL default '0',
 		  params text,
 		  PRIMARY KEY (id)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 
