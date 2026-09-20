@@ -60,7 +60,6 @@ define('FORMS_GL_NONE',            'This company has no cash or bank accounts, s
 define('FORMS_WARN_CONVERSION',    'This report converted with warnings: %s');
 define('FORMS_WARN_NOT_COUNTED',   'The document was delivered, but its printed count was not updated: %s');
 define('FORMS_NO_DOCUMENTS',       'No documents are defined.');
-define('FORMS_SEED_UNREADABLE',    'The shipped definition %s could not be read, so it was not installed.');
 define('FORMS_ROW_IS_FORM',        'a form — laid out under Tools → Form Layout');
 
 /***** printing a form from the document that owns it (?module=forms&page=print) *****/
