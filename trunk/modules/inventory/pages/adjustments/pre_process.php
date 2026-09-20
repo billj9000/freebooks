@@ -85,7 +85,9 @@ switch ($_REQUEST['action']) {
 	  $glEntry->journal_main_array['total_amount'] = $adj_total;
 	  $glEntry->journal_rows[] = array(
 	    'sku'           => '',
-	    'qty'           => '',
+	    // the offsetting total row is not a line of stock; journal_item.qty is
+	    // `double NOT NULL`, so 0 rather than '', which a strict server refuses
+	    'qty'           => 0,
 	    'gl_type'       => 'ttl',
 	    'gl_account'    => $adj_account,
 	    'description'   => $adj_reason,

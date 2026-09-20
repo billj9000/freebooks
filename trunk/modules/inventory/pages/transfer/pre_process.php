@@ -121,7 +121,9 @@ switch ($_REQUEST['action']) {
 	    $glEntry->journal_main_array['total_amount'] = $tot_amount;
 	    $glEntry->journal_rows[] = array(
 	      'sku'           => '',
-	      'qty'           => '',
+	      // the offsetting total row is not a line of stock; journal_item.qty is
+	      // `double NOT NULL`, so 0 rather than '', which a strict server refuses
+	      'qty'           => 0,
 	      'gl_type'       => 'ttl',
 	      'gl_account'    => $result->fields['account_inventory_wage'],
 	      'description'   => BOX_INV_TRANSFER .' - '. $adj_reason,
@@ -173,7 +175,9 @@ switch ($_REQUEST['action']) {
 			  );
 		      $glEntry->journal_rows[] = array(
 		        'sku'           => '',
-		        'qty'           => '',
+		        // the offsetting total row is not a line of stock; journal_item.qty is
+		        // `double NOT NULL`, so 0 rather than '', which a strict server refuses
+		        'qty'           => 0,
 		        'gl_type'       => 'ttl',
 		        'gl_account'    => $_POST['cogs_acct_'.$rowCnt],
 		        'description'   => BOX_INV_TRANSFER .' - '. $adj_reason,

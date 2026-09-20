@@ -518,7 +518,10 @@ class dhl_express {
         'zone'          => '',
         'book_cost'     => 0,
         'net_cost'      => 0,
-        'delivery_date' => $data['estimatedDeliveryTime'] ?? '',
+        // DHL omits estimatedDeliveryTime on most responses. shipping_log's
+        // deliver_date is DATETIME NOT NULL, so fall back to the column's own
+        // "unknown" value instead of '', which a strict server refuses.
+        'delivery_date' => !empty($data['estimatedDeliveryTime']) ? $data['estimatedDeliveryTime'] : '0000-00-00 00:00:00',
       );
       $labelIdx++;
     }

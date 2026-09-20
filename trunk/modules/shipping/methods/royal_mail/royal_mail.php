@@ -373,7 +373,11 @@ class royal_mail {
       'zone'          => '',
       'book_cost'     => 0,
       'net_cost'      => 0,
-      'delivery_date' => '',
+      // Click & Drop returns no delivery estimate. shipping_log.deliver_date is
+      // DATETIME NOT NULL, so the column's own "unknown" value is sent rather
+      // than '', which a server at its defaults refuses outright - and which is
+      // what every read of the column already tests against.
+      'delivery_date' => '0000-00-00 00:00:00',
     ));
   }
 

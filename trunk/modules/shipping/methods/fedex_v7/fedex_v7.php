@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -531,7 +532,11 @@ class fedex_v7 {
 				}
 				$net_cost  = 0;
 				$book_cost = 0;
-				$del_date = '';
+				// Left as-is when the response carries no delivery or transit
+				// detail. shipping_log.deliver_date is DATETIME NOT NULL, so the
+				// column's own "unknown" value rather than '', which a server at
+				// its defaults refuses outright.
+				$del_date = '0000-00-00 00:00:00';
 				if (isset($response->CompletedShipmentDetail->OperationalDetail->DeliveryDate)) {
 				  $del_code  = $response->CompletedShipmentDetail->OperationalDetail->DestinationServiceArea;
 				  $guar_time = $this->calculateDeliveryTime($sInfo->ship_method, $del_code, $sInfo->residential_address);

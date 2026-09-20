@@ -68,7 +68,9 @@ switch ($_REQUEST['action']) {
 	  'sheet_name' 		=> $sheet_name, 
 	  'type' 			=> $type, 
 	  'inactive' 		=> $inactive, 
-	  'revision' 		=> $revision, 
+	  // price_sheets.revision is `float NOT NULL`, and the field may be left
+	  // blank; '' is not a number and a strict server refuses the whole save.
+	  'revision' 		=> $revision === '' ? 0 : $revision, 
 	  'effective_date' 	=> $effective_date, 
 	  'default_sheet' 	=> $default_sheet, 
 	  'default_levels' 	=> $default_levels);

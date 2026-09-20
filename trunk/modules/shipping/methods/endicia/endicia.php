@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -454,7 +455,10 @@ var $PackageMap = array( // for rate estimates, assume this set of options
 	  if ($response->LabelRequestResponse->Status == 0) {
 		$net_cost  = $response->LabelRequestResponse->FinalPostage;
 		$book_cost = $response->LabelRequestResponse->FinalPostage;
-		$del_date  = '';
+		// Endicia returns no delivery estimate. shipping_log.deliver_date is
+		// DATETIME NOT NULL, so the column's own "unknown" value, not '', which
+		// a server at its defaults refuses outright.
+		$del_date  = '0000-00-00 00:00:00';
 		$tracking  = $response->LabelRequestResponse->TrackingNumber;
 		$zone      = '';
 		$label     = $response->LabelRequestResponse->Base64LabelImage;
@@ -464,7 +468,9 @@ var $PackageMap = array( // for rate estimates, assume this set of options
 		  'book_cost'     => $book_cost,
 		  'net_cost'      => $net_cost,
 //		  'zone'          => '',
-//		  'delivery_date' => '',
+		  // label_mgr reads this key on every label; commented out it was an
+		  // undefined index, and the '' it evaluated to reached a DATETIME.
+		  'delivery_date' => $del_date,
 //		  'dim_weight'    => '',
 //		  'billed_weight' => '',
 		);
