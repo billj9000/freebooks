@@ -95,7 +95,6 @@ class contacts_admin {
 		  export_profile_id int(11) NOT NULL default '0',
           tax_id INT(11) default '-1',
           attachments text,
-          custom_contact_field text NULL default NULL,
 		  first_date date NOT NULL default '0000-00-00',
 		  last_update date default NULL,
 		  last_date_1 date default NULL,

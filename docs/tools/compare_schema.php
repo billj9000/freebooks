@@ -153,10 +153,28 @@ function columns(PDO $pdo, $schema) {
 }
 $fresh_cols = columns($probe, $scratch);
 
+// Columns someone added through the UI are not schema. The extra-fields
+// mechanism writes a real column and registers it in xtra_fields against a tab
+// it created, and that column exists on THAT installation and no other - by
+// design. A fresh install not having it is correct, and counting it as drift
+// would send someone to write another installation's custom field into the
+// baseline. (Which happened: custom_contact_field went in and had to come out.)
+//
+// Only fields on a created tab count. xtra_fields also lists base columns
+// against tab 0, for display, and those are schema like any other. A field a
+// module's installer creates never reaches this test anyway, because the fresh
+// install has it.
+$custom = array();
+
 require $webroot . '/my_files/' . $company . '/config.php';
 $refpdo = new PDO('mysql:host=' . DB_SERVER_HOST . ';dbname=' . $company,
                   DB_SERVER_USERNAME, DB_SERVER_PASSWORD);
 $ref_cols = columns($refpdo, $company);
+try {
+    foreach ($refpdo->query("select field_name from xtra_fields where tab_id > 0")->fetchAll(PDO::FETCH_COLUMN) as $f) {
+        $custom[strtolower($f)] = true;
+    }
+} catch (Throwable $e) { /* no xtra_fields: nothing to exclude */ }
 
 printf("fresh install: %d statements, %d tables, %d failures\n", $built, count($fresh_cols), count($fake->failures));
 printf("reference '%s': %d tables\n\n", $company, count($ref_cols));
@@ -168,9 +186,10 @@ if ($only_ref) printf("tables the reference has and a fresh install does not (%d
 if ($only_new) printf("tables a fresh install creates and the reference does not (%d):\n  %s\n\n",
                       count($only_new), implode(', ', array_keys($only_new)));
 
-$missing = $extra = $differ = 0;
+$missing = $extra = $differ = 0; $custom_seen = array();
 foreach (array_intersect_key($ref_cols, $fresh_cols) as $t => $cols) {
     $m = array_diff_key($cols, $fresh_cols[$t]);
+    foreach (array_keys($m) as $c) if (isset($custom[$c])) { $custom_seen[$t][] = $c; unset($m[$c]); }
     $x = array_diff_key($fresh_cols[$t], $cols);
     $d = array();
     foreach (array_intersect_key($cols, $fresh_cols[$t]) as $c => $type) {
@@ -185,6 +204,11 @@ foreach (array_intersect_key($ref_cols, $fresh_cols) as $t => $cols) {
     elseif ($d) printf("      %d column(s) of a different type (--v to list)\n", count($d));
 }
 
+if ($custom_seen) {
+    $n = 0; foreach ($custom_seen as $cs) $n += count($cs);
+    printf("\n%d column(s) are custom fields added through the UI, not schema - correctly absent from a fresh install:\n", $n);
+    foreach ($custom_seen as $t => $cs) printf("  %-22s %s\n", $t, implode(', ', $cs));
+}
 printf("\n%d columns missing from a fresh install, %d only in one, %d typed differently.\n",
        $missing, $extra, $differ);
 // The verdict must count the tables too. It did not, and said the two agreed
