@@ -26,6 +26,9 @@ class phreedom_admin {
 	public $tables			= array();// Load tables
 	public $default_currency = 'USD';// the currency the books are kept in; set from the chosen chart of accounts
 
+  // Every utf8mb4 table here names its collation. Left out, MariaDB 11.4 chooses
+  // utf8mb4_uca1400_ai_ci, which MySQL has never heard of, and a dump of the
+  // table then stops a restore dead with "Unknown collation".
   function __construct() {
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(
@@ -189,9 +192,6 @@ class phreedom_admin {
 		  UNIQUE KEY idx_cred_id (cred_id),
 		  KEY idx_admin_id (admin_id),
 		  KEY idx_user_handle (user_handle)
-		// COLLATE is explicit on purpose: left out, MariaDB 11.4 picks its own
-		// utf8mb4_uca1400_ai_ci, which MySQL does not have, and the table cannot
-		// then be restored onto one. utf8mb4_unicode_ci exists on both.
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_USERS_PROFILES => "CREATE TABLE " . TABLE_USERS_PROFILES . " (
 		  id int(11) NOT NULL auto_increment,
