@@ -8,11 +8,27 @@ FreeBooks can be deployed directly to any PHP 8.x-capable web server (Apache or 
 MariaDB database — no Docker required. Deploy the `trunk/` directory as the web root, then visit
 `/install/` in a browser to run the installer.
 
-**MySQL is not supported yet.** The schema declares `DEFAULT '0000-00-00'` on a number of date
-columns, which MySQL 8 rejects outright at `CREATE TABLE`, so the installer cannot complete there.
-Support for MySQL 8 is a goal for the 1.0.0 release; until this note says otherwise, use MariaDB.
+**Use MariaDB. MySQL 8 is not supported yet**, though it is a goal for the 1.0.0 release. The
+schema itself now builds there, but MySQL enables `ONLY_FULL_GROUP_BY` by default and some of the
+application's queries do not yet satisfy it, so pages would fail after a successful install. This
+note will say otherwise when that work is finished.
 
 For a containerised setup, see the [freebooks-docker](https://github.com/billj9000/freebooks-docker) repository.
+
+## Upgrading from PhreeBooks
+
+FreeBooks upgrades a **PhreeBooks 3.7.1** database. Deploy `trunk/` over the existing installation,
+keep the existing `includes/configure.php` and `my_files/`, and log in: the schema is brought up to
+date on the first login, and the modules record the new version as they go.
+
+Take a backup first. The upgrade is designed to be safe to re-run if it stops part way — every step
+checks whether it has already been applied — but a backup is the only thing that undoes a decision
+you would rather not have made.
+
+Older PhreeBooks releases are not supported directly. Upgrade to 3.7.1 with PhreeBooks' own
+updater first, then to FreeBooks. The code to migrate a 2.x or 1.3.x database is still present and
+may well work, but it has never been tested here and is not something to attempt on data that
+matters.
 
 ## Direct (thermal) label printing — QZ Tray (optional)
 

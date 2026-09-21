@@ -47,7 +47,10 @@ $webroot   = getenv('FREEBOOKS_WEBROOT') ?: '/var/www/html';
 $scratch   = 'fb_baseline_probe';
 
 // ---- the scratch server ---------------------------------------------------
-$probe = new PDO('mysql:host=fb-testdb', 'root', 'testroot');
+// FB_PROBE_HOST=fb-mysql8 builds the same schema on MySQL 8 instead, which is
+// how "does a fresh install work there" gets answered.
+$probe_host = getenv('FB_PROBE_HOST') ?: 'fb-testdb';
+$probe = new PDO('mysql:host=' . $probe_host, 'root', 'testroot');
 $probe->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $probe->exec("DROP DATABASE IF EXISTS `$scratch`");
 $probe->exec("CREATE DATABASE `$scratch` DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
