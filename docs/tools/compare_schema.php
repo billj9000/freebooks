@@ -111,6 +111,7 @@ foreach (array_merge($core, $extra) as $m) {
     if (file_exists(DIR_FS_MODULES . $m . '/classes/install.php')) $modules[] = $m;
 }
 
+$skipped = array();
 $GLOBALS['db'] = $db = $fake;                 // everything below writes to the scratch
 $built = 0;
 foreach ($modules as $mod) {
@@ -122,8 +123,13 @@ foreach ($modules as $mod) {
     if (file_exists(DIR_FS_MODULES . $mod . '/defaults.php')) @include_once DIR_FS_MODULES . $mod . '/defaults.php';
     try { require_once DIR_FS_MODULES . $mod . '/classes/install.php'; } catch (Throwable $e) { continue; }
     $class = $mod . '_admin';
-    if (!class_exists($class)) continue;
-    try { $inst = new $class; } catch (Throwable $e) { continue; }
+    if (!class_exists($class)) { $skipped[] = $mod; continue; }
+    // A module the reference company has not installed never had its config.php
+    // loaded, so its TABLE_ constants do not exist and its installer cannot be
+    // built. Its tables are then absent from the fresh install for a reason that
+    // has nothing to do with the baseline, and saying so saves the next person
+    // chasing five tables that were never missing.
+    try { $inst = new $class; } catch (Throwable $e) { $skipped[] = $mod; continue; }
     if (is_array($inst->tables ?? null)) foreach ($inst->tables as $sql) { $fake->Execute($sql); $built++; }
     // install() is where the guarded ALTERs live - the per-module counters on
     // current_status, and the columns one module adds to another's table. A
@@ -199,8 +205,13 @@ printf("reference '%s': %d tables\n\n", $company, count($ref_cols));
 
 $only_ref = array_diff_key($ref_cols, $fresh_cols);
 $only_new = array_diff_key($fresh_cols, $ref_cols);
-if ($only_ref) printf("tables the reference has and a fresh install does not (%d):\n  %s\n\n",
-                      count($only_ref), implode(', ', array_keys($only_ref)));
+if ($only_ref) {
+    printf("tables the reference has and a fresh install does not (%d):\n  %s\n",
+           count($only_ref), implode(', ', array_keys($only_ref)));
+    if ($skipped) printf("  (this company has not installed: %s - their tables are absent for that reason)\n",
+                         implode(', ', array_unique($skipped)));
+    echo "\n";
+}
 if ($only_new) printf("tables a fresh install creates and the reference does not (%d):\n  %s\n\n",
                       count($only_new), implode(', ', array_keys($only_new)));
 

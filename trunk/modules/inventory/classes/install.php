@@ -108,6 +108,7 @@ class inventory_admin {
 		  hs_code varchar(20) NOT NULL DEFAULT '',
 		  customs_description varchar(255) NOT NULL DEFAULT '',
 		  ships_in_own_box enum('0','1') NOT NULL DEFAULT '0',
+		  ship_complete enum('0','1') NOT NULL DEFAULT '0',
 		  quantity_on_hand DOUBLE NOT NULL DEFAULT '0',
 		  quantity_on_order DOUBLE NOT NULL DEFAULT '0',
 		  quantity_on_sales_order DOUBLE NOT NULL DEFAULT '0',
