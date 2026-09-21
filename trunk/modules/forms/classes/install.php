@@ -173,7 +173,13 @@ class forms_admin {
     // Otherwise the same path as install: the table is created if it is
     // missing, which is what an installation enabled before custom datasets
     // existed needs.
-    return $this->install($module);
+    $result = $this->install($module);
+    // And record that it ran. Without this the status stays where it was, the
+    // per-login cascade sees STATUS differing from VERSION every time, and this
+    // update runs again on every single login - forever, and silently.
+    write_configure('MODULE_' . strtoupper($module) . '_STATUS',
+                    constant('MODULE_' . strtoupper($module) . '_VERSION'));
+    return $result;
   }
 
   function remove($module) {

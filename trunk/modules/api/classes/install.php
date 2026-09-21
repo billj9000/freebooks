@@ -61,6 +61,11 @@ class api_admin {
     if (db_field_exists(TABLE_API_KEYS, 'key_prefix')) {
       $db->Execute("ALTER TABLE " . TABLE_API_KEYS . " MODIFY key_prefix varchar(16) NOT NULL DEFAULT ''");
     }
+    // Record that it ran. An update that does not stamp its status is called
+    // again on every login, for ever, because the cascade only knows to stop
+    // when STATUS reaches VERSION.
+    write_configure('MODULE_' . strtoupper($module) . '_STATUS',
+                    constant('MODULE_' . strtoupper($module) . '_VERSION'));
     return true;
   }
   public function load_reports(string $module): void {}

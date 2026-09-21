@@ -44,7 +44,12 @@ class labels_admin {
   }
 
   function update($module) {
-    return false;
+    // Nothing to migrate, but the status still has to move: left where it is,
+    // the cascade sees STATUS differing from VERSION on every login and calls
+    // this again for ever.
+    write_configure('MODULE_' . strtoupper($module) . '_STATUS',
+                    constant('MODULE_' . strtoupper($module) . '_VERSION'));
+    return true;
   }
 
   function remove($module) {
