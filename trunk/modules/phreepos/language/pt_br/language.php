@@ -40,6 +40,8 @@ define('TILL_BALANCE','Saldo Inicial Caixa:');
 define('TILL_END_BALANCE','Diferença');
 define('TEXT_SHOW_COUNT_HELP','Mostrar auxílio contagem');
 define('EXCEED_MAX_DISCOUNT','Você excedeu o desconto máximo de %s porcento.');
+define('POS_ERROR_CONTACT_REQUIRED','Esta venda precisa de um cliente antes de poder ser guardada.');
+define('POS_ERROR_POSTING','A venda não pôde ser lançada no livro-razão. Nada foi guardado.');
 define('EXCEED_MAX_DISCOUNT_SKU','Você excedeu o desconto máximo de %s porcentoe para o SKU %s.');
 define('OTHER_OPTIONS','Outras Opções');
 define('POS_PRINT_OTHER','Imprimir Outro Cupom');

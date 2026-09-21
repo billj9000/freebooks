@@ -327,6 +327,8 @@ define('TEXT_ACCT_DESCRIPTION','Grootboekrekening Omschrijving');
 define('TEXT_ACCOUNT_TYPE','Grootboekrekening Type');
 define('GEN_HEADING_PLEASE_SELECT','Selecteer alstublieft...');
 define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
+define('GEN_ERROR_BAD_TARGET','Die pagina moet weten welk record geopend moet worden, en dat is niet doorgegeven.');
+define('GEN_ERROR_BAD_ACCOUNT_TYPE','Het rekeningtype \'%s\' wordt door deze pagina niet ondersteund.');
 define('HEADING_TITLE_ROLE_DETAIL','Detail Informatie Rol');
 define('HEADING_TITLE_USER_INFORMATION','Gebruikers Informatie');
 define('CP_CHANGE_PROFILE','Voeg Dashboard Items toe aan dit Menu ...');

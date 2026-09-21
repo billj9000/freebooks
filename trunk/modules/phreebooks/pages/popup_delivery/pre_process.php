@@ -20,21 +20,28 @@
 $security_level = validate_user(0, true);
 /**************  include page specific files  *********************/
 /**************   page specific initialization  *************************/
-$oID = (int)$_GET['oID'];
-define('JOURNAL_ID',(int)$_GET['jID']);
+$oID = (int)($_GET['oID'] ?? 0);
+define('JOURNAL_ID',(int)($_GET['jID'] ?? 0));
+// The four journals this page serves: purchase order and receipt, sales order
+// and invoice. Any other has no heading constant and the page dies rendering
+// its own title.
+if (!in_array(JOURNAL_ID, array(4, 6, 10, 12))) {
+	$messageStack->add(sprintf(ORD_ERROR_BAD_JOURNAL_ID, (int)JOURNAL_ID), 'error');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
+}
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/popup_delivery/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'save':
 	$i = 1;
 	while(true) {
 	  if (!isset($_POST['eta_date_' . $i])) break;
 	  if ($_POST['eta_date_' . $i] <> '') {
 		$new_date = gen_db_date($_POST['eta_date_' . $i]);
-		$rID = $_POST['id_' . $i];
-		$db->Execute("update " . TABLE_JOURNAL_ITEM . " set date_1 = '" . $new_date . "' where id = " . $rID);
+		$rID = (int)$_POST['id_' . $i];
+		$db->Execute("update " . TABLE_JOURNAL_ITEM . " set date_1 = '" . db_input($new_date) . "' where id = " . $rID);
 	  }
 	  $i++;
 	}

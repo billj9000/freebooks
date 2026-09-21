@@ -23,8 +23,8 @@ gen_pull_language('contacts');
 require_once(DIR_FS_WORKING . 'defaults.php');
 require(DIR_FS_WORKING . 'functions/phreebooks.php');
 /**************   page specific initialization  *************************/
-define('JOURNAL_ID',   $_GET['jID']);
-define('ACCOUNT_TYPE', $_GET['type']);
+define('JOURNAL_ID',   (int)($_GET['jID'] ?? 0));
+define('ACCOUNT_TYPE', $_GET['type'] ?? '');
 switch (JOURNAL_ID) {
 	case 18:
 		$terms_type = 'AR';
@@ -35,7 +35,11 @@ switch (JOURNAL_ID) {
 		$result = $db->Execute("select next_check_num from " . TABLE_CURRENT_STATUS);
 		$default_purchase_invoice_id = $result->fields['next_check_num'];
 		break;
-	default: die ('Bad Journal id in modules/phreebooks/popup.php');
+	default:
+    // A journal id this page does not serve. A die() here reaches the user as a
+    // blank page with no way back.
+    $messageStack->add(sprintf(ORD_ERROR_BAD_JOURNAL_ID, (int)JOURNAL_ID), 'error');
+    gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
 }
 history_filter('pb_pop_contacts');
 /***************   hook for custom actions  ***************************/

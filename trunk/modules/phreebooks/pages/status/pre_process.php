@@ -18,13 +18,13 @@
 //  Path: /modules/phreebooks/pages/status/pre_process.php
 //
 /**************   Check user security   *****************************/
-define('JOURNAL_ID', $_GET['jID']);
+define('JOURNAL_ID', (int)($_GET['jID'] ?? 0));
 // journals 18 (Cash Receipts) and 20 (Cash Disbursements) each serve two account
 // types via the same journal_id (customer receipt/vendor refund and vendor
 // payment/customer refund, respectively); default preserves the historical
 // meaning of the existing un-typed manager links.
 if (JOURNAL_ID == 18 || JOURNAL_ID == 20) {
-  $account_type = ($_GET['type'] == 'c' || $_GET['type'] == 'v') ? $_GET['type'] : (JOURNAL_ID == 18 ? 'c' : 'v');
+  $account_type = (($_GET['type'] ?? '') == 'c' || ($_GET['type'] ?? '') == 'v') ? $_GET['type'] : (JOURNAL_ID == 18 ? 'c' : 'v');
 }
 switch (JOURNAL_ID) {
   case  2: $security_token = SECURITY_ID_JOURNAL_ENTRY;      break;
@@ -39,7 +39,10 @@ switch (JOURNAL_ID) {
   case 18: $security_token = ($account_type == 'v') ? SECURITY_ID_VENDOR_RECEIPTS : SECURITY_ID_CUSTOMER_RECEIPTS; break;
   case 20: $security_token = ($account_type == 'c') ? SECURITY_ID_CUSTOMER_PAYMENTS : SECURITY_ID_PAY_BILLS;       break;
   default:
-    die('Bad or missing journal id found (filename: modules/phreebooks/status.php), Journal_ID needs to be passed to this script to identify the correct procedure.');
+    // A journal id this page does not serve. A die() here reaches the user as a
+    // blank page with no way back.
+    $messageStack->add(sprintf(ORD_ERROR_BAD_JOURNAL_ID, (int)JOURNAL_ID), 'error');
+    gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
 }
 $security_level = validate_user($security_token);
 /**************  include page specific files    *********************/

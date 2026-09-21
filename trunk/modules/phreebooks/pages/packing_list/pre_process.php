@@ -27,7 +27,10 @@ if (defined('MODULE_SHIPPING_STATUS')) {
 }
 /**************   page specific initialization  *************************/
 $order_id = (int)db_prepare_input($_GET['id'] ?? 0);
-if (!$order_id) { die(htmlspecialchars(PKL_ERROR_NO_ORDER)); }
+if (!$order_id) {
+	$messageStack->add(PKL_ERROR_NO_ORDER, 'error');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
+}
 
 $order_rs = $db->Execute("SELECT * FROM " . TABLE_JOURNAL_MAIN . " WHERE id = '" . $order_id . "'");
 if ($order_rs->EOF) { die(htmlspecialchars(PKL_ERROR_NOT_FOUND)); }

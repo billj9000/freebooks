@@ -19,7 +19,7 @@
 //
 
 $security_level    = validate_user(SECURITY_ID_CUSTOMER_DEPOSITS);
-$type           = $_GET['type'];
+$type           = $_GET['type'] ?? '';
 switch ($type) {
   case 'c': // customers
 	define('JOURNAL_ID', 18);
@@ -38,7 +38,8 @@ switch ($type) {
 	define('PAGE_TITLE', BOX_VENDOR_DEPOSITS);
     break;
   default:
-    die('Illegal Access type');
+	$messageStack->add(sprintf(GEN_ERROR_BAD_ACCOUNT_TYPE, htmlspecialchars($type)), 'error');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
 }
 /************** include page specific files *********************/
 gen_pull_language('phreebooks');

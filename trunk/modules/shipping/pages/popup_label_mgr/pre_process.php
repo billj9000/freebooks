@@ -25,7 +25,14 @@ require_once(DIR_FS_WORKING . 'defaults.php');
 $custom_path = DIR_FS_WORKING . 'custom/pages/popup_label_mgr/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 
-$method = $_GET['method'];
+// $method names the directory three includes below read from, so it is checked
+// against the methods actually installed rather than trusted. Stripping
+// everything but word characters first means no path can lead out of methods/.
+$method = preg_replace('/[^a-zA-Z0-9_]/', '', (string)($_GET['method'] ?? ''));
+if ($method === '' || !file_exists(DIR_FS_MODULES . 'shipping/methods/' . $method . '/label_mgr/pre_process.php')) {
+	$messageStack->add(sprintf(SHIPPING_ERROR_BAD_METHOD, htmlspecialchars($method)), 'error');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
+}
 $cal_ship = array(
   'name'      => 'dateShipped',
   'form'      => 'label_mgr',

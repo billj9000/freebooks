@@ -41,6 +41,8 @@ define('TILL_BALANCE','Start Saldo Kassa:');
 define('TILL_END_BALANCE','Kasverschil');
 define('TEXT_SHOW_COUNT_HELP','Toon tel hulp');
 define('EXCEED_MAX_DISCOUNT','U heeft het maximum kortingspercentage van %s overschreden');
+define('POS_ERROR_CONTACT_REQUIRED','Deze verkoop heeft een klant nodig voordat deze kan worden opgeslagen.');
+define('POS_ERROR_POSTING','De verkoop kon niet in het grootboek worden geboekt. Er is niets opgeslagen.');
 define('EXCEED_MAX_DISCOUNT_SKU','U heeft het maximum kortingspercentage van %s overschreden voor artiekel %s');
 define('OTHER_OPTIONS','Overige Opties');
 define('POS_PRINT_OTHER','Print Andere Bon');

@@ -18,9 +18,15 @@
 //  Path: /modules/phreedom/pages/popup_setup/pre_process.php
 //
 /**************  include page specific files    *********************/
-$topic   = $_GET['topic'];
-$subject = $_GET['subject'];
-if (!$subject || !$topic) die('The popup_setup script require a topic name and a subject name!');
+// Both name paths the require below reads from, and $subject is then
+// instantiated as a class. Stripping everything but word characters means no
+// path can lead out of modules/; the file check means only a real one is read.
+$topic   = preg_replace('/[^a-zA-Z0-9_]/', '', (string)($_GET['topic'] ?? ''));
+$subject = preg_replace('/[^a-zA-Z0-9_]/', '', (string)($_GET['subject'] ?? ''));
+if ($topic === '' || $subject === '' || !file_exists(DIR_FS_MODULES . $topic . '/classes/' . $subject . '.php')) {
+	$messageStack->add(GEN_ERROR_BAD_TARGET, 'error');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
+}
 gen_pull_language($topic, 'admin');
 gen_pull_language($topic);
 gen_pull_language('phreedom','admin');

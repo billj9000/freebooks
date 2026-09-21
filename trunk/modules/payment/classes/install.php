@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -84,6 +85,10 @@ class payment_admin {
 	  $dir->close();//update keys
 	  foreach ($methods as $method) {
 	    require_once(DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/' . $method . '.php');
+	    // A method's constructor reads its own title constant, which lives in
+	    // the method's language file. install() loads it; these two run from
+	    // the module cascade and from module removal, where nothing else does.
+	    load_method_language($method_dir, $method);
 	    $properties = new $method();
 	    foreach ($properties->keys() as $key) {
 	    	if(!defined($key['key'])) write_configure($key['key'], $key['default']);
@@ -113,6 +118,10 @@ class payment_admin {
 	  $dir->close();
 	  foreach ($methods as $method) {
 	    require_once(DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/' . $method . '.php');
+	    // A method's constructor reads its own title constant, which lives in
+	    // the method's language file. install() loads it; these two run from
+	    // the module cascade and from module removal, where nothing else does.
+	    load_method_language($method_dir, $method);
 	    $properties = new $method();
 	    remove_configure('MODULE_' . strtoupper($module) . '_' . strtoupper($method) . '_STATUS');
 	    foreach ($properties->keys() as $key) remove_configure($key['key']);

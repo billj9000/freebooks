@@ -36,6 +36,8 @@ define('CP_CHANGE_PROFILE','change profile...');
 define('HEADING_TITLE_USER_INFORMATION','Инфо пользователей');
 define('GEN_HEADING_PLEASE_SELECT','Выбирите...');
 define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
+define('GEN_ERROR_BAD_TARGET','That page needs to be told which record to open, and was not.');
+define('GEN_ERROR_BAD_ACCOUNT_TYPE','The account type \'%s\' is not one this page handles.');
 define('TEXT_ACCOUNT_TYPE','Account Type');
 define('TEXT_ACCOUNTING_PERIOD','Период учета');
 define('TEXT_ACCT_DESCRIPTION','Account Description');

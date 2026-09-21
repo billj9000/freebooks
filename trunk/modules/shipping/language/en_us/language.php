@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -147,6 +147,7 @@ define('SHIPPING_LABEL_DELETED','Label Deleted');
 define('SHIPPING_END_OF_DAY','End of Day Close - %s');
 
 define('SHIPPING_ERROR_WEIGHT_ZERO','Shipment weight cannot be zero.');
+define('SHIPPING_ERROR_BAD_METHOD','The shipping method \'%s\' is not installed, so there are no labels to manage.');
 define('SHIPPING_BOX_PACKER_NO_DIMS','Box dimensions exclude items with no dimensions set (weight included): ');
 define('SHIPPING_BOX_PACKER_NOT_FOUND','Items not found in inventory (excluded from estimate): ');
 define('SHIPPING_TEXT_WEIGHT_FALLBACK','Used when item dimensions are unavailable');

@@ -40,6 +40,8 @@
  *
  *   docker exec <c> php /opt/repo/docs/tools/crawl_pages.php <company> <user> <password> [--v]
  *
+ * --only=<substring> runs just the matching pages; --show prints each body.
+ *
  * Run it against a disposable copy (docs/tools/test_company.sh), never against a
  * company anyone cares about: a GET still lets a page write.
  */
@@ -48,6 +50,12 @@ $company  = $argv[1] ?? '';
 $user     = $argv[2] ?? '';
 $pass     = $argv[3] ?? '';
 $verbose  = in_array('--v', $argv, true);
+// --only=<substring> narrows the run to matching names, for working on one
+// finding without waiting for the other 198.
+$only     = '';
+foreach ($argv as $a) if (strpos($a, '--only=') === 0) $only = substr($a, 7);
+// --show prints each response body, which is how a truncated page is read.
+$show     = in_array('--show', $argv, true);
 $webroot  = getenv('FREEBOOKS_WEBROOT') ?: '/var/www/html';
 $base     = getenv('FREEBOOKS_URL') ?: 'http://localhost';
 if ($company === '' || $user === '' || $pass === '') {
@@ -125,8 +133,10 @@ $lines   = function ($f) { return file_exists($f) ? count(file($f)) : 0; };
 $fail = array(); $skip = array(); $blocked = array(); $pass = 0; $noise = array();
 foreach ($urls as $u) {
     list($kind, $url, $name) = $u;
+    if ($only !== '' && strpos($name, $only) === false) continue;
     $s0 = $lines($sql_log); $e0 = $lines($err_log);
     $res = http($url);
+    if ($show) { printf("\n===== %s =====\n%s\n===== end (%d bytes) =====\n", $name, $res['body'], strlen($res['body'])); }
     $s1 = $lines($sql_log); $e1 = $lines($err_log);
     $why = array();
 

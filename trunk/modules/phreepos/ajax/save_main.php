@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -88,7 +89,9 @@ if (file_exists($custom_path)) { include($custom_path); }
 	$order->item_count          = db_prepare_input($_POST['item_count']);
 	// currency values (convert to DEFAULT_CURRENCY to store in db)
 	$order->currencies_code     = db_prepare_input($_POST['currencies_code']);
-	$order->currencies_value    = db_prepare_input($_POST['currencies_value']);
+	// An exchange rate of zero is not a rate. Absent or zero means the home
+	// currency, and every amount below is divided by it.
+	$order->currencies_value    = (float)db_prepare_input($_POST['currencies_value'] ?? '') ?: 1;
 	$order->subtotal            = $currencies->clean_value(db_prepare_input($_POST['subtotal']),  $order->currencies_code) / $order->currencies_value; // don't need unless for verification
 	$order->disc_gl_acct_id     = db_prepare_input($_POST['disc_gl_acct_id']);
 	$order->discount            = $currencies->clean_value(db_prepare_input($_POST['discount']),  $order->currencies_code) / $order->currencies_value;

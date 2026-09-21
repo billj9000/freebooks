@@ -20,6 +20,8 @@
 $security_level = validate_user(SECURITY_ID_CONFIGURATION);
 /**************  include page specific files    *********************/
 gen_pull_language($module, 'admin');
+// The table-statistics tab is phreedom's, labels included.
+gen_pull_language('phreedom', 'admin');
 require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'classes/install.php');
 

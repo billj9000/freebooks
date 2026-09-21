@@ -32,6 +32,8 @@ define('HEADING_TITLE_USER_INFORMATION','User Information');
 define('HEADING_TITLE_ROLE_DETAIL','Role Detail Information');
 define('GEN_HEADING_PLEASE_SELECT','Please Select ...');
 define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
+define('GEN_ERROR_BAD_TARGET','That page needs to be told which record to open, and was not.');
+define('GEN_ERROR_BAD_ACCOUNT_TYPE','The account type \'%s\' is not one this page handles.');
 // General Text
 define('TEXT_ACCOUNT_TYPE', 'Account Type');
 define('TEXT_ACCOUNTING_PERIOD', 'Accounting Period');

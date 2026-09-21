@@ -403,6 +403,8 @@ define('TEXT_ACCOUNTING_PERIOD','Período Conta');
 define('TEXT_ACCOUNT_TYPE','Tipo Conta');
 define('GEN_HEADING_PLEASE_SELECT','Por favor selecione ...');
 define('GEN_ERROR_MODULE_NOT_INSTALLED','The %s module is not installed, so there is nothing there to open.');
+define('GEN_ERROR_BAD_TARGET','Essa página precisa saber qual registo abrir, e não foi indicado.');
+define('GEN_ERROR_BAD_ACCOUNT_TYPE','O tipo de conta \'%s\' não é suportado por esta página.');
 define('HEADING_TITLE_USER_INFORMATION','Informação Usuário');
 define('HEADING_TITLE_ROLE_DETAIL','Informação Detalhada de Direitos');
 define('CP_CHANGE_PROFILE','Á Inserir Itens Dashboard neste Menu ...');

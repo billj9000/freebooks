@@ -46,6 +46,7 @@ define('SHIPPING_NO_SHIPMENTS','Não há entregas desta transportadora hoje!');
 define('SHIPPING_DELETE_CONFIRM','Tem certeza de que quer remover esta remessa?');
 define('SHIPPING_CANCEL_CONFIRM','Isso cancelará a remessa na transportadora e excluirá o registro. Tem certeza?');
 define('SHIPPING_ERROR_WEIGHT_ZERO','Peso entrega nãopdoe ser zero.');
+define('SHIPPING_ERROR_BAD_METHOD','O método de entrega \'%s\' não está instalado, portanto não há etiquetas a gerir.');
 define('SHIPPING_END_OF_DAY','Fechamento Dia - %s');
 define('SHIPPING_LABEL_DELETED','Etiqueta Removida');
 define('SHIPPING_CANNOT_DELETE','Erro - Não é possível remover entrega cuja etiqueta tenha sido gerada em dias anteriores.');

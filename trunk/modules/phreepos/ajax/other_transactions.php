@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -50,13 +51,14 @@ if (file_exists($custom_path)) { include($custom_path); }
 	$tills->get_till_info($_POST['ot_till_id']);
 	// currency values (convert to DEFAULT_CURRENCY to store in db)
 	$order->currencies_code     = db_prepare_input($_POST['ot_currencies_code']);
-	$order->currencies_value    = db_prepare_input($_POST['ot_currencies_value']);
+	// An exchange rate of zero is not a rate. Absent or zero means the home
+	// currency, and every amount below is divided by it.
+	$order->currencies_value    = (float)db_prepare_input($_POST['ot_currencies_value'] ?? '') ?: 1;
 	// load journal main data	
 	$order->journal_main_array = array(
 		'period'              => CURRENT_ACCOUNTING_PERIOD,
 		'journal_id'          => JOURNAL_ID,
 		'post_date'           => date('Y-m-d'),
-		'total_amount'        => $total_amount,
 		'description'         => GL_ENTRY_TITLE,
 		'bill_primary_name'   => $transaction->description,
 		'purchase_invoice_id' => '',
@@ -120,7 +122,9 @@ if (file_exists($custom_path)) { include($custom_path); }
 	}
 	
 	
-	$error = $order->Post('insert', true);
+	// Post() answers true when it succeeded; $error carries message text.
+	// Post() reports its own reason through messageStack.
+	if (!$order->Post('insert', true)) $error .= POS_ERROR_POSTING;
 	if ( DEBUG )           $messageStack->write_debug();
 						$xml .= "\t" . xmlEntry("action",			$_REQUEST['action']);
 if ($error)  			$xml .= "\t" . xmlEntry("error", 			$error);
