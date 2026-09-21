@@ -93,7 +93,7 @@ class contacts_admin {
 		  price_sheet varchar(32) default NULL,
 		  currency_code varchar(3) NOT NULL default '',
 		  export_profile_id int(11) NOT NULL default '0',
-          tax_id INT(11) default '-1',
+          tax_id INT(11) NOT NULL default '-1',
           attachments mediumtext,
 		  first_date date NULL default NULL,
 		  last_update date default NULL,

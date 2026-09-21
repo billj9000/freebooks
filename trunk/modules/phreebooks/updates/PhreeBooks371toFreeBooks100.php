@@ -94,9 +94,8 @@ if (!db_field_exists(TABLE_JOURNAL_MAIN, 'ship_packages')) {
 // ---- was R34toR35 --------------------------------------------------
 // Adds recipient_name and recipient_email to shipping_log for label email pre-population.
 
-// One guard per column. Guarding both on recipient_name alone breaks on a
-// database that has the second column and not the first, which is what a run
-// that failed part way through leaves behind.
+// One guard per column: a pair guarded on the first alone breaks on a database
+// that has the second and not the first.
 if (!db_field_exists(TABLE_SHIPPING_LOG, 'recipient_name')) {
     $db->Execute("ALTER TABLE " . TABLE_SHIPPING_LOG
         . " ADD COLUMN recipient_name varchar(64) NOT NULL DEFAULT '' AFTER notes");
@@ -251,6 +250,27 @@ if ($exists->EOF) {
         . " VALUES ('inventory', 0, 'check_box', 'ship_complete', 'Ships Complete', 0, 0, '0', '" . db_input($params) . "')");
 }
 
+// ---- the users table -----------------------------------------------
+// admin_pass holds a bcrypt hash, which needs 255 characters; 3.7.1 sized it at
+// 40 for a sha1 digest. The four that follow carry brute-force lockout and
+// password reset.
+//
+// One guard per column: a pair guarded on the first alone breaks on a database
+// that has the second and not the first.
+if (db_field_exists(TABLE_USERS, 'admin_pass')) {
+    $db->Execute("ALTER TABLE " . TABLE_USERS . " MODIFY admin_pass varchar(255) NOT NULL DEFAULT ''");
+}
+foreach (array(
+    'failed_attempts'  => "int(11) NOT NULL DEFAULT '0'",
+    'locked_until'     => "datetime NULL DEFAULT NULL",
+    'pw_reset_token'   => "char(64) NULL DEFAULT NULL COMMENT 'sha-256 of the emailed token, never the token'",
+    'pw_reset_expires' => "datetime NULL DEFAULT NULL",
+) as $column => $declaration) {
+    if (!db_field_exists(TABLE_USERS, $column)) {
+        $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN $column $declaration");
+    }
+}
+
 // ---- the 1.0.0 schema itself ---------------------------------------------
 // Everything above brings a PhreeBooks 3.7.1 database up to the columns
 // FreeBooks added. This last part brings it to the shape 1.0.0 installs with:
@@ -301,4 +321,20 @@ foreach ($zero_date_columns as $col) {
     list($t, $c, $ty) = $col;
     $db->Execute("ALTER TABLE `$t` MODIFY `$c` $ty NULL DEFAULT NULL");
     $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
+}
+
+// Two columns the installer and the update chain declare differently. The
+// installer's declaration is the one to reach.
+//
+// tax_id is NOT NULL: -1 is how a contact says it has no tax id.
+//
+// currencies_code takes an empty default. A column default here would freeze
+// one installation's currency into the schema; a company's currency belongs in
+// its configuration.
+if (db_field_exists(TABLE_CONTACTS, 'tax_id')) {
+    $db->Execute("UPDATE " . TABLE_CONTACTS . " SET tax_id = -1 WHERE tax_id IS NULL");
+    $db->Execute("ALTER TABLE " . TABLE_CONTACTS . " MODIFY tax_id int(11) NOT NULL DEFAULT '-1'");
+}
+if (db_field_exists(TABLE_JOURNAL_MAIN, 'currencies_code')) {
+    $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " MODIFY currencies_code char(3) NOT NULL DEFAULT ''");
 }

@@ -151,21 +151,33 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
   $path = DIR_FS_MODULES . $module . '/custom/pages/' . $page . '/extra_menus.php';
   if (file_exists($path)) { include($path); }
   $currencies = new currencies();
-  // Widen admin_pass if restored from a pre-bcrypt backup (col was varchar(40))
-  $col = $db->Execute("SHOW FIELDS FROM " . TABLE_USERS . " LIKE 'admin_pass'");
-  if (!$col->EOF && strpos(strtolower($col->fields['Type']), 'varchar(40)') !== false) {
+  // The users table, brought to shape before anyone can log in.
+  //
+  // Deliberately duplicates a section of the 1.0.0 migration. That migration runs
+  // from the module cascade, which runs only after a successful login, and the
+  // login query selects failed_attempts and locked_until: a database missing them
+  // could never log in to reach the migration that adds them.
+  //
+  // One catalogue read per request; the ALTERs fire once in a database's life.
+  $cols = array();
+  $have = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS);
+  while (!$have->EOF) { $cols[$have->fields['Field']] = $have->fields['Type']; $have->MoveNext(); }
+  // A bcrypt hash needs 255 characters; a sha1 digest needed 40.
+  if (isset($cols['admin_pass']) && stripos($cols['admin_pass'], 'varchar(40)') !== false) {
     $db->Execute("ALTER TABLE " . TABLE_USERS . " MODIFY admin_pass VARCHAR(255) NOT NULL DEFAULT ''");
   }
-  // Add brute-force lockout columns if not present
-  $col = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS . " LIKE 'failed_attempts'");
-  if ($col->EOF) {
-    $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN failed_attempts INT NOT NULL DEFAULT 0, ADD COLUMN locked_until DATETIME NULL");
-  }
-  // Add password-reset token columns if not present (single-use, time-limited reset links).
-  // pw_reset_token holds a SHA-256 hex hash of the token e-mailed to the user, never the token itself.
-  $col = $db->Execute("SHOW COLUMNS FROM " . TABLE_USERS . " LIKE 'pw_reset_token'");
-  if ($col->EOF) {
-    $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN pw_reset_token CHAR(64) NULL, ADD COLUMN pw_reset_expires DATETIME NULL");
+  // One guard per column: a pair guarded on the first alone breaks on a database
+  // that has the second and not the first. pw_reset_token holds a SHA-256 hash
+  // of the token e-mailed to the user, never the token itself.
+  foreach (array(
+      'failed_attempts'  => "INT(11) NOT NULL DEFAULT '0'",
+      'locked_until'     => "DATETIME NULL DEFAULT NULL",
+      'pw_reset_token'   => "CHAR(64) NULL DEFAULT NULL",
+      'pw_reset_expires' => "DATETIME NULL DEFAULT NULL",
+  ) as $column => $declaration) {
+    if (!isset($cols[$column])) {
+      $db->Execute("ALTER TABLE " . TABLE_USERS . " ADD COLUMN $column $declaration");
+    }
   }
 }
 $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : $_session_timeout;
