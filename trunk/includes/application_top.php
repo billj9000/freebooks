@@ -94,8 +94,17 @@ set_exception_handler('PhreebooksExceptionHandler');
 $custom_path = DIR_FS_MODULES . $module . '/custom/pages/' . $page . '/extra_defines.php';
 if (file_exists($custom_path)) { include($custom_path); }
 gen_pull_language($module);
-define('DIR_WS_THEMES', 'themes/' . (isset($_SESSION['admin_prefs']['theme']) ? $_SESSION['admin_prefs']['theme'] : DEFAULT_THEME) . '/');
-define('MY_COLORS',      isset($_SESSION['admin_prefs']['colors'])     ?$_SESSION['admin_prefs']['colors']     :DEFAULT_COLORS);
+// The theme names a directory template_index.php require_once()s config.php and
+// menu_bs.php from, and the colour names one a stylesheet is linked from. Both
+// arrive from the user's own profile form, so both are checked against what is
+// installed rather than trusted, and fall back to the default. Checked here as
+// well as on save, because a row saved before this existed is still read.
+$_theme = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_SESSION['admin_prefs']['theme'] ?? ''));
+if ($_theme === '' || !is_dir(DIR_FS_THEMES . $_theme)) $_theme = DEFAULT_THEME;
+define('DIR_WS_THEMES', 'themes/' . $_theme . '/');
+$_colors = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_SESSION['admin_prefs']['colors'] ?? ''));
+if ($_colors === '' || !is_dir(DIR_FS_THEMES . $_theme . '/css/' . $_colors)) $_colors = DEFAULT_COLORS;
+define('MY_COLORS', $_colors);
 define('MY_MENU',        isset($_SESSION['admin_prefs']['menu'])       ?$_SESSION['admin_prefs']['menu']       :DEFAULT_MENU);
 define('MY_MENU_HOVER',  isset($_SESSION['admin_prefs']['menu_hover']) ?$_SESSION['admin_prefs']['menu_hover'] :0);
 define('DIR_WS_IMAGES', DIR_WS_THEMES . 'images/');

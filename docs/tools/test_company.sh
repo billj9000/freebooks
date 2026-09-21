@@ -105,6 +105,30 @@ case "$action" in
     dst_t=$(target -N -e "select count(*) from information_schema.tables where table_schema='$name'" | tail -1)
     echo "    tables: source $src_t, copy ${dst_t:-0}"
 
+    # A copy inherits the source company's credentials, and those reach real
+    # services: the Zen Cart store, carrier and gateway APIs, the mail account.
+    # A test company is for driving the application hard - page crawls, the form
+    # robot posting every save three times - and none of that may leave the
+    # container. Blanked here rather than in the tools, so it holds however the
+    # copy is later used.
+    echo "==> blanking outbound credentials in '$name'"
+    target "$name" -e "
+      UPDATE configuration SET configuration_value = '' WHERE configuration_value <> '' AND (
+           configuration_key LIKE 'ZENCART!_%' ESCAPE '!'
+        OR configuration_key LIKE 'EMAIL!_%'   ESCAPE '!'
+        OR configuration_key LIKE '%!_API!_KEY'    ESCAPE '!'
+        OR configuration_key LIKE '%!_API!_SECRET' ESCAPE '!'
+        OR configuration_key LIKE '%!_ACCESS!_TOKEN%' ESCAPE '!'
+        OR configuration_key LIKE '%!_CLIENT!_SECRET' ESCAPE '!'
+        OR configuration_key LIKE '%!_ACCOUNT!_NUMBER%' ESCAPE '!'
+        OR configuration_key LIKE '%!_REFRESH!_TOKEN' ESCAPE '!'
+        OR configuration_key LIKE '%LOOKUP!_API%' ESCAPE '!'
+        OR configuration_key LIKE 'MODULE!_PAYMENT!_%!_LOGIN' ESCAPE '!'
+        OR configuration_key LIKE 'MODULE!_SHIPPING!_%!_USERID' ESCAPE '!'
+        OR configuration_key LIKE 'MODULE!_SHIPPING!_%!_PASSWORD' ESCAPE '!');" 2>/dev/null
+    left=$(target "$name" -N -e "SELECT COUNT(*) FROM configuration WHERE configuration_value <> '' AND (configuration_key LIKE '%API!_KEY' ESCAPE '!' OR configuration_key LIKE 'ZENCART!_%' ESCAPE '!');" 2>/dev/null)
+    echo "    outbound credentials still set: ${left:-?}"
+
     echo "==> writing $MY_FILES/$name/config.php"
     docker exec "$APP" mkdir -p "$MY_FILES/$name"
     # The heredoc is expanded out here and piped in, rather than nested inside an

@@ -33,10 +33,15 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
     validate_security($security_level, 4);
-    $prefs['theme']      = db_prepare_input($_POST['theme']);
-    $prefs['colors']     = db_prepare_input($_POST['colors']);
+    // Both name directories: the theme one that template_index.php require_once()s
+    // config.php and menu_bs.php from, the colour one a stylesheet is linked
+    // from. Only an installed pair is stored.
+    $prefs['theme']      = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['theme'] ?? ''));
+    $prefs['colors']     = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['colors'] ?? ''));
     $prefs['menu_hover'] = (($_POST['menu_hover'] ?? '') === '1') ? 1 : 0;
-    if (!$prefs['colors']) {
+    if (!$prefs['colors'] || !$prefs['theme']
+        || !is_dir(DIR_FS_THEMES . $prefs['theme'])
+        || !is_dir(DIR_FS_THEMES . $prefs['theme'] . '/css/' . $prefs['colors'])) {
       $error = $messageStack->add(GEN_ERROR_NO_THEME_COLORS, 'error');
       break;
     }

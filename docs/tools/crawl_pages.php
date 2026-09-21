@@ -128,7 +128,9 @@ foreach (array(2, 3, 4, 6, 7, 9, 10, 12, 13, 14, 16, 18, 19, 20, 21, 22) as $jID
 // ---- visit ----------------------------------------------------------------
 $sql_log = "$webroot/my_files/sql_errors.log";
 $err_log = "$webroot/my_files/errors.log";
-$lines   = function ($f) { return file_exists($f) ? count(file($f)) : 0; };
+// Byte offsets, not line counts: errors.log has no rotation and reaches
+// hundreds of megabytes, and file() loads all of it to count the lines.
+$lines   = function ($f) { clearstatcache(true, $f); return file_exists($f) ? filesize($f) : 0; };
 
 $fail = array(); $skip = array(); $blocked = array(); $pass = 0; $noise = array();
 foreach ($urls as $u) {
@@ -151,7 +153,9 @@ foreach ($urls as $u) {
     // Warnings and deprecations are tallied at the end instead, where the
     // deprecation debt is worth seeing - PHP 9 turns several into errors.
     if ($e1 > $e0) {
-        foreach (array_slice(file($err_log), $e0) as $l) {
+        $fh = fopen($err_log, 'rb'); fseek($fh, $e0);
+        $fresh = explode("\n", rtrim(stream_get_contents($fh), "\n")); fclose($fh);
+        foreach ($fresh as $l) {
             if (preg_match('/\b(FATAL|Exception|Uncaught)\b/i', $l)) {
                 $why[] = 'fatal: ' . substr(trim(preg_replace('/\s+/', ' ', $l)), 0, 70);
             } elseif (preg_match("/'([^']{0,60})/", $l, $wm)) {
