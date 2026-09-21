@@ -20,7 +20,7 @@
 // Release History
 // 1.0 => 2014-07-21 - Initial Release
 // Module software version information
-define('MODULE_IMPORT_ORDER_VERSION', 1.0);
+define('MODULE_IMPORT_ORDER_VERSION', '1.0.0');
 // Menu Sort Positions
 // Security id's
 define('SECURITY_ID_IMPORT_ORDER', 777);

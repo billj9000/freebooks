@@ -24,7 +24,7 @@
 // 3.7 => 2014-07-18 - bug fix
 // Module software version information
 gen_pull_language('phreebooks', 'menu');
-define('MODULE_ASSETS_VERSION',       3.7);
+define('MODULE_ASSETS_VERSION',       '1.0.0');
 // Menu sort positions
 define('MENU_HEADING_ASSETS_ORDER',      77);
 define('BOX_ASSETS_MODULE_ORDER',        90);

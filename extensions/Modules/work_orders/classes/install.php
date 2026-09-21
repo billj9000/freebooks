@@ -125,7 +125,7 @@ class work_orders_admin {
   function update($module) {
     global $db, $messageStack;
 	$error = false;
-    if (MODULE_WORK_ORDERS_STATUS < '3.1') {
+    if (gen_version_is_legacy(MODULE_WORK_ORDERS_STATUS, '3.1')) {
 	  if (!db_field_exists(TABLE_WO_TASK, 'erp_entry')) {
 	    $db->Execute("ALTER TABLE " . TABLE_WO_TASK . " ADD erp_entry ENUM('0', '1') NOT NULL DEFAULT '0'");
 	    $db->Execute("ALTER TABLE " . TABLE_WO_MAIN . " ADD allocate ENUM('0', '1') NOT NULL DEFAULT '0' AFTER description");

@@ -39,7 +39,7 @@
 // 3.81 => adds restock flag to journal_item
 // 3.82 => adds ship_complete flag to inventory
 // Module software version information
-define('MODULE_PHREEBOOKS_VERSION',    3.82);
+define('MODULE_PHREEBOOKS_VERSION',    '1.0.0');
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_SEARCH',               4);
 define('SECURITY_ID_GEN_ADMIN_TOOLS',     19);

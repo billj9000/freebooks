@@ -17,7 +17,7 @@
 //  Path: /modules/api/config.php
 //
 
-define('MODULE_API_VERSION', '1.0');
+define('MODULE_API_VERSION', '1.0.0');
 
 // Security ID for access to API key management (unique across all modules; 201 follows ZenCart's 200)
 define('SECURITY_ID_API', 201);

@@ -60,7 +60,7 @@ class phreehelp_admin {
   function update($module) {
     global $db, $messageStack;
     $error = false;
-	if (MODULE_PHREEHELP_STATUS < 3.0) {
+	if (gen_version_is_legacy(MODULE_PHREEHELP_STATUS, '3.0')) {
 	  foreach ($this->tables as $table => $create_table_sql) {
 		if (!db_table_exists($table)) if (!$db->Execute($create_table_sql)) $error = true;
 	  }

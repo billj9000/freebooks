@@ -89,7 +89,7 @@
 //                      small uppercase label, not bold text the size and colour
 //                      of the report names beneath them.
 
-define('MODULE_FORMS_VERSION', 1.10);
+define('MODULE_FORMS_VERSION', '1.0.0');
 
 // Security IDs.
 //

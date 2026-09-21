@@ -30,7 +30,7 @@
 // 3.73 => added contacts_level field 
 // Module software version information
 gen_pull_language('phreedom', 'menu');
-define('MODULE_CONTACTS_VERSION',      3.73);
+define('MODULE_CONTACTS_VERSION',      '1.0.0');
 // Menu Sort Positions
 define('MENU_HEADING_CUSTOMERS_ORDER',   10);
 define('MENU_HEADING_VENDORS_ORDER',     20);

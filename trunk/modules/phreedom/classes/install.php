@@ -276,7 +276,19 @@ class phreedom_admin {
 		  if (!defined($key)) write_configure($key, $value);
 		}
 		admin_install_dirs($mod_init->dirlist, DIR_FS_MY_FILES.$_SESSION['company'].'/');
+	    // Stamp here rather than trusting each module to remember. Sixteen of
+	    // them did not, and the cost of forgetting is invisible: the cascade only
+	    // knows to stop when STATUS reaches VERSION, so an update that does not
+	    // record itself runs again on every login, for ever. A module that does
+	    // stamp simply writes the same value twice.
+	    //
+	    // The return value is no use as a signal: several of these end with
+	    // `return $error;` where $error is false, so false means SUCCESS - and
+	    // vin_lookup returns false meaning "nothing to do". A thrown exception is
+	    // the only thing that reliably says the update did not happen.
 	    if (method_exists($mod_init, 'update')) $mod_init->update($module);
+	    write_configure('MODULE_' . strtoupper($module) . '_STATUS',
+	                    constant('MODULE_' . strtoupper($module) . '_VERSION'));
 	  }
 	  if (method_exists($mod_init, 'initialize')) $mod_init->initialize($module);
 	}
@@ -308,7 +320,7 @@ class phreedom_admin {
  	  $db_version = $this->release_update($module, 3.0, DIR_FS_MODULES . 'phreedom/updates/PBtoR30.php');
 	  if (!$db_version) return true;
 	}
-  	if (MODULE_PHREEDOM_STATUS < 3.1) {
+  	if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.1')) {
   	  foreach ($this->tables as $table => $create_table_sql) {
 	    if (!db_table_exists($table)) if (!$db->Execute($create_table_sql)) $error = true;
 	  }
@@ -316,26 +328,26 @@ class phreedom_admin {
 	  // constant wrote nothing.
 	  write_configure('PHREEHELP_FORCE_RELOAD', '1');
 	}
-    if (MODULE_PHREEDOM_STATUS < 3.2) {
+    if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.2')) {
 	  if (!db_field_exists(TABLE_USERS, 'is_role')) $db->Execute("ALTER TABLE ".TABLE_USERS." ADD is_role ENUM('0','1') NOT NULL DEFAULT '0' AFTER admin_id");
 	}
-    if (MODULE_PHREEDOM_STATUS < 3.4) {
+    if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.4')) {
 	  if (!db_field_exists(TABLE_DATA_SECURITY, 'exp_date')) $db->Execute("ALTER TABLE ".TABLE_DATA_SECURITY." ADD exp_date DATE NOT NULL DEFAULT '2049-12-31' AFTER enc_value");
 	  if (!db_field_exists(TABLE_AUDIT_LOG, 'ip_address'))   $db->Execute("ALTER TABLE ".TABLE_AUDIT_LOG    ." ADD ip_address VARCHAR(15) NOT NULL AFTER user_id");
     }
-  	if (MODULE_PHREEDOM_STATUS < 3.5) {
+  	if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.5')) {
 	  if (!db_field_exists(TABLE_EXTRA_FIELDS, 'group_by'))  $db->Execute("ALTER TABLE ".TABLE_EXTRA_FIELDS." ADD group_by varchar(64) NOT NULL default ''");
 	  if (!db_field_exists(TABLE_EXTRA_FIELDS, 'sort_order'))$db->Execute("ALTER TABLE ".TABLE_EXTRA_FIELDS." ADD sort_order varchar(64) NOT NULL default ''");
 	  if (!db_field_exists(TABLE_AUDIT_LOG, 'stats'))        $db->Execute("ALTER TABLE ".TABLE_AUDIT_LOG." ADD stats VARCHAR(32) NOT NULL AFTER ip_address");
   	}
-  	if (MODULE_PHREEDOM_STATUS < 3.7) {
+  	if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.7')) {
   		$db->Execute("ALTER TABLE ".TABLE_AUDIT_LOG." CHANGE amount amount DOUBLE NOT NULL DEFAULT '0'");
   		$db->Execute("ALTER TABLE ".TABLE_CURRENCIES." CHANGE value value DOUBLE NOT NULL DEFAULT '0'");
   	}
-  	if (MODULE_PHREEDOM_STATUS < 3.8) {
+  	if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.8')) {
   	  if (!db_table_exists(TABLE_WEBAUTHN_CREDS)) $db->Execute($this->tables[TABLE_WEBAUTHN_CREDS]);
   	}
-  	if (MODULE_PHREEDOM_STATUS < 3.9) {
+  	if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.9')) {
   	  // The Company Links / Notes / To-Do dashboards had PhreeForm's security
   	  // id (3) as their own key — a constant they borrowed, which went with
   	  // that module. They are SECURITY_ID_DASHBOARDS (12) now.

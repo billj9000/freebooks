@@ -206,7 +206,7 @@ class zencart_admin {
   function update($module) {
     global $db, $messageStack;
 	$error = false;
-	if (MODULE_ZENCART_STATUS < 3.4) {
+	if (gen_version_is_legacy(MODULE_ZENCART_STATUS, '3.4')) {
 		write_configure('MODULE_ZENCART_LAST_UPDATE', date('0000-00-00 00:00:00'));
 	}
 	$result = $db->Execute("select tab_id from " . TABLE_EXTRA_FIELDS . " where field_name = 'category_id'");

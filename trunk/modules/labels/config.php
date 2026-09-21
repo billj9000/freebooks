@@ -14,7 +14,7 @@
 // Release History
 // 1.00 => 2026-06-27 - Initial release: label template management, HTML+ZPL dual-path rendering
 
-define('MODULE_LABELS_VERSION', 1.00);
+define('MODULE_LABELS_VERSION', '1.0.0');
 
 // Security IDs
 define('SECURITY_ID_LABELS_MANAGE', 116);

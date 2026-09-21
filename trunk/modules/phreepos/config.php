@@ -28,7 +28,7 @@
 // 3.8 => 2013-07 added tax_id to till
 // 3.9 => 2014-01 added config option to enable or disable direct printing.
 // Module software version information
-define('MODULE_PHREEPOS_VERSION', 3.9);
+define('MODULE_PHREEPOS_VERSION', '1.0.0');
 // Menu Sort Positions
 //define('MENU_HEADING_PHREEPOS_ORDER', 40);
 // Menu Security id's (refer to master doc to avoid security setting overlap)

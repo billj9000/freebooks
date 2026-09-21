@@ -20,7 +20,7 @@ gen_pull_language('phreedom', 'menu');
 // Release History
 // 1 16-10-2012 created.
 // Module software version information
-define('MODULE_AUDIT_VERSION',  '1');
+define('MODULE_AUDIT_VERSION',  '1.0.0');
 // Menu Sort Positions
 
 // Menu Security id's

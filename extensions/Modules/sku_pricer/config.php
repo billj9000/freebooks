@@ -20,7 +20,7 @@
 // Release History
 // 1.0 => 2011-05-26 - Initial Release
 // Module software version information
-define('MODULE_SKU_PRICER_VERSION', 1.0);
+define('MODULE_SKU_PRICER_VERSION', '1.0.0');
 // Menu Sort Positions
 // Security id's
 define('SECURITY_ID_SKU_PRICER', 999);

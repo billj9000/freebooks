@@ -365,7 +365,7 @@ class phreebooks_admin {
 		}
 		if (!db_field_exists(TABLE_JOURNAL_ITEM, 'purch_package_quantity')) $db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM." ADD purch_package_quantity float default NULL AFTER project_id");
 	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.7) {
+	if (gen_version_is_legacy(MODULE_PHREEBOOKS_STATUS, '3.7')) {
 		$db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM."
 			CHANGE qty qty DOUBLE NOT NULL DEFAULT '0',
 			CHANGE purch_package_quantity purch_package_quantity DOUBLE NOT NULL DEFAULT '0'");
@@ -383,7 +383,7 @@ class phreebooks_admin {
 	// through, which the twelve gated includes were not: each stamped its own
 	// version, so a failure left the database claiming a release it had not had.
 	//
-	// The gates it replaces compared floats - MODULE_PHREEBOOKS_STATUS < 3.72 -
+	// The gates it replaces compared floats - gen_version_is_legacy(MODULE_PHREEBOOKS_STATUS, '3.72') -
 	// which is its own hazard: '3.10' read as a float is 3.1, and less than 3.72.
 	include_once(DIR_FS_MODULES . 'phreebooks/updates/PhreeBooks371toFreeBooks100.php');
 

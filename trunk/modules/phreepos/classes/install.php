@@ -94,11 +94,11 @@ class phreepos_admin {
   function update($module) {
     global $db, $messageStack;
 	$error = false;
-	if (MODULE_PHREEPOS_STATUS < 3.2) {
+	if (gen_version_is_legacy(MODULE_PHREEPOS_STATUS, '3.2')) {
 	  if(!defined('PHREEPOS_RECEIPT_PRINTER_STARTING_LINE')) write_configure('PHREEPOS_RECEIPT_PRINTER_STARTING_LINE', '');
 	  if(!defined('PHREEPOS_RECEIPT_PRINTER_CLOSING_LINE'))  write_configure('PHREEPOS_RECEIPT_PRINTER_CLOSING_LINE', '');
 	}
-	if (MODULE_PHREEPOS_STATUS < 3.3) {
+	if (gen_version_is_legacy(MODULE_PHREEPOS_STATUS, '3.3')) {
 	  if(!defined('PHREEPOS_RECEIPT_PRINTER_OPEN_DRAWER'))   write_configure('PHREEPOS_RECEIPT_PRINTER_OPEN_DRAWER', '');
 	  if(!defined('PHREEPOS_DISPLAY_WITH_TAX'))  			 write_configure('PHREEPOS_DISPLAY_WITH_TAX',		     '1');
       if(!defined('PHREEPOS_DISCOUNT_OF'))   				 write_configure('PHREEPOS_DISCOUNT_OF',                 '0');

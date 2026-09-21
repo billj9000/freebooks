@@ -20,7 +20,7 @@
 // Release History
 // 1.00 => 2026-07-28 - Initial release: VIN lookup by registration via Vehicle Data Global, local caching
 
-define('MODULE_VIN_LOOKUP_VERSION', 1.00);
+define('MODULE_VIN_LOOKUP_VERSION', '1.0.0');
 
 // Security ID (unique across all modules; 220 sits between doc_ctl's 210 and linkpoint's 310)
 define('SECURITY_ID_VIN_LOOKUP', 220);

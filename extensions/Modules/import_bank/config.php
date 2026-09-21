@@ -31,7 +31,7 @@
 // 2.3 24-09-2014 fixed bug.
 gen_pull_language('phreedom', 'menu');
 // Module software version information
-define('MODULE_IMPORT_BANK_VERSION',  2.3);
+define('MODULE_IMPORT_BANK_VERSION',  '1.0.0');
 // Menu Sort Positions
 
 // Menu Security id's

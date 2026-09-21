@@ -54,12 +54,46 @@ foreach ((array)$loaded_modules as $module) {
     $pending[$module] = array((string)constant($status), (string)constant($version));
 }
 
+$only = null;
+foreach ($argv as $a) if (strpos($a, '--module=') === 0) $only = substr($a, 9);
+if ($only !== null) {
+    $pending = array_intersect_key($pending, array($only => true));
+    if (!defined('DIR_FS_WORKING')) define('DIR_FS_WORKING', DIR_FS_MODULES . $only . '/');
+}
+
 if (!$pending) { echo "$company is already at the version the code is at.\n"; exit(0); }
 
 printf("%s has %d module(s) behind:\n", $company, count($pending));
 foreach ($pending as $m => $v) printf("  %-14s %s -> %s\n", $m, $v[0], $v[1]);
 
 if (!$go) { echo "\nnothing changed. Pass --go to apply.\n"; exit(0); }
+
+// The installers call into phreedom's function library - admin_install_tables(),
+// xtra_field_sync_list() - and payment's installer reads a language constant
+// from every method it knows about. A login has all of that loaded; a CLI
+// process does not, and the failure looks exactly like a broken migration:
+// "Call to undefined function admin_install_tables()", caught and reported
+// against the module. Four modules failed that way before this was added.
+require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
+foreach (glob(DIR_FS_MODULES . 'payment/methods/*', GLOB_ONLYDIR) as $dir) {
+    $lang = $dir . '/language/' . ($_SESSION['language'] ?? 'en_us') . '/language.php';
+    if (file_exists($lang)) @include_once($lang);
+}
+
+// One module per process. DIR_FS_WORKING is a per-page constant - index.php
+// defines it as the current module's directory - and payment's installer reads
+// it. A constant cannot be redefined, so a single process can serve exactly one
+// module honestly. The page crawler splits for the same reason.
+if (!isset($only)) {
+    echo "\napplying:\n";
+    $failed = 0;
+    foreach (array_keys($pending) as $module) {
+        passthru(sprintf('%s %s %s --go --module=%s', escapeshellarg(PHP_BINARY),
+                 escapeshellarg(__FILE__), escapeshellarg($company), escapeshellarg($module)), $rc);
+        if ($rc !== 0) $failed++;
+    }
+    exit($failed ? 1 : 0);
+}
 
 echo "\napplying:\n";
 foreach ($pending as $module => $v) {
@@ -72,7 +106,12 @@ foreach ($pending as $module => $v) {
         if (!defined($key)) write_configure($key, $value);
     }
     try {
+        // Same rule as the cascade: run it, then stamp. The return value says
+        // nothing useful - several modules end with `return $error;` where
+        // $error is false, so false means success there.
         if (method_exists($inst, 'update')) $inst->update($module);
+        write_configure('MODULE_' . strtoupper($module) . '_STATUS',
+                        constant('MODULE_' . strtoupper($module) . '_VERSION'));
         printf("  %-14s done\n", $module);
     } catch (Throwable $e) {
         printf("  %-14s FAILED: %s\n", $module, $e->getMessage());

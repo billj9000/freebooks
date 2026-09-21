@@ -29,7 +29,7 @@
 // 3.9 => 2026-07-30 - Email a VAT invoice for imported orders when the customer is VAT-registered
 // 4.0 => 2026-08-02 - Save & Upload button on the item detail page; ZENCART_LIST_ICON_ENABLED toggle for the list-page row icon
 // Module software version information
-define('MODULE_ZENCART_VERSION',      4.0);
+define('MODULE_ZENCART_VERSION',      '1.0.0');
 // Set the menu order, if using ZenCart title menu option (after Customers and before Vendors)
 define('MENU_HEADING_ZENCART_ORDER',     15);
 // Security id's

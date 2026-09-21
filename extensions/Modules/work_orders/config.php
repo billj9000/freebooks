@@ -22,7 +22,7 @@
 // 3.3 => 2011-11-15 - Bug fixes, themeroller changes
 // 3.6 => 2013-09-23 - updates for changes to inventory and paging schemes 
 // Module software version information
-define('MODULE_WORK_ORDERS_VERSION',     3.6);
+define('MODULE_WORK_ORDERS_VERSION',     '1.0.0');
 // Menu Sort Positions
 define('MENU_HEADING_WORK_ORDERS_ORDER',    79);
 define('BOX_WORK_ORDERS_MODULE_ORDER',      50);

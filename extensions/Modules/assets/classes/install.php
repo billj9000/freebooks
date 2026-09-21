@@ -78,7 +78,7 @@ class assets_admin {
   function update($module) {
     global $db, $messageStack;
 	$error = false;
-    if (MODULE_ASSETS_STATUS < 3.1) {
+    if (gen_version_is_legacy(MODULE_ASSETS_STATUS, '3.1')) {
 	  $tab_map = array('0' => '0');
 	  if(db_table_exists(DB_PREFIX . 'assets_tabs')){
 		  $result = $db->Execute("select * from " . DB_PREFIX . 'assets_tabs');
@@ -109,7 +109,7 @@ class assets_admin {
 	  }
 	  xtra_field_sync_list('assets', TABLE_ASSETS);
 	}
-    if (MODULE_ASSETS_STATUS < 3.3) {
+    if (gen_version_is_legacy(MODULE_ASSETS_STATUS, '3.3')) {
 	  if (!db_field_exists(TABLE_ASSETS, 'attachments')) $db->Execute("ALTER TABLE " . TABLE_ASSETS . " ADD attachments TEXT NOT NULL AFTER terminal_date");
 	  require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 	  xtra_field_sync_list('assets', TABLE_ASSETS);

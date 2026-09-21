@@ -17,7 +17,7 @@
 //  Path: /modules/amazon/config.php
 //
 
-define('MODULE_AMAZON_VERSION', '3.7');
+define('MODULE_AMAZON_VERSION', '1.0.0');
 // Menu Sort Positions
 // Security id's
 define('SECURITY_ID_AMAZON_INTERFACE',         202);

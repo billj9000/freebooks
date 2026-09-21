@@ -27,7 +27,7 @@
 // 3.6 => 2013-06-30 - bug fixes
 // 3.7 => 2014-07-21 - bug fixes
 // Module software version information
-define('MODULE_PHREEHELP_VERSION',  3.7);
+define('MODULE_PHREEHELP_VERSION',  '1.0.0');
 // Menu sort positions
 // Menu security id's
 // New database tables

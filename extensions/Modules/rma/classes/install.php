@@ -87,10 +87,10 @@ class rma_admin {
   function update($module) {
     global $db, $messageStack;
     $error = false;
-    if (MODULE_RMA_STATUS < 3.1) {
+    if (gen_version_is_legacy(MODULE_RMA_STATUS, '3.1')) {
 	  if (db_field_exists(TABLE_CURRENT_STATUS, 'next_rma_desc')) $db->Execute("ALTER TABLE " . TABLE_CURRENT_STATUS . " DROP next_rma_desc");
 	}
-    if (MODULE_RMA_STATUS < 3.3) {
+    if (gen_version_is_legacy(MODULE_RMA_STATUS, '3.3')) {
 	  if (!db_field_exists(TABLE_RMA, 'attachments'))       $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD attachments TEXT DEFAULT NULL AFTER closed_date");
 	  if (!db_field_exists(TABLE_RMA, 'contact_id'))        $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD contact_id VARCHAR(32) DEFAULT NULL AFTER caller_email");
 	  if (!db_field_exists(TABLE_RMA, 'contact_name'))      $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD contact_name VARCHAR(48) DEFAULT NULL AFTER contact_id");

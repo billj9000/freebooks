@@ -1137,6 +1137,26 @@ function gen_db_date($raw_date = '', $separator = '/') {
    * When every database has been converted this can become a null check, and
    * these call sites will not have to change again.
    */
+  /**
+   * Is this database still on the pre-1.0.0 lineage, and older than $before?
+   *
+   * The module updates are gated on how old the stamped version is - "if this
+   * database is older than 3.3, add the column 3.3 introduced". Written as
+   * MODULE_X_STATUS < 3.3 that worked while every version was a 3.x float. It
+   * stops working the moment versions become 1.0.0, because 1.0 is less than
+   * 3.3: a current database would satisfy every one of those gates at once and
+   * replay a decade of PhreeBooks migrations over itself.
+   *
+   * So the test has to say what it means. A version is from the old lineage if
+   * it is 2.x or 3.x; anything 1.x is FreeBooks 1.0.0 or later and is newer than
+   * all of them, whatever a numeric comparison thinks.
+   */
+  function gen_version_is_legacy($status, $before) {
+    if ($status === false || $status === null || $status === '') return false;
+    return version_compare((string)$status, '2.0', '>=')
+        && version_compare((string)$status, (string)$before, '<');
+  }
+
   function gen_date_is_empty($date) {
     return $date === null || $date === '' || strncmp((string)$date, '0000-00-00', 10) === 0;
   }

@@ -23,7 +23,7 @@
 // 3.2 => 2011-07-21 - improved updates from prior versions, select all button
 // 3.3 => 2011-11-15 - Bug fixes, themeroller changes
 // Module software version information
-define('MODULE_TRANSLATOR_VERSION',  3.3);
+define('MODULE_TRANSLATOR_VERSION',  '1.0.0');
 // Menu Sort Positions
 define('BOX_TRANSLATOR_MODULE_ORDER',  670);
 // Menu Security id's
