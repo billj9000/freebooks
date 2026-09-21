@@ -115,6 +115,11 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
     define('DIR_FS_THEMES',   DIR_FS_ADMIN . 'themes/');
     define('FILENAME_DEFAULT','index');
     define('DIR_WS_ICONS',    '');
+    // application_top.php defines this at file scope and the ledger reads it on
+    // every inventory posting. Absent, gen_ledger dies on `strpos(COG_ITEM_TYPES,
+    // $type)` partway through a post - which looks like a posting fault rather
+    // than a missing harness piece.
+    if (!defined('COG_ITEM_TYPES')) define('COG_ITEM_TYPES', 'si,sr,ms,mi,ma,sa');
 
     $autoDetected = false;
     $company = (string)($company ?? (getenv('FREEBOOKS_COMPANY') ?: ''));

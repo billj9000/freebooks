@@ -323,6 +323,25 @@ foreach ($zero_date_columns as $col) {
     $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
 }
 
+// Zero dates stored in a column that was ALREADY nullable. The pass above only
+// looks at NOT NULL columns, because those are the ones whose declaration has to
+// change - but a nullable column holds zero dates too, written before anything
+// stopped them, and the value is what NO_ZERO_DATE refuses. journal_main.terminal_date
+// held 691 of them while its declaration was already correct.
+$nullable = $db->Execute("SELECT table_name AS t, column_name AS c
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND data_type IN ('date','datetime')
+      AND is_nullable = 'YES'");
+$nullable_date_columns = array();
+while (!$nullable->EOF) {
+    $nullable_date_columns[] = array($nullable->fields['t'], $nullable->fields['c']);
+    $nullable->MoveNext();
+}
+foreach ($nullable_date_columns as $col) {
+    list($t, $c) = $col;
+    $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
+}
+
 // Two columns the installer and the update chain declare differently. The
 // installer's declaration is the one to reach.
 //

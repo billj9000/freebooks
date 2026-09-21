@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -1375,6 +1376,18 @@ class journal {
 	return ($value === '' || $value === null) ? $empty : $value;
   }
 
+  /**
+   * The same, for a date column, where "not set" has a third spelling.
+   *
+   * A row read back from a database written before 1.0.0 carries the zero date,
+   * not '' and not null, so column_empty() passes it straight through and the
+   * re-post offers it again. NO_ZERO_DATE refuses it, which is every post of
+   * that journal failing on MySQL 8.
+   */
+  function date_empty($value, $empty) {
+	return gen_date_is_empty($value) ? $empty : $value;
+  }
+
   function build_journal_main_array() { // maps/prepares the fields to the journal_main fields
 	$main_record = array();
 	if (isset($this->id)) if ($this->id)   $main_record['id']                  = $this->id; // retain id if known for re-post references
@@ -1384,7 +1397,7 @@ class journal {
 	if (isset($this->store_id))            $main_record['store_id']            = $this->column_empty($this->store_id, 0);
 	$main_record['description'] = (isset($this->description)) ? $this->description : sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'));
 	if (isset($this->closed))              $main_record['closed']              = $this->closed;
-	if (isset($this->closed_date))         $main_record['closed_date']         = $this->closed_date;
+	if (isset($this->closed_date))         $main_record['closed_date']         = $this->date_empty($this->closed_date, 'null');
 	if (isset($this->freight))             $main_record['freight']             = $this->column_empty($this->freight, 0);
 	if (isset($this->freight_tax_id))      $main_record['freight_tax_id']      = $this->column_empty($this->freight_tax_id, 0);
 	if (isset($this->discount))            $main_record['discount']            = $this->discount;
@@ -1426,7 +1439,7 @@ class journal {
 	if (isset($this->ship_country_code))   $main_record['ship_country_code']   = $this->ship_country_code;
 	if (isset($this->ship_telephone1))     $main_record['ship_telephone1']     = $this->ship_telephone1;
 	if (isset($this->ship_email))          $main_record['ship_email']          = $this->ship_email;
-	if (isset($this->terminal_date))       $main_record['terminal_date']       = $this->column_empty($this->terminal_date, 'null');
+	if (isset($this->terminal_date))       $main_record['terminal_date']       = $this->date_empty($this->terminal_date, 'null');
 	if (isset($this->drop_ship))           $main_record['drop_ship']           = $this->drop_ship;
 	if (isset($this->recur_id))            $main_record['recur_id']            = $this->column_empty($this->recur_id, 0);
 	if (isset($this->notes))              $main_record['notes']               = $this->notes;
