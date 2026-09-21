@@ -370,42 +370,23 @@ class phreebooks_admin {
 			CHANGE qty qty DOUBLE NOT NULL DEFAULT '0',
 			CHANGE purch_package_quantity purch_package_quantity DOUBLE NOT NULL DEFAULT '0'");
 	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.71) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R31toR32.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.72) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R32toR33.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.73) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R33toR34.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.74) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R34toR35.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.75) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R35toR36.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.76) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R36toR37.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.77) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R37toR38.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.78) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R38toR39.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.79) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R39toR40.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.80) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R40toR41.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.81) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R41toR42.php');
-	}
-	if (MODULE_PHREEBOOKS_STATUS < 3.82) {
-		include_once(DIR_FS_MODULES . 'phreebooks/updates/R42toR43.php');
-	}
+	// Everything FreeBooks added to the PhreeBooks 3.7.1 schema, in one step.
+	// This was twelve gated includes, one per FreeBooks release. They are merged
+	// because no installation outside this project has ever had a FreeBooks
+	// database, so nothing anywhere sits at an intermediate version waiting to be
+	// walked up a rung at a time: the only journey is 3.7.1 to 1.0.0.
+	//
+	// No version gate, because it does not need one. Every statement in the file
+	// is guarded by db_field_exists or its equivalent, so running it against a
+	// database that already has the columns costs a handful of catalogue reads and
+	// changes nothing. That also makes it safe to re-run after a failure part way
+	// through, which the twelve gated includes were not: each stamped its own
+	// version, so a failure left the database claiming a release it had not had.
+	//
+	// The gates it replaces compared floats - MODULE_PHREEBOOKS_STATUS < 3.72 -
+	// which is its own hazard: '3.10' read as a float is 3.1, and less than 3.72.
+	include_once(DIR_FS_MODULES . 'phreebooks/updates/PhreeBooks371toFreeBooks100.php');
+
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));
    	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_'.strtoupper($module).'_VERSION')), 'success');
