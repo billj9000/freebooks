@@ -136,7 +136,7 @@ class forms_admin {
           id          varchar(64)  NOT NULL,
           label       varchar(128) NOT NULL DEFAULT '',
           description varchar(255) NOT NULL DEFAULT '',
-          definition  text         NOT NULL,
+          definition  mediumtext         NOT NULL,
           create_date datetime     NULL,
           last_update datetime     NULL,
           PRIMARY KEY (id)

@@ -40,13 +40,13 @@ class work_orders_admin {
 	$this->tables = array(
 	  TABLE_WO_MAIN => "CREATE TABLE " . TABLE_WO_MAIN  . " (
 		  id int(11) NOT NULL AUTO_INCREMENT,
-		  inactive enum('0','1') COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
-		  wo_title varchar(32) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+		  inactive enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
+		  wo_title varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
 		  sku_id int(11) NOT NULL DEFAULT '0',
-		  description varchar(64) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+		  description varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
 		  allocate ENUM('0', '1') NOT NULL DEFAULT '0',
-		  ref_doc varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
-		  ref_spec varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
+		  ref_doc varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+		  ref_spec varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 		  revision int(3) NOT NULL,
 		  revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		  last_usage date NULL default NULL,
@@ -70,7 +70,7 @@ class work_orders_admin {
 		  post_date date default NULL,
 		  closed enum('0','1') NOT NULL default '0',
 		  close_date date default NULL,
-		  notes text collate utf8_unicode_ci,
+		  notes mediumtext collate utf8mb4_unicode_ci,
 		  PRIMARY KEY  (id)
 		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_WO_JOURNAL_ITEM => "CREATE TABLE " . TABLE_WO_JOURNAL_ITEM  . " (

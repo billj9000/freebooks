@@ -31,8 +31,8 @@ class labels_admin {
           width_mm      decimal(6,2)     NOT NULL DEFAULT '50.00',
           height_mm     decimal(6,2)     NOT NULL DEFAULT '25.00',
           printer_type  enum('html','zpl') NOT NULL DEFAULT 'html',
-          html_template text             NULL,
-          zpl_template  text             NULL,
+          html_template mediumtext             NULL,
+          zpl_template  mediumtext             NULL,
           date_modified datetime         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           PRIMARY KEY (id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",

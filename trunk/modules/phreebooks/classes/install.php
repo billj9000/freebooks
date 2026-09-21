@@ -103,9 +103,9 @@ class phreebooks_admin {
 		  id int(11) NOT NULL auto_increment,
 		  profile_name varchar(64) NOT NULL default '',
 		  file_extension varchar(8) NOT NULL default 'txt',
-		  header_template text,
-		  line_template text,
-		  footer_template text,
+		  header_template mediumtext,
+		  line_template mediumtext,
+		  footer_template mediumtext,
 		  line_ending varchar(4) NOT NULL default 'crlf',
 		  inactive int(1) NOT NULL default '0',
 		  PRIMARY KEY (id)
@@ -196,7 +196,7 @@ class phreebooks_admin {
 		  freight_tax_id smallint NOT NULL default '0',
 		  discount double NOT NULL default '0',
 		  shipper_code varchar(20) NOT NULL default '',
-		  ship_packages text NULL default NULL,
+		  ship_packages mediumtext NULL default NULL,
 		  terms varchar(32) default '0',
 		  sales_tax double NOT NULL default '0',
 		  tax_auths varchar(16) NOT NULL default '0',
@@ -237,7 +237,7 @@ class phreebooks_admin {
 		  ship_email varchar(48) default NULL,
 		  terminal_date date default NULL,
 		  drop_ship enum('0','1') NOT NULL default '0',
-		  notes text NULL default NULL,
+		  notes mediumtext NULL default NULL,
 		  PRIMARY KEY  (id),
 		  KEY period (period),
 		  KEY journal_id (journal_id),
@@ -271,7 +271,7 @@ class phreebooks_admin {
 		  period int(11) NOT NULL default '0',
 		  gl_account varchar(15) NOT NULL default '',
 		  statement_balance double NOT NULL default '0',
-		  cleared_items text,
+		  cleared_items mediumtext,
 		  PRIMARY KEY  (id),
 		  KEY period (period)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;",
@@ -340,7 +340,7 @@ class phreebooks_admin {
 	}
   	if ($db_version == 3.2 || $db_version == '3.2') {
 	  write_configure('APPLY_CUSTOMER_CREDIT_LIMIT', '0'); // flag for using credit limit to authorize orders
-	  $db->Execute("ALTER TABLE ".TABLE_JOURNAL_MAIN." CHANGE shipper_code shipper_code VARCHAR(20) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT ''");
+	  $db->Execute("ALTER TABLE ".TABLE_JOURNAL_MAIN." CHANGE shipper_code shipper_code VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''");
 	  require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
 	  if (is_array(glob(DIR_FS_ADMIN.'PHREEBOOKS_DIR_MY_ORDERS*.zip'))) {
 	  	foreach (glob(DIR_FS_ADMIN.'PHREEBOOKS_DIR_MY_ORDERS*.zip') as $file) {

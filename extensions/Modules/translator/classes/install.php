@@ -39,9 +39,9 @@ class translator_admin {
 		  module varchar(48) NOT NULL DEFAULT '',
 		  language char(5) NOT NULL DEFAULT '',
 		  version char(6) NOT NULL DEFAULT '',
-		  pathtofile varchar(255) collate utf8_unicode_ci NOT NULL DEFAULT '/',
-		  defined_constant varchar(96) collate utf8_unicode_ci NOT NULL DEFAULT '',
-		  translation text collate utf8_unicode_ci DEFAULT '',
+		  pathtofile varchar(255) collate utf8mb4_unicode_ci NOT NULL DEFAULT '/',
+		  defined_constant varchar(96) collate utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		  translation mediumtext collate utf8mb4_unicode_ci DEFAULT '',
 		  translated enum('0','1') NOT NULL default '0',
 		  PRIMARY KEY (id)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",

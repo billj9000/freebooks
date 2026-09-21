@@ -109,7 +109,7 @@ class phreedom_admin {
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;",
 	  TABLE_CONFIGURATION => "CREATE TABLE " . TABLE_CONFIGURATION . " (
 		  configuration_key varchar(64) NOT NULL default '',
-		  configuration_value text,
+		  configuration_value mediumtext,
 		  PRIMARY KEY (configuration_key)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_CURRENCIES => "CREATE TABLE " . TABLE_CURRENCIES . " (
@@ -150,7 +150,7 @@ class phreedom_admin {
 		  sort_order varchar(64) NOT NULL default '',
 		  group_by varchar(64) NOT NULL default '',
 		  use_in_inventory_filter enum('0','1') NOT NULL DEFAULT '0',
-		  params text,
+		  params mediumtext,
 		  PRIMARY KEY (id)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_EXTRA_TABS => "CREATE TABLE " . TABLE_EXTRA_TABS . " (
@@ -171,8 +171,8 @@ class phreedom_admin {
 		  admin_pass varchar(255) NOT NULL default '',
 		  account_id int(11) NOT NULL default '0',
 		  admin_store_id int(11) NOT NULL default '0',
-		  admin_prefs text,
-		  admin_security text,
+		  admin_prefs mediumtext,
+		  admin_security mediumtext,
 		  failed_attempts int(11) NOT NULL default '0',
 		  locked_until datetime NULL default NULL,
 		  pw_reset_token char(64) NULL default NULL,
@@ -205,7 +205,7 @@ class phreedom_admin {
 		  dashboard_id varchar(32) NOT NULL default '',
 		  column_id int(3) NOT NULL default '0',
 		  row_id int(3) NOT NULL default '0',
-		  params text,
+		  params mediumtext,
 		  PRIMARY KEY (id)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );

@@ -69,7 +69,7 @@ class contacts_admin {
 		  telephone4 VARCHAR(20) NULL DEFAULT '',
 		  email VARCHAR(48) NULL DEFAULT '',
 		  website VARCHAR(48) NULL DEFAULT '',
-		  notes text,
+		  notes mediumtext,
 		  PRIMARY KEY (address_id),
 		  KEY customer_id (ref_id,type)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -94,7 +94,7 @@ class contacts_admin {
 		  currency_code varchar(3) NOT NULL default '',
 		  export_profile_id int(11) NOT NULL default '0',
           tax_id INT(11) default '-1',
-          attachments text,
+          attachments mediumtext,
 		  first_date date NULL default NULL,
 		  last_update date default NULL,
 		  last_date_1 date default NULL,
@@ -109,7 +109,7 @@ class contacts_admin {
 		  entered_by int(11) NOT NULL default '0',
 		  log_date datetime NULL default NULL,
 		  action varchar(32) NOT NULL default '',
-		  notes text,
+		  notes mediumtext,
 		  PRIMARY KEY (log_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_DEPARTMENTS => "CREATE TABLE " . TABLE_DEPARTMENTS . " (
@@ -130,20 +130,20 @@ class contacts_admin {
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_PROJECTS_COSTS => "CREATE TABLE " . TABLE_PROJECTS_COSTS . " (
 		  cost_id int(8) NOT NULL auto_increment,
-		  description_short varchar(16) collate utf8_unicode_ci NOT NULL default '',
-		  description_long varchar(64) collate utf8_unicode_ci NOT NULL default '',
-		  cost_type varchar(3) collate utf8_unicode_ci default NULL,
-		  inactive enum('0','1') collate utf8_unicode_ci NOT NULL default '0',
+		  description_short varchar(16) collate utf8mb4_unicode_ci NOT NULL default '',
+		  description_long varchar(64) collate utf8mb4_unicode_ci NOT NULL default '',
+		  cost_type varchar(3) collate utf8mb4_unicode_ci default NULL,
+		  inactive enum('0','1') collate utf8mb4_unicode_ci NOT NULL default '0',
 		  PRIMARY KEY (cost_id),
 		  KEY description_short (description_short)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	  TABLE_PROJECTS_PHASES => "CREATE TABLE " . TABLE_PROJECTS_PHASES . " (
 		  phase_id int(8) NOT NULL auto_increment,
-		  description_short varchar(16) collate utf8_unicode_ci NOT NULL default '',
-		  description_long varchar(64) collate utf8_unicode_ci NOT NULL default '',
-		  cost_type varchar(3) collate utf8_unicode_ci default NULL,
-		  cost_breakdown enum('0','1') collate utf8_unicode_ci NOT NULL default '0',
-		  inactive enum('0','1') collate utf8_unicode_ci NOT NULL default '0',
+		  description_short varchar(16) collate utf8mb4_unicode_ci NOT NULL default '',
+		  description_long varchar(64) collate utf8mb4_unicode_ci NOT NULL default '',
+		  cost_type varchar(3) collate utf8mb4_unicode_ci default NULL,
+		  cost_breakdown enum('0','1') collate utf8mb4_unicode_ci NOT NULL default '0',
+		  inactive enum('0','1') collate utf8mb4_unicode_ci NOT NULL default '0',
 		  PRIMARY KEY (phase_id),
 		  KEY description_short (description_short)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -168,7 +168,7 @@ class contacts_admin {
     global $db, $messageStack;
 	$error = false;
     if (gen_version_is_legacy(MODULE_CONTACTS_STATUS, '3.3')) {
-	  $db->Execute("ALTER TABLE " . TABLE_CONTACTS . " CHANGE short_name short_name VARCHAR(32) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT ''");
+	  $db->Execute("ALTER TABLE " . TABLE_CONTACTS . " CHANGE short_name short_name VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''");
 	  if (!db_table_exists(TABLE_CONTACTS_LOG)) {
 	    foreach ($this->tables as $table => $sql) {
 		  if ($table == TABLE_CONTACTS_LOG) admin_install_tables(array($table => $sql));

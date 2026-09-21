@@ -160,7 +160,7 @@ class zencart_admin {
 	  	'params'      => serialize(array('type'=>'html', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
 	  );
 	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
-	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description text");
+	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description mediumtext");
 
 	  gen_add_audit_log(ZENCART_LOG_FIELDS . TEXT_NEW, 'zencart - catalog');
 	}
@@ -276,7 +276,7 @@ class zencart_admin {
 	    'params'      => serialize(array('type'=>'html', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
 	  );
 	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
-	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description text");
+	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description mediumtext");
 	}
 
 	if (!$error) {

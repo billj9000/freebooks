@@ -250,3 +250,55 @@ if ($exists->EOF) {
         . " (module_id, tab_id, entry_type, field_name, description, sort_order, group_by, use_in_inventory_filter, params)"
         . " VALUES ('inventory', 0, 'check_box', 'ship_complete', 'Ships Complete', 0, 0, '0', '" . db_input($params) . "')");
 }
+
+// ---- the 1.0.0 schema itself ---------------------------------------------
+// Everything above brings a PhreeBooks 3.7.1 database up to the columns
+// FreeBooks added. This last part brings it to the shape 1.0.0 installs with:
+// utf8mb4 throughout, and dates that can say they are not set.
+//
+// A new installation is created this way and never runs any of it. An upgraded
+// or restored one has to be converted, or it keeps a deprecated charset and a
+// zero date that MySQL 8 will not accept - and two different schemas exist in
+// the wild for every later migration to cope with.
+//
+// This is the expensive part of the upgrade. CONVERT TO CHARACTER SET rewrites
+// the table, so on a large installation it takes time and holds a lock. It is
+// driven from information_schema so a second run finds nothing to do.
+
+// Tables still on the old charset. utf8mb3 is what MariaDB and MySQL both now
+// call utf8, and both call it deprecated.
+$tbls = $db->Execute("SELECT t.table_name AS t FROM information_schema.tables t
+    JOIN information_schema.collation_character_set_applicability c
+      ON c.collation_name = t.table_collation
+    WHERE t.table_schema = DATABASE() AND t.table_type = 'BASE TABLE'
+      AND c.character_set_name <> 'utf8mb4'");
+while (!$tbls->EOF) {
+    $db->Execute("ALTER TABLE `" . $tbls->fields['t'] . "` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $tbls->MoveNext();
+}
+
+// cred_id is deliberately ascii: it holds base64url and carries a UNIQUE key at
+// varchar(500), which does not fit an index once every character costs four
+// bytes. CONVERT TO CHARACTER SET above would have taken it with the rest.
+if (db_table_exists(TABLE_WEBAUTHN_CREDS) && db_field_exists(TABLE_WEBAUTHN_CREDS, 'cred_id')) {
+    $db->Execute("ALTER TABLE " . TABLE_WEBAUTHN_CREDS
+        . " MODIFY cred_id varchar(500) CHARACTER SET ascii NOT NULL DEFAULT ''"
+        . " COMMENT 'base64url-encoded credential id'");
+}
+
+// Date columns that cannot say "no date", and the zero dates standing in for it.
+// The column is widened first so the values have somewhere to go.
+$cols = $db->Execute("SELECT table_name AS t, column_name AS c, column_type AS ty
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND data_type IN ('date','datetime')
+      AND is_nullable = 'NO' AND column_default LIKE '%0000-00-00%'");
+$zero_date_columns = array();
+while (!$cols->EOF) {
+    $zero_date_columns[] = array($cols->fields['t'], $cols->fields['c'], $cols->fields['ty']);
+    $cols->MoveNext();
+}
+foreach ($zero_date_columns as $col) {
+    list($t, $c, $ty) = $col;
+    $db->Execute("ALTER TABLE `$t` MODIFY `$c` $ty NULL DEFAULT NULL");
+    $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
+}

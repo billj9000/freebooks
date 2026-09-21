@@ -58,14 +58,14 @@ class rma_admin {
 		  receive_carrier varchar(24) default NULL,
 		  receive_tracking varchar(32) default NULL,
 		  receive_notes varchar(255) default NULL,
-		  receive_details text,
+		  receive_details mediumtext,
 		  close_notes varchar(255) default NULL,
-		  close_details text,
+		  close_details mediumtext,
 		  creation_date date NULL default NULL,
 		  invoice_date date NULL default NULL,
 		  receive_date date NULL default NULL,
 		  closed_date date NULL default NULL,
-          attachments text,
+          attachments mediumtext,
 		  PRIMARY KEY  (id)
 	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	);

@@ -122,7 +122,7 @@ class inventory_admin {
 		  creation_date datetime NULL default NULL,
 		  last_update datetime NULL default NULL,
 		  last_journal_date datetime NULL default NULL,
-		  attachments text,
+		  attachments mediumtext,
 		  PRIMARY KEY (id),
 		  INDEX (sku)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -178,8 +178,8 @@ class inventory_admin {
 		  sku varchar(24) NOT NULL default '',
 		  attr_name_0 varchar(16) NULL,
 		  attr_name_1 varchar(16) NULL,
-		  attr_0 text NULL,
-		  attr_1 text NULL,
+		  attr_0 mediumtext NULL,
+		  attr_1 mediumtext NULL,
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_INVENTORY_PURCHASE => "CREATE TABLE " . TABLE_INVENTORY_PURCHASE . " (
@@ -339,7 +339,7 @@ class inventory_admin {
 		if (!db_field_exists(TABLE_INVENTORY, 'full_price_with_tax')) $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD full_price_with_tax FLOAT NOT NULL DEFAULT '0' AFTER full_price");
 		if (!db_field_exists(TABLE_INVENTORY, 'product_margin')) $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD product_margin FLOAT NOT NULL DEFAULT '0' AFTER full_price_with_tax");
 		if (!db_field_exists(TABLE_EXTRA_FIELDS , 'use_in_inventory_filter')) $db->Execute("ALTER TABLE " . TABLE_EXTRA_FIELDS . " ADD use_in_inventory_filter ENUM( '0', '1' ) NOT NULL DEFAULT '0'");
-		$db->Execute("alter table " . TABLE_INVENTORY . " CHANGE inactive inactive ENUM( '0', '1' ) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT '0'");
+		$db->Execute("alter table " . TABLE_INVENTORY . " CHANGE inactive inactive ENUM( '0', '1' ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0'");
 		xtra_field_sync_list('inventory', TABLE_INVENTORY);
 		$db->Execute("update " . TABLE_INVENTORY . " set inventory_type = 'ma' where inventory_type = 'as'");
 		$result = $db->Execute("select * from " . TABLE_EXTRA_FIELDS ." where module_id = 'inventory'");
