@@ -136,12 +136,10 @@ foreach ($urls as $u) {
     if ($s1 > $s0)                                               $why[] = ($s1 - $s0) . ' line(s) in sql_errors.log';
 
     // errors.log needs reading, not counting. Opening a page without the
-    // parameters it expects produces "Undefined array key" warnings that this
-    // crawler caused itself, and treating those as faults turns the whole run
-    // red - which is how a check stops being read at all. Only a fatal or an
-    // uncaught exception is a failure here; warnings and deprecations are
-    // tallied and reported once at the end, where the deprecation debt is
-    // actually useful (PHP 9 turns several of them into errors).
+    // parameters it expects produces "Undefined array key" warnings this crawler
+    // caused itself, so only a fatal or an uncaught exception fails a URL.
+    // Warnings and deprecations are tallied at the end instead, where the
+    // deprecation debt is worth seeing - PHP 9 turns several into errors.
     if ($e1 > $e0) {
         foreach (array_slice(file($err_log), $e0) as $l) {
             if (preg_match('/\b(FATAL|Exception|Uncaught)\b/i', $l)) {

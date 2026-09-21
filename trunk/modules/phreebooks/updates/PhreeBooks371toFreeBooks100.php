@@ -94,11 +94,9 @@ if (!db_field_exists(TABLE_JOURNAL_MAIN, 'ship_packages')) {
 // ---- was R34toR35 --------------------------------------------------
 // Adds recipient_name and recipient_email to shipping_log for label email pre-population.
 
-// One guard per column, not one guard for both. As a single ALTER guarded only
-// on recipient_name, a database that had the second column but not the first -
-// which is what a run that failed part way through leaves - passed the guard and
-// then died on "Duplicate column name 'recipient_email'". Found by winding a
-// test database back incompletely, which is the realistic case.
+// One guard per column. Guarding both on recipient_name alone breaks on a
+// database that has the second column and not the first, which is what a run
+// that failed part way through leaves behind.
 if (!db_field_exists(TABLE_SHIPPING_LOG, 'recipient_name')) {
     $db->Execute("ALTER TABLE " . TABLE_SHIPPING_LOG
         . " ADD COLUMN recipient_name varchar(64) NOT NULL DEFAULT '' AFTER notes");

@@ -6,11 +6,8 @@
 #   provenance.sh --quiet    say nothing unless something is wrong
 #
 # WHY. The image is a COPY of a build context that is kept in step with trunk by
-# hand. On 2026-09-20 it had drifted in 27 files, and the container was running
-# the pre-fix copy of a file whose fix was the point of the exercise - so every
-# measurement taken against it was measuring code that does not ship. A suite
-# that cannot say which code it ran is a suite whose green means nothing, and
-# this is the check that makes the claim.
+# hand, so it drifts. A suite that cannot say which code it ran is a suite whose
+# green means nothing; this is the check that makes the claim.
 #
 # It stays useful after the bind mount: the mount is a convenience, this is the
 # assertion. If someone runs the stack without the override, or a path is missing

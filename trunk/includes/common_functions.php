@@ -1030,16 +1030,13 @@ function gen_db_date($raw_date = '', $separator = '/') {
   function db_perform_empty_check($table, $data) {
     static $meta = array();
     global $db;
-    // '' is not the only blank that reaches a column. db_input() casts with
-    // (string)($x ?? ''), and (string)false is '' too, so an unset property or a
-    // ?? null arrives at a DATE or a DOUBLE as the empty string with nothing to
-    // show for it. All three are the same write and all three are checked.
+    // '', null and false are all the same write: db_input() casts with
+    // (string)($x ?? ''), and (string)false is '' too, so each reaches a DATE or
+    // a DOUBLE as the empty string.
     //
-    // A zero date is picked up as well, though it is legal here: MariaDB's
-    // defaults omit NO_ZERO_DATE. It is logged, never coerced, because the
-    // columns holding them are to become nullable and this is the only way to
-    // find which code paths still write one. Both tests are string comparisons,
-    // so the early return still costs nothing on the usual call.
+    // Zero dates are logged but never coerced - they are legal on MariaDB, and
+    // the log is how the writers still producing one get found. Both tests are
+    // string comparisons, so the early return below stays cheap.
     $suspect = false;
     foreach ($data as $value) {
       if (db_value_is_blank($value) || db_value_is_zero_date($value)) { $suspect = true; break; }
@@ -1051,17 +1048,14 @@ function gen_db_date($raw_date = '', $separator = '/') {
         from information_schema.columns where table_schema = database() and table_name = '" . db_input($table) . "'");
       while (!$result->EOF) { $meta[$table][$result->fields['column_name']] = $result->fields; $result->MoveNext(); }
     }
-    // enum and set are deliberately NOT in this list. They look like strings and
-    // were treated as such, which made the check blind to all of them - and '' is
-    // refused for an enum unless it is a declared member, which is exactly the
-    // failure that aborted a company copy once already.
+    // enum and set are deliberately NOT here. They look like string columns but
+    // refuse '' unless it is a declared member.
     $stringy = array('varchar','char','text','tinytext','mediumtext','longtext','blob','mediumblob','longblob');
     $coerce  = getenv('FB_EMPTY_COLUMN_COERCE') === '1';
     foreach ($data as $column => $value) {
       if (!isset($meta[$table][$column])) continue;
       $info = $meta[$table][$column];
-      // A zero date is a separate matter: legal today, logged so the migration
-      // that makes these columns nullable knows which writers to change.
+      // Legal today, so recorded rather than changed.
       if (db_value_is_zero_date($value) && in_array($info['data_type'], array('date','datetime','timestamp'))) {
         db_log_empty_write($table, $column, "zero date '" . $value . "'", 'kept', false);
         continue;
@@ -1140,16 +1134,12 @@ function gen_db_date($raw_date = '', $separator = '/') {
   /**
    * Is this database still on the pre-1.0.0 lineage, and older than $before?
    *
-   * The module updates are gated on how old the stamped version is - "if this
-   * database is older than 3.3, add the column 3.3 introduced". Written as
-   * MODULE_X_STATUS < 3.3 that worked while every version was a 3.x float. It
-   * stops working the moment versions become 1.0.0, because 1.0 is less than
-   * 3.3: a current database would satisfy every one of those gates at once and
-   * replay a decade of PhreeBooks migrations over itself.
+   * Module updates are gated on how old the stamped version is. Written as
+   * MODULE_X_STATUS < 3.3 that breaks against 1.0.0, which is numerically less
+   * than every 3.x gate at once - a current database would replay them all.
    *
-   * So the test has to say what it means. A version is from the old lineage if
-   * it is 2.x or 3.x; anything 1.x is FreeBooks 1.0.0 or later and is newer than
-   * all of them, whatever a numeric comparison thinks.
+   * A version is from the old lineage if it is 2.x or 3.x. Anything 1.x is
+   * FreeBooks 1.0.0 or later, and newer than all of them.
    */
   function gen_version_is_legacy($status, $before) {
     if ($status === false || $status === null || $status === '') return false;

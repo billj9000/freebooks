@@ -89,9 +89,8 @@ function strip_comments($src) {
 /**
  * Can this PHP expression put a blank into the column?
  *
- * The previous sweep treated ANY ternary as guarded, which is how the two
- * point-of-sale rounding rows went unseen: they are ternaries whose other branch
- * is '' exactly. A ternary is only safe if neither branch can be blank.
+ * A ternary is only safe if neither branch can be blank. Treating every ternary
+ * as guarded misses the common shape whose other branch is '' exactly.
  */
 function verdict($expr) {
     $e = trim($expr, " \t\n\r,");
@@ -256,9 +255,8 @@ foreach ($files as $file) {
     if (preg_match_all('/Execute\s*\(/', $src, $stmts, PREG_OFFSET_CAPTURE)) {
         foreach ($stmts[0] as $st) {
             // The statement is an expression, not a string: the table name lives
-            // OUTSIDE the quotes, as "update " . TABLE_X . " set ...". Taking only
-            // the first quoted run finds "update " and nothing else - which is why
-            // the first version of this parsed none of the 173 it found.
+            // OUTSIDE the quotes, as "update " . TABLE_X . " set ...", so the
+            // first quoted run is just "update ".
             $sql = sql_of_call($src, $st[1]);
             if ($sql === false) continue;                       // not an UPDATE
             if ($sql === null) { $stats['unparsed_raw']++; continue; }

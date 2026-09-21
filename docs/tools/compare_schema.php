@@ -135,9 +135,8 @@ foreach ($modules as $mod) {
     // current_status, and the columns one module adds to another's table. A
     // comparison that runs only $this->tables would report those as missing and
     // send someone to fix what is not broken.
-    // Swallowing what install() throws is how a module's whole contribution
-    // disappears without trace: zencart adds six columns to inventory and all
-    // six were reported missing because its installer had died on line one.
+    // An installer that throws takes its whole contribution with it, so the
+    // failure is reported rather than swallowed.
     if (method_exists($inst, 'install')) {
         try { $inst->install($mod); }
         catch (Throwable $e) {
@@ -180,9 +179,8 @@ $fresh_cols = columns($probe, $scratch);
 // Columns someone added through the UI are not schema. The extra-fields
 // mechanism writes a real column and registers it in xtra_fields against a tab
 // it created, and that column exists on THAT installation and no other - by
-// design. A fresh install not having it is correct, and counting it as drift
-// would send someone to write another installation's custom field into the
-// baseline. (Which happened: custom_contact_field went in and had to come out.)
+// design. A fresh install not having it is correct; counting it as drift sends
+// someone to write another installation's custom field into the baseline.
 //
 // Only fields on a created tab count. xtra_fields also lists base columns
 // against tab 0, for display, and those are schema like any other. A field a
