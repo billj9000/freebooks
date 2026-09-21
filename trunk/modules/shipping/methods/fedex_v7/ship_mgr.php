@@ -66,12 +66,12 @@
 		echo '    <td' . $bkgnd . ' align="center">' . $result->fields['shipment_id'] . '</td>' . chr(10);
 		echo '    <td' . $bkgnd . ' align="center">' . $result->fields['ref_id'] . '</td>' . chr(10);
 		echo '    <td align="center">' . constant($method_id . '_' . $result->fields['method']) . '</td>' . chr(10);
-		echo '    <td align="right">' . ($result->fields['deliver_date'] <> '0000-00-00 00:00:00' ? gen_locale_date($result->fields['deliver_date'], true) : '&nbsp;') . '</td>' . chr(10);
-		echo '    <td align="right">' . ($result->fields['actual_date']  <> '0000-00-00 00:00:00' ? gen_locale_date($result->fields['actual_date'], true)  : '&nbsp;') . '</td>' . chr(10);
+		echo '    <td align="right">' . (!gen_date_is_empty($result->fields['deliver_date']) ? gen_locale_date($result->fields['deliver_date'], true) : '&nbsp;') . '</td>' . chr(10);
+		echo '    <td align="right">' . (!gen_date_is_empty($result->fields['actual_date']) ? gen_locale_date($result->fields['actual_date'], true)  : '&nbsp;') . '</td>' . chr(10);
 		echo '    <td align="right"><a target="_blank" href="' . FEDEX_V7_TRACKING_URL . $result->fields['tracking_id'] . '">' . $result->fields['tracking_id'] . '</a></td>' . chr(10);
 		echo '    <td align="right">' . $currencies->format_full($result->fields['cost']) . '</td>' . chr(10);
 		echo '    <td align="right" nowrap="nowrap">';
-		if ($result->fields['actual_date'] == '0000-00-00 00:00:00') // not tracked yet, show the tracking icon 
+		if (gen_date_is_empty($result->fields['actual_date'])) // not tracked yet, show the tracking icon 
 		  echo html_icon('phreebooks/truck-icon.png',   TEXT_TRACK_CONFIRM, 'small', 'onclick="submitShipSequence(\'' . $method_id . '\', ' . $result->fields['id'] . ', \'track\')"') . chr(10);
 		echo html_icon('phreebooks/stock_id.png',       TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'' . $method_id . '\', \'edit\', ' . $result->fields['id'] . ')"') . chr(10);
 		echo html_icon('actions/document-print.png',    TEXT_PRINT,         'small', 'onclick="window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;action=view&amp;method=' . $method_id . '&amp;date=' . $date . '&amp;labels=' . $result->fields['tracking_id'] . '\',\'label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);

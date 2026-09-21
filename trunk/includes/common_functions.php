@@ -1123,6 +1123,24 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return $value === '' || $value === null || $value === false;
   }
 
+  /**
+   * Is this date column empty, however it says so?
+   *
+   * A date that is not set has been spelled four ways in this application: NULL,
+   * the empty string, '0000-00-00' and '0000-00-00 00:00:00'. The columns are
+   * becoming nullable, so for as long as both old and new databases are in use
+   * all four have to mean the same thing - and they do not compare alike. In
+   * PHP null == '' is true but null == '0000-00-00' is false, so a test written
+   * only against the zero date silently treats NULL as a real date, prints it,
+   * and enables whatever it guards.
+   *
+   * When every database has been converted this can become a null check, and
+   * these call sites will not have to change again.
+   */
+  function gen_date_is_empty($date) {
+    return $date === null || $date === '' || strncmp((string)$date, '0000-00-00', 10) === 0;
+  }
+
   function db_value_is_zero_date($value) {
     return is_string($value) && strncmp($value, '0000-00-00', 10) === 0;
   }

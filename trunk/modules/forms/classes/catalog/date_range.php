@@ -452,7 +452,7 @@ final class DateRangeResolver
     private function isoOrNull(string $value): ?string
     {
         $value = trim($value);
-        if ($value === '' || $value === '0000-00-00') return null;
+        if (gen_date_is_empty($value)) return null;
         return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : null;
     }
 }

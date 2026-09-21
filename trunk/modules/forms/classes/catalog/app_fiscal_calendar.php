@@ -75,7 +75,7 @@ final class AppFiscalCalendar implements FiscalCalendar
             // the caller say so instead.
             $start = (string)$result->fields['start_date'];
             $end   = (string)$result->fields['end_date'];
-            if ($start !== '' && $start !== '0000-00-00' && $end !== '' && $end !== '0000-00-00') {
+            if (!gen_date_is_empty($start) && !gen_date_is_empty($end)) {
                 $periods[(int)$result->fields['period']] = ['start' => $start, 'end' => $end];
             }
             $result->MoveNext();

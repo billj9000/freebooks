@@ -67,8 +67,8 @@
 			echo '    <td class="dataTableContent" align="right">' . $result->fields['shipment_id'] . '</td>' . chr(10);
 			echo '    <td class="dataTableContent" align="right">' . $result->fields['ref_id'] . '</td>' . chr(10);
 			echo '    <td class="dataTableContent" align="center">' . constant('ups_' . $result->fields['method']) . '</td>' . chr(10);
-			echo '    <td class="dataTableContent" align="right">' . ($result->fields['deliver_date']<>'0000-00-00' ? gen_locale_date($result->fields['deliver_date']) : '&nbsp;') . '</td>' . chr(10);
-			echo '    <td class="dataTableContent" align="right">' . ($result->fields['actual_date']<>'0000-00-00' ? gen_locale_date($result->fields['actual_date']) : '&nbsp;') . '</td>' . chr(10);
+			echo '    <td class="dataTableContent" align="right">' . (!gen_date_is_empty($result->fields['deliver_date']) ? gen_locale_date($result->fields['deliver_date']) : '&nbsp;') . '</td>' . chr(10);
+			echo '    <td class="dataTableContent" align="right">' . (!gen_date_is_empty($result->fields['actual_date']) ? gen_locale_date($result->fields['actual_date']) : '&nbsp;') . '</td>' . chr(10);
 			echo '    <td class="dataTableContent" align="right"><a target="_blank" href="' . UPS_TRACKING_URL . $result->fields['tracking_id'] . '">' . $result->fields['tracking_id'] . '</a></td>' . chr(10);
 			echo '    <td class="dataTableContent" align="right">' . $currencies->format_full($result->fields['cost']) . '</td>' . chr(10);
 			echo '    <td class="dataTableContent" align="right">';

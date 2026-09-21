@@ -117,7 +117,7 @@ final class CsvRenderer implements FormsRenderer
     /** Dates leave as ISO, not in the viewer's locale. */
     private function isoDate(string $value): string
     {
-        if ($value === '' || $value === '0000-00-00') return '';
+        if (gen_date_is_empty($value)) return '';
         $time = strtotime($value);
         return $time === false ? $value : date('Y-m-d', $time);
     }

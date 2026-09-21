@@ -84,7 +84,7 @@
 		if ($result) {
 		  array_shift($result); // the first entry is for new stuff, don't display
 		  foreach ($result as $value) {
-		    $closed = $value['closed_date'] <> '0000-00-00' ? gen_locale_date($value['closed_date']) : ($value['closed'] ? TEXT_YES : '&nbsp;');
+		    $closed = !gen_date_is_empty($value['closed_date']) ? gen_locale_date($value['closed_date']) : ($value['closed'] ? TEXT_YES : '&nbsp;');
 		    echo '<tr class="'.($odd?"odd":"even").'">';
 		    echo '<td>';
 			echo html_icon('actions/edit-find-replace.png', TEXT_EDIT,   'small', 'onclick="window.open(\'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;action=edit&amp;jID=' . $value['journal_id'] . '&amp;oID=' . $value['id'], 'SSL') . '\',\'_blank\')"');

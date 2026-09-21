@@ -76,7 +76,7 @@ switch ($_REQUEST['action']) {
 	// check the revision, roll if necessary
 	if ($id) {
 	  $result = $db->Execute("select revision, last_usage from " . TABLE_WO_MAIN . " where id = " . (int)$id);
-	  if ($result->fields['last_usage'] <> '0000-00-00') { // roll the revision
+	  if (!gen_date_is_empty($result->fields['last_usage'])) { // roll the revision
 	    $revision = $result->fields['revision'] + 1;
 		$id = '';
 		$bump_rev = true;
@@ -194,7 +194,7 @@ switch ($_REQUEST['action']) {
 	  $hide_save = true;
 	}
 	if ($revision > 0) $lock_title = true;
-	if (!$hide_save && $last_usage <> '0000-00-00') {
+	if (!$hide_save && !gen_date_is_empty($last_usage)) {
 	  $lock_title = true;
 	  $messageStack->add(WO_ROLL_REVISION, 'caution');
 	}
@@ -227,7 +227,7 @@ switch ($_REQUEST['action']) {
 	}
 	// error check
 	$result = $db->Execute("select wo_title, last_usage from " . TABLE_WO_MAIN . " where id = " . (int)$id);
-	if ($result->fields['last_usage'] <> '0000-00-00') {
+	if (!gen_date_is_empty($result->fields['last_usage'])) {
 	  $error = true;
 	  $messageStack->add(WO_ERROR_CANNOT_DELETE_BUILDER, 'error');
 	}

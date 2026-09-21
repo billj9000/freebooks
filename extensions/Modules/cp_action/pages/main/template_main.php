@@ -49,7 +49,7 @@ while (!$query_result->EOF) {
       <td onclick="submitSeq(<?php echo $query_result->fields['id']; ?>, 'edit')"><?php echo gen_locale_date($query_result->fields['creation_date']); ?></td>
       <td onclick="submitSeq(<?php echo $query_result->fields['id']; ?>, 'edit')"><?php echo $desc; ?></td>
       <td onclick="submitSeq(<?php echo $query_result->fields['id']; ?>, 'edit')"><?php echo $status_codes[$query_result->fields['capa_status']]; ?></td>
-      <td onclick="submitSeq(<?php echo $query_result->fields['id']; ?>, 'edit')"><?php echo $query_result->fields['closed_date'] == '0000-00-00' ? '&nbsp;' : gen_locale_date($query_result->fields['closed_date']); ?></td>
+      <td onclick="submitSeq(<?php echo $query_result->fields['id']; ?>, 'edit')"><?php echo gen_date_is_empty($query_result->fields['closed_date']) ? '&nbsp;' : gen_locale_date($query_result->fields['closed_date']); ?></td>
       <td class="text-end">
         <?php if (function_exists('add_extra_action_bar_buttons')) echo add_extra_action_bar_buttons($query_result->fields); ?>
         <?php if ($security_level > 2) echo html_icon('actions/edit-find-replace.png', TEXT_EDIT,   'small', 'onclick="submitSeq(' . $query_result->fields['id'] . ', \'edit\')"') . chr(10); ?>

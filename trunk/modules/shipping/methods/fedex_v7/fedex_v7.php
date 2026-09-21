@@ -1036,7 +1036,7 @@ class fedex_v7 {
 		}
 		while (!$shipments->EOF) {
 			$tracking_number = $shipments->fields['tracking_id'];
-			if ($shipments->fields['actual_date'] <> '0000-00-00 00:00:00') { // skip if already tracked
+			if (!gen_date_is_empty($shipments->fields['actual_date'])) { // skip if already tracked
 			  $shipments->MoveNext();
 			  continue;
 			}
