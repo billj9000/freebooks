@@ -417,7 +417,7 @@ class orders extends journal {
 			'project_id'              => $this->item_rows[$i]['proj'],
 			'purch_package_quantity'  => $this->column_empty($this->item_rows[$i]['purch_package_quantity'], 0),
 			'post_date'               => $this->post_date,
-			'date_1'                  => $this->column_empty($this->item_rows[$i]['date_1'] ? $this->item_rows[$i]['date_1'] : $terminal_date, '0000-00-00 00:00:00'),
+			'date_1'                  => $this->column_empty($this->item_rows[$i]['date_1'] ? $this->item_rows[$i]['date_1'] : $terminal_date, 'null'),
 		  );
 		  $total += $this->item_rows[$i]['total'];
 		}

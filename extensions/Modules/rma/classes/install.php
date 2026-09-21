@@ -61,10 +61,10 @@ class rma_admin {
 		  receive_details text,
 		  close_notes varchar(255) default NULL,
 		  close_details text,
-		  creation_date date NOT NULL default '0000-00-00',
-		  invoice_date date NOT NULL default '0000-00-00',
-		  receive_date date NOT NULL default '0000-00-00',
-		  closed_date date NOT NULL default '0000-00-00',
+		  creation_date date NULL default NULL,
+		  invoice_date date NULL default NULL,
+		  receive_date date NULL default NULL,
+		  closed_date date NULL default NULL,
           attachments text,
 		  PRIMARY KEY  (id)
 	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
@@ -98,7 +98,7 @@ class rma_admin {
 	  if (!db_field_exists(TABLE_RMA, 'receive_details'))   $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD receive_details TEXT DEFAULT NULL AFTER receive_notes");
 	  if (!db_field_exists(TABLE_RMA, 'close_notes'))       $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD close_notes VARCHAR(255) DEFAULT NULL AFTER receive_details");
 	  if (!db_field_exists(TABLE_RMA, 'close_details'))     $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD close_details TEXT DEFAULT NULL AFTER close_notes");
-	  if (!db_field_exists(TABLE_RMA, 'invoice_date'))      $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD invoice_date DATE NOT NULL DEFAULT '0000-00-00' AFTER creation_date");
+	  if (!db_field_exists(TABLE_RMA, 'invoice_date'))      $db->Execute("ALTER TABLE " . TABLE_RMA . " ADD invoice_date DATE NULL default NULL AFTER creation_date");
 	  $result = $db->Execute("select * from " . DB_PREFIX . 'rma_module_item');
 	  $output = array();
 	  while (!$result->EOF) {

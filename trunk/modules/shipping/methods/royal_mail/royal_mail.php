@@ -377,7 +377,7 @@ class royal_mail {
       // DATETIME NOT NULL, so the column's own "unknown" value is sent rather
       // than '', which a server at its defaults refuses outright - and which is
       // what every read of the column already tests against.
-      'delivery_date' => '0000-00-00 00:00:00',
+      'delivery_date' => 'null',
     ));
   }
 

@@ -49,7 +49,7 @@ class work_orders_admin {
 		  ref_spec varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
 		  revision int(3) NOT NULL,
 		  revision_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-		  last_usage date NOT NULL DEFAULT '0000-00-00',
+		  last_usage date NULL default NULL,
 		  PRIMARY KEY (id)
 		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_WO_STEPS => "CREATE TABLE " . TABLE_WO_STEPS  . " (

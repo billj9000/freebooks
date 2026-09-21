@@ -536,7 +536,7 @@ class fedex_v7 {
 				// detail. shipping_log.deliver_date is DATETIME NOT NULL, so the
 				// column's own "unknown" value rather than '', which a server at
 				// its defaults refuses outright.
-				$del_date = '0000-00-00 00:00:00';
+				$del_date = 'null';
 				if (isset($response->CompletedShipmentDetail->OperationalDetail->DeliveryDate)) {
 				  $del_code  = $response->CompletedShipmentDetail->OperationalDetail->DestinationServiceArea;
 				  $guar_time = $this->calculateDeliveryTime($sInfo->ship_method, $del_code, $sInfo->residential_address);

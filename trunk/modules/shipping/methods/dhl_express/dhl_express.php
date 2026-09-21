@@ -521,7 +521,7 @@ class dhl_express {
         // DHL omits estimatedDeliveryTime on most responses. shipping_log's
         // deliver_date is DATETIME NOT NULL, so fall back to the column's own
         // "unknown" value instead of '', which a strict server refuses.
-        'delivery_date' => !empty($data['estimatedDeliveryTime']) ? $data['estimatedDeliveryTime'] : '0000-00-00 00:00:00',
+        'delivery_date' => !empty($data['estimatedDeliveryTime']) ? $data['estimatedDeliveryTime'] : 'null',
       );
       $labelIdx++;
     }

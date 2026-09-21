@@ -152,11 +152,20 @@ $GLOBALS['db'] = $db = $real;                 // back to the reference for readi
  */
 function columns(PDO $pdo, $schema) {
     $out = array();
-    $st = $pdo->prepare("select table_name, column_name, column_type, collation_name
+    // Nullability and the default belong here too. column_type is "date" whether
+    // the column accepts NULL or not, so a comparison reading the type alone
+    // cannot see the change from NOT NULL DEFAULT '0000-00-00' to NULL - which
+    // is the other half of what 1.0.0 does to this schema. It compared charset
+    // for the same reason, after the same oversight.
+    $st = $pdo->prepare("select table_name, column_name, column_type, collation_name,
+                                is_nullable, column_default
                          from information_schema.columns where table_schema = ?");
     $st->execute(array($schema));
     foreach ($st->fetchAll(PDO::FETCH_NUM) as $r) {
-        $out[strtolower($r[0])][strtolower($r[1])] = $r[2] . ($r[3] ? ' / ' . $r[3] : '');
+        $out[strtolower($r[0])][strtolower($r[1])] =
+            $r[2] . ($r[3] ? ' / ' . $r[3] : '')
+                  . ($r[4] === 'YES' ? ' NULL' : ' NOT NULL')
+                  . ' default ' . ($r[5] === null ? 'NULL' : $r[5]);
     }
     return $out;
 }

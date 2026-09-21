@@ -56,9 +56,9 @@ class assets_admin {
 		asset_cost float NOT NULL default '0',
 		depreciation_method enum('a','f','l') collate utf8_unicode_ci NOT NULL default 'f',
 		full_price float NOT NULL default '0',
-		acquisition_date date NOT NULL default '0000-00-00',
-		maintenance_date date NOT NULL default '0000-00-00',
-		terminal_date date NOT NULL default '0000-00-00',
+		acquisition_date date NULL default NULL,
+		maintenance_date date NULL default NULL,
+		terminal_date date NULL default NULL,
         attachments text,
 		PRIMARY KEY  (id)
 		) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",

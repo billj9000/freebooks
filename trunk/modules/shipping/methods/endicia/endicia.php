@@ -458,7 +458,7 @@ var $PackageMap = array( // for rate estimates, assume this set of options
 		// Endicia returns no delivery estimate. shipping_log.deliver_date is
 		// DATETIME NOT NULL, so the column's own "unknown" value, not '', which
 		// a server at its defaults refuses outright.
-		$del_date  = '0000-00-00 00:00:00';
+		$del_date  = 'null';
 		$tracking  = $response->LabelRequestResponse->TrackingNumber;
 		$zone      = '';
 		$label     = $response->LabelRequestResponse->Base64LabelImage;

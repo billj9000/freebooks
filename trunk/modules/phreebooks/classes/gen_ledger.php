@@ -1550,7 +1550,7 @@ class journal {
     global $db, $messageStack;
 	$sql_data_array = array(
 	  'closed'      => ($closed) ? '1' : '0',
-	  'closed_date' => ($closed) ? $this->post_date : '0000-00-00',
+	  'closed_date' => ($closed) ? $this->post_date : 'null',
 	);
 	db_perform(TABLE_JOURNAL_MAIN, $sql_data_array, 'update', 'id = ' . $id);
 	$messageStack->debug("\n  Record ID: " . $this->id . " " . (($closed) ? "Closed Record ID: " : "Opened Record ID: ") . $id);

@@ -95,7 +95,7 @@ class contacts_admin {
 		  export_profile_id int(11) NOT NULL default '0',
           tax_id INT(11) default '-1',
           attachments text,
-		  first_date date NOT NULL default '0000-00-00',
+		  first_date date NULL default NULL,
 		  last_update date default NULL,
 		  last_date_1 date default NULL,
 		  last_date_2 date default NULL,
@@ -107,7 +107,7 @@ class contacts_admin {
 		  log_id int(11) NOT NULL auto_increment,
 		  contact_id int(11) NOT NULL default '0',
 		  entered_by int(11) NOT NULL default '0',
-		  log_date datetime NOT NULL default '0000-00-00',
+		  log_date datetime NULL default NULL,
 		  action varchar(32) NOT NULL default '',
 		  notes text,
 		  PRIMARY KEY (log_id)
