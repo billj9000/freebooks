@@ -147,12 +147,22 @@ function admin_check_versions($module, $prerequisites = NULL) {
   $error = false;
   if (is_array($prerequisites) && !empty($prerequisites)) {
 	foreach ($prerequisites as $mod => $version) {
-	  if (!$cur_rev = constant('MODULE_' . strtoupper($mod) . '_VERSION')) {
+	  $constant = 'MODULE_' . strtoupper($mod) . '_VERSION';
+	  // defined() rather than assigning constant() and testing it: an undefined
+	  // constant throws in PHP 8, so the module-not-installed case took the
+	  // request down instead of reporting itself.
+	  if (!defined($constant)) {
 	    $messageStack->add(sprintf(ERROR_MODULE_NOT_INSTALLED, $module, $mod),'error');
 		$error = true;
-	  } elseif ($cur_rev < $version) {
-	    $messageStack->add(sprintf(ERROR_MODULE_VERSION_TOO_LOW, $module, $mod, $version, $cur_rev),'error');
-		$error = true;
+	  } else {
+	    $cur_rev = (string)constant($constant);
+	    // version_compare, because these are version strings and `<` compares
+	    // them as text: '1.0.0' < '3.3' is true on its first character, which
+	    // fails every prerequisite a module declares.
+	    if (version_compare($cur_rev, (string)$version, '<')) {
+	      $messageStack->add(sprintf(ERROR_MODULE_VERSION_TOO_LOW, $module, $mod, $version, $cur_rev),'error');
+		  $error = true;
+	    }
 	  }
 	}
   }

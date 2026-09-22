@@ -20,9 +20,9 @@
 class api_admin {
   public $notes        = [];
   public $prerequisites = [
-    'phreedom'   => '3.6',
-    'phreebooks' => '3.6',
-    'contacts'   => '3.6',
+    'phreedom'   => '1.0.0',
+    'phreebooks' => '1.0.0',
+    'contacts'   => '1.0.0',
   ];
   public $keys    = [];
   public $dirlist = [];

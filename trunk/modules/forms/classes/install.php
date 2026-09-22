@@ -73,8 +73,8 @@ class forms_admin {
 
   function __construct() {
     $this->prerequisites = array(
-      'phreedom'   => 3.6,
-      'phreebooks' => 3.7,
+      'phreedom'   => '1.0.0',
+      'phreebooks' => '1.0.0',
     );
     $this->keys    = array(
       // The three renderer defaults, which were PhreeForm's settings and are

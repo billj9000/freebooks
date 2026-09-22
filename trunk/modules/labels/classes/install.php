@@ -20,7 +20,7 @@ class labels_admin {
 
   function __construct() {
     $this->prerequisites = array(
-      'inventory' => 3.7,
+      'inventory' => '1.0.0',
     );
     $this->keys    = array();
     $this->dirlist = array();

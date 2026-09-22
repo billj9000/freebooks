@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -25,9 +26,9 @@ class inventory_admin {
 
   function __construct() {
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
-	  'contacts'   => 3.71,
-	  'phreedom'   => 3.6,
-	  'phreebooks' => 3.6,
+	  'contacts'   => '1.0.0',
+	  'phreedom'   => '1.0.0',
+	  'phreebooks' => '1.0.0',
 	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(

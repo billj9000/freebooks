@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -26,8 +27,8 @@ class sku_pricer_admin {
 	
   function __construct() {
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
-	  'phreedom'   => 3.0,
-	  'phreebooks' => 3.0,
+	  'phreedom'   => '1.0.0',
+	  'phreebooks' => '1.0.0',
 	);
   }
 

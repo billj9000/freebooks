@@ -27,7 +27,7 @@ class phreehelp_admin {
 	
   function __construct() {
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
-	  'phreedom' => 3.6,
+	  'phreedom' => '1.0.0',
 	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(

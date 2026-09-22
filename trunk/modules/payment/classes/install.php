@@ -41,9 +41,9 @@ class payment_admin {
 	
   function __construct() {
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
-	  'contacts'   => 3.71,
-	  'phreedom'   => 3.6,
-	  'phreebooks' => 3.6,
+	  'contacts'   => '1.0.0',
+	  'phreedom'   => '1.0.0',
+	  'phreebooks' => '1.0.0',
 	);
   }
 

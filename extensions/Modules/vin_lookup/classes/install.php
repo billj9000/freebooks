@@ -26,7 +26,7 @@ class vin_lookup_admin {
 
   function __construct() {
     $this->prerequisites = array(
-      'phreedom' => 3.7,
+      'phreedom' => '1.0.0',
     );
     $this->keys = array(
       'VIN_LOOKUP_API_KEY'  => '',

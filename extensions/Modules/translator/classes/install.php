@@ -27,7 +27,7 @@ class translator_admin {
 	
   function __construct() {
 	$this->prerequisites = array( // modules required and rev level for this module to work properly
-	  'phreedom' => 3.3,
+	  'phreedom' => '1.0.0',
 	);
 	// add new directories to store images and data
 	$this->dirlist = array(
