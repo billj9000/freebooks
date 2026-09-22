@@ -323,23 +323,35 @@ foreach ($zero_date_columns as $col) {
     $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
 }
 
-// Zero dates stored in a column that was ALREADY nullable. The pass above only
-// looks at NOT NULL columns, because those are the ones whose declaration has to
-// change - but a nullable column holds zero dates too, written before anything
-// stopped them, and the value is what NO_ZERO_DATE refuses. journal_main.terminal_date
-// held 691 of them while its declaration was already correct.
-$nullable = $db->Execute("SELECT table_name AS t, column_name AS c
+// The pass above changes declarations: it finds date columns DECLARED with a zero
+// default. A stored zero date is a separate problem and is what NO_ZERO_DATE
+// actually refuses, so every date column is swept for values, whatever it is
+// declared as - a nullable column holds them, and so does a NOT NULL column whose
+// default is a real date.
+//
+// Where the column accepts NULL the value becomes NULL. Where it does not, it
+// becomes the column's own default, which is that column's answer to "not set";
+// a NOT NULL column whose default is itself a zero date was made nullable above
+// and no longer reaches this case.
+$dates = $db->Execute("SELECT table_name AS t, column_name AS c, is_nullable AS n,
+                              column_default AS d
     FROM information_schema.columns
-    WHERE table_schema = DATABASE() AND data_type IN ('date','datetime')
-      AND is_nullable = 'YES'");
-$nullable_date_columns = array();
-while (!$nullable->EOF) {
-    $nullable_date_columns[] = array($nullable->fields['t'], $nullable->fields['c']);
-    $nullable->MoveNext();
+    WHERE table_schema = DATABASE() AND data_type IN ('date','datetime')");
+$date_columns = array();
+while (!$dates->EOF) {
+    $date_columns[] = array($dates->fields['t'], $dates->fields['c'],
+                            $dates->fields['n'], $dates->fields['d']);
+    $dates->MoveNext();
 }
-foreach ($nullable_date_columns as $col) {
-    list($t, $c) = $col;
-    $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
+foreach ($date_columns as $col) {
+    list($t, $c, $nullable, $default) = $col;
+    if ($nullable === 'YES') {
+        $db->Execute("UPDATE `$t` SET `$c` = NULL WHERE `$c` LIKE '0000-00-00%'");
+        continue;
+    }
+    $default = trim((string)$default, "'");
+    if ($default === '' || strpos($default, '0000-00-00') !== false) continue;
+    $db->Execute("UPDATE `$t` SET `$c` = '" . db_input($default) . "' WHERE `$c` LIKE '0000-00-00%'");
 }
 
 // Two columns the installer and the update chain declare differently. The

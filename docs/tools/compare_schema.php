@@ -158,6 +158,27 @@ $GLOBALS['db'] = $db = $real;                 // back to the reference for readi
  * of what 1.0.0 is changing. A column with no collation (a number, a date)
  * compares as its type only.
  */
+/**
+ * The same column as MySQL and MariaDB each spell it.
+ *
+ * MySQL 8 dropped the integer display width, so MariaDB's int(11) is MySQL's
+ * int and tinyint(1) is tinyint - a difference in how the server prints the
+ * type, not in the column.
+ */
+function normalise_type($type) {
+    $type = strtolower(trim($type));
+    return preg_replace('/\b(tinyint|smallint|mediumint|int|integer|bigint)\(\d+\)/', '$1', $type);
+}
+
+/**
+ * The same default as each server prints it: MariaDB writes current_timestamp(),
+ * MySQL writes CURRENT_TIMESTAMP, and they mean the same thing.
+ */
+function normalise_default($d) {
+    $d = trim((string)$d, "'");
+    return preg_replace('/^current_timestamp\(\)$/i', 'CURRENT_TIMESTAMP', $d);
+}
+
 function columns(PDO $pdo, $schema) {
     $out = array();
     // Nullability and the default belong here too. column_type is "date" whether
@@ -171,9 +192,9 @@ function columns(PDO $pdo, $schema) {
     $st->execute(array($schema));
     foreach ($st->fetchAll(PDO::FETCH_NUM) as $r) {
         $out[strtolower($r[0])][strtolower($r[1])] =
-            $r[2] . ($r[3] ? ' / ' . $r[3] : '')
+            normalise_type($r[2]) . ($r[3] ? ' / ' . $r[3] : '')
                   . ($r[4] === 'YES' ? ' NULL' : ' NOT NULL')
-                  . ' default ' . ($r[5] === null ? 'NULL' : $r[5]);
+                  . ' default ' . ($r[5] === null ? 'NULL' : normalise_default($r[5]));
     }
     return $out;
 }
@@ -202,6 +223,11 @@ try {
 } catch (Throwable $e) { /* no xtra_fields: nothing to exclude */ }
 
 printf("fresh install: %d statements, %d tables, %d failures\n", $built, count($fresh_cols), count($fake->failures));
+// A statement the server refused is the whole answer to "can this install
+// here", so the reason is printed and not just the count.
+foreach ($fake->failures as $f) {
+    printf("  REFUSED %s\n          %s\n", $f['err'] ?? '(no message)', $f['sql']);
+}
 printf("reference '%s': %d tables\n\n", $company, count($ref_cols));
 
 $only_ref = array_diff_key($ref_cols, $fresh_cols);

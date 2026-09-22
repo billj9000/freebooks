@@ -97,6 +97,11 @@ class backup {
 	  $messageStack->add(sprintf(ERROR_ACCESSING_FILE, $this->source_dir . $this->source_file), 'error');
 	  return false;
 	}
+	// The file says what encoding it is in. Without this the restore is read in
+	// whatever charset the client happens to default to, and a value of 32
+	// characters that occupies 34 bytes no longer fits the varchar(32) it came
+	// out of. mysqldump and mariadb-dump both write the same line.
+	fwrite($handle, "/*!40101 SET NAMES utf8mb4 */;" . lnbr . lnbr);
 	foreach ($tables as $table) {
 	  $query  = '';
 	  if ($type == 'structure' || $type == 'both') { // build the table create sql

@@ -66,8 +66,15 @@ if ($company === '' || !file_exists(DIR_FS_MY_FILES . $company . '/config.php'))
 $_SESSION['company'] = $company;
 
 // ─── Load shared code ────────────────────────────────────────────────────────
+// Composer first: common_functions.php below declares a class implementing a
+// PHPMailer interface.
+if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) {
+    require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
+}
 $_prev_er = error_reporting(E_ALL & ~E_WARNING);
 require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
+// The currency class titles itself from the admin language file.
+require_once(DIR_FS_MODULES . 'phreedom/language/en_us/admin.php');
 require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
 require_once(DIR_FS_INCLUDES . 'common_functions.php');
 require_once(DIR_FS_INCLUDES . 'common_classes.php');
@@ -90,6 +97,12 @@ while (!$_cfg->EOF) {
     $_cfg->MoveNext();
 }
 
+// The currency class reads its own permission out of the session. A cron has no
+// login, so it is given the rights this job needs and no others. Declared here
+// rather than by loading phreedom/config.php, which is a menu builder and wants
+// web UI language constants.
+define('SECURITY_ID_CONFIGURATION', 11);
+$_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] = 4;
 define('TABLE_CURRENCIES',    DB_PREFIX . 'currencies');
 define('TABLE_AUDIT_LOG',     DB_PREFIX . 'audit_log');
 define('TABLE_JOURNAL_MAIN',  DB_PREFIX . 'journal_main');
@@ -101,17 +114,13 @@ require_once(DIR_FS_MODULES . 'phreedom/classes/currency.php');
 $cur = new currency();
 $cur->btn_update();
 
-// Report results
-foreach (['success', 'caution', 'error'] as $type) {
-    if (empty($_SESSION['messageToStack'])) break;
-    foreach ($_SESSION['messageToStack'] as $msg) {
-        $prefix = $msg['type'] === 'error' ? 'ERROR' : ($msg['type'] === 'caution' ? 'WARN' : 'OK');
-        echo date('[Y-m-d H:i:s]') . " $prefix: " . strip_tags($msg['text']) . "\n";
-    }
-    break;
-}
-// Drain via messageStack API
+// Report results, and take the exit code from the same place. messageStack keeps
+// its messages in $_SESSION['messageToStack'].
 $had_error = false;
-while ($messageStack->size('error') > 0) { $had_error = true; break; }
-
+foreach ($_SESSION['messageToStack'] ?? array() as $msg) {
+    $type   = $msg['type'] ?? '';
+    $prefix = $type === 'error' ? 'ERROR' : ($type === 'caution' || $type === 'warning' ? 'WARN' : 'OK');
+    if ($type === 'error') $had_error = true;
+    echo date('[Y-m-d H:i:s]') . " $prefix: " . trim(html_entity_decode(strip_tags($msg['text'] ?? ''), ENT_QUOTES, 'UTF-8')) . "\n";
+}
 exit($had_error ? 1 : 0);

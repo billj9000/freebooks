@@ -2379,6 +2379,15 @@ function Phreebooks_autoloader($class){
 
 // OAuth2 SMTP support -------------------------------------------------------
 
+// A class declaration naming a missing interface is a fatal at compile time,
+// not when the class is used: without Composer loaded this file does not lose
+// OAuth, it stops loading at all, taking every function above it. application_top
+// loads the autoloader for a web request; a CLI entry point may not have.
+if (!interface_exists('\PHPMailer\PHPMailer\OAuthTokenProvider')
+    && defined('DIR_FS_ADMIN') && file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) {
+    require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
+}
+
 class FreebooksOAuth implements \PHPMailer\PHPMailer\OAuthTokenProvider {
   private $access_token;
   private $email;
