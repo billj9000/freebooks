@@ -46,7 +46,10 @@ global $db, $loaded_modules;
 
 $pending = array();
 foreach ((array)$loaded_modules as $module) {
-    if ($module === 'phreedom') continue;
+    // phreedom is included: the application's cascade cannot reach it from
+    // inside its own initialize(), and stamps it separately afterwards.
+    // Skipping it here would leave this tool unable to finish a company.
+
     $status  = 'MODULE_' . strtoupper($module) . '_STATUS';
     $version = 'MODULE_' . strtoupper($module) . '_VERSION';
     if (!defined($status) || !defined($version)) continue;

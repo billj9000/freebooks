@@ -292,6 +292,14 @@ class phreedom_admin {
 	  }
 	  if (method_exists($mod_init, 'initialize')) $mod_init->initialize($module);
 	}
+	// phreedom last, and by name, because the loop above cannot reach it: it is
+	// this class, already mid-initialize. Without this its STATUS never moves,
+	// so its own update() never runs and the version it reports stays whatever
+	// it was - and every later gate is compared against that.
+	if (MODULE_PHREEDOM_STATUS <> MODULE_PHREEDOM_VERSION) {
+	  $this->update('phreedom');
+	  write_configure('MODULE_PHREEDOM_STATUS', MODULE_PHREEDOM_VERSION);
+	}
     if (web_connected(false) && CFG_AUTO_UPDATE_CHECK && (SECURITY_ID_CONFIGURATION > 3)) { // check for software updates
 	  $revisions = @file_get_contents(VERSION_CHECK_URL);
 	  if ($revisions) {
