@@ -139,10 +139,16 @@ HTML;
                 }
             }
             $page = $_POST['page'] ?? $_GET['page'] ?? (PHP_SAPI === 'cli' ? 'cli' : '');
-            @error_log(sprintf("%s  %s  %s  at %s  page=%s%s  sql=%s%s",
+            $line = sprintf("%s  %s  %s  at %s  page=%s%s  sql=%s%s",
                 date('Y-m-d H:i:s'), $e->getCode(), preg_replace('/\s+/', ' ', $e->getMessage()),
-                $caller, $page, PHP_EOL, preg_replace('/\s+/', ' ', trim($sql)), PHP_EOL),
-                3, DIR_FS_MY_FILES . 'sql_errors.log');
+                $caller, $page, PHP_EOL, preg_replace('/\s+/', ' ', trim($sql)), PHP_EOL);
+            // common_functions.php is loaded before this file by application_top,
+            // but a CLI harness may load the database layer on its own.
+            if (function_exists('gen_log_append')) {
+                gen_log_append(DIR_FS_MY_FILES . 'sql_errors.log', $line);
+            } else {
+                @error_log($line, 3, DIR_FS_MY_FILES . 'sql_errors.log');
+            }
         } catch (Throwable $ignored) {   // never let logging break the request
         }
     }

@@ -1191,10 +1191,10 @@ function gen_db_date($raw_date = '', $separator = '/') {
       }
     }
     $verb = $became === 'kept' ? 'kept' : ($coerce ? 'wrote' : 'WOULD write');
-    @error_log(sprintf("%s  %s.%s given %s -> %s %s   at %s%s",
+    gen_log_append(DIR_FS_MY_FILES . 'empty_column_writes.log',
+      sprintf("%s  %s.%s given %s -> %s %s   at %s%s",
       date('Y-m-d H:i:s'), $table, $column, $given, $verb,
-      $became === 'kept' ? 'as given' : $became, $caller, PHP_EOL),
-      3, DIR_FS_MY_FILES . 'empty_column_writes.log');
+      $became === 'kept' ? 'as given' : $became, $caller, PHP_EOL));
   }
 
   function db_perform($table, $data, $action = 'insert', $parameters = '') {
@@ -2220,6 +2220,34 @@ function csv_string_to_array($str = '') {
 // Section 9. Error Handling Functions
 /**************************************************************************************************************/
 
+/**
+ * Append a line to one of the my_files logs, rotating it at a size cap.
+ *
+ * Nothing else bounds these files. The handler below writes a line for every
+ * warning, so an ordinary page contributes steadily and a page that warns inside
+ * a loop can write hundreds of megabytes in a single request. Unbounded, that
+ * fills the disk the application is running on.
+ *
+ * At the cap the file becomes <name>.1, replacing any previous .1, so a log
+ * costs at most twice LOG_MAX_BYTES on disk and the newest lines are the ones
+ * kept. Set LOG_MAX_BYTES to 0 in configure.php to keep a log growing.
+ *
+ * The running total is held per file rather than read back with filesize(),
+ * which would cost a stat for every line and, because PHP caches it, would not
+ * notice a file growing within the request that is growing it.
+ */
+function gen_log_append($file, $text) {
+	static $written = array();
+	$cap = defined('LOG_MAX_BYTES') ? (int)LOG_MAX_BYTES : 8388608;
+	if (!isset($written[$file])) $written[$file] = file_exists($file) ? (int)@filesize($file) : 0;
+	if ($cap > 0 && $written[$file] >= $cap) {
+		@rename($file, $file . '.1');
+		$written[$file] = 0;
+	}
+	$written[$file] += strlen($text);
+	error_log($text, 3, $file);
+}
+
 function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext = null) {
 	global $messageStack;
     if (!(error_reporting() & $errno)) {
@@ -2234,7 +2262,7 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
     		$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " FATAL RUN-TIME ERROR: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
     		//error_log($text, 1, "operator@example.com");
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
     		if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
                 echo createXmlHeader() . xmlEntry('error', "Sorry! FATAL RUN-TIME ERROR. We encounterd the following error: $errstr.  and had to cancel the script") . createXmlFooter();
                 die();
@@ -2246,36 +2274,36 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
     	case E_WARNING: //2
     		$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " RUN-TIME WARNING: '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
     	case E_PARSE: //4
         	$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " COMPILE-TIME PARSE ERROR: '$errstr' error on line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
         case E_NOTICE: //8
         	$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " RUN-TIME NOTICE:  '$errstr' line $errline in file $errfile";
-    		if(!defined('DEBUG') || DEBUG == true) error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		if(!defined('DEBUG') || DEBUG == true) gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
         case E_CORE_ERROR: //16
         	$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " FATAL ERROR THAT OCCURED DURING PHP's INITIAL STARTUP: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
     		//error_log($text, 1, "operator@example.com");
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
     		header('HTTP/1.1 500 Internal Server Error');
     		die("<h1>Sorry! 16 FATAL ERROR THAT OCCURED DURING PHP's INITIAL STARTUP</h1> <p>We encounterd the following error:<br/> $errstr. <br/><br/> and had to cancel the script.</p>");
 	        break;
         case E_CORE_WARNING: //32
         	$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " WARNING THAT OCCURED DURING PHP's INITIAL STARTUP: '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
         case E_COMPILE_ERROR://64
         	$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " FATAL COMPILE-TIME ERROR: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
     		//error_log($text, 1, "operator@example.com");
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
     		if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
                 echo createXmlHeader() . xmlEntry('error', "Sorry! FATAL COMPILE-TIME ERROR. We encounterd the following error: $errstr.  and had to cancel the script") . createXmlFooter();
                 die();
@@ -2287,12 +2315,12 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
         case E_COMPILE_WARNING: //128
         	$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " COMPILE-TIME WARNING: '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
     	case E_USER_ERROR: //256
     		$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " USER ERROR: '$errstr' Fatal error on line $errline in file $errfile, PHP " . PHP_VERSION . " (" . PHP_OS . ") Aborting...";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
     		//error_log($text, 1, "operator@example.com");
     		if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
                 echo createXmlHeader() . xmlEntry('error', "Sorry! User Error. We encounterd the following error: $errstr.  and had to cancel the script") . createXmlFooter();
@@ -2306,32 +2334,32 @@ function PhreebooksErrorHandler($errno, $errstr, $errfile, $errline, $errcontext
     	case E_USER_WARNING: //512
     		$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " USER WARNING: '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
     	case E_USER_NOTICE: //1024
     		$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " USER NOTICE:  '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
     	case E_RECOVERABLE_ERROR : //4096
     		$text  = date('Y-m-d H:i:s') . $temp;
     		$text .= " RECOVERABLE ERROR:  '$errstr' error on line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
         case E_DEPRECATED : //4096
     		$text  = "PLEASE REPORT THIS TO THE DEV TEAM ".date('Y-m-d H:i:s') . $temp;
     		$text .= " DEPRECATED FUNCTION:  '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
         case E_USER_DEPRECATED : //16384
     		$text  = "PLEASE REPORT THIS TO THE DEV TEAM ".date('Y-m-d H:i:s') . $temp;
     		$text .= " USER DEPRECATED FUNCTION:  '$errstr' line $errline in file $errfile";
-    		error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    		gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
         default:
 	    	$text  = date('Y-m-d H:i:s') . $temp;
 	    	$text .=  " Unknown error type: [$errno] '$errstr' error on line $errline in file $errfile";
-	    	error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+	    	gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
         	break;
     }
     /* Don't execute PHP internal error handler */
@@ -2348,7 +2376,7 @@ function PhreebooksExceptionHandler($exception) {
     // PhreebooksErrorHandler, which logs every error level before it branches.
   	$text  = date('Y-m-d H:i:s') . " User: " . ($_SESSION['admin_id'] ?? '') . " Company: " . ($_SESSION['company'] ?? '');
     $text .= " Exception: '" . $exception->getMessage() . "' line " . $exception->getLine() . " in file " . $exception->getFile();
-    if (defined('DIR_FS_MY_FILES')) error_log($text . PHP_EOL, 3, DIR_FS_MY_FILES."/errors.log");
+    if (defined('DIR_FS_MY_FILES')) gen_log_append(DIR_FS_MY_FILES . "/errors.log", $text . PHP_EOL);
 	if (($_POST['page'] ?? '') == 'ajax' || ($_GET['page'] ?? '') == 'ajax'){
     	echo createXmlHeader() . xmlEntry('error', "Exception: " . $exception->getMessage()) . createXmlFooter();
         die();

@@ -63,6 +63,12 @@ QZ Tray is entirely optional. If it isn't installed, or isn't running, FreeBooks
 
 Run any script with `php trunk/cron/<script>.php [company_name]` — see each file's header comment for its full set of flags and options.
 
+## Logs
+
+FreeBooks writes three logs to `my_files/`: `errors.log` (PHP warnings and fatals), `sql_errors.log` (statements the database refused) and `empty_column_writes.log` (blank values written to columns that cannot hold one).
+
+Each rotates at 8 MB: the file becomes `<name>.1`, replacing any previous `.1`, so a log occupies at most 16 MB and the newest entries are the ones kept. To change the size, add `define('LOG_MAX_BYTES', <bytes>);` to `trunk/includes/configure.php`; set it to `0` to let a log grow without limit.
+
 ## Post-install security
 
 After completing installation, **remove the `install/` directory** from the web root. Leaving it accessible allows anyone to re-initialise the database.
