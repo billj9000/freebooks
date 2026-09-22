@@ -33,6 +33,15 @@ class zencart_admin {
 	  'phreebooks' => '1.0.0',
 	  'shipping'   => '1.0.0',
 	);
+	// Declared here as well as created in install(), because removing a module
+	// drops what $this->tables names and nothing else: a table created only by
+	// install() is left behind when the module is removed.
+	$this->tables = array(
+	  TABLE_ZC_SHIP_NOTIFY => "CREATE TABLE " . TABLE_ZC_SHIP_NOTIFY . " ("
+	      . "shipping_log_id INT NOT NULL PRIMARY KEY,"
+	      . "notified_at DATETIME NOT NULL"
+	      . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(
 	  'ZENCART_ENABLED'           => '0',

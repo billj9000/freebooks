@@ -56,7 +56,12 @@ trap 'rm -f "$JAR"' EXIT
 
 login=$(curl -s -c "$JAR" "$BASE/index.php?module=phreedom&page=main")
 tok=$(printf '%s' "$login" | grep -oP 'name="csrf_token" value="\K[a-f0-9]+' | head -1)
-co=$(printf '%s' "$login"  | grep -oP "<option value=\"\K[0-9]+(?=\">[^<]*$COMPANY)" | head -1)
+# The selector shows each company by its <name>_TITLE, which need not contain the
+# directory name at all, so the title is read from the same config.php the
+# application reads it from rather than guessed from the directory.
+title=$(docker exec "$APP" sh -c "grep -oP \"${COMPANY}_TITLE','\\K[^']*\" /var/www/html/my_files/$COMPANY/config.php" 2>/dev/null)
+co=$(printf '%s' "$login" | grep -oP "<option value=\"\K[0-9]+(?=\">[^<]*\Q${title}\E)" | head -1)
+[ -n "$co" ] || co=$(printf '%s' "$login" | grep -oP "<option value=\"\K[0-9]+(?=\">[^<]*$COMPANY)" | head -1)
 [ -n "$tok" ] && [ -n "$co" ] || { echo "could not reach the login page for '$COMPANY'" >&2; exit 1; }
 curl -s -b "$JAR" -c "$JAR" -o /dev/null \
   -d "csrf_token=$tok&admin_name=$USER&admin_pass=$PASS&company=$co&language=en_us" \
