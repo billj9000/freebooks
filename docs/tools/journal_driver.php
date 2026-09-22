@@ -74,6 +74,10 @@ fb_bootstrap($company, false);
 global $db, $messageStack;
 require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
+// The ledger's error paths report through language constants, so a post that
+// fails needs these as much as one that succeeds - without them the failure is
+// an undefined constant and the real reason never reaches the report.
+foreach (array('phreebooks', 'contacts', 'inventory') as $lang) gen_pull_language($lang);
 // gen_add_audit_log() and the posting path read this; a CLI run has no login.
 if (empty($_SESSION['admin_id'])) $_SESSION['admin_id'] = 1;
 

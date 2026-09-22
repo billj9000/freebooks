@@ -285,13 +285,15 @@ foreach (array(
 // the table, so on a large installation it takes time and holds a lock. It is
 // driven from information_schema so a second run finds nothing to do.
 
-// Tables still on the old charset. utf8mb3 is what MariaDB and MySQL both now
-// call utf8, and both call it deprecated.
-$tbls = $db->Execute("SELECT t.table_name AS t FROM information_schema.tables t
-    JOIN information_schema.collation_character_set_applicability c
-      ON c.collation_name = t.table_collation
-    WHERE t.table_schema = DATABASE() AND t.table_type = 'BASE TABLE'
-      AND c.character_set_name <> 'utf8mb4'");
+// Tables not already on the target collation. Testing the CHARACTER SET is not
+// enough: a table can be utf8mb4 and still carry utf8mb4_uca1400_ai_ci, which is
+// what MariaDB picks when a CREATE names a charset and no collation, and which
+// MySQL does not have - a dump of such a table fails to restore there with
+// "Unknown collation". utf8mb3 is what both servers now call utf8, and both call
+// it deprecated; naming the collation catches that too.
+$tbls = $db->Execute("SELECT table_name AS t FROM information_schema.tables
+    WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
+      AND table_collation <> 'utf8mb4_unicode_ci'");
 while (!$tbls->EOF) {
     $db->Execute("ALTER TABLE `" . $tbls->fields['t'] . "` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $tbls->MoveNext();
