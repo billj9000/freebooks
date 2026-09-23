@@ -159,7 +159,10 @@ switch ($_REQUEST['action']) {
 	    validate_security($security_level, 4);
 	    $short_name = gen_get_contact_name($cInfo->id);
 	    $temp = $cInfo->delete();
-	    if ($temp == true) {
+	    // Strictly true: delete() answers true, or the reason it refused as a
+	    // string, and a non-empty string is loosely equal to true - which reports
+	    // a refusal as a success and writes it to the audit log.
+	    if ($temp === true) {
 	       gen_add_audit_log(TEXT_CONTACTS.'-'.TEXT_DELETE.'-'.constant('ACT_'.strtoupper($type).'_TYPE_NAME'), $short_name);
         } else {
     	   $error = $messageStack->add($temp,'error');

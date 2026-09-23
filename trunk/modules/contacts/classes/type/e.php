@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -32,9 +33,11 @@ class e extends contacts{
 		parent::__construct();
 	}
 	
-  	function delete($id) {
+  	function delete($id = 0) {
 	  	global $db; 
 	  	if ( $this->id == '' ) $this->id = $id;
+	  	$this->id = (int)$this->id;
+	  	if (!$this->id) return ACT_ERROR_ACCOUNT_NOT_FOUND;
   		$result = $db->Execute("select admin_id from ".TABLE_USERS." where account_id =". $this->id);
 		if ($result->RecordCount() == 0) {
 	  		return $this->do_delete();

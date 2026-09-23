@@ -121,9 +121,14 @@ class contacts {
 		}
   }
 
-  function delete($id) {
+  // $id is a fallback, not the way this is called: the page calls delete() with
+  // nothing, because the id reaches the object from the request in the
+  // constructor. It has to stay optional, or that call is an ArgumentCountError.
+  function delete($id = 0) {
   	global $db; 
   	if ( $this->id == '' ) $this->id = $id;
+  	$this->id = (int)$this->id;
+  	if (!$this->id) return ACT_ERROR_ACCOUNT_NOT_FOUND;
 	// error check, no delete if a journal entry exists
 	$result = $db->Execute("SELECT id FROM ".TABLE_JOURNAL_MAIN." WHERE bill_acct_id=$this->id OR ship_acct_id=$this->id OR store_id=$this->id LIMIT 1");
 	if ($result->RecordCount() == 0) {
@@ -134,6 +139,11 @@ class contacts {
   
   public function do_delete(){
 	  global $db; // ajax nog controleren
+	  // Cast here as well, because this is public and reached directly. The id
+	  // goes into every statement below unquoted, where db_prepare_input() -
+	  // addslashes - constrains nothing.
+	  $this->id = (int)$this->id;
+	  if (!$this->id) return ACT_ERROR_ACCOUNT_NOT_FOUND;
 	  $db->Execute("DELETE FROM ".TABLE_ADDRESS_BOOK ." WHERE ref_id=$this->id");
 	  $db->Execute("DELETE FROM ".TABLE_DATA_SECURITY." WHERE ref_1=$this->id");
 	  $db->Execute("DELETE FROM ".TABLE_CONTACTS     ." WHERE id=$this->id");
