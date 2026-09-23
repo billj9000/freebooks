@@ -78,7 +78,7 @@ case "$action" in
 
     echo "==> creating database '$name' on $server"
     target -e "DROP DATABASE IF EXISTS \`$name\`;
-               CREATE DATABASE \`$name\` DEFAULT CHARSET=utf8mb4;
+               CREATE DATABASE \`$name\` DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                CREATE USER IF NOT EXISTS 'fbtest'@'%' IDENTIFIED BY 'fbtest';
                GRANT ALL ON \`$name\`.* TO 'fbtest'@'%'; FLUSH PRIVILEGES;"
 

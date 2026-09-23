@@ -105,6 +105,7 @@ define('GL_ERROR_NO_GL_ACCT_NUMBER','Não foi fornecido número da conta na fun�
 define('GL_ERROR_UPDATING_ACCOUNT_HISTORY','Erro atualizando histórico conta cliente/fornecedor.');
 define('GL_ERROR_DELETING_ACCOUNT_HISTORY','Erro removendo registro de histórico conta cliente/fornecedor');
 define('GL_ERROR_TRIAL_BALANCE','Balancete Geral não bate (Usualmente pode ser acertado com o reenvio da transação). Débitos = %s e créditos = %s no período %s');
+define('GL_ERROR_DATABASE_COLLATION','A colacao predefinida da base de dados ainda e %s. O FreeBooks nao a conseguiu alterar - o utilizador da base de dados pode nao ter permissoes ALTER. Todas as tabelas foram convertidas; apenas tabelas criadas depois herdariam a predefinicao antiga.');
 define('GL_ERROR_POSTING_CHART_BALANCES','Erro enviando carta de saldos de contas para a conta id: ');
 define('GL_DELETE_ALERT','Tem certeza de que quer remover este lançamento de diário?');
 define('GL_ERROR_DIED_CREATING_RECORD','Problema tentando construir um lançamento de diário com id = ');

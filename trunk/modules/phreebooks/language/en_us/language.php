@@ -241,6 +241,7 @@ define('GL_DELETE_ALERT','Are you sure you want to delete this journal entry?');
 define('GL_ERROR_DIED_CREATING_RECORD','Died trying to build a journal entry with id = ');
 define('GL_ERROR_POSTING_CHART_BALANCES','Error posting chart of account balances to account id: ');
 define('GL_ERROR_TRIAL_BALANCE','Trial balance is out of balance (This can usually be fixed by re-posting the transaction). Debits = %s and credits = %s in period %s');
+define('GL_ERROR_DATABASE_COLLATION','The database default collation is still %s. FreeBooks could not change it - the database user may not have ALTER rights. Every table has been converted; only tables created later would inherit the old default.');
 define('GL_ERROR_NO_GL_ACCT_NUMBER','No account number provided in /gen_ledger.php function: ');
 define('GL_ERROR_UPDATING_ACCOUNT_HISTORY','Error updating customer/vendor account history.');
 define('GL_ERROR_DELETING_ACCOUNT_HISTORY','Error deleting customer/vendor account history record');

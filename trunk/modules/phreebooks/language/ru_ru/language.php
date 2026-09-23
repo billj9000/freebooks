@@ -227,6 +227,7 @@ define('GL_BTN_NEW_FY','Generate Next Fiscal Year');
 define('GL_BTN_UPDATE_FY','Update Fiscal Year Changes');
 define('GL_ERROR_JOURNAL_BAD_ACCT','General Ledger account number cannot be found!');
 define('GL_ERROR_OUT_OF_BALANCE','The entry cannot be posted because the debits and credits do not balance!');
+define('GL_ERROR_DATABASE_COLLATION','The database default collation is still %s. FreeBooks could not change it - the database user may not have ALTER rights. Every table has been converted; only tables created later would inherit the old default.');
 define('GL_ERROR_BAD_ACCOUNT','One or more of the GL account numbers are invalid. Please correct and re-submit.');
 define('GL_ERROR_NO_REFERENCE','For recurring transactions, a starting reference number needs to be entered. PhreeBooks will increment it for each recurring entry.');
 define('GL_ERROR_RECUR_ROLL_REQD','This is a recurring entry. Do you want to update future entries as well? (Press Cancel to update only this entry)');

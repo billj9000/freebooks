@@ -233,6 +233,7 @@ define('GL_DELETE_ALERT','Weet u zeker dat u deze journaal boeking wil verwijder
 define('GL_ERROR_DIED_CREATING_RECORD','Gestorven bij het maken van journaalpost met id = ');
 define('GL_ERROR_POSTING_CHART_BALANCES','Error bij opslaan van waardes op grootboekrekening id: ');
 define('GL_ERROR_TRIAL_BALANCE','Saldibalans is uit evenwicht (Dit kan meestal worden verholpen door het opnieuw plaatsen transactie). Debet = %s en credit = %s in de periode %s');
+define('GL_ERROR_DATABASE_COLLATION','De standaardcollatie van de database is nog %s. FreeBooks kon deze niet wijzigen - de databasegebruiker heeft mogelijk geen ALTER-rechten. Alle tabellen zijn geconverteerd; alleen later aangemaakte tabellen zouden de oude standaard overnemen.');
 define('GL_ERROR_NO_GL_ACCT_NUMBER','Geen Rekeningnummer ingevoerd in /gen_ledger.php functie: ');
 define('GL_ERROR_UPDATING_ACCOUNT_HISTORY','Error updaten klant / leverancier account historie.');
 define('GL_ERROR_DELETING_ACCOUNT_HISTORY','Error deleten klant / leverancier account historie record');

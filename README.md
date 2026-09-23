@@ -8,6 +8,17 @@ FreeBooks can be deployed directly to any PHP 8.x-capable web server (Apache or 
 MariaDB database — no Docker required. Deploy the `trunk/` directory as the web root, then visit
 `/install/` in a browser to run the installer.
 
+The installer does not create the database; create it first, and name the collation when you do:
+
+```sql
+CREATE DATABASE freebooks CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Every table FreeBooks creates names its own collation, so this only governs tables created without
+one — but left unnamed, MariaDB picks `utf8mb4_uca1400_ai_ci`, which MySQL does not have, and a dump
+of such a table will not restore there. The General Settings → System Information tab reports the
+collation the database is actually on.
+
 **Use MariaDB. MySQL 8 is not supported yet**, though it is a goal for the 1.0.0 release. The
 schema itself now builds there, but MySQL enables `ONLY_FULL_GROUP_BY` by default and some of the
 application's queries do not yet satisfy it, so pages would fail after a successful install. This

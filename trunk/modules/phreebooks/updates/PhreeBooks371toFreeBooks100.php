@@ -285,6 +285,27 @@ foreach (array(
 // the table, so on a large installation it takes time and holds a lock. It is
 // driven from information_schema so a second run finds nothing to do.
 
+// The DATABASE's own default, which the table loop below does not touch. A table
+// created without an explicit CHARSET and COLLATE inherits it, so a database
+// left on utf8mb3, or on MariaDB's utf8mb4_uca1400_ai_ci, keeps producing tables
+// MySQL cannot read however many times the existing ones are converted.
+//
+// Sent through PDO rather than $db->Execute(), because ALTER DATABASE needs a
+// privilege the company's database user is not guaranteed to hold, and
+// queryFactory answers a refused statement by ending the request. Here it is
+// worth saying and carrying on: every table is converted either way, and only
+// tables created later would inherit the old default.
+$schema = $db->Execute("SELECT DATABASE() AS d, (SELECT default_collation_name
+    FROM information_schema.schemata WHERE schema_name = DATABASE()) AS c");
+if (!$schema->EOF && $schema->fields['c'] !== 'utf8mb4_unicode_ci') {
+    try {
+        $db->link->exec("ALTER DATABASE `" . str_replace('`', '', $schema->fields['d'])
+                      . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        $messageStack->add(sprintf(GL_ERROR_DATABASE_COLLATION, $schema->fields['c']), 'caution');
+    }
+}
+
 // Tables not already on the target collation. Testing the CHARACTER SET is not
 // enough: a table can be utf8mb4 and still carry utf8mb4_uca1400_ai_ci, which is
 // what MariaDB picks when a CREATE names a charset and no collation, and which
