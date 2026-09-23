@@ -51,7 +51,18 @@ if (is_array($page_list)) foreach ($page_list as $key => $value) {
     echo '        <td>&nbsp;</td>' . chr(10);
     echo '        <td class="text-center"><button type="button" class="btn btn-primary btn-sm" onclick="submitToDo(\'install_' . $key . '\')">' . TEXT_INSTALL . '</button></td>' . chr(10);
   } else {
-    echo '        <td class="text-center">' . constant('MODULE_' . strtoupper($key) . '_STATUS') . '</td>' . chr(10);
+    // STATUS is what this database records; VERSION is what the code is. They
+    // are normally the same, and when they are not the module's update() has
+    // not run here - which is invisible unless both are shown.
+    $mod_status  = constant('MODULE_' . strtoupper($key) . '_STATUS');
+    $mod_version = defined('MODULE_' . strtoupper($key) . '_VERSION')
+                 ? constant('MODULE_' . strtoupper($key) . '_VERSION') : $mod_status;
+    $shown = htmlspecialchars((string)$mod_status, ENT_QUOTES, 'UTF-8');
+    if ((string)$mod_status !== (string)$mod_version) {
+      $shown = '<span class="text-danger fw-bold" title="' . htmlspecialchars(TEXT_MOD_VERSION_DRIFT, ENT_QUOTES, 'UTF-8') . '">'
+             . $shown . ' &rarr; ' . htmlspecialchars((string)$mod_version, ENT_QUOTES, 'UTF-8') . '</span>';
+    }
+    echo '        <td class="text-center">' . $shown . '</td>' . chr(10);
     echo '        <td class="text-center" nowrap="nowrap">' . chr(10);
     if ($security_level > 3) echo '          <button type="button" class="btn btn-primary btn-sm" onclick="if (confirm(\'' . TEXT_REMOVE_MESSAGE . '\')) submitToDo(\'remove_' . $key . '\')">' . TEXT_REMOVE . '</button>' . chr(10);
     if (file_exists(DIR_FS_MODULES . $key . '/pages/admin/pre_process.php')) {

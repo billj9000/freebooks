@@ -61,11 +61,9 @@ echo $toolbar->build_toolbar();
   <li class="nav-item" role="presentation">
     <button class="nav-link<?php echo ($active_tab === 'stats'    ? ' active' : ''); ?>" data-bs-toggle="tab" data-bs-target="#tab_stats"    type="button" role="tab"><?php echo TEXT_STATISTICS; ?></button>
   </li>
-  <?php if ($_SESSION['admin_id'] == 1) { ?>
   <li class="nav-item" role="presentation">
-    <button class="nav-link<?php echo ($active_tab === 'php_info' ? ' active' : ''); ?>" data-bs-toggle="tab" data-bs-target="#tab_php_info" type="button" role="tab">PHP Info</button>
+    <button class="nav-link<?php echo ($active_tab === 'system' ? ' active' : ''); ?>" data-bs-toggle="tab" data-bs-target="#tab_system" type="button" role="tab"><?php echo TEXT_SYS; ?></button>
   </li>
-  <?php } ?>
 </ul>
 <div class="tab-content fb-tab-content">
 <?php
@@ -80,7 +78,7 @@ echo $toolbar->build_toolbar();
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_manager.php');
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_tools.php');
   require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_stats.php');
-  if ($_SESSION['admin_id'] == 1) require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_php_info.php');
+  require (DIR_FS_MODULES . $module . '/pages/admin/template_tab_system.php');
 ?>
 </div>
 </form>

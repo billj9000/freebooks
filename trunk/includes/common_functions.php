@@ -785,6 +785,18 @@ function gen_db_date($raw_date = '', $separator = '/') {
   return sprintf('%04d-%02d-%02d', (int)$year, (int)$month, (int)$day);
 }
 
+  /**
+   * A byte count as a person reads it. Sizes are reported in whole units with
+   * one decimal, so 1536 bytes reads 1.5 KB rather than 1536.
+   */
+  function gen_format_bytes($bytes) {
+	$bytes = (float)$bytes;
+	$units = array('bytes', 'KB', 'MB', 'GB', 'TB');
+	$i = 0;
+	while ($bytes >= 1024 && $i < count($units) - 1) { $bytes /= 1024; $i++; }
+	return ($i === 0) ? ((int)$bytes . ' ' . $units[0]) : (round($bytes, 1) . ' ' . $units[$i]);
+  }
+
   function gen_locale_date($raw_date, $long = false) { // from db to display format
     if ($raw_date == '0000-00-00' || $raw_date == '0000-00-00 00:00:00' || !$raw_date) return '';
   	global $messageStack;

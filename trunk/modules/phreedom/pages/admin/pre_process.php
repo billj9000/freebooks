@@ -490,6 +490,59 @@ $cal_clean = array(
   'default'   => gen_locale_date(date('Y-m-d')),
   'params'    => array('align' => 'left'),
 );
+// What the System Information tab shows. Gathered here so the template only
+// prints, and curated by hand rather than dumped: phpinfo() lists absolute
+// paths, the loaded ini files and the contents of $_SERVER, which on a
+// containerised install holds the database password.
+$sys_php = array(
+  'PHP'                 => PHP_VERSION . ' (' . PHP_SAPI . ')',
+  'memory_limit'        => ini_get('memory_limit'),
+  'max_execution_time'  => ini_get('max_execution_time'),
+  'upload_max_filesize' => ini_get('upload_max_filesize'),
+  'post_max_size'       => ini_get('post_max_size'),
+);
+// The list is what the application and its vendored packages actually require:
+// the database layer needs pdo_mysql; the backup reads and writes zip; TCPDF
+// requires curl; the barcode and QR generators require mbstring; PHPMailer
+// requires ctype, filter and hash; and json is used almost everywhere.
+$sys_ext = array();
+foreach (array('pdo_mysql','mbstring','curl','zip','json','ctype','filter','hash','openssl') as $ext) {
+  $sys_ext[$ext] = extension_loaded($ext);
+}
+
+$sys_db = array();
+$row = $db->Execute("SELECT VERSION() AS v, @@session.sql_mode AS m");
+if (!$row->EOF) {
+  $sys_db[TEXT_SYS_DB]       = $row->fields['v'];
+  $sys_db[TEXT_SYS_SQL_MODE] = $row->fields['m'] === '' ? '(empty)' : $row->fields['m'];
+}
+$row = $db->Execute("SELECT default_character_set_name AS c, default_collation_name AS l
+    FROM information_schema.schemata WHERE schema_name = DATABASE()");
+if (!$row->EOF) $sys_db[TEXT_SYS_CHARSET] = $row->fields['c'] . ' / ' . $row->fields['l'];
+
+// The two numbers that say whether this company has had the 1.0.0 conversion.
+// Both should be zero; either being non-zero is why a strict server refuses a
+// post, or why a dump of this company will not restore onto MySQL.
+$sys_schema = array();
+$row = $db->Execute("SELECT COUNT(*) AS n FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND data_type IN ('date','datetime')
+      AND is_nullable = 'NO' AND column_default LIKE '%0000-00-00%'");
+$sys_schema[TEXT_SYS_ZERO_DATES] = $row->EOF ? '?' : $row->fields['n'];
+$row = $db->Execute("SELECT COUNT(*) AS n FROM information_schema.tables
+    WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
+      AND table_collation <> 'utf8mb4_unicode_ci'");
+$sys_schema[TEXT_SYS_COLLATION_DRIFT] = $row->EOF ? '?' : $row->fields['n'];
+
+$sys_env  = array();
+$free     = @disk_free_space(DIR_FS_MY_FILES);
+$sys_env[TEXT_SYS_DISK] = ($free === false) ? '?' : gen_format_bytes($free);
+$sys_logs = array();
+foreach (array('errors.log','sql_errors.log','empty_column_writes.log') as $log) {
+  $path = DIR_FS_MY_FILES . $log;
+  $sys_logs[$log] = file_exists($path) ? gen_format_bytes((int)filesize($path)) : '-';
+}
+$sys_install_present = is_dir(DIR_FS_ADMIN . 'install');
+
 $include_header   = true;
 $include_footer   = true;
 $include_template = 'template_main.php';

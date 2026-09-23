@@ -268,4 +268,48 @@ document.addEventListener('DOMContentLoaded', function () {
   chartSelect();
 });
 
+
+// System Information, as plain text for pasting into a bug report. Read off the
+// rendered tables so what is copied is exactly what is shown.
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('sys_info_copy');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var out = [];
+    document.querySelectorAll('#sys_info_body .fb-fieldset').forEach(function (box) {
+      var legend = box.querySelector('.fb-fieldset-legend');
+      if (legend) out.push('[' + legend.textContent.trim() + ']');
+      box.querySelectorAll('tbody tr').forEach(function (tr) {
+        var cells = [];
+        tr.querySelectorAll('td').forEach(function (td) {
+          cells.push(td.textContent.replace(/\s+/g, ' ').trim());
+        });
+        if (cells.length) out.push(cells.join(': '));
+      });
+      out.push('');
+    });
+    var text = out.join('\n');
+    var done = function () {
+      var was = btn.textContent;
+      btn.textContent = btn.dataset.copied || 'Copied';
+      setTimeout(function () { btn.textContent = was; }, 1500);
+    };
+    // navigator.clipboard is only defined in a secure context, and an install
+    // reached over plain http is not one.
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { /* leave the button alone */ }
+      document.body.removeChild(ta);
+    }
+  });
+});
+
 </script>
