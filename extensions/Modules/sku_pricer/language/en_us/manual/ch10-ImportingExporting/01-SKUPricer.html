@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.01">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Importing.SKU Price Importer">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="SKU Price Importer">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>SKU Price Importer</title>
+</head>
+
+<body>
+
+<h1 align="center">SKU Price Importer</h1>
+
+<p>The SKU Price Importer updates prices, costs and other details on inventory items you
+  already have, from a CSV file. It is reached from the <b>Inventory &rarr; SKU Pricer</b> menu,
+  and is part of the optional SKU Pricer module.</p>
+
+<p><b>It only ever updates. It never creates an item.</b> A row whose SKU is not already in
+  your inventory matches nothing and is passed over in silence. To add new items, use the
+  inventory import described in <a href="../../../../../phreedom/language/en_us/manual/ch10-ImportingExporting/ImpExpHome.html">Importing/Exporting</a>.</p>
+
+<h4>Before you start</h4>
+<ol>
+  <li>Take a backup. The importer writes directly to your inventory and there is no preview
+    and no undo.</li>
+  <li>Try a few rows first. The importer applies each row as it reads it, so a file that
+    fails part way through leaves the rows before that point already applied.</li>
+</ol>
+
+<h4>The file</h4>
+<p>A comma-separated file whose <b>first row is a header naming the columns</b>. The header is
+  what decides which fields are written: a column you leave out of the file is left alone on
+  the item, so a file containing only <code>sku</code> and <code>full_price</code> changes
+  prices and nothing else.</p>
+
+<p>Every row must identify an item, using one of:</p>
+<ul>
+  <li><code>sku</code> &mdash; the item's SKU. Used whenever it is present and not empty.</li>
+  <li><code>upc_code</code> &mdash; used only when there is no <code>sku</code> column, or the
+    SKU on that row is empty.</li>
+</ul>
+<p>If a row offers neither, the import <b>stops at that row</b> with the message
+  <i>"No search field was found"</i>. Rows already processed stay applied; rows after it are
+  not read.</p>
+
+<h4>Columns you can include</h4>
+<p>Anything outside this list is ignored, so a spreadsheet exported from elsewhere can carry
+  extra columns without harm.</p>
+<table border="1" cellpadding="4" cellspacing="0">
+  <tr><th align="left">Column</th><th align="left">Updates</th></tr>
+  <tr><td><code>description_short</code></td><td>Short description</td></tr>
+  <tr><td><code>description_sales</code></td><td>Sales description</td></tr>
+  <tr><td><code>description_purchase</code></td><td>Purchase description</td></tr>
+  <tr><td><code>full_price</code></td><td>Full price</td></tr>
+  <tr><td><code>full_price_with_tax</code></td><td>Full price including tax</td></tr>
+  <tr><td><code>item_cost</code></td><td>Item cost</td></tr>
+  <tr><td><code>price_sheet</code></td><td>Customer price sheet</td></tr>
+  <tr><td><code>price_sheet_v</code></td><td>Vendor price sheet</td></tr>
+  <tr><td><code>item_taxable</code></td><td>Taxable when sold</td></tr>
+  <tr><td><code>purch_taxable</code></td><td>Taxable when purchased</td></tr>
+  <tr><td><code>item_weight</code></td><td>Weight</td></tr>
+  <tr><td><code>upc_code</code></td><td>UPC code</td></tr>
+  <tr><td><code>vendor_id</code></td><td>Vendor</td></tr>
+  <tr><td><code>minimum_stock_level</code></td><td>Minimum stock level</td></tr>
+  <tr><td><code>reorder_quantity</code></td><td>Reorder quantity</td></tr>
+  <tr><td><code>lead_time</code></td><td>Lead time</td></tr>
+  <tr><td><code>account_sales_income</code></td><td>Sales income account</td></tr>
+  <tr><td><code>account_inventory_wage</code></td><td>Inventory / wage account</td></tr>
+  <tr><td><code>account_cost_of_sales</code></td><td>Cost of sales account</td></tr>
+</table>
+
+<p>The item's <i>last updated</i> date is set to today on every row that matches.</p>
+
+<h4>Purchasing details</h4>
+<p>Five of those columns &mdash; <code>description_purchase</code>, <code>price_sheet_v</code>,
+  <code>purch_taxable</code>, <code>item_cost</code> and <code>vendor_id</code> &mdash; also
+  update the item's purchasing record, which is what the Vendors tab of an inventory item
+  shows.</p>
+<p>Include <code>vendor_id</code> and only that vendor's purchasing record is updated. Leave it
+  out and every vendor record for the item is updated together, which is rarely what is wanted
+  for an item bought from more than one supplier.</p>
+
+<h4>Running it</h4>
+<ol>
+  <li>Go to <b>Inventory &rarr; SKU Pricer</b>.</li>
+  <li>Choose the CSV file.</li>
+  <li>Press the <b>Save</b> icon.</li>
+</ol>
+
+<h4>Reading the result</h4>
+<p>The importer reports <i>"Total lines processed: N. Total affected rows = M."</i></p>
+<p><b>N and M are not expected to match, and a gap does not by itself mean something failed.</b>
+  M counts rows the database actually changed, so a row is left out of it when the SKU was not
+  found <i>and</i> when the values in the file were already the values on the item. If M is
+  lower than you expect, check a few of the SKUs exist and are spelled as they are in
+  FreeBooks before assuming the file was wrong.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="../../../../../phreedom/language/en_us/manual/ch10-ImportingExporting/ImpExpHome.html">Importing/Exporting</a></li>
+</ul>
+
+</body>
+</html>

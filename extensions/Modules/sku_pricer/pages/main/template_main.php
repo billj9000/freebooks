@@ -24,6 +24,7 @@ $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
+$toolbar->add_help('10.01'); // SKU Price Importer, under Importing/Exporting
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
