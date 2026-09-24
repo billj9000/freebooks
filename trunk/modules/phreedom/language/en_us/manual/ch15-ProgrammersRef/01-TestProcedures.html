@@ -3,24 +3,47 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
-<meta name="doc_pos" content="16">
-<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
-<meta name="doc_index_1" content="Test Specification">
-<!-- glossay items - used to build glossary (zero or more)-->
-<!-- glossary terms are imploded with a colon separator -->
-<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<meta name="doc_pos" content="15.01">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Programmer's Reference.Test procedures">
 <!-- Title - Used as the table of contents and index reference title (one required)-->
-<meta name="doc_title" content="Test Specification">
+<meta name="doc_title" content="Test Procedures">
 <!-- End of meta tags -->
 
 <link rel="stylesheet" type="text/css" href="../stylesheet.css">
-<title>Test Specification</title>
+<title>Test Procedures</title>
 </head>
 
 <body>
 
-<h1 align="center">Test Specification</h1>
-<p>FreeBooks doesn't have an automated test suite; instead, manual test procedures are maintained as spreadsheets in the <code>TestProcedures/</code> directory at the root of the source repository (outside <code>trunk/</code>, so this content isn't part of a deployed installation &mdash; it's for developers and testers working from the source tree).</p>
+<h1 align="center">Test Procedures</h1>
+<p><em>For developers and testers working from the source tree.</em> Everything described here
+  lives in the source repository and is not part of an installed FreeBooks &mdash; the files are
+  under <code>TestProcedures/</code> and <code>docs/tools/</code> at the repository root, outside
+  <code>trunk/</code>, so they are not present on a deployed server.</p>
+
+<p>Testing is in two halves. The developer tools under <code>docs/tools/</code> are run from the
+  command line and check the things a person cannot reliably check by hand &mdash; every page
+  opening, every journal type posting, the schema a fresh install produces against the schema an
+  upgraded database has. The spreadsheets under <code>TestProcedures/</code> cover what those tools
+  cannot: whether the application does the right thing when a person uses it.</p>
+
+<h3>docs/tools/</h3>
+<p>Each tool documents itself in its own header comment, including what counts as a failure and
+  what it cannot prove. Briefly:</p>
+<ul>
+  <li><code>crawl_pages.php</code> &mdash; opens every page and ajax operation as a logged-in user.</li>
+  <li><code>form_robot.php</code> &mdash; saves every form three ways: as rendered, blanked, and over-length.</li>
+  <li><code>journal_driver.php</code> &mdash; posts an entry of every journal type through the real ledger classes, under more than one SQL mode.</li>
+  <li><code>compare_schema.php</code> &mdash; builds the schema a fresh install produces and compares it against a real company's.</li>
+  <li><code>test_module_install.sh</code> &mdash; installs and removes every module through the admin page.</li>
+  <li><code>test_company.sh</code> &mdash; makes and destroys disposable copies of a company to run the rest against.</li>
+  <li>the <code>sweep_*.php</code> scripts &mdash; static checks over the source for unsafe writes, unsuitable queries and column widths.</li>
+</ul>
+<p>They write to the database and are meant for a disposable copy, never a company anyone cares
+  about. Most refuse to run against one that is not.</p>
+
+<h3>TestProcedures/</h3>
 
 <h3>PB-TEST-J6-J12.ods</h3>
 <p>A single spreadsheet containing a full manual regression test plan, organized into sections with individually numbered test cases:</p>
