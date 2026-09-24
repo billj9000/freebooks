@@ -67,7 +67,8 @@
   <tr><td><code>purch_taxable</code></td><td>Taxable when purchased</td></tr>
   <tr><td><code>item_weight</code></td><td>Weight</td></tr>
   <tr><td><code>upc_code</code></td><td>UPC code</td></tr>
-  <tr><td><code>vendor_id</code></td><td>Vendor</td></tr>
+  <tr><td><code>vendor_id</code></td><td>Vendor &mdash; its <b>short name</b>, or its numeric id</td></tr>
+  <tr><td><code>vendor_sku</code></td><td>The vendor's own part number (purchasing record only)</td></tr>
   <tr><td><code>minimum_stock_level</code></td><td>Minimum stock level</td></tr>
   <tr><td><code>reorder_quantity</code></td><td>Reorder quantity</td></tr>
   <tr><td><code>lead_time</code></td><td>Lead time</td></tr>
@@ -78,11 +79,19 @@
 
 <p>The item's <i>last updated</i> date is set to today on every row that matches.</p>
 
+<h4>Naming the vendor</h4>
+<p>Put the vendor's <b>short name</b> in <code>vendor_id</code> &mdash; the name shown in the
+  vendor list, such as <code>SKF</code>. A number is taken as a contact id for anyone who has
+  one, but nothing in FreeBooks displays contact ids, so the short name is normally what you
+  have.</p>
+<p>If the name matches no vendor the whole row is left unchanged and the importer says which
+  vendor and which SKU, so you can correct the file and run it again.</p>
+
 <h4>Purchasing details</h4>
-<p>Five of those columns &mdash; <code>description_purchase</code>, <code>price_sheet_v</code>,
-  <code>purch_taxable</code>, <code>item_cost</code> and <code>vendor_id</code> &mdash; also
-  update the item's purchasing record, which is what the Vendors tab of an inventory item
-  shows.</p>
+<p>Six of those columns &mdash; <code>description_purchase</code>, <code>price_sheet_v</code>,
+  <code>purch_taxable</code>, <code>item_cost</code>, <code>vendor_sku</code> and
+  <code>vendor_id</code> &mdash; also update the item's purchasing record, which is what the
+  Vendors tab of an inventory item shows. <code>vendor_sku</code> exists only there.</p>
 <p>Include <code>vendor_id</code> and only that vendor's purchasing record is updated. Leave it
   out and every vendor record for the item is updated together, which is rarely what is wanted
   for an item bought from more than one supplier.</p>

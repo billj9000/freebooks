@@ -30,6 +30,7 @@ define('SKU_PRICER_DIRECTIONS','After a file has been selected, press the Save i
 		Where field is the inventory field name, data is the db formatted value.<br />
 		Most fields are importable unless they are controlled by the PhreeBooks module.<br />
 		The file must contain either the SKU or UPC code to properly update the correct record.');
+define('SKU_PRICER_ERROR_VENDOR','Vendor \'%s\' was not found, so the row for \'%s\' was left unchanged. Use the vendor\'s short name as it appears in the vendor list, or its numeric id.');
 // Error Messages
 // Javascrpt Defines
 // Audit Log Messages

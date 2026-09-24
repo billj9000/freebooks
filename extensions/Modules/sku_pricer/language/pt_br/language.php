@@ -11,5 +11,6 @@
 define('SKU_PRICER_PAGE_TITLE','SKU Importação Preços');
 define('SKU_PRICER_SELECT','Por favor selecione o arquivo . csv para importação');
 define('SKU_PRICER_DIRECTIONS','Depois de selecionar o arquivo tecle o botão Salvar para executar o  script.<br />O formato do arquivo (com cabeçalho):<br />sku,custo,preço,código upc<br>SKU_NUM,2.00, 4.00, upc<br />Números com valor real com ponto como separador decimal, sem símbolos ou outros caracteres.');
+define('SKU_PRICER_ERROR_VENDOR','O fornecedor \'%s\' nao foi encontrado, por isso a linha de \'%s\' ficou inalterada. Use o nome abreviado do fornecedor como aparece na lista, ou o seu id numerico.');
 
 ?>

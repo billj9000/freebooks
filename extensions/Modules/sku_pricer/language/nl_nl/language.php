@@ -11,5 +11,6 @@
 define('SKU_PRICER_PAGE_TITLE','Artikel Prijs Importeur');
 define('SKU_PRICER_SELECT','Seleteer het csv bestand om te importeren');
 define('SKU_PRICER_DIRECTIONS','Nadat het bestand geselecteerd is en op bewaren geklikt wordt het script uitgevoerd.<br />Het bestand formaat (Met koptekst):<br />sku,cost,full,upc_code<br>SKU_NUM,2.00, 4.00, upc<br />Waar nummers werkelijke waardes zijn met een punt als decimale splitser, en geen andere symbolen of karakters.');
+define('SKU_PRICER_ERROR_VENDOR','Leverancier \'%s\' is niet gevonden, dus de regel voor \'%s\' is ongewijzigd gelaten. Gebruik de korte naam van de leverancier zoals die in de lijst staat, of het numerieke id.');
 
 ?>

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -51,14 +52,16 @@ class sku_pricer {
 			'item_cost'				=> 'item_cost',
 			'price_sheet_v'			=> 'price_sheet_v',
 			'purch_taxable'			=> 'purch_taxable',
-			'item_cost'				=> 'item_cost',
 			'vendor_id'				=> 'vendor_id',
 		);
+		// vendor_sku belongs to the purchase record only; there is no such
+		// column on the inventory table.
 		$purch_fields = array(
 			'description_purchase'	=> 'description_purchase',
 			'price_sheet_v'			=> 'price_sheet_v',
 			'purch_taxable'			=> 'purch_taxable',
 			'item_cost'				=> 'item_cost',
+			'vendor_sku'			=> 'vendor_sku',
 			'vendor_id'				=> 'vendor_id',
 		);
   		$count = 0;
@@ -72,6 +75,21 @@ class sku_pricer {
 			if (!$where) {
 				$messageStack->add("No search field was found. Either the SKU or UPC Code field must be included in the csv file.", 'error');
 				break; // no valid search fields
+			}
+			// Resolve the vendor before anything is written. inventory.vendor_id is
+			// an integer contact id, so a name that matches no vendor is refused
+			// outright by a strict server and silently stored as 0 by a lax one,
+			// which detaches the item from its vendor. Neither is worth doing
+			// halfway, so the whole row is left alone and said out loud.
+			if (isset($row['vendor_id']) && trim((string)$row['vendor_id']) !== '') {
+				$vendor_id = $this->resolve_vendor($row['vendor_id']);
+				if ($vendor_id === false) {
+					$messageStack->add(sprintf(SKU_PRICER_ERROR_VENDOR,
+						htmlspecialchars($row['vendor_id']),
+						htmlspecialchars(isset($row['sku']) && $row['sku'] !== '' ? $row['sku'] : ($row['upc_code'] ?? ''))), 'error');
+					continue;
+				}
+				$row['vendor_id'] = $vendor_id;
 			}
 			$query = "";
 			foreach ($valid_fields as $key => $value) if (isset($row[$key])) $query .= " $value='".db_input($row[$key])."',";
@@ -97,6 +115,28 @@ class sku_pricer {
 			}
 		}
 		$messageStack->add("Total lines processed: ".count(is_array($rows) ? $rows : []).". Total affected rows = $count.", "success");
+  	}
+
+  	/**
+  	 * The vendor as a person writing a file has it, as the id the database keeps.
+  	 *
+  	 * Nothing in the application shows a contact's numeric id: the vendor list
+  	 * displays short names, and opening a vendor posts the id in a hidden field
+  	 * rather than putting it in the address bar. So a file written by hand names
+  	 * the vendor, and a number is accepted only for whoever already has one.
+  	 *
+  	 * Answers the id, 0 for an empty value, or false when nothing matches.
+  	 */
+  	function resolve_vendor($vendor) {
+  		global $db;
+  		static $seen = array();
+  		$vendor = trim((string)$vendor);
+  		if ($vendor === '')        return 0;
+  		if (ctype_digit($vendor))  return (int)$vendor;
+  		if (isset($seen[$vendor])) return $seen[$vendor];
+  		$result = $db->Execute("SELECT id FROM ".TABLE_CONTACTS
+  		    ." WHERE type='v' AND short_name='".db_input($vendor)."' LIMIT 1");
+  		return $seen[$vendor] = $result->EOF ? false : (int)$result->fields['id'];
   	}
 
   	function csv_to_array($filename='', $delimiter=',') {
