@@ -200,7 +200,7 @@ function update_full_price_incl_tax(margin, inclTax, fullprice) {
   if (fullprice) {
     var fpt = document.getElementById('full_price_with_tax'), tax_sel = document.getElementById('item_taxable');
     if (fpt && tax_sel && fpt.value !== '' && tax_sel.value !== '') {
-      document.getElementById('full_price').value = formatCurrency(cleanCurrency(fpt.value) / (1 + (tax_rates[tax_sel.value].value / 100)));
+      document.getElementById('full_price').value = formatCurrency(cleanCurrency(fpt.value) / (1 + (tax_rates[tax_sel.value].rate / 100)));
     } else if (document.getElementById('full_price')) {
       document.getElementById('full_price').value = '';
     }

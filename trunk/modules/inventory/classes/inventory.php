@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -377,6 +378,15 @@ class inventory {
 	                    'item_width', 'item_height', 'full_price', 'full_price_with_tax',
 	                    'product_margin', 'product_markup') as $key) {
 	    	if (($sql_data_array[$key] ?? '') === '') $sql_data_array[$key] = 0;
+	    }
+	    // The page keeps the two prices in step as they are typed, but a save can
+	    // still arrive with them disagreeing - the page's script did not run, or
+	    // the form carried only one. Store the price with tax that follows.
+	    if (isset($sql_data_array['full_price_with_tax'])
+	        && inv_price_with_tax_is_stale($sql_data_array['full_price'] ?? 0, $sql_data_array['full_price_with_tax'],
+	                                       $sql_data_array['item_taxable'] ?? 0)) {
+	    	$sql_data_array['full_price_with_tax'] = inv_full_price_with_tax($sql_data_array['full_price'],
+	    	                                                                 $sql_data_array['item_taxable'] ?? 0);
 	    }
 	    foreach(array('quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order', 'quantity_on_allocation', 'creation_date', 'last_update', 'last_journal_date' ) as $key){
 	    	unset($sql_data_array[$key]);

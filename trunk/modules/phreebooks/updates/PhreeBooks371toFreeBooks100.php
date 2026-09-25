@@ -392,3 +392,27 @@ if (db_field_exists(TABLE_CONTACTS, 'tax_id')) {
 if (db_field_exists(TABLE_JOURNAL_MAIN, 'currencies_code')) {
     $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " MODIFY currencies_code char(3) NOT NULL DEFAULT ''");
 }
+
+// ---- inventory: the price with tax -----------------------------------------
+// An item priced anywhere but the inventory page - imported, auto-added by a
+// journal, set by the price importer - carries 0 as its price with tax, or the
+// one it had before its full price was changed. Set it from full price and the
+// item's own rate, one statement per rate in use. A price typed tax-inclusive
+// lies within rounding of that value and is left as typed; the tolerance is the
+// one inv_price_with_tax_is_stale() uses.
+if (db_field_exists(TABLE_INVENTORY, 'full_price_with_tax')) {
+    global $currencies;
+    if (!function_exists('inv_customer_tax_rate')) require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
+    $dp = (int)($currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] ?? 2);
+    $tolerance = 2 * pow(10, -$dp);
+    $in_use = $db->Execute("SELECT DISTINCT item_taxable AS t FROM " . TABLE_INVENTORY . " WHERE full_price > 0");
+    $taxables = array();
+    while (!$in_use->EOF) { $taxables[] = (int)$in_use->fields['t']; $in_use->MoveNext(); }
+    foreach ($taxables as $taxable) {
+        $factor = 1 + inv_customer_tax_rate($taxable) / 100;
+        $computed = "ROUND(full_price * " . (float)$factor . ", $dp)";
+        $db->Execute("UPDATE " . TABLE_INVENTORY . " SET full_price_with_tax = $computed"
+            . " WHERE item_taxable = $taxable AND full_price > 0"
+            . " AND (full_price_with_tax = 0 OR ABS(full_price_with_tax - $computed) > " . (float)$tolerance . ")");
+    }
+}

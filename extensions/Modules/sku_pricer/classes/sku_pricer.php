@@ -91,6 +91,7 @@ class sku_pricer {
 				}
 				$row['vendor_id'] = $vendor_id;
 			}
+			$this->keep_prices_in_step($row, $where);
 			$query = "";
 			foreach ($valid_fields as $key => $value) if (isset($row[$key])) $query .= " $value='".db_input($row[$key])."',";
 			$query .= "last_update='".date('Y-m-d')."'";
@@ -137,6 +138,37 @@ class sku_pricer {
   		$result = $db->Execute("SELECT id FROM ".TABLE_CONTACTS
   		    ." WHERE type='v' AND short_name='".db_input($vendor)."' LIMIT 1");
   		return $seen[$vendor] = $result->EOF ? false : (int)$result->fields['id'];
+  	}
+
+  	/**
+  	 * Set full_price and full_price_with_tax together, however the file gave them.
+  	 *
+  	 * They are one price stored twice, and the item keeps them in step; a file
+  	 * that changes one without the other leaves them disagreeing. So whenever a
+  	 * row touches either price or the tax rate, both are written:
+  	 *
+  	 *   full_price given       - it leads, and the price with tax follows from it
+  	 *   only the price with tax - full price is worked back from it, as the
+  	 *                             inventory page does with a tax-inclusive price
+  	 *   only item_taxable       - the price with tax follows the new rate
+  	 *
+  	 * Whatever the row does not give is read from the item.
+  	 */
+  	function keep_prices_in_step(&$row, $where) {
+  		global $db;
+  		$has = function ($k) use ($row) { return isset($row[$k]) && trim((string)$row[$k]) !== ''; };
+  		if (!$has('full_price') && !$has('full_price_with_tax') && !$has('item_taxable')) return;
+  		if (!function_exists('inv_full_price_with_tax')) require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
+  		$stored = $db->Execute("SELECT full_price, item_taxable FROM ".TABLE_INVENTORY." WHERE $where LIMIT 1");
+  		if ($stored->EOF) return; // no such item; the update will match nothing either
+  		$taxable = $has('item_taxable') ? $row['item_taxable'] : $stored->fields['item_taxable'];
+  		if ($has('full_price')) {
+  			$row['full_price_with_tax'] = inv_full_price_with_tax($row['full_price'], $taxable);
+  		} elseif ($has('full_price_with_tax')) {
+  			$row['full_price'] = inv_full_price_from_with_tax($row['full_price_with_tax'], $taxable);
+  		} else {
+  			$row['full_price_with_tax'] = inv_full_price_with_tax($stored->fields['full_price'], $taxable);
+  		}
   	}
 
   	function csv_to_array($filename='', $delimiter=',') {

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -44,6 +45,74 @@
 	if ($description == '') return '';
 	$words = preg_split('/\s+/', $description);
 	return $words[0];
+  }
+
+  /**
+   * The customer tax rate, in percent, that an item_taxable value selects.
+   *
+   * item_taxable holds a tax_rate_id, and a rate is the sum of the authorities
+   * its rate_accounts names. 0, or an id that is not a customer rate, is untaxed.
+   * Summed here rather than through gen_calculate_tax_rate(), which indexes into
+   * the authority list without checking it exists and warns on a company that
+   * has none.
+   */
+  function inv_customer_tax_rate($item_taxable) {
+	global $db;
+	static $rates = null;
+	if ($rates === null) {
+	  $rates = array();
+	  $auths = array();
+	  $a = $db->Execute("SELECT tax_auth_id, tax_rate FROM " . TABLE_TAX_AUTH);
+	  while (!$a->EOF) { $auths[$a->fields['tax_auth_id']] = (float)$a->fields['tax_rate']; $a->MoveNext(); }
+	  $r = $db->Execute("SELECT tax_rate_id, rate_accounts FROM " . TABLE_TAX_RATES . " WHERE type = 'c'");
+	  while (!$r->EOF) {
+	    $sum = 0.0;
+	    foreach (explode(':', (string)$r->fields['rate_accounts']) as $auth) $sum += $auths[$auth] ?? 0.0;
+	    $rates[(int)$r->fields['tax_rate_id']] = $sum;
+	    $r->MoveNext();
+	  }
+	}
+	return $rates[(int)$item_taxable] ?? 0.0;
+  }
+
+  /**
+   * Full price including tax, from full price and the item's tax rate.
+   *
+   * The two are stored side by side on the item, so whatever sets full_price has
+   * to set this too or the pair drifts apart. This is the one place the sum is
+   * done, so every writer agrees with the others and with the inventory page.
+   */
+  function inv_full_price_with_tax($full_price, $item_taxable) {
+	global $currencies;
+	$dp = $currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] ?? 2;
+	return round((float)$full_price * (1 + inv_customer_tax_rate($item_taxable) / 100), $dp);
+  }
+
+  /**
+   * Whether a stored price with tax no longer follows from full price.
+   *
+   * True when it is zero beside a real price, or further from the computed value
+   * than rounding can account for. A price typed tax-inclusive is worked back to
+   * a full price rounded to the currency, and forward again lands within about
+   * one minor unit of what was typed - so two minor units separates a deliberate
+   * price from a stale one, and only the stale one is replaced.
+   */
+  function inv_price_with_tax_is_stale($full_price, $with_tax, $item_taxable) {
+	global $currencies;
+	$dp = $currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] ?? 2;
+	if ((float)$full_price <= 0) return false;
+	if ((float)$with_tax == 0)   return true;
+	return abs((float)$with_tax - inv_full_price_with_tax($full_price, $item_taxable)) > 2 * pow(10, -$dp);
+  }
+
+  /**
+   * Full price without tax, from a price that includes it - the direction the
+   * inventory page takes when the price is typed tax-inclusive.
+   */
+  function inv_full_price_from_with_tax($with_tax, $item_taxable) {
+	global $currencies;
+	$dp = $currencies->currencies[DEFAULT_CURRENCY]['decimal_places'] ?? 2;
+	return round((float)$with_tax / (1 + inv_customer_tax_rate($item_taxable) / 100), $dp);
   }
 
   function inv_calculate_prices($item_cost, $full_price, $encoded_price_levels) {

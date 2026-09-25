@@ -1343,6 +1343,9 @@ class journal {
 	  'full_price'             => $full_price,
 	  'creation_date'          => date('Y-m-d h:i:s'),
 	);
+	// Its price with tax, so the item does not start with the two disagreeing.
+	if (!function_exists('inv_full_price_with_tax')) require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
+	$sql_array['full_price_with_tax'] = inv_full_price_with_tax($full_price, INVENTORY_DEFAULT_TAX);
 	$result = db_perform(TABLE_INVENTORY, $sql_array, 'insert');
 	return db_insert_id();
   }

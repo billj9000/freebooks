@@ -58,8 +58,8 @@
   <tr><td><code>description_short</code></td><td>Short description</td></tr>
   <tr><td><code>description_sales</code></td><td>Sales description</td></tr>
   <tr><td><code>description_purchase</code></td><td>Purchase description</td></tr>
-  <tr><td><code>full_price</code></td><td>Full price</td></tr>
-  <tr><td><code>full_price_with_tax</code></td><td>Full price including tax</td></tr>
+  <tr><td><code>full_price</code></td><td>Full price &mdash; see <i>Prices with and without tax</i> below</td></tr>
+  <tr><td><code>full_price_with_tax</code></td><td>Full price including tax &mdash; see below</td></tr>
   <tr><td><code>item_cost</code></td><td>Item cost</td></tr>
   <tr><td><code>price_sheet</code></td><td>Customer price sheet</td></tr>
   <tr><td><code>price_sheet_v</code></td><td>Vendor price sheet</td></tr>
@@ -78,6 +78,18 @@
 </table>
 
 <p>The item's <i>last updated</i> date is set to today on every row that matches.</p>
+
+<h4>Prices with and without tax</h4>
+<p><code>full_price</code> and <code>full_price_with_tax</code> are one price held twice, and
+  the importer always sets them together, using the item's tax rate:</p>
+<ul>
+  <li>Give <code>full_price</code> and the price with tax is worked out from it. If you give
+    both, <code>full_price</code> is the one used.</li>
+  <li>Give only <code>full_price_with_tax</code> &mdash; a tax-inclusive retail price &mdash; and
+    <code>full_price</code> is worked back from it. The price you gave is kept exactly as
+    written.</li>
+  <li>Change only <code>item_taxable</code> and the price with tax follows the new rate.</li>
+</ul>
 
 <h4>Naming the vendor</h4>
 <p>Put the vendor's <b>short name</b> in <code>vendor_id</code> &mdash; the name shown in the

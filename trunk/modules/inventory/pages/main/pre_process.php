@@ -96,6 +96,13 @@ switch ($_REQUEST['action']) {
 	}else if(!$error && isset($_REQUEST['sku'])){
 		$cInfo->get_item_by_sku($_REQUEST['sku']);
 	}
+	// Show the price with tax that follows from full price when the stored one
+	// does not - zero, or left behind when full price was changed elsewhere. A
+	// price typed tax-inclusive is within rounding of that and is left as typed.
+	if (isset($cInfo->full_price_with_tax)
+	    && inv_price_with_tax_is_stale($cInfo->full_price ?? 0, $cInfo->full_price_with_tax, $cInfo->item_taxable ?? 0)) {
+		$cInfo->full_price_with_tax = inv_full_price_with_tax($cInfo->full_price, $cInfo->item_taxable ?? 0);
+	}
 	break;
 
   case 'rename':
@@ -170,10 +177,14 @@ if ( in_array($_REQUEST['action'], array('create', 'edit','properties'))) {
 	// load the tax rates
 	$tax_rates        = ord_calculate_tax_drop_down('c');
 	$purch_tax_rates  = inv_calculate_tax_drop_down('v',false);
-	// generate a rate array parallel to the drop down for javascript
-	$js_tax_rates = 'var tax_rates = new Array(' . count($tax_rates) . ');' . chr(10);
-	for ($i = 0; $i < count($tax_rates); $i++) {
-	  $js_tax_rates .= 'tax_rates[' . $i . '] = new tax("' . $tax_rates[$i]['id'] . '", "' . $tax_rates[$i]['text'] . '", "' . $tax_rates[$i]['rate'] . '");' . chr(10);
+	// The rates for javascript, keyed by tax_rate_id: the page looks a rate up by
+	// the drop-down's value, which is that id, not by its position in the list.
+	// tax_rate_id runs through customer and vendor rates alike, so the two only
+	// line up by chance.
+	$js_tax_rates = 'var tax_rates = {};' . chr(10);
+	foreach ($tax_rates as $rate) {
+	  $js_tax_rates .= 'tax_rates[' . (int)$rate['id'] . '] = new tax(' . json_encode((string)$rate['id']) . ', '
+	                 . json_encode((string)$rate['text']) . ', ' . json_encode((string)$rate['rate']) . ');' . chr(10);
 	}
 	
 	// load gl accounts
