@@ -82,7 +82,7 @@ foreach ($companies as $co) {
         continue;
     }
 
-    require_once('/opt/repo/docs/tools/bootstrap_freebooks.php');
+    require_once(__DIR__ . '/bootstrap_freebooks.php');
     fb_bootstrap($co, false);
     global $db;
     require_once(DIR_FS_MODULES . 'phreehelp/defaults.php');

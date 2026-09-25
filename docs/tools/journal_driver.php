@@ -69,7 +69,7 @@ if ($go && ($h[1] ?? '') !== $TEST_DB_HOST) {
     exit(2);
 }
 
-require_once('/opt/repo/docs/tools/bootstrap_freebooks.php');
+require_once(__DIR__ . '/bootstrap_freebooks.php');
 fb_bootstrap($company, false);
 global $db, $messageStack;
 require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');

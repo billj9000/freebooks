@@ -70,6 +70,19 @@ class payment_admin {
   function initialize($module) {
   }
 
+  /**
+   * What every method's constructor reads before it reads its own language file:
+   * the base class's key descriptions, from this module's language and admin
+   * files, and the card limits in defaults.php, which some methods' language
+   * files use. update() and remove() run from the login cascade and from module
+   * removal, where none of these is loaded.
+   */
+  private function load_method_prerequisites($module) {
+	gen_pull_language($module);
+	gen_pull_language($module, 'admin');
+	require_once(DIR_FS_MODULES . $module . '/defaults.php');
+  }
+
   function update($module) {
     global $db, $messageStack;
 	$error = false;
@@ -83,6 +96,7 @@ class payment_admin {
 		}
 	  }
 	  $dir->close();//update keys
+	  $this->load_method_prerequisites($module);
 	  foreach ($methods as $method) {
 	    require_once(DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/' . $method . '.php');
 	    // A method's constructor reads its own title constant, which lives in
@@ -116,6 +130,7 @@ class payment_admin {
 		}
 	  }
 	  $dir->close();
+	  $this->load_method_prerequisites($module);
 	  foreach ($methods as $method) {
 	    require_once(DIR_FS_ADMIN . 'modules/' . $module . '/methods/' . $method . '/' . $method . '.php');
 	    // A method's constructor reads its own title constant, which lives in

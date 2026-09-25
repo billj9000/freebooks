@@ -40,7 +40,7 @@ $company = $argv[1] ?? '';
 $go      = in_array('--go', $argv, true);
 if ($company === '') { fwrite(STDERR, "usage: apply_updates.php <company> [--go]\n"); exit(2); }
 
-require_once('/opt/repo/docs/tools/bootstrap_freebooks.php');
+require_once(__DIR__ . '/bootstrap_freebooks.php');
 fb_bootstrap($company, false);
 global $db, $loaded_modules;
 

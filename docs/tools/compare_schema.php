@@ -90,7 +90,7 @@ class probeDb {
     function connect()    { return true; }
 }
 
-require_once('/opt/repo/docs/tools/bootstrap_freebooks.php');
+require_once(__DIR__ . '/bootstrap_freebooks.php');
 $company = fb_bootstrap($reference, false);
 $real    = $GLOBALS['db'];                    // the reference company's connection
 $fake    = new probeDb($probe);
