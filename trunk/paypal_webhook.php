@@ -22,6 +22,10 @@
 // ─── Read raw body before any output ─────────────────────────────────────────
 $raw_body = file_get_contents('php://input');
 
+// The message stack and the audit log time the request from this, as they do
+// under application_top.
+define('PAGE_EXECUTION_START_TIME', microtime(true));
+
 // ─── Resolve trunk root ───────────────────────────────────────────────────────
 $trunk = __DIR__ . '/';
 if (!file_exists($trunk . 'includes/configure.php')) {
@@ -165,7 +169,9 @@ $_prev_er = error_reporting(E_ALL & ~E_WARNING);
 gen_pull_language('contacts');
 gen_pull_language('phreebooks');
 gen_pull_language('phreebooks', 'menu');
-gen_pull_language('payment', 'paypal');
+// The payment base class constructor reads its setting labels from the payment
+// module's admin strings, so constructing the PayPal method needs them.
+gen_pull_language('payment', 'admin');
 error_reporting($_prev_er); unset($_prev_er);
 
 // ─── Load journal classes ─────────────────────────────────────────────────────
@@ -361,6 +367,12 @@ $pay->bill_address_id   = $inv->fields['bill_address_id'];
 $pay->bill_primary_name = $inv->fields['bill_primary_name'];
 $pay->bill_email        = $inv->fields['bill_email'];
 $pay->post_date         = date('Y-m-d');
+// The ledger posts each row to the period its date falls in.
+$pay->period            = gen_calculate_period($pay->post_date, true);
+if (!$pay->period) {
+    error_log('paypal_webhook: ' . $pay->post_date . ' is outside the accounting periods; no receipt for invoice ' . $fb_invoice_id);
+    exit;
+}
 $pay->shipper_code      = 'paypal';
 $pay->description       = 'PayPal payment for invoice ' . $inv->fields['purchase_invoice_id'];
 $pay->total_amount      = $capture_amount;
