@@ -36,6 +36,11 @@ Take a backup first. The upgrade is designed to be safe to re-run if it stops pa
 checks whether it has already been applied — but a backup is the only thing that undoes a decision
 you would rather not have made.
 
+PhreeForm is replaced by **Forms**, which the upgrade installs. Existing reports and forms carry
+over as they are. Anyone who could use PhreeForm can run and write reports in Forms; permission to
+define datasets — which tables a report may join — is new, and an administrator grants it under
+Company → Roles.
+
 Older PhreeBooks releases are not supported directly. Upgrade to 3.7.1 with PhreeBooks' own
 updater first, then to FreeBooks. The code to migrate a 2.x or 1.3.x database is still present and
 may well work, but it has never been tested here and is not something to attempt on data that

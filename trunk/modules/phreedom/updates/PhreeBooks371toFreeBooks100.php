@@ -47,13 +47,44 @@ foreach (array(
     }
 }
 
-// The Company Links, Notes and To-Do dashboards are guarded by
-// SECURITY_ID_DASHBOARDS (12). In PhreeBooks they borrowed PhreeForm's id, 3,
-// which went with that module. A dashboard's security id decides who can see it,
-// and an absent key reads as a denied one, so each role's level for 3 is copied
-// to 12 or all three dashboards would vanish for everyone. A role that already
-// holds 12 is left as it is. 3 is written as a number because the constant that
-// named it went with PhreeForm.
+// ---- Forms -----------------------------------------------------------------
+// Forms replaces PhreeForm, and PhreeForm is not shipped, so an upgraded company
+// is given Forms the way Module Administration installs it. Without it nothing
+// defines the catalogue table, and every print path ends in a fatal. The
+// catalogue and the definitions stay where PhreeForm left them: Forms reads the
+// same table, and its loader converts a PhreeForm definition as it reads it.
+// install() creates only what is missing and seeds nothing.
+if (!defined('MODULE_FORMS_STATUS') && file_exists(DIR_FS_MODULES . 'forms/classes/install.php')) {
+    gen_pull_language('forms', 'admin');
+    gen_pull_language('forms');
+    require_once(DIR_FS_MODULES . 'forms/config.php');
+    require_once(DIR_FS_MODULES . 'forms/classes/install.php');
+    $forms = new forms_admin();
+    admin_install_dirs($forms->dirlist, DIR_FS_MY_FILES . $_SESSION['company'] . '/');
+    admin_install_tables($forms->tables);
+    foreach ($forms->keys as $key => $value) if (!defined($key)) write_configure($key, $value);
+    $forms->install('forms');
+    write_configure('MODULE_FORMS_STATUS', MODULE_FORMS_VERSION);
+}
+
+// ---- permissions that were PhreeForm's ---------------------------------------
+// PhreeForm's security id, 3, went with that module, and an absent key reads as
+// a denied one. Each role's level for 3 is copied to every key that takes over
+// something it granted:
+//   - SECURITY_ID_FORMS_RUN and SECURITY_ID_FORMS_AUTHOR: 3 let a role run and
+//     write reports, which Forms keys separately.
+//   - SECURITY_ID_DASHBOARDS: the Company Links, Notes and To-Do dashboards
+//     borrowed 3 in PhreeBooks, and a dashboard's security id decides who can
+//     see it.
+// SECURITY_ID_FORMS_DATASETS is not copied: defining which tables may be joined
+// is a privilege 3 never named on its own, and an administrator grants it.
+// A key a role already holds is left as it is. 3 is written as a number because
+// the constant that named it went with PhreeForm.
+$inherits_3 = array(SECURITY_ID_DASHBOARDS);
+if (defined('SECURITY_ID_FORMS_RUN')) {
+    $inherits_3[] = SECURITY_ID_FORMS_RUN;
+    $inherits_3[] = SECURITY_ID_FORMS_AUTHOR;
+}
 $result = $db->Execute("select admin_id, admin_security from " . TABLE_USERS
     . " where admin_security <> ''");
 while ($result && !$result->EOF) {
@@ -61,12 +92,24 @@ while ($result && !$result->EOF) {
     $stored = (string)$result->fields['admin_security'];
     $result->MoveNext();
     $levels = gen_parse_permissions($stored);
-    if (!isset($levels[3]) || isset($levels[SECURITY_ID_DASHBOARDS])) continue;
-    $levels[SECURITY_ID_DASHBOARDS] = $levels[3];
+    if (!isset($levels[3])) continue;
+    $changed = false;
+    foreach ($inherits_3 as $key) {
+        if (isset($levels[$key])) continue;
+        $levels[$key] = $levels[3];
+        $changed = true;
+    }
+    if (!$changed) continue;
     $pairs = array();
     foreach ($levels as $key => $level) $pairs[] = $key . ':' . $level;
     $db->Execute("update " . TABLE_USERS . " set admin_security = '"
         . $db->prepare_input(implode(',', $pairs)) . "' where admin_id = " . $id);
+    // The session's permissions were read before this ran, so the person whose
+    // login is doing the upgrade is given the new keys now rather than at their
+    // next login.
+    if (isset($_SESSION['admin_id']) && (int)$_SESSION['admin_id'] === $id) {
+        $_SESSION['admin_security'] = $levels;
+    }
 }
 
 // ---- webauthn_creds --------------------------------------------------------
