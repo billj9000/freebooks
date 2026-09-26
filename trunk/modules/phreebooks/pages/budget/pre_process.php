@@ -109,31 +109,32 @@ while (!$result->EOF) {
   $next_fy->MoveNext();
 }
 $result = $db->Execute("select id, period, budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($periods)) . ")");
+	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($periods)) . ") order by period");
+// The prior and next years are read alongside this one, row for row, so all three
+// are ordered by period. A year that does not exist, or no account chosen, leaves
+// that column at zero.
+$last_fy = null;
+$next_fy = null;
 if ($gl_acct && !empty($lf_per)) {
   $last_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($lf_per)) . ")");
-} else {
-  $next_fy = new objectInfo();
+	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($lf_per)) . ") order by period");
 }
 if ($gl_acct && !empty($nf_per)) {
   $next_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($nf_per)) . ")");
-} else {
-  $next_fy = new objectInfo();
+	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($nf_per)) . ") order by period");
 }
 $fy_array = array();
 while(!$result->EOF) {
   $fy_array[] = array(
     'id'     => $result->fields['id'],
     'period' => $periods[$result->fields['period']],
-	'prior'  => $last_fy->fields['budget'],
+	'prior'  => ($last_fy && !$last_fy->EOF) ? $last_fy->fields['budget'] : 0,
 	'budget' => $result->fields['budget'],
-	'next'   => $next_fy->fields['budget'],
+	'next'   => ($next_fy && !$next_fy->EOF) ? $next_fy->fields['budget'] : 0,
   );
   $result->MoveNext();
-  if (!empty($lf_per)) $last_fy->MoveNext();
-  if (!empty($nf_per)) $next_fy->MoveNext();
+  if ($last_fy) $last_fy->MoveNext();
+  if ($next_fy) $next_fy->MoveNext();
 }
 
 $include_header    = true;

@@ -50,7 +50,7 @@ echo $toolbar->build_toolbar();
       <?php else: ?>
         <button type="button" class="btn btn-primary btn-sm"
                 onclick="if(window.opener) window.opener.location.reload(); self.close();">
-          <?php echo GEN_BUTTON_CLOSE; ?>
+          <?php echo TEXT_CLOSE; ?>
         </button>
       <?php endif; ?>
     </div>
@@ -73,7 +73,7 @@ echo $toolbar->build_toolbar();
               <th><?php echo SHIPPING_TEXT_TRACKING_NUM; ?></th>
               <th><?php echo RM_TEXT_RECIPIENT; ?></th>
               <th><?php echo SHIPPING_TEXT_SERVICE; ?></th>
-              <th><?php echo SHIPPING_SHIP_DATE; ?></th>
+              <th><?php echo SHIPPING_TEXT_SHIPMENT_DATE; ?></th>
             </tr>
           </thead>
           <tbody>
