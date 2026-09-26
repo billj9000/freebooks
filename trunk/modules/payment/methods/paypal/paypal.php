@@ -637,18 +637,14 @@ class paypal extends payment {
     return $sandbox ? 'https://api-m.sandbox.paypal.com/' : 'https://api-m.paypal.com/';
   }
 
+  // The table is created from the payment module's own declaration, the one
+  // the installer and the migration use, so there is a single definition of it.
   public function ensure_paypal_orders_table() {
     global $db;
-    $db->Execute("CREATE TABLE IF NOT EXISTS pb_paypal_orders ("
-      . "id INT AUTO_INCREMENT PRIMARY KEY,"
-      . "paypal_order_id VARCHAR(64) NOT NULL,"
-      . "fb_invoice_id INT NOT NULL,"
-      . "capture_id VARCHAR(64),"
-      . "source_type VARCHAR(16) NOT NULL DEFAULT 'order',"
-      . "status VARCHAR(32) DEFAULT 'PENDING',"
-      . "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
-      . "UNIQUE KEY uk_order (paypal_order_id)"
-      . ") ENGINE=InnoDB DEFAULT CHARSET=utf8");
+    if (db_table_exists('pb_paypal_orders')) return;
+    require_once(DIR_FS_MODULES . 'payment/classes/install.php');
+    $install = new payment_admin();
+    $db->Execute($install->tables['pb_paypal_orders']);
   }
 }
 ?>
