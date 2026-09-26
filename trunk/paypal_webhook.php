@@ -240,7 +240,8 @@ class wh_banking extends banking {
             'post_date'    => $this->post_date,
         ];
 
-        $db->transStart();
+        // Runs inside the caller's transaction, which also marks the PayPal order
+        // done, so the receipt and that mark are committed or rolled back together.
         if (!$this->validate_purchase_invoice_id()) return false;
         if (!$this->Post('insert'))                 return false;
         // Store capture_id in purch_order_id for display and clickable link.
@@ -248,7 +249,6 @@ class wh_banking extends banking {
             $db->Execute("UPDATE " . TABLE_JOURNAL_MAIN . " SET purch_order_id = '" . db_input($this->capture_id) . "' WHERE id = " . (int)$this->id);
         }
         if (!$this->increment_purchase_invoice_id()) return false;
-        $db->transCommit();
         return true;
     }
 }
@@ -336,13 +336,9 @@ if ($row->fields['status'] === 'COMPLETED') {
 $ppo_id        = (int)$row->fields['id'];
 $fb_invoice_id = (int)$row->fields['fb_invoice_id'];
 
-// Mark as COMPLETED to prevent duplicate receipts if PayPal retries.
-$db->Execute("UPDATE pb_paypal_orders SET status = 'COMPLETED', capture_id = '" . db_input($capture_id) . "'"
-    . " WHERE id = " . $ppo_id);
-
 // ─── Load invoice details ─────────────────────────────────────────────────────
 $inv = $db->Execute("SELECT id, journal_id, purchase_invoice_id, bill_acct_id, bill_address_id,"
-    . " bill_primary_name, bill_email, gl_acct_id, post_date, total_amount"
+    . " bill_primary_name, bill_email, gl_acct_id, post_date, total_amount, currencies_code, currencies_value"
     . " FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . $fb_invoice_id . " LIMIT 1");
 
 if ($inv->EOF) {
@@ -350,8 +346,26 @@ if ($inv->EOF) {
     exit;
 }
 
+// ─── Amount, in the invoice's currency and at its rate ────────────────────────
+// PayPal is asked for the invoice's own currency, and journal amounts are stored
+// in the home currency. The receipt settles at the invoice's stored rate, as a
+// payment entered on the Bills page does, so a payment of the whole invoice
+// closes it exactly and needs no exchange gain or loss.
+$inv_currency = $inv->fields['currencies_code'] ?: DEFAULT_CURRENCY;
+$inv_rate     = (float)$inv->fields['currencies_value'] > 0 ? (float)$inv->fields['currencies_value'] : 1.0;
+$inv_home     = (float)$inv->fields['total_amount'];
+if ($capture_amount > 0 && strtoupper($capture_currency) !== strtoupper($inv_currency)) {
+    // Not something a retry can change, so PayPal is not asked to send it again.
+    error_log('paypal_webhook: capture ' . $capture_id . ' is in ' . $capture_currency . ' but invoice '
+        . $fb_invoice_id . ' is in ' . $inv_currency . '; no receipt posted');
+    exit;
+}
 if ($capture_amount <= 0) {
-    $capture_amount = (float)$inv->fields['total_amount'];
+    $home_amount = $inv_home;
+} elseif ($capture_amount == round($inv_home * $inv_rate, 2)) {
+    $home_amount = $inv_home;
+} else {
+    $home_amount = round($capture_amount / $inv_rate, 8);
 }
 
 // ─── Auto-create J18 Cash Receipt ────────────────────────────────────────────
@@ -370,22 +384,26 @@ $pay->post_date         = date('Y-m-d');
 // The ledger posts each row to the period its date falls in.
 $pay->period            = gen_calculate_period($pay->post_date, true);
 if (!$pay->period) {
+    // An administrator can add the missing periods, so PayPal is asked to retry.
+    http_response_code(500);
     error_log('paypal_webhook: ' . $pay->post_date . ' is outside the accounting periods; no receipt for invoice ' . $fb_invoice_id);
     exit;
 }
+$pay->currencies_code   = $inv_currency;
+$pay->currencies_value  = $inv_rate;
 $pay->shipper_code      = 'paypal';
 $pay->description       = 'PayPal payment for invoice ' . $inv->fields['purchase_invoice_id'];
-$pay->total_amount      = $capture_amount;
+$pay->total_amount      = $home_amount;
 $pay->capture_id        = $capture_id;
 $pay->admin_id          = 1;
 
 $pay->item_rows[] = [
     'id'      => $fb_invoice_id,
     'gl_type' => 'pmt',
-    'amt'     => $capture_amount,
+    'amt'     => $home_amount,
     'desc'    => 'Invoice ' . $inv->fields['purchase_invoice_id'],
     'dscnt'   => 0.0,
-    'total'   => $capture_amount,
+    'total'   => $home_amount,
     'inv'     => $inv->fields['purchase_invoice_id'],
     'prcnt'   => 0,
     'early'   => date('Y-m-d'),
@@ -394,15 +412,35 @@ $pay->item_rows[] = [
     'acct'    => AR_DEFAULT_GL_ACCT,
 ];
 
+// ─── Post the receipt and mark the PayPal order done, as one transaction ──────
+// The order row is locked first, so a delivery PayPal repeats while this one is
+// still posting waits here and then finds it done. If the post fails, nothing
+// is kept: the order stays PENDING and PayPal, told the delivery failed, sends
+// it again. The response says the delivery failed until the commit, because a
+// failed statement ends the request where it stands.
+http_response_code(500);
+$db->transStart();
+$lock = $db->Execute("SELECT status FROM pb_paypal_orders WHERE id = " . $ppo_id . " FOR UPDATE");
+if ($lock->EOF || $lock->fields['status'] === 'COMPLETED') {
+    $db->transRollback();
+    http_response_code(200);
+    exit;
+}
 if (!$pay->post_ordr('insert')) {
+    $db->transRollback();
     $errs = '';
     foreach (($_SESSION['messageToStack'] ?? []) as $m) {
         $errs .= strip_tags($m['text'] ?? '') . ' ';
     }
     $messageStack->reset();
+    http_response_code(500);
     error_log('paypal_webhook: J18 post failed for invoice ' . $fb_invoice_id . ': ' . trim($errs));
     exit;
 }
+$db->Execute("UPDATE pb_paypal_orders SET status = 'COMPLETED', capture_id = '" . db_input($capture_id) . "'"
+    . " WHERE id = " . $ppo_id);
+$db->transCommit();
+http_response_code(200);
 
 $receipt_id = $pay->purchase_invoice_id;
 error_log('paypal_webhook: created J18 receipt ' . $receipt_id . ' for invoice ' . $fb_invoice_id . ' capture ' . $capture_id);
@@ -419,8 +457,8 @@ if ($notify_email) {
     $body         = sprintf(
         MODULE_PAYMENT_PAYPAL_NOTIFY_BODY,
         $inv->fields['bill_primary_name'],
-        number_format($capture_amount, 2),
-        $capture_currency,
+        number_format(round($home_amount * $inv_rate, 2), 2),
+        $inv_currency,
         $capture_id,
         $j18_url
     );
