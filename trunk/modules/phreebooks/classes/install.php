@@ -314,78 +314,67 @@ class phreebooks_admin {
     global $db, $messageStack;
 	$error = false;
 	$db_version = defined('MODULE_PHREEBOOKS_STATUS') ? MODULE_PHREEBOOKS_STATUS : false;
-	if (!$db_version || $db_version < 2.1 || $db_version < '2.1') { // For PhreeBooks release 2.1 or lower to update to Phreedom structure
-	  require_once(DIR_FS_MODULES . 'phreebooks/functions/updater.php');
-	  if(db_table_exists(TABLE_PROJECT_VERSION)){
-		  $result = $db->Execute("select * from " . TABLE_PROJECT_VERSION . " WHERE project_version_key = 'PhreeBooks Database'");
-		  $db_version = $result->fields['project_version_major'] . '.' . $result->fields['project_version_minor'];
-		  if ($db_version < 2.1) $error = execute_upgrade($db_version);
-		  $db_version = 2.1;
-	  }
-	}
-	if ($db_version == 2.1 || $db_version == '2.1') {
-	  $db_version = $this->release_update($module, 3.0, DIR_FS_MODULES . 'phreebooks/updates/R21toR30.php');
-	  if (!$db_version) return true;
-      // remove table project_version, no longer needed
-      if (!$error) $db->Execute("DROP TABLE " . TABLE_PROJECT_VERSION);
-	}
-	if ($db_version == 3.0 || $db_version == '3.0') {
-	  $db_version = $this->release_update($module, 3.1, DIR_FS_MODULES . 'phreebooks/updates/R30toR31.php');
-	  if (!$db_version) return true;
-	}
-	if ($db_version == 3.1 || $db_version == '3.1') {
-	  if (!file_exists($path . $dir)) mkdir(DIR_FS_MY_FILES . $_SESSION['company'] . '/phreebooks/orders/', 0755, true);
-	  write_configure('ALLOW_NEGATIVE_INVENTORY', '1');
-	  $db_version = 3.2;
-	}
-  	if ($db_version == 3.2 || $db_version == '3.2') {
-	  write_configure('APPLY_CUSTOMER_CREDIT_LIMIT', '0'); // flag for using credit limit to authorize orders
-	  $db->Execute("ALTER TABLE ".TABLE_JOURNAL_MAIN." CHANGE shipper_code shipper_code VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''");
-	  require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
-	  if (is_array(glob(DIR_FS_ADMIN.'PHREEBOOKS_DIR_MY_ORDERS*.zip'))) {
-	  	foreach (glob(DIR_FS_ADMIN.'PHREEBOOKS_DIR_MY_ORDERS*.zip') as $file) {
-	  	  $newfile = str_replace('PHREEBOOKS_DIR_MY_ORDERS', '', $file);
-	  	  $newfile = str_replace(DIR_FS_ADMIN, '', $newfile);
-	  	  rename($file,PHREEBOOKS_DIR_MY_ORDERS.$newfile);
-	    }
-	  }
-	  $db_version = 3.3;
-	}
-	if ($db_version < 3.4 || $db_version < '3.4') {
-	  if (!db_field_exists(TABLE_JOURNAL_ITEM, 'item_cnt')) $db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM." ADD item_cnt INT(11) NOT NULL DEFAULT '0' AFTER ref_id");
-	  $db_version = 3.4;
-	}
-	if ($db_version < 3.51 || $db_version < '3.51') {
-		$result = $db->Execute("SELECT id, so_po_ref_id FROM ".TABLE_JOURNAL_MAIN." WHERE journal_id = 16 AND so_po_ref_id > 0");
-		while(!$result->EOF) { // to fix transfers to store 0 from any other store
-			if ($result->fields['so_po_ref_id'] > $result->fields['id']) {
-				$db->Execute("UPDATE ".TABLE_JOURNAL_MAIN." SET so_po_ref_id = -1 WHERE id=".$result->fields['id']);
-			}
-			$result->MoveNext();
+	// A FreeBooks database has had all of this. version_compare() and the bare
+	// comparisons below would read 1.0.0 as older than every PhreeBooks 3.x.
+	if (!gen_version_is_freebooks($db_version)) {
+		if (!$db_version || $db_version < 2.1 || $db_version < '2.1') { // For PhreeBooks release 2.1 or lower to update to Phreedom structure
+		  require_once(DIR_FS_MODULES . 'phreebooks/functions/updater.php');
+		  if(db_table_exists(TABLE_PROJECT_VERSION)){
+			  $result = $db->Execute("select * from " . TABLE_PROJECT_VERSION . " WHERE project_version_key = 'PhreeBooks Database'");
+			  $db_version = $result->fields['project_version_major'] . '.' . $result->fields['project_version_minor'];
+			  if ($db_version < 2.1) $error = execute_upgrade($db_version);
+			  $db_version = 2.1;
+		  }
 		}
-		if (!db_field_exists(TABLE_JOURNAL_ITEM, 'purch_package_quantity')) $db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM." ADD purch_package_quantity float default NULL AFTER project_id");
+		if ($db_version == 2.1 || $db_version == '2.1') {
+		  $db_version = $this->release_update($module, 3.0, DIR_FS_MODULES . 'phreebooks/updates/R21toR30.php');
+		  if (!$db_version) return true;
+	      // remove table project_version, no longer needed
+	      if (!$error) $db->Execute("DROP TABLE " . TABLE_PROJECT_VERSION);
+		}
+		if ($db_version == 3.0 || $db_version == '3.0') {
+		  $db_version = $this->release_update($module, 3.1, DIR_FS_MODULES . 'phreebooks/updates/R30toR31.php');
+		  if (!$db_version) return true;
+		}
+		if ($db_version == 3.1 || $db_version == '3.1') {
+		  if (!file_exists($path . $dir)) mkdir(DIR_FS_MY_FILES . $_SESSION['company'] . '/phreebooks/orders/', 0755, true);
+		  write_configure('ALLOW_NEGATIVE_INVENTORY', '1');
+		  $db_version = 3.2;
+		}
+	  	if ($db_version == 3.2 || $db_version == '3.2') {
+		  write_configure('APPLY_CUSTOMER_CREDIT_LIMIT', '0'); // flag for using credit limit to authorize orders
+		  $db->Execute("ALTER TABLE ".TABLE_JOURNAL_MAIN." CHANGE shipper_code shipper_code VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''");
+		  require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
+		  if (is_array(glob(DIR_FS_ADMIN.'PHREEBOOKS_DIR_MY_ORDERS*.zip'))) {
+		  	foreach (glob(DIR_FS_ADMIN.'PHREEBOOKS_DIR_MY_ORDERS*.zip') as $file) {
+		  	  $newfile = str_replace('PHREEBOOKS_DIR_MY_ORDERS', '', $file);
+		  	  $newfile = str_replace(DIR_FS_ADMIN, '', $newfile);
+		  	  rename($file,PHREEBOOKS_DIR_MY_ORDERS.$newfile);
+		    }
+		  }
+		  $db_version = 3.3;
+		}
+		if ($db_version < 3.4 || $db_version < '3.4') {
+		  if (!db_field_exists(TABLE_JOURNAL_ITEM, 'item_cnt')) $db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM." ADD item_cnt INT(11) NOT NULL DEFAULT '0' AFTER ref_id");
+		  $db_version = 3.4;
+		}
+		if ($db_version < 3.51 || $db_version < '3.51') {
+			$result = $db->Execute("SELECT id, so_po_ref_id FROM ".TABLE_JOURNAL_MAIN." WHERE journal_id = 16 AND so_po_ref_id > 0");
+			while(!$result->EOF) { // to fix transfers to store 0 from any other store
+				if ($result->fields['so_po_ref_id'] > $result->fields['id']) {
+					$db->Execute("UPDATE ".TABLE_JOURNAL_MAIN." SET so_po_ref_id = -1 WHERE id=".$result->fields['id']);
+				}
+				$result->MoveNext();
+			}
+			if (!db_field_exists(TABLE_JOURNAL_ITEM, 'purch_package_quantity')) $db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM." ADD purch_package_quantity float default NULL AFTER project_id");
+		}
+		if (gen_version_is_legacy(MODULE_PHREEBOOKS_STATUS, '3.7')) {
+			$db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM."
+				CHANGE qty qty DOUBLE NOT NULL DEFAULT '0',
+				CHANGE purch_package_quantity purch_package_quantity DOUBLE NOT NULL DEFAULT '0'");
+		}
+		include(DIR_FS_MODULES . 'phreebooks/updates/PhreeBooks371toFreeBooks100.php');
 	}
-	if (gen_version_is_legacy(MODULE_PHREEBOOKS_STATUS, '3.7')) {
-		$db->Execute("ALTER TABLE ".TABLE_JOURNAL_ITEM."
-			CHANGE qty qty DOUBLE NOT NULL DEFAULT '0',
-			CHANGE purch_package_quantity purch_package_quantity DOUBLE NOT NULL DEFAULT '0'");
-	}
-	// Everything FreeBooks added to the PhreeBooks 3.7.1 schema, in one step.
-	// This was twelve gated includes, one per FreeBooks release. They are merged
-	// because no installation outside this project has ever had a FreeBooks
-	// database, so nothing anywhere sits at an intermediate version waiting to be
-	// walked up a rung at a time: the only journey is 3.7.1 to 1.0.0.
-	//
-	// No version gate, because it does not need one. Every statement in the file
-	// is guarded by db_field_exists or its equivalent, so running it against a
-	// database that already has the columns costs a handful of catalogue reads and
-	// changes nothing. That also makes it safe to re-run after a failure part way
-	// through, which the twelve gated includes were not: each stamped its own
-	// version, so a failure left the database claiming a release it had not had.
-	//
-	// The gates it replaces compared floats - gen_version_is_legacy(MODULE_PHREEBOOKS_STATUS, '3.72') -
-	// which is its own hazard: '3.10' read as a float is 3.1, and less than 3.72.
-	include_once(DIR_FS_MODULES . 'phreebooks/updates/PhreeBooks371toFreeBooks100.php');
 
 	if (!$error) {
 	  write_configure('MODULE_'.strtoupper($module).'_STATUS', constant('MODULE_'.strtoupper($module).'_VERSION'));

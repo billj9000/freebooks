@@ -298,7 +298,7 @@ class inventory_admin {
   function update($module) {
     global $db, $messageStack, $currencies;
 	$error = false;
-    if (version_compare(MODULE_INVENTORY_STATUS, '3.1', '<')) {
+    if (gen_version_is_legacy(MODULE_INVENTORY_STATUS, '3.1')) {
 	  $tab_map = array('0' => '0');
 	  if(db_table_exists(DB_PREFIX . 'inventory_categories')){
 		  $result = $db->Execute("select * from " . DB_PREFIX . 'inventory_categories');
@@ -329,12 +329,12 @@ class inventory_admin {
 	  }
 	  xtra_field_sync_list('inventory', TABLE_INVENTORY);
 	}
-    if (version_compare(MODULE_INVENTORY_STATUS, '3.2', '<')) {
+    if (gen_version_is_legacy(MODULE_INVENTORY_STATUS, '3.2')) {
 	  if (!db_field_exists(TABLE_PRICE_SHEETS, 'type')) $db->Execute("ALTER TABLE " . TABLE_PRICE_SHEETS . " ADD type char(1) NOT NULL default 'c' AFTER sheet_name");
 	  if (!db_field_exists(TABLE_INVENTORY, 'price_sheet_v')) $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD price_sheet_v varchar(32) default NULL AFTER price_sheet");
 	  xtra_field_sync_list('inventory', TABLE_INVENTORY);
 	}
-	if (version_compare(MODULE_INVENTORY_STATUS, '3.6', '<')) {
+	if (gen_version_is_legacy(MODULE_INVENTORY_STATUS, '3.6')) {
 		$db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD INDEX ( sku )");
 		if (!db_field_exists(TABLE_INVENTORY, 'attachments')) $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD attachments text AFTER last_journal_date");
 		if (!db_field_exists(TABLE_INVENTORY, 'full_price_with_tax')) $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD full_price_with_tax FLOAT NOT NULL DEFAULT '0' AFTER full_price");
@@ -428,7 +428,7 @@ class inventory_admin {
 		}
 	  	mkdir(DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/attachments/', 0755, true);
 	}
-	if (version_compare(MODULE_INVENTORY_STATUS, '3.7', '<')) {
+	if (gen_version_is_legacy(MODULE_INVENTORY_STATUS, '3.7')) {
 		if (!db_field_exists(TABLE_INVENTORY_HISTORY, 'avg_cost')) {
 			$db->Execute("ALTER TABLE ".TABLE_INVENTORY_HISTORY." ADD avg_cost FLOAT NOT NULL DEFAULT '0' AFTER unit_cost");
 			$db->Execute("UPDATE ".TABLE_INVENTORY_HISTORY." SET avg_cost = unit_cost");
@@ -461,7 +461,7 @@ class inventory_admin {
 			CHANGE purch_package_quantity purch_package_quantity DOUBLE NOT NULL DEFAULT '0',
 			CHANGE item_cost item_cost DOUBLE NOT NULL DEFAULT '0'");
 	}
-	if (version_compare(MODULE_INVENTORY_STATUS, '3.7.4', '<') ) {
+	if (gen_version_is_legacy(MODULE_INVENTORY_STATUS, '3.7.4')) {
 		if (!db_field_exists(TABLE_INVENTORY, 'product_markup')) {
 			$db->Execute("ALTER TABLE ".TABLE_INVENTORY." CHANGE product_margin product_markup DOUBLE NOT NULL DEFAULT '0'");
 			$db->Execute("ALTER TABLE ".TABLE_INVENTORY." ADD product_margin DOUBLE NOT NULL DEFAULT '0' AFTER product_markup");
@@ -481,69 +481,8 @@ class inventory_admin {
 			$result->MoveNext();
 		}
 	}
-	if (version_compare(MODULE_INVENTORY_STATUS, '3.8', '<')) {
-		// Add Product Bundle (pb) type to xtra_fields visibility lists
-		$pb_fields = $db->Execute("SELECT id, field_name, params FROM " . TABLE_EXTRA_FIELDS . " WHERE module_id = 'inventory'");
-		while (!$pb_fields->EOF) {
-			$params = unserialize($pb_fields->fields['params']);
-			switch ($pb_fields->fields['field_name']) {
-				case 'item_taxable': case 'purch_taxable': case 'item_cost': case 'price_sheet':
-				case 'price_sheet_v': case 'full_price': case 'full_price_with_tax':
-				case 'product_margin': case 'product_markup':
-					$params['inventory_type'] = 'ci:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv'; break;
-				case 'image_with_path': case 'item_weight':
-					$params['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:sa:si:sr'; break;
-				case 'cost_method':
-					$params['inventory_type'] = 'ia:ma:mb:mi:ms:ns:pb:si'; break;
-				case 'quantity_on_hand':
-					$params['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr'; break;
-				case 'quantity_on_sales_order':
-					$params['inventory_type'] = 'ia:ma:mi:pb:sa:si:sr'; break;
-				case 'upc_code':
-					$params['inventory_type'] = 'ia:ma:mi:ns:pb:sa:si:sr'; break;
-				case 'account_cost_of_sales':
-					$params['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:ms:ns:pb:sa:sf:si:sr:sv'; break;
-				case 'minimum_stock_level': case 'reorder_quantity': case 'lead_time':
-				case 'serialize': case 'quantity_on_order': case 'quantity_on_allocation':
-					break; // pb intentionally excluded from these fields
-				default:
-					if (strpos($params['inventory_type'] ?? '', 'ma') !== false && strpos($params['inventory_type'], 'pb') === false) {
-						$params['inventory_type'] = str_replace(':ma:', ':ma:pb:', $params['inventory_type']);
-					}
-			}
-			$db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET params='" . serialize($params) . "' WHERE id='" . $pb_fields->fields['id'] . "'");
-			$pb_fields->MoveNext();
-		}
-	}
-	if (version_compare(MODULE_INVENTORY_STATUS, '3.9', '<')) {
-		// Add Master Product Bundle (mp) / Product Bundle Part (pc) to xtra_fields
-		// visibility lists. pc is structurally a pb (virtual bundle, no assembly step
-		// of its own) and mp is structurally an mb (attribute master + BOM template
-		// that generates children), so each new type simply joins wherever its
-		// counterpart already appears rather than needing its own hand-curated list
-		// per field - the same approach this block used to add pb itself at 3.8.
-		$mp_fields = $db->Execute("SELECT id, params FROM " . TABLE_EXTRA_FIELDS . " WHERE module_id = 'inventory'");
-		while (!$mp_fields->EOF) {
-			$params  = unserialize($mp_fields->fields['params']);
-			$types   = array_filter(explode(':', $params['inventory_type'] ?? ''), function($t) { return $t !== ''; });
-			$changed = false;
-			if (in_array('mb', $types) && !in_array('mp', $types)) { $types[] = 'mp'; $changed = true; }
-			if (in_array('pb', $types) && !in_array('pc', $types)) { $types[] = 'pc'; $changed = true; }
-			if ($changed) {
-				sort($types);
-				$params['inventory_type'] = implode(':', $types);
-				$db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET params='" . serialize($params) . "' WHERE id='" . $mp_fields->fields['id'] . "'");
-			}
-			$mp_fields->MoveNext();
-		}
-	}
-	if (version_compare(MODULE_INVENTORY_STATUS, '3.10', '<')) {
-		// attr_0/attr_1 held every attribute code:description pair for a master as one
-		// comma-list - varchar(255) was already tight for two or three values and simply
-		// too small once a real master (14 hose colours, each with its own description)
-		// tried to save. No fixed length is safe here since the list only grows with the
-		// business's own data, so widen to text rather than pick another number to outgrow.
-		$db->Execute("ALTER TABLE " . TABLE_INVENTORY_MS_LIST . " CHANGE attr_0 attr_0 TEXT NULL, CHANGE attr_1 attr_1 TEXT NULL");
+	if (!gen_version_is_freebooks(MODULE_INVENTORY_STATUS)) {
+		include(DIR_FS_MODULES . 'inventory/updates/PhreeBooks371toFreeBooks100.php');
 	}
 	if (!$error) {
 		xtra_field_sync_list('inventory', TABLE_INVENTORY);

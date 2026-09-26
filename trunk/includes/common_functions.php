@@ -1144,17 +1144,34 @@ function gen_db_date($raw_date = '', $separator = '/') {
    * these call sites will not have to change again.
    */
   /**
+   * Whether a module status is a FreeBooks release rather than a PhreeBooks one.
+   *
+   * version_compare() cannot say: it puts 1.0.0 below every PhreeBooks 3.x. So
+   * the two are told apart by shape. FreeBooks numbers every release in three
+   * parts, starting at 1.0.0. PhreeBooks module versions are two-part from 1 to
+   * 4.0, or three-part within 3.x (phreedom 3.7.1, inventory 3.7.5).
+   *
+   * Three parts with a major version of 1 or 2 is therefore FreeBooks. This has
+   * to be revisited before FreeBooks releases 3.0.0, which PhreeBooks' 3.x.y
+   * stamps would otherwise be mistaken for.
+   */
+  function gen_version_is_freebooks($status) {
+    return (bool)preg_match('/^[12]\.\d+\.\d+$/', (string)$status);
+  }
+
+  /**
    * Is this database still on the pre-1.0.0 lineage, and older than $before?
    *
    * Module updates are gated on how old the stamped version is. Written as
    * MODULE_X_STATUS < 3.3 that breaks against 1.0.0, which is numerically less
    * than every 3.x gate at once - a current database would replay them all.
    *
-   * A version is from the old lineage if it is 2.x or 3.x. Anything 1.x is
-   * FreeBooks 1.0.0 or later, and newer than all of them.
+   * A version is from the old lineage if it is not a FreeBooks release and is
+   * 2.x or later. A FreeBooks release is newer than all of them.
    */
   function gen_version_is_legacy($status, $before) {
     if ($status === false || $status === null || $status === '') return false;
+    if (gen_version_is_freebooks($status)) return false;
     return version_compare((string)$status, '2.0', '>=')
         && version_compare((string)$status, (string)$before, '<');
   }

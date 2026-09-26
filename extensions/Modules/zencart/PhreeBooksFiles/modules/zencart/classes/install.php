@@ -213,6 +213,9 @@ class zencart_admin {
   function update($module) {
     global $db, $messageStack;
 	$error = false;
+	// The inventory fields added below are labelled from the admin language file,
+	// which the login cascade that calls this does not load.
+	gen_pull_language($module, 'admin');
 	if (gen_version_is_legacy(MODULE_ZENCART_STATUS, '3.4')) {
 		write_configure('MODULE_ZENCART_LAST_UPDATE', date('0000-00-00 00:00:00'));
 	}
@@ -244,48 +247,8 @@ class zencart_admin {
 		  $db->Execute("alter table " . TABLE_INVENTORY . " add column ProductModel varchar(64) default ''");
 	}
 
-	if (!db_field_exists(TABLE_JOURNAL_MAIN, 'freight_tax_id')) {
-	  $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN
-	    . " ADD COLUMN freight_tax_id SMALLINT NOT NULL DEFAULT 0 AFTER freight");
-	}
-	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SHIP_NOTIFY . " ("
-	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
-	    . "notified_at DATETIME NOT NULL"
-	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-	// Master enable switch (default off) — gates all ZenCart traffic; see functions/zencart.php + cron
-	if (!defined('ZENCART_ENABLED')) write_configure('ZENCART_ENABLED', '0');
-
-	// VAT invoice email — off by default; see functions/zencart.php::zencart_email_vat_invoice()
-	if (!defined('ZENCART_VAT_INVOICE'))         write_configure('ZENCART_VAT_INVOICE', '0');
-	if (!defined('ZENCART_VAT_INVOICE_SUBJECT')) write_configure('ZENCART_VAT_INVOICE_SUBJECT', 'VAT Invoice {invoice}');
-	if (!defined('ZENCART_VAT_INVOICE_MESSAGE')) write_configure('ZENCART_VAT_INVOICE_MESSAGE',
-	  'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.');
-	if (!defined('ZENCART_VAT_INVOICE_BCC'))     write_configure('ZENCART_VAT_INVOICE_BCC', '');
-	// Pre-select the stock VAT invoice form so the setting isn't blank on first upgrade.
-	// Only ever fills an empty value — never overwrites a form the admin has already chosen.
-	if (!defined('ZENCART_VAT_INVOICE_FORM') || ZENCART_VAT_INVOICE_FORM === '') {
-	  if (!defined('TABLE_PHREEFORM')) define('TABLE_PHREEFORM', DB_PREFIX . 'phreeform');
-	  $frm = $db->Execute("SELECT id FROM " . TABLE_PHREEFORM
-	    . " WHERE doc_group = 'cust:inv' AND doc_ext = 'frm' AND doc_title = 'Invoice-VAT' LIMIT 1");
-	  // Left blank (not '0') when no matching form exists yet, so a later module update —
-	  // after the admin adds an Invoice-VAT form — can still auto-select it.
-	  if (!$frm->EOF) write_configure('ZENCART_VAT_INVOICE_FORM', (int)$frm->fields['id']);
-	}
-
-	// HTML long-description field on the ZenCart inventory tab (holds web long description)
-	if ($error == false && !db_field_exists(TABLE_INVENTORY, 'zencart_description')) {
-	  $sql_data_array = array(
-	    'module_id'   => 'inventory',
-	    'tab_id'      => $tab_id,
-	    'entry_type'  => 'html',
-	    'field_name'  => 'zencart_description',
-	    'description' => ZENCART_CATALOG_DESCRIPTION,
-	    'sort_order'  => 60,
-	    'params'      => serialize(array('type'=>'html', 'inventory_type'=>'ai:ci:ds:sf:ma:ia:lb:mb:ms:mi:ns:sa:sr:sv:si:pb')),
-	  );
-	  db_perform(TABLE_EXTRA_FIELDS, $sql_data_array);
-	  $db->Execute("alter table " . TABLE_INVENTORY . " add column zencart_description mediumtext");
+	if (!gen_version_is_freebooks(MODULE_ZENCART_STATUS)) {
+	  include(DIR_FS_MODULES . 'zencart/updates/PhreeBooks371toFreeBooks100.php');
 	}
 
 	if (!$error) {

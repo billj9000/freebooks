@@ -109,6 +109,9 @@ class payment_admin {
 	    }
 	  }
 	}
+	if (!gen_version_is_freebooks(MODULE_PAYMENT_STATUS)) {
+	  include(DIR_FS_MODULES . 'payment/updates/PhreeBooks371toFreeBooks100.php');
+	}
 	if (!$error) {
 	  $ver_const = 'MODULE_' . strtoupper($module) . '_VERSION';
 	  $ver = defined($ver_const) ? constant($ver_const) : '';

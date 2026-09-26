@@ -346,6 +346,7 @@ define('TEXT_FRI','Пт');
 define('TEXT_SAT','Сб');
 define('DB_ERROR_NOT_CONNECTED','Ошибка установки: Не могу соединится с БД');
 define('GEN_MODULE_UPDATE_SUCCESS','Successfully upgraded module %s to release %s');
+define('GEN_ERROR_DATABASE_COLLATION','The database default collation is still %s. FreeBooks could not change it - the database user may not have ALTER rights. Every table has been converted; only tables created later would inherit the old default.');
 define('LOAD_CONFIG_ERROR','There was an error returned while retrieving the configuration data.<br />FreeBooks was able to connect to the database but could not find the configuration table. Looks like the table is missing! Options include deleting /includes/configure.php and re-installing (for new installations) or restoring the database tables (database crash).');
 define('SAFE_MODE_ERROR','Operating in Safe Mode. FreeBooks will not operate properly if PHP is set to Safe Mode!)');
 define('GEN_ERRMSG_NO_DATA','A required field has been left blank. Field: ');

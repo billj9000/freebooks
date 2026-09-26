@@ -374,6 +374,7 @@ define('TEXT_SAT', 'S');
 // Form Messages
 define('DB_ERROR_NOT_CONNECTED', 'Database Error: Could not connect to the Database!');
 define('GEN_MODULE_UPDATE_SUCCESS','Successfully upgraded module %s to release %s');
+define('GEN_ERROR_DATABASE_COLLATION','The database default collation is still %s. FreeBooks could not change it - the database user may not have ALTER rights. Every table has been converted; only tables created later would inherit the old default.');
 define('GEN_CALENDAR_FORMAT_ERROR','A submitted date format was in error, please check all your dates! Received: %s. (Date Format: %s) Please check your SEPARATOR is consistent for the calendar also: %s - gen_db_date');
 define('TEXT_NO_DATA','The table does not contain any rows!');
 define('LOAD_CONFIG_ERROR','There was an error returned while retrieving the configuration data.<br />FreeBooks was able to connect to the database but could not find the configuration table. Looks like the table is missing! Options include deleting /includes/configure.php and re-installing (for new installations) or restoring the database tables (database crash).');

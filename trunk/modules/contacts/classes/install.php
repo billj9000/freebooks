@@ -219,7 +219,9 @@ class contacts_admin {
     	$result = $db->Execute("Select MAX(short_name + 1) AS new  FROM " . TABLE_CONTACTS . " WHERE TYPE = 'i'");
     	$db->Execute("ALTER TABLE " . TABLE_CURRENT_STATUS . " ADD next_crm_id_num VARCHAR( 16 ) NOT NULL DEFAULT '".$result->fields['new']."';");
     }
-    if (!db_field_exists(TABLE_CONTACTS, 'currency_code')) $db->Execute("ALTER TABLE " . TABLE_CONTACTS . " ADD currency_code VARCHAR(3) NOT NULL DEFAULT '' AFTER price_sheet");
+    if (!gen_version_is_freebooks(MODULE_CONTACTS_STATUS)) {
+      include(DIR_FS_MODULES . 'contacts/updates/PhreeBooks371toFreeBooks100.php');
+    }
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));
    	  $messageStack->add(sprintf(GEN_MODULE_UPDATE_SUCCESS, $module, constant('MODULE_' . strtoupper($module) . '_VERSION')), 'success');

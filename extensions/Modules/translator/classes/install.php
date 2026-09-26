@@ -61,12 +61,8 @@ class translator_admin {
   function update($module) {
     global $db, $messageStack;
 	$error = false;
-	// Drop the DEFAULT from the TEXT column on databases that still carry one.
-	// It is harmless on MariaDB, but a dump of one carries the declaration, and
-	// restoring that dump into MySQL fails at CREATE TABLE with ERROR 1101.
-	if (db_field_exists(TABLE_TRANSLATOR, 'translation')) {
-	  $db->Execute("ALTER TABLE " . TABLE_TRANSLATOR
-	             . " MODIFY translation mediumtext COLLATE utf8mb4_unicode_ci");
+	if (!gen_version_is_freebooks(MODULE_TRANSLATOR_STATUS)) {
+	  include(DIR_FS_MODULES . 'translator/updates/PhreeBooks371toFreeBooks100.php');
 	}
 	if (!$error) {
 	  $ver_const = 'MODULE_' . strtoupper($module) . '_VERSION';

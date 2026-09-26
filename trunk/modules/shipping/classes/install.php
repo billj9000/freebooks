@@ -165,12 +165,8 @@ class shipping_admin {
 	if (gen_version_is_legacy(MODULE_SHIPPING_STATUS, '3.7')) {
 		$db->Execute("ALTER TABLE ".TABLE_SHIPPING_LOG." CHANGE cost cost DOUBLE NOT NULL DEFAULT '0'");
 	}
-	if (version_compare((string)MODULE_SHIPPING_STATUS, '3.8', '<')) {
-		if (!db_table_exists(TABLE_SHIPPING_PACKAGES)) $db->Execute($this->tables[TABLE_SHIPPING_PACKAGES]);
-		if (!defined('SHIPPING_VOL_WEIGHT_DIVISOR')) write_configure('SHIPPING_VOL_WEIGHT_DIVISOR', '5000');
-	}
-	if (version_compare((string)MODULE_SHIPPING_STATUS, '3.9', '<')) {
-		if (!db_field_exists(TABLE_SHIPPING_PACKAGES, 'carrier')) $db->Execute("ALTER TABLE " . TABLE_SHIPPING_PACKAGES . " ADD carrier varchar(32) NOT NULL default '' AFTER inactive");
+	if (!gen_version_is_freebooks(MODULE_SHIPPING_STATUS)) {
+		include(DIR_FS_MODULES . 'shipping/updates/PhreeBooks371toFreeBooks100.php');
 	}
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));

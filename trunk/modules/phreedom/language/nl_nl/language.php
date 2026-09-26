@@ -370,6 +370,7 @@ define('TEXT_FRI','Vrij');
 define('TEXT_SAT','Zat');
 define('DB_ERROR_NOT_CONNECTED','Installatie Fout: Kon geen verbinding maken met de database');
 define('GEN_MODULE_UPDATE_SUCCESS','Module %s is succesvol geupgrad naar release %s');
+define('GEN_ERROR_DATABASE_COLLATION','De standaardcollatie van de database is nog %s. FreeBooks kon deze niet wijzigen - de databasegebruiker heeft mogelijk geen ALTER-rechten. Alle tabellen zijn geconverteerd; alleen later aangemaakte tabellen zouden de oude standaard overnemen.');
 define('GEN_CALENDAR_FORMAT_ERROR','Een ingediend datumnotatie is fout, kijk al je data na! Ontvangen: %s. (Datum Formaat: %s) controleer of SCHEIDER consistent is en ook: %s - gen_db_date');
 define('TEXT_NO_DATA','De tabel bevat geen regels!');
 define('LOAD_CONFIG_ERROR','Er was een fout tijdens het ontvangen van de configuratie data.<br />FreeBooks was in staat om verbinding te maken met de database maar kon de configuratie tabel. Het lijkt er op dat de tabel mist! Opties inclusief verwijderen /includes/configure.php en re-installeren (voor nieuwe installaties) of herstellen van database tabellen (database crash).');

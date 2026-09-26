@@ -56,6 +56,13 @@ foreach ((array)$loaded_modules as $module) {
     if ((string)constant($status) === (string)constant($version)) continue;
     $pending[$module] = array((string)constant($status), (string)constant($version));
 }
+// phreedom last, as the login does it: its migration converts every table the
+// other modules' migrations add to.
+if (isset($pending['phreedom'])) {
+    $phreedom = $pending['phreedom'];
+    unset($pending['phreedom']);
+    $pending['phreedom'] = $phreedom;
+}
 
 $only = null;
 foreach ($argv as $a) if (strpos($a, '--module=') === 0) $only = substr($a, 9);

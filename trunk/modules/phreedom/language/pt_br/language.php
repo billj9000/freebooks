@@ -89,6 +89,7 @@ define('LOAD_CONFIG_ERROR','Ocorreu um erro ao ler a informação de configuraç
 define('TEXT_NO_DATA','A tabela não contém nenhuma informaça!');
 define('GEN_CALENDAR_FORMAT_ERROR','Um formato de data submetido está errado, por favor verifique todas as suas datas! Recebido: %s. (Formato Data: %s) Por favor verifique se o seu SEPARADOR é consistente com o calendário: %s - gen_db_date');
 define('GEN_MODULE_UPDATE_SUCCESS','Atualização módulo %s para a versão %s realizada com sucesso');
+define('GEN_ERROR_DATABASE_COLLATION','A colacao predefinida da base de dados ainda e %s. O FreeBooks nao a conseguiu alterar - o utilizador da base de dados pode nao ter permissoes ALTER. Todas as tabelas foram convertidas; apenas tabelas criadas depois herdariam a predefinicao antiga.');
 define('DB_ERROR_NOT_CONNECTED','Base Dados Erro: Não foi possível conectar com a base de dados!');
 define('TEXT_SAT','S');
 define('TEXT_FRI','S');
