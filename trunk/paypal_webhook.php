@@ -61,21 +61,33 @@ if (!isset($_GET))     $_GET     = [];
 if (!isset($_POST))    $_POST    = [];
 $_SESSION = ['language' => 'en_us', 'admin_id' => 1];
 
-// ─── Auto-detect company ─────────────────────────────────────────────────────
-$company = '';
+// ─── Company ─────────────────────────────────────────────────────────────────
+// The notification URL registered with PayPal names the company, as
+// ?company=<name>. An installation with a single company may leave it out.
+// With several, an unnamed call is refused: guessing would post one company's
+// payment into another's books. The name is matched exactly against the
+// company directories, so it can only ever select one of them.
+$companies = [];
 $mf = DIR_FS_MY_FILES;
 if (is_dir($mf)) {
     foreach (scandir($mf) as $entry) {
         if ($entry === '.' || $entry === '..') continue;
-        if (is_dir($mf . $entry) && file_exists($mf . $entry . '/config.php')) {
-            $company = $entry;
-            break;
-        }
+        if (is_dir($mf . $entry) && file_exists($mf . $entry . '/config.php')) $companies[] = $entry;
     }
 }
-if ($company === '') {
-    http_response_code(500);
-    error_log('paypal_webhook: no company found in my_files/');
+$requested = (string)($_GET['company'] ?? '');
+if ($requested !== '') {
+    if (!in_array($requested, $companies, true)) {
+        http_response_code(400);
+        error_log('paypal_webhook: no company named in ?company= exists');
+        exit;
+    }
+    $company = $requested;
+} elseif (count($companies) === 1) {
+    $company = $companies[0];
+} else {
+    http_response_code(400);
+    error_log('paypal_webhook: ' . count($companies) . ' companies and none named; add ?company=<name> to the notification URL registered with PayPal');
     exit;
 }
 $_SESSION['company'] = $company;
