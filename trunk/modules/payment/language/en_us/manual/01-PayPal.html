@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="14.01">
+<meta name="doc_index_1" content="Payment Methods.PayPal">
+<meta name="doc_index_2" content="PayPal.Setup">
+<meta name="doc_title" content="Payment Methods - PayPal">
+<link rel="stylesheet" type="text/css" href="stylesheet.css">
+<title>Payment Methods - PayPal</title>
+</head>
+<body>
+
+<h1 align="center">Payment Methods - PayPal</h1>
+
+<p>The PayPal payment method lets a customer pay an invoice through PayPal, by card or digital
+wallet, without needing a PayPal account of their own. From the Customer Receipt page you can:</p>
+<ul>
+  <li>create a <strong>payment link</strong> and copy it or email it to the customer;</li>
+  <li>create a <strong>PayPal invoice</strong> and have PayPal send it to the customer;</li>
+  <li>record a payment the customer has already made, by its PayPal transaction ID.</li>
+</ul>
+<p>When the customer pays a link or a PayPal invoice, PayPal tells FreeBooks and the receipt is
+recorded automatically. A <strong>Customer Refund</strong> for an invoice paid through PayPal is
+sent back to PayPal against the original payment.</p>
+
+<h4>What you need</h4>
+<ol>
+  <li>A PayPal business account.</li>
+  <li>A REST API app in the PayPal developer dashboard, which gives you a <strong>Client ID</strong>
+      and a <strong>Client Secret</strong>. PayPal keeps separate apps for its Sandbox (test)
+      environment and for live payments.</li>
+  <li>For automatic receipts, FreeBooks must be reachable from the internet over HTTPS, so that
+      PayPal can call it.</li>
+</ol>
+
+<h4>Installing and settings</h4>
+<p>Install the method from <strong>Company &rarr; Configuration &rarr; Payment Module</strong>
+(see <a href="PaymentHome.html">Payment Methods</a>), then open its settings:</p>
+<ul>
+  <li><strong>PayPal REST API Client ID</strong> and <strong>Client Secret</strong> &mdash; from
+      your PayPal REST API app.</li>
+  <li><strong>Environment</strong> &mdash; <em>Test</em> uses PayPal's Sandbox, where no real money
+      moves; <em>Production</em> takes real payments. The Client ID and Secret must belong to the
+      same environment.</li>
+  <li><strong>Email address to notify</strong> &mdash; an address to tell when a PayPal payment is
+      recorded automatically, or when one needs a person to look at it. Leave it blank for no
+      email.</li>
+  <li><strong>Webhook ID</strong> &mdash; from PayPal, once you have registered the notification
+      URL below. Automatic receipts need it.</li>
+  <li><strong>Shared secret</strong> for the webhook &mdash; optional; see below.</li>
+</ul>
+
+<h4>Automatic receipts: registering the notification URL</h4>
+<p>In the PayPal developer dashboard, add a webhook to your app with this URL, using your own
+host name. <code>NAME</code> is the company's folder name under <code>my_files/</code> on the
+server, which is also its database name &mdash; not the title shown on the login screen.</p>
+<pre>https://your-freebooks-host/paypal_webhook.php?company=NAME</pre>
+<p>If this installation has only one company, <code>?company=NAME</code> may be left out. With
+more than one it is required, and a call without it is refused, so that a payment can never be
+recorded in the wrong company's books.</p>
+<p>Subscribe the webhook to these two events:</p>
+<ul>
+  <li><strong>Payment capture completed</strong> (<code>PAYMENT.CAPTURE.COMPLETED</code>) &mdash;
+      a payment link was paid;</li>
+  <li><strong>Invoicing invoice paid</strong> (<code>INVOICING.INVOICE.PAID</code>) &mdash; a
+      PayPal invoice was paid.</li>
+</ul>
+<p>Copy the <strong>Webhook ID</strong> PayPal shows into the method's settings and save.</p>
+
+<h4>Test mode and the webhook secret</h4>
+<p>In <em>Production</em>, FreeBooks asks PayPal to confirm that every notification really came
+from PayPal before acting on it. In <em>Test</em> it does not, so that PayPal's webhook simulator
+can be used &mdash; which means that in Test mode anyone who can reach the URL could send a
+notification. Set the webhook's <strong>Shared secret</strong> to close that: choose a long random value,
+enter it in the settings, and add it to the URL you register with PayPal:</p>
+<pre>https://your-freebooks-host/paypal_webhook.php?company=NAME&amp;whsecret=YOUR-SECRET</pre>
+<p>Once a secret is set, every notification without it is refused, in Test and Production alike.
+Do not leave a company that takes real payments in Test mode.</p>
+
+<h4>Taking a payment</h4>
+<ol>
+  <li>Go to <strong>Banking &rarr; Customer Receipt</strong> and choose the customer.</li>
+  <li>Tick the invoice to be paid.</li>
+  <li>Choose <strong>PayPal</strong> as the payment method. Check the customer's email address.</li>
+  <li>Either:
+    <ul>
+      <li>click <strong>Create Payment Link</strong>, then <strong>Copy</strong> it or click
+          <strong>Email to Customer</strong>. A payment link expires after three hours; or</li>
+      <li>click <strong>Create PayPal Invoice</strong>, then <strong>Send Invoice</strong> to have
+          PayPal email it to the customer.</li>
+    </ul>
+  </li>
+  <li><strong>Close the page without saving the receipt.</strong> When the customer pays, FreeBooks
+      records the receipt itself, carrying PayPal's transaction ID.</li>
+</ol>
+<p>The payment is charged in the invoice's own currency.</p>
+<p><strong>One invoice per link.</strong> An automatic receipt is recorded against a single
+invoice. If you tick several invoices before creating a link or PayPal invoice, the payment is
+recorded against the first of them, up to what it owes, and the rest is reported to you (below)
+to record by hand.</p>
+
+<h4>Recording a payment by hand</h4>
+<p>To record a PayPal payment that has already been made, choose <strong>PayPal</strong> on the
+Customer Receipt, enter the payment's <strong>PayPal Transaction ID</strong> and save. FreeBooks
+checks with PayPal that the payment was completed before saving it, and keeps the ID so that a
+later refund can find the payment.</p>
+<p>A receipt can also be saved with the Transaction ID left blank, as a payment you expect but
+cannot yet confirm. If the customer then pays through a link or PayPal invoice, the automatic
+receipt allows for it: see the next section. Once you have the transaction ID, open the saved
+receipt, enter it and save again, so that a refund can find the payment.</p>
+
+<h4>What an automatic receipt records</h4>
+<ul>
+  <li>A <strong>Customer Receipt</strong> dated the day PayPal reports the payment, against the
+      invoice, paid into the account set as the default for customer receipts (<strong>Company
+      &rarr; Configuration &rarr; PhreeBooks Module</strong>, Customers tab). Its reference is
+      PayPal's transaction ID.</li>
+  <li>The amount in the invoice's currency, at the invoice's own exchange rate, so a payment of the
+      whole invoice closes it exactly.</li>
+  <li><strong>Never more than the invoice still owes.</strong> If another receipt has already paid
+      the invoice in whole or in part &mdash; for example one saved by hand with no Transaction
+      ID &mdash; only the balance still due is recorded. Whatever PayPal took beyond it is left
+      out, noted in the log, and, if a notification email is set, reported: the email gives the
+      amount paid, the amount recorded and the amount not recorded. Check the other receipt. If
+      it was for this same payment, enter the transaction ID on it; if it was a separate payment,
+      the customer has paid twice and the difference is due back to them.</li>
+  <li>If PayPal reports a payment in a different currency from the invoice's, nothing is recorded
+      and the log says so.</li>
+</ul>
+<p>If a receipt cannot be recorded &mdash; for example because the payment date falls outside
+your accounting periods &mdash; nothing is kept, and FreeBooks tells PayPal the notification
+failed. PayPal sends it again later, so once the problem is fixed the receipt is recorded without
+anything further from you. A notification PayPal repeats is never recorded twice.</p>
+
+<h4>Refunds</h4>
+<p>Raise a <strong>Customer Credit Memo</strong> for the invoice, then a
+<strong>Customer Refund</strong> from the credit memo. When the invoice was paid through PayPal,
+the refund is sent back to PayPal against the original payment. This
+needs the payment's transaction ID on the receipt, which an automatic receipt always has.</p>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="PaymentHome.html">Payment Methods</a><br>
+  <a href="../../../../phreebooks/language/en_us/manual/05-Banking/02-Receipts/01-SingleReceipts.html">Banking - Customer Receipts</a><br>
+  <a href="../../../../contacts/language/en_us/manual/03-Customers/07-CreditMemo/CreditMemoHome.html">Customers - Credit Memos</a>
+</p>
+
+</body>
+</html>

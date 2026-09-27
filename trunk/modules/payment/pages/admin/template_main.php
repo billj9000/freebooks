@@ -25,6 +25,7 @@ if ($security_level > 1) $toolbar->icon_list['save']['params'] = 'onclick="submi
 else                     $toolbar->icon_list['save']['show']   = false;
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
+$toolbar->add_help('14');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
