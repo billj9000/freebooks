@@ -405,24 +405,8 @@ $pay->currencies_code   = $inv_currency;
 $pay->currencies_value  = $inv_rate;
 $pay->shipper_code      = 'paypal';
 $pay->description       = 'PayPal payment for invoice ' . $inv->fields['purchase_invoice_id'];
-$pay->total_amount      = $home_amount;
 $pay->capture_id        = $capture_id;
 $pay->admin_id          = 1;
-
-$pay->item_rows[] = [
-    'id'      => $fb_invoice_id,
-    'gl_type' => 'pmt',
-    'amt'     => $home_amount,
-    'desc'    => 'Invoice ' . $inv->fields['purchase_invoice_id'],
-    'dscnt'   => 0.0,
-    'total'   => $home_amount,
-    'inv'     => $inv->fields['purchase_invoice_id'],
-    'prcnt'   => 0,
-    'early'   => date('Y-m-d'),
-    'due'     => date('Y-m-d'),
-    'pay'     => true,
-    'acct'    => AR_DEFAULT_GL_ACCT,
-];
 
 // ─── Post the receipt and mark the PayPal order done, as one transaction ──────
 // The order row is locked first, so a delivery PayPal repeats while this one is
@@ -438,24 +422,67 @@ if ($lock->EOF || $lock->fields['status'] === 'COMPLETED') {
     http_response_code(200);
     exit;
 }
-if (!$pay->post_ordr('insert')) {
-    $db->transRollback();
-    $errs = '';
-    foreach (($_SESSION['messageToStack'] ?? []) as $m) {
-        $errs .= strip_tags($m['text'] ?? '') . ' ';
+
+// A receipt never takes more than the invoice still owes. The Customer Receipt
+// page can save a PayPal receipt with no transaction ID while the customer has
+// yet to pay, so the same money may already be in the books, in whole or in
+// part. The balance is measured the way the ledger measures it when deciding
+// whether the invoice is paid: what was billed, less every payment against it.
+// What PayPal took beyond that is left unposted and reported, because a
+// payment recorded twice would hide in the ledger where one missing from it
+// shows at bank reconciliation.
+$half_unit = 0.5 / pow(10, (int)$currencies->currencies[DEFAULT_CURRENCY]['decimal_places']);
+$billed = $db->Execute("SELECT SUM(i.credit_amount) - SUM(i.debit_amount) AS amt FROM " . TABLE_JOURNAL_ITEM . " i"
+    . " WHERE i.ref_id = " . $fb_invoice_id . " AND i.gl_type <> 'ttl'");
+$paid   = $db->Execute("SELECT SUM(i.credit_amount) - SUM(i.debit_amount) AS amt FROM " . TABLE_JOURNAL_ITEM . " i"
+    . " WHERE i.so_po_item_ref_id = " . $fb_invoice_id . " AND i.gl_type IN ('pmt','chk')");
+$outstanding = round((float)$billed->fields['amt'] - (float)$paid->fields['amt'], 8);
+$post_amount = min($home_amount, max(0.0, $outstanding));
+if ($post_amount < $half_unit) $post_amount = 0.0;
+$unposted    = ($home_amount - $post_amount >= $half_unit) ? round($home_amount - $post_amount, 8) : 0.0;
+
+if ($post_amount > 0) {
+    $pay->total_amount = $post_amount;
+    $pay->item_rows[]  = [
+        'id'      => $fb_invoice_id,
+        'gl_type' => 'pmt',
+        'amt'     => $post_amount,
+        'desc'    => 'Invoice ' . $inv->fields['purchase_invoice_id'],
+        'dscnt'   => 0.0,
+        'total'   => $post_amount,
+        'inv'     => $inv->fields['purchase_invoice_id'],
+        'prcnt'   => 0,
+        'early'   => date('Y-m-d'),
+        'due'     => date('Y-m-d'),
+        'pay'     => true,
+        'acct'    => AR_DEFAULT_GL_ACCT,
+    ];
+    if (!$pay->post_ordr('insert')) {
+        $db->transRollback();
+        $errs = '';
+        foreach (($_SESSION['messageToStack'] ?? []) as $m) {
+            $errs .= strip_tags($m['text'] ?? '') . ' ';
+        }
+        $messageStack->reset();
+        http_response_code(500);
+        error_log('paypal_webhook: J18 post failed for invoice ' . $fb_invoice_id . ': ' . trim($errs));
+        exit;
     }
-    $messageStack->reset();
-    http_response_code(500);
-    error_log('paypal_webhook: J18 post failed for invoice ' . $fb_invoice_id . ': ' . trim($errs));
-    exit;
 }
 $db->Execute("UPDATE pb_paypal_orders SET status = 'COMPLETED', capture_id = '" . db_input($capture_id) . "'"
     . " WHERE id = " . $ppo_id);
 $db->transCommit();
 http_response_code(200);
 
-$receipt_id = $pay->purchase_invoice_id;
-error_log('paypal_webhook: created J18 receipt ' . $receipt_id . ' for invoice ' . $fb_invoice_id . ' capture ' . $capture_id);
+// Amounts for people are in the invoice's currency.
+$in_inv_currency = function ($home) use ($inv_rate) { return number_format(round($home * $inv_rate, 2), 2); };
+if ($post_amount > 0) {
+    error_log('paypal_webhook: created J18 receipt ' . $pay->purchase_invoice_id . ' for invoice ' . $fb_invoice_id . ' capture ' . $capture_id);
+}
+if ($unposted > 0) {
+    error_log('paypal_webhook: capture ' . $capture_id . ' for invoice ' . $fb_invoice_id . ' exceeded its balance; '
+        . $in_inv_currency($unposted) . ' ' . $inv_currency . ' of it was not recorded');
+}
 
 // ─── Notify staff ─────────────────────────────────────────────────────────────
 $notify_email = defined('MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL') ? MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL : '';
@@ -465,15 +492,28 @@ if ($notify_email) {
     $base_url     = (defined('HTTPS_SERVER') ? HTTPS_SERVER : (defined('HTTP_SERVER') ? HTTP_SERVER : ''))
                   . (defined('DIR_WS_ADMIN') ? DIR_WS_ADMIN : '/');
     $j18_url      = $base_url . 'index.php?module=phreebooks&page=bills&jID=18';
-    $subject      = sprintf(MODULE_PAYMENT_PAYPAL_NOTIFY_SUBJECT, $inv->fields['purchase_invoice_id']);
-    $body         = sprintf(
-        MODULE_PAYMENT_PAYPAL_NOTIFY_BODY,
-        $inv->fields['bill_primary_name'],
-        number_format(round($home_amount * $inv_rate, 2), 2),
-        $inv_currency,
-        $capture_id,
-        $j18_url
-    );
+    if ($unposted > 0) {
+        $subject = sprintf(MODULE_PAYMENT_PAYPAL_NOTIFY_UNPOSTED_SUBJECT, $inv->fields['purchase_invoice_id']);
+        $body    = sprintf(
+            MODULE_PAYMENT_PAYPAL_NOTIFY_UNPOSTED_BODY,
+            $inv->fields['bill_primary_name'],
+            $in_inv_currency($home_amount), $inv_currency,
+            $capture_id,
+            $in_inv_currency($post_amount), $inv_currency,
+            $in_inv_currency($unposted), $inv_currency,
+            $j18_url
+        );
+    } else {
+        $subject = sprintf(MODULE_PAYMENT_PAYPAL_NOTIFY_SUBJECT, $inv->fields['purchase_invoice_id']);
+        $body    = sprintf(
+            MODULE_PAYMENT_PAYPAL_NOTIFY_BODY,
+            $inv->fields['bill_primary_name'],
+            $in_inv_currency($home_amount),
+            $inv_currency,
+            $capture_id,
+            $j18_url
+        );
+    }
     validate_send_mail('', $notify_email, $subject, $body, $from_name, $from_address);
 }
 

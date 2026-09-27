@@ -67,3 +67,16 @@ define('MODULE_PAYMENT_PAYPAL_NOTIFY_BODY',
   . "Capture ID:   %s\n"
   . "Receipt:      %s\n"
 );
+define('MODULE_PAYMENT_PAYPAL_NOTIFY_UNPOSTED_SUBJECT', 'Invoice #%s: PayPal payment larger than the balance due');
+define('MODULE_PAYMENT_PAYPAL_NOTIFY_UNPOSTED_BODY',
+    "A PayPal payment has been received for an invoice that was already paid, in whole or in part, by another receipt.\n"
+  . "Only the balance that was still due has been recorded. Check the other receipt: if it was saved for this same\n"
+  . "PayPal payment, enter the Capture ID below as its PayPal Transaction ID; if it was a separate payment, the\n"
+  . "customer has paid twice and the amount not recorded is due back to them.\n\n"
+  . "Customer:     %s\n"
+  . "Paid:         %s %s\n"
+  . "Capture ID:   %s\n"
+  . "Recorded:     %s %s\n"
+  . "Not recorded: %s %s\n"
+  . "Receipts:     %s\n"
+);
