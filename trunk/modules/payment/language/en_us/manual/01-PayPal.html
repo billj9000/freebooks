@@ -59,13 +59,18 @@ server, which is also its database name &mdash; not the title shown on the login
 <p>If this installation has only one company, <code>?company=NAME</code> may be left out. With
 more than one it is required, and a call without it is refused, so that a payment can never be
 recorded in the wrong company's books.</p>
-<p>Subscribe the webhook to these two events:</p>
+<p>Subscribe the webhook to these three events:</p>
 <ul>
+  <li><strong>Checkout order approved</strong> (<code>CHECKOUT.ORDER.APPROVED</code>) &mdash;
+      a customer approved a payment link, and FreeBooks takes the payment;</li>
   <li><strong>Payment capture completed</strong> (<code>PAYMENT.CAPTURE.COMPLETED</code>) &mdash;
-      a payment link was paid;</li>
+      the payment for a link was taken, and FreeBooks records the receipt;</li>
   <li><strong>Invoicing invoice paid</strong> (<code>INVOICING.INVOICE.PAID</code>) &mdash; a
-      PayPal invoice was paid.</li>
+      PayPal invoice was paid, and FreeBooks records the receipt.</li>
 </ul>
+<p>Other events are accepted and ignored. If the same PayPal account also takes payments for
+something else, such as a web shop, its events reach this webhook too: FreeBooks acts only on
+payment links and PayPal invoices it created itself, and leaves the rest alone.</p>
 <p>Copy the <strong>Webhook ID</strong> PayPal shows into the method's settings and save.</p>
 
 <h4>Test mode and the webhook secret</h4>
@@ -94,6 +99,11 @@ Do not leave a company that takes real payments in Test mode.</p>
   <li><strong>Close the page without saving the receipt.</strong> When the customer pays, FreeBooks
       records the receipt itself, carrying PayPal's transaction ID.</li>
 </ol>
+<p>A customer paying a link approves the payment on PayPal's site, and no money moves until the
+payment is then taken. FreeBooks takes it when PayPal sends the customer back, and again when
+PayPal reports the approval to the webhook, in case the customer closes the window first; the
+second attempt finds it already taken. The page the customer returns to says whether the payment
+went through.</p>
 <p>The payment is charged in the invoice's own currency.</p>
 <p><strong>One invoice per link.</strong> An automatic receipt is recorded against a single
 invoice. If you tick several invoices before creating a link or PayPal invoice, the payment is

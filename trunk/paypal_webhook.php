@@ -17,104 +17,18 @@
 //  Path: /paypal_webhook.php
 //
 // PayPal webhook endpoint — no session auth; verified by PayPal signature.
-// Handles PAYMENT.CAPTURE.COMPLETED and INVOICING.INVOICE.PAID to auto-create J18 Cash Receipts.
+// Handles CHECKOUT.ORDER.APPROVED, by capturing a payment-link order FreeBooks
+// created, and PAYMENT.CAPTURE.COMPLETED and INVOICING.INVOICE.PAID, by
+// recording the J18 Cash Receipt.
 
 // ─── Read raw body before any output ─────────────────────────────────────────
 $raw_body = file_get_contents('php://input');
 
-// The message stack and the audit log time the request from this, as they do
-// under application_top.
-define('PAGE_EXECUTION_START_TIME', microtime(true));
-
-// ─── Resolve trunk root ───────────────────────────────────────────────────────
-$trunk = __DIR__ . '/';
-if (!file_exists($trunk . 'includes/configure.php')) {
-    http_response_code(500);
-    error_log('paypal_webhook: configure.php not found');
+// ─── FreeBooks ────────────────────────────────────────────────────────────────
+if (!(include __DIR__ . '/modules/payment/methods/paypal/standalone.php')) {
+    http_response_code($pp_standalone_status);
+    error_log('paypal_webhook: ' . $pp_standalone_error);
     exit;
-}
-require($trunk . 'includes/configure.php');
-
-if (!defined('DIR_FS_ADMIN')) define('DIR_FS_ADMIN', $trunk);
-
-// ─── Path constants ───────────────────────────────────────────────────────────
-if (!defined('PATH_TO_MY_FILES')) define('PATH_TO_MY_FILES', 'my_files/');
-define('DIR_WS_MODULES',   'modules/');
-define('DIR_WS_MY_FILES',  PATH_TO_MY_FILES);
-define('DIR_FS_INCLUDES',  DIR_FS_ADMIN . 'includes/');
-define('DIR_FS_MODULES',   DIR_FS_ADMIN . 'modules/');
-define('DIR_FS_MY_FILES',  DIR_FS_ADMIN . PATH_TO_MY_FILES);
-define('DIR_FS_THEMES',    DIR_FS_ADMIN . 'themes/');
-define('FILENAME_DEFAULT', 'index');
-define('COG_ITEM_TYPES',   'si,sr,ms,mi,ma,sa');
-define('DIR_WS_ICONS',     '');
-
-if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) {
-    require_once(DIR_FS_ADMIN . 'vendor/autoload.php');
-}
-
-// ─── Fake minimal server context ─────────────────────────────────────────────
-if (!isset($_SERVER['HTTP_HOST']))   $_SERVER['HTTP_HOST']   = 'localhost';
-if (!isset($_SERVER['REMOTE_ADDR'])) $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-if (!isset($_REQUEST)) $_REQUEST = [];
-if (!isset($_GET))     $_GET     = [];
-if (!isset($_POST))    $_POST    = [];
-$_SESSION = ['language' => 'en_us', 'admin_id' => 1];
-
-// ─── Company ─────────────────────────────────────────────────────────────────
-// The notification URL registered with PayPal names the company, as
-// ?company=<name>. An installation with a single company may leave it out.
-// With several, an unnamed call is refused: guessing would post one company's
-// payment into another's books. The name is matched exactly against the
-// company directories, so it can only ever select one of them.
-$companies = [];
-$mf = DIR_FS_MY_FILES;
-if (is_dir($mf)) {
-    foreach (scandir($mf) as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-        if (is_dir($mf . $entry) && file_exists($mf . $entry . '/config.php')) $companies[] = $entry;
-    }
-}
-$requested = (string)($_GET['company'] ?? '');
-if ($requested !== '') {
-    if (!in_array($requested, $companies, true)) {
-        http_response_code(400);
-        error_log('paypal_webhook: no company named in ?company= exists');
-        exit;
-    }
-    $company = $requested;
-} elseif (count($companies) === 1) {
-    $company = $companies[0];
-} else {
-    http_response_code(400);
-    error_log('paypal_webhook: ' . count($companies) . ' companies and none named; add ?company=<name> to the notification URL registered with PayPal');
-    exit;
-}
-$_SESSION['company'] = $company;
-
-// ─── Load shared code ─────────────────────────────────────────────────────────
-$_prev_er = error_reporting(E_ALL & ~E_WARNING);
-require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php');
-require_once(DIR_FS_MODULES . 'phreedom/defaults.php');
-require_once(DIR_FS_INCLUDES . 'common_functions.php');
-require_once(DIR_FS_INCLUDES . 'common_classes.php');
-error_reporting($_prev_er); unset($_prev_er);
-
-// ─── Database connection ──────────────────────────────────────────────────────
-define('DB_DATABASE', $company);
-require_once(DIR_FS_MY_FILES . $company . '/config.php');
-if (!defined('DB_SERVER_HOST') && defined('DB_SERVER')) define('DB_SERVER_HOST', DB_SERVER);
-require_once(DIR_FS_INCLUDES . 'db/' . DB_TYPE . '/query_factory.php');
-$db = new queryFactory();
-$db->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
-
-// ─── Load pb_configuration constants ─────────────────────────────────────────
-$_cfg = $db->Execute("SELECT configuration_key, configuration_value FROM " . DB_PREFIX . "configuration");
-while (!$_cfg->EOF) {
-    if (!defined($_cfg->fields['configuration_key'])) {
-        define($_cfg->fields['configuration_key'], $_cfg->fields['configuration_value']);
-    }
-    $_cfg->MoveNext();
 }
 
 // ─── Shared-secret gate ───────────────────────────────────────────────────────
@@ -139,63 +53,6 @@ if (!defined('MODULE_PAYMENT_PAYPAL_WEBHOOK_ID') || MODULE_PAYMENT_PAYPAL_WEBHOO
     http_response_code(404);
     exit;
 }
-
-// ─── TABLE_* constants ────────────────────────────────────────────────────────
-define('TABLE_AUDIT_LOG',              DB_PREFIX . 'audit_log');
-define('TABLE_CONFIGURATION',          DB_PREFIX . 'configuration');
-define('TABLE_CURRENCIES',             DB_PREFIX . 'currencies');
-define('TABLE_CURRENT_STATUS',         DB_PREFIX . 'current_status');
-define('TABLE_DATA_SECURITY',          DB_PREFIX . 'data_security');
-define('TABLE_EXTRA_FIELDS',           DB_PREFIX . 'xtra_fields');
-define('TABLE_EXTRA_TABS',             DB_PREFIX . 'xtra_tabs');
-define('TABLE_USERS',                  DB_PREFIX . 'users');
-define('TABLE_ACCOUNTING_PERIODS',     DB_PREFIX . 'accounting_periods');
-define('TABLE_ACCOUNTS_HISTORY',       DB_PREFIX . 'accounts_history');
-define('TABLE_CHART_OF_ACCOUNTS',      DB_PREFIX . 'chart_of_accounts');
-define('TABLE_CHART_OF_ACCOUNTS_HISTORY', DB_PREFIX . 'chart_of_accounts_history');
-define('TABLE_INVENTORY_ASSY_LIST',    DB_PREFIX . 'inventory_assy_list');
-define('TABLE_INVENTORY_COGS_OWED',    DB_PREFIX . 'inventory_cogs_owed');
-define('TABLE_INVENTORY_COGS_USAGE',   DB_PREFIX . 'inventory_cogs_usage');
-define('TABLE_INVENTORY_HISTORY',      DB_PREFIX . 'inventory_history');
-define('TABLE_INVENTORY_MS_LIST',      DB_PREFIX . 'inventory_ms_list');
-define('TABLE_INVENTORY_PURCHASE',     DB_PREFIX . 'inventory_purchase_details');
-define('TABLE_JOURNAL_ITEM',           DB_PREFIX . 'journal_item');
-define('TABLE_JOURNAL_MAIN',           DB_PREFIX . 'journal_main');
-define('TABLE_RECONCILIATION',         DB_PREFIX . 'reconciliation');
-define('TABLE_TAX_AUTH',               DB_PREFIX . 'tax_authorities');
-define('TABLE_TAX_RATES',              DB_PREFIX . 'tax_rates');
-define('TABLE_ADDRESS_BOOK',           DB_PREFIX . 'address_book');
-define('TABLE_CONTACTS',               DB_PREFIX . 'contacts');
-define('TABLE_CONTACTS_LOG',           DB_PREFIX . 'contacts_log');
-define('TABLE_DEPARTMENTS',            DB_PREFIX . 'departments');
-define('TABLE_PRICE_SHEETS',           DB_PREFIX . 'price_sheets');
-define('TABLE_INVENTORY',              DB_PREFIX . 'inventory');
-define('TABLE_INVENTORY_SPECIAL_PRICES', DB_PREFIX . 'inventory_special_prices');
-define('TABLE_SHIPPING_LOG',           DB_PREFIX . 'shipping_log');
-
-// ─── Core objects and language ────────────────────────────────────────────────
-$messageStack = new messageStack;
-$currencies   = new currencies();
-
-$_prev_er = error_reporting(E_ALL & ~E_WARNING);
-gen_pull_language('contacts');
-gen_pull_language('phreebooks');
-gen_pull_language('phreebooks', 'menu');
-// The payment base class constructor reads its setting labels from the payment
-// module's admin strings, so constructing the PayPal method needs them.
-gen_pull_language('payment', 'admin');
-error_reporting($_prev_er); unset($_prev_er);
-
-// ─── Load journal classes ─────────────────────────────────────────────────────
-require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
-require_once(DIR_FS_MODULES . 'phreebooks/classes/orders.php');
-require_once(DIR_FS_MODULES . 'phreebooks/classes/banking.php');
-require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
-
-// ─── Load PayPal module (for API calls and signature verification) ────────────
-require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
-load_specific_method('payment', 'paypal');
-$pp = new paypal();
 
 // ─── J18 banking subclass (mirrors zc_banking in zencart_sync.php) ────────────
 // Bypasses the JOURNAL_ID constant check in banking::__construct() and provides
@@ -303,6 +160,20 @@ if (!$sandbox) {
 http_response_code(200);
 
 $pp->ensure_paypal_orders_table();
+
+// ─── A buyer approved a payment link: take the payment ────────────────────────
+// Approval moves no money. The capture this makes is reported by its own
+// PAYMENT.CAPTURE.COMPLETED event, which records the receipt below. An order
+// FreeBooks did not create is left alone, and a failed capture is answered 500
+// so that PayPal sends the approval again.
+if ($event['event_type'] === 'CHECKOUT.ORDER.APPROVED') {
+    $order_id = (string)($event['resource']['id'] ?? '');
+    if ($pp->capture_mapped_order($order_id) === false) {
+        http_response_code(500);
+        error_log('paypal_webhook: could not capture approved order ' . $order_id . ': ' . $pp->get_last_error());
+    }
+    exit;
+}
 
 // ─── Extract event-specific IDs and amounts ───────────────────────────────────
 switch ($event['event_type']) {

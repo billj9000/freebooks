@@ -73,7 +73,10 @@ if (!empty($invoice_ids)) {
 
 /**************   Build return / cancel URLs   **********************/
 $base_url   = DIR_WS_FULL_PATH;
-$return_url = $base_url . 'paypal_return.php?invoice_id=' . $fb_invoice_id;
+// The return page captures the payment, so it must know which company's order
+// this is; see paypal_return.php.
+$return_url = $base_url . 'paypal_return.php?invoice_id=' . $fb_invoice_id
+            . '&company=' . rawurlencode($_SESSION['company']);
 $cancel_url = $base_url . 'paypal_cancel.php';
 
 /**************   Create PayPal Order   *****************************/

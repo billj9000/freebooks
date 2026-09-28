@@ -560,7 +560,10 @@ class paypal extends payment {
     global $db;
     $client_id = defined('MODULE_PAYMENT_PAYPAL_CLIENT_ID')     ? MODULE_PAYMENT_PAYPAL_CLIENT_ID     : '';
     $secret    = defined('MODULE_PAYMENT_PAYPAL_CLIENT_SECRET') ? MODULE_PAYMENT_PAYPAL_CLIENT_SECRET : '';
-    if (!$client_id || !$secret) return false;
+    if (!$client_id || !$secret) {
+      $this->last_error = MODULE_PAYMENT_PAYPAL_ERROR_NO_CREDENTIALS;
+      return false;
+    }
     // Check cache
     $r = $db->Execute("SELECT configuration_value FROM " . TABLE_CONFIGURATION
         . " WHERE configuration_key = 'PAYPAL_ACCESS_TOKEN_CACHE' LIMIT 1");
@@ -578,9 +581,11 @@ class paypal extends payment {
       CURLOPT_TIMEOUT        => 15,
     ]);
     $body = curl_exec($ch);
-    if (!$body) return false;
-    $data = json_decode($body, true);
-    if (!isset($data['access_token'])) return false;
+    $data = $body ? json_decode($body, true) : null;
+    if (!isset($data['access_token'])) {
+      $this->last_error = MODULE_PAYMENT_PAYPAL_ERROR_TOKEN;
+      return false;
+    }
     $expires_at = time() + (int)($data['expires_in'] ?? 3600);
     $cache_val  = $expires_at . ':' . $data['access_token'];
     $exists = $db->Execute("SELECT configuration_key FROM " . TABLE_CONFIGURATION
@@ -596,7 +601,10 @@ class paypal extends payment {
   }
 
   // CURL wrapper for PayPal REST API calls.
-  public function paypal_request($path, $body = null, $method = 'POST') {
+  // $request_id is sent as PayPal-Request-Id. PayPal answers a repeated request
+  // carrying the same id with the first result instead of acting again, so a
+  // caller that must not act twice names one; otherwise each request gets its own.
+  public function paypal_request($path, $body = null, $method = 'POST', $request_id = null) {
     $token = $this->get_access_token();
     if (!$token) return false;
     $url = $this->paypal_base_url() . ltrim($path, '/');
@@ -607,7 +615,7 @@ class paypal extends payment {
       'Prefer: return=representation',
     ];
     if ($method === 'POST' || $method === 'PATCH') {
-      $headers[] = 'PayPal-Request-Id: fb-' . md5($path . microtime());
+      $headers[] = 'PayPal-Request-Id: ' . ($request_id ?? 'fb-' . md5($path . microtime()));
     }
     curl_setopt_array($ch, [
       CURLOPT_RETURNTRANSFER => true,
@@ -635,6 +643,33 @@ class paypal extends payment {
   public function paypal_base_url() {
     $sandbox = defined('MODULE_PAYMENT_PAYPAL_TESTMODE') && MODULE_PAYMENT_PAYPAL_TESTMODE === 'Sandbox';
     return $sandbox ? 'https://api-m.sandbox.paypal.com/' : 'https://api-m.paypal.com/';
+  }
+
+  // Capture a payment-link order once its buyer has approved it. PayPal moves no
+  // money on approval; the seller captures. Both the return page and the
+  // CHECKOUT.ORDER.APPROVED webhook call this, and whichever comes second finds
+  // the order already captured.
+  //
+  // Only an order FreeBooks created is captured. The PayPal account may serve
+  // other applications, such as a web shop, whose orders are theirs to capture.
+  //
+  // Returns PayPal's capture (its 'status' is COMPLETED, or PENDING while PayPal
+  // holds the money for review), null when the order is not one FreeBooks
+  // created, or false when it could not be captured.
+  public function capture_mapped_order($order_id) {
+    global $db;
+    $order_id = (string)$order_id;
+    if ($order_id === '') return null;
+    $this->ensure_paypal_orders_table();
+    $row = $db->Execute("SELECT id FROM pb_paypal_orders WHERE paypal_order_id = '" . db_input($order_id) . "'"
+      . " AND source_type = 'order' LIMIT 1");
+    if ($row->EOF) return null;
+    $path = 'v2/checkout/orders/' . rawurlencode($order_id);
+    $data = $this->paypal_request($path . '/capture', new stdClass(), 'POST', 'fb-capture-' . $order_id);
+    // A refused capture may be one that already happened; the order says which.
+    if (!$data) $data = $this->paypal_request($path, null, 'GET');
+    if (!$data || ($data['status'] ?? '') !== 'COMPLETED') return false;
+    return $data['purchase_units'][0]['payments']['captures'][0] ?? false;
   }
 
   // The table is created from the payment module's own declaration, the one
