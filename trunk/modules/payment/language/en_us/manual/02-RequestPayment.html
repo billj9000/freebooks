@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="14.02">
+<meta name="doc_index_1" content="Payment Methods.Requesting a Payment">
+<meta name="doc_index_2" content="Invoices.Requesting payment">
+<meta name="doc_title" content="Payment Methods - Requesting a Payment">
+<link rel="stylesheet" type="text/css" href="stylesheet.css">
+<title>Payment Methods - Requesting a Payment</title>
+</head>
+<body>
+
+<h1 align="center">Requesting a Payment</h1>
+
+<p>You can ask a customer to pay an invoice through a payment method that supports it &mdash; a
+PayPal payment link, for example, or an invoice PayPal emails to the customer. When the customer
+pays, the payment method tells FreeBooks and the receipt is recorded for you. Nothing you do when
+asking for payment records any money, so there is nothing to save and nothing to undo.</p>
+
+<h4>Where to find it</h4>
+<ul>
+  <li>On a posted customer invoice: the <strong>Request payment</strong> button on the toolbar.</li>
+  <li>In the <strong>Invoice Manager</strong>: the Request payment icon on the row of any invoice
+      that is not yet paid, next to the Payment icon.</li>
+</ul>
+<p>It needs the <strong>Customer Receipts</strong> permission at a level that can enter a receipt.
+The choices offered are those of the installed payment methods that can ask for payment &mdash;
+see <a href="PaymentHome.html">Payment Methods</a>. For an invoice in another currency, only the
+methods that can take that currency are offered.</p>
+
+<h4>Asking for payment</h4>
+<ol>
+  <li>Open <strong>Request payment</strong>. The dialog shows the customer and the invoice's
+      <strong>Balance due</strong>, in the invoice's own currency.</li>
+  <li>Check the <strong>Amount to request</strong>. It starts at the balance due; lower it to ask
+      for part of the invoice. It cannot be more than the balance due.</li>
+  <li>Check the <strong>Customer email</strong>, which comes from the invoice.</li>
+  <li>Choose <strong>How to ask</strong>, and click <strong>Create request</strong>.</li>
+</ol>
+<p>What happens next depends on the choice:</p>
+<ul>
+  <li>A <strong>payment link</strong> is shown in the dialog. <strong>Copy</strong> it to send it
+      yourself, or click <strong>Email to customer</strong> to email it from FreeBooks, with a
+      copy of the invoice attached. A PayPal payment link can be paid for three hours.</li>
+  <li>A <strong>PayPal invoice</strong> is emailed to the customer by PayPal straight away. It
+      lists the invoice's items when you ask for the whole invoice, and a single line &mdash;
+      <em>Part payment for Invoice&nbsp;&hellip;</em> &mdash; when you ask for less.</li>
+</ul>
+<p>Close the dialog when you are done. The receipt is recorded automatically when the customer
+pays: see <a href="01-PayPal.html">PayPal</a> for what it records.</p>
+
+<h4>Seeing where a request stands</h4>
+<p>The dialog lists every request made for the invoice, newest first, with its status:</p>
+<ul>
+  <li><strong>Requested</strong> &mdash; sent, and not paid yet;</li>
+  <li><strong>Paid</strong> &mdash; the customer paid, and the receipt was recorded;</li>
+  <li><strong>Expired</strong> &mdash; a payment link that was not paid in time. Make a new
+      request if the customer still needs to pay;</li>
+  <li><strong>Failed</strong> &mdash; the payment method could not complete the request, for
+      example a PayPal invoice PayPal did not send.</li>
+</ul>
+<p>The latest request also shows as a badge beside the invoice number in the Invoice Manager and
+under the toolbar of the invoice itself. An invoice can have several requests &mdash; a new link
+after one expires, or one request for each part of a payment.</p>
+
+<h4>Recording the payment yourself</h4>
+<p>You do not need to. If you open a <strong>Customer Receipt</strong> for the customer, an
+invoice whose payment has been requested is marked with a note saying so. If you record a payment
+for it anyway &mdash; say the customer paid another way &mdash; the automatic receipt never takes
+more than the invoice still owes, and tells you if the payment method received more than that.</p>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="PaymentHome.html">Payment Methods</a><br>
+  <a href="01-PayPal.html">Payment Methods - PayPal</a><br>
+  <a href="../../../../contacts/language/en_us/manual/03-Customers/05-Invoices/04-InvoiceManager.html">Invoice Manager</a><br>
+  <a href="../../../../phreebooks/language/en_us/manual/05-Banking/02-Receipts/01-SingleReceipts.html">Banking - Customer Receipts</a>
+</p>
+
+</body>
+</html>

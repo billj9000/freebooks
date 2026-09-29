@@ -80,9 +80,12 @@ function pr_header($inv) {
        . '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="' . TEXT_CLOSE . '"></button></div>';
 }
 
+// Help opens the manual's Requesting a Payment topic, as a toolbar's Help does.
 function pr_footer() {
-  return '<div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">'
-       . TEXT_CLOSE . '</button></div>';
+  return '<div class="modal-footer justify-content-between">'
+       . '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.open(\'index.php?module=phreehelp&amp;page=main&amp;idx=14.02\',\'help\',\'width=800,height=600,resizable=1,scrollbars=1,top=100,left=100\')">'
+       . TEXT_HELP . '</button>'
+       . '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">' . TEXT_CLOSE . '</button></div>';
 }
 
 function pr_summary($inv) {
