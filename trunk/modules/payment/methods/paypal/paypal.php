@@ -317,10 +317,10 @@ class paypal extends payment {
       if ($link['rel'] === 'payer-action' || $link['rel'] === 'approve') { $approve_url = $link['href']; break; }
     }
     if (!$approve_url) return false;
-    // Store mapping so the webhook can auto-create the J18 receipt.
-    $this->ensure_paypal_orders_table();
-    $db->Execute("INSERT IGNORE INTO pb_paypal_orders (paypal_order_id, fb_invoice_id, status)"
-      . " VALUES ('" . db_input($paypal_order_id) . "', " . (int)$fb_invoice_id . ", 'PENDING')");
+    // Recorded so that the return page and the webhook can find the invoice.
+    // PayPal lets a buyer approve an order for three hours.
+    $this->record_request('link', $paypal_order_id, $fb_invoice_id, $amount, $currency,
+                          $approve_url, date('Y-m-d H:i:s', time() + 3 * 3600));
     return $approve_url;
   }
 
@@ -479,11 +479,10 @@ class paypal extends payment {
     $invoice_id   = $data['id'];
     $invoicer_url = $data['detail']['metadata']['invoicer_view_url']  ?? '';
     $recipient_url = $data['detail']['metadata']['recipient_view_url'] ?? '';
-    // Store mapping so the INVOICING.INVOICE.PAID webhook can auto-create the J18 receipt.
+    // Recorded so that the INVOICING.INVOICE.PAID webhook can find the invoice.
     if ((int)$fb_invoice_id > 0) {
-      $this->ensure_paypal_orders_table();
-      $db->Execute("INSERT IGNORE INTO pb_paypal_orders (paypal_order_id, fb_invoice_id, source_type, status)"
-        . " VALUES ('" . db_input($invoice_id) . "', " . (int)$fb_invoice_id . ", 'invoice', 'PENDING')");
+      $this->record_request('invoice', $invoice_id, $fb_invoice_id,
+                            (float)($data['amount']['value'] ?? 0), $currency, $recipient_url ?: null);
     }
     return ['id' => $invoice_id, 'invoicer_url' => $invoicer_url, 'recipient_url' => $recipient_url];
   }
@@ -650,20 +649,17 @@ class paypal extends payment {
   // CHECKOUT.ORDER.APPROVED webhook call this, and whichever comes second finds
   // the order already captured.
   //
-  // Only an order FreeBooks created is captured. The PayPal account may serve
-  // other applications, such as a web shop, whose orders are theirs to capture.
+  // Only an order FreeBooks created is captured: one recorded as a payment-link
+  // request. The PayPal account may serve other applications, such as a web
+  // shop, whose orders are theirs to capture.
   //
   // Returns PayPal's capture (its 'status' is COMPLETED, or PENDING while PayPal
   // holds the money for review), null when the order is not one FreeBooks
   // created, or false when it could not be captured.
   public function capture_mapped_order($order_id) {
-    global $db;
     $order_id = (string)$order_id;
     if ($order_id === '') return null;
-    $this->ensure_paypal_orders_table();
-    $row = $db->Execute("SELECT id FROM pb_paypal_orders WHERE paypal_order_id = '" . db_input($order_id) . "'"
-      . " AND source_type = 'order' LIMIT 1");
-    if ($row->EOF) return null;
+    if (!$this->find_request($order_id, 'link')) return null;
     $path = 'v2/checkout/orders/' . rawurlencode($order_id);
     $data = $this->paypal_request($path . '/capture', new stdClass(), 'POST', 'fb-capture-' . $order_id);
     // A refused capture may be one that already happened; the order says which.
@@ -672,14 +668,5 @@ class paypal extends payment {
     return $data['purchase_units'][0]['payments']['captures'][0] ?? false;
   }
 
-  // The table is created from the payment module's own declaration, the one
-  // the installer and the migration use, so there is a single definition of it.
-  public function ensure_paypal_orders_table() {
-    global $db;
-    if (db_table_exists('pb_paypal_orders')) return;
-    require_once(DIR_FS_MODULES . 'payment/classes/install.php');
-    $install = new payment_admin();
-    $db->Execute($install->tables['pb_paypal_orders']);
-  }
 }
 ?>

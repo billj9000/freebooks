@@ -161,7 +161,54 @@ class payment {
   function get_transaction_url($transaction_id) {
     return null;
   }
- 
+
+  // Record a request for payment this method has just made: a payment link or
+  // an invoice the method sent, asking for $amount in $currency against the
+  // FreeBooks invoice $invoice_id. $external_id is the method's own reference
+  // for it, by which later notifications find it again. $expires_at is a
+  // 'Y-m-d H:i:s' time, or null for a request that does not expire.
+  function record_request($request_type, $external_id, $invoice_id, $amount, $currency, $url = null, $expires_at = null) {
+    global $db;
+    $this->ensure_requests_table();
+    // db_perform() writes SQL NULL only for the string 'null'; a PHP null would
+    // reach the column as '', which a datetime refuses under strict SQL.
+    db_perform(TABLE_PAYMENT_REQUESTS, array(
+      'method'        => $this->code,
+      'request_type'  => $request_type,
+      'external_id'   => $external_id,
+      'ref_id'        => (int)$invoice_id,
+      'amount'        => (float)$amount,
+      'currency_code' => $currency,
+      'url'           => $url ?? 'null',
+      'status'        => 'requested',
+      'admin_id'      => (int)($_SESSION['admin_id'] ?? 0),
+      'created_at'    => date('Y-m-d H:i:s'),
+      'expires_at'    => $expires_at ?? 'null',
+    ));
+  }
+
+  // The request this method recorded under $external_id, as a row array, or
+  // null. $request_type narrows it to one kind of request.
+  function find_request($external_id, $request_type = null) {
+    global $db;
+    $this->ensure_requests_table();
+    $sql = "SELECT * FROM " . TABLE_PAYMENT_REQUESTS . " WHERE method = '" . db_input($this->code) . "'"
+         . " AND external_id = '" . db_input((string)$external_id) . "'";
+    if ($request_type !== null) $sql .= " AND request_type = '" . db_input($request_type) . "'";
+    $row = $db->Execute($sql . " LIMIT 1");
+    return $row->EOF ? null : $row->fields;
+  }
+
+  // The table is created from the payment module's own declaration, the one
+  // the installer and the migration use, so there is a single definition of it.
+  function ensure_requests_table() {
+    global $db;
+    if (db_table_exists(TABLE_PAYMENT_REQUESTS)) return;
+    require_once(DIR_FS_MODULES . 'payment/classes/install.php');
+    $install = new payment_admin();
+    $db->Execute($install->tables[TABLE_PAYMENT_REQUESTS]);
+  }
+
   function confirmation() {
     return array('title' => $this->description);
   }

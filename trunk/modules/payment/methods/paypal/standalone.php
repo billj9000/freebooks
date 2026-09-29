@@ -152,6 +152,7 @@ define('TABLE_PRICE_SHEETS',           DB_PREFIX . 'price_sheets');
 define('TABLE_INVENTORY',              DB_PREFIX . 'inventory');
 define('TABLE_INVENTORY_SPECIAL_PRICES', DB_PREFIX . 'inventory_special_prices');
 define('TABLE_SHIPPING_LOG',           DB_PREFIX . 'shipping_log');
+define('TABLE_PAYMENT_REQUESTS',       DB_PREFIX . 'payment_requests');
 
 // ─── Core objects and language ────────────────────────────────────────────────
 $messageStack = new messageStack;

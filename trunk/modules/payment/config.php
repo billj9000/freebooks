@@ -31,6 +31,9 @@ define('MODULE_PAYMENT_VERSION', '1.0.0');
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_PAYMENT',       81);
 // New Database Tables
+// Requests for payment made to a payment method: a PayPal payment link or
+// invoice, one row per request, against the invoice it asks to be paid.
+define('TABLE_PAYMENT_REQUESTS', DB_PREFIX . 'payment_requests');
 // Set the title menu
 // Set the menus
 

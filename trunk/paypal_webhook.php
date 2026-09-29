@@ -159,7 +159,7 @@ if (!$sandbox) {
 // Acknowledge all events immediately; process known event types below.
 http_response_code(200);
 
-$pp->ensure_paypal_orders_table();
+$pp->ensure_requests_table();
 
 // ─── A buyer approved a payment link: take the payment ────────────────────────
 // Approval moves no money. The capture this makes is reported by its own
@@ -204,20 +204,20 @@ if (!$capture_id || !$paypal_order_id) {
     exit;
 }
 
-// ─── Look up FreeBooks invoice ID ────────────────────────────────────────────
-$row = $db->Execute("SELECT id, fb_invoice_id, status FROM pb_paypal_orders"
-    . " WHERE paypal_order_id = '" . db_input($paypal_order_id) . "' LIMIT 1");
-
-if ($row->EOF) {
-    error_log('paypal_webhook: order_id not in pb_paypal_orders — ignoring: ' . $paypal_order_id);
+// ─── The request this pays, and its invoice ──────────────────────────────────
+// A payment FreeBooks did not ask for - one taken by another application on the
+// same PayPal account - has no request here and is left alone.
+$request = $pp->find_request($paypal_order_id);
+if (!$request) {
+    error_log('paypal_webhook: not a payment FreeBooks requested; ignoring ' . $paypal_order_id);
     exit;
 }
-if ($row->fields['status'] === 'COMPLETED') {
-    exit; // idempotent
+if ($request['status'] === 'paid') {
+    exit; // a repeated delivery
 }
 
-$ppo_id        = (int)$row->fields['id'];
-$fb_invoice_id = (int)$row->fields['fb_invoice_id'];
+$request_id    = (int)$request['id'];
+$fb_invoice_id = (int)$request['ref_id'];
 
 // ─── Load invoice details ─────────────────────────────────────────────────────
 $inv = $db->Execute("SELECT id, journal_id, purchase_invoice_id, bill_acct_id, bill_address_id,"
@@ -279,16 +279,16 @@ $pay->description       = 'PayPal payment for invoice ' . $inv->fields['purchase
 $pay->capture_id        = $capture_id;
 $pay->admin_id          = 1;
 
-// ─── Post the receipt and mark the PayPal order done, as one transaction ──────
-// The order row is locked first, so a delivery PayPal repeats while this one is
-// still posting waits here and then finds it done. If the post fails, nothing
-// is kept: the order stays PENDING and PayPal, told the delivery failed, sends
-// it again. The response says the delivery failed until the commit, because a
+// ─── Post the receipt and mark the request paid, as one transaction ──────────
+// The request row is locked first, so a delivery PayPal repeats while this one
+// is still posting waits here and then finds it paid. If the post fails,
+// nothing is kept: the request stays requested and PayPal, told the delivery
+// failed, sends it again. The response says the delivery failed until the commit, because a
 // failed statement ends the request where it stands.
 http_response_code(500);
 $db->transStart();
-$lock = $db->Execute("SELECT status FROM pb_paypal_orders WHERE id = " . $ppo_id . " FOR UPDATE");
-if ($lock->EOF || $lock->fields['status'] === 'COMPLETED') {
+$lock = $db->Execute("SELECT status FROM " . TABLE_PAYMENT_REQUESTS . " WHERE id = " . $request_id . " FOR UPDATE");
+if ($lock->EOF || $lock->fields['status'] === 'paid') {
     $db->transRollback();
     http_response_code(200);
     exit;
@@ -340,8 +340,9 @@ if ($post_amount > 0) {
         exit;
     }
 }
-$db->Execute("UPDATE pb_paypal_orders SET status = 'COMPLETED', capture_id = '" . db_input($capture_id) . "'"
-    . " WHERE id = " . $ppo_id);
+$db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'paid', capture_id = '" . db_input($capture_id) . "',"
+    . " receipt_id = " . ($post_amount > 0 ? (int)$pay->id : "NULL") . ", completed_at = NOW()"
+    . " WHERE id = " . $request_id);
 $db->transCommit();
 http_response_code(200);
 

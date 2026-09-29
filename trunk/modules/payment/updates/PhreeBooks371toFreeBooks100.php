@@ -23,7 +23,7 @@
 // a run that stops part way is finished by the next login. A later release
 // brings its own migration rather than adding to this one.
 
-// ---- pb_paypal_orders ------------------------------------------------------
-// The PayPal orders taken against each invoice, declared as the installer
-// declares it.
-if (!db_table_exists('pb_paypal_orders')) $db->Execute($this->tables['pb_paypal_orders']);
+// ---- payment_requests ------------------------------------------------------
+// Requests for payment sent to customers, declared as the installer declares
+// it. PhreeBooks had no such table.
+if (!db_table_exists(TABLE_PAYMENT_REQUESTS)) $db->Execute($this->tables[TABLE_PAYMENT_REQUESTS]);
