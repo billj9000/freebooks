@@ -1720,7 +1720,7 @@ render a form to PDF **bytes in-process**, and every one of them calls `get_repo
 | Call site | What it prints |
 |---|---|
 | `extensions/…/zencart/functions/zencart.php` | the VAT invoice emailed to a customer, from the sync cron |
-| `trunk/modules/payment/ajax/paypal_email_link.php` | an invoice emailed with a PayPal link |
+| `trunk/modules/payment/methods/paypal/paypal.php` (`email_request()`) | an invoice emailed with a PayPal link |
 | `trunk/modules/phreepos/ajax/save_main.php` | the POS receipt, on save |
 | `trunk/modules/phreepos/ajax/print_previous.php` | a POS reprint |
 

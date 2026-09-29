@@ -17,12 +17,15 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/pages/status/template_main.php
 //
-// Invoices can be sent a request for payment; see
-// modules/payment/functions/request_dialog.php.
-$pay_request = false;
+// Invoices can be sent a request for payment, and each shows where its latest
+// request stands; see modules/payment/functions/request_dialog.php.
+$pay_request  = false;
+$pay_statuses = $pay_methods = [];
 if (JOURNAL_ID == 12 && defined('MODULE_PAYMENT_STATUS')) {
   require_once(DIR_FS_MODULES . 'payment/functions/request_dialog.php');
-  $pay_request = payment_request_allowed();
+  $pay_request  = payment_request_allowed();
+  $pay_statuses = payment_latest_requests(array_column($query_result->result, 'id'));
+  if ($pay_statuses) $pay_methods = payment_request_methods();
 }
 echo html_form('status', FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'list'))) . chr(10);
 echo html_hidden_field('action', '') . chr(10);
@@ -120,7 +123,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
       <td class="text-center"><input type="checkbox" class="row-select" value="<?php echo $oID; ?>" onchange="toggleInvoiceSelect(this)"></td>
 <?php } ?>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $post_date; ?></td>
-      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $reference_id; ?></td>
+      <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $reference_id; ?><?php if (isset($pay_statuses[$oID])) echo ' ' . payment_request_badge($pay_statuses[$oID], $pay_methods); ?></td>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $primary_name; ?></td>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $purch_order_id; ?></td>
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $closed; ?></td>
@@ -225,4 +228,4 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
 </form>
-<?php if ($pay_request) echo payment_request_dialog(); ?>
+<?php if ($pay_request) echo payment_request_dialog(true); ?>

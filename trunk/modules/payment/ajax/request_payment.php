@@ -36,6 +36,7 @@ if ($security_level < 2) {
 }
 gen_pull_language('payment');
 require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
+require_once(DIR_FS_MODULES . 'payment/functions/request_dialog.php');
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -51,27 +52,6 @@ function pr_invoice($id) {
   $inv['rate']            = (float)$inv['currencies_value'] > 0 ? (float)$inv['currencies_value'] : 1.0;
   $inv['due']             = max(0.0, round(payment::invoice_balance($id) * $inv['rate'], 2));
   return $inv;
-}
-
-// The installed methods that can ask for payment in $currency, as code => object.
-function pr_methods($currency) {
-  $dir = DIR_FS_MODULES . 'payment/methods/';
-  $methods = [];
-  foreach (scandir($dir) as $m) {
-    if ($m[0] === '.' || !file_exists($dir . $m . '/' . $m . '.php')) continue;
-    if (!defined('MODULE_PAYMENT_' . strtoupper($m) . '_STATUS')) continue;
-    load_specific_method('payment', $m);
-    if (!class_exists($m)) continue;
-    // Only a method that implements create_request() is constructed: the
-    // others have nothing to offer here, and some cannot be built outside the
-    // pages they were written for.
-    if ((new ReflectionMethod($m, 'create_request'))->getDeclaringClass()->getName() === 'payment') continue;
-    $obj = new $m();
-    if (empty($obj->request_types)) continue;
-    if ($currency !== DEFAULT_CURRENCY && empty($obj->multi_currency)) continue;
-    $methods[$m] = $obj;
-  }
-  return $methods;
 }
 
 function pr_requests($invoice_id) {
@@ -119,13 +99,10 @@ function pr_request_table($requests, $methods_all) {
         . '<th>' . TEXT_DATE . '</th><th>' . TEXT_TYPE . '</th><th class="text-end">' . TEXT_AMOUNT . '</th><th>' . TEXT_STATUS . '</th>'
         . '</tr></thead><tbody>';
   foreach ($requests as $r) {
-    $label  = isset($methods_all[$r['method']]->request_types[$r['request_type']])
-            ? $methods_all[$r['method']]->request_types[$r['request_type']] : $r['method'] . ' ' . $r['request_type'];
-    $status = payment::request_display_status($r);
     $html .= '<tr><td>' . pr_h(gen_locale_date(substr($r['created_at'], 0, 10))) . '</td>'
-           . '<td>' . pr_h($label) . '</td>'
+           . '<td>' . pr_h(payment_request_label($r, $methods_all)) . '</td>'
            . '<td class="text-end">' . pr_money($r['amount'], $r['currency_code']) . '</td>'
-           . '<td>' . pr_h(defined('PAY_REQUEST_STATUS_' . $status) ? constant('PAY_REQUEST_STATUS_' . $status) : $status) . '</td></tr>';
+           . '<td>' . pr_h(payment_request_status_text($r)) . '</td></tr>';
   }
   return $html . '</tbody></table>';
 }
@@ -184,7 +161,7 @@ function pr_result($inv, $methods, $requests, $request, $result, $email) {
            . '<button type="submit" class="btn btn-primary btn-sm text-nowrap">' . PAY_REQUEST_EMAIL_LINK . '</button></form>'
            . '<div id="pay-request-email-status"></div>';
   }
-  $html .= '<p class="text-muted small mb-0">' . PAY_REQUEST_AUTOMATIC . '</p>';
+  $html .= '<p class="text-muted small mb-0" data-pay-request-made>' . PAY_REQUEST_AUTOMATIC . '</p>';
   return $html . pr_request_table($requests, $methods) . '</div>' . pr_footer();
 }
 
@@ -214,7 +191,7 @@ if (!$inv) {
   echo pr_header(null) . '<div class="modal-body"><div class="alert alert-danger mb-0">' . PAY_REQUEST_ERROR_INVOICE . '</div></div>' . pr_footer();
   exit;
 }
-$methods = pr_methods($inv['currencies_code']);
+$methods = payment_request_methods($inv['currencies_code']);
 
 if ($action !== 'create') {
   echo pr_form($inv, $methods, pr_requests($inv['id']));

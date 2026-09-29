@@ -88,9 +88,15 @@ if ($security_level > 1 && JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_R
   $toolbar->icon_list['credit_memo'] = ['show' => true, 'icon' => 'actions/edit-redo.png', 'params' => 'onclick="location.href=\'' . $cm_url . '\'"', 'text' => ORD_CREDIT_MEMO, 'order' => 14];
 }
 // Asking the customer to pay a posted invoice, through any payment method that
-// can make the request; see modules/payment/functions/request_dialog.php.
+// can make the request, and where the latest request stands; see
+// modules/payment/functions/request_dialog.php.
+$pay_request_status = '';
 if (JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $oID && defined('MODULE_PAYMENT_STATUS')) {
   require_once(DIR_FS_MODULES . 'payment/functions/request_dialog.php');
+  $latest = payment_latest_requests([(int)$oID]);
+  if ($latest) {
+    $pay_request_status = '<div class="mb-2">' . payment_request_badge($latest[(int)$oID], payment_request_methods()) . '</div>';
+  }
   if (payment_request_allowed()) {
     $toolbar->icon_list['request_payment'] = ['show' => true, 'icon' => 'actions/mail-send-receive.png',
       'params' => 'onclick="payRequestOpen(' . (int)$oID . ')"', 'text' => PAY_REQUEST_TITLE, 'order' => 16];
@@ -142,6 +148,7 @@ switch(JOURNAL_ID) {
   case 21: $toolbar->add_help('07.02.06'); break;
 }
 echo $toolbar->build_toolbar();
+echo $pay_request_status;
 ?>
 <div class="modal fade" id="override_order" tabindex="-1" aria-labelledby="override_order_title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

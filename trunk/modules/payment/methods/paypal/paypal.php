@@ -60,11 +60,10 @@ class paypal extends payment {
     }
   }
 
-  // J18: no mandatory field validation (capture ID can be blank for pending payments).
+  // The transaction ID is checked on the server, by before_process().
   function javascript_validation() { return false; }
 
-  // J18: show payment link / invoice creation UI.
-  // J20: show refund status message only.
+  // J18: the PayPal transaction ID. J20: the refund's status.
   function selection() {
     global $order;
 
@@ -89,172 +88,26 @@ class paypal extends payment {
       return ['id' => $this->code, 'page' => $this->title, 'fields' => [['title' => '', 'field' => $html]]];
     }
 
-    $cust_email = isset($order) && isset($order->bill_email) ? htmlspecialchars($order->bill_email) : '';
-    $txn_val    = htmlspecialchars($this->field_0);
-
-    $working    = htmlspecialchars(MODULE_PAYMENT_PAYPAL_TEXT_WORKING);
-    $lbl_link   = htmlspecialchars(MODULE_PAYMENT_PAYPAL_TEXT_CREATE_LINK);
-    $lbl_inv    = htmlspecialchars(MODULE_PAYMENT_PAYPAL_TEXT_CREATE_INVOICE);
-    $lbl_send   = htmlspecialchars(MODULE_PAYMENT_PAYPAL_TEXT_SEND_INVOICE);
-    $lbl_copy   = htmlspecialchars(MODULE_PAYMENT_PAYPAL_TEXT_COPY_LINK);
-    $lbl_email  = htmlspecialchars(MODULE_PAYMENT_PAYPAL_TEXT_EMAIL_CUSTOMER);
-    $err_create = addslashes(MODULE_PAYMENT_PAYPAL_ERROR_CREATE_ORDER);
-
-    $html = '<div style="font-size:11px">' . "\n"
-
-      // Transaction ID row
-      . '<div class="row g-1 align-items-center mb-1">'
-      . '<label class="col-5 text-end text-nowrap" style="font-size:11px">' . MODULE_PAYMENT_PAYPAL_TEXT_TRANSACTION_ID . '</label>'
-      . '<div class="col-7">' . html_input_field('paypal_field_0', $txn_val, 'id="paypal_field_0" class="form-control form-control-sm"') . '</div>'
-      . '</div>' . "\n"
-
-      // Customer email for emailing links/invoices
-      . '<div class="row g-1 align-items-center mb-1">'
-      . '<label class="col-5 text-end text-nowrap" style="font-size:11px">' . GEN_EMAIL . '</label>'
-      . '<div class="col-7"><input type="email" id="paypal_cust_email" class="form-control form-control-sm" value="' . $cust_email . '" placeholder="customer@example.com"></div>'
-      . '</div>' . "\n"
-
-      // Payment link
-      . '<div class="row g-1 align-items-center mb-1">'
-      . '<div class="col-5"></div>'
-      . '<div class="col-7">'
-      . '<button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="ppCreateLink()">' . $lbl_link . '</button>'
-      . '<button type="button" class="btn btn-sm btn-outline-secondary d-none" id="paypal_email_link_btn" onclick="ppEmailLink()">' . $lbl_email . '</button>'
-      . '</div>'
-      . '</div>' . "\n"
-      . '<div id="paypal_link_result" class="small text-break mb-1" style="display:none"></div>' . "\n"
-
-      // PayPal invoice
-      . '<div class="row g-1 align-items-center mb-1">'
-      . '<div class="col-5"></div>'
-      . '<div class="col-7">'
-      . '<button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="ppCreateInvoice()">' . $lbl_inv . '</button>'
-      . '<button type="button" class="btn btn-sm btn-outline-secondary d-none" id="paypal_send_inv_btn" onclick="ppSendInvoice()">' . $lbl_send . '</button>'
-      . '</div>'
-      . '</div>' . "\n"
-      . '<div id="paypal_inv_result" class="small text-break mb-1" style="display:none"></div>' . "\n"
-
-      . '</div>' . "\n" // end outer div
-
-      . '<script>' . "\n"
-      . 'var ppCurrentLinkUrl      = "";' . "\n"
-      . 'var ppCurrentLinkDesc     = "";' . "\n"
-      . 'var ppCurrentLinkInvoice  = 0;' . "\n"
-      . 'var ppCurrentInvId        = "";' . "\n"
-      . 'var ppCsrf = (function(){ var m = document.querySelector("meta[name=\'csrf-token\']"); return m ? m.getAttribute("content") : ""; })();' . "\n"
-      . "\n"
-      . 'function ppCollectInvoiceIds() {' . "\n"
-      . '  var ids = [];' . "\n"
-      . '  for (var i = 1; ; i++) {' . "\n"
-      . '    var els = document.getElementsByName("id_"+i);' . "\n"
-      . '    if (!els.length) break;' . "\n"
-      . '    if (els[0].value) ids.push(els[0].value);' . "\n"
-      . '  }' . "\n"
-      . '  return ids;' . "\n"
-      . '}' . "\n"
-      . "\n"
-      . 'function ppCreateLink() {' . "\n"
-      . '  var total  = (document.getElementById("total") || {}).value || "";' . "\n"
-      . '  var ids    = ppCollectInvoiceIds();' . "\n"
-      . '  var email  = (document.getElementById("paypal_cust_email") || {}).value || "";' . "\n"
-      . '  var res    = document.getElementById("paypal_link_result");' . "\n"
-      . '  res.style.display = "block";' . "\n"
-      . '  res.textContent   = ' . json_encode($working) . ';' . "\n"
-      . '  document.getElementById("paypal_email_link_btn").classList.add("d-none");' . "\n"
-      . '  fetch("index.php?module=payment&page=ajax&op=paypal_create_link", {' . "\n"
-      . '    method: "POST",' . "\n"
-      . '    headers: {"Content-Type": "application/x-www-form-urlencoded"},' . "\n"
-      . '    body: "csrf_token=" + encodeURIComponent(ppCsrf)' . "\n"
-      . '        + "&amount=" + encodeURIComponent(total)' . "\n"
-      . '        + "&invoice_ids=" + encodeURIComponent(JSON.stringify(ids))' . "\n"
-      . '        + "&customer_email=" + encodeURIComponent(email)' . "\n"
-      . '  }).then(function(r){return r.json();}).then(function(d) {' . "\n"
-      . '    if (d.success) {' . "\n"
-      . '      ppCurrentLinkUrl     = d.url;' . "\n"
-      . '      ppCurrentLinkDesc    = d.description || "";' . "\n"
-      . '      ppCurrentLinkInvoice = d.invoice_id  || 0;' . "\n"
-      . '      res.innerHTML = ' . json_encode(MODULE_PAYMENT_PAYPAL_TEXT_LINK_CREATED) . ' + "<br>"' . "\n"
-      . '        + "<a href=\\"" + d.url + "\\" target=\\"_blank\\">" + d.url + "</a>"' . "\n"
-      . '        + " <button type=\\"button\\" class=\\"btn btn-xs btn-outline-secondary\\" onclick=\\"ppCopyLink()\\">Copy</button>"' . "\n"
-      . '        + "<br><span class=\\"text-muted\\">' . addslashes(MODULE_PAYMENT_PAYPAL_TEXT_LINK_EXPIRES) . '</span>";' . "\n"
-      . '      document.getElementById("paypal_email_link_btn").classList.remove("d-none");' . "\n"
-      . '    } else {' . "\n"
-      . '      res.textContent = ' . json_encode(rtrim($err_create, ' ') . ': ') . ' + (d.error || "Unknown error");' . "\n"
-      . '    }' . "\n"
-      . '  }).catch(function(e) { res.textContent = "Request failed: " + e; });' . "\n"
-      . '}' . "\n"
-      . "\n"
-      . 'function ppCopyLink() {' . "\n"
-      . '  if (navigator.clipboard && ppCurrentLinkUrl) navigator.clipboard.writeText(ppCurrentLinkUrl);' . "\n"
-      . '}' . "\n"
-      . "\n"
-      . 'function ppEmailLink() {' . "\n"
-      . '  var email = (document.getElementById("paypal_cust_email") || {}).value || "";' . "\n"
-      . '  if (!email || !ppCurrentLinkUrl) return;' . "\n"
-      . '  var res = document.getElementById("paypal_link_result");' . "\n"
-      . '  fetch("index.php?module=payment&page=ajax&op=paypal_email_link", {' . "\n"
-      . '    method: "POST",' . "\n"
-      . '    headers: {"Content-Type": "application/x-www-form-urlencoded"},' . "\n"
-      . '    body: "csrf_token=" + encodeURIComponent(ppCsrf) + "&email=" + encodeURIComponent(email) + "&url=" + encodeURIComponent(ppCurrentLinkUrl) + "&description=" + encodeURIComponent(ppCurrentLinkDesc) + "&invoice_id=" + encodeURIComponent(ppCurrentLinkInvoice)' . "\n"
-      . '  }).then(function(r){return r.json();}).then(function(d) {' . "\n"
-      . '    res.innerHTML += d.success ? " <span class=\\"text-success\\">&#10003; Emailed</span>" : " <span class=\\"text-danger\\">Email failed</span>";' . "\n"
-      . '  });' . "\n"
-      . '}' . "\n"
-      . "\n"
-      . 'function ppCreateInvoice() {' . "\n"
-      . '  var total  = (document.getElementById("total") || {}).value || "";' . "\n"
-      . '  var ids    = ppCollectInvoiceIds();' . "\n"
-      . '  var email  = (document.getElementById("paypal_cust_email") || {}).value || "";' . "\n"
-      . '  var res    = document.getElementById("paypal_inv_result");' . "\n"
-      . '  res.style.display = "block";' . "\n"
-      . '  res.textContent   = ' . json_encode($working) . ';' . "\n"
-      . '  document.getElementById("paypal_send_inv_btn").classList.add("d-none");' . "\n"
-      . '  fetch("index.php?module=payment&page=ajax&op=paypal_create_invoice", {' . "\n"
-      . '    method: "POST",' . "\n"
-      . '    headers: {"Content-Type": "application/x-www-form-urlencoded"},' . "\n"
-      . '    body: "csrf_token=" + encodeURIComponent(ppCsrf)' . "\n"
-      . '        + "&amount=" + encodeURIComponent(total)' . "\n"
-      . '        + "&invoice_ids=" + encodeURIComponent(JSON.stringify(ids))' . "\n"
-      . '        + "&customer_email=" + encodeURIComponent(email)' . "\n"
-      . '  }).then(function(r){return r.json();}).then(function(d) {' . "\n"
-      . '    if (d.success) {' . "\n"
-      . '      ppCurrentInvId = d.invoice_id;' . "\n"
-      . '      var idDisplay = d.invoicer_url' . "\n"
-      . '        ? "<a href=\\"" + d.invoicer_url + "\\" target=\\"_blank\\">" + d.invoice_id + "</a>"' . "\n"
-      . '        : d.invoice_id;' . "\n"
-      . '      res.innerHTML = ' . json_encode(sprintf(MODULE_PAYMENT_PAYPAL_TEXT_INVOICE_CREATED, '%s')) . '.replace("%s", idDisplay);' . "\n"
-      . '      document.getElementById("paypal_send_inv_btn").classList.remove("d-none");' . "\n"
-      . '    } else {' . "\n"
-      . '      res.textContent = ' . json_encode(rtrim(MODULE_PAYMENT_PAYPAL_ERROR_CREATE_INVOICE, ' ') . ': ') . ' + (d.error || "Unknown error");' . "\n"
-      . '    }' . "\n"
-      . '  }).catch(function(e) { res.textContent = "Request failed: " + e; });' . "\n"
-      . '}' . "\n"
-      . "\n"
-      . 'function ppSendInvoice() {' . "\n"
-      . '  if (!ppCurrentInvId) return;' . "\n"
-      . '  var res = document.getElementById("paypal_inv_result");' . "\n"
-      . '  fetch("index.php?module=payment&page=ajax&op=paypal_send_invoice", {' . "\n"
-      . '    method: "POST",' . "\n"
-      . '    headers: {"Content-Type": "application/x-www-form-urlencoded"},' . "\n"
-      . '    body: "csrf_token=" + encodeURIComponent(ppCsrf) + "&invoice_id=" + encodeURIComponent(ppCurrentInvId)' . "\n"
-      . '  }).then(function(r){return r.json();}).then(function(d) {' . "\n"
-      . '    res.textContent += d.success ? " — ' . addslashes(MODULE_PAYMENT_PAYPAL_TEXT_INVOICE_SENT) . '" : " — ' . addslashes(MODULE_PAYMENT_PAYPAL_ERROR_SEND_INVOICE) . '" + (d.error || "");' . "\n"
-      . '    document.getElementById("paypal_send_inv_btn").classList.add("d-none");' . "\n"
-      . '  });' . "\n"
-      . '}' . "\n"
-      . '</script>' . "\n";
-
+    // J18: the payment is recorded by its PayPal transaction ID, which
+    // before_process() checks with PayPal. Asking a customer to pay is done from
+    // the invoice (Request payment), where there is nothing to save by mistake.
+    $html = '<div class="row g-1 align-items-center mb-1">'
+      . '<label class="col-5 text-end text-nowrap small" for="paypal_field_0">' . MODULE_PAYMENT_PAYPAL_TEXT_TRANSACTION_ID . '</label>'
+      . '<div class="col-7">' . html_input_field('paypal_field_0', htmlspecialchars($this->field_0), 'id="paypal_field_0" class="form-control form-control-sm"') . '</div>'
+      . '</div>' . "\n";
     return ['id' => $this->code, 'page' => $this->title, 'fields' => [['title' => '', 'field' => $html]]];
   }
 
-  // Called inside the DB transaction after the journal entry is written.
-  // If field_0 is empty, save is allowed (pending payment). If set, verify with PayPal.
+  // Called inside the DB transaction after the journal entry is written. A
+  // PayPal receipt records money PayPal has: its transaction ID is required and
+  // must be a completed capture. A payment still to come is asked for from the
+  // invoice, and recorded when PayPal reports it.
   function before_process() {
     global $messageStack;
     $capture_id = trim($this->field_0);
     if ($capture_id === '') {
-      $this->payment_fields = '';
-      return false; // pending — allow save
+      $messageStack->add(MODULE_PAYMENT_PAYPAL_ERROR_NO_TXN, 'error');
+      return true;
     }
     $token = $this->get_access_token();
     if (!$token) {
@@ -447,11 +300,9 @@ class paypal extends payment {
   /**
    * The line items for a PayPal invoice, built from a FreeBooks document.
    *
-   * Lifted out of paypal_create_invoice.php so that it can be CHECKED. It was
-   * inline, which meant the only way to see what it produced was to create a
-   * real invoice on PayPal - so "is freight converted?" could not be answered
-   * without moving money, and a wrong figure was found by a person looking at
-   * the result rather than by anything here (issue #63).
+   * A function of its own so that what it produces can be checked without
+   * creating a real invoice on PayPal: whether freight is converted, say, can be
+   * answered without moving money (issue #63).
    *
    * $rate is the document's exchange rate and is not optional detail: every
    * journal amount is stored in the HOME currency, while $amount arrives from

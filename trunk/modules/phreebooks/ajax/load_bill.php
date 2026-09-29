@@ -58,6 +58,21 @@ $display_value = $bID && !empty($bill->fields['currencies_value']) ? $bill->fiel
 $invoices  = fill_paid_invoice_array($bID, $cID, $type, $display_code, $display_value);
 $item_list = $invoices['invoices'];
 
+// An invoice whose payment has been asked for through a payment method is
+// recorded when that method reports the payment. Its note tells whoever is about
+// to record a payment for it here.
+if (defined('MODULE_PAYMENT_STATUS') && $item_list) {
+  require_once(DIR_FS_MODULES . 'payment/functions/request_dialog.php');
+  $open = payment_latest_requests(array_column($item_list, 'id'));
+  if ($open) {
+    $pay_methods = payment_request_methods();
+    foreach ($item_list as $k => $item) {
+      $note = payment_request_open_note($open[(int)$item['id']] ?? null, $pay_methods);
+      if ($note !== '') $item_list[$k]['pay_request'] = $note;
+    }
+  }
+}
+
 // some adjustments based on what we are doing
 $bill->fields['payment_fields'] = $invoices['payment_fields'];
 $bill->fields['post_date']      = $bill->fields['post_date'] ?: date('Y-m-d'); // stays ISO for <input type="date">

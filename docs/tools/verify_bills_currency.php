@@ -158,12 +158,16 @@ ok('paypal invoicing accepts a currency from its caller',
 ok('and reaches for the company\'s only when given none',
    $ppSource !== '' && str_contains($ppSource, "if (\$currency === null) \$currency = defined('DEFAULT_CURRENCY')"),
    'the fallback is not guarded, so a currency passed in would be overwritten');
-foreach (['paypal_create_link', 'paypal_create_invoice'] as $endpoint) {
-    $src = (string)@file_get_contents(DIR_FS_MODULES . 'payment/ajax/' . $endpoint . '.php');
-    ok("$endpoint reads the currency off the document",
-       $src !== '' && str_contains($src, 'currencies_code'),
-       'it does not look at journal_main.currencies_code at all');
-}
+// A request for payment asks in the invoice's own currency, read from
+// journal_main and never from the post, so a forged request cannot name one the
+// invoice was never in.
+$rqSource = (string)@file_get_contents(DIR_FS_MODULES . 'payment/ajax/request_payment.php');
+ok('Request payment reads the currency off the invoice',
+   $rqSource !== '' && str_contains($rqSource, 'currencies_code, currencies_value FROM " . TABLE_JOURNAL_MAIN'),
+   'it does not read journal_main.currencies_code');
+ok('and asks in that currency, not a posted one',
+   $rqSource !== '' && str_contains($rqSource, "create_request(\$type, \$inv['id'], \$amount, \$inv['currencies_code']"),
+   'create_request() is not given the invoice\'s own currency');
 // And what the invoice would actually SAY, line by line, against a real
 // document. Not a shape check: paypal::build_invoice_items() is called for real
 // and every line is compared with the journal row it came from, times the rate.

@@ -220,6 +220,16 @@ function fillBill(xml) {
 	insertValue('desc_'  + jIndex, xmlText(item, "description"));
 	insertValue('dscnt_' + jIndex, xmlText(item, "discount"));
 	insertValue('total_' + jIndex, xmlText(item, "amount_paid"));
+	// A payment already asked for through a payment method is recorded when that
+	// method reports it; the note says so to whoever is about to record it here.
+	var payRequest = xmlText(item, "pay_request");
+	if (payRequest) {
+	  var note = document.createElement('div');
+	  note.className   = 'small text-info-emphasis text-start mt-1';
+	  note.textContent = payRequest;
+	  document.getElementById('inv_' + jIndex).parentNode.appendChild(note);
+	  document.getElementById('item_table').rows[rowCnt-1].classList.add('table-info');
+	}
 	// Two codes, and they are not the same question. `display_code` is what the
 	// figures above are IN; `currencies_code` is what the document was raised in.
 	// On anything posted since this page learnt about currencies they agree - the

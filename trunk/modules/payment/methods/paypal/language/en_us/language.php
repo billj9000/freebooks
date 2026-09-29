@@ -29,31 +29,20 @@ define('MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET_DESC',     'Shared secret required 
 
 // Requests for payment, as the Request payment dialog lists them
 define('MODULE_PAYMENT_PAYPAL_REQUEST_LINK',            'PayPal payment link');
-define('MODULE_PAYMENT_PAYPAL_REQUEST_INVOICE',         'PayPal invoice, sent by PayPal');
+define('MODULE_PAYMENT_PAYPAL_REQUEST_INVOICE',         'PayPal invoice');
 define('MODULE_PAYMENT_PAYPAL_PART_PAYMENT',            'Part payment for %s');
 define('MODULE_PAYMENT_PAYPAL_ERROR_NO_INVOICE',        'The invoice was not found.');
 define('MODULE_PAYMENT_PAYPAL_ERROR_BAD_LINK',          'This request has no PayPal link to send.');
 
 // Bills UI
 define('MODULE_PAYMENT_PAYPAL_TEXT_TRANSACTION_ID',     'PayPal Transaction ID');
-define('MODULE_PAYMENT_PAYPAL_TEXT_CREATE_LINK',        'Create Payment Link');
-define('MODULE_PAYMENT_PAYPAL_TEXT_CREATE_INVOICE',     'Create PayPal Invoice');
-define('MODULE_PAYMENT_PAYPAL_TEXT_SEND_INVOICE',       'Send Invoice');
-define('MODULE_PAYMENT_PAYPAL_TEXT_COPY_LINK',          'Copy');
-define('MODULE_PAYMENT_PAYPAL_TEXT_EMAIL_CUSTOMER',     'Email to Customer');
-define('MODULE_PAYMENT_PAYPAL_TEXT_LINK_CREATED',       'Payment link created. Share this URL with your customer:');
-define('MODULE_PAYMENT_PAYPAL_TEXT_LINK_EXPIRES',       'This link expires in 3 hours.');
-define('MODULE_PAYMENT_PAYPAL_TEXT_INVOICE_CREATED',    'PayPal invoice created (ID: %s).');
 define('MODULE_PAYMENT_PAYPAL_TEXT_INVOICE_SENT',       'PayPal invoice sent to customer.');
-define('MODULE_PAYMENT_PAYPAL_TEXT_WORKING',            'Working&hellip;');
 define('MODULE_PAYMENT_PAYPAL_TEXT_PENDING',            'Pending PayPal payment');
 
 // Errors
 define('MODULE_PAYMENT_PAYPAL_ERROR_NO_CREDENTIALS',    'PayPal Client ID and Secret are required.');
 define('MODULE_PAYMENT_PAYPAL_ERROR_TOKEN',             'Could not obtain PayPal access token. Check your Client ID and Secret.');
-define('MODULE_PAYMENT_PAYPAL_ERROR_CREATE_ORDER',      'PayPal order creation failed: ');
-define('MODULE_PAYMENT_PAYPAL_ERROR_CREATE_INVOICE',    'PayPal invoice creation failed: ');
-define('MODULE_PAYMENT_PAYPAL_ERROR_SEND_INVOICE',      'PayPal invoice send failed: ');
+define('MODULE_PAYMENT_PAYPAL_ERROR_NO_TXN',        'Enter the PayPal Transaction ID of the payment. To ask the customer to pay, use Request payment on the invoice.');
 define('MODULE_PAYMENT_PAYPAL_ERROR_VERIFY',            'Could not verify PayPal capture. Check the Transaction ID.');
 define('MODULE_PAYMENT_PAYPAL_ERROR_REFUND',            'PayPal refund failed: ');
 

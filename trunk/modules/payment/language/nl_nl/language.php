@@ -61,6 +61,7 @@ define('PAY_REQUEST_ERROR_EMAIL',    'Enter a valid email address.');
 define('PAY_REQUEST_ERROR_METHOD',   'Choose how to ask for payment.');
 define('PAY_REQUEST_ERROR_INVOICE',  'Only a posted customer invoice can be paid this way.');
 define('PAY_REQUEST_FAILED',         'The request could not be made: %s');
+define('PAY_REQUEST_OPEN_NOTE',      'Payment requested by %s on %s. The receipt is recorded automatically when it is paid.');
 define('PAY_REQUEST_STATUS_requested', 'Requested');
 define('PAY_REQUEST_STATUS_paid',      'Paid');
 define('PAY_REQUEST_STATUS_expired',   'Expired');
