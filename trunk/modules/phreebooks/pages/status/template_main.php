@@ -17,6 +17,13 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/pages/status/template_main.php
 //
+// Invoices can be sent a request for payment; see
+// modules/payment/functions/request_dialog.php.
+$pay_request = false;
+if (JOURNAL_ID == 12 && defined('MODULE_PAYMENT_STATUS')) {
+  require_once(DIR_FS_MODULES . 'payment/functions/request_dialog.php');
+  $pay_request = payment_request_allowed();
+}
 echo html_form('status', FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'list'))) . chr(10);
 echo html_hidden_field('action', '') . chr(10);
 echo html_hidden_field('rowSeq', '') . chr(10);
@@ -185,6 +192,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
           }
         }
         if (!$closed) echo html_icon('apps/accessories-calculator.png', TEXT_PAYMENT, 'small', 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=bills&amp;type=c&amp;jID=18&amp;oID=' . $oID . '&amp;action=pmt', 'SSL') . '\';"') . chr(10);
+        if (!$closed && $pay_request) echo html_icon('actions/mail-send-receive.png', PAY_REQUEST_TITLE, 'small', 'onclick="payRequestOpen(' . (int)$oID . ')"') . chr(10);
         echo html_icon('actions/document-print.png', TEXT_PRINT, 'small', 'onclick="printOrder('. $oID . ')"') . chr(10);
         break;
       case 13:
@@ -217,3 +225,4 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
 </form>
+<?php if ($pay_request) echo payment_request_dialog(); ?>

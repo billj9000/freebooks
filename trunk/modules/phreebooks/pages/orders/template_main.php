@@ -87,6 +87,15 @@ if ($security_level > 1 && JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_R
   $cm_url = html_href_link(FILENAME_DEFAULT, 'module=phreebooks&amp;page=orders&amp;jID=13&amp;oID=' . (int)$oID . '&amp;action=prc_so', 'SSL');
   $toolbar->icon_list['credit_memo'] = ['show' => true, 'icon' => 'actions/edit-redo.png', 'params' => 'onclick="location.href=\'' . $cm_url . '\'"', 'text' => ORD_CREDIT_MEMO, 'order' => 14];
 }
+// Asking the customer to pay a posted invoice, through any payment method that
+// can make the request; see modules/payment/functions/request_dialog.php.
+if (JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $oID && defined('MODULE_PAYMENT_STATUS')) {
+  require_once(DIR_FS_MODULES . 'payment/functions/request_dialog.php');
+  if (payment_request_allowed()) {
+    $toolbar->icon_list['request_payment'] = ['show' => true, 'icon' => 'actions/mail-send-receive.png',
+      'params' => 'onclick="payRequestOpen(' . (int)$oID . ')"', 'text' => PAY_REQUEST_TITLE, 'order' => 16];
+  }
+}
 if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12 || JOURNAL_ID == 13)) {
   $toolbar->add_icon('payment', 'onclick="submitToDo(\'payment\')"', 15);
 }
@@ -580,6 +589,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
 </div>
 <?php echo $hidden_fields; ?>
 </form>
+<?php if (function_exists('payment_request_dialog')) echo payment_request_dialog(); ?>
 <?php if (defined('MODULE_SHIPPING_STATUS')): ?>
 <div class="modal fade pkg-modal" id="shippingEstimatorModal" tabindex="-1"
      aria-labelledby="shippingEstimatorLabel" aria-hidden="true">

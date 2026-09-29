@@ -27,6 +27,13 @@ define('MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL_DESC',       'Email address to notify
 define('MODULE_PAYMENT_PAYPAL_WEBHOOK_ID_DESC',         'Webhook ID from the PayPal developer dashboard (required for automatic receipt creation). Register the notification URL as paypal_webhook.php?company=NAME, where NAME is this company; it may be left out only when the installation has a single company');
 define('MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET_DESC',     'Shared secret required on the webhook URL as whsecret=... Append it to the notification URL you register with PayPal, after the company: paypal_webhook.php?company=NAME&whsecret=... When set it is required on every webhook call (Sandbox and Live) before processing — set this to close the Sandbox-mode signature-verification bypass.');
 
+// Requests for payment, as the Request payment dialog lists them
+define('MODULE_PAYMENT_PAYPAL_REQUEST_LINK',            'PayPal payment link');
+define('MODULE_PAYMENT_PAYPAL_REQUEST_INVOICE',         'PayPal invoice, sent by PayPal');
+define('MODULE_PAYMENT_PAYPAL_PART_PAYMENT',            'Part payment for %s');
+define('MODULE_PAYMENT_PAYPAL_ERROR_NO_INVOICE',        'The invoice was not found.');
+define('MODULE_PAYMENT_PAYPAL_ERROR_BAD_LINK',          'This request has no PayPal link to send.');
+
 // Bills UI
 define('MODULE_PAYMENT_PAYPAL_TEXT_TRANSACTION_ID',     'PayPal Transaction ID');
 define('MODULE_PAYMENT_PAYPAL_TEXT_CREATE_LINK',        'Create Payment Link');

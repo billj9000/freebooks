@@ -45,6 +45,9 @@ class payment {
    * currency to take (square_terminal).
    */
   public $multi_currency   = false;
+  // The kinds of request for payment this method can make, as type => label;
+  // see create_request(). Empty for a method that cannot ask for payment.
+  public $request_types    = array();
   public $pos_gl_acct;
   public $sort_order;
   public $key             = array();
@@ -160,6 +163,48 @@ class payment {
   // Returns URL string, or null if not supported.
   function get_transaction_url($transaction_id) {
     return null;
+  }
+
+  // ─── Requests for payment ─────────────────────────────────────────────────
+  // A method that can ask a customer to pay an invoice - by a payment link, or
+  // an invoice its own service sends - lists the kinds of request it makes as
+  // type => label, and implements create_request() and, for a request with a
+  // link, email_request(). The Request payment dialog offers every installed
+  // method whose list is not empty.
+
+  // Ask for $amount in $currency against the FreeBooks invoice $invoice_id,
+  // record the request with record_request(), and return
+  //   ['external_id' => the method's reference, 'url' => a link or null,
+  //    'sent' => true when the method's service has emailed the customer]
+  // or false, with the reason in get_last_error().
+  function create_request($type, $invoice_id, $amount, $currency, $email) {
+    return false;
+  }
+
+  // Email the link of the recorded request $request (a payment_requests row)
+  // to $email. Returns true when the email was sent.
+  function email_request($request, $email) {
+    return false;
+  }
+
+  // What the invoice $invoice_id still owes, in the home currency: what was
+  // billed, less every payment against it. It is the ledger's own measure when
+  // it decides whether an invoice is paid.
+  static function invoice_balance($invoice_id) {
+    global $db;
+    $billed = $db->Execute("SELECT SUM(credit_amount) - SUM(debit_amount) AS amt FROM " . TABLE_JOURNAL_ITEM
+      . " WHERE ref_id = " . (int)$invoice_id . " AND gl_type <> 'ttl'");
+    $paid   = $db->Execute("SELECT SUM(credit_amount) - SUM(debit_amount) AS amt FROM " . TABLE_JOURNAL_ITEM
+      . " WHERE so_po_item_ref_id = " . (int)$invoice_id . " AND gl_type IN ('pmt','chk')");
+    return round((float)$billed->fields['amt'] - (float)$paid->fields['amt'], 8);
+  }
+
+  // A request's status as people see it. A request still open after its
+  // expires_at has passed can no longer be paid, so it shows as expired.
+  static function request_display_status($request) {
+    if ($request['status'] === 'requested' && !empty($request['expires_at'])
+        && strtotime($request['expires_at']) < time()) return 'expired';
+    return $request['status'];
   }
 
   // Record a request for payment this method has just made: a payment link or

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -40,7 +41,7 @@ class linkpoint_api extends payment {
 	$this->code_debug  = (defined('MODULE_PAYMENT_LINKPOINT_API_CODE_DEBUG') && MODULE_PAYMENT_LINKPOINT_API_CODE_DEBUG == 'debug') ? true : false;
 	// set error messages if misconfigured
 	if (defined('MODULE_PAYMENT_LINKPOINT_API_STATUS') && MODULE_PAYMENT_LINKPOINT_API_STATUS) {
-		$pemFileDir = DIR_FS_WORKING . '/payment/modules/linkpoint_api/' . MODULE_PAYMENT_LINKPOINT_API_LOGIN . '.pem';
+		$pemFileDir = DIR_FS_MODULES . 'payment/methods/linkpoint_api/' . MODULE_PAYMENT_LINKPOINT_API_LOGIN . '.pem';
 		if (MODULE_PAYMENT_LINKPOINT_API_LOGIN == 'EnterYourStoreNumber') {
 			$this->title .= MODULE_PAYMENT_LINKPOINT_API_TEXT_NOT_CONFIGURED;
 		} elseif (MODULE_PAYMENT_LINKPOINT_API_LOGIN != '' && !file_exists($pemFileDir)) {

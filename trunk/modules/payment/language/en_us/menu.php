@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,4 +18,6 @@
 //  Path: /modules/payment/language/en_us/menu.php
 //
 define('MENU_HEADING_PHREEPAY', 'Payment Module');
+// The Request payment action on invoices, shown by the phreebooks pages.
+define('PAY_REQUEST_TITLE', 'Request payment');
 ?>

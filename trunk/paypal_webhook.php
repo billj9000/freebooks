@@ -294,20 +294,13 @@ if ($lock->EOF || $lock->fields['status'] === 'paid') {
     exit;
 }
 
-// A receipt never takes more than the invoice still owes. The Customer Receipt
-// page can save a PayPal receipt with no transaction ID while the customer has
-// yet to pay, so the same money may already be in the books, in whole or in
-// part. The balance is measured the way the ledger measures it when deciding
-// whether the invoice is paid: what was billed, less every payment against it.
-// What PayPal took beyond that is left unposted and reported, because a
-// payment recorded twice would hide in the ledger where one missing from it
-// shows at bank reconciliation.
+// A receipt never takes more than the invoice still owes. Another receipt may
+// already hold some or all of the same money - one recorded by hand, say - so
+// payment::invoice_balance() measures what is left. What PayPal took beyond
+// that is left unposted and reported, because a payment recorded twice would
+// hide in the ledger where one missing from it shows at bank reconciliation.
 $half_unit = 0.5 / pow(10, (int)$currencies->currencies[DEFAULT_CURRENCY]['decimal_places']);
-$billed = $db->Execute("SELECT SUM(i.credit_amount) - SUM(i.debit_amount) AS amt FROM " . TABLE_JOURNAL_ITEM . " i"
-    . " WHERE i.ref_id = " . $fb_invoice_id . " AND i.gl_type <> 'ttl'");
-$paid   = $db->Execute("SELECT SUM(i.credit_amount) - SUM(i.debit_amount) AS amt FROM " . TABLE_JOURNAL_ITEM . " i"
-    . " WHERE i.so_po_item_ref_id = " . $fb_invoice_id . " AND i.gl_type IN ('pmt','chk')");
-$outstanding = round((float)$billed->fields['amt'] - (float)$paid->fields['amt'], 8);
+$outstanding = payment::invoice_balance($fb_invoice_id);
 $post_amount = min($home_amount, max(0.0, $outstanding));
 if ($post_amount < $half_unit) $post_amount = 0.0;
 $unposted    = ($home_amount - $post_amount >= $half_unit) ? round($home_amount - $post_amount, 8) : 0.0;

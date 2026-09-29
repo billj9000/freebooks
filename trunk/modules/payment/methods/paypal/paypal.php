@@ -30,6 +30,8 @@ class paypal extends payment {
   public $description = MODULE_PAYMENT_PAYPAL_TEXT_DESCRIPTION;
   public $sort_order  = 5;
   private $last_error = '';
+  // The PayPal order id of the link create_payment_link() last made.
+  public $last_order_id = '';
   public function get_last_error() { return $this->last_error; }
 
   public function __construct() {
@@ -42,6 +44,10 @@ class paypal extends payment {
     $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL',  'default' => '', 'text' => MODULE_PAYMENT_PAYPAL_NOTIFY_EMAIL_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_WEBHOOK_ID',    'default' => '', 'text' => MODULE_PAYMENT_PAYPAL_WEBHOOK_ID_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET','default' => '', 'text' => MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET_DESC];
+    $this->request_types = [
+      'link'    => MODULE_PAYMENT_PAYPAL_REQUEST_LINK,
+      'invoice' => MODULE_PAYMENT_PAYPAL_REQUEST_INVOICE,
+    ];
   }
 
   function configure($key) {
@@ -312,6 +318,7 @@ class paypal extends payment {
     $data = $this->paypal_request('v2/checkout/orders', $payload);
     if (!$data || !isset($data['id'])) return false;
     $paypal_order_id = $data['id'];
+    $this->last_order_id = $paypal_order_id;
     $approve_url = '';
     foreach (($data['links'] ?? []) as $link) {
       if ($link['rel'] === 'payer-action' || $link['rel'] === 'approve') { $approve_url = $link['href']; break; }
@@ -322,6 +329,119 @@ class paypal extends payment {
     $this->record_request('link', $paypal_order_id, $fb_invoice_id, $amount, $currency,
                           $approve_url, date('Y-m-d H:i:s', time() + 3 * 3600));
     return $approve_url;
+  }
+
+  // Ask the customer to pay $amount of the invoice $invoice_id, by a PayPal
+  // payment link or by an invoice PayPal emails them. See payment::create_request().
+  function create_request($type, $invoice_id, $amount, $currency, $email) {
+    global $db;
+    $inv = $db->Execute("SELECT purchase_invoice_id, bill_primary_name, total_amount, currencies_value FROM " . TABLE_JOURNAL_MAIN
+      . " WHERE id = " . (int)$invoice_id . " AND journal_id = 12");
+    if ($inv->EOF) {
+      $this->last_error = MODULE_PAYMENT_PAYPAL_ERROR_NO_INVOICE;
+      return false;
+    }
+    $description = 'Invoice ' . $inv->fields['purchase_invoice_id'];
+    switch ($type) {
+      case 'link':
+        // The return page takes the payment once the customer approves it, so
+        // it is told whose order it is.
+        $return_url = DIR_WS_FULL_PATH . 'paypal_return.php?invoice_id=' . (int)$invoice_id
+                    . '&company=' . rawurlencode($_SESSION['company']);
+        $url = $this->create_payment_link($invoice_id, $amount, $currency, $description,
+                                          $return_url, DIR_WS_FULL_PATH . 'paypal_cancel.php');
+        if (!$url) return false;
+        return ['external_id' => $this->last_order_id, 'url' => $url, 'sent' => false];
+
+      case 'invoice':
+        // Items are listed only when the whole invoice is asked for. Any other
+        // amount - part of it, or what is left after an earlier payment - is
+        // one line, since items adding up to more than is asked would bill the
+        // customer for all of them.
+        $rate  = (float)$inv->fields['currencies_value'] ?: 1.0;
+        $whole = abs(round((float)$amount, 2) - round((float)$inv->fields['total_amount'] * $rate, 2)) < 0.005;
+        if (!$whole) $description = sprintf(MODULE_PAYMENT_PAYPAL_PART_PAYMENT, $description);
+        $built = $this->build_invoice_items($whole ? $invoice_id : 0, $currency, $rate, $amount, $description);
+        $created = $this->create_paypal_invoice($invoice_id, ['name' => $inv->fields['bill_primary_name'], 'email' => $email],
+                                                $built['items'], false, $built['discount'], $currency);
+        if (!$created) return false;
+        $sent = $this->paypal_request('v2/invoicing/invoices/' . rawurlencode($created['id']) . '/send',
+                                      ['send_to_invoicer' => true, 'send_to_recipient' => true]);
+        if ($sent === false) {
+          // PayPal holds it as a draft the customer never saw; it cannot be paid.
+          $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'failed'"
+            . " WHERE method = 'paypal' AND external_id = '" . db_input($created['id']) . "'");
+          return false;
+        }
+        return ['external_id' => $created['id'], 'url' => $created['recipient_url'] ?: null, 'sent' => true];
+    }
+    return false;
+  }
+
+  // Email the customer a payment link, with a copy of the invoice attached when
+  // one can be printed. See payment::email_request().
+  function email_request($request, $email) {
+    global $db;
+    $url  = (string)($request['url'] ?? '');
+    $host = strtolower((string)parse_url($url, PHP_URL_HOST));
+    if ($request['request_type'] !== 'link' || parse_url($url, PHP_URL_SCHEME) !== 'https'
+        || !in_array($host, ['www.paypal.com', 'paypal.com', 'www.sandbox.paypal.com', 'sandbox.paypal.com'], true)) {
+      $this->last_error = MODULE_PAYMENT_PAYPAL_ERROR_BAD_LINK;
+      return false;
+    }
+    $inv = $db->Execute("SELECT purchase_invoice_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$request['ref_id']);
+    $description = $inv->EOF ? '' : 'Invoice ' . $inv->fields['purchase_invoice_id'];
+
+    $attachments = [];
+    $pdf_path    = null;
+    $pdf = $this->invoice_pdf((int)$request['ref_id']);
+    if ($pdf) {
+      $pdf_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/invoice_' . (int)$request['ref_id'] . '_' . time() . '.pdf';
+      if (@file_put_contents($pdf_path, $pdf) !== false) $attachments['file'] = $pdf_path;
+      else $pdf_path = null;
+    }
+
+    $from_name    = defined('STORE_NAME') ? STORE_NAME : 'FreeBooks';
+    $from_address = defined('EMAIL_FROM') ? EMAIL_FROM : '';
+    $subject      = sprintf(MODULE_PAYMENT_PAYPAL_EMAIL_SUBJECT, $from_name) . ($description ? ' — ' . $description : '');
+    $safe_url     = htmlspecialchars($url, ENT_QUOTES);
+    // validate_send_mail() sends this as HTML when EMAIL_USE_HTML is on, and
+    // strips the tags for plain-text delivery.
+    $body = '<html><body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;margin:0;padding:20px">'
+          . '<p>' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_INTRO)
+          .   ($description ? ' <strong>' . htmlspecialchars($description, ENT_QUOTES) . '</strong>' : '') . '</p>'
+          . '<p style="text-align:center;margin:28px 0">'
+          .   '<a href="' . $safe_url . '" style="background:#003087;color:#ffffff;padding:14px 32px;'
+          .   'border-radius:6px;text-decoration:none;font-size:16px;font-weight:bold;display:inline-block">'
+          .   htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_BTN) . '</a>'
+          . '</p>'
+          . '<p style="font-size:12px;color:#888;font-style:italic">' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_EXPIRES) . '</p>'
+          . '<p style="font-size:12px;color:#555">' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_ALT_LINK) . '<br>'
+          .   '<a href="' . $safe_url . '" style="color:#003087">' . $safe_url . '</a></p>'
+          . '<p>' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_CONTACT) . '</p>'
+          . '<p>Thank you,<br>' . htmlspecialchars($from_name, ENT_QUOTES) . '</p>'
+          . '</body></html>';
+    $result = validate_send_mail('', $email, $subject, $body, $from_name, $from_address, [], $attachments);
+    if ($pdf_path) @unlink($pdf_path);
+    return $result !== false;
+  }
+
+  // The printed invoice, from whichever form is filed under 'cust:inv', or null.
+  // Best effort: an email goes without it rather than not at all.
+  private function invoice_pdf($invoice_id) {
+    global $db;
+    try {
+      if (!defined('MODULE_FORMS_STATUS') || !defined('TABLE_PHREEFORM')) return null;
+      $r = $db->Execute("SELECT id FROM " . TABLE_PHREEFORM
+        . " WHERE doc_group = 'cust:inv' AND (doc_ext = 'frm' OR doc_ext = 'rpt') ORDER BY doc_title LIMIT 1");
+      if ($r->EOF) return null;
+      require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+      $rendered = forms_render_to_string((int)$r->fields['id'], [$invoice_id]);
+      return !empty($rendered['pdf']) ? $rendered['pdf'] : null;
+    } catch (\Throwable $e) {
+      error_log('paypal: the invoice PDF for ' . $invoice_id . ' could not be made: ' . $e->getMessage());
+      return null;
+    }
   }
 
   /**
