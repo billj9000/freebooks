@@ -924,7 +924,7 @@ class journal {
 		'qty'        => $item['qty'],
 		'remaining'  => $item['qty'],
 		'unit_cost'  => $item['price'],
-		'avg_cost'   => $item['avg_cost'],
+		'avg_cost'   => $item['avg_cost'] ?? 0, // set only for a purchase of an average-cost item; the column is NOT NULL, 0 when unused
 	  	'post_date'  => $this->post_date,
 	  );
 	  if ($defaults['serialize']) { // check for duplicate serial number

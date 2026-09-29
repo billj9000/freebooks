@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -125,10 +126,12 @@ switch ($_REQUEST['action']) {
 	    'receive_details'	  => serialize($receive_details),
 	  	'close_notes'         => $close_notes,
 	    'close_details'	      => serialize($close_details),
-	    'creation_date'       => $creation_date,
-	    'invoice_date'        => $invoice_date,
-	    'closed_date'         => $closed_date,
-	    'receive_date'        => $receive_date,
+	    // Every date here is nullable, and a field left blank arrives as '', which
+	    // is not a date: a strict server refuses the whole save.
+	    'creation_date'       => $creation_date ?: 'null',
+	    'invoice_date'        => $invoice_date  ?: 'null',
+	    'closed_date'         => $closed_date   ?: 'null',
+	    'receive_date'        => $receive_date  ?: 'null',
 	    'attachments'         => !empty($attachments) ? serialize($attachments) : '',
 	  );
 	  if ($id) {

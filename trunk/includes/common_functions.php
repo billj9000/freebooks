@@ -1074,6 +1074,16 @@ function gen_db_date($raw_date = '', $separator = '/') {
       }
       if (!db_value_is_blank($value)) continue;
       if (in_array($info['data_type'], $stringy)) continue;
+      // A PHP null handed to a column that allows NULL is written as NULL, always,
+      // not only when coercing. It is what a row read back from the database
+      // carries for a NULL, so a read-modify-write (a journal re-post is one)
+      // would otherwise turn its own stored NULL into '', which a strict server
+      // refuses. Not an auto_increment column: omitting that is how an id is
+      // asked for, and the rule below does it.
+      if ($value === null && $info['is_nullable'] == 'YES' && strpos($info['extra'], 'auto_increment') === false) {
+        $data[$column] = 'null';
+        continue;
+      }
       // An enum or a set may legitimately declare '' as one of its values. Only
       // the ones that do not are a problem.
       if (in_array($info['data_type'], array('enum','set')) && db_enum_allows_blank($info['column_type'])) continue;
@@ -2038,9 +2048,12 @@ function validate_ajax_user($token = 0) {
 // 		if(db_table_exists(TABLE_PHREEMAIL)) db_perform(TABLE_PHREEMAIL, $sql_data_array, 'insert');
   		// save in crm_notes
 		$temp = $db->Execute("select account_id from " . TABLE_USERS . " where admin_email = '" . $from_email_address . "'");
-		$sql_array['contact_id'] = $ref_id;
+		// Both columns are NOT NULL ints. A recipient not in the address book has
+		// no contact, and a sender address no user owns (the company's own, or a
+		// webhook with nobody logged in) falls back to whoever is signed in, else 0.
+		$sql_array['contact_id'] = (int)$ref_id;
 		$sql_array['log_date']   = $sql_data_array['DateE'];
-		$sql_array['entered_by'] = $temp->fields['account_id'];
+		$sql_array['entered_by'] = (int)($temp->fields['account_id'] ?? 0) ?: (int)($_SESSION['account_id'] ?? 0);
 		$sql_array['action']     = 'mail_out';
 		$sql_array['notes']      = $email_subject;
 		db_perform(TABLE_CONTACTS_LOG, $sql_array, 'insert');

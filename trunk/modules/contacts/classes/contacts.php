@@ -251,7 +251,10 @@ class contacts {
     $sql_data_array['price_sheet']     = $this->price_sheet;
     $sql_data_array['currency_code']   = $this->currency_code ?? '';
     $sql_data_array['export_profile_id'] = ($this->type == 'v') ? (int)($this->export_profile_id ?? 0) : 0;
-    $sql_data_array['tax_id']          = $this->tax_id;
+    // Not every contact type's form has the tax field. Without it the column is
+    // left out: an int cannot take '', a new contact gets the column's default
+    // (the product's own rate) and an edit keeps what is stored.
+    if (is_numeric($this->tax_id ?? null)) $sql_data_array['tax_id'] = (int)$this->tax_id;
     $sql_data_array['last_update']     = 'now()';
     if ($this->id == '') { //create record
         $sql_data_array['first_date'] = 'now()';

@@ -34,7 +34,10 @@ switch ($_REQUEST['action']) {
   	$id             = (int)$_POST['id'];
 	$sheet_name     = db_prepare_input($_POST['sheet_name']);
 	$revision       = db_prepare_input($_POST['revision']);
-	$effective_date = gen_db_date($_POST['effective_date']);
+	// A blank date means effective now. Not NULL: the price-sheet readers (Zen
+	// Cart, bulk inventory, Amazon) select `today >= effective_date`, which a NULL
+	// never satisfies, so the sheet would silently apply nowhere.
+	$effective_date = gen_db_date($_POST['effective_date']) ?: date('Y-m-d');
 	$default_sheet  = isset($_POST['default_sheet']) ? '1' : '0';
 	$inactive       = isset($_POST['inactive']) ? '1' : '0';
 	$encoded_prices = array();
@@ -69,8 +72,9 @@ switch ($_REQUEST['action']) {
 	  'type' 			=> $type, 
 	  'inactive' 		=> $inactive, 
 	  // price_sheets.revision is `float NOT NULL`, and the field may be left
-	  // blank; '' is not a number and a strict server refuses the whole save.
-	  'revision' 		=> $revision === '' ? 0 : $revision, 
+	  // blank or not posted at all; neither is a number, and a strict server
+	  // refuses the whole save.
+	  'revision' 		=> is_numeric($revision) ? $revision : 0, 
 	  'effective_date' 	=> $effective_date, 
 	  'default_sheet' 	=> $default_sheet, 
 	  'default_levels' 	=> $default_levels);
