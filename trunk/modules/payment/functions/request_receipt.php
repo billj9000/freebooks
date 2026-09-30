@@ -169,6 +169,9 @@ function payment_record_request_payment(array $request, array $payment) {
         error_log($log . ': ' . $pay->post_date . ' is outside the accounting periods; no receipt for invoice ' . $fb_invoice_id);
         http_response_code(500); return 500;
     }
+    // Numbered as every other receipt is, by its deposit ticket: DP and the
+    // date. Left blank, the ledger would take next_deposit_num instead.
+    $pay->purchase_invoice_id = 'DP' . str_replace('-', '', $pay->post_date);
     $pay->currencies_code   = $inv_currency;
     $pay->currencies_value  = $inv_rate;
     $pay->shipper_code      = $payment['shipper_code'];
