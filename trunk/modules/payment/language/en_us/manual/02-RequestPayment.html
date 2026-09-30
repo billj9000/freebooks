@@ -14,7 +14,7 @@
 <h1 align="center">Requesting a Payment</h1>
 
 <p>You can ask a customer to pay an invoice through a payment method that supports it &mdash; a
-PayPal payment link, for example, or an invoice PayPal emails to the customer. When the customer
+PayPal or Square payment link, for example, or an invoice PayPal or Square emails to the customer. When the customer
 pays, the payment method tells FreeBooks and the receipt is recorded for you. Nothing you do when
 asking for payment records any money, so there is nothing to save and nothing to undo.</p>
 
@@ -42,13 +42,17 @@ methods that can take that currency are offered.</p>
 <ul>
   <li>A <strong>payment link</strong> is shown in the dialog. <strong>Copy</strong> it to send it
       yourself, or click <strong>Email to customer</strong> to email it from FreeBooks, with a
-      copy of the invoice attached. A PayPal payment link can be paid for three hours.</li>
-  <li>A <strong>PayPal invoice</strong> is emailed to the customer by PayPal straight away. It
-      lists the invoice's items when you ask for the whole invoice, and a single line &mdash;
-      <em>Part payment for Invoice&nbsp;&hellip;</em> &mdash; when you ask for less.</li>
+      copy of the invoice attached. A PayPal payment link can be paid for three hours; a Square
+      payment link does not expire.</li>
+  <li>A <strong>PayPal invoice</strong> or <strong>Square invoice</strong> is emailed to the
+      customer by PayPal or Square straight away.</li>
 </ul>
+<p>An invoice sent by PayPal or Square lists the invoice's items when you ask for the whole
+invoice, and a single line &mdash; <em>Part payment for Invoice&nbsp;&hellip;</em> &mdash; when you
+ask for less.</p>
 <p>Close the dialog when you are done. The receipt is recorded automatically when the customer
-pays: see <a href="01-PayPal.html">PayPal</a> for what it records.</p>
+pays: see <a href="01-PayPal.html">PayPal</a> and <a href="03-Square.html">Square</a> for what
+it records.</p>
 
 <h4>Seeing where a request stands</h4>
 <p>The dialog lists every request made for the invoice, newest first, with its status:</p>
@@ -58,7 +62,10 @@ pays: see <a href="01-PayPal.html">PayPal</a> for what it records.</p>
   <li><strong>Expired</strong> &mdash; a payment link that was not paid in time. Make a new
       request if the customer still needs to pay;</li>
   <li><strong>Failed</strong> &mdash; the payment method could not complete the request, for
-      example a PayPal invoice PayPal did not send.</li>
+      example a PayPal invoice PayPal did not send;</li>
+  <li><strong>Cancelled</strong> &mdash; withdrawn because the invoice was paid in full another
+      way, so that the customer cannot pay it twice. Square withdraws its links and invoices like
+      this; a PayPal request is left to expire or be ignored.</li>
 </ul>
 <p>The latest request also shows as a badge beside the invoice number in the Invoice Manager and
 under the toolbar of the invoice itself. An invoice can have several requests &mdash; a new link
@@ -74,6 +81,7 @@ more than the invoice still owes, and tells you if the payment method received m
 <p>
   <a href="PaymentHome.html">Payment Methods</a><br>
   <a href="01-PayPal.html">Payment Methods - PayPal</a><br>
+  <a href="03-Square.html">Payment Methods - Square</a><br>
   <a href="../../../../contacts/language/en_us/manual/03-Customers/05-Invoices/04-InvoiceManager.html">Invoice Manager</a><br>
   <a href="../../../../phreebooks/language/en_us/manual/05-Banking/02-Receipts/01-SingleReceipts.html">Banking - Customer Receipts</a>
 </p>

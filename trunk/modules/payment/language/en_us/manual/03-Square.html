@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="14.03">
+<meta name="doc_index_1" content="Payment Methods.Square">
+<meta name="doc_index_2" content="Square.Setup">
+<meta name="doc_title" content="Payment Methods - Square">
+<link rel="stylesheet" type="text/css" href="stylesheet.css">
+<title>Payment Methods - Square</title>
+</head>
+<body>
+
+<h1 align="center">Payment Methods - Square</h1>
+
+<p>The Square payment method takes card payments through your Square account. You can:</p>
+<ul>
+  <li>take a card payment on a <strong>Square Terminal</strong> while you enter a Customer
+      Receipt;</li>
+  <li>ask the customer to pay by a <strong>Square payment link</strong> or a <strong>Square
+      invoice</strong>, from <strong>Request payment</strong> on the invoice &mdash; see
+      <a href="02-RequestPayment.html">Requesting a Payment</a>.</li>
+</ul>
+<p>When the customer pays a link or a Square invoice, Square tells FreeBooks and the receipt is
+recorded automatically. A <strong>Customer Refund</strong> for an invoice paid through Square is
+sent back to Square against the original payment.</p>
+
+<h4>What you need</h4>
+<ol>
+  <li>A Square account, and an application in the Square Developer Dashboard. Its
+      <strong>access token</strong> is what FreeBooks uses. Square keeps separate tokens for its
+      Sandbox (test) environment and for live payments.</li>
+  <li>The <strong>location</strong> the payments are taken at. <strong>Square takes payments only
+      in the currency of the location's country</strong>, so that currency must be this company's
+      own. An invoice in another currency cannot be paid through Square.</li>
+  <li>For a terminal, a Square Terminal paired with FreeBooks.</li>
+  <li>For automatic receipts, FreeBooks must be reachable from the internet over HTTPS, so that
+      Square can call it.</li>
+</ol>
+
+<h4>Installing and settings</h4>
+<p>Install the method from <strong>Company &rarr; Configuration &rarr; Payment Module</strong>
+(see <a href="PaymentHome.html">Payment Methods</a>), then open its settings:</p>
+<ul>
+  <li><strong>Access token</strong> &mdash; from your Square application.</li>
+  <li><strong>Location ID</strong> &mdash; the Square location that takes the payments.</li>
+  <li><strong>Sandbox</strong> &mdash; <em>Test</em> uses Square's Sandbox, where no real money
+      moves; <em>Production</em> takes real payments. The access token and location must belong to
+      the same environment.</li>
+  <li><strong>Device ID</strong> &mdash; the terminal. <strong>Pair New Terminal</strong> shows a
+      code to enter on the terminal; <strong>Browse Devices</strong> lists the ones already paired
+      with the account.</li>
+  <li><strong>Auto send</strong>, <strong>Default payment type</strong> and <strong>Auto
+      print</strong> &mdash; how the terminal behaves on a Customer Receipt; see below.</li>
+  <li><strong>Email address to notify</strong> &mdash; an address to tell when a Square payment is
+      recorded automatically, or when one needs a person to look at it. Leave it blank for no
+      email.</li>
+  <li><strong>Webhook signature key</strong> and <strong>notification URL</strong> &mdash; from
+      Square, once you have registered the webhook below. Automatic receipts need both.</li>
+</ul>
+<p>When you save, FreeBooks asks Square which currency the location takes, and warns you if it
+is not this company's.</p>
+
+<h4>Automatic receipts: registering the webhook</h4>
+<p>In the Square Developer Dashboard, open your application's <strong>Webhooks</strong> and add a
+subscription with this URL, using your own host name. <code>NAME</code> is the company's folder
+name under <code>my_files/</code> on the server, which is also its database name &mdash; not the
+title shown on the login screen.</p>
+<pre>https://your-freebooks-host/square_webhook.php?company=NAME</pre>
+<p>If this installation has only one company, <code>?company=NAME</code> may be left out. With
+more than one it is required, and a call without it is refused, so that a payment can never be
+recorded in the wrong company's books.</p>
+<p>Subscribe it to the event <strong>payment.updated</strong>. Other events are accepted and
+ignored.</p>
+<p>Square then shows the subscription's <strong>Signature key</strong>. Enter it in the method's
+settings, together with the notification URL <strong>exactly as you registered it</strong>, and
+save. Square signs every notification with the key <em>and</em> the URL, and FreeBooks refuses any
+notification whose signature does not match, in Test and Production alike &mdash; so a URL that
+differs by a single character stops every receipt.</p>
+<p>FreeBooks also checks each payment with Square itself before recording it, and acts only on
+payment links and Square invoices it created. Terminal sales, and payments taken on the same
+Square account for anything else, are left alone.</p>
+
+<h4>Taking a payment on the terminal</h4>
+<p>On a <strong>Customer Receipt</strong>, choose <strong>Square</strong> as the payment method and
+click <strong>Send to Terminal</strong>. The amount appears on the terminal for the customer to
+pay, and FreeBooks waits for it. The receipt can only be saved once Square confirms the payment,
+and it keeps Square's receipt number and payment ID.</p>
+<ul>
+  <li><strong>Auto send</strong> &mdash; when you arrive from an invoice's Payment button, send the
+      amount straight away (<em>On</em>), after a five-second countdown you can cancel
+      (<em>Countdown</em>), or only when you click (<em>Off</em>).</li>
+  <li><strong>Default payment type</strong> &mdash; card present (tap, swipe or insert), or keying
+      in the card number on the terminal. It can be changed for each payment.</li>
+  <li><strong>Auto print</strong> &mdash; open the invoice as a PDF once the payment is
+      confirmed.</li>
+</ul>
+
+<h4>Asking a customer to pay</h4>
+<p>Use <strong>Request payment</strong> on the invoice, or its icon in the Invoice Manager, and
+choose <em>Square payment link</em> or <em>Square invoice</em>; see
+<a href="02-RequestPayment.html">Requesting a Payment</a>. They are offered only for an invoice in
+this company's own currency.</p>
+<ul>
+  <li>A <strong>payment link</strong> does not expire, and can be paid once. Copy it, or email it
+      from FreeBooks with a copy of the invoice attached.</li>
+  <li>A <strong>Square invoice</strong> is emailed to the customer by Square, due the day it is
+      sent. Square adds the customer to its customer list if they are not already there, matched
+      by email address.</li>
+</ul>
+<p>Either one lists the invoice's items when you ask for the whole invoice, and a single line
+&mdash; <em>Part payment for Invoice&nbsp;&hellip;</em> &mdash; when you ask for less.</p>
+<p>Once an invoice is paid in full, any other Square link or Square invoice still open for it is
+withdrawn &mdash; the link is deleted and the Square invoice cancelled &mdash; so that the customer
+cannot pay twice. The request shows as <strong>Cancelled</strong>.</p>
+
+<h4>What an automatic receipt records</h4>
+<ul>
+  <li>A <strong>Customer Receipt</strong> dated the day Square reports the payment, against the
+      invoice the request was made for, paid into the account set as the default for customer
+      receipts (<strong>Company &rarr; Configuration &rarr; PhreeBooks Module</strong>, Customers
+      tab). Its reference is Square's receipt number.</li>
+  <li><strong>Never more than the invoice still owes.</strong> If another receipt has already paid
+      the invoice in whole or in part, only the balance still due is recorded. Whatever Square took
+      beyond it is left out, noted in the log, and, if a notification email is set, reported with
+      the amount paid, the amount recorded and the amount not recorded. If the other receipt was a
+      separate payment, the customer has paid twice and the difference is due back to them.</li>
+  <li>The request is marked <strong>Paid</strong>, and shows so in the Invoice Manager.</li>
+</ul>
+<p>If a receipt cannot be recorded &mdash; for example because the payment date falls outside
+your accounting periods &mdash; nothing is kept, and FreeBooks tells Square the notification
+failed. Square sends it again later, so once the problem is fixed the receipt is recorded without
+anything further from you. A notification Square repeats is never recorded twice.</p>
+<p>Square's processing fees are not recorded: the receipt is for the amount the customer paid.</p>
+
+<h4>Refunds</h4>
+<p>Raise a <strong>Customer Credit Memo</strong> for the invoice, then a
+<strong>Customer Refund</strong> from the credit memo. When the invoice was paid through Square,
+on the terminal or by a request, the refund is sent back to Square against the original payment.</p>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="PaymentHome.html">Payment Methods</a><br>
+  <a href="02-RequestPayment.html">Requesting a Payment</a><br>
+  <a href="01-PayPal.html">Payment Methods - PayPal</a><br>
+  <a href="../../../../phreebooks/language/en_us/manual/05-Banking/02-Receipts/01-SingleReceipts.html">Banking - Customer Receipts</a><br>
+  <a href="../../../../contacts/language/en_us/manual/03-Customers/07-CreditMemo/CreditMemoHome.html">Customers - Credit Memos</a>
+</p>
+
+</body>
+</html>
