@@ -32,6 +32,8 @@ class square_terminal extends payment {
   const SQUARE_VERSION = '2024-01-17';
   private $last_error = '';
   public function get_last_error() { return $this->last_error; }
+  // The HTTP status of the last square_request(), or 0 when Square did not answer.
+  public $last_status = 0;
 
   public function __construct() {
     parent::__construct();
@@ -679,6 +681,7 @@ class square_terminal extends payment {
     curl_setopt_array($ch, $opts);
     $raw  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $this->last_status = (int)$code;
     if ($raw === false || $raw === '') { $this->last_error = curl_error($ch) ?: 'No response from Square'; return false; }
     $data = json_decode($raw, true);
     if (!empty($data['errors']) || $code >= 400) {

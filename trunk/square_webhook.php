@@ -73,6 +73,12 @@ $payment_id = (string)($event['data']['object']['payment']['id'] ?? $event['data
 if ($payment_id === '') exit;
 $sq->ensure_requests_table();
 $read = $sq->square_request('payments/' . rawurlencode($payment_id), null, 'GET');
+if ($read === false && $sq->last_status === 404) {
+    // Square has no such payment - its dashboard's test event names one that
+    // does not exist. Nothing a retry could change, so it is not asked for.
+    error_log('square_webhook: Square has no payment ' . $payment_id . '; ignored');
+    exit;
+}
 if ($read === false) {
     http_response_code(500); // Square sends it again
     error_log('square_webhook: could not read payment ' . $payment_id . ': ' . $sq->get_last_error());

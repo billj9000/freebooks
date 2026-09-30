@@ -71,7 +71,9 @@ title shown on the login screen.</p>
 more than one it is required, and a call without it is refused, so that a payment can never be
 recorded in the wrong company's books.</p>
 <p>Subscribe it to the event <strong>payment.updated</strong>. Other events are accepted and
-ignored.</p>
+ignored. Square's <strong>Send test event</strong> names a payment that does not exist, so it is
+accepted and records nothing; a successful delivery there shows the URL and signature key are
+right.</p>
 <p>Square then shows the subscription's <strong>Signature key</strong>. Enter it in the method's
 settings, together with the notification URL <strong>exactly as you registered it</strong>, and
 save. Square signs every notification with the key <em>and</em> the URL, and FreeBooks refuses any
