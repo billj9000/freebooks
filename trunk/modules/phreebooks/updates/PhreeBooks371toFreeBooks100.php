@@ -54,6 +54,16 @@ if (db_field_exists(TABLE_JOURNAL_MAIN, 'currencies_code')) {
     $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " MODIFY currencies_code char(3) NOT NULL DEFAULT ''");
 }
 
+// purch_order_id also holds the reference a payment service gives back, and a
+// Square refund's is 73 characters. At 24 a lax server cut it to something that
+// identified nothing, and a strict one refused the refund's entry after the
+// money had already gone back. Only widened, so no value changes.
+$len = $db->Execute("SELECT CHARACTER_MAXIMUM_LENGTH AS len FROM information_schema.COLUMNS"
+    . " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . TABLE_JOURNAL_MAIN . "' AND COLUMN_NAME = 'purch_order_id'");
+if (!$len->EOF && (int)$len->fields['len'] < 128) {
+    $db->Execute("ALTER TABLE " . TABLE_JOURNAL_MAIN . " MODIFY purch_order_id varchar(128) NULL DEFAULT NULL");
+}
+
 // ---- journal_item ----------------------------------------------------------
 // restock says whether a credit memo line returns its quantity to stock. '1' is
 // what every line did before the choice existed, and what every journal that

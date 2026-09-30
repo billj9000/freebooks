@@ -205,7 +205,7 @@ class phreebooks_admin {
 		  currencies_value DOUBLE NOT NULL DEFAULT '1.0',
 		  so_po_ref_id int(11) NOT NULL default '0',
 		  purchase_invoice_id varchar(24) default NULL,
-		  purch_order_id varchar(24) default NULL,
+		  purch_order_id varchar(128) default NULL,
 		  recur_id int(11) default NULL,
 		  admin_id int(11) NOT NULL default '0',
 		  rep_id int(11) NOT NULL default '0',
