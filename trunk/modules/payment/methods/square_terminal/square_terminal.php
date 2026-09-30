@@ -21,12 +21,17 @@ define('MODULE_PAYMENT_SQUARE_TERMINAL_VERSION', '1.0');
 require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
 
 class square_terminal extends payment {
-  // Safe on a foreign-currency entry (issue #63). Told which currency to take and to refund, in both directions.
-  public $multi_currency = true;
+  // Square takes payments only in its location's currency, and refuses any
+  // other (update() warns when that is not the company's). So an entry in
+  // another currency is stopped here, before the terminal or a request is tried.
+  public $multi_currency = false;
   public $code        = 'square_terminal';
   public $title       = MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_TITLE;
   public $description = MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_DESCRIPTION;
   public $sort_order  = 10;
+  const SQUARE_VERSION = '2024-01-17';
+  private $last_error = '';
+  public function get_last_error() { return $this->last_error; }
 
   public function __construct() {
     parent::__construct();
@@ -37,6 +42,32 @@ class square_terminal extends payment {
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND',        'default' => 'Countdown',     'text' => MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_SEND_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE', 'default' => 'CARD_PRESENT',  'text' => MODULE_PAYMENT_SQUARE_TERMINAL_DEFAULT_PMT_TYPE_DESC];
     $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT',       'default' => 'Off',           'text' => MODULE_PAYMENT_SQUARE_TERMINAL_AUTO_PRINT_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_EMAIL',     'default' => '',              'text' => MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_EMAIL_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_WEBHOOK_KEY',      'default' => '',              'text' => MODULE_PAYMENT_SQUARE_TERMINAL_WEBHOOK_KEY_DESC];
+    $this->key[] = ['key' => 'MODULE_PAYMENT_SQUARE_TERMINAL_WEBHOOK_URL',      'default' => '',              'text' => MODULE_PAYMENT_SQUARE_TERMINAL_WEBHOOK_URL_DESC];
+    $this->request_types = [
+      'link'    => MODULE_PAYMENT_SQUARE_TERMINAL_REQUEST_LINK,
+      'invoice' => MODULE_PAYMENT_SQUARE_TERMINAL_REQUEST_INVOICE,
+    ];
+  }
+
+  // Saves the settings, then asks Square which currency the location takes. The
+  // settings posted are the ones checked: the constants still hold the old ones.
+  function update() {
+    global $messageStack;
+    parent::update();
+    $token    = trim((string)($_POST['module_payment_square_terminal_access_token'] ?? ''));
+    $location = trim((string)($_POST['module_payment_square_terminal_location_id'] ?? ''));
+    $sandbox  = ($_POST['module_payment_square_terminal_sandbox'] ?? '') === 'Test';
+    if ($token === '' || $location === '') return;
+    $base = $sandbox ? 'https://connect.squareupsandbox.com/v2/' : 'https://connect.squareup.com/v2/';
+    $data = $this->square_request('locations/' . rawurlencode($location), null, 'GET', $base, $token);
+    $currency = $data['location']['currency'] ?? '';
+    if ($currency === '') {
+      $messageStack->add(sprintf(MODULE_PAYMENT_SQUARE_TERMINAL_CURRENCY_UNKNOWN, $this->last_error), 'caution');
+    } elseif ($currency !== DEFAULT_CURRENCY) {
+      $messageStack->add(sprintf(MODULE_PAYMENT_SQUARE_TERMINAL_CURRENCY_WARNING, $currency, DEFAULT_CURRENCY), 'error');
+    }
   }
 
   function configure($key) {
@@ -434,6 +465,231 @@ class square_terminal extends payment {
     return $data['refund']['id'] ?? true;
   }
 
+  // ─── Requests for payment ─────────────────────────────────────────────────
+
+  // Ask the customer to pay $amount of the invoice $invoice_id, by a Square
+  // payment link or by an invoice Square emails them. Both are backed by a
+  // Square order, and the order's id is what the request is recorded under:
+  // the payment that settles either one carries it, so the webhook needs one
+  // lookup for both. See payment::create_request().
+  function create_request($type, $invoice_id, $amount, $currency, $email) {
+    global $db;
+    $inv = $db->Execute("SELECT purchase_invoice_id, bill_primary_name, total_amount, currencies_value FROM " . TABLE_JOURNAL_MAIN
+      . " WHERE id = " . (int)$invoice_id . " AND journal_id = 12");
+    if ($inv->EOF) {
+      $this->last_error = MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_INVOICE;
+      return false;
+    }
+    $location = defined('MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID') ? trim(MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID) : '';
+    if ($location === '') {
+      $this->last_error = MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_LOCATION;
+      return false;
+    }
+    $description = 'Invoice ' . $inv->fields['purchase_invoice_id'];
+    // Items are listed only when the whole invoice is asked for; any other
+    // amount is one line, since items adding up to more than is asked would
+    // bill the customer for all of them.
+    $rate  = (float)$inv->fields['currencies_value'] ?: 1.0;
+    $whole = abs(round((float)$amount, 2) - round((float)$inv->fields['total_amount'] * $rate, 2)) < 0.005;
+    if (!$whole) $description = sprintf(MODULE_PAYMENT_SQUARE_TERMINAL_PART_PAYMENT, $description);
+    $order = $this->square_order($whole ? $invoice_id : 0, $amount, $currency, $rate, $description, $location);
+
+    switch ($type) {
+      case 'link':
+        // The buyer's email is not filled in for them: Square refuses the whole
+        // link over an address it does not like, and the customer types it anyway.
+        $made = $this->square_request('online-checkout/payment-links', [
+          'idempotency_key'    => bin2hex(random_bytes(16)),
+          'description'        => $description,
+          'order'              => $order,
+        ]);
+        $link = $made['payment_link'] ?? null;
+        if (!$link || empty($link['order_id']) || empty($link['url'])) return false;
+        $this->record_request('link', $link['order_id'], $invoice_id, $amount, $currency, $link['url'], null, $link['id'] ?? null);
+        return ['external_id' => $link['order_id'], 'url' => $link['url'], 'sent' => false];
+
+      case 'invoice':
+        $customer_id = $this->square_customer($inv->fields['bill_primary_name'], $email);
+        if (!$customer_id) return false;
+        $order['customer_id'] = $customer_id;
+        $made = $this->square_request('orders', ['idempotency_key' => bin2hex(random_bytes(16)), 'order' => $order]);
+        $order_id = $made['order']['id'] ?? '';
+        if ($order_id === '') return false;
+        $made = $this->square_request('invoices', [
+          'idempotency_key' => bin2hex(random_bytes(16)),
+          'invoice' => [
+            'location_id'       => $location,
+            'order_id'          => $order_id,
+            'primary_recipient' => ['customer_id' => $customer_id],
+            'payment_requests'  => [['request_type' => 'BALANCE', 'due_date' => date('Y-m-d')]],
+            'delivery_method'   => 'EMAIL',
+            'accepted_payment_methods' => ['card' => true, 'square_gift_card' => false, 'bank_account' => false,
+                                           'buy_now_pay_later' => false, 'cash_app_pay' => false],
+            'title'             => $description,
+          ],
+        ]);
+        $invoice = $made['invoice'] ?? null;
+        if (!$invoice || empty($invoice['id'])) return false;
+        $this->record_request('invoice', $order_id, $invoice_id, $amount, $currency, null, null, $invoice['id']);
+        $published = $this->square_request('invoices/' . rawurlencode($invoice['id']) . '/publish', [
+          'idempotency_key' => bin2hex(random_bytes(16)),
+          'version'         => (int)$invoice['version'],
+        ]);
+        if (empty($published['invoice']['id'])) {
+          // Square holds it as a draft the customer never saw; it cannot be paid.
+          $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'failed'"
+            . " WHERE method = '" . db_input($this->code) . "' AND external_id = '" . db_input($order_id) . "'");
+          return false;
+        }
+        $url = $published['invoice']['public_url'] ?? '';
+        if ($url !== '') {
+          $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET url = '" . db_input($url) . "'"
+            . " WHERE method = '" . db_input($this->code) . "' AND external_id = '" . db_input($order_id) . "'");
+        }
+        return ['external_id' => $order_id, 'url' => $url ?: null, 'sent' => true];
+    }
+    return false;
+  }
+
+  // Withdraw an open request: delete a payment link, or cancel an invoice
+  // Square has not been paid. Either way the customer can no longer pay it.
+  // See payment::cancel_request().
+  function cancel_request($request) {
+    $ref = (string)($request['external_ref'] ?? '');
+    if ($ref === '') return false;
+    if ($request['request_type'] === 'link') {
+      return $this->square_request('online-checkout/payment-links/' . rawurlencode($ref), null, 'DELETE') !== false;
+    }
+    if ($request['request_type'] === 'invoice') {
+      $read = $this->square_request('invoices/' . rawurlencode($ref), null, 'GET');
+      if (!in_array($read['invoice']['status'] ?? '', ['UNPAID', 'SCHEDULED'], true)) return false;
+      return $this->square_request('invoices/' . rawurlencode($ref) . '/cancel',
+        ['version' => (int)$read['invoice']['version']]) !== false;
+    }
+    return false;
+  }
+
+  // Email the customer a Square payment link. See payment::email_request().
+  function email_request($request, $email) {
+    $url  = (string)($request['url'] ?? '');
+    $host = strtolower((string)parse_url($url, PHP_URL_HOST));
+    if ($request['request_type'] !== 'link' || parse_url($url, PHP_URL_SCHEME) !== 'https'
+        || !in_array($host, ['square.link', 'sandbox.square.link'], true)) {
+      $this->last_error = MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_BAD_LINK;
+      return false;
+    }
+    return $this->email_payment_link($request, $email, [
+      'subject'  => MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_SUBJECT,
+      'intro'    => MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_INTRO,
+      'button'   => MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_BTN,
+      'expires'  => '',
+      'alt_link' => MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_ALT_LINK,
+      'contact'  => MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_CONTACT,
+    ], '#006aff');
+  }
+
+  /**
+   * The Square order for a request: the invoice's lines when $invoice_id is
+   * given, else one line of $description. Its total is always exactly $amount.
+   * Square counts money in the currency's smallest unit, so every figure is
+   * converted once, here, and the lines are closed to $amount with a rounding
+   * line or the discount. A gap too big to be rounding means the lines do not
+   * describe what is asked, and the order falls back to the one line.
+   *
+   * A function of its own so that what it produces can be checked without
+   * creating anything on Square.
+   */
+  function square_order($invoice_id, $amount, $currency, $rate, $description, $location) {
+    global $currencies;
+    $dp     = (int)($currencies->currencies[$currency]['decimal_places'] ?? 2);
+    $minor  = function ($x) use ($dp) { return (int)round((float)$x * pow(10, $dp)); };
+    $money  = function ($m) use ($currency) { return ['amount' => $m, 'currency' => $currency]; };
+    $want   = $minor($amount);
+    $single = [['name' => $description, 'quantity' => '1', 'base_price_money' => $money($want)]];
+
+    $items = [];
+    $sum = $discount = 0;
+    if ((int)$invoice_id > 0) {
+      $read = $this->invoice_lines($invoice_id, $rate);
+      foreach ($read['lines'] as $line) {
+        // A whole quantity is sent as it is; a fractional one as a single line
+        // at its total, since Square would round the unit price times it again.
+        $q = $line['qty'];
+        if (abs($q - round($q)) < 0.00001) {
+          $qty = (int)round($q); $unit = $minor($line['unit']); $name = $line['name'];
+        } else {
+          $qty = 1; $unit = $minor($line['unit'] * $q);
+          $name = $line['name'] . ' (x' . rtrim(rtrim(number_format($q, 4, '.', ''), '0'), '.') . ')';
+        }
+        $items[] = ['name' => mb_substr($name, 0, 500), 'quantity' => (string)$qty, 'base_price_money' => $money($unit)];
+        $sum += $unit * $qty;
+      }
+      $discount = $minor($read['discount']);
+    }
+    $gap = $want - ($sum - $discount);
+    if (!$items || abs($gap) > 5) {
+      $items = $single; $discount = 0;
+    } elseif ($gap > 0) {
+      $items[] = ['name' => 'Rounding adjustment', 'quantity' => '1', 'base_price_money' => $money($gap)];
+    } elseif ($gap < 0) {
+      $discount -= $gap;
+    }
+    $order = ['location_id' => $location, 'reference_id' => mb_substr($description, 0, 40), 'line_items' => $items];
+    if ($discount > 0) {
+      $order['discounts'] = [['uid' => 'fb-discount', 'name' => 'Discount', 'type' => 'FIXED_AMOUNT',
+                              'amount_money' => $money($discount), 'scope' => 'ORDER']];
+    }
+    return $order;
+  }
+
+  // The Square customer with $email, added when there is none, as an id; or
+  // false. A Square invoice must be addressed to a customer Square knows.
+  private function square_customer($name, $email) {
+    if ($email !== '') {
+      $found = $this->square_request('customers/search', ['query' => ['filter' => ['email_address' => ['exact' => $email]]], 'limit' => 1]);
+      if ($found === false) return false;
+      if (!empty($found['customers'][0]['id'])) return $found['customers'][0]['id'];
+    }
+    $made = $this->square_request('customers', [
+      'idempotency_key' => bin2hex(random_bytes(16)),
+      'company_name'    => mb_substr((string)$name, 0, 255),
+      'email_address'   => $email,
+    ]);
+    if (empty($made['customer']['id'])) {
+      $this->last_error = sprintf(MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_CUSTOMER, $this->last_error);
+      return false;
+    }
+    return $made['customer']['id'];
+  }
+
+  // A call to the Square API: the decoded answer, or false with the reason in
+  // get_last_error(). $base and $token default to this company's settings;
+  // update() passes the ones just posted.
+  function square_request($path, $body = null, $method = 'POST', $base = null, $token = null) {
+    $token = $token ?? (defined('MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN') ? trim(MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN) : '');
+    if ($token === '') { $this->last_error = MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_TOKEN; return false; }
+    $ch = curl_init(($base ?? $this->square_base_url()) . $path);
+    $opts = [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_CUSTOMREQUEST  => $method,
+      CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $token, 'Content-Type: application/json', 'Square-Version: ' . self::SQUARE_VERSION],
+      CURLOPT_TIMEOUT        => 20,
+    ];
+    if ($body !== null) $opts[CURLOPT_POSTFIELDS] = json_encode($body);
+    curl_setopt_array($ch, $opts);
+    $raw  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($raw === false || $raw === '') { $this->last_error = curl_error($ch) ?: 'No response from Square'; return false; }
+    $data = json_decode($raw, true);
+    if (!empty($data['errors']) || $code >= 400) {
+      $e = $data['errors'][0] ?? [];
+      $this->last_error = 'Square: ' . ($e['detail'] ?? $e['code'] ?? ('HTTP ' . $code));
+      error_log('square_terminal: ' . $method . ' ' . $path . ' failed: ' . $this->last_error);
+      return false;
+    }
+    return $data;
+  }
+
   private function square_base_url() {
     $sandbox = defined('MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX') && MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX === 'Test';
     return $sandbox ? 'https://connect.squareupsandbox.com/v2/' : 'https://connect.squareup.com/v2/';
@@ -444,7 +700,7 @@ class square_terminal extends payment {
     return [
       'Authorization: Bearer ' . $token,
       'Content-Type: application/json',
-      'Square-Version: 2024-01-17',
+      'Square-Version: ' . self::SQUARE_VERSION,
     ];
   }
 

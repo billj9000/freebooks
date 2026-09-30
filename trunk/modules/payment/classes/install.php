@@ -35,6 +35,7 @@ class payment_admin {
 		  method varchar(32) NOT NULL,
 		  request_type varchar(16) NOT NULL,
 		  external_id varchar(64) NOT NULL,
+		  external_ref varchar(64) NULL DEFAULT NULL,
 		  ref_id int(11) NOT NULL,
 		  amount double NOT NULL DEFAULT 0,
 		  currency_code char(3) NOT NULL DEFAULT '',

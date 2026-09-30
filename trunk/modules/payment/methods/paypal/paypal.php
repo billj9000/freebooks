@@ -242,59 +242,14 @@ class paypal extends payment {
       $this->last_error = MODULE_PAYMENT_PAYPAL_ERROR_BAD_LINK;
       return false;
     }
-    $inv = $db->Execute("SELECT purchase_invoice_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$request['ref_id']);
-    $description = $inv->EOF ? '' : 'Invoice ' . $inv->fields['purchase_invoice_id'];
-
-    $attachments = [];
-    $pdf_path    = null;
-    $pdf = $this->invoice_pdf((int)$request['ref_id']);
-    if ($pdf) {
-      $pdf_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/invoice_' . (int)$request['ref_id'] . '_' . time() . '.pdf';
-      if (@file_put_contents($pdf_path, $pdf) !== false) $attachments['file'] = $pdf_path;
-      else $pdf_path = null;
-    }
-
-    $from_name    = defined('STORE_NAME') ? STORE_NAME : 'FreeBooks';
-    $from_address = defined('EMAIL_FROM') ? EMAIL_FROM : '';
-    $subject      = sprintf(MODULE_PAYMENT_PAYPAL_EMAIL_SUBJECT, $from_name) . ($description ? ' — ' . $description : '');
-    $safe_url     = htmlspecialchars($url, ENT_QUOTES);
-    // validate_send_mail() sends this as HTML when EMAIL_USE_HTML is on, and
-    // strips the tags for plain-text delivery.
-    $body = '<html><body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;margin:0;padding:20px">'
-          . '<p>' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_INTRO)
-          .   ($description ? ' <strong>' . htmlspecialchars($description, ENT_QUOTES) . '</strong>' : '') . '</p>'
-          . '<p style="text-align:center;margin:28px 0">'
-          .   '<a href="' . $safe_url . '" style="background:#003087;color:#ffffff;padding:14px 32px;'
-          .   'border-radius:6px;text-decoration:none;font-size:16px;font-weight:bold;display:inline-block">'
-          .   htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_BTN) . '</a>'
-          . '</p>'
-          . '<p style="font-size:12px;color:#888;font-style:italic">' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_EXPIRES) . '</p>'
-          . '<p style="font-size:12px;color:#555">' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_ALT_LINK) . '<br>'
-          .   '<a href="' . $safe_url . '" style="color:#003087">' . $safe_url . '</a></p>'
-          . '<p>' . htmlspecialchars(MODULE_PAYMENT_PAYPAL_EMAIL_CONTACT) . '</p>'
-          . '<p>Thank you,<br>' . htmlspecialchars($from_name, ENT_QUOTES) . '</p>'
-          . '</body></html>';
-    $result = validate_send_mail('', $email, $subject, $body, $from_name, $from_address, [], $attachments);
-    if ($pdf_path) @unlink($pdf_path);
-    return $result !== false;
-  }
-
-  // The printed invoice, from whichever form is filed under 'cust:inv', or null.
-  // Best effort: an email goes without it rather than not at all.
-  private function invoice_pdf($invoice_id) {
-    global $db;
-    try {
-      if (!defined('MODULE_FORMS_STATUS') || !defined('TABLE_PHREEFORM')) return null;
-      $r = $db->Execute("SELECT id FROM " . TABLE_PHREEFORM
-        . " WHERE doc_group = 'cust:inv' AND (doc_ext = 'frm' OR doc_ext = 'rpt') ORDER BY doc_title LIMIT 1");
-      if ($r->EOF) return null;
-      require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
-      $rendered = forms_render_to_string((int)$r->fields['id'], [$invoice_id]);
-      return !empty($rendered['pdf']) ? $rendered['pdf'] : null;
-    } catch (\Throwable $e) {
-      error_log('paypal: the invoice PDF for ' . $invoice_id . ' could not be made: ' . $e->getMessage());
-      return null;
-    }
+    return $this->email_payment_link($request, $email, [
+      'subject'  => MODULE_PAYMENT_PAYPAL_EMAIL_SUBJECT,
+      'intro'    => MODULE_PAYMENT_PAYPAL_EMAIL_INTRO,
+      'button'   => MODULE_PAYMENT_PAYPAL_EMAIL_BTN,
+      'expires'  => MODULE_PAYMENT_PAYPAL_EMAIL_EXPIRES,
+      'alt_link' => MODULE_PAYMENT_PAYPAL_EMAIL_ALT_LINK,
+      'contact'  => MODULE_PAYMENT_PAYPAL_EMAIL_CONTACT,
+    ], '#003087');
   }
 
   /**
@@ -314,72 +269,29 @@ class paypal extends payment {
    */
   function build_invoice_items($fb_invoice_id, $currency, $rate, $amount, $description = 'Invoice') {
     global $db;
-    $sos_items = $frt_items = $tax_items = [];
     $item_total = $discount_total = 0.0;
     $rate = (float)$rate ?: 1.0;
 
+    $items = [];
     if ((int)$fb_invoice_id > 0 && defined('TABLE_JOURNAL_ITEM')) {
-      $rows = $db->Execute(
-        "SELECT gl_type, sku, qty, description, debit_amount, credit_amount, full_price"
-        . " FROM " . TABLE_JOURNAL_ITEM
-        . " WHERE ref_id = " . (int)$fb_invoice_id
-        . " AND gl_type IN ('sos', 'frt', 'tax', 'dsc')"
-        . " ORDER BY item_cnt"
-      );
-      while (!$rows->EOF) {
-        $row = $rows->fields;
-        $gt  = $row['gl_type'];
-
-        if ($gt === 'dsc') {
-          $discount_total += (float)$row['debit_amount'] * $rate;
-        } else {
-          $credit = (float)$row['credit_amount'] * $rate;
-          if ($credit == 0) { $rows->MoveNext(); continue; }
-
-          $qty = (float)$row['qty'];
-          if ($qty <= 0) $qty = 1;
-
-          // Use full_price (unit price) when available; fall back to credit_amount/qty.
-          // Set qty=1 in that case to avoid re-introducing division rounding.
-          // BOTH are home-currency columns, so both take the rate - freight has
-          // no full_price and comes through the second branch, which is the one
-          // a conversion is easiest to leave out of.
-          if ((float)$row['full_price'] != 0) {
-            $unit = (float)$row['full_price'] * $rate;
-          } else {
-            $unit = $credit;
-            $qty  = 1;
-          }
-
-          if ($gt === 'sos') {
-            $name = trim($row['description'] ?? '');
-            if (!empty($row['sku'])) $name = $row['sku'] . ($name ? ' ' . $name : '');
-            if (!$name) $name = 'Item';
-          } elseif ($gt === 'frt') {
-            $name = 'Shipping';
-          } else { // tax
-            $name = trim($row['description'] ?? '') ?: 'Tax';
-          }
-
-          // Format quantity: strip trailing decimal zeros (e.g. "4.00" -> "4", "0.50" -> "0.5").
-          $qty_str = rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.');
-
-          $entry = [
-            'name'        => mb_substr($name, 0, 200),
-            'quantity'    => $qty_str,
-            'unit_amount' => ['currency_code' => $currency, 'value' => number_format($unit, 2, '.', '')],
-          ];
-          if ($gt === 'sos')      { $sos_items[] = $entry; }
-          elseif ($gt === 'frt')  { $frt_items[] = $entry; }
-          else                    { $tax_items[] = $entry; }
-          $item_total += round($unit * $qty, 2);
-        }
-        $rows->MoveNext();
+      $read = $this->invoice_lines($fb_invoice_id, $rate);
+      $discount_total = $read['discount'];
+      foreach ($read['lines'] as $line) {
+        // Format quantity: strip trailing decimal zeros (e.g. "4.00" -> "4", "0.50" -> "0.5").
+        $qty_str = rtrim(rtrim(number_format($line['qty'], 4, '.', ''), '0'), '.');
+        $items[] = [
+          'name'        => mb_substr($line['name'], 0, 200),
+          'quantity'    => $qty_str,
+          'unit_amount' => ['currency_code' => $currency, 'value' => number_format($line['unit'], 2, '.', '')],
+        ];
       }
+      // Added up in the invoice's own order, not the listing's. Floating-point
+      // sums depend on the order, and a discount ending in a half cent turns a
+      // difference in the last bit into a rounding line on PayPal's invoice.
+      $lines = $read['lines'];
+      usort($lines, function ($a, $b) { return $a['seq'] <=> $b['seq']; });
+      foreach ($lines as $line) $item_total += round($line['unit'] * $line['qty'], 2);
     }
-
-    // Products -> Shipping -> Taxes
-    $items = array_merge($sos_items, $frt_items, $tax_items);
 
     // Fallback to a single summary line if no rows were found.
     if (empty($items)) {

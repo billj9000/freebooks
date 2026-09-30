@@ -42,7 +42,8 @@ class payment {
    * Set true where it is safe: a method that transmits NO amount (cod,
    * moneyorder, directdebit, freecharger) records the entry and nothing else,
    * so the currency is bookkeeping; and one that is genuinely told which
-   * currency to take (square_terminal).
+   * currency to take and whose service accepts any of them (paypal). Not
+   * square_terminal: Square takes only its location's currency.
    */
   public $multi_currency   = false;
   // The kinds of request for payment this method can make, as type => label;
@@ -187,6 +188,14 @@ class payment {
     return false;
   }
 
+  // Withdraw the open request $request (a payment_requests row), so that the
+  // customer can no longer pay it. Returns true when the method's service has
+  // withdrawn it. A method that cannot leaves it open, and a payment made
+  // against it anyway is capped at what the invoice still owes.
+  function cancel_request($request) {
+    return false;
+  }
+
   // What the invoice $invoice_id still owes, in the home currency: what was
   // billed, less every payment against it. It is the ledger's own measure when
   // it decides whether an invoice is paid.
@@ -212,7 +221,9 @@ class payment {
   // FreeBooks invoice $invoice_id. $external_id is the method's own reference
   // for it, by which later notifications find it again. $expires_at is a
   // 'Y-m-d H:i:s' time, or null for a request that does not expire.
-  function record_request($request_type, $external_id, $invoice_id, $amount, $currency, $url = null, $expires_at = null) {
+  // $external_ref is a second reference, for a method that needs a different
+  // handle to withdraw the request than the one its payments carry.
+  function record_request($request_type, $external_id, $invoice_id, $amount, $currency, $url = null, $expires_at = null, $external_ref = null) {
     global $db;
     $this->ensure_requests_table();
     // db_perform() writes SQL NULL only for the string 'null'; a PHP null would
@@ -221,6 +232,7 @@ class payment {
       'method'        => $this->code,
       'request_type'  => $request_type,
       'external_id'   => $external_id,
+      'external_ref'  => $external_ref ?? 'null',
       'ref_id'        => (int)$invoice_id,
       'amount'        => (float)$amount,
       'currency_code' => $currency,
@@ -246,12 +258,135 @@ class payment {
 
   // The table is created from the payment module's own declaration, the one
   // the installer and the migration use, so there is a single definition of it.
+  // A table made before external_ref existed gets it here, once.
   function ensure_requests_table() {
     global $db;
-    if (db_table_exists(TABLE_PAYMENT_REQUESTS)) return;
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    if (db_table_exists(TABLE_PAYMENT_REQUESTS)) {
+      if (!db_field_exists(TABLE_PAYMENT_REQUESTS, 'external_ref')) {
+        $db->Execute("ALTER TABLE " . TABLE_PAYMENT_REQUESTS . " ADD external_ref varchar(64) NULL DEFAULT NULL AFTER external_id");
+      }
+      return;
+    }
     require_once(DIR_FS_MODULES . 'payment/classes/install.php');
     $install = new payment_admin();
     $db->Execute($install->tables[TABLE_PAYMENT_REQUESTS]);
+  }
+
+  // The lines of the FreeBooks invoice $invoice_id, for a request that lists
+  // them: ['lines' => [['kind' => sos|frt|tax, 'name', 'qty', 'unit', 'seq'], ...],
+  // 'discount' => the invoice's discount]. Amounts are in the invoice's own
+  // currency. $rate is its exchange rate and not optional detail: every journal
+  // amount is stored in the HOME currency, while the amount asked for is in the
+  // invoice's, so without it the lines are pounds under a dollar heading.
+  // Products come first, then shipping, then taxes; 'seq' is a line's place on
+  // the invoice itself, for a caller that must add them up in that order.
+  function invoice_lines($invoice_id, $rate) {
+    global $db;
+    $rate  = (float)$rate ?: 1.0;
+    $lines = ['sos' => [], 'frt' => [], 'tax' => []];
+    $discount = 0.0;
+    $seq  = 0;
+    $rows = $db->Execute("SELECT gl_type, sku, qty, description, debit_amount, credit_amount, full_price"
+      . " FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = " . (int)$invoice_id
+      . " AND gl_type IN ('sos', 'frt', 'tax', 'dsc') ORDER BY item_cnt");
+    while (!$rows->EOF) {
+      $row = $rows->fields;
+      $gt  = $row['gl_type'];
+      $rows->MoveNext();
+      if ($gt === 'dsc') { $discount += (float)$row['debit_amount'] * $rate; continue; }
+      $credit = (float)$row['credit_amount'] * $rate;
+      if ($credit == 0) continue;
+      $qty = (float)$row['qty'];
+      if ($qty <= 0) $qty = 1;
+      // The unit price when there is one; otherwise the line's amount as one
+      // unit, which avoids re-introducing division rounding. BOTH are
+      // home-currency columns, so both take the rate - freight has no
+      // full_price and comes through the second branch, which is the one a
+      // conversion is easiest to leave out of.
+      if ((float)$row['full_price'] != 0) {
+        $unit = (float)$row['full_price'] * $rate;
+      } else {
+        $unit = $credit;
+        $qty  = 1;
+      }
+      if ($gt === 'sos') {
+        $name = trim($row['description'] ?? '');
+        if (!empty($row['sku'])) $name = $row['sku'] . ($name ? ' ' . $name : '');
+        if (!$name) $name = 'Item';
+      } elseif ($gt === 'frt') {
+        $name = 'Shipping';
+      } else {
+        $name = trim($row['description'] ?? '') ?: 'Tax';
+      }
+      $lines[$gt][] = ['kind' => $gt, 'name' => $name, 'qty' => $qty, 'unit' => $unit, 'seq' => $seq++];
+    }
+    return ['lines' => array_merge($lines['sos'], $lines['frt'], $lines['tax']), 'discount' => $discount];
+  }
+
+  // Email the customer the payment link of $request (a payment_requests row),
+  // with a copy of the invoice attached when one can be printed. $text holds
+  // the method's wording: subject (sprintf, with the company name), intro,
+  // button, expires ('' when the link does not expire), alt_link and contact;
+  // $colour is the button's. Returns true when the email was sent.
+  function email_payment_link($request, $email, array $text, $colour) {
+    global $db;
+    $url = (string)($request['url'] ?? '');
+    $inv = $db->Execute("SELECT purchase_invoice_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$request['ref_id']);
+    $description = $inv->EOF ? '' : 'Invoice ' . $inv->fields['purchase_invoice_id'];
+
+    $attachments = [];
+    $pdf_path    = null;
+    $pdf = $this->invoice_pdf((int)$request['ref_id']);
+    if ($pdf) {
+      $pdf_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/invoice_' . (int)$request['ref_id'] . '_' . time() . '.pdf';
+      if (@file_put_contents($pdf_path, $pdf) !== false) $attachments['file'] = $pdf_path;
+      else $pdf_path = null;
+    }
+
+    $from_name    = defined('STORE_NAME') ? STORE_NAME : 'FreeBooks';
+    $from_address = defined('EMAIL_FROM') ? EMAIL_FROM : '';
+    $subject      = sprintf($text['subject'], $from_name) . ($description ? ' — ' . $description : '');
+    $safe_url     = htmlspecialchars($url, ENT_QUOTES);
+    // validate_send_mail() sends this as HTML when EMAIL_USE_HTML is on, and
+    // strips the tags for plain-text delivery.
+    $body = '<html><body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;margin:0;padding:20px">'
+          . '<p>' . htmlspecialchars($text['intro'])
+          .   ($description ? ' <strong>' . htmlspecialchars($description, ENT_QUOTES) . '</strong>' : '') . '</p>'
+          . '<p style="text-align:center;margin:28px 0">'
+          .   '<a href="' . $safe_url . '" style="background:' . $colour . ';color:#ffffff;padding:14px 32px;'
+          .   'border-radius:6px;text-decoration:none;font-size:16px;font-weight:bold;display:inline-block">'
+          .   htmlspecialchars($text['button']) . '</a>'
+          . '</p>'
+          . ($text['expires'] !== '' ? '<p style="font-size:12px;color:#888;font-style:italic">' . htmlspecialchars($text['expires']) . '</p>' : '')
+          . '<p style="font-size:12px;color:#555">' . htmlspecialchars($text['alt_link']) . '<br>'
+          .   '<a href="' . $safe_url . '" style="color:' . $colour . '">' . $safe_url . '</a></p>'
+          . '<p>' . htmlspecialchars($text['contact']) . '</p>'
+          . '<p>Thank you,<br>' . htmlspecialchars($from_name, ENT_QUOTES) . '</p>'
+          . '</body></html>';
+    $result = validate_send_mail('', $email, $subject, $body, $from_name, $from_address, [], $attachments);
+    if ($pdf_path) @unlink($pdf_path);
+    return $result !== false;
+  }
+
+  // The printed invoice, from whichever form is filed under 'cust:inv', or null.
+  // Best effort: an email goes without it rather than not at all.
+  function invoice_pdf($invoice_id) {
+    global $db;
+    try {
+      if (!defined('MODULE_FORMS_STATUS') || !defined('TABLE_PHREEFORM')) return null;
+      $r = $db->Execute("SELECT id FROM " . TABLE_PHREEFORM
+        . " WHERE doc_group = 'cust:inv' AND (doc_ext = 'frm' OR doc_ext = 'rpt') ORDER BY doc_title LIMIT 1");
+      if ($r->EOF) return null;
+      require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+      $rendered = forms_render_to_string((int)$r->fields['id'], [$invoice_id]);
+      return !empty($rendered['pdf']) ? $rendered['pdf'] : null;
+    } catch (\Throwable $e) {
+      error_log($this->code . ': the invoice PDF for ' . $invoice_id . ' could not be made: ' . $e->getMessage());
+      return null;
+    }
   }
 
   function confirmation() {

@@ -17,13 +17,52 @@
 //  Path: /modules/payment/methods/square_terminal/language/en_us/language.php
 //
 
-define('MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_TITLE',       'Square Terminal');
-define('MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_DESCRIPTION', 'Accept card payments via a Square card terminal device.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_TITLE',       'Square');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_TEXT_DESCRIPTION', 'Accept card payments on a Square Terminal, and ask customers to pay by a Square payment link or a Square invoice.');
 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN_DESC', 'Square API access token (from the Square Developer Dashboard).');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID_DESC',  'Square Location ID where the terminal device is registered.');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_DEVICE_ID_DESC',    'Square Terminal Device ID.');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_SANDBOX_DESC',      'Use Square sandbox environment for testing.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_EMAIL_DESC', 'Email address to notify when a Square payment records a receipt (leave blank to disable).');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_WEBHOOK_KEY_DESC',  'Signature key of the webhook subscription, from the Square Developer Dashboard. Square payment requests record their receipts only when this and the notification URL are set.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_WEBHOOK_URL_DESC',  'Notification URL of the webhook subscription, exactly as entered in the Square Developer Dashboard: https://your-freebooks-host/square_webhook.php?company=NAME. Square signs it along with each message, so it must match character for character.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_CURRENCY_WARNING',  'Square takes payments only in its location\'s currency, %s, and this company\'s currency is %s. Square will refuse every payment and request until the two match.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_CURRENCY_UNKNOWN',  'Square did not say which currency its location takes, so it could not be checked against this company\'s: %s');
+
+define('MODULE_PAYMENT_SQUARE_TERMINAL_REQUEST_LINK',      'Square payment link');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_REQUEST_INVOICE',   'Square invoice');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_PART_PAYMENT',      'Part payment for %s');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_INVOICE',  'The invoice was not found.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_BAD_LINK',    'This request has no Square payment link to email.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_ERROR_NO_CUSTOMER', 'Square could not find or add the customer: %s');
+
+define('MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_SUBJECT',     'Payment link from %s');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_BTN',         'Pay Now');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_INTRO',       'Please use the link below to pay securely by card.');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_ALT_LINK',    'Or copy this link into your browser:');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_EMAIL_CONTACT',     'If you have any questions, please contact us.');
+
+define('MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_SUBJECT',    'Invoice #%s paid via Square');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_BODY',
+    "A Square payment has been received and a receipt has been automatically recorded.\n\n"
+  . "Customer:     %s\n"
+  . "Amount:       %s %s\n"
+  . "Payment ID:   %s\n"
+  . "Receipt:      %s\n"
+);
+define('MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_UNPOSTED_SUBJECT', 'Invoice #%s: Square payment larger than the balance due');
+define('MODULE_PAYMENT_SQUARE_TERMINAL_NOTIFY_UNPOSTED_BODY',
+    "A Square payment has been received for an invoice that was already paid, in whole or in part, by another receipt.\n"
+  . "Only the balance that was still due has been recorded. If the other receipt was a separate payment, the\n"
+  . "customer has paid twice and the amount not recorded is due back to them.\n\n"
+  . "Customer:     %s\n"
+  . "Paid:         %s %s\n"
+  . "Payment ID:   %s\n"
+  . "Recorded:     %s %s\n"
+  . "Not recorded: %s %s\n"
+  . "Receipts:     %s\n"
+);
 
 define('MODULE_PAYMENT_SQUARE_TERMINAL_BTN_SEND',          'Send to Terminal');
 define('MODULE_PAYMENT_SQUARE_TERMINAL_STATUS_IDLE',       'Ready — click Send to Terminal to begin.');

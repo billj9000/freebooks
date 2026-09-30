@@ -243,6 +243,9 @@ function payment_record_request_payment(array $request, array $payment) {
             . $in_inv_currency($unposted) . ' ' . $inv_currency . ' of it was not recorded');
     }
 
+    // Once the invoice is paid in full, nothing else should still be asking for it.
+    if (payment::invoice_balance($fb_invoice_id) < $half_unit) payment_withdraw_open_requests($fb_invoice_id, $request_id, $log);
+
     // ─── Tell staff ───────────────────────────────────────────────────────────
     $notify_email = (string)($payment['notify_email'] ?? '');
     if ($notify_email) {
@@ -272,4 +275,33 @@ function payment_record_request_payment(array $request, array $payment) {
         validate_send_mail('', $notify_email, $subject, $body, $from_name, $from_address);
     }
     return 200;
+}
+
+// Withdraw every request still open for the invoice $invoice_id other than
+// $except_id - a link sent before the customer paid another way, say - so that
+// the customer cannot pay it a second time. Each is withdrawn by its own
+// method; one whose method cannot withdraw it is left open, and a payment made
+// against it anyway is capped at the balance and reported.
+function payment_withdraw_open_requests($invoice_id, $except_id, $log) {
+    global $db;
+    $open = $db->Execute("SELECT * FROM " . TABLE_PAYMENT_REQUESTS . " WHERE ref_id = " . (int)$invoice_id
+        . " AND status = 'requested' AND id <> " . (int)$except_id);
+    $methods = [];
+    while (!$open->EOF) {
+        $row = $open->fields;
+        $open->MoveNext();
+        if (payment::request_display_status($row) !== 'requested') continue; // expired: nothing to withdraw
+        $code = $row['method'];
+        if (!array_key_exists($code, $methods)) {
+            $methods[$code] = null;
+            if (defined('MODULE_PAYMENT_' . strtoupper($code) . '_STATUS')) {
+                load_specific_method('payment', $code);
+                if (class_exists($code)) $methods[$code] = new $code();
+            }
+        }
+        if ($methods[$code] && $methods[$code]->cancel_request($row)) {
+            $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'cancelled', completed_at = NOW() WHERE id = " . (int)$row['id']);
+            error_log($log . ': withdrew request ' . $row['id'] . ' (' . $code . ' ' . $row['request_type'] . '): invoice ' . $invoice_id . ' is paid');
+        }
+    }
 }
