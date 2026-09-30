@@ -26,7 +26,9 @@
 // received when it was not has no reason to try again.
 
 $outcome = 'processing';
-if (@include __DIR__ . '/modules/payment/methods/paypal/standalone.php') {
+if (@include __DIR__ . '/modules/payment/standalone.php') {
+    load_specific_method('payment', 'paypal');
+    $pp      = new paypal();
     $capture = $pp->capture_mapped_order((string)($_GET['token'] ?? ''));
     if ($capture === false) {
         $outcome = 'failed';
@@ -35,7 +37,7 @@ if (@include __DIR__ . '/modules/payment/methods/paypal/standalone.php') {
         $outcome = ($capture['status'] ?? '') === 'COMPLETED' ? 'received' : 'pending';
     }
 } else {
-    error_log('paypal_return: ' . ($pp_standalone_error ?? 'FreeBooks did not start'));
+    error_log('paypal_return: ' . ($pay_standalone_error ?? 'FreeBooks did not start'));
 }
 
 $pages = [

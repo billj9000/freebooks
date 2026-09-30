@@ -14,26 +14,26 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /modules/payment/methods/paypal/standalone.php
+//  Path: /modules/payment/standalone.php
 //
-// Starts FreeBooks for a PayPal page that PayPal or a paying customer calls
-// directly, with no login: paypal_webhook.php and paypal_return.php. It chooses
-// the company, connects to its database, loads its settings, the journal
-// classes and the PayPal method, and leaves $db, $currencies, $messageStack and
-// $pp (the PayPal method) ready.
+// Starts FreeBooks for a page that a payment service or a paying customer calls
+// directly, with no login: a payment method's webhook and return pages. It
+// chooses the company, connects to its database, loads its settings, the
+// journal classes and the payment base class, and leaves $db, $currencies and
+// $messageStack ready. The caller loads its own payment method.
 //
 // Include it from the top level of the calling script, so that what it defines
 // is global. It does not end the request: it evaluates to true when FreeBooks is
-// ready and false when it is not, with the reason in $pp_standalone_error, and
-// the caller decides what to answer. $pp_standalone_status is the HTTP status that
-// fits: 400 when the request named no usable company, 500 otherwise.
+// ready and false when it is not, with the reason in $pay_standalone_error, and
+// the caller decides what to answer. $pay_standalone_status is the HTTP status
+// that fits: 400 when the request named no usable company, 500 otherwise.
 
 define('PAGE_EXECUTION_START_TIME', microtime(true));
 
-$trunk = dirname(__DIR__, 4) . '/';
+$trunk = dirname(__DIR__, 2) . '/';
 if (!file_exists($trunk . 'includes/configure.php')) {
-    $pp_standalone_error  = 'configure.php not found';
-    $pp_standalone_status = 500;
+    $pay_standalone_error  = 'configure.php not found';
+    $pay_standalone_status = 500;
     return false;
 }
 require($trunk . 'includes/configure.php');
@@ -81,16 +81,16 @@ if (is_dir($mf)) {
 $requested = (string)($_GET['company'] ?? '');
 if ($requested !== '') {
     if (!in_array($requested, $companies, true)) {
-        $pp_standalone_error  = 'no company named in ?company= exists';
-        $pp_standalone_status = 400;
+        $pay_standalone_error  = 'no company named in ?company= exists';
+        $pay_standalone_status = 400;
         return false;
     }
     $company = $requested;
 } elseif (count($companies) === 1) {
     $company = $companies[0];
 } else {
-    $pp_standalone_error  = count($companies) . ' companies and none named; add ?company=<name> to the URL';
-    $pp_standalone_status = 400;
+    $pay_standalone_error  = count($companies) . ' companies and none named; add ?company=<name> to the URL';
+    $pay_standalone_status = 400;
     return false;
 }
 $_SESSION['company'] = $company;
@@ -163,7 +163,7 @@ gen_pull_language('contacts');
 gen_pull_language('phreebooks');
 gen_pull_language('phreebooks', 'menu');
 // The payment base class constructor reads its setting labels from the payment
-// module's admin strings, so constructing the PayPal method needs them.
+// module's admin strings, so constructing any method needs them.
 gen_pull_language('payment', 'admin');
 error_reporting($_prev_er); unset($_prev_er);
 
@@ -173,9 +173,8 @@ require_once(DIR_FS_MODULES . 'phreebooks/classes/orders.php');
 require_once(DIR_FS_MODULES . 'phreebooks/classes/banking.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
-// ─── PayPal method ────────────────────────────────────────────────────────────
+// ─── Payment methods ──────────────────────────────────────────────────────────
 require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
-load_specific_method('payment', 'paypal');
-$pp = new paypal();
+require_once(DIR_FS_MODULES . 'payment/functions/request_receipt.php');
 
 return true;
