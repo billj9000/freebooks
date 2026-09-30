@@ -231,7 +231,7 @@ function payment_record_request_payment(array $request, array $payment) {
         }
     }
     $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'paid', capture_id = '" . db_input($txn_id) . "',"
-        . " receipt_id = " . ($post_amount > 0 ? (int)$pay->id : "NULL") . ", completed_at = NOW()"
+        . " receipt_id = " . ($post_amount > 0 ? (int)$pay->id : "NULL") . ", completed_at = '" . date('Y-m-d H:i:s') . "'"
         . " WHERE id = " . $request_id);
     $db->transCommit();
     http_response_code(200);
@@ -303,7 +303,8 @@ function payment_withdraw_open_requests($invoice_id, $except_id, $log) {
             }
         }
         if ($methods[$code] && $methods[$code]->cancel_request($row)) {
-            $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'cancelled', completed_at = NOW() WHERE id = " . (int)$row['id']);
+            $db->Execute("UPDATE " . TABLE_PAYMENT_REQUESTS . " SET status = 'cancelled', completed_at = '" . date('Y-m-d H:i:s') . "'"
+                . " WHERE id = " . (int)$row['id']);
             error_log($log . ': withdrew request ' . $row['id'] . ' (' . $code . ' ' . $row['request_type'] . '): invoice ' . $invoice_id . ' is paid');
         }
     }

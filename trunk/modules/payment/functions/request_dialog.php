@@ -51,13 +51,15 @@ function payment_request_methods($currency = null) {
 }
 
 // The newest request for each of the invoices $invoice_ids, as id => row.
+// A cancelled request is passed over: it was withdrawn because the invoice
+// was paid, and the request that was paid is the one worth showing.
 function payment_latest_requests($invoice_ids) {
   global $db;
   $ids = array_filter(array_map('intval', (array)$invoice_ids));
   if (!$ids || !defined('TABLE_PAYMENT_REQUESTS') || !db_table_exists(TABLE_PAYMENT_REQUESTS)) return [];
   $out = [];
   $r = $db->Execute("SELECT * FROM " . TABLE_PAYMENT_REQUESTS . " WHERE ref_id IN (" . implode(',', $ids) . ")"
-    . " ORDER BY created_at, id");
+    . " AND status <> 'cancelled' ORDER BY created_at, id");
   while (!$r->EOF) { $out[(int)$r->fields['ref_id']] = $r->fields; $r->MoveNext(); }
   return $out;
 }
