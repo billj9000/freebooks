@@ -50,3 +50,27 @@ if (db_field_exists(TABLE_CONTACTS, 'tax_id')) {
     $db->Execute("UPDATE " . TABLE_CONTACTS . " SET tax_id = -1 WHERE tax_id IS NULL");
     $db->Execute("ALTER TABLE " . TABLE_CONTACTS . " MODIFY tax_id int(11) NOT NULL DEFAULT '-1'");
 }
+
+// ---- column widths ----------------------------------------------------------
+// Names, addresses and descriptions arrive from outside - the web shop, carrier
+// and payment services - longer than these columns held. A lax server cut them
+// to fit without a word (about a thousand addresses and a thousand product
+// descriptions were found cut at exactly the width); a strict one refuses the
+// whole write, so an order with a long address line would not import at all.
+// Widened as the installer now declares them; only ever widened.
+db_widen_column(TABLE_ADDRESS_BOOK, 'primary_name', 64, "varchar(64) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'contact', 64, "varchar(64) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'address1', 64, "varchar(64) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'address2', 64, "varchar(64) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'city_town', 64, "varchar(64) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'state_province', 32, "varchar(32) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'postal_code', 24, "varchar(24) NOT NULL default ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'telephone1', 32, "VARCHAR(32) NULL DEFAULT ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'telephone2', 32, "VARCHAR(32) NULL DEFAULT ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'telephone3', 32, "VARCHAR(32) NULL DEFAULT ''");
+db_widen_column(TABLE_ADDRESS_BOOK, 'telephone4', 32, "VARCHAR(32) NULL DEFAULT ''");
+db_widen_column(TABLE_CONTACTS, 'short_name', 64, "varchar(64) NOT NULL default ''");
+db_widen_column(TABLE_CONTACTS, 'contact_first', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_CONTACTS, 'contact_middle', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_CONTACTS, 'contact_last', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_CONTACTS, 'gov_id_number', 32, "varchar(32) NOT NULL default ''");

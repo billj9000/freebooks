@@ -84,7 +84,7 @@ class inventory_admin {
 		  sku varchar(24) NOT NULL default '',
 		  inactive enum('0','1') NOT NULL default '0',
 		  inventory_type char(2) NOT NULL default 'si',
-		  description_short varchar(32) NOT NULL default '',
+		  description_short varchar(128) NOT NULL default '',
 		  description_purchase varchar(255) default NULL,
 		  description_sales varchar(255) default NULL,
 		  image_with_path varchar(255) default NULL,
@@ -131,7 +131,7 @@ class inventory_admin {
 		  id int(11) NOT NULL auto_increment,
 		  ref_id int(11) NOT NULL default '0',
 		  sku varchar(24) NOT NULL default '',
-		  description varchar(32) NOT NULL default '',
+		  description varchar(128) NOT NULL default '',
 		  qty double NOT NULL default '0',
 		  PRIMARY KEY (id),
 		  KEY ref_id (ref_id)

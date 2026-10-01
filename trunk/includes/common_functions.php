@@ -1057,14 +1057,17 @@ function gen_db_date($raw_date = '', $separator = '/') {
     // Zero dates are logged but never coerced - they are legal on MariaDB, and
     // the log is how the writers still producing one get found. Both tests are
     // string comparisons, so the early return below stays cheap.
+    // Any text may also be too long for its column, so a table holding text is
+    // looked at whenever text is written to it; its columns are read once per
+    // request.
     $suspect = false;
     foreach ($data as $value) {
-      if (db_value_is_blank($value) || db_value_is_zero_date($value)) { $suspect = true; break; }
+      if (db_value_is_blank($value) || db_value_is_zero_date($value) || is_string($value)) { $suspect = true; break; }
     }
     if (!$suspect) return $data;
     if (!isset($meta[$table])) {
       $meta[$table] = array();
-      $result = $db->Execute("select column_name, data_type, column_type, is_nullable, column_default, extra
+      $result = $db->Execute("select column_name, data_type, column_type, is_nullable, column_default, extra, character_maximum_length
         from information_schema.columns where table_schema = database() and table_name = '" . db_input($table) . "'");
       while (!$result->EOF) { $meta[$table][$result->fields['column_name']] = $result->fields; $result->MoveNext(); }
     }
@@ -1078,6 +1081,17 @@ function gen_db_date($raw_date = '', $separator = '/') {
       // Legal today, so recorded rather than changed.
       if (db_value_is_zero_date($value) && in_array($info['data_type'], array('date','datetime','timestamp'))) {
         db_log_empty_write($table, $column, "zero date '" . $value . "'", 'kept', false);
+        continue;
+      }
+      // Too long for a varchar or char: a lax server cuts it to fit, and a strict
+      // one refuses the whole write - an order whose address line is a character
+      // too long would not be saved at all. Cut here, as the lax server does, and
+      // log it, so the column can be widened. Always, not only when coercing:
+      // on a lax server the result is the same as before.
+      if (is_string($value) && in_array($info['data_type'], array('varchar', 'char'), true)
+          && ($width = (int)$info['character_maximum_length']) > 0 && mb_strlen($value, 'UTF-8') > $width) {
+        $data[$column] = mb_substr($value, 0, $width, 'UTF-8');
+        db_log_empty_write($table, $column, 'a value of ' . mb_strlen($value, 'UTF-8') . ' characters', 'its first ' . $width, true);
         continue;
       }
       if (!db_value_is_blank($value)) continue;
@@ -1274,6 +1288,20 @@ function gen_db_date($raw_date = '', $separator = '/') {
       $query = substr($query, 0, -2) . ' where ' . $parameters;
     }
     return $db->Execute($query);
+  }
+
+  /**
+   * Widen $column of $table to $width characters, declared as $definition
+   * (the full column declaration after its name, as the installer writes it),
+   * only if it is narrower now. Widening keeps every value, and running it
+   * again does nothing - for the per-module migrations.
+   */
+  function db_widen_column($table, $column, $width, $definition) {
+    global $db;
+    $r = $db->Execute("SELECT CHARACTER_MAXIMUM_LENGTH AS len FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+      . " AND TABLE_NAME = '" . db_input($table) . "' AND COLUMN_NAME = '" . db_input($column) . "'");
+    if ($r->EOF || (int)$r->fields['len'] >= (int)$width) return;
+    $db->Execute("ALTER TABLE " . $table . " MODIFY " . $column . " " . $definition);
   }
 
   function db_insert_id() {

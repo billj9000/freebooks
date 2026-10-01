@@ -197,3 +197,13 @@ if (db_field_exists(TABLE_INVENTORY, 'full_price_with_tax')) {
             . " AND (full_price_with_tax = 0 OR ABS(full_price_with_tax - $computed) > " . (float)$tolerance . ")");
     }
 }
+
+// ---- column widths ----------------------------------------------------------
+// Names, addresses and descriptions arrive from outside - the web shop, carrier
+// and payment services - longer than these columns held. A lax server cut them
+// to fit without a word (about a thousand addresses and a thousand product
+// descriptions were found cut at exactly the width); a strict one refuses the
+// whole write, so an order with a long address line would not import at all.
+// Widened as the installer now declares them; only ever widened.
+db_widen_column(TABLE_INVENTORY, 'description_short', 128, "varchar(128) NOT NULL default ''");
+db_widen_column(TABLE_INVENTORY_ASSY_LIST, 'description', 128, "varchar(128) NOT NULL default ''");

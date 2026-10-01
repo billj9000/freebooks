@@ -77,3 +77,28 @@ if (!db_field_exists(TABLE_JOURNAL_ITEM, 'restock')) {
 // The line format a supplier's ordering system expects. contacts.export_profile_id
 // assigns one to a vendor.
 if (!db_table_exists(TABLE_PURCHASE_EXPORT_PROFILE)) $db->Execute($this->tables[TABLE_PURCHASE_EXPORT_PROFILE]);
+
+// ---- column widths ----------------------------------------------------------
+// Names, addresses and descriptions arrive from outside - the web shop, carrier
+// and payment services - longer than these columns held. A lax server cut them
+// to fit without a word (about a thousand addresses and a thousand product
+// descriptions were found cut at exactly the width); a strict one refuses the
+// whole write, so an order with a long address line would not import at all.
+// Widened as the installer now declares them; only ever widened.
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_primary_name', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_contact', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_address1', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_address2', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_city_town', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_state_province', 32, "varchar(32) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_postal_code', 24, "varchar(24) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'bill_telephone1', 32, "varchar(32) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_primary_name', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_contact', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_address1', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_address2', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_city_town', 64, "varchar(64) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_state_province', 32, "varchar(32) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_postal_code', 24, "varchar(24) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'ship_telephone1', 32, "varchar(32) default NULL");
+db_widen_column(TABLE_JOURNAL_MAIN, 'description', 64, "varchar(64) default NULL");
