@@ -72,6 +72,13 @@ if (!$event || !isset($event['event_type'])) {
 
 // Verify PayPal signature (skip in Sandbox mode to allow PayPal Simulator).
 $sandbox = defined('MODULE_PAYMENT_PAYPAL_TESTMODE') && MODULE_PAYMENT_PAYPAL_TESTMODE === 'Sandbox';
+// Sandbox skips the signature, so the shared secret above is then the only
+// guard: without one configured, nothing proves the call came from PayPal.
+if ($sandbox && (!defined('MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET') || MODULE_PAYMENT_PAYPAL_WEBHOOK_SECRET === '')) {
+    http_response_code(403);
+    error_log('paypal_webhook: Sandbox mode with no webhook secret configured, refused');
+    exit;
+}
 if (!$sandbox) {
     $sig_payload = [
         'auth_algo'       => $_SERVER['HTTP_PAYPAL_AUTH_ALGO']       ?? '',

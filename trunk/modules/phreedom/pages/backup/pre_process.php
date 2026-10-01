@@ -32,6 +32,8 @@ if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'save':
+	// A full dump carries every table, credentials included: full level.
+	validate_security($security_level, 4);
   	$conv_type  = $_POST['conv_type'];
 	$dl_type    = $_POST['dl_type'];
 	$save_local = (isset($_POST['save_local'])) ? true : false;
@@ -75,6 +77,7 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'backup_log':
+	validate_security($security_level, 3);
 	if (ini_get('max_execution_time') < 20000) set_time_limit(20000);
 	$backup              = new backup;
 	$backup->db_filename = 'log-' . $_SESSION['company'] . '-' . date('Ymd');
@@ -93,6 +96,8 @@ switch ($_REQUEST['action']) {
     break;
 
   case 'clean_log':
+	// It deletes audit history.
+	validate_security($security_level, 4);
     $temp = gen_get_dates(date('Y-m-d'));
 	$current_date = date('Y-m-d', mktime(0, 0, 0, $temp['ThisMonth'], 1, $temp['ThisYear']));
     $result = $db->Execute("delete from " . TABLE_AUDIT_LOG . " where action_date < '" . $current_date . "'");
@@ -130,7 +135,8 @@ switch ($_REQUEST['action']) {
   case 'delete_restore_file':
     validate_security($security_level, 4);
     $backups_dir = DIR_FS_MY_FILES . 'backups/';
-    $fn = preg_replace('/[^A-Za-z0-9_\-\.]/i', '', $_GET['fn'] ?? '');
+    // Only as a POST, which index.php has checked for its csrf_token.
+    $fn = $_SERVER['REQUEST_METHOD'] === 'POST' ? preg_replace('/[^A-Za-z0-9_\-\.]/i', '', $_POST['fn'] ?? '') : '';
     if ($fn && preg_match('/\.(sql|gz|bz2|zip|csv)$/i', $fn) && @unlink($backups_dir . $fn)) {
       @unlink($backups_dir . $fn . '.sql'); // remove any decompressed temp
       $messageStack->add($fn . BIGDUMP_REMOVED, 'success');

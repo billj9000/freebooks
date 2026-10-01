@@ -25,10 +25,16 @@ require_once(DIR_FS_WORKING . 'functions/shipping.php');
 /**************   page specific initialization  *************************/
 $close_popup = false;
 $methods     = load_all_methods('shipping');
-$sID         = $_GET['sID']    ? $_GET['sID']    : '';
-$method      = $_GET['method'] ? $_GET['method'] : '';
+// sID goes into SQL unquoted: a whole number, or '' for a new entry. A method or
+// carrier name is instantiated as a class: an installed shipping method only.
+$sID         = ctype_digit((string)($_GET['sID'] ?? '')) ? (string)$_GET['sID'] : '';
+$method      = (string)($_GET['method'] ?? '');
+if ($method !== '' && !shipping_method_is_valid($method)) $method = '';
 $ship_date   = date('Y-m-d');
 if ($method) $subject_module = new $method();
+if (in_array($_REQUEST['action'], array('delete', 'save'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+  $_REQUEST['action'] = ''; // they change state; the form posts them (CSRF-checked)
+}
 
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_MODULES . 'shipping/custom/pages/popup_tracking/extra_actions.php';
@@ -40,6 +46,7 @@ switch ($_REQUEST['action']) {
     $row = $db->Execute("select carrier, ship_date, tracking_id, carrier_order_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
     if ($row->RecordCount() == 0) { $messageStack->add(SHIPPING_DELETE_ERROR, 'error'); break; }
     $del_carrier  = $row->fields['carrier'];
+    if (!shipping_method_is_valid($del_carrier, false)) { $messageStack->add(SHIPPING_DELETE_ERROR, 'error'); break; }
     $del_tracking = $row->fields['tracking_id'];
     // Some carriers (e.g. Royal Mail Click & Drop) cancel by a different id than
     // the tracking number shown to the user — use it when one was recorded.
@@ -59,6 +66,7 @@ switch ($_REQUEST['action']) {
     break;
   case 'save':
     if (!$method) break;
+    if (!shipping_method_is_valid(db_prepare_input($_POST['carrier'] ?? ''), false)) { $messageStack->add(ERROR_NO_PERMISSION, 'error'); break; }
 	$sql_data_array = array(
 		'carrier'      => db_prepare_input($_POST['carrier']),
 		'ref_id'       => db_prepare_input($_POST['ref_id']),
@@ -75,7 +83,7 @@ switch ($_REQUEST['action']) {
 	  $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
       gen_add_audit_log(SHIPPING_SHIPMENT_DETAILS . ' - ' . TEXT_INSERT, $sID);
 	} else { // update
-	  db_perform(TABLE_SHIPPING_LOG, $sql_data_array, 'update', "id = " . $sID);
+	  db_perform(TABLE_SHIPPING_LOG, $sql_data_array, 'update', "id = " . (int)$sID);
       gen_add_audit_log(SHIPPING_SHIPMENT_DETAILS . ' - ' . TEXT_UPDATE, $sID);
 	}
 	$close_popup = true;
@@ -113,8 +121,12 @@ if ($sID) {
       '&from_name='  . urlencode(defined('COMPANY_NAME')  ? COMPANY_NAME  : '') .
       '&from_email=' . urlencode(defined('COMPANY_EMAIL') ? COMPANY_EMAIL : ''), 'SSL');
   }
-  load_specific_method('shipping', $cInfo->carrier);
-  $has_carrier_cancel = method_exists(new $cInfo->carrier(), 'cancelShipment');
+  if (shipping_method_is_valid((string)$cInfo->carrier, false)) {
+    load_specific_method('shipping', $cInfo->carrier);
+    $has_carrier_cancel = method_exists(new $cInfo->carrier(), 'cancelShipment');
+  } else {
+    $label_viewer_url = '';
+  }
   // need to build the methods pull down
   $carrier_methods = array();
   foreach ($shipping_defaults['service_levels'] as $key => $value) {

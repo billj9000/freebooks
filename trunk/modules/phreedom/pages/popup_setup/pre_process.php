@@ -17,6 +17,10 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/pages/popup_setup/pre_process.php
 //
+/**************   Check user security   *****************************/
+// Checked before the subject class is built: its constructor reads the posted form.
+// A refusal leaves the page rather than rendering the form.
+$security_level = validate_user(SECURITY_ID_CONFIGURATION);
 /**************  include page specific files    *********************/
 // Both name paths the require below reads from, and $subject is then
 // instantiated as a class. Stripping everything but word characters means no
@@ -34,14 +38,18 @@ require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 require_once(DIR_FS_MODULES . $topic . '/classes/' . $subject . '.php');
 /**************   page specific initialization  *************************/
 $close_popup    = false;
-$sID            = $_GET['sID'];
+// The admin classes put it into SQL unquoted: a whole number, or '' for a new
+// record. Except where the record's key is text - an account number, which may
+// hold letters, dots or dashes - and that class escapes it wherever it is used.
+$text_keys      = array('chart_of_accounts');
+$id_rule        = function ($v) use ($subject, $text_keys) {
+  $v = (string)$v;
+  return in_array($subject, $text_keys, true) ? $v : (ctype_digit($v) ? $v : '');
+};
+$sID            = $id_rule($_GET['sID'] ?? '');
+$_GET['sID']    = $sID; // the classes' constructors read it from here too
+if (isset($_POST['sID'])) $_POST['sID'] = $id_rule($_POST['sID']);
 $subject_module = new $subject();
-/**************   Check user security   *****************************/
-$security_level = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
-if ($security_level == 0) { // not supposed to be here
-  $messageStack->add(ERROR_NO_PERMISSION, 'error');
-  $close_popup = true;
-}
 /***************   hook for custom actions  ***************************/
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {

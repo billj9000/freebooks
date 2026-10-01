@@ -51,6 +51,15 @@ if ($dir = @dir($method_dir)) {
   $dir->close();
 }
 sort($methods);
+// $method is required and instantiated below: an available method, by name, and
+// only from the posted (CSRF-checked) form since it changes state.
+if (in_array($_REQUEST['action'], array('install', 'remove'), true)) {
+  $method = (string)($method ?? '');
+  if (!preg_match('/^[a-z0-9_]+$/', $method) || !in_array($method, $methods, true) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $messageStack->add(ERROR_NO_PERMISSION, 'error');
+    $_REQUEST['action'] = '';
+  }
+}
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'install':

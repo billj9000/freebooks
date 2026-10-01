@@ -31,6 +31,52 @@ function pw_reset_lookup($token) {
   return (!$result->EOF) ? $result->fields : false;
 }
 
+/**
+ * The security levels a users/roles save may store, as security_id => level.
+ * Each level is 0..4 and never above the level the caller holds for that id, so
+ * no one can grant more than they have; admin_id 1 is the unrestricted admin.
+ * A level the record already holds above the caller's own is one the caller may
+ * not touch, so it is kept as it was, even when the form left it out.
+ */
+function phreedom_clamp_security($requested, $existing = array()) {
+  $unrestricted = ((int)$_SESSION['admin_id'] === 1);
+  $result = array();
+  foreach ((array)$requested as $id => $level) {
+    if (!ctype_digit((string)$id)) continue;
+    $level = max(0, min(4, (int)$level));
+    if (!$unrestricted) {
+      $own   = (int)($_SESSION['admin_security'][$id] ?? 0);
+      $had   = (int)($existing[$id] ?? 0);
+      $level = ($had > $own) ? min(4, $had) : min($level, $own);
+    }
+    $result[(int)$id] = $level;
+  }
+  if (!$unrestricted) foreach ((array)$existing as $id => $had) {
+    if (!ctype_digit((string)$id) || isset($result[(int)$id])) continue;
+    if ((int)$had > (int)($_SESSION['admin_security'][$id] ?? 0)) $result[(int)$id] = max(0, min(4, (int)$had));
+  }
+  return $result;
+}
+
+/**
+ * True when the user holds any level above the caller's own, or is admin_id 1.
+ * Such a user's password and e-mail (the reset route) are not the caller's to set.
+ */
+function phreedom_user_outranks_caller($admin_id, $levels) {
+  if ((int)$_SESSION['admin_id'] === 1) return false;
+  if ((int)$admin_id === 1) return true;
+  foreach ((array)$levels as $id => $level) {
+    if ((int)$level > (int)($_SESSION['admin_security'][$id] ?? 0)) return true;
+  }
+  return false;
+}
+
+function phreedom_implode_security($levels) {
+  $settings = array();
+  foreach ($levels as $key => $value) $settings[] = "$key:$value";
+  return implode(',', $settings);
+}
+
 function load_company_dropdown($include_select = false) {
   $output = array();
   $i = 1;
@@ -323,23 +369,28 @@ function admin_add_reports($module, $save_path = null, $paper_size = '') {
 /************************ install functions ******************************/
 function install_build_co_config_file($company, $key, $value) {
   global $messageStack;
+  // The company is a directory name and the key a constant name, both written into PHP source.
+  if (!preg_match('/^[A-Za-z0-9_]+$/', (string)$company) || !preg_match('/^[A-Za-z0-9_]+$/', (string)$key)) {
+    $messageStack->add(sprintf(MSG_ERROR_CANNOT_WRITE, 'config.php'), 'error');
+    return false;
+  }
   $filename = DIR_FS_ADMIN . 'my_files/' . $company . '/config.php';
   if (file_exists($filename)) { // update
     $lines = file($filename);
     $found_it = false;
     for ($x = 0; $x < count($lines); $x++) {
 	  if (strpos(substr($lines[$x], 0, strpos($lines[$x], ',')), $key)) {
-	    $lines[$x] = "define('" . $key . "','" . addslashes($value) . "');" . "\n";
+	    $lines[$x] = "define('" . $key . "'," . var_export((string)$value, true) . ");" . "\n";
 	    $found_it = true;
 	    break;
 	  }
     }
-    if (!$found_it) $lines[] = "define('" . $key . "','" . addslashes($value) . "');" . "\n";
+    if (!$found_it) $lines[] = "define('" . $key . "'," . var_export((string)$value, true) . ");" . "\n";
   } else { // create the config file, because it doesn't exist
     $lines = array();
     $lines[] = '<?php' . "\n";
     $lines[] = '/* config.php */' . "\n";
-    $lines[] = "define('" . $key . "','" . addslashes($value) . "');" . "\n";
+    $lines[] = "define('" . $key . "'," . var_export((string)$value, true) . ");" . "\n";
   }
   $line = implode('', $lines);
   if (!$handle = @fopen($filename, 'w')) {

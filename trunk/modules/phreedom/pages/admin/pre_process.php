@@ -46,6 +46,18 @@ if (substr($_REQUEST['action'], 0, 8) == 'install_') {
   $method = substr($_REQUEST['action'], 7);
   $_REQUEST['action'] = 'remove';
 }
+// $method names a module directory that is required and instantiated below: an
+// existing module only, by name.
+if (in_array($_REQUEST['action'], array('install', 'update', 'remove'), true)) {
+  $method = (string)($method ?? '');
+  if (!preg_match('/^[a-z0-9_]+$/', $method) || !is_dir(DIR_FS_MODULES . $method)) {
+    $messageStack->add(GEN_ERROR_BAD_TARGET, 'error');
+    $_REQUEST['action'] = '';
+  } elseif ($_SERVER['REQUEST_METHOD'] !== 'POST') { // they change state; the form posts them (CSRF-checked)
+    $messageStack->add(ERROR_NO_PERMISSION, 'error');
+    $_REQUEST['action'] = '';
+  }
+}
 $install   = new phreedom_admin();
 $currency  = new currency();
 // load other module admin information
@@ -149,12 +161,15 @@ switch ($_REQUEST['action']) {
     break;
   case 'delete':
   	validate_security($security_level, 4);
-  	$subject = $_POST['subject'];
-    $id      = $_POST['rowSeq'];
-	if (!$subject || !$id) break;
+  	$subject = $_POST['subject'] ?? '';
+    $id      = (int)($_POST['rowSeq'] ?? 0);
+	// $$subject names a variable of this page: only the setup objects it deletes from.
+	if (!in_array($subject, array('currency'), true) || !$id) break;
     if ($$subject->btn_delete($id)) $close_popup = true;
 	break;
   case 'copy_co':
+	validate_security($security_level, 4);
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break; // the form posts it (CSRF-checked)
 	$db_server = db_prepare_input($_POST['db_server']);
 	$db_name   = db_prepare_input($_POST['db_name']);
 	$db_user   = db_prepare_input($_POST['db_user']);
@@ -202,6 +217,8 @@ switch ($_REQUEST['action']) {
 	// error check company name and company full name
 	if (!$db_name || !$co_name)           $error = $messageStack->add(SETUP_CO_MGR_ERROR_EMPTY_FIELD,'error');
 	if ($db_name == $_SESSION['company']) $error = $messageStack->add(SETUP_CO_MGR_DUP_DB_NAME,'error');
+	// It becomes a directory under my_files/ and a PHP constant name: letters, digits and _ only.
+	if ($db_name && !preg_match('/^[A-Za-z0-9_]+$/', $db_name)) $error = $messageStack->add(SETUP_CO_MGR_ERROR_EMPTY_FIELD,'error');
 	// check for database already exists
 	$db_orig = new queryFactory;
 	if (!$db_orig->connect(DB_SERVER_HOST, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE)) {
@@ -385,6 +402,8 @@ switch ($_REQUEST['action']) {
 	$default_tab_id = 'manager';
 	break;
   case 'delete_co':
+	validate_security($security_level, 4);
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break; // the form posts it (CSRF-checked)
 	$db_name = $_SESSION['companies'][$_POST['del_company']];
 	// Failsafe to prevent current company from being deleted accidently
 	$backup = new backup;
@@ -439,6 +458,7 @@ switch ($_REQUEST['action']) {
 	$default_tab_id = 'tools';
 	break;
   case 'clean_security':
+	validate_security($security_level, 4);
 	$clean_date = gen_db_date($_POST['clean_date']);
 	if (!$clean_date) break;
 	$result = $db->Execute("delete from ".TABLE_DATA_SECURITY." where exp_date < '".$clean_date."'");

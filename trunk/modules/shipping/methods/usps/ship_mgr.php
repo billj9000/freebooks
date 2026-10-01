@@ -59,7 +59,7 @@
 			echo '    <td align="right">' . $currencies->format_full($result->fields['cost']) . '</td>' . chr(10);
 			echo '    <td align="right">';
 	  		echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'usps\', \'edit\', ' . $result->fields['id'] . ')"') . chr(10);
-	  		echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=usps&amp;sID=' . $result->fields['shipment_id'] . '&amp;action=delete\',\'popup_label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);
+	  		echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'\',\'popup_label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\'); submitPost(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=usps&amp;action=delete\', {sID: ' . (int)$result->fields['shipment_id'] . '}, \'popup_label_mgr\')"') . chr(10);
 			echo '    </td>';
 			echo '  </tr>' . chr(10);
 			$result->MoveNext();

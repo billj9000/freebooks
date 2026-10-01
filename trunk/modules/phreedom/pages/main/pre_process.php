@@ -27,6 +27,9 @@ require_once(DIR_FS_WORKING . 'functions/webauthn.php');
 /**************   page specific initialization  *************************/
 $error        = false; 
 $menu_id      = isset($_GET['mID']) ? $_GET['mID'] : 'index'; // default to index unless heading is passed
+// It names a dashboard page and reaches SQL through the dashboards' own
+// queries: a plain name, nothing else.
+$menu_id      = preg_replace('/[^A-Za-z0-9_]/', '', (string)$menu_id);
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_req') $_REQUEST['action'] = 'pw_lost_req';
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_sub') $_REQUEST['action'] = 'pw_lost_sub';
 // pw_reset_form / pw_reset_save arrive as an explicit action= on the e-mailed link (see pw_lost_sub)

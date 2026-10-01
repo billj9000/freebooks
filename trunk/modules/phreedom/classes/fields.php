@@ -46,7 +46,9 @@ class fields {
 	  	$this->module      = $module;
 	  	$this->db_table    = $db_table;
 	  	$this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
-	  	$this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+	  	// It goes into SQL unquoted: a whole number, or '' for a new field.
+	  	$id = isset($_POST['sID']) ? $_POST['sID'] : ($_GET['sID'] ?? '');
+	  	$this->id = ctype_digit((string)$id) ? (string)$id : '';
 		if ($sync) xtra_field_sync_list($this->module, $this->db_table);
 	}
 

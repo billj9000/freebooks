@@ -106,8 +106,8 @@ foreach ($files as $f) {
   else                                  $type = 'Other';
 
   $fn_js  = htmlspecialchars(json_encode($f), ENT_QUOTES);
-  $del_url = html_href_link(FILENAME_DEFAULT,
-    gen_get_all_get_params(array('action', 'fn')) . '&action=delete_restore_file&fn=' . urlencode($f), 'SSL');
+  // Deleting is a POST (submitPost), so index.php checks its csrf_token.
+  $del_url = html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'fn')) . '&action=delete_restore_file', 'SSL');
 
   echo "<tr>\n";
   echo "  <td>" . htmlspecialchars($f) . "</td>\n";
@@ -119,8 +119,8 @@ foreach ($files as $f) {
   } else {
     echo "  <td><button type=\"button\" class=\"btn btn-primary btn-sm\" onclick=\"startRestore($fn_js, 0, 0, 1)\">" . GEN_RESTORE_DB_BUTTON . "</button></td>\n";
   }
-  echo "  <td><a href=\"$del_url\" onclick=\"return confirm(" .
-    htmlspecialchars(json_encode(TEXT_DELETE . '?'), ENT_QUOTES) . ")\">" . BIGDUMP_DEL_FILE . "</a></td>\n";
+  echo "  <td><a href=\"#\" onclick=\"if (confirm(" . htmlspecialchars(json_encode(TEXT_DELETE . '?'), ENT_QUOTES) . ")) submitPost("
+     . htmlspecialchars(json_encode(str_replace('&amp;', '&', $del_url)), ENT_QUOTES) . ", {fn: $fn_js}); return false;\">" . BIGDUMP_DEL_FILE . "</a></td>\n";
   echo "</tr>\n";
 }
 ?>

@@ -1,13 +1,33 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/ajax/restore_chunk.php
 //
 // Processes one chunk of a SQL dump file.
 // Reads $linespersession lines, executes them via PDO, returns JSON.
 //
-$security_level = validate_ajax_user();
+// Replaying a backup rewrites the whole company: the backup permission at full level.
+$security_level = validate_ajax_user(SECURITY_ID_BACKUP);
+// A restore step changes the database: only as a POST, which index.php has
+// checked for its csrf_token.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); die; }
+if ($security_level < 4) {
+  header('Content-Type: application/json');
+  echo json_encode(array('status'=>'error','message'=>ERROR_NO_PERMISSION)); exit;
+}
 
 header('Content-Type: application/json');
 header('Cache-Control: no-cache');

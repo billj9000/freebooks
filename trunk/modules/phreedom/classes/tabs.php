@@ -26,9 +26,17 @@ class tabs {
     public  $extra_buttons = '';
     public  $title       = '';
     
+    // The class's own settings, never taken from a posted form.
+    const NOT_FROM_FORMS = array('id', 'module', 'help_path', 'title', 'error', 'extra_buttons', 'security_id');
+
     public function __construct (){
-    	foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
-    	$this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+    	foreach ($_POST as $key => $value) {
+    	  if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
+    	  $this->$key = db_prepare_input($value);
+    	}
+    	// It goes into SQL unquoted: a whole number, 0 for a new tab.
+    	$id = isset($_POST['sID']) ? $_POST['sID'] : ($_GET['sID'] ?? '');
+    	$this->id = ctype_digit((string)$id) ? (int)$id : 0;
     }
 
     public function btn_save($id = '') {

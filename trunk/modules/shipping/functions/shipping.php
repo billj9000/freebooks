@@ -1,9 +1,9 @@
 <?php 
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -17,6 +17,17 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/functions/shipping.php
 //
+
+/**
+ * True for a shipping method that exists (methods/<name>/<name>.php) and, unless
+ * $installed is false, is installed. A method name from the request or from a
+ * stored record is required and instantiated as a class, so nothing else may pass.
+ */
+function shipping_method_is_valid($name, $installed = true) {
+  if (!is_string($name) || !preg_match('/^[a-z0-9_]+$/', $name)) return false;
+  if (!file_exists(DIR_FS_MODULES . 'shipping/methods/' . $name . '/' . $name . '.php')) return false;
+  return !$installed || defined('MODULE_SHIPPING_' . strtoupper($name) . '_STATUS');
+}
 
 function build_js_methods($methods) {
   global $shipping_defaults;

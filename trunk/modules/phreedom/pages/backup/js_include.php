@@ -44,7 +44,7 @@ function startFullRestore(fn) {
 
   var url = 'index.php?module=<?php echo $module; ?>&page=ajax&op=restore_extract'
           + '&fn=' + encodeURIComponent(fn);
-  fetch(url).then(function(r) { return r.json(); }).then(function(r) {
+  restorePost(url).then(function(r) { return r.json(); }).then(function(r) {
     if (r.status !== 'ok') {
       restoreFailed('<?php echo addslashes(GEN_RESTORE_ERROR); ?>' + (r.message || ''));
       return;
@@ -57,6 +57,15 @@ function startFullRestore(fn) {
   });
 }
 
+// The restore steps change the database, so they are posted with the page's
+// csrf_token, which index.php checks; their parameters stay in the URL.
+function restorePost(url) {
+  var body = new URLSearchParams();
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) body.append('csrf_token', meta.getAttribute('content'));
+  return fetch(url, { method: 'POST', body: body });
+}
+
 // Send one chunk request and loop until done.
 function doChunk(fn, foffset, totalqueries, linenumber) {
   var url = 'index.php?module=<?php echo $module; ?>&page=ajax&op=restore_chunk'
@@ -65,7 +74,7 @@ function doChunk(fn, foffset, totalqueries, linenumber) {
           + '&totalqueries=' + totalqueries
           + '&start='        + linenumber;
 
-  fetch(url).then(function(r) { return r.json(); }).then(function(r) {
+  restorePost(url).then(function(r) { return r.json(); }).then(function(r) {
     if (r.status === 'error') {
       restoreFailed('<?php echo addslashes(GEN_RESTORE_ERROR); ?>' + (r.message || ''));
       return;

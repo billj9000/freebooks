@@ -75,7 +75,7 @@ if ($security_level > 2) {
 		  echo html_icon('phreebooks/truck-icon.png',  TEXT_TRACK_CONFIRM,'small', 'onclick="submitShipSequence(\'' . $method_id . '\', ' . $result->fields['id'] . ', \'track\')"') . chr(10);
 		echo html_icon('phreebooks/stock_id.png',      TEXT_VIEW_SHIP_LOG,'small', 'onclick="loadPopUp(\'' . $method_id . '\', \'edit\', ' . $result->fields['id'] . ')"') . chr(10);
 		echo html_icon('actions/document-print.png',   TEXT_PRINT,        'small', 'onclick="window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;action=view&amp;method=' . $method_id . '&amp;date=' . $date . '&amp;labels=' . $result->fields['tracking_id'] . '\',\'label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);
-		echo html_icon('emblems/emblem-unreadable.png',TEXT_DELETE,       'small', 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=' . $method_id . '&amp;sID=' . $result->fields['shipment_id'] . '&amp;action=delete\',\'popup_label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);
+		echo html_icon('emblems/emblem-unreadable.png',TEXT_DELETE,       'small', 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'\',\'popup_label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\'); submitPost(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=' . $method_id . '&amp;action=delete\', {sID: ' . (int)$result->fields['shipment_id'] . '}, \'popup_label_mgr\')"') . chr(10);
 		echo '    </td>';
 		echo '  </tr>' . chr(10);
 		$result->MoveNext();

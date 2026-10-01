@@ -20,6 +20,7 @@
 $security_level = validate_user(SECURITY_ID_ROLES);
 /**************   include page specific files    *********************/
 gen_pull_language($module, 'admin');
+require_once(DIR_FS_WORKING . 'functions/phreedom.php');
 /**************  page specific initialization  *************************/
 $error  = false;
 history_filter('roles');
@@ -55,7 +56,7 @@ switch ($_REQUEST['action']) {
   case 'save':
   case 'fill_all':
 	validate_security($security_level, 2);
-	$admin_id = db_prepare_input($_POST['rowSeq']);
+	$admin_id = (int)$_POST['rowSeq'];
 	$fill_all = db_prepare_input($_POST['fill_all']);
 	$prefs = array(
 	  'def_store_id'    => db_prepare_input($_POST['def_store_id']),
@@ -65,14 +66,16 @@ switch ($_REQUEST['action']) {
 	  'restrict_store'  => isset($_POST['restrict_store'])  ? '1' : '0',
 	  'restrict_period' => isset($_POST['restrict_period']) ? '1' : '0',
 	);
-	$post_keys = array_keys($_POST);
-	$admin_security = '';
-	foreach ($post_keys as $key) {
-	  if (strpos($key, 'sID_') === 0) {
-		if ($admin_security) $admin_security .= ',';
-		$admin_security .= substr($key, 4) . ':' . (($fill_all == '-1') ? substr($_POST[$key], 0, 1) : $fill_all);
-	  }
+	$existing_security = array();
+	if ($admin_id) {
+	  $result = $db->Execute("select admin_security from " . TABLE_USERS . " where admin_id = " . $admin_id . " and is_role = '1'");
+	  $existing_security = gen_parse_permissions($result->fields['admin_security'] ?? '');
 	}
+	$requested = array();
+	foreach (array_keys($_POST) as $key) {
+	  if (strpos($key, 'sID_') === 0) $requested[substr($key, 4)] = ($fill_all == '-1') ? substr($_POST[$key], 0, 1) : $fill_all;
+	}
+	$admin_security = phreedom_implode_security(phreedom_clamp_security($requested, $existing_security));
 	$sql_data_array = array(
 	  'admin_name'     => db_prepare_input($_POST['admin_name']),
 	  'is_role'        => '1',
@@ -88,7 +91,7 @@ switch ($_REQUEST['action']) {
 	}
 	if (!$error) {
 	  if ($admin_id) {
-		db_perform(TABLE_USERS, $sql_data_array, 'update', 'admin_id = ' . (int)$admin_id);
+		db_perform(TABLE_USERS, $sql_data_array, 'update', 'admin_id = ' . (int)$admin_id . " and is_role = '1'");
 		gen_add_audit_log(sprintf(GEN_LOG_USER, TEXT_UPDATE), db_prepare_input($_POST['admin_name']));
 	  } else {
 		// admin_pass is NOT NULL with no default, so an INSERT must supply it: omit
@@ -111,7 +114,7 @@ switch ($_REQUEST['action']) {
 
   case 'copy':
 	validate_security($security_level, 2);
-	$admin_id = db_prepare_input($_GET['cID']);
+	$admin_id = (int)$_GET['cID'];
 	$new_name = db_prepare_input($_GET['name']);
 	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_name = '" . db_input($new_name) . "'");
 	if ($result->Recordcount() > 0) {
@@ -149,17 +152,17 @@ switch ($_REQUEST['action']) {
   case 'edit':
 	if (isset($_POST['rowSeq'])) $admin_id = db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select * from " . TABLE_USERS . " where admin_id = " . (int)$admin_id);
-	$temp = unserialize($result->fields['admin_prefs']);
+	$temp = unserialize($result->fields['admin_prefs'] ?? '', ['allowed_classes' => false]);
 	unset($result->fields['admin_prefs']);
 	$uInfo = new objectInfo($result->fields);
-	foreach ($temp as $key => $value) $uInfo->$key = $value;
+	if (is_array($temp)) foreach ($temp as $key => $value) $uInfo->$key = $value;
 	break;
 
   case 'delete':
 	validate_security($security_level, 4);
 	$admin_id = (int)db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_id = " . $admin_id);
-	$db->Execute("delete from " . TABLE_USERS . " where admin_id = " . $admin_id);
+	$db->Execute("delete from " . TABLE_USERS . " where admin_id = " . $admin_id . " and is_role = '1'");
 	gen_add_audit_log(sprintf(GEN_LOG_USER, TEXT_DELETE), $result->fields['admin_name']);
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;

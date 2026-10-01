@@ -50,6 +50,27 @@ foreach ($contents as $choice) {
 	$methods[] = $choice;
   }
 }
+// $method is required and instantiated below: an available method, by name, and
+// install/remove only from the posted (CSRF-checked) form since they change state.
+if (in_array($_REQUEST['action'], array('install', 'remove', 'signup'), true)) {
+  $method = (string)($method ?? '');
+  if (!shipping_method_is_valid($method, false)
+      || ($_REQUEST['action'] <> 'signup' && $_SERVER['REQUEST_METHOD'] !== 'POST')) {
+    $messageStack->add(ERROR_NO_PERMISSION, 'error');
+    $_REQUEST['action'] = '';
+  }
+}
+// backup and clean build a path under the label directory from these: an
+// installed carrier and a numeric year and month, in the stored layout (YYYY/MM).
+if (in_array($_REQUEST['action'], array('backup', 'clean'), true)) {
+  $carrier  = (string)($_POST['carrier'] ?? '');
+  $fy_year  = sprintf('%04d', (int)($_POST['fy_year'] ?? 0));
+  $fy_month = sprintf('%02d', (int)($_POST['fy_month'] ?? 0));
+  if (!shipping_method_is_valid($carrier) || (int)$fy_month < 1 || (int)$fy_month > 12 || (int)$fy_year < 1) {
+    $messageStack->add(ERROR_NO_PERMISSION, 'error');
+    $_REQUEST['action'] = '';
+  }
+}
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'install':
@@ -97,9 +118,7 @@ switch ($_REQUEST['action']) {
 //	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;
   case 'backup':
-    $carrier   = db_prepare_input($_POST['carrier']);
-	$fy_month  = db_prepare_input($_POST['fy_month']);
-	$fy_year   = db_prepare_input($_POST['fy_year']);
+	validate_security($security_level, 4);
   	$conv_type = db_prepare_input($_POST['conv_type']);
 	// set execution time limit to a large number to allow extra time 
 	if (ini_get('max_execution_time') < 20000) set_time_limit(20000);
@@ -124,9 +143,7 @@ switch ($_REQUEST['action']) {
 	$default_tab_id = 'tools';
     break;
   case 'clean':
-    $carrier   = db_prepare_input($_POST['carrier']);
-	$fy_month  = db_prepare_input($_POST['fy_month']);
-	$fy_year   = db_prepare_input($_POST['fy_year']);
+	validate_security($security_level, 4);
   	$conv_type = db_prepare_input($_POST['conv_type']);
 	$backup    = new backup;
 	$backup->source_dir  = DIR_FS_MY_FILES . $_SESSION['company'] . '/shipping/labels/' . $carrier . '/' . $fy_year . '/' . $fy_month . '/';

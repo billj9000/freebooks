@@ -103,9 +103,11 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'view':
-	$date         = $_GET['date'];
-	$labels       = $_GET['labels'];
-	$labels_array = explode(':', $labels);
+	// Both build a file path: a Y-m-d date and bare label names.
+	$date         = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($_GET['date'] ?? '')) ? $_GET['date'] : '';
+	$labels       = $date ? (string)($_GET['labels'] ?? '') : '';
+	$labels_array = array_filter(explode(':', (string)$labels), function ($l) { return (bool)preg_match('/^[A-Za-z0-9_\-]+$/', $l); });
+	$labels       = implode(':', $labels_array);
 	if (empty($labels_array)) die('No labels were passed to label_viewer.php!');
 	$file_path = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . str_replace('-', '/', $date) . '/';
 	// fetch the tracking labels
@@ -129,7 +131,9 @@ switch ($_REQUEST['action']) {
     break;
 
   case 'delete':
-	$shipment_id = (int)db_prepare_input($_GET['sID']);
+	// Voiding a label only as a POST, which index.php has checked for its
+	// csrf_token: a GET could be a link someone was sent.
+	$shipment_id = $_SERVER['REQUEST_METHOD'] === 'POST' ? (int)($_POST['sID'] ?? 0) : 0;
 	$shipments   = $db->Execute("select method, ship_date, tracking_id from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
 	$ship_method = $shipments->fields['method'];
 	if ($shipments->RecordCount() == 0 || !$ship_method) {

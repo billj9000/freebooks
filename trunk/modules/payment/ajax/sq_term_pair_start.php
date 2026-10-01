@@ -20,7 +20,18 @@
 // Returns: { code_id, code } on success, { error } on failure.
 
 /**************   Check user security   *****************************/
-$security_level = validate_ajax_user();
+// Pairing a terminal is payment method configuration: full level.
+$security_level = validate_ajax_user(SECURITY_ID_CONFIGURATION);
+if ($security_level < 4) {
+  echo json_encode(['error' => ERROR_NO_PERMISSION]);
+  die;
+}
+// It changes the account's devices: only as a POST, which index.php has
+// checked for its csrf_token.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  echo json_encode(['error' => ERROR_NO_PERMISSION]);
+  die;
+}
 /**************   Validate configuration   **************************/
 $token    = defined('MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN') ? trim(MODULE_PAYMENT_SQUARE_TERMINAL_ACCESS_TOKEN) : '';
 $location = defined('MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID')  ? trim(MODULE_PAYMENT_SQUARE_TERMINAL_LOCATION_ID)  : '';

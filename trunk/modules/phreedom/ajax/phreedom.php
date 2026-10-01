@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,7 +24,9 @@ $security_level = validate_ajax_user();
 $xml    = NULL;
 switch ($_REQUEST['action']) {
 	case 'pull_colors':
-		$theme = $_GET['theme'];
+		$theme = (string)($_GET['theme'] ?? '');
+		// It names a directory read and a file included below: an existing theme, by name.
+		if (!preg_match('/^[a-z0-9_]+$/i', $theme) || !is_dir(DIR_FS_ADMIN.'themes/'.$theme)) break;
 		$contents = scandir(DIR_FS_ADMIN.'themes/'.$theme.'/css/');
 		include(DIR_FS_ADMIN.'themes/'.$theme.'/config.php');
 		foreach ($contents as $color) {
@@ -43,7 +45,9 @@ switch ($_REQUEST['action']) {
 		}
 		break;
 	case 'chart':
-		$modID = $_GET['modID'];
+		$modID = (string)($_GET['modID'] ?? '');
+		// It names a file required below: an existing module, by name.
+		if (!preg_match('/^[a-z0-9_]+$/i', $modID) || !is_dir(DIR_FS_MODULES.$modID)) break;
 		$fID   = $_GET['fID'];
 		$x     = 0;
 		$data  = array();
@@ -55,7 +59,7 @@ switch ($_REQUEST['action']) {
 			gen_pull_language($modID);
 			require_once(DIR_FS_MODULES.$modID.'/functions/'.$modID.'.php');
 			if ($results = get_chart_data($fID, $data)) {
-				$xml .= xmlEntry('modID',  $_GET['modID']);
+				$xml .= xmlEntry('modID',  $modID);
 				$xml .= xmlEntry('type',   $results['type']);
 				$xml .= xmlEntry('title',  $results['title']);
 				$xml .= xmlEntry('width',  $results['width']);

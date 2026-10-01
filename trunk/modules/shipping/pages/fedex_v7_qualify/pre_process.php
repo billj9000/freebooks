@@ -32,7 +32,9 @@ function write_file($file_name, $data) {
   return true;
 }
 /**************   Check user security   *****************************/
-// none
+// It runs carrier test transactions and writes files: configuration, full level.
+$security_level = validate_user(SECURITY_ID_CONFIGURATION);
+validate_security($security_level, 4);
 /**************  include page specific files    *********************/
 gen_pull_language('phreedom','admin');
 load_method_language(DIR_FS_MODULES  . 'shipping/methods/', 'fedex_v7');

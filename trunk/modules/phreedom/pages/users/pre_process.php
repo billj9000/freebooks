@@ -37,39 +37,46 @@ switch ($_REQUEST['action']) {
   case 'fill_all':
   case 'fill_role':
 	validate_security($security_level, 2);
-	$admin_id  = db_prepare_input($_POST['rowSeq']);
+	$admin_id  = (int)$_POST['rowSeq'];
 	$fill_all  = db_prepare_input($_POST['fill_all']);
-	$fill_role = db_prepare_input($_POST['fill_role']);
+	$fill_role = (int)$_POST['fill_role'];
 	if ($security_level < 3 && $admin_id) $error = $messageStack->add(GEN_ADMIN_CANNOT_CHANGE_ROLES, 'error');
+	$existing_security = array();
+	$existing_email    = '';
+	if ($admin_id) {
+	  $result = $db->Execute("select admin_security, admin_email from " . TABLE_USERS . " where admin_id = " . $admin_id . " and is_role = '0'");
+	  $existing_security = gen_parse_permissions($result->fields['admin_security'] ?? '');
+	  $existing_email    = $result->fields['admin_email'] ?? '';
+	}
 	if ($_REQUEST['action'] == 'fill_role' ) {
 	  $result = $db->Execute("select admin_prefs, admin_security from " . TABLE_USERS . " where admin_id = " . $fill_role);
-	  $admin_security = $result->fields['admin_security'];
-	  if ($admin_id == 1) { // make sure first user cannot lock themselves out
-	  	$settings = array();
-	  	$temp = explode(",", $admin_security);
-	  	foreach ($temp as $value) {
-	  		$sID = explode(":", $value);
-	  		$settings[$sID[0]] = $sID[1];
-	  	}
-	  	$settings[SECURITY_ID_USERS] = 4;
-	  	$settings = array();
-	  	foreach ($temp as $key => $value) $settings[] = "$key:$value";
-	  	$admin_security = implode(',', $settings);
-	  }
-	  $temp = unserialize($result->fields['admin_prefs']);  // fake the input to look like role
-	  foreach ($temp as $key => $value) $_POST[$key] = $value;
+	  $requested = gen_parse_permissions($result->fields['admin_security'] ?? '');
+	  $temp = unserialize($result->fields['admin_prefs'] ?? '', ['allowed_classes' => false]);  // fake the input to look like role
+	  if (is_array($temp)) foreach ($temp as $key => $value) $_POST[$key] = $value;
 	} else {
-	  $admin_security = '';
-	  $post_keys = array_keys($_POST);
-	  $temp = array();
-      foreach ($post_keys as $key) if (strpos($key, 'sID_') === 0) { // it's a security setting post
-		$secID = substr($key, 4);
-      	$temp[$secID] =  $fill_all == '-1' ? substr($_POST[$key], 0, 1) : $fill_all;
+	  $requested = array();
+	  foreach (array_keys($_POST) as $key) if (strpos($key, 'sID_') === 0) { // it's a security setting post
+		$requested[substr($key, 4)] = $fill_all == '-1' ? substr($_POST[$key], 0, 1) : $fill_all;
 	  }
-	  if ($admin_id == 1) $temp[SECURITY_ID_USERS] = 4; // make sure first admin_id (installer) will not lock self out of system
-	  $settings = array();
-	  foreach ($temp as $key => $value) $settings[] = "$key:$value";
-	  $admin_security = implode(',', $settings);
+	}
+	// Only the unrestricted admin (admin_id 1) may change their own security levels.
+	if ($admin_id && $admin_id == $_SESSION['admin_id'] && (int)$_SESSION['admin_id'] !== 1) {
+	  foreach ($requested as $key => $value) {
+		if (max(0, min(4, (int)$value)) != (int)($existing_security[$key] ?? 0)) {
+		  $error = $messageStack->add(GEN_ADMIN_CANNOT_CHANGE_ROLES, 'error');
+		  break;
+		}
+	  }
+	  $levels = $existing_security;
+	} else {
+	  $levels = phreedom_clamp_security($requested, $existing_security);
+	}
+	if ($admin_id == 1) $levels[SECURITY_ID_USERS] = 4; // make sure first admin_id (installer) will not lock self out of system
+	$admin_security = phreedom_implode_security($levels);
+	$outranks = $admin_id && phreedom_user_outranks_caller($admin_id, $existing_security);
+	if ($outranks && $_POST['password_new']) $error = $messageStack->add(ERROR_NO_PERMISSION, 'error');
+	if ($outranks && isset($_POST['admin_email']) && db_prepare_input($_POST['admin_email']) != $existing_email) {
+	  $error = $messageStack->add(ERROR_NO_PERMISSION, 'error');
 	}
 	$prefs = array(
 	  'role'            => $fill_role,
@@ -110,7 +117,7 @@ switch ($_REQUEST['action']) {
 	}
 	if (!$error) {
 	  if ($admin_id) {
-		db_perform(TABLE_USERS, $sql_data_array, 'update', 'admin_id = ' . (int)$admin_id);
+		db_perform(TABLE_USERS, $sql_data_array, 'update', 'admin_id = ' . (int)$admin_id . " and is_role = '0'");
 		gen_add_audit_log(sprintf(GEN_LOG_USER, TEXT_UPDATE), db_prepare_input($_POST['admin_name']));
 	  } else {
 		// admin_pass is NOT NULL with no default, so an INSERT must supply it: omit
@@ -133,7 +140,7 @@ switch ($_REQUEST['action']) {
 
   case 'copy':
 	validate_security($security_level, 3);
-	$admin_id = db_prepare_input($_GET['cID']);
+	$admin_id = (int)$_GET['cID'];
 	$new_name = db_prepare_input($_GET['name']);
 	// check for duplicate user names
 	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_name = '" . db_input($new_name) . "'");
@@ -174,7 +181,7 @@ switch ($_REQUEST['action']) {
   case 'edit':
 	if (isset($_POST['rowSeq'])) $admin_id = db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select * from " . TABLE_USERS . " where admin_id = " . (int)$admin_id);
-	$temp = unserialize($result->fields['admin_prefs']);
+	$temp = unserialize($result->fields['admin_prefs'] ?? '', ['allowed_classes' => false]);
 	unset($result->fields['admin_prefs']);
 	$uInfo = new objectInfo($result->fields);
 	if (is_array($temp)) foreach ($temp as $key => $value) $uInfo->$key = $value;
@@ -184,8 +191,13 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, 4);
 	$admin_id = (int)db_prepare_input($_POST['rowSeq']);
 	// fetch the name for the audit log
-	$result = $db->Execute("select admin_name from " . TABLE_USERS . " where admin_id = " . $admin_id);
-	$db->Execute("delete from " . TABLE_USERS . " where admin_id = " . $admin_id);
+	$result = $db->Execute("select admin_name, admin_security from " . TABLE_USERS . " where admin_id = " . $admin_id . " and is_role = '0'");
+	// A user holding more than the caller (or admin_id 1) is not the caller's to delete.
+	if (phreedom_user_outranks_caller($admin_id, gen_parse_permissions($result->fields['admin_security'] ?? ''))) {
+	  $messageStack->add(ERROR_NO_PERMISSION, 'error');
+	  break;
+	}
+	$db->Execute("delete from " . TABLE_USERS . " where admin_id = " . $admin_id . " and is_role = '0'");
 	gen_add_audit_log(sprintf(GEN_LOG_USER, TEXT_DELETE), $result->fields['admin_name']);
 	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	break;

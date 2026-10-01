@@ -1032,7 +1032,7 @@ class fedex_v7 {
 			$shipments  = $db->Execute("select id, ref_id, deliver_date, actual_date, tracking_id, notes 
 				from " . TABLE_SHIPPING_LOG . " 
 				where carrier = '" . $this->code . "' 
-					and ship_date >= '" . $start_date . "' and ship_date < '" . $end_date . "'");
+					and ship_date >= '" . db_input($start_date) . "' and ship_date < '" . db_input($end_date) . "'");
 		}
 		while (!$shipments->EOF) {
 			$tracking_number = $shipments->fields['tracking_id'];
@@ -1061,7 +1061,7 @@ class fedex_v7 {
 					}
 					// update the log file with the actual delivery timestamp, append notes
 					$db->Execute("update " . TABLE_SHIPPING_LOG . " 
-					  set actual_date = '" . $actual_date . "', deliver_late = '" . $late . "' where id = " . $shipments->fields['id']);
+					  set actual_date = '" . db_input($actual_date) . "', deliver_late = '" . $late . "' where id = " . (int)$shipments->fields['id']);
 //					$messageStack->add(SHIPPING_FEDEX_V7_TRACK_SUCCESS . $response->TrackDetails->ActualDeliveryTimestamp, 'success');
 				} else {
 					foreach ($response->Notifications as $notification) {
@@ -1265,7 +1265,7 @@ class fedex_v7 {
 	  $cost      = $record['Net Charge Amount'];
 	  if (!$payor_id) continue; // weekly service charge and other non-shipment related.
 	  if ($ref_num) {
-	    $result = $db->Execute("select cost from " . TABLE_SHIPPING_LOG . " where ref_id = '" . $ref_num . "'");
+	    $result = $db->Execute("select cost from " . TABLE_SHIPPING_LOG . " where ref_id = '" . db_input($ref_num) . "'");
 	    if ($result->RecordCount() == 0) {
 	      $output .= sprintf(SHIPPING_FEDEX_RECON_NO_RECORDS, $ship_date, $ref_num, $track_num, $ship_name, $rcv_name, $cost) . "\n";
 	      continue;
@@ -1282,7 +1282,7 @@ class fedex_v7 {
 	  	$output .= sprintf(SHIPPING_FEDEX_RECON_COST_OVER, $ship_date, $ref_num, $track_num, $cost, $result->fields['cost']) . "\n";
 	  }
 	  $inv_num = strpos($ref_num, '-') ? substr($ref_num, 0, strpos($ref_num, '-')) : $ref_num;
-	  $result = $db->Execute("select freight from ".TABLE_JOURNAL_MAIN." where purchase_invoice_id = '$inv_num'");
+	  $result = $db->Execute("select freight from ".TABLE_JOURNAL_MAIN." where purchase_invoice_id = '" . db_input($inv_num) . "'");
 	  $invoiced = ($result->RecordCount() == 0) ? 0 : $result->fields['freight'];
 	  $estimate = ($invoiced + FEDEX_V7_COST_OFFSET) * (1 + FEDEX_V7_COST_FACTOR);
 	  if ($cost > $estimate) {
@@ -1294,12 +1294,12 @@ class fedex_v7 {
 	$output .= "\n" . sprintf(SHIPPING_FEDEX_RECON_SUMMARY, $count) . "\n";
 	// set the reconciled flag
 	if (!empty($reconciled)) {
-	  $db->Execute("update " . TABLE_SHIPPING_LOG . " set reconciled = '1' where ref_id in ('" . implode("','", $reconciled) . "')");
+	  $db->Execute("update " . TABLE_SHIPPING_LOG . " set reconciled = '1' where ref_id in ('" . implode("','", array_map('db_input', $reconciled)) . "')");
 	}
 	// output results
 	gen_add_audit_log('FedEx Reconciliation Report', 'Records: ' . $count);
 	header("Content-type: plain/txt");
-	header("Content-disposition: attachment; filename=FedEx-" . $inv_num . ".txt; size=" . strlen($output));
+	header("Content-disposition: attachment; filename=FedEx-" . preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$inv_num) . ".txt; size=" . strlen($output));
 	header('Pragma: cache');
 	header('Cache-Control: public, must-revalidate, max-age=0');
 	header('Connection: close');

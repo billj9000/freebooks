@@ -20,10 +20,14 @@
 $security_level = validate_user(0, true);
 /**************   page specific initialization  *************************/
 require_once(DIR_FS_WORKING . 'defaults.php');
+require_once(DIR_FS_WORKING . 'functions/shipping.php');
 $todo   = $_REQUEST['action'];
-$method = $_GET['method'];
-$date   = explode('-',$_GET['date']);
-$label  = $_GET['label'];
+// All three build a file path: an installed method, a Y-m-d date and a bare label name.
+$method = (string)($_GET['method'] ?? '');
+$date   = (string)($_GET['date'] ?? '');
+$label  = (string)($_GET['label'] ?? '');
+if (!shipping_method_is_valid($method) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !preg_match('/^[A-Za-z0-9_\-]+$/', $label)) $label = '';
+$date   = explode('-', $date);
 switch ($todo) {
   case 'notify':
   default:
@@ -31,6 +35,7 @@ switch ($todo) {
 	// show the form with a button to download
 	break;
   case 'download':
+	if (!$label) { $image = SHIPPING_TEXT_NO_LABEL; break; }
 	$file_path = SHIPPING_DEFAULT_LABEL_DIR.$method.'/'.$date[0].'/'.$date[1].'/'.$date[2].'/';
 	$file_name = $label . '.lpt';
 	if (file_exists($file_path . $file_name)) {

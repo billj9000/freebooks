@@ -21,7 +21,12 @@
 // status values: UNPAIRED, PAIRED, EXPIRED, UNKNOWN
 
 /**************   Check user security   *****************************/
-$security_level = validate_ajax_user();
+// Pairing a terminal is payment method configuration: full level.
+$security_level = validate_ajax_user(SECURITY_ID_CONFIGURATION);
+if ($security_level < 4) {
+  echo json_encode(['error' => ERROR_NO_PERMISSION]);
+  die;
+}
 /**************   Validate input   **********************************/
 $code_id = isset($_GET['code_id']) ? trim($_GET['code_id']) : '';
 if (!$code_id || !preg_match('/^[A-Za-z0-9_\-]+$/', $code_id)) {

@@ -55,7 +55,9 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'delete':
-	$shipment_id = (int)db_prepare_input($_GET['sID']);
+	// Voiding a label only as a POST, which index.php has checked for its
+	// csrf_token: a GET could be a link someone was sent.
+	$shipment_id = $_SERVER['REQUEST_METHOD'] === 'POST' ? (int)($_POST['sID'] ?? 0) : 0;
 	$result = $db->Execute("select method, ship_date from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
 	$ship_method = $result->fields['method'];
 	if ($result->RecordCount() == 0 || !$shipment_id) {

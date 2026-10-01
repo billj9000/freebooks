@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
@@ -27,7 +28,7 @@ $user  = $_GET['u'];
 $pass  = $_GET['p'];
 $level = $_GET['level'];
 
-$result = $db->Execute("select inactive, admin_pass from " . TABLE_USERS . " where admin_name = '" . $user . "'");
+$result = $db->Execute("select inactive, admin_pass from " . TABLE_USERS . " where admin_name = '" . db_input($user) . "'");
 if ($result->RecordCount() <> 1 || $result->fields['inactive']) {
   $xml = xmlEntry('result', 'failed');
 } elseif (!pw_validate_password($pass, $result->fields['admin_pass'])) {

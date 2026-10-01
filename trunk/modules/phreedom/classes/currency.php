@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -72,7 +73,7 @@ class currency {
 		$messageStack->add(SETUP_ERROR_CANNOT_CHANGE_DEFAULT,'error');
 	  } else {
 	    write_configure('DEFAULT_CURRENCY', db_input($code));
-		db_perform($this->db_table, array('value' => 1), 'update', "code='$code'"); // change default exc rate to 1
+		db_perform($this->db_table, array('value' => 1), 'update', "code='" . db_input($code) . "'"); // change default exc rate to 1
 	    $db->Execute("alter table " . TABLE_JOURNAL_MAIN . " 
 			change currencies_code currencies_code CHAR(3) NOT NULL DEFAULT '" . db_input($code) . "'");
 		$this->def_currency = db_input($code);
@@ -149,18 +150,19 @@ class currency {
 	  return false;
 	}
 	// Can't delete default currency or last currency
+	$id = (int)$id; // it goes into SQL
 	$result = $db->Execute("select currencies_id from " . $this->db_table . " where code = '" . DEFAULT_CURRENCY . "'");
 	if ($result->fields['currencies_id'] == $id) {
 	  $messageStack->add(ERROR_CANNOT_DELETE_DEFAULT_CURRENCY, 'error');
 	  return false;
 	}
-	$result = $db->Execute("select code, title from " . $this->db_table . " where currencies_id = '" . $id . "'");
-	$test_1 = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " where currencies_code = '" . $result->fields['code'] . "' limit 1");
+	$result = $db->Execute("select code, title from " . $this->db_table . " where currencies_id = " . $id);
+	$test_1 = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " where currencies_code = '" . db_input($result->fields['code']) . "' limit 1");
 	if ($test_1->RecordCount() > 0) {
 	  $messageStack->add(ERROR_CURRENCY_DELETE_IN_USE, 'error');
 	  return false;
 	}
-	$db->Execute("delete from " . $this->db_table . " where currencies_id = '" . $id . "'");
+	$db->Execute("delete from " . $this->db_table . " where currencies_id = " . $id);
 	gen_add_audit_log(SETUP_LOG_CURRENCY . TEXT_DELETE, $result->fields['title']);
 	return true;
   }
@@ -197,7 +199,7 @@ class currency {
 
   function build_form_html($action, $id) {
     global $db;
-    $sql = "select * from " . $this->db_table . " where currencies_id = '" . $id . "'";
+    $sql = "select * from " . $this->db_table . " where currencies_id = " . (int)$id; // a new one has no id: 0 matches none
     $result = $db->Execute($sql);
 	if ($action == 'new') {
 	  $cInfo = '';

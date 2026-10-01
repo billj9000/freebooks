@@ -70,8 +70,7 @@ if ($rows->RecordCount() > 0) {
       . $date . '&amp;labels=' . urlencode($f['tracking_id'])
       . '\',\'label_mgr\',\'width=820,height=720,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);
     echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small',
-      'onclick="if(confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=royal_mail&amp;sID='
-      . $f['shipment_id'] . '&amp;action=delete\',\'popup_label_mgr\',\'width=820,height=720,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);
+      'onclick="if(confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'\',\'popup_label_mgr\',\'width=820,height=720,resizable=1,scrollbars=1,top=50,left=50\'); submitPost(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=royal_mail&amp;action=delete\', {sID: ' . (int)$f['shipment_id'] . '}, \'popup_label_mgr\')"') . chr(10);
     echo '    </td>';
     echo '  </tr>' . chr(10);
     $odd = !$odd;

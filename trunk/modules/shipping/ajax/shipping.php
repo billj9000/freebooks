@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -25,17 +25,23 @@ require_once(DIR_FS_MODULES . 'shipping/functions/shipping.php');
 /**************   page specific initialization  *************************/
 $mod_dir = DIR_FS_MODULES . 'shipping/methods/';
 $xml     = NULL;
-$method  = $_GET['method'];
+$method  = (string)($_GET['method'] ?? '');
 $message = '';
+// It is required and instantiated below: an installed shipping method only.
+if (!shipping_method_is_valid($method)) {
+  echo createXmlHeader() . xmlEntry('message', ERROR_NO_PERMISSION) . createXmlFooter();
+  die;
+}
 
 switch ($_REQUEST['action']) {
   case 'form':
-	$template= $_GET['template'];
-	if (file_exists($mod_dir . $method.'/'.$template.'.php')) {
+	$template= (string)($_GET['template'] ?? '');
+	// The dialog templates a method may supply, by name.
+	if (in_array($template, array('passphrase'), true) && file_exists($mod_dir . $method.'/'.$template.'.php')) {
 	  require_once($mod_dir . $method.'/'.$template.'.php');
 	  foreach ($output as $key => $value) $xml .= xmlEntry($key, $value);
 	} else {
-	  $xml .= xmlEntry('message', 'Error locating file: '.$mod_dir.$method.'/'.$template.'.php to load template!');
+	  $xml .= xmlEntry('message', 'Error locating the template to load!');
 	}
 	break;
   case 'tracking':

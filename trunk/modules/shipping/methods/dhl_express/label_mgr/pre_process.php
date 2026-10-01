@@ -134,8 +134,10 @@ switch ($_REQUEST['action']) {
     break;
 
   case 'view':
-    $date         = $_GET['date'];
-    $labels_array = explode(':', $_GET['labels']);
+    // Both build a file path: a Y-m-d date and bare label names.
+    $date         = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($_GET['date'] ?? '')) ? $_GET['date'] : '';
+    $labels       = $date ? (string)($_GET['labels'] ?? '') : '';
+    $labels_array = array_filter(explode(':', (string)$labels), function ($l) { return (bool)preg_match('/^[A-Za-z0-9_\-]+$/', $l); });
     $file_path    = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . str_replace('-', '/', $date) . '/';
     foreach ($labels_array as $tracking_num) {
       foreach (glob($file_path . $tracking_num . '*.pdf') as $filename) {

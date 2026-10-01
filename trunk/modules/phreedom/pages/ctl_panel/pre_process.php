@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -21,6 +22,9 @@ $security_level = validate_user(0, true);
 
 /**************   page specific initialization  *************************/
 $menu_id = $_GET['mID'];
+// It names a dashboard page and reaches SQL through the dashboards' own
+// queries: a plain name, nothing else.
+$menu_id = preg_replace('/[^A-Za-z0-9_]/', '', (string)$menu_id);
 // retrieve all modules from directory, and available dashboards
 if (!isset($dirs)) $dirs = scandir(DIR_FS_MODULES);
 $dashboards = array();

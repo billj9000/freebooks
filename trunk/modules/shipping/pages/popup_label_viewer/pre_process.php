@@ -20,13 +20,18 @@
 $security_level = validate_user(0, true);
 /**************   page specific initialization  *************************/
 require_once(DIR_FS_WORKING . 'defaults.php');
+require_once(DIR_FS_WORKING . 'functions/shipping.php');
 /**************   page specific initialization  *************************/
-$method       = $_GET['method'] ?? '';
-$date         = $_GET['date']   ?? '';
-$label_list   = $_GET['labels'] ?? '';
+// All three build file paths: an installed method, a Y-m-d date and bare label names.
+$method       = (string)($_GET['method'] ?? '');
+$date         = (string)($_GET['date']   ?? '');
+$label_list   = (string)($_GET['labels'] ?? '');
+if (!shipping_method_is_valid($method) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+  $method = ''; $date = ''; $label_list = '';
+}
 $file_path    = SHIPPING_DEFAULT_LABEL_DIR . $method . '/' . str_replace('-', '/', $date) . '/';
 $browser_path = SHIPPING_DEFAULT_LABEL_WS  . $method . '/' . str_replace('-', '/', $date) . '/';
-$labels       = explode(':', $label_list);
+$labels       = array_filter(explode(':', $label_list), function ($l) { return (bool)preg_match('/^[A-Za-z0-9_\-]+$/', $l); });
 if (empty($labels)) die('No labels were passed to label_viewer!');
 
 // Email address params (passed from label manager or popup_tracking)
@@ -62,6 +67,8 @@ foreach ($labels as $one_label) {
 
 switch ($_REQUEST['action'] ?? '') {
   case 'email':
+    // Mailing labels out needs the shipping manager permission, from the page's own POST.
+    $email_ok = ($_SESSION['admin_security'][SECURITY_ID_SHIPPING_MANAGER] ?? 0) >= 1 && $_SERVER['REQUEST_METHOD'] === 'POST';
     $to_name    = db_prepare_input($_POST['to_name']          ?? '');
     $to_email   = db_prepare_input($_POST['to_email']         ?? '');
     $from_name  = db_prepare_input($_POST['from_name']        ?? '');
@@ -76,6 +83,20 @@ switch ($_REQUEST['action'] ?? '') {
     $attachments = array();
     foreach ($content_list as $item) {
       if ($item['type'] === 'pdf' && $item['path']) $attachments[] = array('file' => $item['path']);
+    }
+    foreach (array($to_email, $from_email) as $address) {
+      if (!filter_var($address, FILTER_VALIDATE_EMAIL)) $email_ok = false;
+    }
+    foreach (array($cc_email, $bcc_email) as $list) {
+      if ($list === '') continue;
+      foreach (preg_split('/[,;]\s*/', $list) as $address) {
+        if (!filter_var(trim($address), FILTER_VALIDATE_EMAIL)) $email_ok = false;
+      }
+    }
+    if (!$email_ok) {
+      header('Content-Type: application/json');
+      echo json_encode(['status' => 'error']);
+      exit;
     }
     $ok = empty($attachments) ? true : validate_send_mail($to_name ?: $to_email, $to_email, $subject, $body,
       $from_name, $from_email, $block, $attachments);

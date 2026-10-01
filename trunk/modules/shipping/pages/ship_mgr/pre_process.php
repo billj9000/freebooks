@@ -32,12 +32,26 @@ $installed_modules = load_all_methods('shipping');
 $custom_path = DIR_FS_WORKING . 'custom/pages/ship_mgr/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
+// The carrier actions this page offers, each with the level it needs; module_id
+// is required and instantiated, so it must be an installed shipping method.
+$ship_mgr_actions = array('track' => 1, 'search' => 1, 'search_reset' => 1,
+  'reconcile' => 3, 'buyPostage' => 3, 'changePassPhrase' => 3);
+if ($module_id) {
+  require_once(DIR_FS_WORKING . 'functions/shipping.php');
+  if (!shipping_method_is_valid((string)$module_id) || !isset($ship_mgr_actions[$action])) {
+    $messageStack->add(ERROR_NO_PERMISSION, 'error');
+    $module_id = '';
+  } else {
+    validate_security($security_level, $ship_mgr_actions[$action]);
+    if ($ship_mgr_actions[$action] > 1 && $_SERVER['REQUEST_METHOD'] !== 'POST') $module_id = ''; // the form posts it (CSRF-checked)
+  }
+}
 if ($module_id) {
   require_once (DIR_FS_WORKING.'methods/'.$module_id.'/'.$module_id.'.php');
   $shipping = new $module_id;
   switch ($_REQUEST['action']) {
     default:
-      if (method_exists($shipping, $action)) $shipping->$action();
+      if (in_array($action, array('buyPostage', 'changePassPhrase'), true) && method_exists($shipping, $action)) $shipping->$action();
       break;
     case 'track':     $shipping->trackPackages($date, $row_seq);   break;
     case 'reconcile': $shipping->reconcileInvoice();               break;
