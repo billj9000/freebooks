@@ -27,6 +27,9 @@ $tab_list    = array();
 if ($_POST['crm_date']) $_POST['crm_date'] = gen_db_date($_POST['crm_date']);
 if ($_POST['due_date']) $_POST['due_date'] = gen_db_date($_POST['due_date']);
 $type        = isset($_GET['type']) ? $_GET['type'] : 'c'; // default to customer
+// It names a class file and a class: only the contact types there are, so it
+// can never reach outside classes/type/.
+if (!in_array($type, array('b', 'c', 'e', 'i', 'j', 'v'), true)) $type = 'c';
 
 history_filter('contacts'.$type, $defaults = array('sf'=>'', 'so'=>'asc')); // load the filters
 $default_f0 = defined('CONTACTS_F0_'.strtoupper($type)) ? constant('CONTACTS_F0_'.strtoupper($type)) : DEFAULT_F0_SETTING;
@@ -112,7 +115,7 @@ switch ($_REQUEST['action']) {
 		  }
 		  // Check attachments
 		  $result = $db->Execute("select attachments from ".TABLE_CONTACTS." where id = $id");
-		  $attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+		  $attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 		  $image_id = 0;
 		  while ($image_id < 100) { // up to 100 images
 		    if (isset($_POST['rm_attach_'.$image_id])) {
@@ -170,8 +173,9 @@ switch ($_REQUEST['action']) {
 	    break;
 
     case 'download':
-   	    $cID   = db_prepare_input($_POST['id']);
-  	    $imgID = db_prepare_input($_POST['rowSeq']);
+   	    // Both build a file name: whole numbers only, so neither can carry a path.
+   	    $cID   = (int)($_POST['id'] ?? 0);
+  	    $imgID = (int)($_POST['rowSeq'] ?? 0);
 	    $filename = 'contacts_'.$cID.'_'.$imgID.'.zip';
 	    if (file_exists(CONTACTS_DIR_ATTACHMENTS . $filename)) {
 	       require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
@@ -181,10 +185,10 @@ switch ($_REQUEST['action']) {
         die;
 
     case 'dn_attach': // download from list, assume the first document only
-        $cID   = db_prepare_input($_POST['rowSeq']);
+        $cID   = (int)($_POST['rowSeq'] ?? 0); // into SQL unquoted and into a file name
   	    $result = $db->Execute("select attachments from ".TABLE_CONTACTS." where id = $cID");
-  	    $attachments = unserialize($result->fields['attachments']);
-  	    foreach ($attachments as $key => $value) {
+  	    $attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
+  	    if (is_array($attachments)) foreach ($attachments as $key => $value) {
 		   $filename = 'contacts_'.$cID.'_'.$key.'.zip';
 		   if (file_exists(CONTACTS_DIR_ATTACHMENTS . $filename)) {
 		      require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -96,6 +97,8 @@ if (!empty($fields->extra_tab_html)) {
 <div class="tab-content fb-tab-content">
 <?php
 foreach ($cInfo->tab_list as $value) {
+  // It names a file to include: a bare name only, never a path.
+  if (!preg_match('/^[a-z0-9_]+$/i', (string)$value['file'])) continue;
   if (file_exists(DIR_FS_WORKING . 'custom/pages/main/' . $value['file'] . '.php')) {
     include(DIR_FS_WORKING . 'custom/pages/main/' . $value['file'] . '.php');
   } else {

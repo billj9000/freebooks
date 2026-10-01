@@ -44,31 +44,44 @@ class contacts {
     public  $special_terms      = '0'; 
     private $duplicate_id_error = ACT_ERROR_DUPLICATE_ACCOUNT;
     private $sql_data_array     = array();
+    // What a posted form may never set. The constructor copies every posted
+    // field onto the object, so without this a forged post chose the
+    // permission its own page checks (security_token), or a column name that
+    // goes into SQL (auto_field).
+    const NOT_FROM_FORMS = array('security_token', 'auto_field', 'auto_type', 'inc_auto_id', 'duplicate_id_error',
+        'sql_data_array', 'terms_type', 'journals', 'help', 'address_types', 'type', 'page_title_new', 'tab_list');
 	
     public function __construct(){
     	global $db;
     	//set defaults
         $this->crm_date        = date('Y-m-d');
         $this->crm_rep_id      = $_SESSION['account_id'] <> 0 ? $_SESSION['account_id'] : $_SESSION['admin_id'];
-        foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
+        foreach ($_POST as $key => $value) {
+          if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
+          $this->$key = db_prepare_input($value);
+        }
         $this->special_terms  =  db_prepare_input($_POST['terms']); // TBD will fix when popup terms is redesigned
         if ($this->id  == '') $this->id  = db_prepare_input($_POST['rowSeq'], true) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID']);
         if ($this->aid == '') $this->aid = db_prepare_input($_GET['aID'],     true) ? db_prepare_input($_GET['aID'])     : db_prepare_input($_POST['aID']); 
+        // Both go into SQL unquoted, from the request: a whole number, or empty
+        // for a contact not saved yet.
+        $this->id  = ctype_digit((string)$this->id)  ? (string)$this->id  : '';
+        $this->aid = ctype_digit((string)$this->aid) ? (string)$this->aid : '';
     }
 		
 	public function getContact() {
 	  	global $db, $messageStack;
 	  	if ($this->id == '' && !$this->aid == ''){
-	  		$result = $db->Execute("select * from ".TABLE_ADDRESS_BOOK." where address_id = $this->aid ");
+	  		$result = $db->Execute("select * from ".TABLE_ADDRESS_BOOK." where address_id = " . (int)$this->aid);
 	  		$this->id = $result->fields['ref_id'];
 	  	}
 		// Load contact info, including custom fields
-		$result = $db->Execute("select * from ".TABLE_CONTACTS." where id = $this->id");
+		$result = $db->Execute("select * from ".TABLE_CONTACTS." where id = " . (int)$this->id);
 		foreach ($result->fields as $key => $value) $this->$key = $value;
 		// expand attachments
-		$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+		$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 		// Load the address book
-		$result = $db->Execute("select * from ".TABLE_ADDRESS_BOOK." where ref_id = $this->id order by primary_name");
+		$result = $db->Execute("select * from ".TABLE_ADDRESS_BOOK." where ref_id = " . (int)$this->id . " order by primary_name");
 		$this->address = array();
 		while (!$result->EOF) {
 		  $type = substr($result->fields['type'], 1);
@@ -80,7 +93,7 @@ class contacts {
 		}
 		// load payment info
 		if ($_SESSION['admin_encrypt'] && ENABLE_ENCRYPTION) {
-		  $result = $db->Execute("select id, hint, enc_value from ".TABLE_DATA_SECURITY." where module='contacts' and ref_1=$this->id");
+		  $result = $db->Execute("select id, hint, enc_value from ".TABLE_DATA_SECURITY." where module='contacts' and ref_1=" . (int)$this->id);
 		  $encrypt = new encryption();
 		  while (!$result->EOF) {
 		    if (!$values = $encrypt->decrypt($_SESSION['admin_encrypt'], $result->fields['enc_value'])) {
@@ -97,7 +110,7 @@ class contacts {
 		  }
 		}
 		// load contacts info
-		$result = $db->Execute("select * from ".TABLE_CONTACTS." where dept_rep_id=$this->id");
+		$result = $db->Execute("select * from ".TABLE_CONTACTS." where dept_rep_id=" . (int)$this->id);
 		$this->contacts = array();
 		while (!$result->EOF) {
 		  $cObj = new objectInfo();
@@ -114,7 +127,7 @@ class contacts {
 		  $result->MoveNext();
 		}
 		// load crm notes
-		$result = $db->Execute("select * from ".TABLE_CONTACTS_LOG." where contact_id = $this->id order by log_date desc");
+		$result = $db->Execute("select * from ".TABLE_CONTACTS_LOG." where contact_id = " . (int)$this->id . " order by log_date desc");
 		while (!$result->EOF) {
 		  $this->crm_log[] = new objectInfo($result->fields);
 		  $result->MoveNext();
@@ -217,9 +230,9 @@ class contacts {
   	global $db, $messageStack; 
   	// check for duplicate short_name IDs
     if ($this->id == '') {
-      $result = $db->Execute("select id from ".TABLE_CONTACTS." where short_name = '$this->short_name' and type = '$this->type'");
+      $result = $db->Execute("select id from ".TABLE_CONTACTS." where short_name = '" . db_input($this->short_name) . "' and type = '" . db_input($this->type) . "'");
     } else {
-      $result = $db->Execute("select id from ".TABLE_CONTACTS." where short_name = '$this->short_name' and type = '$this->type' and id <> $this->id");
+      $result = $db->Execute("select id from ".TABLE_CONTACTS." where short_name = '" . db_input($this->short_name) . "' and type = '" . db_input($this->type) . "' and id <> " . (int)$this->id);
     }
     if ($result->RecordCount() > 0) $error = $messageStack->add($this->duplicate_id_error,'error');    
     return $error;
@@ -263,11 +276,11 @@ class contacts {
 		//if auto-increment see if the next id is there and increment if so.
         if ($this->inc_auto_id) { // increment the ID value
             $next_id = string_increment($this->short_name);
-            $db->Execute("update ".TABLE_CURRENT_STATUS." set $this->auto_field = '$next_id'");
+            $db->Execute("update ".TABLE_CURRENT_STATUS." set $this->auto_field = '" . db_input($next_id) . "'");
         }
         gen_add_audit_log(TEXT_CONTACTS . '-' . TEXT_ADD . '-' . constant('ACT_' . strtoupper($this->type) . '_TYPE_NAME'), $this->short_name);
     } else { // update record
-        db_perform(TABLE_CONTACTS, $sql_data_array, 'update', "id = '$this->id'");
+        db_perform(TABLE_CONTACTS, $sql_data_array, 'update', "id = " . (int)$this->id);
         gen_add_audit_log(TEXT_CONTACTS . '-' . TEXT_UPDATE . '-' . constant('ACT_' . strtoupper($this->type) . '_TYPE_NAME'), $this->short_name);
     }
   }
@@ -302,7 +315,7 @@ class contacts {
                 db_perform(TABLE_ADDRESS_BOOK, $sql_data_array, 'insert');
                 $this->address[$value]['address_id'] = db_insert_id();
               } else { // then update address
-                db_perform(TABLE_ADDRESS_BOOK, $sql_data_array, 'update', "address_id = '".$this->address[$value]['address_id']."'");
+                db_perform(TABLE_ADDRESS_BOOK, $sql_data_array, 'update', "address_id = " . (int)$this->address[$value]['address_id']);
               }
       }
     }

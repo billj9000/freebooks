@@ -88,7 +88,7 @@ function clearAddress(type) {
 }
 
 function deleteAddress(id) {
-  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_address&aID='+id, deleteAddressResp);
+  postXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_address', {aID: id}, deleteAddressResp);
 }
 
 function deleteAddressResp(xml) {
@@ -134,7 +134,7 @@ function clearPayment() {
 }
 
 function deletePayment(id) {
-  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_payment&pID='+id, deletePaymentResp);
+  postXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_payment', {pID: id}, deletePaymentResp);
 }
 
 function deletePaymentResp(xml) {
@@ -147,7 +147,7 @@ function deletePaymentResp(xml) {
 }
 
 function deleteCRM(id) {
-  fetchXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_crm&nID='+id, deleteCRMResp);
+  postXml('index.php?module=contacts&page=ajax&op=contacts&action=rm_crm', {nID: id}, deleteCRMResp);
 }
 
 function deleteCRMResp(xml) {

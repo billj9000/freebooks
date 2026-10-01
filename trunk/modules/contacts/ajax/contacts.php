@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,10 +25,47 @@ require_once(DIR_FS_MODULES . 'contacts/classes/contacts.php');
 /**************   page specific initialization  *************************/
 $xml     = NULL;
 $message = array();
- 
+
+// Whether the user holds $level on the contact's own type, as the contact
+// pages require: delete rights (4) to remove an address, stored card or CRM
+// note, edit rights (3) to read a stored card back. A CRM contact filed under
+// a customer, vendor etc. also accepts the parent's.
+function contacts_ajax_may_delete($contact_id, $level = 4) {
+	global $db;
+	$tokens = array(
+		'b' => SECURITY_ID_MAINTAIN_BRANCH,
+		'c' => SECURITY_ID_MAINTAIN_CUSTOMERS,
+		'e' => SECURITY_ID_MAINTAIN_EMPLOYEES,
+		'i' => SECURITY_ID_PHREECRM,
+		'j' => SECURITY_ID_MAINTAIN_PROJECTS,
+		'v' => SECURITY_ID_MAINTAIN_VENDORS,
+	);
+	$result = $db->Execute("select type, dept_rep_id from ".TABLE_CONTACTS." where id = ".(int)$contact_id);
+	if ($result->RecordCount() < 1) return false;
+	$types = array($result->fields['type']);
+	if ($result->fields['type'] == 'i' && (int)$result->fields['dept_rep_id']) {
+		$parent = $db->Execute("select type from ".TABLE_CONTACTS." where id = ".(int)$result->fields['dept_rep_id']);
+		if ($parent->RecordCount() > 0) $types[] = $parent->fields['type'];
+	}
+	foreach ($types as $t) {
+		if (isset($tokens[$t]) && (int)($_SESSION['admin_security'][$tokens[$t]] ?? 0) >= $level) return true;
+	}
+	return false;
+}
+
+function contacts_ajax_refuse() {
+	echo createXmlHeader() . xmlEntry('error', ERROR_NO_PERMISSION) . createXmlFooter();
+	die;
+}
+
+// The deletes come as POST, which index.php has checked for its csrf_token; a
+// GET could be a link someone was sent.
+if (in_array($_REQUEST['action'] ?? '', array('rm_address', 'rm_payment', 'rm_crm'), true)
+    && $_SERVER['REQUEST_METHOD'] !== 'POST') contacts_ajax_refuse();
+
 switch ($_REQUEST['action']) {
 	case 'get_address':
-		$id   = $_GET['aID'];
+		$id   = (int)($_GET['aID'] ?? 0);
 		$type = $_GET['type'];
 		$xml .= xmlEntry('type', $type);
 		$result = $db->Execute("select * from ".TABLE_ADDRESS_BOOK." where address_id = $id");
@@ -51,13 +89,15 @@ switch ($_REQUEST['action']) {
 		break;
 
 	case 'rm_address':
-		$id     = $_GET['aID'];
+		$id     = (int)($_POST['aID'] ?? 0);
 		$result = $db->Execute("select ref_id, type from ".TABLE_ADDRESS_BOOK." where address_id = $id");
-		if ($result->fields['type'] == 'im') { // it's a contact record, also delete record
-			$short_name = gen_get_contact_name($id);
+		if (!contacts_ajax_may_delete($result->fields['ref_id'] ?? 0)) contacts_ajax_refuse();
+		if ($result->fields['type'] == 'im') { // a CRM contact's main address: delete the contact with it
+			$short_name = gen_get_contact_name($result->fields['ref_id']);
 			$contact = new contacts();
-			if ($contact->delete($result->fields['ref_id'])) {
-	  			gen_add_audit_log(TEXT_CONTACTS . '-' . TEXT_DELETE . '-' . constant('ACT_' . strtoupper($type) . '_TYPE_NAME'), $short_name);
+			// Strictly true: delete() answers true, or the reason it refused.
+			if ($contact->delete($result->fields['ref_id']) === true) {
+	  			gen_add_audit_log(TEXT_CONTACTS . '-' . TEXT_DELETE . '-' . ACT_I_TYPE_NAME, $short_name);
 				$message[] = 'The record was successfully deleted!';
 			} else {
 				$message[] = ACT_ERROR_CANNOT_DELETE;
@@ -70,7 +110,10 @@ switch ($_REQUEST['action']) {
 		break;
 
 	case 'get_payment':
-		$id = $_GET['pID'];
+		$id = (int)($_GET['pID'] ?? 0);
+		// A stored card, decrypted: only for someone who may edit that contact.
+		$owner = $db->Execute("select ref_1 from ".TABLE_DATA_SECURITY." where id = $id and module = 'contacts'");
+		if (!contacts_ajax_may_delete($owner->fields['ref_1'] ?? 0, 3)) contacts_ajax_refuse();
 		$result = $db->Execute("select id, hint, enc_value from ".TABLE_DATA_SECURITY." where id = $id limit 1");
 		if ($result->RecordCount() < 1) {
 			$message[] = sprintf('The record could not be found! Looking for id = %s', $id);
@@ -88,14 +131,18 @@ switch ($_REQUEST['action']) {
 		break;
 
 	case 'rm_payment':
-		$id = $_GET['pID'];
+		$id = (int)($_POST['pID'] ?? 0);
+		$owner = $db->Execute("select ref_1 from ".TABLE_DATA_SECURITY." where id = $id and module = 'contacts'");
+		if (!contacts_ajax_may_delete($owner->fields['ref_1'] ?? 0)) contacts_ajax_refuse();
 		$db->Execute("delete from ".TABLE_DATA_SECURITY." where id = $id");
 		$xml .= xmlEntry('payment_id', $id);
 		$message[] = 'The record was successfully deleted!';
 		break;
 
 	case 'rm_crm':
-		$id = $_GET['nID'];
+		$id = (int)($_POST['nID'] ?? 0);
+		$owner = $db->Execute("select contact_id from ".TABLE_CONTACTS_LOG." where log_id = $id");
+		if (!contacts_ajax_may_delete($owner->fields['contact_id'] ?? 0)) contacts_ajax_refuse();
 		$db->Execute("delete from ".TABLE_CONTACTS_LOG." where log_id = $id");
 		$xml .= xmlEntry('crm_id', $id);
 		$message[] = 'The record was successfully deleted!';

@@ -24,6 +24,8 @@ require(DIR_FS_WORKING . 'classes/contacts.php');
 /**************   page specific initialization  *************************/
 define('JOURNAL_ID',(int)$_GET['jID']);
 $account_type = (isset($_GET['type']) ? $_GET['type'] : 'c');	// current types are c (customer) and v (vendor)
+// It goes into SQL as an address type: only a contact type letter.
+if (!in_array($account_type, array('b', 'c', 'e', 'i', 'j', 'v'), true)) $account_type = 'c';
 switch ($account_type) {
   default:
   case 'c': $terms_type = 'AR'; break;

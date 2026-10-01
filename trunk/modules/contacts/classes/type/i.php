@@ -33,7 +33,8 @@ class i extends contacts{
 	parent::__construct();	
 	if (isset($_POST['i_id'])){
 		if ($_POST['i_id']) {
-			$this->id             = db_prepare_input($_POST['i_id']);
+			// It goes into SQL unquoted: a whole number, or empty for a new contact.
+			$this->id             = ctype_digit((string)$_POST['i_id']) ? (string)$_POST['i_id'] : '';
 		}else{
 			$this->id             = '';
 		}
@@ -109,11 +110,11 @@ class i extends contacts{
         //if auto-increment see if the next id is there and increment if so.
         if ($this->inc_auto_id) { // increment the ID value
             $next_id = string_increment($this->short_name);
-            $db->Execute("update ".TABLE_CURRENT_STATUS." set $this->auto_field = '$next_id'");
+            $db->Execute("update ".TABLE_CURRENT_STATUS." set $this->auto_field = '" . db_input($next_id) . "'");
         }
         gen_add_audit_log(TEXT_CONTACTS . '-' . TEXT_ADD . '-' . constant('ACT_' . strtoupper($this->type) . '_TYPE_NAME'), $this->short_name);
     } else { // update record
-        db_perform(TABLE_CONTACTS, $sql_data_array, 'update', "id = '$this->id'");
+        db_perform(TABLE_CONTACTS, $sql_data_array, 'update', "id = " . (int)$this->id);
         gen_add_audit_log(TEXT_CONTACTS . '-' . TEXT_UPDATE . '-' . constant('ACT_' . strtoupper($this->type) . '_TYPE_NAME'), $this->short_name);
     }
   }
@@ -147,7 +148,7 @@ class i extends contacts{
                 db_perform(TABLE_ADDRESS_BOOK, $sql_data_array, 'insert');
                 $this->address[$value]['address_id'] = db_insert_id();
               } else { // then update address
-                db_perform(TABLE_ADDRESS_BOOK, $sql_data_array, 'update', "address_id = '".$this->address[$value]['address_id']."'");
+                db_perform(TABLE_ADDRESS_BOOK, $sql_data_array, 'update', "address_id = " . (int)$this->address[$value]['address_id']);
               }
       }
     }

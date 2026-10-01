@@ -52,9 +52,11 @@ switch ($_REQUEST['action']) {
 	break;
   case 'delete':
 	validate_security($security_level, 4);
-	$subject = $_POST['subject'];
-	$id      = $_POST['rowSeq'];
-	if (!$subject || !$id) break;
+	// It names the object to call: only the subjects this page set up above.
+	$subject = $_POST['subject'] ?? '';
+	if (!in_array($subject, array('departments', 'dept_types', 'project_costs', 'project_phases', 'tabs', 'fields'), true)) break;
+	$id      = (int)($_POST['rowSeq'] ?? 0);
+	if (!$id) break;
 	if ($$subject->btn_delete($id)) $close_popup = true;
 	break;
   default:

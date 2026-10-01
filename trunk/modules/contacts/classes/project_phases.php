@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -31,9 +32,18 @@ class project_phases {
     public $cost_breakdown    = false;
     public $inactive          = false;
 
+    // What a posted form may never set: the constructor copies every posted
+    // field onto the object, and db_table and id go into SQL.
+    const NOT_FROM_FORMS = array('db_table', 'id', 'security_id', 'extra_buttons', 'help_path', 'title', 'error');
+
     public function __construct(){
-    	foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
+    	foreach ($_POST as $key => $value) {
+    	  if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
+    	  $this->$key = db_prepare_input($value);
+    	}
     	$this->id = isset($_POST['sID']) ? $_POST['sID'] : (isset($_GET['sID']) ? $_GET['sID'] : '');
+    	// It goes into SQL: a whole number, or empty for a new record.
+    	$this->id = ctype_digit((string)$this->id) ? (string)$this->id : '';
         $this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
     }
 

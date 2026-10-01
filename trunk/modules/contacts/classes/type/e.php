@@ -38,7 +38,7 @@ class e extends contacts{
 	  	if ( $this->id == '' ) $this->id = $id;
 	  	$this->id = (int)$this->id;
 	  	if (!$this->id) return ACT_ERROR_ACCOUNT_NOT_FOUND;
-  		$result = $db->Execute("select admin_id from ".TABLE_USERS." where account_id =". $this->id);
+  		$result = $db->Execute("select admin_id from ".TABLE_USERS." where account_id =" . (int)$this->id);
 		if ($result->RecordCount() == 0) {
 	  		return $this->do_delete();
 		}

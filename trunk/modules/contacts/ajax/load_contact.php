@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -22,11 +23,11 @@ $security_level = validate_ajax_user();
 /**************  include page specific files    *********************/
 gen_pull_language('contacts');
 /**************   page specific initialization  *************************/
-$cID   = db_prepare_input($_GET['cID']);
+$cID   = (int)($_GET['cID'] ?? 0);
 $error = false;
   // select the customer and build the contact record
 $contact    = $db->Execute("select * from " . TABLE_CONTACTS . " where id = '" . $cID . "'");
-$type       = $contact->fields['type'];
+$type       = db_input($contact->fields['type'] ?? '');
 $terms_type = ($type == 'c') ? 'AR' : 'AP';
 $contact->fields['terms_text'] = gen_terms_to_language($contact->fields['special_terms'], true, $terms_type);
 $contact->fields['ship_gl_acct_id'] = ($type == 'v') ? AP_DEF_FREIGHT_ACCT : AR_DEF_FREIGHT_ACCT;
