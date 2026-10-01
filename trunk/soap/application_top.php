@@ -76,7 +76,9 @@ if ($db_name && file_exists(DIR_FS_MY_FILES . $db_name . '/config.php')) {
 } else die("No database name passed! Cannot determine which company to connect to!");
 
 // set the language
-$_SESSION['language'] = $_GET['lang'] ? $_GET['lang'] : 'en_us';
+// A locale name such as en_us, nothing else: it names a directory that
+// language files are included from, before the caller is checked.
+$_SESSION['language'] = isset($_GET['lang']) && is_string($_GET['lang']) && preg_match('/^[a-z]{2}_[a-z]{2}$/', $_GET['lang']) ? $_GET['lang'] : 'en_us';
 define('LANGUAGE',$_SESSION['language']);
 gen_pull_language('phreedom');
 require_once(DIR_FS_ADMIN . 'soap/language/'.LANGUAGE.'/language.php');

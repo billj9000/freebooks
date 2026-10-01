@@ -44,6 +44,14 @@
  */
 
 // ─── Resolve the trunk root ───────────────────────────────────────────────────
+// Run by cron from the command line, never by the web server: a web request
+// arrives with no login, and this script writes to the books.
+// A PHP binary other than the CLI says why rather than exiting silently.
+if (PHP_SAPI !== 'cli') {
+  if (empty($_SERVER['REQUEST_METHOD'])) { fwrite(fopen('php://stderr', 'w'), "Run this with the PHP CLI (php), not " . PHP_SAPI . ".\n"); exit(1); }
+  http_response_code(404); exit;
+}
+
 $trunk = realpath(__DIR__ . '/..');
 if ($trunk === false) {
     fwrite(STDERR, "Cannot resolve trunk path from " . __DIR__ . "\n");

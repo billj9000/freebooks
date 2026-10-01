@@ -58,7 +58,7 @@
   }
 
   function load_method_language($path, $file = '') {
-  	if (!is_dir($path . $file)) return;
+  	if (!preg_match('/^[A-Za-z0-9_]*$/', (string)$file) || !is_dir($path . $file)) return;
     if (file_exists($path . "$file/language/".$_SESSION['language'].'/language.php')) {
       include_once ($path . "$file/language/".$_SESSION['language'].'/language.php');
     } elseif (file_exists($path . "$file/language/en_us/language.php")) {
@@ -86,6 +86,9 @@
   }
 
   function load_specific_method($module, $method) {
+    // Both name directories, and a method name can come from a form or a
+    // stored record: plain names only, so nothing outside methods/ is loaded.
+    if (!preg_match('/^[A-Za-z0-9_]+$/', (string)$module) || !preg_match('/^[A-Za-z0-9_]+$/', (string)$method)) return $method;
     $method_dir  = DIR_FS_MODULES . $module . '/methods/';
     load_method_language($method_dir, $method);
     if (file_exists($method_dir . $method . '/' . $method . '.php')) {
@@ -97,13 +100,13 @@
   function write_configure($constant, $value = '') {
     global $db;
 	if (!$constant) return false;
-	$result = $db->Execute("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = '" . $constant . "'");
+	$result = $db->Execute("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = '" . db_input($constant) . "'");
 	if ($result->RecordCount() == 0) {
 	  $sql_array = array('configuration_key'  => $constant, 'configuration_value'=> $value);
 	  db_perform(TABLE_CONFIGURATION,  $sql_array);
 	  if (!defined($constant)) define($constant, $value);
 	} elseif ($result->fields['configuration_value'] <> $value) {
-	  db_perform(TABLE_CONFIGURATION, array('configuration_value'=>$value), 'update', "configuration_key = '".$constant."'");
+	  db_perform(TABLE_CONFIGURATION, array('configuration_value'=>$value), 'update', "configuration_key = '" . db_input($constant) . "'");
 	}
 	return true;
   }
@@ -111,7 +114,7 @@
   function remove_configure($constant){
     global $db;
 	if (!$constant) return false;
-	$db->Execute("delete from " . TABLE_CONFIGURATION . " where configuration_key = '" . $constant . "'");
+	$db->Execute("delete from " . TABLE_CONFIGURATION . " where configuration_key = '" . db_input($constant) . "'");
 	return true;
   }
 
@@ -287,7 +290,7 @@
 
   function gen_get_contact_name($id) {
     global $db;
-    $vendor_name = $db->Execute("select short_name from " . TABLE_CONTACTS . " where id = '" . $id . "'");
+    $vendor_name = $db->Execute("select short_name from " . TABLE_CONTACTS . " where id = " . (int)$id);
     if ($vendor_name->RecordCount() < 1) {
       return false;
     } else {
@@ -456,7 +459,7 @@
 
   function gen_validate_sku($sku) {
   	global $db;
-	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . $sku . "'");
+	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 	return ($result->RecordCount() <> 0) ? true : false;
   }
 
@@ -495,12 +498,15 @@
     if ($exclude_array == '') $exclude_array = array();
     $get_url = '';
     $output = array();
+    // Each key and value is URL-encoded: the result is put into links and
+    // onclick handlers, and a value straight from the request there is
+    // reflected script on every page that carries it.
     foreach ($_GET as $key => $value) {
       if (($key != session_name()) && ($key != 'error') && (!in_array($key, $exclude_array)) && $key != 'search_text') {
-      	if (strlen($_REQUEST[$key]) > 0) $output[] = "$key=".$_REQUEST[$key];
+      	if (isset($_REQUEST[$key]) && is_scalar($_REQUEST[$key]) && strlen($_REQUEST[$key]) > 0) $output[] = urlencode($key) . '=' . urlencode($_REQUEST[$key]);
       }
     }
-    if(isset($_REQUEST['search_text']) && $_REQUEST['search_text'] != '' && in_array('search_text', $exclude_array) == false) $output[] = "search_text=".$_REQUEST['search_text'];
+    if(isset($_REQUEST['search_text']) && is_scalar($_REQUEST['search_text']) && $_REQUEST['search_text'] != '' && in_array('search_text', $exclude_array) == false) $output[] = "search_text=" . urlencode($_REQUEST['search_text']);
     return implode('&amp;', $output);
   }
 
@@ -548,8 +554,10 @@
     global $_GET;
     if ($exclude_array == '') $exclude_array = array();
     $get_url = '';
+    // URL-encoded for the same reason as gen_get_all_get_params(); it also
+    // keeps a quote in a value from ending the JavaScript string it lands in.
     foreach ($_GET as $key => $value) {
-      if (($key != session_name()) && ($key != 'error') && (!in_array($key, $exclude_array))) $get_url .= $key . '=' . $_REQUEST[$key] . '&';
+      if (($key != session_name()) && ($key != 'error') && (!in_array($key, $exclude_array)) && isset($_REQUEST[$key]) && is_scalar($_REQUEST[$key])) $get_url .= urlencode($key) . '=' . urlencode($_REQUEST[$key]) . '&';
     }
     return $get_url;
   }
@@ -1699,7 +1707,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 /**************************************************************************************************************/
   function xtra_field_build_entry($param_array, $cInfo) {
 	$output = '<tr><td>' . $param_array['description'] . '</td>';
-	$params = unserialize($param_array['params']);
+	$params = unserialize($param_array['params'], ['allowed_classes' => false]);
 	switch ($params['type']) {
 		case 'text':
 			if ($params['length'] < 256) {

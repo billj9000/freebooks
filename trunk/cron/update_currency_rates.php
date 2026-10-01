@@ -1,4 +1,21 @@
 <?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /cron/update_currency_rates.php
+//
 /**
  * Update FreeBooks currency exchange rates from the ECB daily feed.
  *
@@ -9,6 +26,14 @@
  * variable.  When omitted the script auto-detects the first company directory
  * found under my_files/.
  */
+
+// Run by cron from the command line, never by the web server: a web request
+// arrives with no login, and this script writes to the books.
+// A PHP binary other than the CLI says why rather than exiting silently.
+if (PHP_SAPI !== 'cli') {
+  if (empty($_SERVER['REQUEST_METHOD'])) { fwrite(fopen('php://stderr', 'w'), "Run this with the PHP CLI (php), not " . PHP_SAPI . ".\n"); exit(1); }
+  http_response_code(404); exit;
+}
 
 define('PAGE_EXECUTION_START_TIME', microtime(true));
 

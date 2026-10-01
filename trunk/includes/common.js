@@ -593,6 +593,42 @@ function fetchXml(url, callback) {
     .catch(function(e) { console.error('fetchXml (' + url + '):', e); alert('Ajax Error: ' + e.message); });
 }
 
+// POST to an XML endpoint and call callback(parsedDocument) on success. For a
+// request that changes something: index.php checks the csrf_token of every
+// POST, which a plain GET from fetchXml() does not carry. params is an object
+// of the fields to send.
+function postXml(url, params, callback) {
+  var body = new URLSearchParams(params || {});
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) body.append('csrf_token', meta.getAttribute('content'));
+  fetch(url, { method: 'POST', body: body })
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function(t) { callback(new DOMParser().parseFromString(t, 'text/xml')); })
+    .catch(function(e) { console.error('postXml (' + url + '):', e); alert('Ajax Error: ' + e.message); });
+}
+
+// Navigate by POST: build a form with these fields and the page's csrf_token,
+// and submit it. For a link that changes something - a delete, a copy - which
+// index.php will then accept, where a plain link could have been sent by
+// anyone. target names a window to submit into (open it first, by that name).
+function submitPost(url, fields, target) {
+  var form = document.createElement('form');
+  form.method = 'post';
+  form.action = url;
+  if (target) form.target = target;
+  form.style.display = 'none';
+  var all = Object.assign({}, fields || {});
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) all.csrf_token = meta.getAttribute('content');
+  Object.keys(all).forEach(function(k) {
+    var input = document.createElement('input');
+    input.type = 'hidden'; input.name = k; input.value = all[k];
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
 // ajax wrappers
 function parseXml(xml) {
   var debug = xmlText(xml, "debug");
@@ -604,9 +640,11 @@ function parseXml(xml) {
 
 // ajax pair to reload tab on pages
 function tabPage(subject, action, rID) {
-  if (subject) {
-    fetchXml('index.php?module=phreedom&page=ajax&op=tab_details&mod='+module+'&subject='+subject+'&action='+action+'&rID='+rID, processTabPage);
-  }
+  if (!subject) return;
+  var url = 'index.php?module=phreedom&page=ajax&op=tab_details&mod='+module+'&subject='+subject+'&action='+action;
+  // Changes are posted, so index.php can check their csrf_token; paging is a plain read.
+  if (action == 'delete' || action == 'update') postXml(url, {rID: rID || 0}, processTabPage);
+  else fetchXml(url+'&rID='+rID, processTabPage);
 }
 
 function processTabPage(xml) {

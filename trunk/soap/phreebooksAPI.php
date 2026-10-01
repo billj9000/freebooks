@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -16,7 +17,7 @@
 // +-----------------------------------------------------------------+
 //  Path: /soap/phreebooksAPI.php
 //
-ini_set('display_errors', true); // @todo should be removed
+ini_set('display_errors', '0');
 ini_set('display_startup_errors', true); // @todo should be removed
 
 require_once ('application_top.php');

@@ -76,6 +76,9 @@ $_REQUEST['list'] = max(1, (int)($_REQUEST['list'] ?? 1));
 // set the language
 if   (isset($_GET['language'])) { $_SESSION['language'] = $_GET['language']; } 
 elseif (empty($_SESSION['language'])) { $_SESSION['language'] = defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : 'en_us'; }
+// It names a directory that language files are included from, and can arrive
+// before login: a locale name such as en_us, nothing else.
+if (!is_string($_SESSION['language']) || !preg_match('/^[a-z]{2}_[a-z]{2}$/', $_SESSION['language'])) $_SESSION['language'] = 'en_us';
 // see if the user is logged in
 $user_validated = isset($_SESSION['admin_id']) ? true : false;
 // load general language translation, Check for global define overrides first

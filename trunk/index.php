@@ -31,6 +31,10 @@ else                            $module = 'phreedom';
 if (isset($_POST['page']))      $page = $_POST['page'];
 elseif (isset($_GET['page']))   $page = $_GET['page'];
 else                     		$page = 'main';
+// Both name a directory on the server, as does an ajax op a file: a plain name,
+// nothing else, so no request can reach outside modules/<module>/pages|ajax.
+if (!is_string($module) || !preg_match('/^[A-Za-z0-9_]+$/', $module)) $module = 'phreedom';
+if (!is_string($page)   || !preg_match('/^[A-Za-z0-9_]+$/', $page))   $page   = 'main';
 $user_validated = false;
 require_once('includes/application_top.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -80,9 +84,11 @@ if (!empty($loaded_modules) && $module <> 'phreedom' && !in_array($module, $load
   gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
 }
 if ($page == 'ajax') {
-  $pre_process_path = DIR_FS_MODULES . $module . 'custom/ajax/' . $_GET['op'] . '.php';
+  $op = isset($_GET['op']) && is_string($_GET['op']) && preg_match('/^[A-Za-z0-9_]+$/', $_GET['op']) ? $_GET['op'] : '';
+  if ($op === '') die;
+  $pre_process_path = DIR_FS_MODULES . $module . '/custom/ajax/' . $op . '.php';
   if (file_exists($pre_process_path)) { require($pre_process_path); die; }
-  $pre_process_path = DIR_FS_MODULES . $module . '/ajax/' . $_GET['op'] . '.php';
+  $pre_process_path = DIR_FS_MODULES . $module . '/ajax/' . $op . '.php';
   if (file_exists($pre_process_path)) { require($pre_process_path); die; }
   die; // go no further
 }

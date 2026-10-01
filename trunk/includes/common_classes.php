@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -368,27 +369,29 @@ class ctl_panel {
 		global $db;
 		if (!$row_id) $row_id 		= $this->get_next_row();
 		//$this->params['num_rows']   = $this->default_num_rows;	// defaults to unlimited rows
+		// params holds what the user typed into a dashboard's settings: every
+		// value is escaped, and every number cast.
 		$result = $db->Execute("insert into " . TABLE_USERS_PROFILES . " set
-			user_id = "       . $_SESSION['admin_id'] . ",
-			menu_id = '"      . $this->menu_id . "',
-		  	module_id = '"    . $this->module_id . "',
-		  	dashboard_id = '" . $this->dashboard_id . "',
-		  	column_id = "     . $column_id . ",
-		  	row_id = "        . $row_id . ",
-		  	params = '"       . serialize($this->default_params) . "'");
+			user_id = "       . (int)$_SESSION['admin_id'] . ",
+			menu_id = '"      . db_input($this->menu_id) . "',
+		  	module_id = '"    . db_input($this->module_id) . "',
+		  	dashboard_id = '" . db_input($this->dashboard_id) . "',
+		  	column_id = "     . (int)$column_id . ",
+		  	row_id = "        . (int)$row_id . ",
+		  	params = '"       . db_input(serialize($this->default_params)) . "'");
   	}
 
   	function Remove() {
 		global $db;
 		$result = $db->Execute("delete from " . TABLE_USERS_PROFILES . "
-	  	where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $this->menu_id . "' and dashboard_id = '" . $this->dashboard_id . "'");
+	  	where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($this->menu_id) . "' and dashboard_id = '" . db_input($this->dashboard_id) . "'");
   	}
 
   	function Update() {
   		global $db;
-  		$db->Execute("update " . TABLE_USERS_PROFILES . " set params = '" . serialize($this->params) . "'
-	  		where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $this->menu_id . "'
-	    	and dashboard_id = '" . $this->dashboard_id . "'");
+  		$db->Execute("update " . TABLE_USERS_PROFILES . " set params = '" . db_input(serialize($this->params)) . "'
+	  		where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($this->menu_id) . "'
+	    	and dashboard_id = '" . db_input($this->dashboard_id) . "'");
   	}
 
   	function build_div($title, $contents, $controls) {
@@ -460,7 +463,7 @@ class ctl_panel {
 	function get_next_row($column_id = 1) {
 		global $db;
 		$result = $db->Execute("select max(row_id) as max_row from " . TABLE_USERS_PROFILES . "
-		  where user_id = " . $_SESSION['admin_id'] . " and menu_id = '" . $this->menu_id . "' and column_id = " . $column_id);
+		  where user_id = " . (int)$_SESSION['admin_id'] . " and menu_id = '" . db_input($this->menu_id) . "' and column_id = " . (int)$column_id);
 		return ($result->fields['max_row'] + 1);
 	}
 
