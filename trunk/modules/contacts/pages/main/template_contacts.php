@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -82,21 +83,21 @@
     <table class="pkg-table">
       <tr>
        <td align="right"><?php echo ACT_SHORT_NAME . html_hidden_field('i_id', ''); ?></td>
-       <td><?php echo html_input_field('i_short_name', $cInfo->i_short_name, 'size="21" maxlength="20"', true); ?></td>
+       <td><?php echo html_input_field('i_short_name', $cInfo->i_short_name, 'size="21" maxlength="64"', true); ?></td>
        <td align="right"><?php echo TEXT_TITLE; ?></td>
-       <td><?php echo html_input_field('i_contact_middle', $cInfo->i_contact_middle, 'size="33" maxlength="32"', false); ?></td>
+       <td><?php echo html_input_field('i_contact_middle', $cInfo->i_contact_middle, 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
         <td align="right"><?php echo GEN_FIRST_NAME; ?></td>
-        <td><?php echo html_input_field('i_contact_first', $cInfo->i_contact_first, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('i_contact_first', $cInfo->i_contact_first, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_LAST_NAME; ?></td>
-        <td><?php echo html_input_field('i_contact_last', $cInfo->i_contact_last, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('i_contact_last', $cInfo->i_contact_last, 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
         <td align="right"><?php echo ACT_ACCOUNT_NUMBER; ?></td>
         <td><?php echo html_input_field('i_account_number', $cInfo->i_account_number, 'size="17" maxlength="16"'); ?></td>
         <td align="right"><?php echo ACT_ID_NUMBER; ?></td>
-        <td><?php echo html_input_field('i_gov_id_number', $cInfo->i_gov_id_number, 'size="17" maxlength="16"'); ?></td>
+        <td><?php echo html_input_field('i_gov_id_number', $cInfo->i_gov_id_number, 'size="17" maxlength="32"'); ?></td>
       </tr>
     </table>
     <table id="im_address_form" class="pkg-table">

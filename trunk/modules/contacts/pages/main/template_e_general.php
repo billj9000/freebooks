@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,19 +25,19 @@ echo html_hidden_field('account_number', $cInfo->account_number); // not used fo
     <table>
       <tr>
         <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_SHORT_NAME'); ?></td>
-        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="20"', true); ?></td>
+        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="64"', true); ?></td>
         <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_ID_NUMBER'); ?></td>
-        <td><?php echo html_input_field('gov_id_number', $cInfo->gov_id_number, 'size="17" maxlength="16"'); ?></td>
+        <td><?php echo html_input_field('gov_id_number', $cInfo->gov_id_number, 'size="17" maxlength="32"'); ?></td>
         <td align="right"><?php echo TEXT_INACTIVE; ?></td>
         <td><?php echo html_checkbox_field('inactive', '1', $cInfo->inactive); ?></td>
       </tr>
       <tr>
         <td align="right"><?php echo GEN_FIRST_NAME; ?></td>
-        <td><?php echo html_input_field('contact_first', $cInfo->contact_first, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_first', $cInfo->contact_first, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_MIDDLE_NAME; ?></td>
-        <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_LAST_NAME; ?></td>
-        <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
 	    <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_REP_ID'); ?></td>

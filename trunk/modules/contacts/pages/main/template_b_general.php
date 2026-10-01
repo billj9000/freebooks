@@ -24,7 +24,7 @@
     <table>
       <tr>
         <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_SHORT_NAME'); ?></td>
-        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="20"', true); ?></td>
+        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="64"', true); ?></td>
         <td align="right">&nbsp;</td>
         <td>&nbsp;</td>
         <td align="right"><?php echo TEXT_INACTIVE; ?></td>
@@ -32,11 +32,11 @@
       </tr>
       <tr>
         <td align="right"><?php echo GEN_FIRST_NAME; ?></td>
-        <td><?php echo html_input_field('contact_first', $cInfo->contact_first, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_first', $cInfo->contact_first, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_MIDDLE_NAME; ?></td>
-        <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_LAST_NAME; ?></td>
-        <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
         <td align="right"><?php echo ACT_VAT_NUMBER; ?></td>

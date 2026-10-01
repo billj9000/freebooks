@@ -24,7 +24,7 @@
     <table>
       <tr>
         <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_SHORT_NAME') . ($cInfo->auto_type == false ? '' : ' ' . ACT_ID_AUTO_FILL ); ?></td>
-        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="20"', $cInfo->auto_type == false ? true : false); ?></td>
+        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="64"', $cInfo->auto_type == false ? true : false); ?></td>
 <?php if ($type == 'c') { ?>
         <td align="right"><?php echo CONTACT_LEVEL; ?></td>
         <td><?php echo html_pull_down_menu('contacts_level', gen_build_pull_down($contacts_levels), $cInfo->contacts_level ? $cInfo->contacts_level : '0'); ?></td>
@@ -42,11 +42,11 @@
       </tr>
       <tr>
       <td align="right"><?php echo GEN_FIRST_NAME; ?></td>
-        <td><?php echo html_input_field('contact_first', $cInfo->contact_first, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_first', $cInfo->contact_first, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_MIDDLE_NAME; ?></td>
-        <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_middle', $cInfo->contact_middle, 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_LAST_NAME; ?></td>
-        <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="32"', false); ?></td>
+        <td><?php echo html_input_field('contact_last', $cInfo->contact_last, 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
        <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_GL_ACCOUNT_TYPE'); ?></td>
@@ -58,7 +58,7 @@
       </tr>
       <tr>
        <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_ID_NUMBER'); ?></td>
-       <td><?php echo html_input_field('gov_id_number', $cInfo->gov_id_number, 'size="17" maxlength="16"'); ?></td>
+       <td><?php echo html_input_field('gov_id_number', $cInfo->gov_id_number, 'size="17" maxlength="32"'); ?></td>
 	   <td align="right"><?php echo INV_ENTRY_ITEM_TAXABLE; ?></td>
        <td><?php echo html_pull_down_menu('tax_id', $tax_rates, $cInfo->tax_id); ?></td>
        <td><?php  echo ACT_CATEGORY_PAYMENT_TERMS; ?></td>

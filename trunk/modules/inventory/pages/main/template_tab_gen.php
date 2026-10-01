@@ -55,7 +55,7 @@
           </div>
           <label class="fw-normal text-nowrap text-end mb-0"><?php echo INV_ENTRY_INVENTORY_DESC_SHORT; ?></label>
           <div class="input-group input-group-sm" style="max-width:200px">
-            <?php echo html_input_field('description_short', $cInfo->description_short, 'class="form-control form-control-sm" maxlength="32"', false); ?>
+            <?php echo html_input_field('description_short', $cInfo->description_short, 'class="form-control form-control-sm" maxlength="128"', false); ?>
             <?php if ($cInfo->id) echo html_icon('categories/preferences-system.png', TEXT_WHERE_USED, 'small', 'onclick="ajaxWhereUsed()" style="cursor:pointer;align-self:center;margin-left:4px"') . chr(10); ?>
           </div>
           <?php if (isset($cInfo->minimum_stock_level)): ?>

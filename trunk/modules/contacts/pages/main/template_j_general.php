@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -44,7 +45,7 @@ $cal_j_gen2 = array(
     <table>
       <tr>
         <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_SHORT_NAME'); ?></td>
-        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="20"', true); ?></td>
+        <td><?php echo html_input_field('short_name', $cInfo->short_name, 'size="21" maxlength="64"', true); ?></td>
         <td align="right"><?php echo TEXT_INACTIVE; ?></td>
         <td>
 	      <?php echo html_checkbox_field('inactive', '1', $cInfo->inactive) . ' ';
@@ -68,7 +69,7 @@ $cal_j_gen2 = array(
       </tr>
       <tr>
         <td align="right"><?php echo constant('ACT_' . strtoupper($type) . '_ID_NUMBER'); ?></td>
-        <td><?php echo html_input_field('gov_id_number', $cInfo->gov_id_number, 'size="17" maxlength="16"'); ?></td>
+        <td><?php echo html_input_field('gov_id_number', $cInfo->gov_id_number, 'size="17" maxlength="32"'); ?></td>
         <td align="right"><?php echo TEXT_END_DATE; ?></td>
         <td><?php echo html_calendar_field($cal_j_gen2); ?></td>
       </tr>

@@ -80,19 +80,19 @@ if (!empty($extra_toolbar_buttons)) {
 <!-- customer_div: hidden popup, shown centred by popupContact() -->
 <div id="customer_div" style="display:none; z-index:1001; position:absolute; background:#fff; border:1px solid #a6c9e2; padding:12px">
 <?php
-  echo ORD_ACCT_ID . ' ' . html_input_field('search', isset($order->short_name) ? $order->short_name : TEXT_SEARCH, 'size="21" maxlength="30" title="' . TEXT_SEARCH . '" onchange="accountGuess(true)"');
+  echo ORD_ACCT_ID . ' ' . html_input_field('search', isset($order->short_name) ? $order->short_name : TEXT_SEARCH, 'size="21" maxlength="64" title="' . TEXT_SEARCH . '" onchange="accountGuess(true)"');
   echo '&nbsp;' . html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'align="top" style="cursor:pointer" onclick="accountGuess(true)"');
   echo '<br>' . html_pull_down_menu('bill_to_select', gen_null_pull_down(), '', 'onchange="fillAddress(\'bill\')"');
-  echo '<br>' . html_input_field('bill_primary_name', $order->bill_primary_name, 'size="33" maxlength="32" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"', true) . chr(10);
+  echo '<br>' . html_input_field('bill_primary_name', $order->bill_primary_name, 'size="33" maxlength="64" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"', true) . chr(10);
   echo html_checkbox_field('bill_add_update', '1', ($order->bill_add_update) ? true : false, '', '') . TEXT_ADD_UPDATE;
-  echo '<br>' . html_input_field('bill_contact',      $order->bill_contact,      'size="33" maxlength="32" onfocus="clearField(\'bill_contact\', \'' . GEN_CONTACT . '\')" onblur="setField(\'bill_contact\', \'' . GEN_CONTACT . '\')"', ADDRESS_BOOK_CONTACT_REQUIRED);
-  echo '<br>' . html_input_field('bill_address1',     $order->bill_address1,     'size="33" maxlength="32" onfocus="clearField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')" onblur="setField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')"', ADDRESS_BOOK_ADDRESS1_REQUIRED);
-  echo '<br>' . html_input_field('bill_address2',     $order->bill_address2,     'size="33" maxlength="32" onfocus="clearField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')" onblur="setField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')"', ADDRESS_BOOK_ADDRESS2_REQUIRED);
-  echo '<br>' . html_input_field('bill_city_town',    $order->bill_city_town,    'size="25" maxlength="24" onfocus="clearField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')" onblur="setField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')"', ADDRESS_BOOK_CITY_TOWN_REQUIRED) . chr(10);
-  echo         html_input_field('bill_state_province', $order->bill_state_province, 'size="3" maxlength="24" onfocus="clearField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')" onblur="setField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')"', ADDRESS_BOOK_STATE_PROVINCE_REQUIRED) . chr(10);
-  echo         html_input_field('bill_postal_code',   $order->bill_postal_code,   'size="11" maxlength="10" onfocus="clearField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED);
+  echo '<br>' . html_input_field('bill_contact',      $order->bill_contact,      'size="33" maxlength="64" onfocus="clearField(\'bill_contact\', \'' . GEN_CONTACT . '\')" onblur="setField(\'bill_contact\', \'' . GEN_CONTACT . '\')"', ADDRESS_BOOK_CONTACT_REQUIRED);
+  echo '<br>' . html_input_field('bill_address1',     $order->bill_address1,     'size="33" maxlength="64" onfocus="clearField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')" onblur="setField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')"', ADDRESS_BOOK_ADDRESS1_REQUIRED);
+  echo '<br>' . html_input_field('bill_address2',     $order->bill_address2,     'size="33" maxlength="64" onfocus="clearField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')" onblur="setField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')"', ADDRESS_BOOK_ADDRESS2_REQUIRED);
+  echo '<br>' . html_input_field('bill_city_town',    $order->bill_city_town,    'size="25" maxlength="64" onfocus="clearField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')" onblur="setField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')"', ADDRESS_BOOK_CITY_TOWN_REQUIRED) . chr(10);
+  echo         html_input_field('bill_state_province', $order->bill_state_province, 'size="3" maxlength="32" onfocus="clearField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')" onblur="setField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')"', ADDRESS_BOOK_STATE_PROVINCE_REQUIRED) . chr(10);
+  echo         html_input_field('bill_postal_code',   $order->bill_postal_code,   'size="11" maxlength="24" onfocus="clearField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED);
   echo '<br>' . html_pull_down_menu('bill_country_code', gen_get_countries(), $order->bill_country_code ? $order->bill_country_code : COMPANY_COUNTRY);
-  echo '<br>' . html_input_field('bill_telephone1',   $order->bill_telephone1,   'size="21" maxlength="20" onfocus="clearField(\'bill_telephone1\', \'' . GEN_TELEPHONE1 . '\')" onblur="setField(\'bill_telephone1\', \'' . GEN_TELEPHONE1 . '\')"', ADDRESS_BOOK_TELEPHONE1_REQUIRED) . chr(10);
+  echo '<br>' . html_input_field('bill_telephone1',   $order->bill_telephone1,   'size="21" maxlength="32" onfocus="clearField(\'bill_telephone1\', \'' . GEN_TELEPHONE1 . '\')" onblur="setField(\'bill_telephone1\', \'' . GEN_TELEPHONE1 . '\')"', ADDRESS_BOOK_TELEPHONE1_REQUIRED) . chr(10);
   echo '<br>' . html_input_field('bill_email',        $order->bill_email,        'size="35" maxlength="48" onfocus="clearField(\'bill_email\', \'' . GEN_EMAIL . '\')" onblur="setField(\'bill_email\', \'' . GEN_EMAIL . '\')"', ADDRESS_BOOK_EMAIL_REQUIRED);
 ?>
 </div>
@@ -123,9 +123,9 @@ if (!empty($extra_toolbar_buttons)) {
   </div>
   <div id="search_customer">
   <?php
-    echo ORD_ACCT_ID . ' ' . html_input_field('copy_search', isset($order->short_name) ? $order->short_name : TEXT_SEARCH, 'size="21" maxlength="20" title="' . TEXT_SEARCH . '" onchange="accountGuess(true)"');
+    echo ORD_ACCT_ID . ' ' . html_input_field('copy_search', isset($order->short_name) ? $order->short_name : TEXT_SEARCH, 'size="21" maxlength="64" title="' . TEXT_SEARCH . '" onchange="accountGuess(true)"');
     echo '&nbsp;' . html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'align="top" style="cursor:pointer" onclick="accountGuess(true)"') . '<br>' . chr(10);
-    echo html_input_field('copy_bill_primary_name', $order->bill_primary_name, 'size="33" maxlength="32" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"', true) . '<br>' . chr(10);
+    echo html_input_field('copy_bill_primary_name', $order->bill_primary_name, 'size="33" maxlength="64" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"', true) . '<br>' . chr(10);
     echo html_button_field('customer_popup_buttom', TEXT_SELECT_CUSTOMER, 'onclick="popupContact()"') . '<br>' . chr(10);
   ?>
   </div>

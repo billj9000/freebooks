@@ -57,13 +57,13 @@ echo $toolbar->build_toolbar();
     <div>
       <?php echo (JOURNAL_ID == 20 ? TEXT_REMIT_TO : TEXT_BILL_TO) . chr(10); ?>
       <?php echo html_pull_down_menu('bill_to_select', gen_null_pull_down(), '', 'onchange=\'fillAddress("bill")\'') . chr(10); ?>
-      <br><?php echo html_input_field('bill_primary_name',   $order->bill_primary_name,   'size="33" maxlength="32" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"') . chr(10); ?>
-      <br><?php echo html_input_field('bill_contact',        $order->bill_contact,         'size="33" maxlength="32" onfocus="clearField(\'bill_contact\', \'' . GEN_CONTACT . '\')" onblur="setField(\'bill_contact\', \'' . GEN_CONTACT . '\')"') . chr(10); ?>
-      <br><?php echo html_input_field('bill_address1',       $order->bill_address1,        'size="33" maxlength="32" onfocus="clearField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')" onblur="setField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')"') . chr(10); ?>
-      <br><?php echo html_input_field('bill_address2',       $order->bill_address2,        'size="33" maxlength="32" onfocus="clearField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')" onblur="setField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')"') . chr(10); ?>
-      <br><?php echo html_input_field('bill_city_town',      $order->bill_city_town,       'size="25" maxlength="24" onfocus="clearField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')" onblur="setField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')"');
-          echo     html_input_field('bill_state_province',   $order->bill_state_province,  'size="3" maxlength="24" onfocus="clearField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')" onblur="setField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')"');
-          echo     html_input_field('bill_postal_code',      $order->bill_postal_code,     'size="11" maxlength="10" onfocus="clearField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')"') . chr(10); ?>
+      <br><?php echo html_input_field('bill_primary_name',   $order->bill_primary_name,   'size="33" maxlength="64" onfocus="clearField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')" onblur="setField(\'bill_primary_name\', \'' . GEN_PRIMARY_NAME . '\')"') . chr(10); ?>
+      <br><?php echo html_input_field('bill_contact',        $order->bill_contact,         'size="33" maxlength="64" onfocus="clearField(\'bill_contact\', \'' . GEN_CONTACT . '\')" onblur="setField(\'bill_contact\', \'' . GEN_CONTACT . '\')"') . chr(10); ?>
+      <br><?php echo html_input_field('bill_address1',       $order->bill_address1,        'size="33" maxlength="64" onfocus="clearField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')" onblur="setField(\'bill_address1\', \'' . GEN_ADDRESS1 . '\')"') . chr(10); ?>
+      <br><?php echo html_input_field('bill_address2',       $order->bill_address2,        'size="33" maxlength="64" onfocus="clearField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')" onblur="setField(\'bill_address2\', \'' . GEN_ADDRESS2 . '\')"') . chr(10); ?>
+      <br><?php echo html_input_field('bill_city_town',      $order->bill_city_town,       'size="25" maxlength="64" onfocus="clearField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')" onblur="setField(\'bill_city_town\', \'' . GEN_CITY_TOWN . '\')"');
+          echo     html_input_field('bill_state_province',   $order->bill_state_province,  'size="3" maxlength="32" onfocus="clearField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')" onblur="setField(\'bill_state_province\', \'' . GEN_STATE_PROVINCE . '\')"');
+          echo     html_input_field('bill_postal_code',      $order->bill_postal_code,     'size="11" maxlength="24" onfocus="clearField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')" onblur="setField(\'bill_postal_code\', \'' . GEN_POSTAL_CODE . '\')"') . chr(10); ?>
       <br><?php echo html_pull_down_menu('bill_country_code', gen_get_countries(), $order->bill_country_code) . chr(10); ?>
     </div>
   </div>
