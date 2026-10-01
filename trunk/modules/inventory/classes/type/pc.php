@@ -65,7 +65,7 @@ class pc extends pb { //Product Bundle Part. child of mp (master product bundle)
 		global $db;
 		$master = explode('-',$this->sku);
 		$this->master = $master[0];
-		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->master . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->master) . "'");
 	  	$this->ms_attr_0   = ($result->RecordCount() > 0) ? $result->fields['attr_0'] : '';
 	  	$this->attr_name_0 = ($result->RecordCount() > 0) ? $result->fields['attr_name_0'] : '';
 	  	$this->ms_attr_1   = ($result->RecordCount() > 0) ? $result->fields['attr_1'] : '';
@@ -93,7 +93,7 @@ class pc extends pb { //Product Bundle Part. child of mp (master product bundle)
 		$result = $db->Execute("select i.*,
 			(select MIN(FLOOR(c.quantity_on_hand / a.qty)) from " . TABLE_INVENTORY_ASSY_LIST . " a
 			 join " . TABLE_INVENTORY . " c on a.sku = c.sku where a.ref_id = i.id and a.qty > 0) as virtual_stock
-			from " . TABLE_INVENTORY . " i where i.sku like '" . $this->master . "-%' and i.inventory_type = 'pc' and i.sku<>'".$this->sku."'");
+			from " . TABLE_INVENTORY . " i where i.sku like '" . db_input($this->master) . "-%' and i.inventory_type = 'pc' and i.sku<>'" . db_input($this->sku) . "'");
 		$i = 0;
 		while(!$result->EOF){
 			$temp = explode('-',$result->fields['sku']);

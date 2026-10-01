@@ -102,7 +102,7 @@ switch ($_REQUEST['action']) {
 	$order->bill_postal_code    = $_POST['bill_postal_code']    <> GEN_POSTAL_CODE    ? db_prepare_input($_POST['bill_postal_code'])    : '';
 	$order->bill_country_code   = db_prepare_input($_POST['bill_country_code']);
 	// load journal main data
-	$order->id                  = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
+	$order->id                  = ctype_digit((string)$_POST['id']) ? (string)$_POST['id'] : ''; // a whole number, or empty for a new entry
 	$order->post_date           = $post_date;
 	$order->period              = $period;
 	$order->journal_id          = JOURNAL_ID;
@@ -132,6 +132,11 @@ switch ($_REQUEST['action']) {
 	switch (JOURNAL_ID) {
 	  case 18:
 	    $payment_module = $order->shipper_code; 
+	    // It names a class to create: only an installed payment method.
+	    if (!(is_string($payment_module) && preg_match('/^[a-z0-9_]+$/', $payment_module) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $payment_module) && class_exists($payment_module, false) && is_subclass_of($payment_module, 'payment'))) {
+	      $error = $messageStack->add(TEXT_ERROR . ': ' . TEXT_PAYMENT_METHOD, 'error');
+	      break;
+	    }
 	    $processor      = new $payment_module;
 	    if ($$payment_module->pre_confirmation_check()) $error = true;	
 		$pmt_meth = db_prepare_input($_POST['shipper_code']);
@@ -177,7 +182,7 @@ switch ($_REQUEST['action']) {
 	  $order->bill_postal_code    = $_POST['bill_postal_code']    <> GEN_POSTAL_CODE    ? db_prepare_input($_POST['bill_postal_code'])    : '';
 	  $order->bill_country_code   = db_prepare_input($_POST['bill_country_code']);
 	  // load journal main data
-	  $order->id                  = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
+	  $order->id                  = ctype_digit((string)$_POST['id']) ? (string)$_POST['id'] : ''; // a whole number, or empty for a new entry
 	  $order->journal_id          = (JOURNAL_ID == 18) ? 13 : 7;  // credit memo
 	  $order->gl_type             = (JOURNAL_ID == 18) ? 'sos' : 'por';
 	  $order->post_date           = $post_date;

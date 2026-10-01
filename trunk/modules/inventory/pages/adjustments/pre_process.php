@@ -29,9 +29,10 @@ define('GL_TYPE', '');
 $post_date           = isset($_POST['post_date'])? gen_db_date($_POST['post_date']) : date('Y-m-d');
 $error               = false;
 $glEntry             = new journal();
-$glEntry->id         = isset($_POST['id'])       ? $_POST['id']       : '';
+// Ids reach the ledger's SQL: a whole number, or empty for a new entry.
+$glEntry->id         = ctype_digit((string)($_POST['id'] ?? '')) ? (string)$_POST['id'] : '';
 $glEntry->journal_id = JOURNAL_ID;
-$glEntry->store_id   = isset($_POST['store_id']) ? $_POST['store_id'] : 0;
+$glEntry->store_id   = isset($_POST['store_id']) ? (int)$_POST['store_id'] : 0;
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/adjustments/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }

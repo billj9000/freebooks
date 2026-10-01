@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -27,11 +28,21 @@ class tills {
     public $printer_starting_line 	= '';
 	public $printer_closing_line  	= '';
     public $printer_open_drawer   	= '';
+
+    // What a posted form may never set: the constructor copies every posted
+    // field onto the object, so without this a post chose its own permission
+    // level (security_id) or the table it writes to (db_table).
+    const NOT_FROM_FORMS = array('security_id', 'code', 'db_table', 'help_path', 'error', 'id', 'store_ids');
     
     public function __construct(){
          $this->security_id           = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
-         foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
+         foreach ($_POST as $key => $value) {
+           if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
+           $this->$key = db_prepare_input($value);
+         }
          $this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+         // It goes into SQL: a whole number, or empty for a new record.
+         $this->id = ctype_digit((string)$this->id) ? (string)$this->id : '';
          $this->store_ids = gen_get_store_ids();
          if($_REQUEST['page'] == 'main') $this->showDropDown();
     }
@@ -61,7 +72,7 @@ class tills {
 	);
 	
     if ($id) {
-	  db_perform($this->db_table, $sql_data_array, 'update', "till_id = '" . $id . "'");
+	  db_perform($this->db_table, $sql_data_array, 'update', "till_id = " . (int)$id);
 	  gen_add_audit_log(SETUP_TAX_AUTHS_LOG . TEXT_UPDATE, $this->description);
 	} else  {
       db_perform($this->db_table, $sql_data_array);
@@ -75,15 +86,15 @@ class tills {
 	validate_security($this->security_id, 4);
 	// Don't allow delete if there is account activity for this account
 	$sql = "select max(debit_amount) as debit, max(credit_amount) as credit, max(beginning_balance) as beg_bal 
-		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . $this->gl_acct_id . "'";
+		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . db_input($this->gl_acct_id) . "'";
 	$result = $db->Execute($sql);
 	if ($result->fields['debit'] <> 0 || $result->fields['credit'] <> 0 || $result->fields['beg_bal'] <> 0) {
 	  $messageStack->add(GL_ERROR_CANT_DELETE, 'error');
 	  return false;
 	}
 	// OK to delete
-	$result = $db->Execute("select description from " . $this->db_table . " where till_id = '" . $id . "'");
-	$db->Execute("delete from " . $this->db_table . " where till_id = '" . $id . "'");
+	$result = $db->Execute("select description from " . $this->db_table . " where till_id = " . (int)$id);
+	$db->Execute("delete from " . $this->db_table . " where till_id = " . (int)$id);
 	gen_add_audit_log(SETUP_TAX_AUTHS_LOG . TEXT_DELETE, $result->fields['description']);
 	return true;
   }
@@ -122,7 +133,7 @@ class tills {
   function build_form_html($action, $id = '') {
     global $db, $currencies;
     if ($action <> 'new' && $this->error == false) {
-        $sql = "select * from " . $this->db_table . " where till_id = " . $id;
+        $sql = "select * from " . $this->db_table . " where till_id = " . (int)$id;
         $result = $db->Execute($sql);
         foreach ($result->fields as $key => $value) $this->$key = $value;
 	}

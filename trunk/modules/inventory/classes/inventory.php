@@ -43,14 +43,29 @@ class inventory {
 	public $remove_image			= false;
 	public $purchases_history		= array();
 	public $sales_history			= array();
-	
+	// What a posted form may never set. The constructor copies every posted
+	// field onto the object, so without this a forged post chose a column name
+	// that goes into SQL (auto_field), a file to delete (image_with_path), or
+	// HTML and state the class builds for itself.
+	const NOT_FROM_FORMS = array('security_token', 'auto_field', 'help_path', 'title', 'tab_list', 'inventory_type',
+		'posible_transactions', 'posible_cost_methodes', 'not_used_fields', 'attachments', 'store_stock', 'qty_table',
+		'qty_per_store', 'purchase_array', 'backup_purchase_array', 'history', 'purchases_history', 'sales_history',
+		'min_vendor_id', 'old_id', 'old_sku', 'new_sku', 'image_with_path', 'assy_cost', 'creation_date', 'last_update',
+		'edit_ms_list', 'allow_edit_bom', 'bom', 'child_array', 'attr_array0', 'attr_array1', 'master', 'orderHistory');
+
 	/**
-	 * 
+	 *
 	 * this is the class construct
 	 */
 	public function __construct(){
 		global $db;
-		foreach ($_POST as $key => $value) $this->$key = $value;
+		foreach ($_POST as $key => $value) {
+			if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
+			$this->$key = $value;
+		}
+		// It goes into SQL unquoted and into file names: a whole number, or
+		// empty for an item not saved yet.
+		$this->id = ctype_digit((string)($this->id ?? '')) ? (string)$this->id : '';
 		$this->creation_date = date('Y-m-d H:i:s');
 	  	$this->last_update   = date('Y-m-d H:i:s');
 		$this->tab_list['general']  = array('file'=>'template_tab_gen',      'tag'=>'general',  'order'=>10, 'text'=>TEXT_SYSTEM);
@@ -71,13 +86,14 @@ class inventory {
 		$this->purchases_history = null;
 		$this->sales_history	 = null;
 		$this->purchase_array	 = null;
+		$id = (int)$id;
 		$this->id = $id;
 		$result = $db->Execute("SELECT * FROM ".TABLE_INVENTORY." WHERE id = $id");
 		if ($result->RecordCount() != 0) foreach ($result->fields as $key => $value) {
 			if (is_null($value)) $this->$key = '';
 			else $this->$key = $value;
 		}
-		$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+		$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 		$this->remove_unwanted_keys();
 		$this->get_qty();
 		$this->assy_cost = $this->item_cost;
@@ -96,13 +112,13 @@ class inventory {
 		$this->sales_history	 = null;
 		$this->purchase_array	 = null;
 		$this->sku = $sku;
-		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku = '" . $sku  . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku = '" . db_input($sku)  . "'");
 		if($result->RecordCount()!=0) foreach ($result->fields as $key => $value) {
 			if(is_null($value)) $this->$key = '';
-			else $this->$key = $value;	
+			else $this->$key = $value;
 		}
 		// expand attachments
-		$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+		$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 		$this->remove_unwanted_keys();
 		$this->get_qty();
 		$this->assy_cost = $this->item_cost;	
@@ -231,7 +247,7 @@ class inventory {
 		else return false;
 		$this->old_id					= $this->id;
 		$this->old_sku					= $this->sku;
-		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku = '" . $this->old_sku. "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku = '" . db_input($this->old_sku) . "'");
 		//if ($result->RecordCount() == 0) return false;
 		$sql_data_array = array();
 		$not_usable_keys = array('id','sku','last_journal_date','upc_code','image_with_path','quantity_on_hand','quantity_on_order','quantity_on_sales_order','quantity_on_allocation','creation_date','last_update');
@@ -249,7 +265,7 @@ class inventory {
 		$this->history 						= array();
 		$this->qty_per_store				= array();
 		$this->attachments					= array();
-		$result = $db->Execute("select price_sheet_id, price_levels from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = $id");
+		$result = $db->Execute("select price_sheet_id, price_levels from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = " . (int)$id);
 		while(!$result->EOF) {
 	  		$output_array = array(
 				'inventory_id'   => $this->id,
@@ -259,7 +275,7 @@ class inventory {
 	  		db_perform(TABLE_INVENTORY_SPECIAL_PRICES, $output_array, 'insert');
 	  		$result->MoveNext();
 		}
-		$result = $db->Execute("select * from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $this->old_sku . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($this->old_sku) . "'");
 		while(!$result->EOF) {
 			$sql_data_array = array (
 				'sku'						=> $this->sku,
@@ -296,7 +312,7 @@ class inventory {
 		if(isset($id))$this->get_item_by_id($id); 
 		$sku_list = array($this->sku);
 		if (isset($this->edit_ms_list) && $this->edit_ms_list == true) { // build list of sku's to rename (without changing contents)
-	  		$result = $db->Execute("select sku from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+	  		$result = $db->Execute("select sku from " . TABLE_INVENTORY . " where sku like '" . db_input($this->sku) . "-%'");
 	  		while(!$result->EOF) {
 				$sku_list[] = $result->fields['sku'];
 				$result->MoveNext();
@@ -307,13 +323,13 @@ class inventory {
 		// rename the afffected tables
 		for ($i = 0; $i < count($sku_list); $i++) {
 	  		$new_sku = str_replace($this->sku, $newSku, $sku_list[$i], $count = 1);
-	  		$result = $db->Execute("update " . TABLE_INVENTORY .           " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
-	  		$result = $db->Execute("update " . TABLE_INVENTORY_ASSY_LIST . " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
-	  		$result = $db->Execute("update " . TABLE_INVENTORY_COGS_OWED . " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
-	  		$result = $db->Execute("update " . TABLE_INVENTORY_HISTORY .   " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
-	  		$result = $db->Execute("update " . TABLE_INVENTORY_MS_LIST .   " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
-	  		$result = $db->Execute("update " . TABLE_JOURNAL_ITEM .        " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
-	  		$result = $db->Execute("update " . TABLE_INVENTORY_PURCHASE .  " set sku = '" . $new_sku . "' where sku = '" . $sku_list[$i] . "'");
+	  		$result = $db->Execute("update " . TABLE_INVENTORY .           " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
+	  		$result = $db->Execute("update " . TABLE_INVENTORY_ASSY_LIST . " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
+	  		$result = $db->Execute("update " . TABLE_INVENTORY_COGS_OWED . " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
+	  		$result = $db->Execute("update " . TABLE_INVENTORY_HISTORY .   " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
+	  		$result = $db->Execute("update " . TABLE_INVENTORY_MS_LIST .   " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
+	  		$result = $db->Execute("update " . TABLE_JOURNAL_ITEM .        " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
+	  		$result = $db->Execute("update " . TABLE_INVENTORY_PURCHASE .  " set sku = '" . db_input($new_sku) . "' where sku = '" . db_input($sku_list[$i]) . "'");
 		}
 		$db->transCommit();
 		return true;
@@ -325,18 +341,18 @@ class inventory {
 		if(isset($id))$this->get_item_by_id($id);
 		else return false;
 		// check to see if there is inventory history remaining, if so don't allow delete
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_HISTORY . " where sku = '" . $this->sku . "' and remaining > 0");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_HISTORY . " where sku = '" . db_input($this->sku) . "' and remaining > 0");
 		if ($result->RecordCount() > 0) {
 		 	$messageStack->add(INV_ERROR_DELETE_HISTORY_EXISTS, 'error');
 		 	return false;
 		}
 		// check to see if this item is part of an assembly
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($this->sku) . "'");
 		if ($result->RecordCount() > 0) {
 	  		$messageStack->add(INV_ERROR_DELETE_ASSEMBLY_PART, 'error');
 	  		return false;
 		}
-		$result = $db->Execute( "select id from " . TABLE_JOURNAL_ITEM . " where sku = '" . $this->sku . "' limit 1");
+		$result = $db->Execute( "select id from " . TABLE_JOURNAL_ITEM . " where sku = '" . db_input($this->sku) . "' limit 1");
 		if ($result->Recordcount() > 0) {
 			$messageStack->add(INV_ERROR_CANNOT_DELETE, 'error');
 	  		return false;	
@@ -346,20 +362,37 @@ class inventory {
 		
 	}
 	
+	/**
+	 * The full path of an existing image file under this company's inventory
+	 * images directory, or false. The relative path is stored data and was once
+	 * a posted field, so it is only trusted once it resolves inside that
+	 * directory: nothing outside it can be read over or deleted.
+	 * @param string $relative
+	 */
+	function image_file($relative) {
+		$relative = (string)$relative;
+		if ($relative === '' || strpos($relative, "\0") !== false) return false;
+		$base = realpath(DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images');
+		if ($base === false) return false;
+		$full = realpath($base . '/' . $relative);
+		if ($full === false || strpos($full, $base . DIRECTORY_SEPARATOR) !== 0 || !is_file($full)) return false;
+		return $full;
+	}
+
 	// this is the general remove function 
 	// the function check_remove calls this function. 
 	function remove(){
 		global $db;
-		$db->Execute("delete from " . TABLE_INVENTORY . " where id = " . $this->id);
+		$db->Execute("delete from " . TABLE_INVENTORY . " where id = " . (int)$this->id);
 		if($this->image_with_path != '') {
-			$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . $this->image_with_path ."'");
+			$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . db_input($this->image_with_path) ."'");
 	  		if ( $result->RecordCount() == 0) { // delete image
-				$file_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images/';
-				if (file_exists($file_path . $this->image_with_path)) unlink ($file_path . $this->image_with_path);
+				$image_file = $this->image_file($this->image_with_path);
+				if ($image_file !== false) unlink ($image_file);
 	  		}
 		}
-	  	$db->Execute("delete from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = '" . $this->id . "'");
-	  	$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $this->sku . "'");
+	  	$db->Execute("delete from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = " . (int)$this->id);
+	  	$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($this->sku) . "'");
 		gen_add_audit_log(INV_LOG_INVENTORY . TEXT_DELETE, $this->sku);
 	}
 	
@@ -399,22 +432,43 @@ class inventory {
 		} else{
 			if (isset($sql_data_array['item_cost'])) unset($sql_data_array['item_cost']);
 		}
+		// The image is the one this item has on file, never a posted path: only an
+		// upload or the remove box below changes it.
+		unset($sql_data_array['image_with_path']);
+		$this->image_with_path = '';
+		if ($this->id != '') {
+			$result = $db->Execute("select image_with_path from " . TABLE_INVENTORY . " where id = " . (int)$this->id);
+			$this->image_with_path = (string)$result->fields['image_with_path'];
+		}
 		$file_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images';
 		if ($this->remove_image == '1') { // update the image with relative path
-	  		if ($this->image_with_path && file_exists($file_path . '/' . $this->image_with_path)) unlink ($file_path . '/' . $this->image_with_path);
+	  		$old_image = $this->image_file($this->image_with_path);
+	  		if ($old_image !== false) unlink ($old_image);
 	  		$this->image_with_path = '';
 	  		$sql_data_array['image_with_path'] = ''; 
 	  		unset($this->remove_image); // this is not a db field, just an action
 		}
 		if (is_uploaded_file($_FILES['inventory_image']['tmp_name'])) {
-	  		if ($this->image_with_path && file_exists($file_path . '/' . $this->image_with_path)) unlink ($file_path . '/' . $this->image_with_path);
-      		$this->inventory_path = str_replace('\\', '/', $this->inventory_path);
+	  		$old_image = $this->image_file($this->image_with_path);
+	  		if ($old_image !== false) unlink ($old_image);
+      		$this->inventory_path = str_replace('\\', '/', (string)$this->inventory_path);
 			// strip beginning and trailing slashes if present
 			if (substr($this->inventory_path, 0, 1) == '/') $this->inventory_path = substr($this->inventory_path, 1);// remove leading '/' if there
 	  		if (substr($this->inventory_path, -1, 1) == '/') $this->inventory_path = substr($this->inventory_path, 0, -1);// remove trailing '/' if there
+	  		// A sub-directory of the images directory, typed by the user: plain
+	  		// names only, so the upload can never be written anywhere else.
+	  		if ($this->inventory_path !== '' && (!preg_match('/^[A-Za-z0-9_\-. \/]+$/', $this->inventory_path)
+	  		    || in_array('..', explode('/', $this->inventory_path), true))) {
+				$messageStack->add(INV_IMAGE_PATH_ERROR, 'error');
+				return false;
+	  		}
 	  		if ($this->inventory_path) $file_path .= '/' . $this->inventory_path;
 	  		$temp_file_name = $_FILES['inventory_image']['tmp_name'];
-	  		$file_name = $_FILES['inventory_image']['name'];
+	  		$file_name = basename(str_replace('\\', '/', (string)$_FILES['inventory_image']['name']));
+	  		if ($file_name === '' || $file_name[0] === '.') {
+				$messageStack->add(INV_IMAGE_FILE_TYPE_ERROR, 'error');
+				return false;
+	  		}
 	  		if (!validate_path($file_path)) {
 				$messageStack->add(INV_IMAGE_PATH_ERROR, 'error');
 				return false;
@@ -427,7 +481,7 @@ class inventory {
 				$messageStack->add(INV_IMAGE_FILE_TYPE_ERROR, 'error');
 				return false;
 	  		} else { // passed all test, write file
-	  			$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . ($this->inventory_path ? ($this->inventory_path . '/') : '') . $file_name ."'");
+	  			$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . db_input(($this->inventory_path ? ($this->inventory_path . '/') : '') . $file_name) ."'");
 	  			if ( $result->RecordCount() != 0) {
 	  				$messageStack->add(INV_IMAGE_DUPLICATE_NAME, 'error');
 	  				return false;
@@ -442,8 +496,8 @@ class inventory {
 	  		}
 		}
 		if ($this->id != ''){
-			$result = $db->Execute("select attachments from ".TABLE_INVENTORY." where id = $this->id");
-			$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+			$result = $db->Execute("select attachments from ".TABLE_INVENTORY." where id = " . (int)$this->id);
+			$this->attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 			$image_id = 0;
 	  		while ($image_id < 100) { // up to 100 images
 	    		if (isset($_POST['rm_attach_'.$image_id])) {
@@ -466,10 +520,10 @@ class inventory {
 		unset($sql_data_array['last_journal_date]']);
 		if ($this->id != ''){
 			if ($this->price_sheet == ''){
-				$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = $this->id and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'c' )");
+				$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = " . (int)$this->id . " and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'c' )");
 			}
 			unset($sql_data_array['creation_date]']);
-			db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "id = " . $this->id);
+			db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "id = " . (int)$this->id);
 			gen_add_audit_log(INV_LOG_INVENTORY . TEXT_UPDATE, $this->sku . ' - ' . $sql_data_array['description_short']);
 		}else{
 			db_perform(TABLE_INVENTORY, $sql_data_array, 'insert');
@@ -492,7 +546,7 @@ class inventory {
 	function create_purchase_array(){
 		global $db;
 		if(!in_array('purchase',$this->posible_transactions)) return;
-		$result = $db->Execute("select * from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $this->sku  . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($this->sku) . "'");
 		while(!$result->EOF){
 			$this->purchase_array[]= array (
 				'id'						=> $result->fields['id'],
@@ -513,7 +567,7 @@ class inventory {
 		global $db, $currencies;
 		$lowest_cost = isset($this->item_cost) ? $this->item_cost : 99999999999;
 		$this->backup_purchase_array = array();
-		$result = $db->Execute("SELECT * FROM ".TABLE_INVENTORY_PURCHASE." WHERE sku='$this->sku'");
+		$result = $db->Execute("SELECT * FROM ".TABLE_INVENTORY_PURCHASE." WHERE sku='" . db_input($this->sku) . "'");
 		while(!$result->EOF){
 			$this->backup_purchase_array[$result->fields['id']]= array (
 				'id'						=> $result->fields['id'],
@@ -575,7 +629,7 @@ class inventory {
 					$this->backup_purchase_array[$_POST['row_id_array'][$key]]['action'] = 'update';
 					db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'update', "id = " . (int)$_POST['row_id_array'][$key]);
 					if($this->backup_purchase_array[$_POST['row_id_array'][$key]]['price_sheet_v'] != "" && $_POST['price_sheet_v_array'][$key] == ""){
-						$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = $this->id and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '".db_input($this->backup_purchase_array[$_POST['row_id_array'][$key]]['price_sheet_v'])."')");
+						$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = " . (int)$this->id . " and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '".db_input($this->backup_purchase_array[$_POST['row_id_array'][$key]]['price_sheet_v'])."')");
 					}
 				}else{//insert
 					db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'insert');
@@ -599,8 +653,8 @@ class inventory {
 		}
 		foreach($this->backup_purchase_array as $key => $value){
 			if($value['action'] == 'delete'){
-				$db->Execute("DELETE FROM " . TABLE_INVENTORY_PURCHASE . " WHERE id = '{$value['id']}'");
-				$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = $this->id and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '{$value['price_sheet_v']}')");
+				$db->Execute("DELETE FROM " . TABLE_INVENTORY_PURCHASE . " WHERE id = " . (int)$value['id']);
+				$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = " . (int)$this->id . " and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '" . db_input($value['price_sheet_v']) . "')");
 			}
 		}
 		return $lowest_cost == 99999999999 ? 0 : $lowest_cost; //added in case no purchase data entered when creating new product
@@ -637,7 +691,7 @@ class inventory {
 		// load the SO's and PO's and get order, expected del date
 		$sql = "select m.id, m.journal_id, m.store_id, m.purchase_invoice_id, i.qty, i.post_date, i.date_1,	i.id as item_id 
 	  	  from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
-	  	  where m.journal_id in (4, 10) and i.sku = '" . $this->sku ."' and m.closed = '0' 
+	  	  where m.journal_id in (4, 10) and i.sku = '" . db_input($this->sku) . "' and m.closed = '0' 
 	  	  order by i.date_1";
 		$result = $db->Execute($sql);
 		while(!$result->EOF) {
@@ -670,7 +724,7 @@ class inventory {
 		// load the units received and sold, assembled and adjusted
 		$sql = "select m.journal_id, m.post_date, i.qty, i.gl_type, i.credit_amount, i.debit_amount 
 		  from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
-		  where m.journal_id in (6, 12, 14, 16, 19, 21) and i.sku = '" . $this->sku ."' and m.post_date >= '" . $last_year . "' 
+		  where m.journal_id in (6, 12, 14, 16, 19, 21) and i.sku = '" . db_input($this->sku) . "' and m.post_date >= '" . $last_year . "' 
 		  order by m.post_date DESC";
 		$result = $db->Execute($sql);
 		while(!$result->EOF) {
@@ -759,8 +813,11 @@ class inventory {
 	}
 	
 	function update_inventory_status($sku, $field, $adjustment, $item_cost, $vendor_id, $desc){
-		$sql = "update " . TABLE_INVENTORY_PURCHASE . " set item_cost = '$item_cost'";
-	  	$sql .= " where sku = '$sku' and vendor_id = '$vendor_id'";
+		global $db;
+		// The column is named in the SQL: only the inventory quantity columns.
+		if (!in_array($field, array('quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order', 'quantity_on_allocation'), true)) return false;
+		$sql = "update " . TABLE_INVENTORY_PURCHASE . " set item_cost = " . (float)$item_cost;
+	  	$sql .= " where sku = '" . db_input($sku) . "' and vendor_id = " . (int)$vendor_id;
 	  	$result = $db->Execute($sql);
 		if($result->RecordCount() == 0) {
 			$sql_data_array = array (
@@ -773,8 +830,8 @@ class inventory {
 			); 
 			db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'insert');
 		}
-	  	$sql = "update " . TABLE_INVENTORY . " set $field = $field + $adjustment, ";
-	  	$sql .= "last_journal_date = now() where sku = '$sku'";
+	  	$sql = "update " . TABLE_INVENTORY . " set $field = $field + " . (float)$adjustment . ", ";
+	  	$sql .= "last_journal_date = now() where sku = '" . db_input($sku) . "'";
 	  	$result = $db->Execute($sql);
 		return true;
 	}

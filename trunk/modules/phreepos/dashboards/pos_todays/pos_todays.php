@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -47,7 +48,7 @@ class pos_todays extends ctl_panel {
 		$sql = "select id, purchase_invoice_id, total_amount, bill_primary_name, currencies_code, currencies_value 
 		  from " . TABLE_JOURNAL_MAIN . " 
 		  where journal_id = 19 and post_date = '" . date('Y-m-d', time()) . "' order by purchase_invoice_id";
-		if ($params['num_rows']) $sql .= " limit " . $params['num_rows'];
+		if ($params['num_rows']) $sql .= " limit " . (int)$params['num_rows']; // stored setting, unquoted in SQL
 		$result = $db->Execute($sql);
 		if ($result->RecordCount() < 1) {
 		  	$contents = ACT_NO_RESULTS;
@@ -73,7 +74,7 @@ class pos_todays extends ctl_panel {
 
 	function Update() {
 		if(empty($this->params)){
-			$this->params['num_rows'] = db_prepare_input($_POST['pos_todays_field_0']);
+			$this->params['num_rows'] = (int)$_POST['pos_todays_field_0'];
 		}
 		parent::Update();
 	}

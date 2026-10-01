@@ -28,9 +28,10 @@ $error = false;
 define('JOURNAL_ID', 14); // Inventory Assemblies Journal
 define('GL_TYPE', '');
 $glEntry             = new journal();
-$glEntry->id         = ($_POST['id'] <> '')      ? $_POST['id'] : ''; // will be null unless opening an existing gl entry
+// Ids reach the ledger's SQL: a whole number, or empty for a new entry.
+$glEntry->id         = ctype_digit((string)$_POST['id']) ? (string)$_POST['id'] : ''; // will be null unless opening an existing gl entry
 $glEntry->journal_id = JOURNAL_ID;
-$glEntry->store_id   = isset($_POST['store_id']) ? $_POST['store_id'] : 0;
+$glEntry->store_id   = isset($_POST['store_id']) ? (int)$_POST['store_id'] : 0;
 $glEntry->post_date  = $_POST['post_date']       ? gen_db_date($_POST['post_date']) : date('Y-m-d');
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/assemblies/extra_actions.php';
@@ -52,7 +53,7 @@ switch ($_REQUEST['action']) {
 	if (!$glEntry->period) $error = true;
 	// if unbuild, test for stock to go negative
 	$result = $db->Execute("select account_inventory_wage, quantity_on_hand 
-	  from " . TABLE_INVENTORY . " where sku = '" . $sku . "'");
+	  from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 	$sku_inv_acct = $result->fields['account_inventory_wage'];
 	if (!$result->RecordCount()) $error = $messageStack->add(INV_ERROR_SKU_INVALID, 'error');
 	if ($qty < 0 && ($result->fields['quantity_on_hand'] + $qty) < 0 ) $error = $messageStack->add(INV_ERROR_NEGATIVE_BALANCE, 'error');

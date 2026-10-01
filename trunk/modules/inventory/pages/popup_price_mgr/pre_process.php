@@ -51,17 +51,26 @@ switch ($_REQUEST['action']) {
 		}
 	  } else {
 		$encoded_prices = array();
+		// Each token is a number (quantity) or a selection code (source,
+		// adjustment, rounding); blank stays blank, as inv_calculate_prices()
+		// reads a blank as its default.
+		$level_token = function ($value, $as_int) use ($currencies) {
+		  $value = trim((string)db_prepare_input($value));
+		  if ($value === '') return '';
+		  // A quantity may be typed with the locale's separators, as prices are.
+		  return $as_int ? (string)(int)$value : (string)$currencies->clean_value($value);
+		};
 		for ($i=0, $j=1; $i < MAX_NUM_PRICE_LEVELS; $i++, $j++) {
 		  $level_data  =       $currencies->clean_value($_POST['price_'   . $tab_id . '_' . $j]);
-		  $level_data .= ':' . db_prepare_input        ($_POST['qty_'     . $tab_id . '_' . $j]);
-		  $level_data .= ':' . db_prepare_input        ($_POST['src_'     . $tab_id . '_' . $j]);
-		  $level_data .= ':' . db_prepare_input        ($_POST['adj_'     . $tab_id . '_' . $j]);
+		  $level_data .= ':' . $level_token            ($_POST['qty_'     . $tab_id . '_' . $j], false);
+		  $level_data .= ':' . $level_token            ($_POST['src_'     . $tab_id . '_' . $j], true);
+		  $level_data .= ':' . $level_token            ($_POST['adj_'     . $tab_id . '_' . $j], true);
 		  $level_data .= ':' . $currencies->clean_value($_POST['adj_val_' . $tab_id . '_' . $j]);
-		  $level_data .= ':' . db_prepare_input        ($_POST['rnd_'     . $tab_id . '_' . $j]);
+		  $level_data .= ':' . $level_token            ($_POST['rnd_'     . $tab_id . '_' . $j], true);
 		  $level_data .= ':' . $currencies->clean_value($_POST['rnd_val_' . $tab_id . '_' . $j]);
 		  $encoded_prices[] = $level_data;
 		}
-		$price_levels = implode(';', $encoded_prices);
+		$price_levels = db_input(implode(';', $encoded_prices)); // used only in the SQL string literals below
 		$result = $db->Execute("select id from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = $id and price_sheet_id = '$sheet_id'");
 		if ($result->RecordCount() == 0) {
 		  $db->Execute("insert into " . TABLE_INVENTORY_SPECIAL_PRICES . " 

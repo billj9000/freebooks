@@ -91,7 +91,7 @@ class ia extends inventory { //Master Build Sub Item. child of mb (master assemb
 		global $db;
 		$master = explode('-',$this->sku); 
 		$this->master = $master[0];
-		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->master . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->master) . "'");
 	  	$this->ms_attr_0   = ($result->RecordCount() > 0) ? $result->fields['attr_0'] : '';
 	  	$this->attr_name_0 = ($result->RecordCount() > 0) ? $result->fields['attr_name_0'] : '';
 	  	$this->ms_attr_1   = ($result->RecordCount() > 0) ? $result->fields['attr_1'] : '';
@@ -114,7 +114,7 @@ class ia extends inventory { //Master Build Sub Item. child of mb (master assemb
 			  $temp_ms1[$code] = $desc;
 			}
 		}
-		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->master . "-%' and inventory_type = 'ia' and sku<>'".$this->sku."'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . db_input($this->master) . "-%' and inventory_type = 'ia' and sku<>'" . db_input($this->sku) . "'");
 		$i = 0;
 		while(!$result->EOF){
 			$temp = explode('-',$result->fields['sku']); 

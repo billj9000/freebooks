@@ -1,4 +1,22 @@
 <?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /modules/inventory/classes/type/sr.php
+//
 require_once(DIR_FS_MODULES . 'inventory/classes/inventory.php');
 class sr extends inventory {//Serialized Item
 	public $inventory_type			= 'sr';
@@ -25,7 +43,7 @@ class sr extends inventory {//Serialized Item
 		$branches = gen_get_store_ids();
 		$this->quantity_on_hand = 0;
 		$result = $db->Execute("select store_id, qty, serialize_number from " . TABLE_INVENTORY_HISTORY . " 
-	  		where sku = '" . $this->sku . "' and remaining > 0 order by store_id");
+	  		where sku = '" . db_input($this->sku) . "' and remaining > 0 order by store_id");
   		$this->qty_table ='<table class="table table-borderless table-hover table-sm" style="width:100%">'. chr(10);
 		$this->qty_table .='  <thead class="table-dark">'. chr(10);
 	  	$this->qty_table .='	  <tr>';
@@ -49,7 +67,7 @@ class sr extends inventory {//Serialized Item
 
     	$field_list  = array('m.id', 'm.post_date', 'm.purchase_invoice_id', 'm.closed', 'm.bill_primary_name', 'm.total_amount', 'i.serialize_number');
     	$sql   = "SELECT ".implode(', ', $field_list)." FROM ".TABLE_JOURNAL_MAIN." m JOIN ".TABLE_JOURNAL_ITEM." i on m.id=i.ref_id
-    	WHERE m.journal_id=12 AND i.sku='$this->sku' ORDER BY m.purchase_invoice_id DESC";
+    	WHERE m.journal_id=12 AND i.sku='" . db_input($this->sku) . "' ORDER BY m.purchase_invoice_id DESC";
     	$this->orderHistory = $db->Execute($sql);
     	$this->tab_list['orderhist'] = array('file'=>'template_tab_hist_sr', 'tag'=>'orderhist', 'order'=>40, 'text'=>'Unit History');
 	}

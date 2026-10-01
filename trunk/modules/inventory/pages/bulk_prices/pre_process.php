@@ -30,7 +30,10 @@ switch ($_REQUEST['action']) {
 	$j = 1;
 	while (true) {
 		if (isset($_POST['id_' . $j])) {
-			$id = db_prepare_input($_POST['id_' . $j]);
+			// It goes into the WHERE unquoted: a row without a whole-number id is skipped.
+			$id = (string)$_POST['id_' . $j];
+			if (!ctype_digit($id) || (int)$id === 0) { $j++; continue; }
+			$id = (int)$id;
 			$re_order   = $currencies->clean_value($_POST['reOrd_' . $j]);
 			$min_stock  = $currencies->clean_value($_POST['min_'   . $j]);
 			$lead_time  = $currencies->clean_value($_POST['lead_'  . $j]);

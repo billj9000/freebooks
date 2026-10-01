@@ -51,7 +51,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 	function copy($id, $newSku){
 		global $db;
 		if(parent::copy($id, $newSku)){
-			$result = $db->Execute("select * from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = '$id'");
+			$result = $db->Execute("select * from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$id);
 			while(!$result->EOF) {
 				$bom_list = array(
 				  	'ref_id'      => $this->id,
@@ -89,7 +89,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 	function remove(){
 		global $db;
 		parent::remove();
-		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
+		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($this->sku) . "'");
 	}
 
 	/**

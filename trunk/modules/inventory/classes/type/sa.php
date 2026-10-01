@@ -54,7 +54,7 @@ class sa extends inventory {//Serialized Assembly
 		$branches = gen_get_store_ids();
 		$this->quantity_on_hand = 0;
 		$result = $db->Execute("select store_id, qty, serialize_number from " . TABLE_INVENTORY_HISTORY . " 
-	  		where sku = '" . $this->sku . "' and remaining > 0 order by store_id");
+	  		where sku = '" . db_input($this->sku) . "' and remaining > 0 order by store_id");
   		$this->qty_table ='<table class="table table-borderless table-hover table-sm" style="width:100%">'. chr(10);
 		$this->qty_table .='  <thead class="table-dark">'. chr(10);
 	  	$this->qty_table .='	  <tr>';
@@ -78,7 +78,7 @@ class sa extends inventory {//Serialized Assembly
 
     	$field_list  = array('m.id', 'm.post_date', 'm.purchase_invoice_id', 'm.closed', 'm.bill_primary_name', 'm.total_amount', 'i.serialize_number');
     	$sql   = "SELECT ".implode(', ', $field_list)." FROM ".TABLE_JOURNAL_MAIN." m JOIN ".TABLE_JOURNAL_ITEM." i on m.id=i.ref_id
-    	WHERE m.journal_id=12 AND i.sku='$this->sku' ORDER BY m.purchase_invoice_id DESC";
+    	WHERE m.journal_id=12 AND i.sku='" . db_input($this->sku) . "' ORDER BY m.purchase_invoice_id DESC";
     	$this->orderHistory = $db->Execute($sql);
     	$this->tab_list['orderhist'] = array('file'=>'template_tab_hist_sr', 'tag'=>'orderhist', 'order'=>40, 'text'=>'Unit History');
 	}
@@ -103,7 +103,7 @@ class sa extends inventory {//Serialized Assembly
 	function remove(){
 		global $db;
 		parent::remove();
-		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
+		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($this->sku) . "'");
 	}
 	
 	function save(){

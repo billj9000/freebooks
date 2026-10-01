@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -22,11 +23,21 @@ class other_transactions {
     public $db_table     	= TABLE_PHREEPOS_OTHER_TRANSACTIONS;
     public $help_path   	= '';
     public $error       	= false;
+
+    // What a posted form may never set: the constructor copies every posted
+    // field onto the object, so without this a post chose its own permission
+    // level (security_id) or the table it writes to (db_table).
+    const NOT_FROM_FORMS = array('security_id', 'code', 'db_table', 'help_path', 'error', 'id', 'store_ids');
     
     public function __construct(){
          $this->security_id           = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
-         foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
+         foreach ($_POST as $key => $value) {
+           if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
+           $this->$key = db_prepare_input($value);
+         }
          $this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+         // It goes into SQL: a whole number, or empty for a new record.
+         $this->id = ctype_digit((string)$this->id) ? (string)$this->id : '';
          $this->store_ids = gen_get_store_ids();
     }
 
@@ -46,7 +57,7 @@ class other_transactions {
 			'taxable'				=> $this->taxable,
 		);
     	if ($id) {
-			db_perform($this->db_table, $sql_data_array, 'update', "ot_id = '" . $id . "'");
+			db_perform($this->db_table, $sql_data_array, 'update', "ot_id = " . (int)$id);
 			gen_add_audit_log(SETUP_TAX_AUTHS_LOG . TEXT_UPDATE, $this->description);
 		} else {
       		db_perform($this->db_table, $sql_data_array);
@@ -59,8 +70,8 @@ class other_transactions {
   		global $db, $messageStack;
   		validate_security($this->security_id, 4);
 		// 	OK to delete
-		$result = $db->Execute("select description from " . $this->db_table . " where ot_id = '" . $id . "'");
-		$db->Execute("delete from " . $this->db_table . " where ot_id = '" . $id . "'");
+		$result = $db->Execute("select description from " . $this->db_table . " where ot_id = " . (int)$id);
+		$db->Execute("delete from " . $this->db_table . " where ot_id = " . (int)$id);
 		gen_add_audit_log(SETUP_TAX_AUTHS_LOG . TEXT_DELETE, $result->fields['description']);
 		return true;
   	}
@@ -102,7 +113,7 @@ class other_transactions {
     	require_once(DIR_FS_MODULES . 'phreepos/classes/tills.php');
     	require_once(DIR_FS_MODULES . 'phreepos/defaults.php');
     	if ($action <> 'new' && $this->error == false) {
-        	$sql = "select * from " . $this->db_table . " where ot_id = " . $id;
+        	$sql = "select * from " . $this->db_table . " where ot_id = " . (int)$id;
         	$result = $db->Execute($sql);
         	foreach ($result->fields as $key => $value) $this->$key = $value;
 		}

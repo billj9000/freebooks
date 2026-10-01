@@ -34,14 +34,15 @@ history_filter('pos_mgr');
 /***************   hook for custom actions  ***************************/
 $date        = gen_db_date($_REQUEST['search_date']);
 $acct_period = $_REQUEST['search_period'];
-$oid		 = isset($_GET['oID']) ? $_GET['oID'] : false;
+$oid		 = isset($_GET['oID']) ? ((int)$_GET['oID'] ?: false) : false; // unquoted in SQL: a whole number
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/pos_mgr/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'delete':
-    $id = db_prepare_input($_POST['rowSeq']);
+    validate_security($security_level, 4); // deleting a sale takes delete rights, as on every journal page
+    $id = (int)$_POST['rowSeq']; // unquoted in SQL: a whole number
 	if ($id) {
 	  $delOrd = new $class($id);
 	  if ($_SESSION['admin_prefs']['restrict_period'] && $delOrd->period <> CURRENT_ACCOUNTING_PERIOD) {
@@ -127,7 +128,7 @@ if (!$date == false){
 	$acct_period   = '';
 }else{
 	if ($acct_period == false) $acct_period = CURRENT_ACCOUNTING_PERIOD;
-	$period_filter = ($acct_period == 'all') ? '' : (' and period = ' . $acct_period);
+	$period_filter = ($acct_period == 'all') ? '' : (' and period = ' . (int)$acct_period); // unquoted in SQL: a period number
 	$date = '';
 }
 if ($oid == true){

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -98,6 +99,8 @@ class phreepos extends journal {
 		// cycle through the payments
 		foreach ($this->pmt_rows as $pay_method) {
 		  $pay_meth  = $pay_method['meth'];
+		  // It names a class to create: only an installed payment method.
+		  if (!(is_string($pay_meth) && preg_match('/^[a-z0-9_]+$/', $pay_meth) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $pay_meth) && class_exists($pay_meth, false) && is_subclass_of($pay_meth, 'payment'))) return false;
 		  $processor = new $pay_meth;
 		  if (ENABLE_ENCRYPTION && $this->save_payment && $processor->enable_encryption !== false) {
 		    if (!$this->encrypt_payment($pay_method, $processor->enable_encryption)) return false;
@@ -126,6 +129,7 @@ class phreepos extends journal {
 		if ($this->pmt_rows[$i]['pmt']) { // make sure the payment line is set and not zero
 		  $desc = MENU_HEADING_PHREEPOS . '-' . TEXT_TOTAL;
 		  $method     = $this->pmt_rows[$i]['meth'];
+		  if ($method && !(is_string($method) && preg_match('/^[a-z0-9_]+$/', $method) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $method) && class_exists($method, false) && is_subclass_of($method, 'payment'))) $method = ''; // only an installed payment method names a class
 		  if ($method) {
 		    $$method    = new $method;
 		    $deposit_id = $$method->def_deposit_id ? $$method->def_deposit_id : ('DP' . date('Ymd'));

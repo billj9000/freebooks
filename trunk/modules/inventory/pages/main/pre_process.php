@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') $_SESSION['inv_f0'] = isset($_POST['f0
 $f0 = $_SESSION['inv_f0'];
 $f1 = $_GET['f1'] = isset($_POST['f1']) ? $_POST['f1'] : $_GET['f1']; // inventory_type dropdown
 $id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID']);
+// It goes into SQL unquoted: a whole number, or empty for none.
+$id = ctype_digit((string)$id) ? (string)$id : '';
 // getting the right inventory type.
 if (!isset($_REQUEST['inventory_type'])){
 	if(isset($_REQUEST['cID'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id=".(int)$_REQUEST['cID']);
@@ -46,6 +48,9 @@ if (!isset($_REQUEST['inventory_type'])){
 	if ($result->RecordCount()>0) $type = $result->fields['inventory_type'];
 } 
 if ($type == 'as') $type = 'ma'; 
+// It names a class file and a class, and can come from the request: only a
+// two-letter inventory type, so it can never reach outside classes/type/.
+if (!preg_match('/^[a-z]{2}$/', (string)$type)) $type = null;
 if ( in_array($_REQUEST['action'], array('create', 'save', 'delete', 'copy', 'edit', 'properties', 'rename', 'saveAndColse', 'post_next'))) {
 	if (file_exists(DIR_FS_WORKING . 'custom/classes/type/'.$type.'.php')) { 
 		require_once(DIR_FS_WORKING . 'custom/classes/type/'.$type.'.php'); 
@@ -78,14 +83,18 @@ switch ($_REQUEST['action']) {
 
   case 'delete':
 	validate_security($security_level, 4); // security check
-	$id = db_prepare_input($_GET['cID']);
+	// Delete, copy and rename only as a POST, which index.php has checked for
+	// its csrf_token: a GET could be a link someone was sent.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
+	$id = (int)$_POST['cID'];
 	$cInfo->check_remove($id);
 	break;
 
   case 'copy': 	// Pictures are not copied over...
 	validate_security($security_level, 2); // security check
-	$id  = db_prepare_input($_GET['cID']);
-	$sku = db_prepare_input($_GET['sku']);
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
+	$id  = (int)$_POST['cID'];
+	$sku = db_prepare_input($_POST['sku']);
 	if($cInfo->copy($id, $sku)) $_REQUEST['action'] = 'edit';
 	break;
 	
@@ -107,13 +116,15 @@ switch ($_REQUEST['action']) {
 
   case 'rename':
 	validate_security($security_level, 4); // security check
-	$id  = db_prepare_input($_GET['cID']);
-	$sku = db_prepare_input($_GET['sku']);
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
+	$id  = (int)$_POST['cID'];
+	$sku = db_prepare_input($_POST['sku']);
 	$cInfo->rename($id, $sku);
 	break;
   case 'download':
-   	    $cID   = db_prepare_input($_POST['id']);
-  	    $imgID = db_prepare_input($_POST['rowSeq']);
+   	    // Both name the file to send: whole numbers only.
+   	    $cID   = (int)$_POST['id'];
+  	    $imgID = (int)$_POST['rowSeq'];
 	    $filename = 'inventory_'.$cID.'_'.$imgID.'.zip';
 	    if (file_exists(INVENTORY_DIR_ATTACHMENTS . $filename)) {
 	       require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
@@ -122,9 +133,9 @@ switch ($_REQUEST['action']) {
 	    }
         die;
   case 'dn_attach': // download from list, assume the first document only
-        $cID   = db_prepare_input($_POST['rowSeq']);
+        $cID   = (int)$_POST['rowSeq'];
   	    $result = $db->Execute("select attachments from ".TABLE_INVENTORY." where id = $cID");
-  	    $attachments = unserialize($result->fields['attachments']);
+  	    $attachments = unserialize((string)$result->fields['attachments'], ['allowed_classes' => false]) ?: array();
   	    foreach ($attachments as $key => $value) {
 		   $filename = 'inventory_'.$cID.'_'.$key.'.zip';
 		   if (file_exists(INVENTORY_DIR_ATTACHMENTS . $filename)) {
@@ -216,23 +227,53 @@ switch ($_REQUEST['action']) {
   	$_SESSION['filter_criteria'] = isset( $_REQUEST['filter_criteria']) ?  $_REQUEST['filter_criteria'] : $_SESSION['filter_criteria'];
   	$_SESSION['filter_value'] 	 = isset( $_REQUEST['filter_value']) 	?  $_REQUEST['filter_value'] : $_SESSION['filter_value'];
   	$filter_criteria = Array(" = "," != "," LIKE "," NOT LIKE "," > "," < ");
+	// The field is a column name in the SQL: only one this page offers in its
+	// filter list (built the same way below). The criterion is a position in
+	// $filter_criteria or the 'contains' text, and the value is escaped. The
+	// session is checked too, as it may hold a filter saved before this check.
+	$allowed_filter_fields = array();
+	$result = $db->Execute("SELECT field_name FROM " . TABLE_EXTRA_FIELDS ." WHERE module_id = 'inventory' AND use_in_inventory_filter = '1'");
+	while (!$result->EOF) {
+		$append = in_array($result->fields['field_name'], array('vendor_id','description_purchase','item_cost','purch_package_quantity','purch_taxable','price_sheet_v')) ? 'p.' : 'a.';
+		$allowed_filter_fields[] = $append . $result->fields['field_name'];
+		$result->MoveNext();
+	}
+	$clean_field = $clean_criteria = $clean_value = array();
+	if (is_array($_SESSION['filter_field'])) foreach (array_values($_SESSION['filter_field']) as $x => $field) {
+		$crit  = is_array($_SESSION['filter_criteria']) ? (array_values($_SESSION['filter_criteria'])[$x] ?? '') : '';
+		$value = is_array($_SESSION['filter_value'])    ? (array_values($_SESSION['filter_value'])[$x]    ?? '') : '';
+		if (!is_string($field) || !in_array($field, $allowed_filter_fields, true) || is_array($value)) continue;
+		if ($crit !== FILTER_CONTAINS) {
+			if (!ctype_digit((string)$crit) || !isset($filter_criteria[(int)$crit])) continue;
+			$crit = (string)(int)$crit;
+		}
+		$clean_field[] = $field;
+		$clean_criteria[] = $crit;
+		$clean_value[] = (string)$value;
+	}
+	$_SESSION['filter_field']    = $clean_field    ?: null;
+	$_SESSION['filter_criteria'] = $clean_criteria ?: null;
+	$_SESSION['filter_value']    = $clean_value    ?: null;
 	$x = 0;//@toto add date formater for date fields.
 	while (isset($_SESSION['filter_field'][$x])) {
-		if(      $filter_criteria[$_SESSION['filter_criteria'][$x]] == " LIKE " || $_SESSION['filter_criteria'][$x] == FILTER_CONTAINS){
-			if ( $_SESSION['filter_value'][$x] <> '' ) $criteria[] = $_SESSION['filter_field'][$x] . ' Like "%'    . $_SESSION['filter_value'][$x] . '%" ';
+		$f_field = $_SESSION['filter_field'][$x];
+		$f_value = db_input($_SESSION['filter_value'][$x]);
+		$f_crit  = $_SESSION['filter_criteria'][$x] === FILTER_CONTAINS ? FILTER_CONTAINS : $filter_criteria[(int)$_SESSION['filter_criteria'][$x]];
+		if(      $f_crit == " LIKE " || $f_crit == FILTER_CONTAINS){
+			if ( $f_value <> '' ) $criteria[] = $f_field . ' Like "%'    . $f_value . '%" ';
 			
-		}elseif( $filter_criteria[$_SESSION['filter_criteria'][$x]] == " NOT LIKE "){
-			if ( $_SESSION['filter_value'][$x] <> '' ) $criteria[] = $_SESSION['filter_field'][$x] . ' Not Like "%' . $_SESSION['filter_value'][$x] . '%" ';
+		}elseif( $f_crit == " NOT LIKE "){
+			if ( $f_value <> '' ) $criteria[] = $f_field . ' Not Like "%' . $f_value . '%" ';
 			
-		}elseif( $filter_criteria[$_SESSION['filter_criteria'][$x]] == " = "  && $_SESSION['filter_value'][$x] == ''){
-			if ( $_SESSION['filter_field'][$x] == 'a.sku' && $_SESSION['filter_value'][$x] == '' ) { $x++; continue; }
-			$criteria[] = '(' . $_SESSION['filter_field'][$x] . $filter_criteria[$_SESSION['filter_criteria'][$x]] . ' "' . $_SESSION['filter_value'][$x] . '" or ' . $_SESSION['filter_field'][$x] . ' IS NULL ) ';
+		}elseif( $f_crit == " = "  && $f_value == ''){
+			if ( $f_field == 'a.sku' && $f_value == '' ) { $x++; continue; }
+			$criteria[] = '(' . $f_field . $f_crit . ' "' . $f_value . '" or ' . $f_field . ' IS NULL ) ';
 			
-		}elseif( $filter_criteria[$_SESSION['filter_criteria'][$x]] == " != " && $_SESSION['filter_value'][$x] == ''){
-			$criteria[] = '(' . $_SESSION['filter_field'][$x] . $filter_criteria[$_SESSION['filter_criteria'][$x]] . ' "' . $_SESSION['filter_value'][$x] . '" or ' . $_SESSION['filter_field'][$x] . ' IS NOT NULL ) ';
+		}elseif( $f_crit == " != " && $f_value == ''){
+			$criteria[] = '(' . $f_field . $f_crit . ' "' . $f_value . '" or ' . $f_field . ' IS NOT NULL ) ';
 			
 		}else{	
-			$criteria[] = $_SESSION['filter_field'][$x] . $filter_criteria[$_SESSION['filter_criteria'][$x]]. ' "' . $_SESSION['filter_value'][$x] . '" ';
+			$criteria[] = $f_field . $f_crit . ' "' . $f_value . '" ';
 		}		
 		$x++;
 	}	
@@ -339,7 +380,7 @@ if ($query_split->current_page_number <> $_REQUEST['list']) { // if here, go las
 					$tempValue 	='Array("';
 					$tempId 	='Array("' ;
 					//explode params and splits value form id
-					$params  = unserialize($result->fields['params']);
+					$params  = unserialize($result->fields['params'], ['allowed_classes' => false]);
 					$choices = explode(',',$params['default']);
 					while ($choice = array_shift($choices)) {
 							$values 	 = explode(':',$choice);

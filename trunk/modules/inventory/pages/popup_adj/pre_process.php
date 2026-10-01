@@ -23,7 +23,7 @@ $security_level = validate_user(0, true);
 history_filter('inv_pop_adj');
 $filters = array();
 $acct_period   = $_REQUEST['search_period'];
-if ($acct_period <> 'all') $filters[] = 'm.period = ' . $acct_period;
+if ($acct_period <> 'all') $filters[] = 'm.period = ' . (int)$acct_period; // unquoted in SQL: a period number
 $adj_type      = isset($_GET['adj_type']) ? $_GET['adj_type'] : 'adj'; // types are xfr or adj
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/popup_adj/module/extra_actions.php';

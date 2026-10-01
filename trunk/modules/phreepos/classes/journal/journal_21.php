@@ -133,6 +133,7 @@ class journal_21 extends journal {
 		if ($this->pmt_rows[$i]['pmt']) { // make sure the payment line is set and not zero
 		  $desc = MENU_HEADING_PHREEPOS . '-' . TEXT_TOTAL;
 		  $method     = $this->pmt_rows[$i]['meth'];
+		  if ($method && !(is_string($method) && preg_match('/^[a-z0-9_]+$/', $method) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $method) && class_exists($method, false) && is_subclass_of($method, 'payment'))) $method = ''; // only an installed payment method names a class
 		  if ($method) {
 		    $$method    = new $method;
 		    $deposit_id = $$method->def_deposit_id ? $$method->def_deposit_id : ('DP' . date('Ymd'));

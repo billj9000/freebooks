@@ -38,7 +38,7 @@ class inventory_fields extends fields{
   function btn_save($id = '') {
   	if(parent::btn_save($id = '')){
   		$sql_data_array['use_in_inventory_filter'] = db_prepare_input($_POST['use_in_inventory_filter']);
-  		db_perform(TABLE_EXTRA_FIELDS, $sql_data_array, 'update', "id = $this->id");
+  		db_perform(TABLE_EXTRA_FIELDS, $sql_data_array, 'update', "id = " . (int)$this->id);
   		return true;
   	}
   	return false;

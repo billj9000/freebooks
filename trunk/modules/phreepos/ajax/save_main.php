@@ -172,6 +172,12 @@ if (file_exists($custom_path)) { include($custom_path); }
 		continue;
 	  }
 	  $pmt_meth = $_POST['meth_' . $x];
+	  // It names a class to create: only an installed payment method.
+	  if (!(is_string($pmt_meth) && preg_match('/^[a-z0-9_]+$/', $pmt_meth) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $pmt_meth) && class_exists($pmt_meth, false) && is_subclass_of($pmt_meth, 'payment'))) {
+	    $error .= TEXT_ERROR . ': ' . TEXT_PAYMENT_METHOD . chr(10);
+	    $x++;
+	    continue;
+	  }
 	  $pmt_amt  = $currencies->clean_value(db_prepare_input($_POST['pmt_' . $x]), $order->currencies_code) / $order->currencies_value;
 	  $tot_paid += $pmt_amt;
 	  $order->pmt_rows[] = array(

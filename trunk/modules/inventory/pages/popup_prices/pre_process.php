@@ -24,10 +24,11 @@ require(DIR_FS_WORKING . 'functions/inventory.php');
 /**************   page specific initialization  *************************/
 $sku   = $_GET['sku'];
 $type  = isset($_GET['type']) ? $_GET['type'] : 'c';
+if (!in_array($type, array('c', 'v'), true)) $type = 'c'; // customer or vendor price sheets only
 $rowId = $_GET['rowId'];
 // retrieve some inventory item details
 $inventory_details = $db->Execute("select id, sku, description_short, item_cost, full_price, item_weight 
-	 from " . TABLE_INVENTORY . " where sku = '$sku'");
+	 from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 $id = $inventory_details->fields['id'];
 
 if ($id) { // then the sku was valid, get item information, cost and full price
@@ -38,7 +39,7 @@ if ($id) { // then the sku was valid, get item information, cost and full price
   $price_sheets = $db->Execute($sql);
   // retrieve special pricing for this inventory item
   $result = $db->Execute("select price_sheet_id, price_levels 
-	from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = " . $id);
+	from " . TABLE_INVENTORY_SPECIAL_PRICES . " where inventory_id = " . (int)$id);
   $special_prices = array();
   while (!$result->EOF) {
 	$special_prices[$result->fields['price_sheet_id']] = $result->fields['price_levels'];

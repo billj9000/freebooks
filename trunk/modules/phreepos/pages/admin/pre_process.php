@@ -48,10 +48,12 @@ switch ($_REQUEST['action']) {
 	}
   case 'delete':
 	validate_security($security_level, 4); // security check
+    // The subject names the object to call: only one this page lists.
+    $subjects = array('tills' => $tills, 'other_transactions' => $trans);
     $subject = $_POST['subject'];
-    $id      = $_POST['rowSeq'];
-	if (!$subject || !$id) break;
-    $$subject->btn_delete($id);
+    $id      = (int)$_POST['rowSeq'];
+	if (!is_string($subject) || !isset($subjects[$subject]) || !$id) break;
+    $subjects[$subject]->btn_delete($id);
 	break;
   default:
 }

@@ -113,8 +113,10 @@ function setSkuLength() {
   }
 }
 
+// Delete, copy and rename change the catalogue, so they are posted (submitPost)
+// with the page's csrf_token; the page refuses them as plain links.
 function deleteItem(id, type) {
-  location.href = 'index.php?module=inventory&page=main&action=delete&cID='+id+'&inventory_type='+type;
+  submitPost('index.php?module=inventory&page=main&action=delete', {cID: id, inventory_type: type});
 }
 
 function showImage() {
@@ -123,12 +125,12 @@ function showImage() {
 
 function copyItem(id, type) {
   var skuID = prompt('<?php echo INV_MSG_COPY_INTRO; ?>', '');
-  if (skuID) location.href = 'index.php?module=inventory&page=main&action=copy&cID='+id+'&sku='+skuID+'&inventory_type='+type;
+  if (skuID) submitPost('index.php?module=inventory&page=main&action=copy', {cID: id, sku: skuID, inventory_type: type});
 }
 
 function renameItem(id, type) {
   var skuID = prompt('<?php echo INV_MSG_RENAME_INTRO; ?>', '');
-  if (skuID) location.href = 'index.php?module=inventory&page=main&action=rename&cID='+id+'&sku='+skuID+'&inventory_type='+type;
+  if (skuID) submitPost('index.php?module=inventory&page=main&action=rename', {cID: id, sku: skuID, inventory_type: type});
 }
 
 function product_markup_change() {

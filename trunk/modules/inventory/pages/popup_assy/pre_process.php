@@ -25,7 +25,7 @@ require(DIR_FS_WORKING . 'functions/inventory.php');
 history_filter('inv_pop_assy');
 $acct_period = $_REQUEST['search_period'];
 if(!isset($_REQUEST['list'])) $_REQUEST['list'] = 1;
-$period_filter = ($acct_period == 'all') ? '' : (' and m.period = ' . $acct_period);
+$period_filter = ($acct_period == 'all') ? '' : (' and m.period = ' . (int)$acct_period); // unquoted in SQL: a period number
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/popup_assy/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }

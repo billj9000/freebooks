@@ -1,4 +1,22 @@
 <?php
+// +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+//  Path: /modules/inventory/classes/type/mi.php
+//
 require_once(DIR_FS_MODULES . 'inventory/classes/inventory.php');
 class mi extends inventory { //Master Stock Sub Item. child of ma (master assembly)
 	public $inventory_type			= 'mi';
@@ -48,7 +66,7 @@ class mi extends inventory { //Master Stock Sub Item. child of ma (master assemb
 		global $db;
 		$master = explode('-',$this->sku); 
 		$this->master = $master[0];
-		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->master . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->master) . "'");
 	  	$this->ms_attr_0   = ($result->RecordCount() > 0) ? $result->fields['attr_0'] : '';
 	  	$this->attr_name_0 = ($result->RecordCount() > 0) ? $result->fields['attr_name_0'] : '';
 	  	$this->ms_attr_1   = ($result->RecordCount() > 0) ? $result->fields['attr_1'] : '';
@@ -71,7 +89,7 @@ class mi extends inventory { //Master Stock Sub Item. child of ma (master assemb
 			  $temp_ms1[$code] = $desc;
 			}
 		}
-		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->master . "-%' and inventory_type = 'mi' and sku<>'".$this->sku."'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . db_input($this->master) . "-%' and inventory_type = 'mi' and sku<>'" . db_input($this->sku) . "'");
 		$i = 0;
 		while(!$result->EOF){
 			$temp = explode('-',$result->fields['sku']); 

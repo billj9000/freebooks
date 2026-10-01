@@ -54,8 +54,9 @@ function priceMgr(rowID, itemID) {
   window.open('index.php?module=inventory&page=popup_prices&iID=' + itemID + '&cost=' + rowCost + '&price=' + rowPrice, 'price_mgr', 'width=800,height=400,resizable=1,scrollbars=1,top=150,left=200');
 }
 
+// Posted (submitPost) with the page's csrf_token; the page refuses a plain link.
 function deleteItem(id) {
-  location.href = 'index.php?module=inventory&page=price_sheets&action=delete&psID=' + id;
+  submitPost('index.php?module=inventory&page=price_sheets&action=delete', {psID: id});
 }
 
 function initEditForm() {

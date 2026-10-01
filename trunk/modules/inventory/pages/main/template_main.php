@@ -59,7 +59,9 @@ echo $toolbar->build_toolbar($add_search = true);
     <?php
     if ($_SESSION['filter_field']) {
       foreach ($_SESSION['filter_field'] as $key => $value) {
-        echo '<script>TableStartValues("' . $_SESSION['filter_field'][$key] . '","' . $_SESSION['filter_criteria'][$key] . '","' . $_SESSION['filter_value'][$key] . '");</script>' . chr(10);
+        // Typed by the user: written as JavaScript strings, never as markup.
+        $js_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+        echo '<script>TableStartValues(' . json_encode((string)$_SESSION['filter_field'][$key], $js_flags) . ',' . json_encode((string)$_SESSION['filter_criteria'][$key], $js_flags) . ',' . json_encode((string)$_SESSION['filter_value'][$key], $js_flags) . ');</script>' . chr(10);
       }
     } else {
       echo '<script>TableStartValues("a.sku","0","");</script>' . chr(10);

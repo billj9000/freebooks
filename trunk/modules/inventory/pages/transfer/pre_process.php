@@ -39,8 +39,9 @@ switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 2); // security check
 	// retrieve and clean input values
-	$source_store_id = $_POST['source_store_id'];
-	$dest_store_id   = $_POST['dest_store_id'];
+	// Ids reach the ledger's SQL: whole numbers only.
+	$source_store_id = (int)$_POST['source_store_id'];
+	$dest_store_id   = (int)$_POST['dest_store_id'];
 	$skus            = array();
 	$rowCnt          = 1;
 	while (true) {
@@ -68,7 +69,7 @@ switch ($_REQUEST['action']) {
 	// process the request, first subtract from the source store
 	if (!$error) {
 	  $glEntry                      = new journal();
-	  $glEntry->id                  = isset($_POST['id']) ? $_POST['id'] : '';
+	  $glEntry->id                  = ctype_digit((string)($_POST['id'] ?? '')) ? (string)$_POST['id'] : ''; // empty for a new entry
 	  $glEntry->so_po_ref_id        = '-1'; // first of 2 adjustments
 	  $glEntry->journal_id          = JOURNAL_ID;
 	  $glEntry->post_date           = $post_date;
@@ -96,7 +97,7 @@ switch ($_REQUEST['action']) {
 	    $serialize_number = db_prepare_input($_POST['serial_'.$rowCnt]);
 	    $desc             = db_prepare_input($_POST['desc_'.$rowCnt]);
 //	    $acct             = db_prepare_input($_POST['acct_'.$rowCnt]);
-	    $result = $db->Execute("select account_inventory_wage, account_cost_of_sales FROM ".TABLE_INVENTORY." WHERE sku='$sku'");
+	    $result = $db->Execute("select account_inventory_wage, account_cost_of_sales FROM ".TABLE_INVENTORY." WHERE sku='" . db_input($sku) . "'");
 	    $_POST['acct_'     .$rowCnt] = $result->fields['account_inventory_wage'];
 	    $_POST['cogs_acct_'.$rowCnt] = $result->fields['account_cost_of_sales'];
 	  	$_POST['total_'    .$rowCnt] = $glEntry->calculateCost($sku, $qty, $serialize_number);
@@ -137,7 +138,7 @@ switch ($_REQUEST['action']) {
 	    if ($glEntry->Post($glEntry->id ? 'edit' : 'insert')) {
 		  $first_id = $glEntry->id;
 	      $glEntry                      = new journal();
-	  	  $glEntry->id                  = isset($_POST['ref_id']) ? $_POST['ref_id'] : '';
+	  	  $glEntry->id                  = ctype_digit((string)($_POST['ref_id'] ?? '')) ? (string)$_POST['ref_id'] : ''; // empty for a new entry
 	      $glEntry->so_po_ref_id        = $first_id; // id of original adjustment
 	      $glEntry->journal_id          = JOURNAL_ID;
 	      $glEntry->post_date           = $post_date;

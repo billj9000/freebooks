@@ -98,7 +98,10 @@ switch ($_REQUEST['action']) {
 
   case 'delete':
 	validate_security($security_level, 4);
-  	$id = (int)db_prepare_input($_GET['psID']);
+	// Delete and revise only as a POST, which index.php has checked for its
+	// csrf_token: a GET could be a link someone was sent.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
+  	$id = (int)$_POST['psID'];
 	$result = $db->Execute("select sheet_name, type, default_sheet from " . TABLE_PRICE_SHEETS . " where id = " . $id);
 	$sheet_name = $result->fields['sheet_name'];
 	$type       = $result->fields['type'];
@@ -111,7 +114,8 @@ switch ($_REQUEST['action']) {
 
   case 'revise':
 	validate_security($security_level, 2);
-  	$old_id  = (int)$_GET['psID'];
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
+  	$old_id  = (int)$_POST['psID'];
 	$result  = $db->Execute("select * from " . TABLE_PRICE_SHEETS . " where id = $old_id");
 	$old_rev = $result->fields['revision'];
 	$output_array = array(
@@ -129,8 +133,8 @@ switch ($_REQUEST['action']) {
 	// Copy special pricing information to new sheet
 	$levels = $db->Execute("select inventory_id, price_levels from " . TABLE_INVENTORY_SPECIAL_PRICES . " where price_sheet_id = $old_id");
 	while (!$levels->EOF){
-		$db->Execute("insert into " . TABLE_INVENTORY_SPECIAL_PRICES . " set inventory_id = $levels->fields['inventory_id'],
-		  price_sheet_id = $id, price_levels = '$levels->fields['price_levels']'");
+		$db->Execute("insert into " . TABLE_INVENTORY_SPECIAL_PRICES . " set inventory_id = " . (int)$levels->fields['inventory_id'] . ",
+		  price_sheet_id = " . (int)$id . ", price_levels = '" . db_input($levels->fields['price_levels']) . "'");
 		$levels->MoveNext();
 	}
 	gen_add_audit_log(PRICE_SHEETS_LOG . TEXT_REVISE, $result->fields['sheet_name'] . ' Rev. ' . $old_rev . ' => ' . ($old_rev + 1));

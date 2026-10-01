@@ -91,6 +91,16 @@ class journal_19 extends journal {
 				return false;
 			} 
 		}
+		// Every payment method names a class to create: only an installed one.
+		// Checked before anything is posted, so a refusal leaves no sale behind
+		// without its payments.
+		foreach ($this->pmt_rows as $pay_method) {
+			$m = $pay_method['meth'] ?? '';
+			if (!(is_string($m) && preg_match('/^[a-z0-9_]+$/', $m) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $m) && class_exists($m, false) && is_subclass_of($m, 'payment'))) {
+				$this->fail_message(TEXT_ERROR . ': ' . TEXT_PAYMENT_METHOD);
+				return false;
+			}
+		}
 		// ************* POST journal entry *************
 		if (!$this->validate_purchase_invoice_id()) {
 			$this->fail_message('invoice number is being used in a other post');
@@ -108,6 +118,11 @@ class journal_19 extends journal {
 		// cycle through the payments
 		foreach ($this->pmt_rows as $pay_method) {
 	        $pay_meth  = $pay_method['meth'];
+	        // It names a class to create: only an installed payment method.
+	        if (!(is_string($pay_meth) && preg_match('/^[a-z0-9_]+$/', $pay_meth) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $pay_meth) && class_exists($pay_meth, false) && is_subclass_of($pay_meth, 'payment'))) {
+	            $this->fail_message(TEXT_ERROR . ': ' . TEXT_PAYMENT_METHOD);
+	            return false;
+	        }
 	        $processor = new $pay_meth;
 	        if (ENABLE_ENCRYPTION && $this->save_payment && $processor->enable_encryption !== false) {
 	            if (!$this->encrypt_payment($pay_method, $processor->enable_encryption)){
@@ -144,6 +159,7 @@ class journal_19 extends journal {
 			if ($this->pmt_rows[$i]['pmt']) { // make sure the payment line is set and not zero
 		  		$desc   = MENU_HEADING_PHREEPOS . '-' . TEXT_PAYMENT;
 		  		$method = $this->pmt_rows[$i]['meth'];
+		  		if ($method && !(is_string($method) && preg_match('/^[a-z0-9_]+$/', $method) && is_dir(DIR_FS_MODULES . 'payment/methods/' . $method) && class_exists($method, false) && is_subclass_of($method, 'payment'))) $method = ''; // only an installed payment method names a class
 		  		if ($method) {
 		    		$$method    = new $method;
 		    		$deposit_id = $$method->def_deposit_id ? $$method->def_deposit_id : ('DP' . date('Ymd'));

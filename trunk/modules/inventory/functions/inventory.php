@@ -20,6 +20,8 @@
 
   function load_store_stock($sku, $store_id) {
 	global $db;
+	$store_id = (int)$store_id;
+	$sku      = db_input($sku);
 	$sql = "select sum(remaining) as remaining from " . TABLE_INVENTORY_HISTORY . "
 		where store_id = '$store_id' and sku = '$sku'";
 	$result = $db->Execute($sql);
@@ -220,7 +222,7 @@
 	// load the SO's and PO's and get order, expected del date
 	$sql = "SELECT m.id, m.journal_id, m.store_id, m.purchase_invoice_id, i.qty, i.post_date, i.date_1,
 	i.id AS item_id FROM ".TABLE_JOURNAL_MAIN." m JOIN ".TABLE_JOURNAL_ITEM." i ON m.id=i.ref_id
-	  WHERE m.journal_id IN (4, 10) AND i.sku='$sku' AND m.closed = '0' ORDER BY i.date_1";
+	  WHERE m.journal_id IN (4, 10) AND i.sku='" . db_input($sku) . "' AND m.closed = '0' ORDER BY i.date_1";
 	$result = $db->Execute($sql);
 	while(!$result->EOF) {
 	  switch ($result->fields['journal_id']) {
@@ -252,7 +254,7 @@
 	// load the units received and sold, assembled and adjusted
 	$sql = "SELECT m.journal_id, m.post_date, i.qty, i.gl_type, i.credit_amount, i.debit_amount
 	  FROM ".TABLE_JOURNAL_MAIN." m JOIN ".TABLE_JOURNAL_ITEM." i ON m.id=i.ref_id
-	  WHERE m.journal_id IN (6, 12, 14, 16, 19, 21) AND i.sku='$sku' AND m.post_date >= '$last_year'
+	  WHERE m.journal_id IN (6, 12, 14, 16, 19, 21) AND i.sku='" . db_input($sku) . "' AND m.post_date >= '$last_year'
 	  ORDER BY m.post_date DESC";
 	$result = $db->Execute($sql);
 	while(!$result->EOF) {
@@ -302,7 +304,7 @@
 	$history['averages']['3month']  = round($history['averages']['3month']  /  3, 2);
 
 	sort($sales);
-	$sql = "SELECT minimum_stock_level, lead_time FROM ".TABLE_INVENTORY." WHERE sku='$sku'";
+	$sql = "SELECT minimum_stock_level, lead_time FROM ".TABLE_INVENTORY." WHERE sku='" . db_input($sku) . "'";
 	$inv = $db->Execute($sql);
 	$idx           = ceil(count($sales) / 2);
 	$median_sales  = $sales[$idx];
@@ -325,6 +327,9 @@
     	global $db, $currencies;
 		$price_sheet = '';
 		$contact_tax = 1;
+		// Both go into SQL: whole numbers only.
+		$contact_id  = (int)$contact_id;
+		$sku_id      = (int)$sku_id;
 		if ($contact_id) {
 		  	$contact = $db->Execute("select type, price_sheet, tax_id from " . TABLE_CONTACTS . " where id = '$contact_id'");
 		  	$type        = $contact->fields['type'];

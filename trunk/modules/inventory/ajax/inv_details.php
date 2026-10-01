@@ -27,10 +27,10 @@ $stock_note = array();
 // One of the following identifers is required.
 $sku    = db_prepare_input($_GET['sku']); // specifies the sku, could be a search field as well
 $UPC    = db_prepare_input($_GET['upc']); // specifies the upc code
-$iID    = db_prepare_input($_GET['iID']); // specifies the item database id
+$iID    = (int)$_GET['iID']; // specifies the item database id
 // optional for more detailed operation
-$bID    = db_prepare_input($_GET['bID']); // specifies the branch ID
-$cID    = db_prepare_input($_GET['cID']); // specifies the contact ID
+$bID    = (int)$_GET['bID']; // specifies the branch ID
+$cID    = (int)$_GET['cID']; // specifies the contact ID
 $jID    = db_prepare_input($_GET['jID']); // specifies the journal ID
 $rID    = db_prepare_input($_GET['rID']); // specifies the row to update
 $qty    = db_prepare_input($_GET['qty']); // specifes the quantity (for pricing)
@@ -108,11 +108,11 @@ if ($inventory->RecordCount() != 1) { // need to return something to avoid error
 }
 foreach ($inventory->fields as $key => $value) $inventory_array[$key] = $value;
 if($vendor) {
-	$purchase  = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' and vendor_id = '$cID'" );
+	$purchase  = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($inventory_array['sku']) . "' and vendor_id = '$cID'" );
 	if($purchase->RecordCount() == 1 ) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 	else {
 		// no vendor-specific purchase row — fall back to cheapest row for cost/description
-		$purchase = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $inventory_array['sku'] . "' order by item_cost asc limit 1");
+		$purchase = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($inventory_array['sku']) . "' order by item_cost asc limit 1");
 		if($purchase->RecordCount() == 1) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 		// if vendor is known, override fallback currency with the vendor's stored currency
 		if ($cID) {
@@ -120,7 +120,7 @@ if($vendor) {
 			if (!$vend->EOF && $vend->fields['currency_code'] != '') $inventory_array['currency_code'] = $vend->fields['currency_code'];
 		}
 	}
-	$purchase  = $db->Execute("select MIN(item_cost) as cheapest from " . TABLE_INVENTORY_PURCHASE . " where sku = '{$inventory_array['sku']}' and item_cost <> '0'" );
+	$purchase  = $db->Execute("select MIN(item_cost) as cheapest from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($inventory_array['sku']) . "' and item_cost <> '0'" );
 	if( $jID == 4 && $inventory_array['price_sheet_v'] == '' && $inventory_array['item_cost'] >= $purchase->fields['cheapest'] &&
 	  abs($inventory_array['item_cost'] - $purchase->fields['cheapest']) > 0.00001 ) $stock_note[] = sprintf(INV_CHEAPER_ELSEWHERE, $inventory_array['sku']);
 }else{
@@ -166,7 +166,7 @@ if ($inventory_array['inventory_type'] == 'ma' || $inventory_array['inventory_ty
   $result = $db->Execute("select sku, qty from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = '$iID'");
   $bom    = array();
   while (!$result->EOF) {
-	$sql = "select description_short, inventory_type, item_cost, quantity_on_hand from " . TABLE_INVENTORY . " where sku = '" . $result->fields['sku'] . "'";
+	$sql = "select description_short, inventory_type, item_cost, quantity_on_hand from " . TABLE_INVENTORY . " where sku = '" . db_input($result->fields['sku']) . "'";
 	$sku_cost = $db->Execute($sql);
 	$assy_cost += $result->fields['qty'] * $sku_cost->fields['item_cost'];
 	if (in_array($sku_cost->fields['inventory_type'], $cog_types)) {
@@ -188,7 +188,7 @@ if ($inventory_array['inventory_type'] == 'ma' || $inventory_array['inventory_ty
 }
 // load where used
 $sku_usage = array();
-$result = $db->Execute("select ref_id, qty from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '$sku'");
+$result = $db->Execute("select ref_id, qty from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '$sku_db'");
 if ($result->RecordCount() > 0) {
   while (!$result->EOF) {
     $stock = $db->Execute("select sku, description_short from ".TABLE_INVENTORY." where id='" . $result->fields['ref_id'] . "' and inactive = '0'");

@@ -23,13 +23,16 @@ require(DIR_FS_WORKING . 'defaults.php');
 require(DIR_FS_WORKING . 'functions/inventory.php');
 /**************   page specific initialization  *************************/
 $account_type = isset($_GET['type'])    ? $_GET['type']    : 'c';	// current types are c (customer) and v (vendor)
-$rowID        = isset($_GET['rowID'])   ? $_GET['rowID']   : 0;
-$store_id     = isset($_GET['storeID']) ? $_GET['storeID'] : 0;
-$contactID    = isset($_GET['cID'])     ? $_GET['cID']     : 0;
+// Ids for SQL and the page's script: whole numbers only.
+$rowID        = isset($_GET['rowID'])   ? (int)$_GET['rowID']   : 0;
+$store_id     = isset($_GET['storeID']) ? (int)$_GET['storeID'] : 0;
+$contactID    = isset($_GET['cID'])     ? (int)$_GET['cID']     : 0;
 $assembly     = isset($_GET['asy'])     ? true             : false;
 // load the filters
 $f0 = isset($_REQUEST['f0']) ? $_REQUEST['f0'] : ''; // show inactive checkbox
 $f1 = isset($_REQUEST['f1']) ? $_REQUEST['f1'] : ''; // inventory_type dropdown
+// It goes into SQL: only a choice the dropdown offers.
+if (!is_string($f1) || ($f1 !== '' && $f1 !== '0' && $f1 !== 'cog' && !isset($inventory_types_plus[$f1]))) $f1 = '';
 $f2 = isset($_REQUEST['f2']) ? $_REQUEST['f2'] : ''; // limit to preferred_vendor checkbox
 // save the filters for page jumps
 $_GET['f0'] = $f0;

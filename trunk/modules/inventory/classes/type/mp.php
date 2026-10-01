@@ -61,7 +61,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 	function copy($id, $newSku) {
 		global $db;
 		if(parent::copy($id, $newSku)){
-			$result = $db->Execute("select * from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = '$id'");
+			$result = $db->Execute("select * from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$id);
 			while(!$result->EOF) {
 				$bom_list = array(
 				  	'ref_id'      => $this->id,
@@ -72,7 +72,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 				db_perform(TABLE_INVENTORY_ASSY_LIST, $bom_list, 'insert');
 				$result->MoveNext();
 			}
-			$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->old_sku . "'");
+			$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->old_sku) . "'");
 			$data_array = array(
 				'sku'			=> $this->sku,
 				'attr_0'		=> $result->fields['attr_0'],
@@ -107,7 +107,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 
 	function get_ms_list(){
 		global $db;
-		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->sku . "'");
+		$result = $db->Execute("select * from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->sku) . "'");
 	  	$this->ms_attr_0   = ($result->RecordCount() > 0) ? $result->fields['attr_0'] 		: '';
 	  	$this->attr_name_0 = ($result->RecordCount() > 0) ? $result->fields['attr_name_0'] 	: '';
 	  	$this->ms_attr_1   = ($result->RecordCount() > 0) ? $result->fields['attr_1'] 		: '';
@@ -142,7 +142,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		$result = $db->Execute("select i.*,
 			(select MIN(FLOOR(c.quantity_on_hand / a.qty)) from " . TABLE_INVENTORY_ASSY_LIST . " a
 			 join " . TABLE_INVENTORY . " c on a.sku = c.sku where a.ref_id = i.id and a.qty > 0) as virtual_stock
-			from " . TABLE_INVENTORY . " i where i.sku like '" . $this->sku . "-%' and i.inventory_type = 'pc' order by i.sku asc");
+			from " . TABLE_INVENTORY . " i where i.sku like '" . db_input($this->sku) . "-%' and i.inventory_type = 'pc' order by i.sku asc");
 		$i = 0;
 		while(!$result->EOF){
 			$temp = explode('-',$result->fields['sku']);
@@ -173,18 +173,18 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		if(isset($id))$this->get_item_by_id($id);
 		else return false;
 		// check to see if there is inventory history remaining, if so don't allow delete
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_HISTORY . " where ( sku like '" . $this->sku  . "-%' or sku = '" . $this->sku  . "') and remaining > 0");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_HISTORY . " where ( sku like '" . db_input($this->sku) . "-%' or sku = '" . db_input($this->sku) . "') and remaining > 0");
 		if ($result->RecordCount() > 0) {
 		 	$messageStack->add(INV_ERROR_DELETE_HISTORY_EXISTS, 'error');
 		 	return false;
 		}
 		// check to see if this item is part of an assembly
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_ASSY_LIST . " where sku like '" . $this->sku  . "-%' or sku = '" . $this->sku  . "'");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_ASSY_LIST . " where sku like '" . db_input($this->sku) . "-%' or sku = '" . db_input($this->sku) . "'");
 		if ($result->RecordCount() > 0) {
 	  		$messageStack->add(INV_ERROR_DELETE_ASSEMBLY_PART, 'error');
 	  		return false;
 		}
-		$result = $db->Execute( "select id from " . TABLE_JOURNAL_ITEM . " where sku like '" . $this->sku  . "-%' or sku = '" . $this->sku  . "' limit 1");
+		$result = $db->Execute( "select id from " . TABLE_JOURNAL_ITEM . " where sku like '" . db_input($this->sku) . "-%' or sku = '" . db_input($this->sku) . "' limit 1");
 		if ($result->Recordcount() > 0) {
 			$messageStack->add(INV_ERROR_CANNOT_DELETE, 'error');
 	  		return false;
@@ -195,33 +195,33 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 
 	function remove(){
 		global $db;
-		$ms_array  = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		$ms_array  = $db->Execute("select * from " . TABLE_INVENTORY . " where sku like '" . db_input($this->sku) . "-%'");
 		// captured separately (rather than reusing $ms_array) so the image-cleanup loop
 		// below still gets a fresh, unconsumed cursor over the same rows.
 		$child_ids = array();
-		$child_id_result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
+		$child_id_result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku like '" . db_input($this->sku) . "-%'");
 		while (!$child_id_result->EOF) {
 			$child_ids[] = (int)$child_id_result->fields['id'];
 			$child_id_result->MoveNext();
 		}
 		parent::remove();
-		$db->Execute("delete from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->sku . "'");
-		$db->Execute("delete from " . TABLE_INVENTORY . " where sku like '" . $this->sku . "-%'");
-		$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku like '" . $this->sku . "-%'");
+		$db->Execute("delete from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->sku) . "'");
+		$db->Execute("delete from " . TABLE_INVENTORY . " where sku like '" . db_input($this->sku) . "-%'");
+		$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku like '" . db_input($this->sku) . "-%'");
 		// the 'sku' delete only catches rows where THIS master is used as someone else's
 		// component - it never touches the master's own template row or any child's own
 		// BOM row, both keyed by ref_id, so those were left orphaned.
-		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $this->sku . "'");
+		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($this->sku) . "'");
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$this->id);
 		if (!empty($child_ids)) {
 			$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id in (" . implode(',', $child_ids) . ")");
 		}
 		while(!$ms_array->EOF){
 			if($ms_array->fields['image_with_path'] != ''){
-				$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . $ms_array->fields['image_with_path'] ."'");
+				$result = $db->Execute("select * from " . TABLE_INVENTORY . " where image_with_path = '" . db_input($ms_array->fields['image_with_path']) ."'");
 	  			if ( $result->RecordCount() == 0){ // delete image
-					$file_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/images/';
-					if (file_exists($file_path . $ms_array->fields['image_with_path'])) unlink ($file_path . $ms_array->fields['image_with_path']);
+					$image_file = $this->image_file($ms_array->fields['image_with_path']);
+					if ($image_file !== false) unlink ($image_file);
 	  			}
 			}
 			$ms_array->MoveNext();
@@ -318,7 +318,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 			}
 		}
 		// either update, delete or insert sub skus depending on sku list
-		$result = $db->Execute("select sku from " . TABLE_INVENTORY . " where inventory_type = 'pc' and sku like '" . $this->sku . "-%'");
+		$result = $db->Execute("select sku from " . TABLE_INVENTORY . " where inventory_type = 'pc' and sku like '" . db_input($this->sku) . "-%'");
 		$existing_sku_list = array();
 		while (!$result->EOF) {
 			$existing_sku_list[] = $result->fields['sku'];
@@ -370,12 +370,12 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 			if(isset($sql_data_array['description_short'])) 	$sql_data_array['description_short'] 	= sprintf($this->description_short, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			if(isset($sql_data_array['description_purchase'])) 	$sql_data_array['description_purchase'] = sprintf($this->description_purchase, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			if(isset($sql_data_array['description_sales'])) 	$sql_data_array['description_sales'] 	= sprintf($this->description_sales, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
-			db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "sku = '" . $sku . "'");
+			db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "sku = '" . db_input($sku) . "'");
 			foreach($this->backup_purchase_array as $backUpKey => $backUpRow) {
 				$backUpRow['description_purchase'] = sprintf($backUpRow['description_purchase'], 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 				$purchase_data_array = null;
 				if($backUpRow['action'] == 'delete'){
-					$result = $db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $sku . "' and vendor_id = '".$backUpRow['vendor_id']."'");
+					$result = $db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($sku) . "' and vendor_id = " . (int)$backUpRow['vendor_id']);
 				} else if($backUpRow['action'] == 'insert'){
 					$purchase_data_array = $backUpRow;
 					unset($purchase_data_array['id']);
@@ -386,7 +386,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 			}
 			// a bundle part holds no real stock of its own - the BOM is always re-synced,
 			// unlike ia's real-stock siblings which can lock a child's own recipe.
-			$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . $sku."'");
+			$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 			$temp = $db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . $result->fields['id']);
 			foreach($resolved_bom[$sku] as $list_array) {
 				$list_array['ref_id'] = $result->fields['id'];
@@ -403,16 +403,16 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		foreach($delete_list as $sku) {
 			$temp = $this->pc_check_remove($sku);
 			if($temp === true){
-				$result = $db->Execute("delete from " . TABLE_INVENTORY . " where sku = '" . $sku . "'");
-				$result = $db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . $sku . "'");
-				$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . $sku."'");
+				$result = $db->Execute("delete from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
+				$result = $db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($sku) . "'");
+				$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 				$temp   = $db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . $result->fields['id']);
 			}elseif ($temp === false){
-				$result = $db->Execute("update " . TABLE_INVENTORY . " set inactive = '1' where sku = '" . $sku . "'");
+				$result = $db->Execute("update " . TABLE_INVENTORY . " set inactive = '1' where sku = '" . db_input($sku) . "'");
 			}
 		}
 		// update/insert into inventory_ms_list table
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . $this->sku . "'");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_MS_LIST . " where sku = '" . db_input($this->sku) . "'");
 		$exists = $result->RecordCount();
 		$data_array = array(
 			'sku'         => $this->sku,
@@ -432,18 +432,18 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 	function pc_check_remove($sku) {
 		global $messageStack, $db;
 		// check to see if there is inventory history remaining, if so don't allow delete
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_HISTORY . " where sku = '" . $sku . "' and remaining > 0");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_HISTORY . " where sku = '" . db_input($sku) . "' and remaining > 0");
 		if ($result->RecordCount() > 0) {
 			$messageStack->add(sprintf(INV_MS_ERROR_DELETE_HISTORY_EXISTS, $sku), 'caution');
 		 	return 'remaining';
 		}
 		// check to see if this item is part of an assembly
-		$result = $db->Execute("select id from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . $sku . "'");
+		$result = $db->Execute("select id from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($sku) . "'");
 		if ($result->RecordCount() > 0) {
 			$messageStack->add(sprintf(INV_MS_ERROR_DELETE_ASSEMBLY_PART, $sku), 'caution');
 	  		return false;
 		}
-		$result = $db->Execute( "select id from " . TABLE_JOURNAL_ITEM . " where sku = '" . $sku . "' limit 1");
+		$result = $db->Execute( "select id from " . TABLE_JOURNAL_ITEM . " where sku = '" . db_input($sku) . "' limit 1");
 		if ($result->Recordcount() > 0) {
 			$messageStack->add(sprintf(INV_MS_ERROR_CANNOT_DELETE, $sku), 'caution');
 	  		return false;
