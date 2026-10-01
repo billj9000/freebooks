@@ -58,6 +58,12 @@ $forms_ds_action = isset($_REQUEST['action']) ? (string)$_REQUEST['action'] : ''
 /***************   Act on the action request   *************************/
 switch ($forms_ds_action) {
   case 'save':
+    // Only a POST carries the CSRF token.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      http_response_code(405);
+      die('This action must be submitted from its page.');
+    }
+    validate_security($security_level, empty($_POST['existing']) ? 2 : 3);
     try {
       // The submitted arrays are indexed by row, and rows can be removed in the
       // browser, so they arrive sparse. Re-indexing keeps the stored order the
@@ -93,6 +99,10 @@ switch ($forms_ds_action) {
     break;
 
   case 'delete':
+    validate_security($security_level, 4);
+    // Only as a POST, which index.php has checked for its csrf_token: a GET
+    // could be a link someone was sent.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=forms&page=datasets', 'SSL'));
     // A dataset a report still names is not deleted. Removing it would leave
     // the report resolving to nothing, which reads as a broken report rather
     // than as a removed dataset.

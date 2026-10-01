@@ -68,12 +68,13 @@ echo $toolbar->build_toolbar();
                 'module=forms&page=datasets&action=edit&dsID=' . urlencode($dataset->id), 'SSL'); ?>">
               <?php echo TEXT_EDIT; ?>
             </a>
-            <a class="btn btn-primary btn-sm" href="<?php
-              echo html_href_link(FILENAME_DEFAULT,
-                'module=forms&page=datasets&action=delete&dsID=' . urlencode($dataset->id), 'SSL'); ?>"
-               onclick="return confirm(<?php echo htmlspecialchars(json_encode(FORMS_DS_CONFIRM_DELETE)); ?>)">
-              <?php echo TEXT_DELETE; ?>
-            </a>
+            <?php // A posted form, not a link: deleting is refused unless it is a POST,
+                  // which index.php has checked for its csrf_token.
+            echo html_form('forms_ds_del_' . md5($dataset->id), FILENAME_DEFAULT, 'module=forms&page=datasets&action=delete', 'post',
+              'class="d-inline" onsubmit="return confirm(' . htmlspecialchars(json_encode(FORMS_DS_CONFIRM_DELETE)) . ')"'); ?>
+              <input type="hidden" name="dsID" value="<?php echo htmlspecialchars($dataset->id, ENT_QUOTES); ?>">
+              <button type="submit" class="btn btn-primary btn-sm"><?php echo TEXT_DELETE; ?></button>
+            </form>
           </td>
         </tr>
 <?php } } ?>

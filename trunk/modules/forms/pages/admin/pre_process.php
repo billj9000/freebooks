@@ -39,6 +39,12 @@ require_once(DIR_FS_WORKING . 'classes/install.php');
 $install = new forms_admin();
 
 /***************   Act on the action request   *************************/
+// Every action here writes, and only a POST carries the CSRF token.
+if (in_array($_REQUEST['action'] ?? '', array('save', 'restamp', 'rebuild'), true)
+    && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  die('This action must be submitted from its page.');
+}
 switch ($_REQUEST['action'] ?? '') {
   case 'save':
     validate_security($security_level, 3);

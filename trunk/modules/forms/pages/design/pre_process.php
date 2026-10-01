@@ -134,7 +134,9 @@ if ($forms_design_definition !== null) {
   }
 }
 
-if ($forms_design_definition !== null && ($_REQUEST['action'] ?? '') === 'save') {
+// A save writes the definition, and only a POST carries the CSRF token.
+if ($forms_design_definition !== null && ($_REQUEST['action'] ?? '') === 'save'
+    && $_SERVER['REQUEST_METHOD'] === 'POST') {
   $binding = new DefinitionForm();
   try {
     $edited = $binding->apply($forms_design_definition, $_POST, $forms_design_dataset);

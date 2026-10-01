@@ -368,7 +368,9 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
     }
 
     $plan = $runner->planDefinition($definition);
-    if (!$plan->runnable() || $plan->recordTable === ''
+    // Both go into SQL as identifiers: plain names only.
+    if (!$plan->runnable()
+        || !preg_match('/^[a-z_][a-z0-9_]*$/i', $plan->recordTable)
         || !preg_match('/^[a-z_][a-z0-9_]*$/i', $plan->recordKey)) {
         return $allowed;
     }
@@ -682,6 +684,12 @@ function forms_document_action($store, string $type, int $securityLevel): int
 
     $action = (string)($_REQUEST['action'] ?? '');
     if (!in_array($action, array('new', 'copy', 'rename', 'delete'), true)) return 0;
+
+    // Every one of these writes, and only a POST carries the CSRF token.
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+        http_response_code(405);
+        die('This action must be submitted from its page.');
+    }
 
     // Level 3 writes a document, level 4 removes one. Deleting is the only
     // action here that cannot be undone from inside Forms, which is the whole

@@ -207,7 +207,7 @@
     </div><!-- /help-sidebar -->
 
     <!-- Help content -->
-    <iframe id="contentFrame" name="mainFrame" src="<?php echo $start_page; ?>" title="<?php echo HEADING_TITLE; ?>"></iframe>
+    <iframe id="contentFrame" name="mainFrame" src="<?php echo htmlspecialchars($start_page, ENT_QUOTES); ?>" title="<?php echo HEADING_TITLE; ?>"></iframe>
 
   </div><!-- /help-body -->
 </div><!-- /help-layout -->

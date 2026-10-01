@@ -217,7 +217,7 @@ final readonly class Dataset
     /** Tables the admin UI may never reference (§3.3). */
     public const SENSITIVE_TABLES = [
         'users', 'users_profiles', 'webauthn_creds',
-        'data_security', 'configuration', 'audit_log',
+        'data_security', 'configuration', 'audit_log', 'api_keys',
     ];
 
     /** @var array<string,FieldDefinition> keyed by field key */

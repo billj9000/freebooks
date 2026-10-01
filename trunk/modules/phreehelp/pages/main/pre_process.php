@@ -30,7 +30,7 @@ $context_ref = isset($_GET['idx'])          ? $_GET['idx']          : '';
 $search_text = isset($_GET['search_text'])  ? $_GET['search_text']  : '';
 $start_page  = DOC_ROOT_URL;
 if ($context_ref) {
-  $result = $db->Execute("select doc_url from " . TABLE_PHREEHELP . " where doc_pos = '" . $context_ref . "'");
+  $result = $db->Execute("select doc_url from " . TABLE_PHREEHELP . " where doc_pos = '" . db_input($context_ref) . "'");
   if ($result->RecordCount() > 0) $start_page = $result->fields['doc_url'];
 }
 /***************   hook for custom actions  ***************************/

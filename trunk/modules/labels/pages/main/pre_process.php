@@ -23,7 +23,9 @@ $processed = false;
 switch ($_REQUEST['action'] ?? '') {
   case 'delete':
     validate_security($security_level, 4);
-    $id = (int)($_GET['id'] ?? 0);
+    // Only as a POST, which index.php has checked for its csrf_token: a GET
+    // could be a link someone was sent.
+    $id = $_SERVER['REQUEST_METHOD'] === 'POST' ? (int)($_POST['id'] ?? 0) : 0;
     if ($id > 0) {
       $db->Execute("DELETE FROM " . TABLE_LABEL_TEMPLATES . " WHERE id = " . $id);
       $messageStack->add(TEXT_LABEL_DELETED, 'success');

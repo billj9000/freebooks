@@ -172,7 +172,9 @@ if ($forms_canvas_definition !== null) {
   $forms_canvas_bindings = forms_binding_names($forms_canvas_definition, $runner, $catalog, $db);
 }
 
-if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save') {
+// A save writes the definition, and only a POST carries the CSRF token.
+if ($forms_canvas_definition !== null && ($_REQUEST['action'] ?? '') === 'save'
+    && $_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($security_level < 3) {
     $messageStack->add(FORMS_DESIGN_DENIED, 'error');
   } else {

@@ -56,9 +56,12 @@ echo $toolbar->build_toolbar();
             <a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=labels&page=edit&id=' . $t['id'], 'SSL'); ?>" class="btn btn-primary btn-sm"><?php echo TEXT_EDIT; ?></a>
             <?php endif; ?>
             <?php if ($security_level > 3): ?>
-            <a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=labels&page=main&action=delete&id=' . $t['id'], 'SSL'); ?>"
-               class="btn btn-danger btn-sm ms-1"
-               onclick="return confirm('<?php echo TEXT_DELETE_ENTRY; ?>')"><?php echo TEXT_DELETE; ?></a>
+            <?php // A posted form, not a link: see the delete case in pre_process.php.
+            echo html_form('label_del_' . (int)$t['id'], FILENAME_DEFAULT, 'module=labels&page=main&action=delete', 'post',
+              'class="d-inline" onsubmit="return confirm(' . htmlspecialchars(json_encode(TEXT_DELETE_ENTRY)) . ')"'); ?>
+              <input type="hidden" name="id" value="<?php echo (int)$t['id']; ?>">
+              <button type="submit" class="btn btn-danger btn-sm ms-1"><?php echo TEXT_DELETE; ?></button>
+            </form>
             <?php endif; ?>
           </td>
         </tr>
