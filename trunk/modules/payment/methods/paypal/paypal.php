@@ -265,53 +265,47 @@ class paypal extends payment {
    * heading, and the rounding line at the end silently declines to close a gap
    * of a quarter of the invoice.
    *
+   * The invoice's total is always exactly $amount. Everything is counted in
+   * cents, as PayPal counts it: each unit price as sent, times its quantity.
+   * A gap of a few cents is closed by a rounding line, or by the discount when
+   * the lines come to more, since PayPal may refuse a negative item. A bigger
+   * gap means the lines do not describe what is asked, and the invoice falls
+   * back to one line of $description.
+   *
    * @return array{items: list<array<string,mixed>>, discount: float, item_total: float}
    */
   function build_invoice_items($fb_invoice_id, $currency, $rate, $amount, $description = 'Invoice') {
-    global $db;
-    $item_total = $discount_total = 0.0;
-    $rate = (float)$rate ?: 1.0;
-
+    $cents = function ($x) { return (int)round((float)$x * 100); };
+    $value = function ($c) use ($currency) { return ['currency_code' => $currency, 'value' => number_format($c / 100, 2, '.', '')]; };
+    $want  = $cents($amount);
     $items = [];
+    $sum   = $discount = 0;
     if ((int)$fb_invoice_id > 0 && defined('TABLE_JOURNAL_ITEM')) {
-      $read = $this->invoice_lines($fb_invoice_id, $rate);
-      $discount_total = $read['discount'];
+      $read     = $this->invoice_lines($fb_invoice_id, $rate);
+      $discount = $cents($read['discount']);
       foreach ($read['lines'] as $line) {
-        // Format quantity: strip trailing decimal zeros (e.g. "4.00" -> "4", "0.50" -> "0.5").
-        $qty_str = rtrim(rtrim(number_format($line['qty'], 4, '.', ''), '0'), '.');
+        $unit = $cents($line['unit']);
         $items[] = [
           'name'        => mb_substr($line['name'], 0, 200),
-          'quantity'    => $qty_str,
-          'unit_amount' => ['currency_code' => $currency, 'value' => number_format($line['unit'], 2, '.', '')],
+          // Trailing decimal zeros stripped: "4.00" -> "4", "0.50" -> "0.5".
+          'quantity'    => rtrim(rtrim(number_format($line['qty'], 4, '.', ''), '0'), '.'),
+          'unit_amount' => $value($unit),
         ];
+        $sum += (int)round($unit * $line['qty']);
       }
-      // Added up in the invoice's own order, not the listing's. Floating-point
-      // sums depend on the order, and a discount ending in a half cent turns a
-      // difference in the last bit into a rounding line on PayPal's invoice.
-      $lines = $read['lines'];
-      usort($lines, function ($a, $b) { return $a['seq'] <=> $b['seq']; });
-      foreach ($lines as $line) $item_total += round($line['unit'] * $line['qty'], 2);
     }
-
-    // Fallback to a single summary line if no rows were found.
-    if (empty($items)) {
-      $items      = [['name' => $description, 'quantity' => '1',
-                      'unit_amount' => ['currency_code' => $currency, 'value' => number_format((float)$amount, 2, '.', '')]]];
-      $item_total = (float)$amount;
+    $gap = $want - ($sum - $discount);
+    if (!$items || abs($gap) > 5) {
+      $items    = [['name' => $description, 'quantity' => '1', 'unit_amount' => $value($want)]];
+      $sum      = $want;
+      $discount = 0;
+    } elseif ($gap > 0) {
+      $items[] = ['name' => 'Rounding adjustment', 'quantity' => '1', 'unit_amount' => $value($gap)];
+      $sum    += $gap;
+    } elseif ($gap < 0) {
+      $discount -= $gap;
     }
-
-    // Close any rounding gap between PayPal's item sum and the FreeBooks total.
-    $paypal_total = round($item_total - $discount_total, 2);
-    $diff = round((float)$amount - $paypal_total, 2);
-    if ($diff != 0.0 && abs($diff) <= 0.05) {
-      $items[] = [
-        'name'        => 'Rounding adjustment',
-        'quantity'    => '1',
-        'unit_amount' => ['currency_code' => $currency, 'value' => number_format($diff, 2, '.', '')],
-      ];
-    }
-
-    return ['items' => $items, 'discount' => $discount_total, 'item_total' => $item_total];
+    return ['items' => $items, 'discount' => $discount / 100, 'item_total' => $sum / 100];
   }
 
   // Create a PayPal invoice, optionally send it. Returns invoice ID or false.

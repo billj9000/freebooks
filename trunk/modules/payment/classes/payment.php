@@ -276,20 +276,25 @@ class payment {
   }
 
   // The lines of the FreeBooks invoice $invoice_id, for a request that lists
-  // them: ['lines' => [['kind' => sos|frt|tax, 'name', 'qty', 'unit', 'seq'], ...],
+  // them: ['lines' => [['kind' => sos|frt|tax, 'name', 'qty', 'unit'], ...],
   // 'discount' => the invoice's discount]. Amounts are in the invoice's own
-  // currency. $rate is its exchange rate and not optional detail: every journal
-  // amount is stored in the HOME currency, while the amount asked for is in the
-  // invoice's, so without it the lines are pounds under a dollar heading.
-  // Products come first, then shipping, then taxes; 'seq' is a line's place on
-  // the invoice itself, for a caller that must add them up in that order.
+  // currency, rounded to the cent. $rate is its exchange rate and not optional
+  // detail: every journal amount is stored in the HOME currency, while the
+  // amount asked for is in the invoice's, so without it the lines are pounds
+  // under a dollar heading. Products come first, then shipping, then taxes.
+  //
+  // The unit price is what the line charged, divided by its quantity - not
+  // full_price, which is the list price: a price sheet or a price changed on the
+  // invoice leaves it behind, and lines priced from it did not add up to the
+  // invoice. Where the charge does not divide into a whole-cent unit price (3
+  // for 10.00), the line is one unit at its whole amount, its quantity named,
+  // so that every line is exactly what the invoice charged.
   function invoice_lines($invoice_id, $rate) {
     global $db;
     $rate  = (float)$rate ?: 1.0;
     $lines = ['sos' => [], 'frt' => [], 'tax' => []];
     $discount = 0.0;
-    $seq  = 0;
-    $rows = $db->Execute("SELECT gl_type, sku, qty, description, debit_amount, credit_amount, full_price"
+    $rows = $db->Execute("SELECT gl_type, sku, qty, description, debit_amount, credit_amount"
       . " FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = " . (int)$invoice_id
       . " AND gl_type IN ('sos', 'frt', 'tax', 'dsc') ORDER BY item_cnt");
     while (!$rows->EOF) {
@@ -297,33 +302,26 @@ class payment {
       $gt  = $row['gl_type'];
       $rows->MoveNext();
       if ($gt === 'dsc') { $discount += (float)$row['debit_amount'] * $rate; continue; }
-      $credit = (float)$row['credit_amount'] * $rate;
-      if ($credit == 0) continue;
-      $qty = (float)$row['qty'];
-      if ($qty <= 0) $qty = 1;
-      // The unit price when there is one; otherwise the line's amount as one
-      // unit, which avoids re-introducing division rounding. BOTH are
-      // home-currency columns, so both take the rate - freight has no
-      // full_price and comes through the second branch, which is the one a
-      // conversion is easiest to leave out of.
-      if ((float)$row['full_price'] != 0) {
-        $unit = (float)$row['full_price'] * $rate;
-      } else {
-        $unit = $credit;
-        $qty  = 1;
-      }
+      $charged = round((float)$row['credit_amount'] * $rate, 2);
+      if ($charged == 0) continue;
       if ($gt === 'sos') {
         $name = trim($row['description'] ?? '');
         if (!empty($row['sku'])) $name = $row['sku'] . ($name ? ' ' . $name : '');
         if (!$name) $name = 'Item';
-      } elseif ($gt === 'frt') {
-        $name = 'Shipping';
+        $qty = (float)$row['qty'] > 0 ? (float)$row['qty'] : 1.0;
       } else {
-        $name = trim($row['description'] ?? '') ?: 'Tax';
+        $name = $gt === 'frt' ? 'Shipping' : (trim($row['description'] ?? '') ?: 'Tax');
+        $qty  = 1.0;
       }
-      $lines[$gt][] = ['kind' => $gt, 'name' => $name, 'qty' => $qty, 'unit' => $unit, 'seq' => $seq++];
+      $unit = round($charged / $qty, 2);
+      if (abs($unit * $qty - $charged) >= 0.005) {
+        $name .= ' (x' . rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.') . ')';
+        $qty   = 1.0;
+        $unit  = $charged;
+      }
+      $lines[$gt][] = ['kind' => $gt, 'name' => $name, 'qty' => $qty, 'unit' => $unit];
     }
-    return ['lines' => array_merge($lines['sos'], $lines['frt'], $lines['tax']), 'discount' => $discount];
+    return ['lines' => array_merge($lines['sos'], $lines['frt'], $lines['tax']), 'discount' => round($discount, 2)];
   }
 
   // Email the customer the payment link of $request (a payment_requests row),

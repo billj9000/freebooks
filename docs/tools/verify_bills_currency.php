@@ -98,12 +98,14 @@ ok('the base class defaults to refusing', array_key_exists('multi_currency', $de
    var_export($declared['multi_currency'] ?? '(absent)', true));
 
 // Transmits no amount, or is genuinely told which currency to take.
-$safe   = ['cod', 'directdebit', 'freecharger', 'moneyorder', 'paypal', 'square_terminal'];
+$safe   = ['cod', 'directdebit', 'freecharger', 'moneyorder', 'paypal'];
 // Sends an amount and assumes the company's currency beside it. Left that way on
 // purpose: each needs its own change and none of them can be tested here, so the
 // page refuses rather than charges. paypal_nvp is the older of the two PayPal
 // methods and is NOT the one that was taught - they are separate modules.
-$unsafe = ['authorizenet', 'firstdata', 'linkpoint_api', 'nova_xml', 'paypal_nvp'];
+// square_terminal is told the currency, but Square takes only its location's,
+// so it refuses another currency too, before Square would.
+$unsafe = ['authorizenet', 'firstdata', 'linkpoint_api', 'nova_xml', 'paypal_nvp', 'square_terminal'];
 foreach (array_merge($safe, $unsafe) as $code) {
     $file = DIR_FS_MODULES . 'payment/methods/' . $code . '/' . $code . '.php';
     if (!file_exists($file)) { skip($code, 'not installed'); continue; }
@@ -193,15 +195,20 @@ if (class_exists('paypal')) {
         $built = $pp->build_invoice_items($f['id'], $f['currencies_code'], $rate,
                      (float)$f['total_amount'] * $rate);
 
-        // Every journal row, as the customer's invoice states it.
+        // Every journal row, as the customer's invoice states it: the price the
+        // line charged, at the rate - per unit where it divides into whole
+        // cents, and the whole line where it does not.
         $wanted = [];
-        $rows = $db->Execute("select gl_type, sku, description, qty, credit_amount, full_price
+        $rows = $db->Execute("select gl_type, sku, description, qty, credit_amount
             from " . TABLE_JOURNAL_ITEM . " where ref_id = " . (int)$f['id']
             . " and gl_type in ('sos','frt','tax') and credit_amount <> 0 order by item_cnt");
         while (!$rows->EOF) {
-            $r    = $rows->fields;
-            $home = (float)$r['full_price'] != 0 ? (float)$r['full_price'] : (float)$r['credit_amount'];
-            $wanted[$r['gl_type']][] = number_format($home * $rate, 2, '.', '');
+            $r       = $rows->fields;
+            $charged = round((float)$r['credit_amount'] * $rate, 2);
+            $qty     = ($r['gl_type'] === 'sos' && (float)$r['qty'] > 0) ? (float)$r['qty'] : 1.0;
+            $unit    = round($charged / $qty, 2);
+            if (abs($unit * $qty - $charged) >= 0.005) $unit = $charged;
+            $wanted[$r['gl_type']][] = number_format($unit, 2, '.', '');
             $rows->MoveNext();
         }
 
@@ -214,6 +221,14 @@ if (class_exists('paypal')) {
         ok('every PayPal line is its journal row at the document\'s rate',
            $got === $flatWanted,
            'got ' . implode(', ', $got) . ' — wanted ' . implode(', ', $flatWanted));
+        // PayPal multiplies each unit price as sent by its quantity, so that is
+        // what has to come to the document's total.
+        $total = 0;
+        foreach ($built['items'] as $line) $total += (int)round((float)$line['unit_amount']['value'] * 100 * (float)$line['quantity']);
+        $total -= (int)round($built['discount'] * 100);
+        $asked  = (int)round((float)$f['total_amount'] * $rate * 100);
+        ok('and the PayPal invoice comes to the document\'s total, to the cent',
+           $total === $asked, 'it comes to ' . ($total / 100) . ', the document is ' . ($asked / 100));
 
         // Named on its own, because this is the one that was wrong and the one
         // the other lines cannot speak for.
