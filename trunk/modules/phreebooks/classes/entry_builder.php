@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -33,7 +34,7 @@ class entry_builder {
   function load_query_results($tableKey = 'id', $tableValue = 0) {
 	global $db, $report, $FieldListings;
 	if (!$tableValue) return false;
-	$sql = "select * from " . TABLE_JOURNAL_MAIN . " where id = " . $tableValue;
+	$sql = "select * from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$tableValue;
 	$result = $db->Execute($sql);
 	foreach ($result->fields as $key => $value) $this->$key = db_prepare_input($value);
 	$this->load_so_po_details($this->so_po_ref_id);
@@ -258,7 +259,7 @@ class entry_builder {
 	  $this->ship_carrier = constant('MODULE_SHIPPING_' . strtoupper($carrier) . '_TITLE_SHORT');
 	  $this->ship_service = defined($carrier . '_' . $shipping_info[1]) ? constant($carrier . '_' . $shipping_info[1]) : '';
 	  $result = $db->Execute("SELECT tracking_id FROM ".TABLE_SHIPPING_LOG." 
-	    WHERE ref_id='$this->purchase_invoice_id' OR ref_id LIKE '".$this->purchase_invoice_id."-%'");
+	    WHERE ref_id='" . db_input($this->purchase_invoice_id) . "' OR ref_id LIKE '" . db_input($this->purchase_invoice_id) . "-%'");
 	  if ($result->RecordCount() > 0) {
 	    $tracking = array();
 		while(!$result->EOF) {

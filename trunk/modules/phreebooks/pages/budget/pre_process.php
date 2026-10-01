@@ -26,7 +26,7 @@ require(DIR_FS_WORKING . 'classes/gen_ledger.php');
 if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search';
 
 if ($_POST['fy']) {
-  $fy = $_POST['fy'];
+  $fy = (int)$_POST['fy'];
 } else {
   $result = $db->Execute("select fiscal_year from " . TABLE_ACCOUNTING_PERIODS . " where period = " . CURRENT_ACCOUNTING_PERIOD);
   $fy = $result->fields['fiscal_year'];
@@ -45,8 +45,8 @@ switch ($_REQUEST['action']) {
 	while (true) {
 	  if (!isset($_POST['budget_' . $i])) break;
 	  $budget = $currencies->clean_value($_POST['budget_' . $i]);
-	  $id     = $_POST['id_' . $i];
-	  $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " set budget = " . $budget . " where id = '" . $id . "'";
+	  $id     = (int)$_POST['id_' . $i];
+	  $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " set budget = " . (float)$budget . " where id = '" . $id . "'";
 	  $db->Execute($sql);
 	  $i++;
 	}
@@ -77,7 +77,7 @@ switch ($_REQUEST['action']) {
 	    $budget = $accounts->fields['balance'] ? round($accounts->fields['balance'], $currencies->currencies[DEFAULT_CURRENCY]['decimal_places']) : 0;
 	    $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
 	      set budget = " . $budget . "
-		  where period = '" . $result->fields['period'] . "' and account_id = '" . $accounts->fields['account_id'] . "'";
+		  where period = '" . $result->fields['period'] . "' and account_id = '" . db_input($accounts->fields['account_id']) . "'";
 		$db->Execute($sql);
 	    $accounts->MoveNext();
 	  }
@@ -109,7 +109,7 @@ while (!$result->EOF) {
   $next_fy->MoveNext();
 }
 $result = $db->Execute("select id, period, budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($periods)) . ") order by period");
+	where account_id = '" . db_input($gl_acct) . "' and period in (" . (implode(',', array_keys($periods)) ?: '0') . ") order by period"); // a year with no periods matches none
 // The prior and next years are read alongside this one, row for row, so all three
 // are ordered by period. A year that does not exist, or no account chosen, leaves
 // that column at zero.
@@ -117,11 +117,11 @@ $last_fy = null;
 $next_fy = null;
 if ($gl_acct && !empty($lf_per)) {
   $last_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($lf_per)) . ") order by period");
+	where account_id = '" . db_input($gl_acct) . "' and period in (" . implode(',', array_keys($lf_per)) . ") order by period");
 }
 if ($gl_acct && !empty($nf_per)) {
   $next_fy = $db->Execute("select budget from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_acct . "' and period in (" . implode(',', array_keys($nf_per)) . ") order by period");
+	where account_id = '" . db_input($gl_acct) . "' and period in (" . implode(',', array_keys($nf_per)) . ") order by period");
 }
 $fy_array = array();
 while(!$result->EOF) {

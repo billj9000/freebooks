@@ -212,7 +212,7 @@ class banking extends journal {
 	function delete_payment() {
 		global $db;
 		// verify no item rows have been acted upon (accounts reconciliation)
-		$result = $db->Execute("select closed from " . TABLE_JOURNAL_MAIN . " where id = " . $this->id);
+		$result = $db->Execute("select closed from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$this->id);
 		if ($result->fields['closed'] == '1') return $this->fail_message(constant('GENERAL_JOURNAL_' . $this->journal_id . '_ERROR_6'));
 		// *************** START TRANSACTION *************************
 		$db->transStart();

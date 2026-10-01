@@ -64,8 +64,8 @@ switch ($_REQUEST['action']) {
 	for ($i=1; $i<count($_POST); $i++) {
 	  if (!isset($_POST['id_' . $i])) break; // we're done
 	  if (isset($_POST['pay_' . $i])) {
-	    $payment_list[$_POST['bill_acct_id_' . $i]][] = array(
-		  'id'    => $_POST['id_' . $i],
+	    $payment_list[(int)$_POST['bill_acct_id_' . $i]][] = array(
+		  'id'    => (int)$_POST['id_' . $i],
 		  'amt'   => $currencies->clean_value($_POST['amt_' . $i]),
 		  'desc'  => $_POST['desc_' . $i],
 		  'dscnt' => $currencies->clean_value($_POST['dscnt_' . $i]),
@@ -101,7 +101,7 @@ switch ($_REQUEST['action']) {
 	  $order->gl_disc_acct_id     = $gl_disc_acct_id;
 
 	  // retrieve billing information
-	  $result = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . " where type = 'vm' and ref_id = " . $account);
+	  $result = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . " where type = 'vm' and ref_id = " . (int)$account);
 	  $order->bill_acct_id        = $account;
 	  $order->bill_address_id     = $result->fields['address_id'];
 	  $order->bill_primary_name   = $result->fields['primary_name'];

@@ -21,6 +21,7 @@ $security_level = validate_user(0, true);
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $id     = (isset($_GET['oID']) ? $_GET['oID'] : $_POST['id']);
+$id     = ctype_digit((string)$id) ? (string)$id : ''; // a record id, or none
 $error  = false;
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/popup_convert_po/extra_actions.php';
@@ -57,7 +58,7 @@ switch ($_REQUEST['action']) {
 	  // fetch the sku information
 	  if ($temp_rows[$i]['sku']) {
 	    $result = $db->Execute("select description_purchase, item_cost, account_inventory_wage, vendor_id
-	      from " . TABLE_INVENTORY . " where sku = '" . $temp_rows[$i]['sku'] . "'"); 
+	      from " . TABLE_INVENTORY . " where sku = '" . db_input($temp_rows[$i]['sku']) . "'"); 
 		if ($result->fields['vendor_id'] > 0) $vendor_id = $result->fields['vendor_id']; // save preferred vendor (takes last one)
 		$order->journal_rows[] = array(
 		  'gl_type'      => GL_TYPE,
@@ -86,7 +87,7 @@ switch ($_REQUEST['action']) {
 	  $error = $messageStack->add(PB_ERROR_NO_PREFERRED_VENDOR, 'error');
       break;
 	}
-	$result = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . " where ref_id = " . $vendor_id . " and type = 'vm'");
+	$result = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . " where ref_id = " . (int)$vendor_id . " and type = 'vm'");
 	if ($result->recordCount() > 0) {
 	  $order->bill_acct_id        = $vendor_id;
 	  $order->bill_address_id     = $result->fields['address_id'];
@@ -104,7 +105,7 @@ switch ($_REQUEST['action']) {
 	  $messageStack->add('No valid vendors were found!','error');
 	  break;
 	}
-	$result = $db->Execute("select special_terms from " . TABLE_CONTACTS . " where id = " . $vendor_id);
+	$result = $db->Execute("select special_terms from " . TABLE_CONTACTS . " where id = " . (int)$vendor_id);
 	$order->terms = $result->fields['terms'];
 
 	// determine whether to ship to customer or to company main address

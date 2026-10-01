@@ -28,7 +28,7 @@ $error     = false;
 $post_date = ($_POST['post_date']) ? gen_db_date($_POST['post_date']) : date('Y-m-d', time());
 $period    = gen_calculate_period($post_date);
 $glEntry   = new journal();
-$glEntry->id = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing gl entry
+$glEntry->id = ctype_digit((string)$_POST['id']) ? $_POST['id'] : ''; // will be null unless opening an existing gl entry
 // All general journal entries are in the default currency.
 $glEntry->currencies_code  = DEFAULT_CURRENCY;
 $glEntry->currencies_value = 1;
@@ -47,9 +47,9 @@ switch ($_REQUEST['action']) {
 	$glEntry->period              = $period;
 	$glEntry->admin_id            = $_SESSION['admin_id'];
 	$glEntry->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);
-	$glEntry->recur_id            = db_prepare_input($_POST['recur_id']);
+	$glEntry->recur_id            = (int)db_prepare_input($_POST['recur_id']);
 	$glEntry->recur_frequency     = db_prepare_input($_POST['recur_frequency']);
-	$glEntry->store_id            = db_prepare_input($_POST['store_id']);
+	$glEntry->store_id            = (int)db_prepare_input($_POST['store_id']);
 	$glEntry->rm_attach           = isset($_POST['rm_attach']) ? true : false;
 	if ($glEntry->store_id == '') $glEntry->store_id = 0;
 
@@ -210,7 +210,7 @@ switch ($_REQUEST['action']) {
 	} else {
 		$delGL = new journal();
 		$delGL->journal($glEntry->id); // load the posted record based on the id submitted
-		$recur_id        = db_prepare_input($_POST['recur_id']);
+		$recur_id        = (int)db_prepare_input($_POST['recur_id']);
 		$recur_frequency = db_prepare_input($_POST['recur_frequency']);
 		// *************** START TRANSACTION *************************
 		$db->transStart();
@@ -251,7 +251,7 @@ switch ($_REQUEST['action']) {
 	break;
 
   case 'dn_attach':
-	$oID = db_prepare_input($_POST['id']);
+	$oID = (int)db_prepare_input($_POST['id']); // part of a file name: a whole number only
 	if (file_exists(PHREEBOOKS_DIR_MY_ORDERS . 'order_' . $oID . '.zip')) {
 		require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
 		$backup = new backup();

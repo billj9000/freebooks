@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,6 +19,7 @@
 //
 
 class tax_rates {
+	const NOT_FROM_FORMS = array('code', 'db_table', 'help_path', 'type', 'error', 'id', 'security_id');
 	public $code        = 'tax_rates'; // needs to match class name
 	public $db_table    = TABLE_TAX_RATES;
     public $help_path   = '07.08.03.02';
@@ -27,8 +28,9 @@ class tax_rates {
 	
     public function __construct(){
          $this->security_id = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
-         foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
-         $this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+         // The form fills in its own fields only; the class's settings are not form data.
+         foreach ($_POST as $key => $value) if (!in_array($key, self::NOT_FROM_FORMS, true)) $this->$key = db_prepare_input($value);
+         $this->id = (int)(isset($_POST['sID'])? $_POST['sID'] : $_GET['sID']);
     }
     
   function btn_save($id = '') {
@@ -46,7 +48,7 @@ class tax_rates {
 		'freight_taxable'   => $this->freight_taxable,
 	);
     if ($id) {
-	  db_perform($this->db_table, $sql_data_array, 'update', "tax_rate_id = '" . $id . "'");
+	  db_perform($this->db_table, $sql_data_array, 'update', "tax_rate_id = '" . (int)$id . "'");
 	  gen_add_audit_log(SETUP_TAX_RATES_LOG . TEXT_UPDATE, $this->description_short);
 	} else  {
       db_perform($this->db_table, $sql_data_array);
@@ -63,8 +65,8 @@ class tax_rates {
 	}
 	// Check for this rate as part of a journal entry, if so do not delete
 	// Since tax rates are not used explicitly, they can be deleted at any time.
-	$result = $db->Execute("select description_short from " . $this->db_table . " where tax_rate_id = '" . $id . "'");
-    $db->Execute("delete from " . $this->db_table . " where tax_rate_id = '" . $id . "'");
+	$result = $db->Execute("select description_short from " . $this->db_table . " where tax_rate_id = '" . (int)$id . "'");
+    $db->Execute("delete from " . $this->db_table . " where tax_rate_id = '" . (int)$id . "'");
 	gen_add_audit_log(SETUP_TAX_RATES_LOG . TEXT_DELETE, $result->fields['description_short']);
 	return true;
   }
@@ -78,7 +80,7 @@ class tax_rates {
 	  'params'=> 'width="100%" cellspacing="0" cellpadding="1"',
 	);
     $result = $db->Execute("select tax_rate_id, description_short, description_long, rate_accounts, freight_taxable 
-		from " . $this->db_table . " where type = '" . $this->type . "'");
+		from " . $this->db_table . " where type = '" . db_input($this->type) . "'");
     $rowCnt = 0;
 	while (!$result->EOF) {
 	  $actions = '';
@@ -108,7 +110,7 @@ class tax_rates {
     $tax_authorities_array = gen_build_tax_auth_array();
     if ($action <> 'new' && $this->error == false) {
         $sql = "select description_short, description_long, rate_accounts, freight_taxable 
-	       from " . $this->db_table . " where tax_rate_id = " . $id;
+	       from " . $this->db_table . " where tax_rate_id = " . (int)$id;
         $result = $db->Execute($sql);
         foreach ($result->fields as $key => $value) $this->$key = $value;
 	}

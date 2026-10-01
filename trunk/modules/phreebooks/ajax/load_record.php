@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -23,7 +24,7 @@ $security_level = validate_ajax_user();
 /**************   include page specific files   *********************/
 require_once(DIR_FS_ADMIN . 'modules/phreebooks/defaults.php');
 /**************   page specific initialization  *********************/
-$rID   = db_prepare_input($_GET['rID']);
+$rID   = (int)db_prepare_input($_GET['rID']);
 $error = false;
 $main  = $db->Execute("select * from ".TABLE_JOURNAL_MAIN." where id = '$rID'");
 if ($main->RecordCount() <> 1) {

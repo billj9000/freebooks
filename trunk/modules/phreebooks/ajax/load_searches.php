@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,8 +24,10 @@ $security_level = validate_ajax_user();
 $error       = false;
 $debug       = NULL;
 $xml         = NULL;
-$search_text = db_prepare_input($_GET['guess']);
+$search_text = db_input(db_prepare_input($_GET['guess']));
+// It builds an address type in SQL: a known contact type letter only.
 $type        = db_prepare_input($_GET['type']);
+if (!in_array($type, array('b','c','e','i','j','v'), true)) $type = '';
 $jID         = db_prepare_input($_GET['jID']);
 
 if ($search_text) {

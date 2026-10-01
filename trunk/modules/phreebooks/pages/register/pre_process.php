@@ -25,6 +25,7 @@ require_once(DIR_FS_WORKING . 'functions/phreebooks.php');
 // retrieve the current status of this periods register
 $period = $_GET['search_period'] ? $_GET['search_period'] : CURRENT_ACCOUNTING_PERIOD;
 if ($period == 'all') $period = CURRENT_ACCOUNTING_PERIOD; // don't allow the all option
+$period = (int)$period; // it goes into SQL unquoted
 $gl_account = isset($_POST['gl_account']) ? $_POST['gl_account'] : AR_SALES_RECEIPTS_ACCOUNT;
 
 /***************   hook for custom actions  ***************************/
@@ -49,7 +50,7 @@ while (!$result->EOF) {
 
 // load the gl account beginning balance
 $sql = "select beginning_balance from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . "
-	where account_id = '" . $gl_account . "' and period = " . $period;
+	where account_id = '" . db_input($gl_account) . "' and period = " . $period;
 $result = $db->Execute($sql);
 $beginning_balance = $result->fields['beginning_balance'];
 
@@ -58,7 +59,7 @@ $bank_list = array();
 $sql = "select i.description, m.id, m.journal_id, m.post_date, m.total_amount, m.purchase_invoice_id, m.bill_primary_name,
    i.debit_amount, i.credit_amount
    from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id
-   where m.period = " . $period . " and i.gl_account = '" . $gl_account . "'
+   where m.period = " . $period . " and i.gl_account = '" . db_input($gl_account) . "'
    order by m.post_date, m.journal_id";
 $result = $db->Execute($sql);
 while (!$result->EOF) {

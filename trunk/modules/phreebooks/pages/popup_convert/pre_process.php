@@ -23,6 +23,7 @@ require_once(DIR_FS_WORKING . 'classes/gen_ledger.php');
 
 /**************   page specific initialization  *************************/
 $id     = (isset($_GET['oID'])    ? $_GET['oID']    : $_POST['id']);
+$id     = ctype_digit((string)$id) ? (string)$id : ''; // a record id, or none
 $error  = false;
 
 /***************   hook for custom actions  ***************************/
@@ -94,7 +95,7 @@ switch ($_REQUEST['action']) {
 	if (!$error) {
 	  gen_add_audit_log(constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE') . ' - ' . TEXT_ADD, $order->purchase_invoice_id, $order->total_amount);
 	  // set the closed flag on the quote
-	  $result = $db->Execute("update " . TABLE_JOURNAL_MAIN . " set closed = '1' where id = " . $id);
+	  $result = $db->Execute("update " . TABLE_JOURNAL_MAIN . " set closed = '1' where id = " . (int)$id);
 	  $db->transCommit();	// finished successfully
 	  // ***************************** END TRANSACTION *******************************
 	}

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -49,7 +50,7 @@ class todays_sales extends ctl_panel {
 		$sql = "select id, purchase_invoice_id, total_amount, bill_primary_name, currencies_code, currencies_value 
 		  from " . TABLE_JOURNAL_MAIN . " 
 		  where journal_id = 12 and post_date = '" . date('Y-m-d', time()) . "' order by purchase_invoice_id";
-		if ($params['num_rows']) $sql .= " limit " . $params['num_rows'];
+		if ($params['num_rows']) $sql .= " limit " . (int)$params['num_rows'];
 		$result = $db->Execute($sql);
 		if ($result->RecordCount() < 1) {
 			$contents = ACT_NO_RESULTS;

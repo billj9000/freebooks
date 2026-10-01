@@ -207,7 +207,8 @@ switch ($_REQUEST['action']) {
 	$order->short_name          = db_prepare_input(($_POST['search'] <> TEXT_SEARCH) ? $_POST['search'] : '');
 	$order->bill_add_update     = isset($_POST['bill_add_update']) ? $_POST['bill_add_update'] : 0;
 	$order->account_type        = $account_type;
-	$order->bill_acct_id        = db_prepare_input($_POST['bill_acct_id']);
+	// Record ids reach the ledger's SQL: a whole number, or '' for a new contact.
+	$order->bill_acct_id        = ctype_digit((string)db_prepare_input($_POST['bill_acct_id'])) ? db_prepare_input($_POST['bill_acct_id']) : '';
 	$order->bill_address_id     = db_prepare_input($_POST['bill_address_id']);
 	$order->bill_primary_name   = db_prepare_input(($_POST['bill_primary_name']   <> GEN_PRIMARY_NAME)   ? $_POST['bill_primary_name']   : '', true);
 	$order->bill_contact        = db_prepare_input(($_POST['bill_contact']        <> GEN_CONTACT)        ? $_POST['bill_contact']        : '', ADDRESS_BOOK_CONTACT_REQUIRED);
@@ -222,7 +223,7 @@ switch ($_REQUEST['action']) {
 	if (defined('MODULE_SHIPPING_STATUS')) {
 	  $order->ship_short_name     = db_prepare_input($_POST['ship_search']);
 	  $order->ship_add_update     = isset($_POST['ship_add_update']) ? $_POST['ship_add_update'] : 0;
-	  $order->ship_acct_id        = db_prepare_input($_POST['ship_acct_id']);
+	  $order->ship_acct_id        = ctype_digit((string)db_prepare_input($_POST['ship_acct_id'])) ? db_prepare_input($_POST['ship_acct_id']) : '';
 	  $order->ship_address_id     = db_prepare_input($_POST['ship_address_id']);
 	  $order->ship_primary_name   = db_prepare_input(($_POST['ship_primary_name']   <> GEN_PRIMARY_NAME)   ? $_POST['ship_primary_name']   : '', true);
 	  $order->ship_contact        = db_prepare_input(($_POST['ship_contact']        <> GEN_CONTACT)        ? $_POST['ship_contact']        : '', ADDRESS_BOOK_SHIP_CONTACT_REQ);
@@ -241,7 +242,7 @@ switch ($_REQUEST['action']) {
 	  $order->freight_tax_id      = (int)db_prepare_input($_POST['freight_tax_id'] ?? 0);
 	}
 	// load journal main data
-	$order->id = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
+	$order->id = ctype_digit((string)$_POST['id']) ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
 	$order->journal_id          = JOURNAL_ID;
 	$order->post_date           = gen_db_date($_POST['post_date']);
 	$order->period              = gen_calculate_period($order->post_date);
@@ -250,14 +251,14 @@ switch ($_REQUEST['action']) {
 	  $error = $messageStack->add(ORD_ERROR_NOT_CUR_PERIOD, 'error');
 	  break;
 	}
-	$order->so_po_ref_id        = db_prepare_input($_POST['so_po_ref_id']);	// Internal link to reference po/so record
+	$order->so_po_ref_id        = ctype_digit((string)db_prepare_input($_POST['so_po_ref_id'])) ? db_prepare_input($_POST['so_po_ref_id']) : '';	// Internal link to reference po/so record
 	$order->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);	// PhreeBooks order/invoice ID
 	$order->purch_order_id      = db_prepare_input($_POST['purch_order_id']);  // customer PO/Ref number
 	$order->notes               = db_prepare_input($_POST['notes']);
-	$order->store_id            = db_prepare_input($_POST['store_id']);
+	$order->store_id            = (int)db_prepare_input($_POST['store_id']);
 	if ($order->store_id == '') $order->store_id = 0;
 	$order->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'));
-	$order->recur_id            = db_prepare_input($_POST['recur_id']);
+	$order->recur_id            = (int)db_prepare_input($_POST['recur_id']);
 	$order->recur_frequency     = db_prepare_input($_POST['recur_frequency']);
 //	$order->sales_tax_auths     = db_prepare_input($_POST['sales_tax_auths']);
 	$order->admin_id            = $_SESSION['admin_id'];
@@ -397,14 +398,14 @@ switch ($_REQUEST['action']) {
 	  } else { // reset the id because the post failed (ID could have been set inside of Post)
 		$error = true;
 		$order->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);	// reset order num to submitted value (may have been set if payment failed)
-		$order->id = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
+		$order->id = ctype_digit((string)$_POST['id']) ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
 	  }
 	} else { // there was a post error, reset id and re-display form
 	  $messageStack->add(GL_ERROR_NO_POST, 'error');
 	}
 	if ($_REQUEST['action'] == 'post_previous') {
 	  $result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " 
-	    where journal_id = '12' and purchase_invoice_id < '" . $order->purchase_invoice_id . "' 
+	    where journal_id = '12' and purchase_invoice_id < '" . db_input($order->purchase_invoice_id) . "' 
 	    order by purchase_invoice_id DESC limit 1");
 	  if ($result->RecordCount() > 0) {
 	    $oID    = $result->fields['id'];
@@ -416,7 +417,7 @@ switch ($_REQUEST['action']) {
 	}
 	if ($_REQUEST['action'] == 'post_next') {
 	  $result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " 
-	    where journal_id = '12' and purchase_invoice_id > '" . $order->purchase_invoice_id . "' 
+	    where journal_id = '12' and purchase_invoice_id > '" . db_input($order->purchase_invoice_id) . "' 
 	    order by purchase_invoice_id limit 1");
 	  if ($result->RecordCount() > 0) {
 	    $oID    = $result->fields['id'];
@@ -455,14 +456,14 @@ switch ($_REQUEST['action']) {
 
   case 'edit':
   case 'prc_so':
-	$oID = db_prepare_input($_GET['oID']);
+	$oID = (int)db_prepare_input($_GET['oID']);
 	if (!$oID) {
 	  $messageStack->add('Bad order ID passed to edit order.','error'); // this should never happen
 	  $_REQUEST['action'] = '';
 	}
 	break;
   case 'dn_attach':
-	$oID = db_prepare_input($_POST['id']);
+	$oID = (int)db_prepare_input($_POST['id']); // part of a file name: a whole number only
 	if (file_exists(PHREEBOOKS_DIR_MY_ORDERS . 'order_' . $oID . '.zip')) {
 	  require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
 	  $backup = new backup();

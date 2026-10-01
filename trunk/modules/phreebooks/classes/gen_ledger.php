@@ -145,9 +145,9 @@ class journal {
 	if (!$this->unPost_chart_balances()) return false;	// unPost the chart of account values
 	if (!$this->unPost_inventory()) return false;
 	$messageStack->debug("\n  Deleting Journal main and rows as part of unPost ...");
-	$result = $db->Execute("delete from " . TABLE_JOURNAL_MAIN . " where id = " . $this->id);		
+	$result = $db->Execute("delete from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$this->id);		
 	if ($result->AffectedRows() <> 1) return $this->fail_message(GL_ERROR_CANNOT_DELETE_MAIN);
-	$result = $db->Execute("delete from " . TABLE_JOURNAL_ITEM . " where ref_id = " . $this->id);
+	$result = $db->Execute("delete from " . TABLE_JOURNAL_ITEM . " where ref_id = " . (int)$this->id);
 	if ($result->AffectedRows() == 0 ) return $this->fail_message(printf(GL_ERROR_CANNOT_DELETE_ITEM, $this->id));
 	if ($action == 'delete') { // re-post affected entries unless edited (which is after the entry is reposted)
 	  if (is_array($this->unpost_ids)) { // rePost any journal entries unPosted to rollback COGS calculation
@@ -182,17 +182,17 @@ class journal {
 	switch ($this->journal_id) {
 	  case  6: // Purchase/Receive Journal
 		$skus = array();
-	  	foreach ($this->journal_rows as $row) if ($row['sku'] <> '') $skus[] = $row['sku'];
+	  	foreach ($this->journal_rows as $row) if ($row['sku'] <> '') $skus[] = db_input($row['sku']);
 	  	if (!empty($skus)) {
 	  	  $result = $db->Execute("SELECT sku FROM ".TABLE_INVENTORY." WHERE sku IN ('".implode("', '", $skus)."') AND cost_method='a'");
 	  	  $askus = array();
 	  	  while (!$result->EOF) {
-	  		$askus[] = $result->fields['sku'];
+	  		$askus[] = db_input($result->fields['sku']);
 	  		$result->MoveNext();
 	  	  }
 	  	  if (!empty($askus)) {
 		    $messageStack->debug("\n    Finding re-post ids for average sku list = ".arr2string($askus)." and post_date after $this->post_date");
-	  	  	$result = $db->Execute("SELECT ref_id, post_date FROM ".TABLE_JOURNAL_ITEM." WHERE sku IN ('".implode("', '", $askus)."') AND post_date > '$this->post_date'");
+	  	  	$result = $db->Execute("SELECT ref_id, post_date FROM ".TABLE_JOURNAL_ITEM." WHERE sku IN ('".implode("', '", $askus)."') AND post_date > '" . db_input($this->post_date) . "'");
 	  	  	while (!$result->EOF) {
 		  	  $messageStack->debug("\n    check_for_re_post is queing for average cost record id = ".$result->fields['ref_id']);
 		  	  $idx = substr($result->fields['post_date'], 0, 10).':'.str_pad($result->fields['ref_id'], 8, '0', STR_PAD_LEFT);
@@ -211,7 +211,7 @@ class journal {
 	  case 21: // Inventory Direct Purchase Journal
 	  	if ($this->id) for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku']) {
 			// check to see if any future postings relied on this record, queue to re-post if so.
-			$sql = "SELECT id FROM ".TABLE_INVENTORY_HISTORY." WHERE ref_id=$this->id AND sku='".$this->journal_rows[$i]['sku']."'";
+			$sql = "SELECT id FROM ".TABLE_INVENTORY_HISTORY." WHERE ref_id=" . (int)$this->id . " AND sku='".db_input($this->journal_rows[$i]['sku'])."'";
 			$result = $db->Execute($sql);
 			if ($result->RecordCount() > 0) {
 				$sql = "SELECT journal_main_id FROM ".TABLE_INVENTORY_COGS_USAGE." WHERE inventory_history_id=".$result->fields['id'];
@@ -230,11 +230,11 @@ class journal {
 	  	// find if any COGS owed for items
 	  	foreach ($this->journal_rows as $row) if ($row['sku'] ?? null) {
 	  		if (($row['qty']>0 && in_array($this->journal_id, array(6, 13, 14, 16))) || ($row['qty'] < 0 && in_array($this->journal_id, array(7, 12)))) {
-			  	$sql = "SELECT id, journal_main_id, qty, post_date FROM ".TABLE_INVENTORY_COGS_OWED." WHERE sku='".$row['sku']."'";
-			  	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id = " . $this->store_id;
+			  	$sql = "SELECT id, journal_main_id, qty, post_date FROM ".TABLE_INVENTORY_COGS_OWED." WHERE sku='".db_input($row['sku'])."'";
+			  	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id = " . (int)$this->store_id;
 			  	$sql .= " ORDER BY post_date, id";
 			  	$result = $db->Execute($sql);
-			  	$inv_qoh = $db->Execute("SELECT SUM(remaining) as remaining FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='".$row['sku']."' AND remaining>0");
+			  	$inv_qoh = $db->Execute("SELECT SUM(remaining) as remaining FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='".db_input($row['sku'])."' AND remaining>0");
 			  	$working_qty = $row['qty'] + $inv_qoh->fields['remaining'];
 			  	while (!$result->EOF) {
 			  		if ($working_qty >= $result->fields['qty']) { // repost this journal entry and remove the owed record since we will repost all the negative quantities necessary
@@ -253,7 +253,7 @@ class journal {
 	  	}
 		// Check for payments or receipts made to this record that will need to be re-posted.
 		if ($this->id) {
-		  	$sql = "SELECT ref_id, post_date FROM ".TABLE_JOURNAL_ITEM." WHERE so_po_item_ref_id = $this->id AND gl_type in ('chk', 'pmt')";
+		  	$sql = "SELECT ref_id, post_date FROM ".TABLE_JOURNAL_ITEM." WHERE so_po_item_ref_id = " . (int)$this->id . " AND gl_type in ('chk', 'pmt')";
 			$result = $db->Execute($sql);
 			while(!$result->EOF) {
 			  $messageStack->debug("\n    check_for_re_post is queing for payment id = " . $result->fields['ref_id']);
@@ -309,11 +309,11 @@ class journal {
 		  if  (round($values['credit'], $precision) <> 0 || round($values['debit'], $precision) <> 0) {
 		    $sql = "UPDATE " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " SET 
 			  credit_amount = credit_amount + ".$values['credit'].", debit_amount = debit_amount + ".$values['debit'].", 
-			  last_update = '{$this->post_date}' WHERE account_id = '$gl_acct' AND period = $this->period";
+			  last_update = '" . db_input($this->post_date) . "' WHERE account_id = '" . db_input($gl_acct) . "' AND period = " . (int)$this->period;
 		    $messageStack->debug("\n    Post chart balances: credit_amount = ".$values['credit'].", debit_amount = ".$values['debit'].", acct = $gl_acct, period = $this->period");
 		    $result = $db->Execute($sql);
 		    if ($result->AffectedRows() == 0) {
-		      $db->Execute("INSERT INTO " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " (period, account_id, beginning_balance, debit_amount, credit_amount, last_update) VALUES ($this->period, '$gl_acct', 0, ".$values['debit'].", ".$values['credit'].", '{$this->post_date}')");
+		      $db->Execute("INSERT INTO " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " (period, account_id, beginning_balance, debit_amount, credit_amount, last_update) VALUES (" . (int)$this->period . ", '" . db_input($gl_acct) . "', 0, ".$values['debit'].", ".$values['credit'].", '" . db_input($this->post_date) . "')");
 		    } elseif ($result->AffectedRows() <> 1) {
 		      return $this->fail_message(GL_ERROR_POSTING_CHART_BALANCES . ($gl_acct ? $gl_acct : TEXT_NOT_SPECIFIED));
 		    }
@@ -350,7 +350,7 @@ class journal {
 		  $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " set 
 			credit_amount = credit_amount - " . $this->journal_rows[$i]['credit_amount'] . ", 
 			debit_amount = debit_amount - " . $this->journal_rows[$i]['debit_amount'] . " 
-			where account_id = '" . $this->journal_rows[$i]['gl_account'] . "' and period = " . $this->period;
+			where account_id = '" . db_input($this->journal_rows[$i]['gl_account']) . "' and period = " . (int)$this->period;
 		  $messageStack->debug("\n    unPost chart balances: credit_amount = " . $this->journal_rows[$i]['credit_amount'] . ", debit_amount = " . $this->journal_rows[$i]['debit_amount'] . ", acct = " . $this->journal_rows[$i]['gl_account'] . ", period = " . $this->period);
 		  $coa_update = $db->Execute($sql);
 		  $this->affected_accounts[$this->journal_rows[$i]['gl_account']] = 1;
@@ -380,7 +380,7 @@ class journal {
 	  default:
 	}
 	// first find out the last period with data in the system from the current_status table
-	$sql = "select fiscal_year from " . TABLE_ACCOUNTING_PERIODS . " where period = " . $period;
+	$sql = "select fiscal_year from " . TABLE_ACCOUNTING_PERIODS . " where period = " . (int)$period;
 	$result = $db->Execute($sql);
 	if ($result->EOF) return $this->fail_message(GL_ERROR_BAD_ACCT_PERIOD);
 	$fiscal_year = $result->fields['fiscal_year'];
@@ -388,7 +388,7 @@ class journal {
 	$sql = "select max(period) as period from " . TABLE_ACCOUNTING_PERIODS . " where fiscal_year = " . $fiscal_year;
 	$result = $db->Execute($sql);
 	$max_period = $result->fields['period'];
-	$affected_acct_string = (is_array($this->affected_accounts)) ? implode("', '", array_keys($this->affected_accounts)) : '';
+	$affected_acct_string = (is_array($this->affected_accounts)) ? implode("', '", array_map('db_input', array_keys($this->affected_accounts))) : '';
 	$messageStack->debug("\n  Updating chart history for fiscal year: " . $fiscal_year . " and period: " . $period . " for accounts: ('" . $affected_acct_string . "')");
 	for ($i = $period; $i <= $max_period; $i++) {
 	  if (!$this->validate_balance($i)) return false;
@@ -400,7 +400,7 @@ class journal {
 	  while (!$result->EOF) {
 		$sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
 		  set beginning_balance = " . $result->fields['beginning_balance'] . " 
-		  where period = " . ($i + 1) . " and account_id = '" . $result->fields['account_id'] . "'";
+		  where period = " . ($i + 1) . " and account_id = '" . db_input($result->fields['account_id']) . "'";
 		$db->Execute($sql);
 		$result->MoveNext();
 	  }
@@ -478,7 +478,7 @@ class journal {
 	  $messageStack->debug("\n      Adjusting balance, adjustment = " . $adjustment . " and gl account = " . $adj_gl_account);
 	  $sql = "update " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
 		set debit_amount = debit_amount + " . $adjustment . " 
-		where period = " . $period . " and account_id = '" . $adj_gl_account . "'";
+		where period = " . (int)$period . " and account_id = '" . db_input($adj_gl_account) . "'";
 	  $result = $db->Execute($sql);
 	}
 	$messageStack->debug(" ... End Validating trial balance.");
@@ -544,7 +544,7 @@ class journal {
 	  case 18:
 	  case 20:
 		if (!$this->bill_acct_id) return $this->fail_message(GL_ERROR_NO_GL_ACCT_NUMBER . 'unPost_account_sales_purchases.');
-		$result = $db->Execute("delete from " . TABLE_ACCOUNTS_HISTORY . " where ref_id = " . $this->id);		
+		$result = $db->Execute("delete from " . TABLE_ACCOUNTS_HISTORY . " where ref_id = " . (int)$this->id);		
 		if ($result->AffectedRows() <> 1) return $this->fail_message(GL_ERROR_DELETING_ACCOUNT_HISTORY);
 		$messageStack->debug(" end unPosting account sales and purchases.");
 		break;
@@ -751,7 +751,7 @@ class journal {
 	  case 19:
 	  case 21:
 		// Delete all owed cogs entries (will be re-added during post)
-		$db->Execute("delete from " . TABLE_INVENTORY_COGS_OWED . " where journal_main_id = " . $this->id);
+		$db->Execute("delete from " . TABLE_INVENTORY_COGS_OWED . " where journal_main_id = " . (int)$this->id);
 		if (!$this->rollback_COGS()) return false;
 		break;
 	  default:  // continue to unPost inventory
@@ -822,8 +822,8 @@ class journal {
 	  }
 	}
 	// remove the inventory history records 
-	$db->Execute("delete from " . TABLE_INVENTORY_HISTORY . " where ref_id = " . $this->id);
-	$db->Execute("delete from " . TABLE_INVENTORY_COGS_USAGE . " where journal_main_id = " . $this->id);
+	$db->Execute("delete from " . TABLE_INVENTORY_HISTORY . " where ref_id = " . (int)$this->id);
+	$db->Execute("delete from " . TABLE_INVENTORY_COGS_USAGE . " where journal_main_id = " . (int)$this->id);
 	// remove cost of goods sold records (will be re-calculated if re-posting)
 	$this->remove_journal_COGS_entries();
 	$messageStack->debug("\n  end unPosting Inventory.");
@@ -837,7 +837,7 @@ class journal {
 	if (!$sku || $adjustment == 0) return true;
 	$messageStack->debug("\n    update_inventory_status, SKU = $sku, field = $field, adjustment = $adjustment, and item_cost = $item_cost");
 	// catch sku's that are not in the inventory database but have been requested to post
-	$result = $db->Execute("SELECT id, inventory_type FROM ".TABLE_INVENTORY." WHERE sku='$sku'");
+	$result = $db->Execute("SELECT id, inventory_type FROM ".TABLE_INVENTORY." WHERE sku='" . db_input($sku) . "'");
 	if ($result->RecordCount() == 0) {
 	  if (!INVENTORY_AUTO_ADD) {
 		return $this->fail_message(GL_ERROR_UPDATING_INVENTORY_STATUS . $sku);
@@ -851,10 +851,10 @@ class journal {
 	if (strpos(COG_ITEM_TYPES, $type) !== false || (in_array($type, ['ns', 'pb', 'pc']) && $field <> 'quantity_on_hand')) {
 	  $sql = "UPDATE ".TABLE_INVENTORY." SET $field=$field+$adjustment, ";
 	  if ($item_cost) $sql .= "item_cost=$item_cost, ";
-	  $sql .= "last_journal_date = now() WHERE sku='$sku'";
+	  $sql .= "last_journal_date = now() WHERE sku='" . db_input($sku) . "'";
 	  $result = $db->Execute($sql);
 	  if ($item_cost) {
-	  	$sql = "UPDATE ".TABLE_INVENTORY_PURCHASE." SET item_cost=$item_cost WHERE sku='$sku' AND vendor_id='$this->bill_acct_id'";
+	  	$sql = "UPDATE ".TABLE_INVENTORY_PURCHASE." SET item_cost=$item_cost WHERE sku='" . db_input($sku) . "' AND vendor_id='" . (int)$this->bill_acct_id . "'";
 	  	$result = $db->Execute($sql);
 	  }
 	}
@@ -867,7 +867,7 @@ class journal {
 	$cogs = 0;
 	// fetch the additional inventory item fields we need
 	$sql = "select inactive, inventory_type, account_inventory_wage, account_cost_of_sales, item_cost, cost_method, quantity_on_hand, serialize  
-	  from " . TABLE_INVENTORY . " where sku = '" . $item['sku'] . "'";
+	  from " . TABLE_INVENTORY . " where sku = '" . db_input($item['sku']) . "'";
 	$result = $db->Execute($sql);
 	// catch sku's that are not in the inventory database but have been requested to post, error
 	if ($result->RecordCount() == 0) {
@@ -929,7 +929,7 @@ class journal {
 	  );
 	  if ($defaults['serialize']) { // check for duplicate serial number
 	    $sql = "select id, remaining, unit_cost from " . TABLE_INVENTORY_HISTORY . " 
-		  where sku = '" . $item['sku'] . "' and remaining > 0 and serialize_number = '" . $item['serialize_number'] . "'";
+		  where sku = '" . db_input($item['sku']) . "' and remaining > 0 and serialize_number = '" . db_input($item['serialize_number']) . "'";
 		$result = $db->Execute($sql);
 		if ($result->RecordCount() <> 0) return $this->fail_message(GL_ERROR_SERIALIZE_COGS); 
 	  	$history_array['serialize_number'] = $item['serialize_number'];
@@ -944,21 +944,21 @@ class journal {
 	  $history_ids = array(); // the id's used to calculated cogs from the inventory history table
 	  $queue_sku = false;
 	  if ($defaults['cost_method'] == 'a') {
-		$sql = "SELECT SUM(remaining) as remaining FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='".$item['sku']."' AND remaining > 0";
-		if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='$this->store_id'";
+		$sql = "SELECT SUM(remaining) as remaining FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='".db_input($item['sku'])."' AND remaining > 0";
+		if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='" . (int)$this->store_id . "'";
 		$result = $db->Execute($sql);
 	    if ($result->fields['remaining'] < $working_qty) $queue_sku = true; // not enough of this SKU so just queue it up until stock arrives
 	  	$avg_cost = $this->fetch_avg_cost($item['sku'], $working_qty);
 	  }
 	  if ($defaults['serialize']) { // there should only be one record with one remaining quantity
 	    $sql = "SELECT id, remaining, unit_cost FROM ".TABLE_INVENTORY_HISTORY." 
-		  WHERE sku='".$item['sku']."' AND remaining > 0 AND serialize_number='".$item['serialize_number']."'";
+		  WHERE sku='".db_input($item['sku'])."' AND remaining > 0 AND serialize_number='".db_input($item['serialize_number'])."'";
 		$result = $db->Execute($sql);
 		if ($result->RecordCount() <> 1) return $this->fail_message(GL_ERROR_SERIALIZE_COGS); 
 	  } else {
 		$sql = "SELECT id, remaining, unit_cost FROM ".TABLE_INVENTORY_HISTORY." 
-		  WHERE sku='".$item['sku']."' AND remaining > 0"; // AND post_date <= '$this->post_date 23:59:59'"; // causes re-queue to owed table for negative inventory posts and rcv after sale date
-		if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='$this->store_id'";
+		  WHERE sku='".db_input($item['sku'])."' AND remaining > 0"; // AND post_date <= '$this->post_date 23:59:59'"; // causes re-queue to owed table for negative inventory posts and rcv after sale date
+		if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='" . (int)$this->store_id . "'";
 		$sql .= " ORDER BY ".($defaults['cost_method']=='l' ? 'post_date DESC, id DESC' : 'post_date, id');
 		$result = $db->Execute($sql);
 	  }
@@ -1063,16 +1063,16 @@ class journal {
   	global $db, $messageStack;
   	$messageStack->debug("\n    Calculating SKU cost, SKU = $sku and QTY = $qty");
   	$cogs = 0;
-  	$defaults = $db->Execute("SELECT inventory_type, item_cost, cost_method, serialize FROM ".TABLE_INVENTORY." WHERE sku='$sku'");
+  	$defaults = $db->Execute("SELECT inventory_type, item_cost, cost_method, serialize FROM ".TABLE_INVENTORY." WHERE sku='" . db_input($sku) . "'");
 	if ($defaults->RecordCount() == 0) return $cogs; // not in inventory, return no cost
 	if (strpos(COG_ITEM_TYPES, $defaults->fields['inventory_type']) === false) return $cogs; // this type not tracked in cog, return no cost
 	if ($defaults->fields['cost_method'] == 'a') return $qty * $this->fetch_avg_cost($sku, $qty);
 	if ($defaults->fields['serialize']) { // there should only be one record
-		$result = $db->Execute("SELECT unit_cost FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='$sku' AND serialize_number='$serial_num'");
+		$result = $db->Execute("SELECT unit_cost FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='" . db_input($sku) . "' AND serialize_number='" . db_input($serial_num) . "'");
 		return $result->fields['unit_cost'];
 	}
-	$sql = "SELECT remaining, unit_cost FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='$sku' AND remaining>0";
-	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='$this->store_id'";
+	$sql = "SELECT remaining, unit_cost FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='" . db_input($sku) . "' AND remaining>0";
+	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='" . (int)$this->store_id . "'";
 	$sql .= " ORDER BY id" . ($defaults->fields['cost_method'] == 'l' ? ' DESC' : '');
 	$result = $db->Execute($sql);
 	$working_qty = abs($qty);
@@ -1094,8 +1094,8 @@ class journal {
   function calculate_avg_cost($sku = '', $price = 0, $qty = 1) {
   	global $db, $messageStack;
 	$sql = "SELECT id, avg_cost, remaining FROM ".TABLE_INVENTORY_HISTORY." 
-		WHERE ref_id<>$this->id AND sku='$sku' AND remaining>0 AND post_date<='$this->post_date'";
-  	if ($this->store_id > 0) $sql .= " AND store_id='$this->store_id'";
+		WHERE ref_id<>" . (int)$this->id . " AND sku='" . db_input($sku) . "' AND remaining>0 AND post_date<='" . db_input($this->post_date) . "'";
+  	if ($this->store_id > 0) $sql .= " AND store_id='" . (int)$this->store_id . "'";
 	$sql .= " ORDER BY post_date, id";
   	$result = $db->Execute($sql);
   	$total_stock = 0;
@@ -1113,8 +1113,8 @@ class journal {
   function fetch_avg_cost($sku, $qty=1) {
 	global $db, $messageStack;
 	$messageStack->debug("\n      Entering fetch_avg_cost for sku: $sku and qty: $qty ... ");
-	$sql = "SELECT avg_cost, remaining, post_date FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='$sku' AND remaining>0";
-	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='$this->store_id'";
+	$sql = "SELECT avg_cost, remaining, post_date FROM ".TABLE_INVENTORY_HISTORY." WHERE sku='" . db_input($sku) . "' AND remaining>0";
+	if (ENABLE_MULTI_BRANCH) $sql .= " AND store_id='" . (int)$this->store_id . "'";
 	$sql .= " ORDER BY post_date";
 	$result = $db->Execute($sql);
 	$last_cost = isset($result->fields['avg_cost']) ? $result->fields['avg_cost'] : 0;
@@ -1142,7 +1142,7 @@ class journal {
 	global $db, $messageStack;
 	$messageStack->debug("\n    Rolling back COGS ... ");
 	// only calculate cogs for certain inventory_types
-	$sql = "select id, qty, inventory_history_id from " . TABLE_INVENTORY_COGS_USAGE . " where journal_main_id = " . $this->id;
+	$sql = "select id, qty, inventory_history_id from " . TABLE_INVENTORY_COGS_USAGE . " where journal_main_id = " . (int)$this->id;
 	$result = $db->Execute($sql);
 	if ($result->EOF) {
 	  $messageStack->debug(" ...Exiting COGS, no work to be done.");
@@ -1177,7 +1177,7 @@ class journal {
 	  }
 	  // start by retrieving the po/so item list
 	  $sql = "select id, sku, qty from " . TABLE_JOURNAL_ITEM . " 
-		where ref_id = " . $ref_id . " and gl_type = '" . $gl_type . "'"; 
+		where ref_id = " . (int)$ref_id . " and gl_type = '" . $gl_type . "'"; 
 	  $result = $db->Execute($sql);
 	  while(!$result->EOF) {
 		if ($result->fields['sku']) $item_array[$result->fields['id']]['ordered'] = $result->fields['qty'];
@@ -1186,8 +1186,8 @@ class journal {
 	  // retrieve the total number of units processed (received/shipped) less this order (may be multiple sales/purchases)
 	  $sql = "select i.so_po_item_ref_id as id, i.sku, i.qty 
 		from " . TABLE_JOURNAL_MAIN . " m left join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id
-		where m.so_po_ref_id = " . $ref_id . " and i.gl_type = '" . $proc_type . "'";
-	  if (!$post && $id) $sql .= " and m.id <> " . $id; // unposting so don't include current id (journal_id = 6 or 12)
+		where m.so_po_ref_id = " . (int)$ref_id . " and i.gl_type = '" . $proc_type . "'";
+	  if (!$post && $id) $sql .= " and m.id <> " . (int)$id; // unposting so don't include current id (journal_id = 6 or 12)
 	  $result = $db->Execute($sql);
 	  while(!$result->EOF) {
 		if ($result->fields['sku'] ?? null) $item_array[$result->fields['id']]['processed'] = ($item_array[$result->fields['id']]['processed'] ?? 0) + $result->fields['qty'];
@@ -1214,7 +1214,7 @@ class journal {
 	$messageStack->debug("\n    Calculating Assembly item list, SKU = " . $inv_list['sku']);
 	$sku = $inv_list['sku'];
 	$qty = $inv_list['qty'];
-	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . $sku . "'");
+	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 	if ($result->RecordCount() == 0) return $this->fail_message(GL_ERROR_BAD_SKU_ENTERED);
 
 	$sku_id = $result->fields['id'];
@@ -1259,7 +1259,7 @@ class journal {
 	  $this->journal_rows[] = $temp_array;
 	  if ($qty < 0) { // unbuild assy, update ref_id pointer in inventory history record of newly added item (just like a receive)
 		$db->Execute("update " . TABLE_INVENTORY_HISTORY . " set ref_id = " . $temp_array['id'] . " 
-			where sku = '" . $temp_array['sku'] . "' and ref_id = " . $result->fields['id']);
+			where sku = '" . db_input($temp_array['sku']) . "' and ref_id = " . $result->fields['id']);
 	  }
 	  $result->MoveNext();
 	}
@@ -1316,11 +1316,11 @@ class journal {
   function branch_qty_on_hand($sku, $current_qty_in_stock = 0) {
 	global $db;
 	$sql = "select sum(remaining) as remaining from " . TABLE_INVENTORY_HISTORY . " 
-		where store_id = " . $this->store_id . " and sku = '" . $sku . "'";
+		where store_id = " . (int)$this->store_id . " and sku = '" . db_input($sku) . "'";
 	$result = $db->Execute($sql);
 	$store_bal = $result->fields['remaining'];
 	$sql = "select sum(qty) as qty from " . TABLE_INVENTORY_COGS_OWED . " 
-		where store_id = " . $this->store_id . " and sku = '" . $sku . "'";
+		where store_id = " . (int)$this->store_id . " and sku = '" . db_input($sku) . "'";
 	$result = $db->Execute($sql);
 	$qty_owed = $result->fields['qty'];
 	return ($store_bal - $qty_owed);
@@ -1529,11 +1529,11 @@ class journal {
 		  for ($i = 0; $i < count($invoices); $i++) {
 			$result = $db->Execute("select sum(i.debit_amount) as debits, sum(i.credit_amount) as credits 
 			  from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
-			  where m.id = {$invoices[$i]} and i.gl_type <> 'ttl'");
+			  where m.id = " . (int)$invoices[$i] . " and i.gl_type <> 'ttl'");
 			$total_billed = $currencies->format($result->fields['credits'] - $result->fields['debits']);
 			$result = $db->Execute("select sum(i.debit_amount) as debits, sum(i.credit_amount) as credits 
 			  from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
-			  where i.so_po_item_ref_id = {$invoices[$i]} and i.gl_type in ('pmt', 'chk')");
+			  where i.so_po_item_ref_id = " . (int)$invoices[$i] . " and i.gl_type in ('pmt', 'chk')");
 			$total_paid = $currencies->format($result->fields['credits'] - $result->fields['debits']);
 			$messageStack->debug("\n    total_billed = " . $total_billed . ' and total_paid = ' . $total_paid);
 			if ($total_billed == $total_paid) {
@@ -1568,7 +1568,7 @@ class journal {
 	  'closed'      => ($closed) ? '1' : '0',
 	  'closed_date' => ($closed) ? $this->post_date : 'null',
 	);
-	db_perform(TABLE_JOURNAL_MAIN, $sql_data_array, 'update', 'id = ' . $id);
+	db_perform(TABLE_JOURNAL_MAIN, $sql_data_array, 'update', 'id = ' . (int)$id);
 	$messageStack->debug("\n  Record ID: " . $this->id . " " . (($closed) ? "Closed Record ID: " : "Opened Record ID: ") . $id);
 	return;
   }
@@ -1585,9 +1585,9 @@ class journal {
 		default: // continue
 	  }
 	  $sql = "select purchase_invoice_id from " . TABLE_JOURNAL_MAIN . " 
-		where purchase_invoice_id = '{$this->purchase_invoice_id}' and journal_id = '{$this->journal_id}'";
-	  if ($this->id) $sql .= " and id <> " . $this->id;
-	  if (in_array($this->journal_id, array(6,7))) $sql .= " and bill_acct_id = " . $this->bill_acct_id;
+		where purchase_invoice_id = '" . db_input($this->purchase_invoice_id) . "' and journal_id = '" . (int)$this->journal_id . "'";
+	  if ($this->id) $sql .= " and id <> " . (int)$this->id;
+	  if (in_array($this->journal_id, array(6,7))) $sql .= " and bill_acct_id = " . (int)$this->bill_acct_id;
 	  $result = $db->Execute($sql);
 	  if ($result->RecordCount() > 0) return $this->fail_message(sprintf(GL_ERROR_2, constant('ORD_HEADING_NUMBER_' . $this->journal_id)));
 	  $this->journal_main_array['purchase_invoice_id'] = $this->purchase_invoice_id;
@@ -1638,8 +1638,8 @@ class journal {
 	  }
 	  if ($str_field) {
 		$next_id = string_increment($this->journal_main_array['purchase_invoice_id']);
-		$sql = "update " . TABLE_CURRENT_STATUS . " set " . $str_field . " = '" . $next_id . "'";
-		if (!$force) $sql .= " where " . $str_field . " = '" . $this->journal_main_array['purchase_invoice_id'] . "'";
+		$sql = "update " . TABLE_CURRENT_STATUS . " set " . $str_field . " = '" . db_input($next_id) . "'";
+		if (!$force) $sql .= " where " . $str_field . " = '" . db_input($this->journal_main_array['purchase_invoice_id']) . "'";
 		$result = $db->Execute($sql);
 		if ($result->AffectedRows() <> 1) return $this->fail_message(sprintf(GL_ERROR_5, constant('ORD_HEADING_NUMBER_' . $this->journal_id)));
 	  }
@@ -1680,7 +1680,7 @@ class journal {
 	  if (!$short_name) return $this->fail_message(ACT_ERROR_NO_ACCOUNT_ID);
 	  // it id exists, fetch the data, else check for duplicates
 	  $sql = "select id, store_id, dept_rep_id from " . TABLE_CONTACTS . " where "; 
-	  $sql .= ($acct_id) ? ("id = " . (int)$acct_id) : ("short_name = '" . $short_name . "' and type = '" . $acct_type . "'");
+	  $sql .= ($acct_id) ? ("id = " . (int)$acct_id) : ("short_name = '" . db_input($short_name) . "' and type = '" . db_input($acct_type) . "'");
 	  $result = $db->Execute($sql);
 	  if (!$acct_id && $result->RecordCount() > 0 && !$allow_overwrite) {  // duplicate ID w/o allow_overwrite
 		return $this->fail_message(ACT_ERROR_DUPLICATE_ACCOUNT);
@@ -1704,7 +1704,7 @@ class journal {
 		  $auto_id = $contact_id->fields[$auto_field];
 		  if ($auto_id == $short_name) { // increment the ID value
 			$next_id = string_increment($auto_id);
-			$db->Execute("update " . TABLE_CURRENT_STATUS . " set " . $auto_field . " = '" . $next_id . "'");
+			$db->Execute("update " . TABLE_CURRENT_STATUS . " set " . $auto_field . " = '" . db_input($next_id) . "'");
 		  }
 		}
 	  } else { // duplicate ID with allow_overwrite
@@ -1723,7 +1723,7 @@ class journal {
 			$field_to_test = $add_type . '_' . $name;
 			$sql .= $name . " = '" . db_input($this->$field_to_test) . "' and ";
 		}
-		$sql .= "ref_id = " . $acct_id;
+		$sql .= "ref_id = " . (int)$acct_id;
 		$result = $db->Execute($sql);
 		$address_id = ($result->RecordCount() > 0) ? $result->fields['address_id'] : '';
 	}
@@ -1764,11 +1764,11 @@ class journal {
 	global $db;
 	// special case when re-posting and the post date is changed, need to fetch original post date
 	// from orginal record to include in original transaction
-	$result = $db->Execute("select post_date from " . TABLE_JOURNAL_MAIN . " where id = " . $id);
+	$result = $db->Execute("select post_date from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$id);
 	$post_date = $result->fields['post_date'];
 	$output = array();
 	$result = $db->Execute("select id, post_date, purchase_invoice_id, terminal_date from " . TABLE_JOURNAL_MAIN . " 
-	  where recur_id = " . $recur_id . " and post_date >= '" . $post_date . "' order by post_date");
+	  where recur_id = " . (int)$recur_id . " and post_date >= '" . db_input($post_date) . "' order by post_date");
 	while (!$result->EOF) {
 	  $output[] = array(
 		'id'                  => $result->fields['id'],

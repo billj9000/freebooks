@@ -172,7 +172,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search = '';
 }
 
-if($_REQUEST['store_id']) $search .= " and store_id = '{$_REQUEST['store_id']}' ";
+if($_REQUEST['store_id']) $search .= " and store_id = '" . (int)$_REQUEST['store_id'] . "' ";
 // J18/J20 share a journal_id across two account types; restrict the list to the
 // requested type via the contact it's billed to
 if (in_array(JOURNAL_ID, array(18, 20))) {

@@ -47,14 +47,14 @@ function modify_account_history_records($id, $add_acct = true) {
   $max_period = $result->fields['period'];
   if (!$max_period) die ('table: '.TABLE_ACCOUNTING_PERIODS.' is not set, run setup.');
   if ($add_acct) {
-    $result = $db->Execute("select heading_only from " . TABLE_CHART_OF_ACCOUNTS . " where id = '" . $id . "'");
+    $result = $db->Execute("select heading_only from " . TABLE_CHART_OF_ACCOUNTS . " where id = '" . db_input($id) . "'");
 	if ($result->fields['heading_only'] <> '1') {
 	  for ($i = 0, $j = 1; $i < $max_period; $i++, $j++) {
-	    $db->Execute("insert into " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " (account_id, period) values('" . $id . "', '" . $j . "')");
+	    $db->Execute("insert into " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " (account_id, period) values('" . db_input($id) . "', '" . $j . "')");
 	  }
 	}
   } else {
-	$result = $db->Execute("delete from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . $id . "'");
+	$result = $db->Execute("delete from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . db_input($id) . "'");
   }
 }
 
@@ -465,7 +465,7 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
   $acct_balance = 0;
   if (!$gl_acct_id) return $acct_balance;
   $sql = "select beginning_balance from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " 
-	where account_id = '" . $gl_acct_id . "' and period = " . $period;
+	where account_id = '" . db_input($gl_acct_id) . "' and period = " . (int)$period;
   $result = $db->Execute($sql);
   $acct_balance = $result->fields['beginning_balance'];
 
@@ -473,7 +473,7 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
   $bank_list = array();
   $sql = "select i.debit_amount, i.credit_amount
 	from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id
-	where m.period = " . $period . " and i.gl_account = '" . $gl_acct_id . "' and m.post_date <= '" . $post_date . "' 
+	where m.period = " . (int)$period . " and i.gl_account = '" . db_input($gl_acct_id) . "' and m.post_date <= '" . db_input($post_date) . "' 
 	order by m.post_date, m.journal_id";
   $result = $db->Execute($sql);
   while (!$result->EOF) {

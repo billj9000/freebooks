@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -22,6 +22,8 @@ require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
 class chart_of_accounts {
+	// The account number "id" is a field of the form itself, so it is not listed here.
+	const NOT_FROM_FORMS = array('db_table', 'title', 'extra_buttons', 'help_path', 'error', 'security_id');
 	public $db_table      = TABLE_CHART_OF_ACCOUNTS;
     public $title         = GL_POPUP_WINDOW_TITLE;
     public $extra_buttons = false;
@@ -29,7 +31,7 @@ class chart_of_accounts {
     public $error         = false;
     
     public function __construct(){
-        foreach ($_POST as $key => $value) $this->$key = db_prepare_input($value);
+        foreach ($_POST as $key => $value) if (!in_array($key, self::NOT_FROM_FORMS, true)) $this->$key = db_prepare_input($value);
         if(!isset($this->id))$this->id = isset($_GET['sID'])?$_GET['sID']:$_POST['rowSeq'];
         $this->security_id   = $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION];
     }
@@ -48,7 +50,7 @@ class chart_of_accounts {
 	    return false;
 	}
 	if (!$this->primary_acct_id == ''){
-	    $result = $db->Execute("select account_type from " . $this->db_table . " where id = '" . $this->primary_acct_id . "'");
+	    $result = $db->Execute("select account_type from " . $this->db_table . " where id = '" . db_input($this->primary_acct_id) . "'");
         if( $result->fields['account_type'] <> $this->account_type){
             $messageStack->add('set account_type to '. $coa_types_list[$result->fields['account_type']]['text']. ' this is the same as the parent','error');
             $this->error = true;
@@ -57,7 +59,7 @@ class chart_of_accounts {
 	}	
 	if ($this->heading_only == 1 && $this->rowSeq <> 0) { // see if this was a non-heading account converted to a heading account
 	   $sql = "select max(debit_amount) as debit, max(credit_amount) as credit, max(beginning_balance) as beg_bal 
-		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . $this->id . "'";
+		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . db_input($this->id) . "'";
 	   $result = $db->Execute($sql);
 	   if ($result->fields['debit'] <> 0 || $result->fields['credit'] <> 0 || $result->fields['beg_bal'] <> 0) {
 		  $messageStack->add(GL_ERROR_CANT_MAKE_HEADING, 'error');
@@ -73,7 +75,7 @@ class chart_of_accounts {
 	  'account_inactive' => $this->account_inactive,
 	);
     if ($this->rowSeq <> 0) {
-	  db_perform($this->db_table, $sql_data_array, 'update', "id = '" . $this->id . "'");
+	  db_perform($this->db_table, $sql_data_array, 'update', "id = '" . db_input($this->id) . "'");
       gen_add_audit_log(GL_LOG_CHART_OF_ACCOUNTS . TEXT_UPDATE, $this->id);
 	} else  { 
 	  $sql_data_array['id'] = $this->id;
@@ -92,14 +94,14 @@ class chart_of_accounts {
 	}
 	// Don't allow delete if there is account activity for this account
 	$sql = "select max(debit_amount) as debit, max(credit_amount) as credit, max(beginning_balance) as beg_bal 
-		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . $id . "'";
+		from " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " where account_id = '" . db_input($id) . "'";
 	$result = $db->Execute($sql);
 	if ($result->fields['debit'] <> 0 || $result->fields['credit'] <> 0 || $result->fields['beg_bal'] <> 0) {
 	  $messageStack->add(GL_ERROR_CANT_DELETE, 'error');
 	  return false;
 	}
 	// OK to delete
-	$db->Execute("delete from " . $this->db_table . " where id = '" . $id . "'");
+	$db->Execute("delete from " . $this->db_table . " where id = '" . db_input($id) . "'");
 	modify_account_history_records($id, $add_acct = false);
 	gen_add_audit_log(GL_LOG_CHART_OF_ACCOUNTS . TEXT_DELETE, $id);
 	return true;
@@ -147,7 +149,7 @@ class chart_of_accounts {
   function build_form_html($action, $id = '') {
     global $db, $coa_types_list;
     if ($action <> 'new' && $this->error == false) {
-        $sql = "select * from " . $this->db_table . " where id = '" . $this->id . "'";
+        $sql = "select * from " . $this->db_table . " where id = '" . db_input($this->id) . "'";
         $result = $db->Execute($sql);
         foreach ($result->fields as $key => $value) $this->$key = $value;
     }
@@ -184,7 +186,7 @@ class chart_of_accounts {
 	    $output .= '    <td>' . html_pull_down_menu('account_type', $coa_types_list, $this->account_type) . '</td>' . "\n";
         $output .= '  </tr>' . "\n";
     }else{
-    	$sql = "select account_type from " . $this->db_table . " where id = '" . $this->primary_acct_id . "'";
+    	$sql = "select account_type from " . $this->db_table . " where id = '" . db_input($this->primary_acct_id) . "'";
     	$result = $db->Execute($sql);
         $output .= html_hidden_field('account_type', $result->fields['account_type'] )   . chr(10);	
     }

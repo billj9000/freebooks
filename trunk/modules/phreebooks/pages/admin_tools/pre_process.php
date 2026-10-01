@@ -30,7 +30,7 @@ $start_date = ($_POST['start_date'])  ? gen_db_date($_POST['start_date']) : CURR
 $end_date   = ($_POST['end_date'])    ? gen_db_date($_POST['end_date'])   : CURRENT_ACCOUNTING_PERIOD_END;
 // see what fiscal year we are looking at (assume this FY is entered for the first time)
 if ($_POST['fy']) {
-  $fy = $_POST['fy'];
+  $fy = (int)$_POST['fy']; // it goes into SQL unquoted
 } else {
   $result = $db->Execute("select fiscal_year from " . TABLE_ACCOUNTING_PERIODS . " where period = " . CURRENT_ACCOUNTING_PERIOD);
   $fy = $result->fields['fiscal_year'];

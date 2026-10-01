@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -35,7 +35,7 @@ class statement_builder {
 		a.primary_name, a.contact, a.address1, a.address2, a.city_town, a.state_province, a.postal_code, 
 		a.country_code, a.telephone1, a.telephone2, a.telephone3, a.telephone4, a.email, a.website 
 	  from " . TABLE_CONTACTS . " c inner join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id 
-	  where c.id = " . $this->bill_acct_id . " and a.type like '%m'";
+	  where c.id = " . (int)$this->bill_acct_id . " and a.type like '%m'";
 	$result = $db->Execute($sql);
 	foreach ($result->fields as $key => $value) $this->$key = db_prepare_input($value);
 	// Load the prior balance and aging, first aging
@@ -52,7 +52,7 @@ class statement_builder {
 	$dates  = gen_build_sql_date($report->datedefault, $report->datefield);
 	$sql = "select m.id, (i.debit_amount - i.credit_amount) as balance 
 		from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
-		where m.bill_acct_id = " . $this->bill_acct_id . " 
+		where m.bill_acct_id = " . (int)$this->bill_acct_id . " 
 		and m.post_date < '" . $dates['start_date'] . "' 
 		and (m.closed_date >= '" . $dates['start_date'] . "' or m.closed = '0') 
 		and m.journal_id in (6, 7, 12, 13) and i.gl_type in ('ttl', 'dsc')";
@@ -81,7 +81,7 @@ class statement_builder {
 	$sql = "select m.post_date, m.journal_id, m.terms, i.debit_amount, i.credit_amount, m.purchase_invoice_id, 
 	    m.purch_order_id, i.gl_type 
 	  from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_JOURNAL_ITEM . " i on m.id = i.ref_id 
-	  where m.bill_acct_id = " . $this->bill_acct_id;
+	  where m.bill_acct_id = " . (int)$this->bill_acct_id;
 	if ($strDates) $sql .= " and " . $strDates;
 	$sql .= " and m.journal_id in (6, 7, 12, 13, 18, 20) and i.gl_type in ('ttl', 'dsc') order by m.post_date";
 	$result = $db->Execute($sql);

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -261,7 +262,7 @@ class orders extends journal {
 	switch ($this->journal_id) {
 	  case  4: // Purchase Order Journal
 	  case 10: // Sales Order Journal
-		$result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " where so_po_ref_id = " . $this->id);
+		$result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " where so_po_ref_id = " . (int)$this->id);
 		if ($result->RecordCount() > 0) return $this->fail_message(constant('GENERAL_JOURNAL_' . $this->journal_id . '_ERROR_6'));
 		break;
 	  case  6: // Purchase Journal
@@ -269,11 +270,11 @@ class orders extends journal {
 	  case 12: // Sales/Invoice Journal
 	  case 13: // Customer Credit Memo Journal
 		// first check for main entries that refer to delete id (credit memos)
-		$result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " where so_po_ref_id = " . $this->id);
+		$result = $db->Execute("select id from " . TABLE_JOURNAL_MAIN . " where so_po_ref_id = " . (int)$this->id);
 		if ($result->RecordCount() > 0) return $this->fail_message(constant('GENERAL_JOURNAL_' . $this->journal_id . '_ERROR_6'));
 		// next check for payments that link to deleted id (payments)
 		$result = $db->Execute("select id from " . TABLE_JOURNAL_ITEM . " 
-			where gl_type = 'pmt' and so_po_item_ref_id = " . $this->id);
+			where gl_type = 'pmt' and so_po_item_ref_id = " . (int)$this->id);
 		if ($result->RecordCount() > 0) return $this->fail_message(constant('GENERAL_JOURNAL_' . $this->journal_id . '_ERROR_6'));
 		break;
 	  case  3: // Purchase Quote Journal

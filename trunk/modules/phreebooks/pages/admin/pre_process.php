@@ -131,7 +131,9 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, 4);
     $subject = $_POST['subject'];
     $id      = $_POST['rowSeq'];
-	if (!$subject || !$id) break;
+	// It names the object to call: one of this page's own subjects only.
+	if (!in_array($subject, array('chart_of_accounts', 'tax_auths', 'tax_auths_vend', 'tax_rates', 'tax_rates_vend'), true)) break;
+	if (!$id) break;
     $$subject->btn_delete($id);
     switch($subject) {
       case 'chart_of_accounts': $default_tab_id = 'chart_of_accounts'; break;

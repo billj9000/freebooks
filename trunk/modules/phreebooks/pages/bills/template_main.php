@@ -119,7 +119,8 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
                 $order->store_id ? $order->store_id : $_SESSION['admin_prefs']['def_store_id'], $fs));
         }
         $txn_url = null;
-        $active_pm = isset($order->shipper_code) ? $order->shipper_code : '';
+        // It names a variable holding a payment object: an installed payment method only.
+        $active_pm = isset($order->shipper_code) && in_array($order->shipper_code, array_column($payment_modules, 'id'), true) ? $order->shipper_code : '';
         if ($order->purch_order_id && $active_pm && isset($$active_pm) && method_exists($$active_pm, 'get_transaction_url')) {
           $txn_url = $$active_pm->get_transaction_url($order->purch_order_id);
         }

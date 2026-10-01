@@ -106,7 +106,7 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	// create and retrieve customer account (defaults also)
 	$order->bill_short_name     = db_prepare_input($_POST['search']);
-	$order->bill_acct_id        = db_prepare_input($_POST['bill_acct_id']);
+	$order->bill_acct_id        = ctype_digit((string)db_prepare_input($_POST['bill_acct_id'])) ? db_prepare_input($_POST['bill_acct_id']) : '';
 	$order->bill_address_id     = db_prepare_input($_POST['bill_address_id']);
 	$order->bill_primary_name   = $_POST['bill_primary_name'] <> GEN_PRIMARY_NAME ? db_prepare_input($_POST['bill_primary_name']) : '';
 	$order->bill_contact        = $_POST['bill_contact'] <> GEN_CONTACT ? db_prepare_input($_POST['bill_contact']) : '';
@@ -119,17 +119,22 @@ switch ($_REQUEST['action']) {
 	$order->bill_email          = db_prepare_input($_POST['bill_email']);
 
 	// load journal main data
-	$order->id                  = ($_POST['id'] <> '') ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
+	$order->id                  = ctype_digit((string)$_POST['id']) ? $_POST['id'] : ''; // will be null unless opening an existing purchase/receive
 	$order->admin_id            = $_SESSION['admin_id'];
 	$order->rep_id              = db_prepare_input($_POST['rep_id']);
 	$order->journal_id          = JOURNAL_ID;
 	$order->post_date           = $post_date;
 	$order->period              = $period;
 	if (!$order->period) break;	// bad post_date was submitted
-	$order->store_id            = db_prepare_input($_POST['store_id']);
+	$order->store_id            = (int)db_prepare_input($_POST['store_id']);
 	if ($order->store_id == '') $order->store_id = 0;
 	$order->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);	// PhreeBooks order/invoice ID
 	$order->shipper_code        = db_prepare_input($_POST['shipper_code']);  // store payment method in shipper_code field
+	// It names a class to instantiate and a file to include: an installed payment
+	// method or nothing. Installed, not only active: a refund goes back through
+	// the method the payment was taken with, even one switched off since.
+	if (!preg_match('/^[a-z0-9_]+$/', $order->shipper_code)
+	    || !file_exists(DIR_FS_MODULES . 'payment/methods/' . $order->shipper_code . '/' . $order->shipper_code . '.php')) $order->shipper_code = '';
 	$order->purch_order_id      = db_prepare_input($_POST['purch_order_id']);  // customer PO/Ref number
 	$order->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_' . strtoupper($type) . '_WINDOW_TITLE'));
 
@@ -224,8 +229,12 @@ switch ($_REQUEST['action']) {
 	// check to make sure the payment method is valid
 	if (JOURNAL_ID == 18) {
 	  $payment_module = $order->shipper_code;
-	  $processor = new $payment_module;
-	  if ($processor->pre_confirmation_check()) $error = true;
+	  if ($payment_module === '' || !class_exists($payment_module)) {
+	    $error = $messageStack->add(GL_ERROR_NO_POST, 'error');
+	  } else {
+	    $processor = new $payment_module;
+	    if ($processor->pre_confirmation_check()) $error = true;
+	  }
 	}
 	// for J20 customer refunds with a linked payment ID, confirm the selected module supports refunds
 	if (JOURNAL_ID == 20 && $account_type == 'c' && !empty($order->refund_payment_id) && !empty($order->shipper_code)) {

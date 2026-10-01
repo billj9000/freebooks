@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -63,7 +64,7 @@ class po_status extends ctl_panel {
 		  from " . TABLE_JOURNAL_MAIN . " where journal_id = 4 and closed = '0'";
 		if ($params['limit'] == '1')    $sql .= " and post_date <= '".date('Y-m-d')."'";
 		if ($params['order'] == 'desc') $sql .= " order by post_date desc";
-		if ($params['num_rows'])      $sql .= " limit " . $params['num_rows'];
+		if ($params['num_rows'])      $sql .= " limit " . (int)$params['num_rows'];
 		$result = $db->Execute($sql);
 		if ($result->RecordCount() < 1) {
 			$contents = ACT_NO_RESULTS;

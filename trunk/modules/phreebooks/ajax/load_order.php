@@ -27,8 +27,8 @@ require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 /**************   page specific initialization  *************************/
-$cID       = db_prepare_input($_GET['cID']);
-$oID       = db_prepare_input($_GET['oID']);
+$cID       = (int)db_prepare_input($_GET['cID']);
+$oID       = (int)db_prepare_input($_GET['oID']);
 $jID       = db_prepare_input($_GET['jID']);
 $so_po     = db_prepare_input($_GET['so_po']); // pull from a so/po for invoice/receipt
 $just_ship = db_prepare_input($_GET['ship_only']);
@@ -140,7 +140,7 @@ if (!empty($order->fields)) {
 	  	if (in_array($ordr_items->fields['gl_type'], array('poo', 'soo', 'por', 'sos'))) {
 		  $subtotal   += $total;
 		  $inv_details = $db->Execute("select inventory_type, inactive, item_weight, quantity_on_hand, lead_time 
-		    from " . TABLE_INVENTORY . " where sku = '" . $ordr_items->fields['sku'] . "'");
+		    from " . TABLE_INVENTORY . " where sku = '" . db_input($ordr_items->fields['sku']) . "'");
 		  if (!in_array($inv_details->fields['inventory_type'], $cog_types)) $inv_details->fields['quantity_on_hand'] = 'NA';
 		  $item_list[] = array(
 			'item_cnt'          		=> $ordr_items->fields['item_cnt'],
@@ -209,7 +209,7 @@ if (!empty($order->fields)) {
 	  	if (in_array($ordr_items->fields['gl_type'], array('poo', 'soo', 'por', 'sos'))) {
 		  $subtotal += $total;
 		  $inv_details = $db->Execute("select inactive, inventory_type, item_weight, quantity_on_hand, lead_time 
-		    from " . TABLE_INVENTORY . " where sku = '" . $ordr_items->fields['sku'] . "'");
+		    from " . TABLE_INVENTORY . " where sku = '" . db_input($ordr_items->fields['sku']) . "'");
 		  $inv_details->fields['quantity_on_hand'] = $ordr_items->fields['qty'] + $inv_details->fields['quantity_on_hand'];
 		  if (!in_array($inv_details->fields['inventory_type'], $cog_types)) $inv_details->fields['quantity_on_hand'] = 'NA';
 	  	} else if ($ordr_items->fields['gl_type'] == 'dsc') {
