@@ -123,6 +123,43 @@ switch ($_REQUEST['action']) {
     }
     break;
 
+  case 'delete':
+    // Voiding a label only as a POST, which index.php has checked for its
+    // csrf_token: a GET could be a link someone was sent.
+    $shipment_id = $_SERVER['REQUEST_METHOD'] === 'POST' ? (int)($_POST['sID'] ?? 0) : 0;
+    $shipments   = $db->Execute("select id, ship_date, tracking_id, carrier_order_id from " . TABLE_SHIPPING_LOG
+      . " where shipment_id = " . $shipment_id . " and carrier = '" . db_input($shipping_module) . "'");
+    if (!$shipment_id || $shipments->RecordCount() == 0) {
+      $error = $messageStack->add(SHIPPING_DELETE_ERROR, 'error');
+      break;
+    }
+    if (substr($shipments->fields['ship_date'], 0, 10) < date('Y-m-d')) { // Royal Mail manifests each day's labels
+      $error = $messageStack->add(SHIPPING_CANNOT_DELETE, 'error');
+      break;
+    }
+    // The shipment is removed here only once Click & Drop has cancelled every
+    // label in it: one still open there gets despatched and charged for, and
+    // with no record here nobody would know.
+    $shipment = new $shipping_module;
+    while (!$shipments->EOF) {
+      $order_id = $shipments->fields['carrier_order_id'];
+      if ($order_id === '') {
+        $error = $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_ORDER, 'error');
+      } elseif ($shipment->cancelShipment($order_id)) {
+        $tracking  = preg_replace('/[^A-Za-z0-9_\-]/', '', $shipments->fields['tracking_id']);
+        $file_path = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . str_replace('-', '/', substr($shipments->fields['ship_date'], 0, 10)) . '/';
+        foreach (array($tracking, $order_id) as $name) {
+          if ($name !== '' && is_file($file_path . $name . '.pdf')) @unlink($file_path . $name . '.pdf');
+        }
+        $db->Execute("delete from " . TABLE_SHIPPING_LOG . " where id = " . (int)$shipments->fields['id']);
+      } else {
+        $error = true; // cancelShipment() has said why
+      }
+      $shipments->MoveNext();
+    }
+    if (!$error) gen_add_audit_log(SHIPPING_LABEL_DELETED, $shipment_id);
+    break;
+
   case 'view':
     // Both build a file path: a Y-m-d date and bare label names.
     $date         = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($_GET['date'] ?? '')) ? $_GET['date'] : '';

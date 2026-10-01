@@ -102,6 +102,9 @@ class royal_mail {
   );
   const ALL_FORMATS = array('letter', 'largeLetter', 'smallParcel', 'mediumParcel', 'largeParcel', 'parcel', 'documents');
 
+  // The HTTP status of the last call to Click & Drop; 0 when there was no answer.
+  public $last_http_code = 0;
+
   static function allowedFormats($internalCode) {
     return self::FORMATS_BY_SERVICE[$internalCode] ?? self::ALL_FORMATS;
   }
@@ -384,14 +387,21 @@ class royal_mail {
   // ---------------------------------------------------------------
   //  Cancel an order by its Click & Drop orderIdentifier
   // ---------------------------------------------------------------
+  // True only when Click & Drop has cancelled it. A refusal - an order already
+  // despatched or manifested, say - comes back as an HTTP error or in the
+  // answer's errors list, and the order is then still Royal Mail's to charge for.
   public function cancelShipment($orderIdentifier) {
     global $messageStack;
     $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
     $response = $this->curlRequest('DELETE',
       RM_CD_BASE . '/orders/' . urlencode($orderIdentifier),
       $this->rmHeaders($apiKey));
-    if ($response === false) {
-      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Cancellation failed.', 'caution');
+    $data   = is_string($response) ? json_decode($response, true) : null;
+    $errors = is_array($data) ? ($data['errors'] ?? []) : [];
+    if ($response === false || $this->last_http_code >= 300 || !empty($errors)) {
+      $e      = is_array($errors) ? ($errors[0] ?? []) : [];
+      $detail = $e['message'] ?? $e['errorMessage'] ?? ($data['message'] ?? ($response === false ? 'no answer' : 'HTTP ' . $this->last_http_code));
+      $messageStack->add(sprintf(MODULE_SHIPPING_ROYAL_MAIL_ERROR_CANCEL, $orderIdentifier, $detail), 'error');
       return false;
     }
     return true;
@@ -439,6 +449,7 @@ class royal_mail {
     }
     $result = curl_exec($ch);
     $error  = curl_error($ch);
+    $this->last_http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     return $error ? false : $result;
   }
 
