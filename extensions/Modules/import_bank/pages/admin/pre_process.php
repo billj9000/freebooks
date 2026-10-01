@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -38,6 +39,8 @@ switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 4);
   	// save general tab
+  	// Each extra account runs an ALTER TABLE: a whole number in a small range only.
+  	$_POST['number_of_bank_accounts'] = min(max((int)$_POST['number_of_bank_accounts'], 1), 20);
   	if($_POST['number_of_bank_accounts'] < NUMBER_OF_BANK_ACCOUNTS){
   		$messageStack->add(IMPORT_BANK_CAN_NOT_DECREASE_NUMBER_OF_BANK_ACCOUNTS, 'error');
   		$_POST['number_of_bank_accounts'] = NUMBER_OF_BANK_ACCOUNTS;	
@@ -73,10 +76,12 @@ switch ($_REQUEST['action']) {
     break;
   case 'delete':
 	validate_security($security_level, 4); // security check
-    $subject = $_POST['subject'];
-    $id      = $_POST['rowSeq'];
-	if (!$subject || !$id) break;
-    $$subject->btn_delete($id);
+    // Only this page's own subjects; the delete link sends the class code.
+    $subjects = array('kt' => $kt, 'known_transactions' => $kt);
+    $subject = (string)$_POST['subject'];
+    $id      = (int)$_POST['rowSeq'];
+	if (!isset($subjects[$subject]) || !$id) break;
+    $subjects[$subject]->btn_delete($id);
 	break;
   default:
 }

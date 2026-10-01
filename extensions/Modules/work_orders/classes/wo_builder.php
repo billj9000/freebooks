@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -24,7 +25,7 @@ class wo_builder {
   function load_query_results($tableKey = 'id', $tableValue = 0) {
 	global $db, $report;
 	if (!$tableValue) return false;
-	$sql = "select * from " . TABLE_WO_JOURNAL_MAIN . " where id = " . $tableValue;
+	$sql = "select * from " . TABLE_WO_JOURNAL_MAIN . " where id = " . (int)$tableValue;
 	$result = $db->Execute($sql);
 	foreach ($result->fields as $key => $value) $this->$key = db_prepare_input($value);
 	$this->load_item_details($this->id);
@@ -32,7 +33,7 @@ class wo_builder {
 	$this->build_ref_lists();
 
 	// convert particular values indexed by id to common name
-	$result = $db->Execute("select sku, image_with_path, description_sales, upc_code from " . TABLE_INVENTORY . " where id = " . $this->sku_id);
+	$result = $db->Execute("select sku, image_with_path, description_sales, upc_code from " . TABLE_INVENTORY . " where id = " . (int)$this->sku_id);
 	$this->sku             = $result->fields['sku'];
 	$this->bar_code        = $result->fields['sku'];
 	$this->image_with_path = $result->fields['image_with_path'];
@@ -92,7 +93,7 @@ class wo_builder {
 	$sql = "select i.id, i.step, i.task_name, t.description, i.mfg, i.qa, i.complete, i.data_entry,
 	  t.ref_doc, t.ref_spec 
 	  from " . TABLE_WO_JOURNAL_ITEM . " i inner join " . TABLE_WO_TASK . " t on i.task_id = t.id
-	  where i.ref_id = " . $id . " order by i.step";
+	  where i.ref_id = " . (int)$id . " order by i.step";
 	$result = $db->Execute($sql);
 	while (!$result->EOF) {
 	  $index = $result->fields['id'];
@@ -114,7 +115,7 @@ class wo_builder {
     global $db;
 	$this->bom_list = NULL;
 	$result = $db->Execute("select sku, description, qty from " . TABLE_INVENTORY_ASSY_LIST . " 
-	  where ref_id = '" . $sku_id . "' order by sku");
+	  where ref_id = " . (int)$sku_id . " order by sku");
 	$bom_list = array('Qty - SKU - Description');
 	while (!$result->EOF) {
 	  $bom_list[] = ($this->qty * $result->fields['qty']) . ' - ' . $result->fields['sku'] . ' - ' . $result->fields['description'];
@@ -125,7 +126,7 @@ class wo_builder {
 
   function build_ref_lists() {
     global $db;
-	$result = $db->Execute("select ref_doc, ref_spec from " . TABLE_WO_MAIN . " where id = " . $this->id);
+	$result = $db->Execute("select ref_doc, ref_spec from " . TABLE_WO_MAIN . " where id = " . (int)$this->id);
 	$ref_docs  = ($result->fields['ref_doc']  ) ? explode(',', $result->fields['ref_doc'])   : array();
 	$ref_specs = ($result->fields['ref_specs']) ? explode(',', $result->fields['ref_specs']) : array();
 	if (is_array($this->line_items)) {

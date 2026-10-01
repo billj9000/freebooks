@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -88,7 +89,10 @@ switch ($_REQUEST['action']) {
 	}
 	break;
   case 'delete':
-	$id = db_prepare_input($_GET['cID']);
+	validate_security($security_level, 4);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $_REQUEST['action'] = ''; break; }
+	$id = (int)$_POST['cID'];
 	// check to see if the task is used in any defined work orders. If so don't let it be deleted.
 	$result = $db->Execute("select ref_id from " . TABLE_WO_JOURNAL_ITEM . " where task_id = " . (int)$id);
 	if ($result->RecordCount() == 0) {

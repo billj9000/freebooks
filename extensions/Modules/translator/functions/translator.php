@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -43,6 +44,23 @@ function build_mod_list() {
 	$sel_modules[] = array('id' => $value, 'text' => $value);
   }
   return $sel_modules;
+}
+
+// A module name, language code or version can name a directory, a file to
+// include or a download: only a module build_mod_list() offers, an xx_xx
+// language code and a dotted version number.
+function translator_valid_mod($mod) {
+  static $mods = null;
+  if ($mods === null) $mods = array_column(build_mod_list(), 'id');
+  return in_array((string)$mod, $mods, true);
+}
+
+function translator_valid_lang($lang) {
+  return (bool)preg_match('/^[a-z]{2}_[a-z]{2}$/', (string)$lang);
+}
+
+function translator_valid_ver($ver) {
+  return (bool)preg_match('/^[0-9]+(\.[0-9]+)*$/', (string)$ver);
 }
 
 function build_ver_list() {

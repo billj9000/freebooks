@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -63,7 +64,7 @@ class impbanking extends journal {
 				return false;
 				exit;
 			}
-		 	$sql ="select id, description from " . TABLE_CHART_OF_ACCOUNTS. " where description like '%{$ouwer_bank}%'";
+		 	$sql ="select id, description from " . TABLE_CHART_OF_ACCOUNTS. " where description like '%" . db_input($ouwer_bank) . "%'";
 			$result = $db->Execute($sql);
 			If($result->RecordCount()== 0){
 				$messageStack->add(TEXT_BIMP_ERMSG5 .' '. $ouwer_bank, 'error');
@@ -120,11 +121,11 @@ class impbanking extends journal {
 			return false;
 		}
 		if($other_bank_account_iban != '' && count($this->iban_fields) > 0 ){
-			$criteria = '(' . implode(' = "' . $other_bank_account_iban . '" or ', $this->iban_fields) . ' = "' . $other_bank_account_iban . '")';
+			$criteria = '(' . implode(' = "' . db_input($other_bank_account_iban) . '" or ', $this->iban_fields) . ' = "' . db_input($other_bank_account_iban) . '")';
 		}   
 		if($other_bank_account_number != '' && $criteria == false){
 			if(count($this->bank_account_fields) > 0){
-				$criteria = '(' . implode(' = "' . ltrim($other_bank_account_number,0) . '" or ', $this->bank_account_fields) . ' = "' . ltrim($other_bank_account_number,0) . '")';
+				$criteria = '(' . implode(' = "' . db_input(ltrim($other_bank_account_number,0)) . '" or ', $this->bank_account_fields) . ' = "' . db_input(ltrim($other_bank_account_number,0)) . '")';
 			}else{
 				if($other_bank_account_iban != '' )  $messageStack->debug("\n iban field is supplied but cant find it in the contact fields. If you want it add it in the contacts module administration ");
 				if($other_bank_account_number != '') $messageStack->debug("\n the other bank account field is supplied but cant find it in the contact fields. If you want it add it in the contacts module administration");
@@ -151,7 +152,7 @@ class impbanking extends journal {
 			$messageStack->debug("\n was unable to find a 1 matching contact. ");		
 			return false;
 		}
-		$result2 = $db->Execute("SELECT * FROM ". TABLE_ADDRESS_BOOK ." WHERE (type ='vm' or type='vb' or type ='cm' or type ='cb' ) and ref_id = '{$contact['id']}'");
+		$result2 = $db->Execute("SELECT * FROM ". TABLE_ADDRESS_BOOK ." WHERE (type ='vm' or type='vb' or type ='cm' or type ='cb' ) and ref_id = " . (int)$contact['id']);
 		$this->bill_short_name     	= $contact['id'];
 		$this->bill_acct_id        	= $contact['id'];
 		$this->bill_addres_id		= $contact['id'];
@@ -389,7 +390,7 @@ class impbanking extends journal {
 	private function proces_mutation(){
 		global $db, $messageStack;
 		$messageStack->debug("\n this wil be posted as a journal ");
-		$sql ="select gl_account from " . TABLE_JOURNAL_ITEM. " where description = '".$this->_description."' and not gl_account='".$this->gl_acct_id."' and not gl_account='".$this->_questionposts."'";
+		$sql ="select gl_account from " . TABLE_JOURNAL_ITEM. " where description = '".db_input($this->_description)."' and not gl_account='".db_input($this->gl_acct_id)."' and not gl_account='".db_input($this->_questionposts)."'";
 		$result = $db->Execute($sql);
 		$gl_account = $this->_questionposts;
 		If(!$result->RecordCount() == 0){

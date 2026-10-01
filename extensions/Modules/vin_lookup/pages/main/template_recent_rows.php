@@ -43,11 +43,10 @@ if (empty($recent)): ?>
       <?php echo VIN_BTN_VIEW; ?>
     </button>
     <?php if ($security_level > 3): ?>
-    <a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=vin_lookup&amp;page=main&amp;action=delete&amp;id=' . (int)$row['id'], 'SSL'); ?>"
-       class="btn btn-danger btn-sm"
-       onclick="return confirm('<?php echo addslashes(VIN_CONFIRM_DELETE); ?>')">
+    <button type="button" class="btn btn-danger btn-sm"
+       onclick="if (confirm('<?php echo addslashes(VIN_CONFIRM_DELETE); ?>')) submitPost('index.php?module=vin_lookup&amp;page=main', {action: 'delete', id: <?php echo (int)$row['id']; ?>});">
       <?php echo VIN_BTN_DELETE; ?>
-    </a>
+    </button>
     <?php endif; ?>
   </td>
 </tr>

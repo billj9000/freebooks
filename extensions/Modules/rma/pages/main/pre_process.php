@@ -82,8 +82,8 @@ switch ($_REQUEST['action']) {
 		);
 	} 
 	// Check attachments
-	$result = $db->Execute("select attachments from " . TABLE_RMA . " where id = '" . $id . "'");
-	$attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+	$result = $db->Execute("select attachments from " . TABLE_RMA . " where id = " . (int)$id);
+	$attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 	$image_id = 0;
 	while ($image_id < 100) { // up to 100 images
 	  if (isset($_POST['rm_attach_'.$image_id])) {
@@ -161,9 +161,9 @@ switch ($_REQUEST['action']) {
   case 'edit':
 	$id = (int)db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select * from " . TABLE_RMA . " where id = " . $id);
-	$attachments     = $result->fields['attachments']     ? unserialize($result->fields['attachments'])     : array();
-	$receive_details = $result->fields['receive_details'] ? unserialize($result->fields['receive_details']) : array();
-	$close_details   = $result->fields['close_details']   ? unserialize($result->fields['close_details'])   : array();
+	$attachments     = $result->fields['attachments']     ? unserialize($result->fields['attachments'], ['allowed_classes' => false])     : array();
+	$receive_details = $result->fields['receive_details'] ? unserialize($result->fields['receive_details'], ['allowed_classes' => false]) : array();
+	$close_details   = $result->fields['close_details']   ? unserialize($result->fields['close_details'], ['allowed_classes' => false])   : array();
 	$cInfo = new objectInfo($result->fields);
 	break;
 
@@ -173,7 +173,12 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id     = (int)db_prepare_input($_GET['cID']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action')), 'SSL'));
+		break;
+	}
+	$id     = (int)db_prepare_input($_POST['cID']);
 	$result = $db->Execute("select rma_num from " . TABLE_RMA . " where id = " . $id);
 	if ($result->RecordCount() > 0) {
 	  $db->Execute("delete from " . TABLE_RMA . " where id = " . $id);
@@ -185,8 +190,8 @@ switch ($_REQUEST['action']) {
 	}
 	break;
   case 'download':
-	$cID   = db_prepare_input($_POST['id']);
-	$imgID = db_prepare_input($_POST['rowSeq']);
+	$cID   = (int)$_POST['id'];    // both name a file: whole numbers only
+	$imgID = (int)$_POST['rowSeq'];
 	$filename = 'rma_'.$cID.'_'.$imgID.'.zip';
 	if (file_exists(RMA_DIR_ATTACHMENTS . $filename)) {
 	  require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
@@ -195,10 +200,10 @@ switch ($_REQUEST['action']) {
 	}
 	die;
   case 'dn_attach': // download from list, assume the first document only
-	$cID   = db_prepare_input($_POST['rowSeq']);
+	$cID   = (int)$_POST['rowSeq'];
 	$result = $db->Execute("select attachments from " . TABLE_RMA . " where id = " . $cID);
-	$attachments = unserialize($result->fields['attachments']);
-	foreach ($attachments as $key => $value) {
+	$attachments = unserialize((string)$result->fields['attachments'], ['allowed_classes' => false]);
+	if (is_array($attachments)) foreach ($attachments as $key => $value) {
 	  $filename = 'rma_'.$cID.'_'.$key.'.zip';
 	  if (file_exists(RMA_DIR_ATTACHMENTS . $filename)) {
 		require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');

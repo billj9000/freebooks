@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -20,10 +21,10 @@ $security_level = validate_ajax_user();
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $xml = NULL;
-$id  = $_GET['id'];
+$id  = (int)$_GET['id'];
 if (!$id) die;
 
-$result = $db->Execute("select * from " . TABLE_WO_TASK . " where id = '" . $id . "' limit 1");
+$result = $db->Execute("select * from " . TABLE_WO_TASK . " where id = " . $id . " limit 1");
 $xml .= xmlEntry("id",          $result->fields['id']);
 $xml .= xmlEntry("task_name",   $result->fields['task_name']);
 $xml .= xmlEntry("description", $result->fields['description']);

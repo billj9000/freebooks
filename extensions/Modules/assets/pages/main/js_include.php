@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -50,13 +51,13 @@ function check_form() {
 }
 
 function deleteItem(id) {
-	location.href = 'index.php?module=assets&page=main&action=delete&cID='+id;
+	submitPost('index.php?module=assets&page=main', {action: 'delete', cID: id});
 }
 
 function copyItem(id) {
 	var skuID = prompt('<?php echo ASSETS_MSG_COPY_INTRO; ?>', '');
 	if (skuID) {
-		location.href = 'index.php?module=assets&page=main&action=copy&cID='+id+'&asset_id='+skuID;
+		submitPost('index.php?module=assets&page=main', {action: 'copy', cID: id, asset_id: skuID});
 	} else {
 		return false;
 	}
@@ -65,7 +66,7 @@ function copyItem(id) {
 function renameItem(id) {
 	var skuID = prompt('<?php echo ASSETS_MSG_RENAME_INTRO; ?>', '');
 	if (skuID) {
-		location.href = 'index.php?module=assets&page=main&action=rename&cID='+id+'&asset_id='+skuID;
+		submitPost('index.php?module=assets&page=main', {action: 'rename', cID: id, asset_id: skuID});
 	} else {
 		return false;
 	}

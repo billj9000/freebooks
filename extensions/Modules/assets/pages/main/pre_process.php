@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -84,7 +85,12 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id         = (int)db_prepare_input($_GET['cID']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action', 'asset_id')), 'SSL'));
+		break;
+	}
+	$id         = (int)db_prepare_input($_POST['cID']);
 	$result     = $db->Execute("select asset_id, asset_type, image_with_path from " . TABLE_ASSETS . " where id = " . $id);
 	$asset_id   = $result->fields['asset_id'];
 	$asset_type = $result->fields['asset_type'];
@@ -138,7 +144,7 @@ switch ($_REQUEST['action']) {
 	$sql_data_array['asset_cost']       = $currencies->clean_value($sql_data_array['asset_cost']);
 	// Check attachments
 	$result = $db->Execute("select attachments from " . TABLE_ASSETS . " where id = " . $id);
-	$attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments']) : array();
+	$attachments = $result->fields['attachments'] ? unserialize($result->fields['attachments'], ['allowed_classes' => false]) : array();
 	$image_id = 0;
 	while ($image_id < 100) { // up to 100 images
 	  if (isset($_POST['rm_attach_'.$image_id])) {
@@ -213,8 +219,13 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id 		  = (int)db_prepare_input($_GET['cID']);
-	$new_asset_id = db_prepare_input($_GET['asset_id']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action', 'asset_id')), 'SSL'));
+		break;
+	}
+	$id 		  = (int)db_prepare_input($_POST['cID']);
+	$new_asset_id = db_prepare_input($_POST['asset_id']);
 	// check for duplicate skus
 	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '" . db_input($new_asset_id) . "'");
 	if ($result->Recordcount() > 0) {	// error and reload
@@ -254,7 +265,7 @@ switch ($_REQUEST['action']) {
 		where id = " . (int)$id . " order by asset_id";
 	$asset = $db->Execute($sql);
 	// load attachments
-	$attachments = $asset->fields['attachments'] ? unserialize($asset->fields['attachments']) : array();
+	$attachments = $asset->fields['attachments'] ? unserialize($asset->fields['attachments'], ['allowed_classes' => false]) : array();
 	$cInfo = new objectInfo($asset->fields);
 	break;
   case 'rename':
@@ -263,8 +274,13 @@ switch ($_REQUEST['action']) {
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}
-	$id = (int)db_prepare_input($_GET['cID']);
-	$asset_id = db_prepare_input($_GET['asset_id']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action', 'asset_id')), 'SSL'));
+		break;
+	}
+	$id = (int)db_prepare_input($_POST['cID']);
+	$asset_id = db_prepare_input($_POST['asset_id']);
 	// check for duplicate skus
 	$result = $db->Execute("select id from " . TABLE_ASSETS . " where asset_id = '" . db_input($asset_id) . "'");
 	if ($result->Recordcount() > 0) {	// error and reload
@@ -276,7 +292,7 @@ switch ($_REQUEST['action']) {
 	$asset_type = $result->fields['asset_type'];
 	$sku_list = array($orig_sku);
 	if ($asset_type == 'ms') { // build list of asset_id's to rename (without changing contents)
-		$result = $db->Execute("select asset_id from " . TABLE_ASSETS ." where asset_id like '". $orig_sku . "-%'");
+		$result = $db->Execute("select asset_id from " . TABLE_ASSETS ." where asset_id like '". db_input($orig_sku) . "-%'");
 		while(!$result->EOF) {
 			$sku_list[] = $result->fields['asset_id'];
 			$result->MoveNext();
@@ -287,13 +303,13 @@ switch ($_REQUEST['action']) {
 	// rename the afffected tables
 	for($i = 0; $i < count($sku_list); $i++) {
 		$new_sku = str_replace($orig_sku, $asset_id, $sku_list[$i], $count = 1);
-		$result = $db->Execute("update " . TABLE_ASSETS . " set asset_id = '" . $new_sku . "' where asset_id = '" . $sku_list[$i] . "'");
+		$result = $db->Execute("update " . TABLE_ASSETS . " set asset_id = '" . db_input($new_sku) . "' where asset_id = '" . db_input($sku_list[$i]) . "'");
 	}
 	$db->transCommit();	// finished successfully
 	break;
   case 'download':
-	$cID   = db_prepare_input($_POST['id']);
-	$imgID = db_prepare_input($_POST['rowSeq']);
+	$cID   = (int)$_POST['id'];    // both name a file: whole numbers only
+	$imgID = (int)$_POST['rowSeq'];
 	$filename = 'assets_'.$cID.'_'.$imgID.'.zip';
 	if (file_exists(ASSETS_DIR_ATTACHMENTS . $filename)) {
 		require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');
@@ -302,10 +318,10 @@ switch ($_REQUEST['action']) {
 	}
 	die;
   case 'dn_attach': // download from list, assume the first document only
-	$cID   = db_prepare_input($_POST['rowSeq']);
+	$cID   = (int)$_POST['rowSeq'];
 	$result = $db->Execute("select attachments from " . TABLE_ASSETS . " where id = " . $cID);
-	$attachments = unserialize($result->fields['attachments']);
-	foreach ($attachments as $key => $value) {
+	$attachments = unserialize((string)$result->fields['attachments'], ['allowed_classes' => false]);
+	if (is_array($attachments)) foreach ($attachments as $key => $value) {
 	  $filename = 'assets_'.$cID.'_'.$key.'.zip';
 	  if (file_exists(ASSETS_DIR_ATTACHMENTS . $filename)) {
 		require_once(DIR_FS_MODULES . 'phreedom/classes/backup.php');

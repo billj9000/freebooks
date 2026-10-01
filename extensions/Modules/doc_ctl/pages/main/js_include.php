@@ -142,7 +142,7 @@ function docAction(action) {
   var idEl = document.getElementById("id");
   var id = idEl ? idEl.value : "";
   if (!id) return;
-  fetchXml("index.php?module=doc_ctl&page=ajax&op=doc_operation&action=" + action + "&id=" + id, docActionResp);
+  postXml("index.php?module=doc_ctl&page=ajax&op=doc_operation", {action: action, id: id}, docActionResp);
 }
 
 function docActionResp(xml) {
@@ -153,7 +153,7 @@ function docActionResp(xml) {
 }
 
 function deleteBookmark(id) {
-  fetchXml("index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel&action=del_bookmark&id=" + id, respDelBookmark);
+  postXml("index.php?module=doc_ctl&page=ajax&op=doc_operation&fID=rcvBkMkDel", {action: 'del_bookmark', id: id}, respDelBookmark);
 }
 
 function respDelBookmark(xml) {

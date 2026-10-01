@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -101,12 +102,12 @@ class import_order {
   				$item = array();
   				$sku  = $entry->ItemID;
   				// try to match sku and get the sales gl account
-  				$result = $db->Execute("SELECT account_sales_income FROM ".TABLE_INVENTORY." WHERE sku='$sku'");
+  				$result = $db->Execute("SELECT account_sales_income FROM ".TABLE_INVENTORY." WHERE sku='" . db_input($sku) . "'");
   				if ($result->RecordCount() > 0) {
   					$item['sku']     = $sku;
   					$item['gl_acct'] = $result->fields['account_sales_income'];
   				} else {
-  					$result = $db->Execute("SELECT sku, account_sales_income FROM ".TABLE_INVENTORY." WHERE description_short='$sku'");
+  					$result = $db->Execute("SELECT sku, account_sales_income FROM ".TABLE_INVENTORY." WHERE description_short='" . db_input($sku) . "'");
   					$item['sku']     = $result->fields['sku'];
   					$item['gl_acct'] = $result->fields['account_sales_income'];
   				}

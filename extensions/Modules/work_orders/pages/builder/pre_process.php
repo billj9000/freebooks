@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -132,8 +133,10 @@ switch ($_REQUEST['action']) {
 	break;
   case 'copy':
 	validate_security($security_level, 2);
-  	$id    = db_prepare_input($_GET['cID']);
-	$title = db_prepare_input($_GET['title']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $_REQUEST['action'] = ''; break; }
+  	$id    = (int)$_POST['cID'];
+	$title = db_prepare_input($_POST['title']);
 	// check for duplicate skus
 	$result = $db->Execute("select id from " . TABLE_WO_MAIN . " where wo_title = '" . db_input($title) . "'");
 	if ($result->Recordcount() > 0) {	// error and reload
@@ -219,7 +222,9 @@ switch ($_REQUEST['action']) {
 	break;
   case 'delete':
 	validate_security($security_level, 4);
-      $id = db_prepare_input($_GET['id']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $_REQUEST['action'] = ''; break; }
+      $id = (int)$_POST['id'];
 	if (!$id) {
 	  $_REQUEST['action'] = '';
 	  $error = true;

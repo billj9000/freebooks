@@ -23,7 +23,7 @@
 <!--
 // pass any php variables generated during pre-process that are used in the javascript functions.
 // Include translations here as well.
-var formName          = "<?php echo $_GET['form']; ?>"; 
+var formName          = <?php echo json_encode((string)($_GET['form'] ?? ''), JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP); ?>; 
 var image_delete_text = '<?php echo TEXT_DELETE; ?>';
 var image_delete_msg  = '<?php echo SHIPPING_DELETE_CONFIRM; ?>';
 <?php echo js_calendar_init($cal_ship); ?>

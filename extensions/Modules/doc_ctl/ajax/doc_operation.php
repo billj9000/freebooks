@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -23,10 +24,23 @@ require_once(DIR_FS_MODULES . 'doc_ctl/functions/doc_ctl.php');
 /**************   page specific initialization  *************************/
 $xml       = '';
 $ajax_text = '';
-$id        = (int)$_GET['id'];
+// Every operation here changes something: POST only, where index.php checks
+// the csrf_token.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  ob_clean();
+  echo createXmlHeader() . xmlEntry('error', ERROR_NO_PERMISSION) . createXmlFooter();
+  die;
+}
+if (!isset($_POST['id'])) die;
+$id        = (int)$_POST['id'];
 
-if (!isset($_GET['id'])) die;
 $doc_details = $db->Execute("select * from " . TABLE_DC_DOCUMENT . " where id = " . $id);
+// Removing a document or folder needs delete permission.
+if (in_array($_REQUEST['action'], array('delete', 'delete_dir'), true) && $security_level < 4) {
+  ob_clean();
+  echo createXmlHeader() . xmlEntry('error', ERROR_NO_PERMISSION) . createXmlFooter();
+  die;
+}
 switch ($_REQUEST['action']) {
   case 'bookmark':
 	$output = array();
@@ -44,7 +58,7 @@ switch ($_REQUEST['action']) {
 	$db->Execute("update " . TABLE_DC_DOCUMENT . " set bookmarks = '" . $result. "' where  id = " . $id);
     break;
   case 'lock':
-	$db->Execute("update " . TABLE_DC_DOCUMENT . " set lock_id = " . $_SESSION['admin_id'] . " where  id = " . $id);
+	$db->Execute("update " . TABLE_DC_DOCUMENT . " set lock_id = " . (int)$_SESSION['admin_id'] . " where  id = " . $id);
     break;
   case 'del_lock':
 	$db->Execute("update " . TABLE_DC_DOCUMENT . " set lock_id = 0 where  id = " . $id);

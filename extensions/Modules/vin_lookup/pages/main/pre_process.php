@@ -25,7 +25,12 @@ require_once(DIR_FS_WORKING . 'classes/vin_lookup.php');
 switch ($_REQUEST['action'] ?? '') {
   case 'delete':
     validate_security($security_level, 4);
-    $id = (int)($_GET['id'] ?? 0);
+    // A change: POST only, where index.php checks the csrf_token.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'id')), 'SSL'));
+      break;
+    }
+    $id = (int)($_POST['id'] ?? 0);
     if ($id > 0) {
       $db->Execute("DELETE FROM " . TABLE_VIN_LOOKUP_CACHE . " WHERE id = " . $id);
       $messageStack->add(VIN_TEXT_DELETED, 'success');

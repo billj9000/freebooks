@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -106,7 +107,7 @@ class amazon {
 			$main['ship_telephone1']    = $data['buyer-phone-number'];
 			$main['ship_email']         = $data['buyer-email'];
 			// build the item, check stock if auto_journal
-			$inv = $db->Execute("SELECT * FROM ".TABLE_INVENTORY." WHERE sku='{$data['sku']}'");
+			$inv = $db->Execute("SELECT * FROM ".TABLE_INVENTORY." WHERE sku='" . db_input($data['sku']) . "'");
 			$messageStack->debug("\n Executing sql = "."SELECT * FROM ".TABLE_INVENTORY." WHERE sku='{$data['sku']}' resulting in:".print_r($inv->fields, true));
 			if (!$inv->fields || empty($inv->fields)) {
 				$messageStack->add(sprintf("SKU: %s not found in the database, this import was skipped!", $data['sku']));
@@ -168,7 +169,7 @@ class amazon {
 				'gl_account'   => MODULE_AMAZON_DEFAULT_RECEIVABLES_GL_ACCT,
 				'post_date'    => substr($data['purchase-date'], 0, 10),
 			);
-			$dup = $db->Execute("SELECT id FROM ".TABLE_JOURNAL_MAIN." WHERE purch_order_id='{$main['purch_order_id']}'");
+			$dup = $db->Execute("SELECT id FROM ".TABLE_JOURNAL_MAIN." WHERE purch_order_id='" . db_input($main['purch_order_id']) . "'");
 			if ($dup->fields['id']) {
 //				$messageStack->debug("duplicate order id = ".$dup->fields['id']." and main = ".print_r($main, true));
 				$messageStack->add(sprintf("Order # %s has already been imported! It will be skipped.", $data['order-id']), 'caution');

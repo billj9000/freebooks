@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -20,7 +21,7 @@
 function get_user_name($id = 0) {
   global $db;
   if ($id == 0) return '';
-  $result = $db->Execute("select display_name from " . TABLE_USERS . " where admin_id = " . $id);
+  $result = $db->Execute("select display_name from " . TABLE_USERS . " where admin_id = " . (int)$id);
   return ($result->RecordCount() < 1) ? '' : $result->fields['display_name'];
 }
 
@@ -37,11 +38,11 @@ function wo_build_users() {
 
 function allocation_adjustment($sku_id, $qty = 0, $old_qty = 0) {
   global $db;
-  $result = $db->Execute("select sku, qty from ".TABLE_INVENTORY_ASSY_LIST." where ref_id = $sku_id");
+  $result = $db->Execute("select sku, qty from ".TABLE_INVENTORY_ASSY_LIST." where ref_id = " . (int)$sku_id);
   while (!$result->EOF) {
-	$total = ($qty - $old_qty) * $result->fields['qty'];
+	$total = ((float)$qty - (float)$old_qty) * (float)$result->fields['qty'];
 	if ($total <> 0) $inv = $db->Execute("update " . TABLE_INVENTORY . " 
-	  set quantity_on_allocation = quantity_on_allocation + " . $total . " where sku = '" . $result->fields['sku'] . "'");
+	  set quantity_on_allocation = quantity_on_allocation + " . $total . " where sku = '" . db_input($result->fields['sku']) . "'");
     $result->MoveNext();
   }
 }

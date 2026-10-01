@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008-2014 PhreeSoft                               |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -37,7 +37,7 @@ class tabs {
 	  'sort_order'  => db_prepare_input($_POST['sort_order']),
 	);
     if ($id) {
-	  db_perform(TABLE_EXTRA_TABS, $sql_data_array, 'update', "id = " . $id);
+	  db_perform(TABLE_EXTRA_TABS, $sql_data_array, 'update', "id = " . (int)$id);
       gen_add_audit_log(sprintf(EXTRA_TABS_LOG, TEXT_UPDATE), $tab_name);
 	} else {
 	  // Test for duplicates.
@@ -59,13 +59,13 @@ class tabs {
 	  $messageStack->add_session(ERROR_NO_PERMISSION,'error');
 	  return false;
 	}
-	$result = $db->Execute("select field_name from " . TABLE_EXTRA_FIELDS . " where id = '" . $id . "'");
+	$result = $db->Execute("select field_name from " . TABLE_EXTRA_FIELDS . " where id = " . (int)$id);
 	if ($result->RecordCount() > 0) {
 	  $messageStack->add(ASSETS_CATEGORY_CANNOT_DELETE . $result->fields['field_name'],'error');
 	  return false;
 	}
-	$result = $db->Execute("select tab_name from " . TABLE_EXTRA_TABS . " where id = '" . $id . "'");
-	$db->Execute("delete from " . TABLE_EXTRA_TABS . " where id = '" . $id . "'");
+	$result = $db->Execute("select tab_name from " . TABLE_EXTRA_TABS . " where id = " . (int)$id);
+	$db->Execute("delete from " . TABLE_EXTRA_TABS . " where id = " . (int)$id);
 	gen_add_audit_log(sprintf(EXTRA_TABS_LOG, TEXT_DELETE), $result->fields['tab_name']);
 	return true;
   }
@@ -101,7 +101,7 @@ class tabs {
 
   function build_form_html($action, $id = '') {
     global $db;
-    $sql = "select id, tab_name, description, sort_order from ".TABLE_EXTRA_TABS." where id = " . $id;
+    $sql = "select id, tab_name, description, sort_order from ".TABLE_EXTRA_TABS." where id = " . (int)$id;
     $result = $db->Execute($sql);
 	if ($action == 'new') {
 	  $cInfo = '';

@@ -1,6 +1,6 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
 // | Copyright(c) 2026 Bill Jones                                    |
 // | Portions Copyright(c) 2008-2014 PhreeSoft                       |
@@ -22,10 +22,29 @@ $security_level = validate_user(SECURITY_ID_MAINTAIN_INVENTORY);
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 history_filter();
+$skip   = array('id', 'sku', 'inactive', 'inventory_type', 'account_sales_income', 'account_inventory_wage',
+	'account_cost_of_sales', 'cost_method', 'quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order',
+	'quantity_on_allocation', 'minimum_stock_level', 'reorder_quantity', 'serialize', 'creation_date',
+	'last_update', 'last_journal_date'
+);
+
+$fields = array();
+$field_names = array();
+$result = $db->Execute("show fields from ".TABLE_INVENTORY);
+while (!$result->EOF) {
+	if (!in_array($result->fields['Field'], $skip)) {
+		$fields[] = array('id' => $result->fields['Field'], 'text' => $result->fields['Field']);
+		$field_names[] = $result->fields['Field'];
+	}
+	$result->MoveNext();
+}
 $field_cnt    = $_POST['field_cnt'] ? $_POST['field_cnt'] : ($_GET['c'] ? $_GET['c'] : '3');
+$field_cnt    = min(max((int)$field_cnt, 1), 20);
 $_GET['c']    = $field_cnt;
 for ($i = 0; $i < $field_cnt; $i++) {
 	$field[$i] = $_POST['field'.$i] ? $_POST['field'.$i] : ($_GET['f'.$i] ? $_GET['f'.$i] : 'upc_code');
+	// Used as a column name in SQL: only a column of the inventory table this page offers.
+	if (!in_array($field[$i], $field_names, true)) $field[$i] = 'upc_code';
 	$_GET['f'.$i] = $field[$i];
 }
 /***************   Act on the action request   *************************/
@@ -34,7 +53,7 @@ switch ($_REQUEST['action']) {
 	validate_security($security_level, 3);
 	$row = 0;
 	while (true) {
-	  $id = $_POST['id_'.$row];
+	  $id = (int)$_POST['id_'.$row];
 	  if (!$id) break;
 	  $sql_data_array = array();
 	  for ($i = 0; $i < $field_cnt; $i++) {
@@ -57,20 +76,6 @@ switch ($_REQUEST['action']) {
 }
 
 /*****************   prepare to display templates  *************************/
-$skip   = array('id', 'sku', 'inactive', 'inventory_type', 'account_sales_income', 'account_inventory_wage',
-	'account_cost_of_sales', 'cost_method', 'quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order',
-	'quantity_on_allocation', 'minimum_stock_level', 'reorder_quantity', 'serialize', 'creation_date',
-	'last_update', 'last_journal_date'
-);
-
-$fields = array();
-$result = $db->Execute("show fields from ".TABLE_INVENTORY);
-while (!$result->EOF) {
-	if (!in_array($result->fields['Field'], $skip)) {
-		$fields[] = array('id' => $result->fields['Field'], 'text' => $result->fields['Field']);
-	}
-	$result->MoveNext();
-}
 // build the list header
 $heading_array = array('sku' => TEXT_SKU);
 for ($i = 0; $i < $field_cnt; $i++) $heading_array[$field[$i]] = $field[$i];

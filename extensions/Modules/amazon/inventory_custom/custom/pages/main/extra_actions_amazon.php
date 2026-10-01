@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -21,6 +22,8 @@
 // before the standard switch statement
 switch ($_REQUEST['action']) {
   case 'amazondump':
+    // The toolbar submits the form; only a POST carries the CSRF check.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $_REQUEST['action'] = ''; break; }
     require(DIR_FS_MODULES . 'amazon/classes/amazon.php');
     $upXML = new amazon();
     $upXML->dumpAmazon();

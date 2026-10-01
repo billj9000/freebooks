@@ -1,6 +1,6 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
 // | Copyright(c) 2026 Bill Jones                                    |
 // | Portions Copyright(c) 2008-2014 PhreeSoft                       |
@@ -110,7 +110,12 @@ switch ($_REQUEST['action']) {
 
   case 'delete':
 	validate_security($security_level, 4);
-  	$id     = (int)db_prepare_input($_GET['cID']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('cID', 'action')), 'SSL'));
+	  break;
+	}
+  	$id     = (int)db_prepare_input($_POST['cID']);
 	$result = $db->Execute("select capa_num from " . TABLE_CAPA . " where id = " . $id);
 	if ($result->RecordCount() > 0) {
 	  $db->Execute("delete from " . TABLE_CAPA . " where id = " . $id);

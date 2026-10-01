@@ -73,13 +73,13 @@ function processSkuDetails(xml) { // call back function
 }
 
 function deleteItem(id) {
-  location.href = 'index.php?module=work_orders&page=builder&action=delete&id='+id;
+  submitPost('index.php?module=work_orders&page=builder', {action: 'delete', id: id});
 }
 
 function copyItem(id) {
 	var title = prompt('<?php echo WO_MSG_COPY_INTRO; ?>', '');
 	if (title) {
-		location.href = 'index.php?module=work_orders&page=builder&action=copy&cID='+id+'&title='+title;
+		submitPost('index.php?module=work_orders&page=builder', {action: 'copy', cID: id, title: title});
 	} else {
 		return false;
 	}

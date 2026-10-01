@@ -40,6 +40,24 @@ if ($vrm === '') {
   die;
 }
 
+// The server makes this request: only https to the VIN provider's own host,
+// so the form cannot point it at an internal address.
+if ($endpoint === '') $endpoint = null;
+if ($endpoint !== null) {
+  $allowed_hosts = array_unique(array_filter(array(
+    strtolower((string)parse_url('https://uk.api.vehicledataglobal.com/r2/lookup', PHP_URL_HOST)),
+    defined('VIN_LOOKUP_ENDPOINT') ? strtolower((string)parse_url(VIN_LOOKUP_ENDPOINT, PHP_URL_HOST)) : '',
+  )));
+  $parts = parse_url($endpoint);
+  if (!is_array($parts) || strtolower($parts['scheme'] ?? '') !== 'https' || isset($parts['user']) || isset($parts['pass'])
+      || isset($parts['port']) || !in_array(strtolower($parts['host'] ?? ''), $allowed_hosts, true)) {
+    echo '<div class="alert alert-danger mb-0">'
+       . htmlspecialchars(sprintf(VIN_TEST_FAILURE, 0, 'Endpoint must be an https:// URL on ' . implode(' or ', $allowed_hosts)))
+       . '</div>';
+    die;
+  }
+}
+
 $result = VinLookup::fetch($vrm, $apiKey, $packages, $endpoint);
 
 if ($result['ok']) {

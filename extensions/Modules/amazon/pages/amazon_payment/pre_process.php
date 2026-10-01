@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -91,6 +92,12 @@ switch ($_REQUEST['action']) {
 	  	} 
 	  }
 	  $output .= 'Total,,,,,,,,,,'.$deposit_total."\n";
+	  // It names a file and is echoed in a header: letters, digits, '_' and '-' only.
+	  $settlement_id = basename((string)$settlement_id);
+	  if (!preg_match('/^[A-Za-z0-9_\-]+$/', $settlement_id)) {
+	    $messageStack->add('The settlement-id in the uploaded file is missing or not valid.', 'error');
+	    break;
+	  }
 	  // write the file to the temp directory
 	  $filename = DIR_FS_MY_FILES . $_SESSION['company']."/temp/$settlement_id.txt";
 	  if (!$handle = fopen($filename, 'w')) {

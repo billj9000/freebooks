@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -56,7 +57,7 @@ switch ($_REQUEST['action'] ?? '') {
 	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	}
 	$sku      = db_prepare_input($_POST['sku']);
-	$sku_id   = db_prepare_input($_POST['sku_id']);
+	$sku_id   = (int)$_POST['sku_id'];
 	$qty      = db_prepare_input($_POST['qty']);
 	$wo_id    = db_prepare_input($_POST['wo_id']);
 	$priority = db_prepare_input($_POST['priority']);
@@ -241,7 +242,7 @@ switch ($_REQUEST['action'] ?? '') {
 		$glEntry->period              = gen_calculate_period($glEntry->post_date);
 		if (!$glEntry->period) break;
 		$glEntry->purchase_invoice_id = $wo_num;
-		$glEntry->store_id            = isset($_POST['store_id']) ? $_POST['store_id'] : 0;
+		$glEntry->store_id            = isset($_POST['store_id']) ? (int)$_POST['store_id'] : 0;
 		$glEntry->closed              = '1'; // closes by default
 		$glEntry->journal_main_array  = $glEntry->build_journal_main_array();
 		// build journal entry based on adding or subtracting from inventory, debit/credit will be calculated by COGS
@@ -344,7 +345,9 @@ switch ($_REQUEST['action'] ?? '') {
 	break;
   case 'delete':
 	validate_security($security_level, 4);
-    $id = (int)db_prepare_input($_GET['id']);
+	// A change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $_REQUEST['action'] = ''; break; }
+    $id = (int)db_prepare_input($_POST['id']);
 	if (!$id) $error = true;
 	if (!$error) {
 	  // check to un-allocate inventory

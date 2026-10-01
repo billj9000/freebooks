@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -27,7 +28,7 @@ class translator {
 	$total = 0;
 	$trans = 0;
 	$result = $db->Execute("select translated from " . TABLE_TRANSLATOR . " 
-	  where module = '" . $mod . "' and language = '" . $lang . "' and version = '" . $ver . "'");
+	  where module = '" . db_input($mod) . "' and language = '" . db_input($lang) . "' and version = '" . db_input($ver) . "'");
 	while(!$result->EOF) {
 	  if ($result->fields['translated'] == '1') $trans++;
 	  $total++;
@@ -76,10 +77,10 @@ class translator {
 		$pathtofile = str_replace(DIR_FS_ADMIN, '', $dir_source . $file);
 		$langtemp = $this->extractUTF8($langfile);
 //		preg_match_all("|define\('(.*)',[\s]*'(.*)'\);|imU", $langfile, $langtemp); // broken for UTF-8
-		$db->Execute("DELETE FROM ".TABLE_TRANSLATOR." WHERE module='$mod' AND language='$lang' AND version='$ver' AND pathtofile='$pathtofile'");
+		$db->Execute("DELETE FROM ".TABLE_TRANSLATOR." WHERE module='".db_input($mod)."' AND language='".db_input($lang)."' AND version='".db_input($ver)."' AND pathtofile='".db_input($pathtofile)."'");
 		foreach ($langtemp as $const => $value) {
 			$sql = "INSERT INTO ".TABLE_TRANSLATOR." SET
-			module='$mod', language='$lang', version='$ver', pathtofile='$pathtofile', 
+			module='".db_input($mod)."', language='".db_input($lang)."', version='".db_input($ver)."', pathtofile='".db_input($pathtofile)."', 
 			defined_constant='".db_input($const)."', translation='".db_input($value)."', translated='1'";
 		  $db->Execute($sql);
 		}
@@ -115,7 +116,7 @@ class translator {
 	global $db, $messageStack;
 	// retrieve highest version
 	$result = $db->Execute("select max(version) as version from " . TABLE_TRANSLATOR . " 
-	  where module = '" . $mod . "' and language = '" . $source . "'");
+	  where module = '" . db_input($mod) . "' and language = '" . db_input($source) . "'");
 	if ($result->RecordCount() == 0) {
 	  $messageStack->add(TRANS_ERROR_NO_SOURCE,'error');
 	  return false;
@@ -123,10 +124,10 @@ class translator {
 	$ver = $result->fields['version'];
 	// delete all from the version being written, prevents dups
 	$db->Execute("delete from " . TABLE_TRANSLATOR . " 
-	  where module = '" . $mod . "' and language = '" . $lang . "' and version = '" . $ver . "'");
+	  where module = '" . db_input($mod) . "' and language = '" . db_input($lang) . "' and version = '" . db_input($ver) . "'");
 	// load the source language
 	$result = $db->Execute("select pathtofile, defined_constant, translation from " . TABLE_TRANSLATOR . " 
-	  where module = '" . $mod . "' and language = '" . $source . "' and version = '" . $ver . "' order by id");
+	  where module = '" . db_input($mod) . "' and language = '" . db_input($source) . "' and version = '" . db_input($ver) . "' order by id");
 	while (!$result->EOF) {
 	  // fix some fields
 	  $const        = $result->fields['defined_constant'];
@@ -144,13 +145,13 @@ class translator {
 	  }
 	  $path  = str_replace($source, $lang, $result->fields['pathtofile']);
 	  $sql   = "INSERT INTO " . TABLE_TRANSLATOR . " set 
-		module  = '"          . $mod . "',
-		language = '"         . $lang . "',
-		version = '"          . $ver . "',
-		pathtofile = '"       . $path . "',
+		module  = '"          . db_input($mod) . "',
+		language = '"         . db_input($lang) . "',
+		version = '"          . db_input($ver) . "',
+		pathtofile = '"       . db_input($path) . "',
 		defined_constant = '" . db_input($const) . "',
 		translation = '"      . db_input($trans) . "',
-		translated = '"       . $translated . "'";
+		translated = '"       . db_input((string)$translated) . "'";
 	  $db->Execute($sql);
 	  $result->MoveNext();
 	}
@@ -160,7 +161,7 @@ class translator {
   function export_language($mod, $lang, $ver, $hide_error = false) {
 	global $db, $backup, $messageStack;
 	$result = $db->Execute("select pathtofile, defined_constant, translation from " . TABLE_TRANSLATOR . " 
-	  where module = '" . $mod . "' and language = '" . $lang . "' and version = '" . $ver . "'");
+	  where module = '" . db_input($mod) . "' and language = '" . db_input($lang) . "' and version = '" . db_input($ver) . "'");
 	if ($result->RecordCount() == 0) {
 	  if (!$hide_error) $messageStack->add(GEN_BACKUP_DOWNLOAD_EMPTY,'error');
 	  return false; // no rows, return

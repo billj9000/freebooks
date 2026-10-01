@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008-2014 PhreeSoft                               |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -725,7 +725,13 @@ echo 'Fault Response <pre>' . htmlspecialchars($client->__getLastResponse()) . '
 		$file_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/shipping/labels/' . $this->code . '/' . $date[0] . '/' . $date[1] . '/' . $date[2] . '/';
 		validate_path($file_path);
 		$output_label = base64_decode($label->LabelImage->GraphicImage);
-		$file_name = (MODULE_SHIPPING_UPS_PRINTER_TYPE == 'EPL') ? $label->TrackingNumber.'.lpt' : $label->TrackingNumber.'.gif';
+		// The carrier's tracking number names the label file: a plain name only.
+		$tracking_num = (string)$label->TrackingNumber;
+		if (basename($tracking_num) !== $tracking_num || !preg_match('/^[A-Za-z0-9_\-]+$/', $tracking_num)) {
+			$messageStack->add('Invalid tracking number returned by UPS.','error');
+			return false;
+		}
+		$file_name = (MODULE_SHIPPING_UPS_PRINTER_TYPE == 'EPL') ? $tracking_num.'.lpt' : $tracking_num.'.gif';
 		if (!$handle = fopen($file_path . $file_name, 'w')) { 
 			$messageStack->add('Cannot open file (' . $file_path . $file_name . ')','error');
 			return false;

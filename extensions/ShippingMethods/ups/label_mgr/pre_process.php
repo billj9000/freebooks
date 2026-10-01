@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008-2014 PhreeSoft                               |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -125,10 +125,15 @@ switch ($action) {
 	break;
 
   case 'view':
-	$date         = $_GET['date'];
-	$labels       = $_GET['labels'];
+	$date         = (string)($_GET['date'] ?? '');
+	$labels       = (string)($_GET['labels'] ?? '');
 	$labels_array = explode(':', $labels);
 	if (empty($labels_array)) die('No labels were passed to label_viewer.php!');
+	// Both build a label file path: a Y-m-d date and plain tracking numbers only.
+	if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $date)) die('Invalid label date.');
+	foreach ($labels_array as $tracking_num) {
+	  if (basename($tracking_num) !== $tracking_num || !preg_match('/^[A-Za-z0-9_\-]+$/', $tracking_num)) die('Invalid label name.');
+	}
 	// check output method, pdf load window, thermal print from here
 	if (MODULE_SHIPPING_UPS_PRINTER_TYPE == 'Thermal') { // autoprint the label
 	  // fetch the tracking labels
@@ -150,7 +155,13 @@ switch ($action) {
     break;
 
   case 'delete':
-	$shipment_id = (int)db_prepare_input($_GET['sID']);
+	// Voiding a label is a change: POST only, where index.php checks the csrf_token.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+	  $messageStack->add(ERROR_NO_PERMISSION, 'error');
+	  $error = true;
+	  break;
+	}
+	$shipment_id = (int)db_prepare_input($_POST['sID'] ?? $_GET['sID'] ?? 0); // the popup's own form carries it in its URL
 	$result = $db->Execute("select method, ship_date from " . TABLE_SHIPPING_LOG . " where shipment_id = " . (int)$shipment_id);
 	$ship_method = $result->fields['method'];
 	if ($result->RecordCount() == 0 || !$ship_method) {

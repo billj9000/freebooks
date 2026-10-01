@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
@@ -49,7 +50,7 @@ function check_form() {
 }
 
 function deleteItem(id) {
-  location.href = 'index.php?module=cp_action&page=main&action=delete&cID='+id;
+  submitPost('index.php?module=cp_action&page=main', {action: 'delete', cID: id});
 }
 
 // -->

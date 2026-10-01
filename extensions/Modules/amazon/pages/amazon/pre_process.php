@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -33,10 +34,11 @@ define('POPUP_FORM_TYPE','cust:inv');
 $error = false;
 // fill search and accounting period criteria
 $acct_period = ($_GET['search_period']) ? $_GET['search_period'] : CURRENT_ACCOUNTING_PERIOD;
+if ($acct_period != 'all') $acct_period = (int)$acct_period; // goes into SQL unquoted
 $search_text = db_prepare_input($_POST['search_text'] ? $_POST['search_text'] : $_GET['search_text']);
 if (isset($_POST['search_text'])) $_GET['search_text'] = $_POST['search_text']; // save the value for get redirects 
 if ($search_text == TEXT_SEARCH)    $search_text = '';
-$max_list    = ($_GET['pull_down_max']) ? $_GET['pull_down_max'] : MAX_DISPLAY_SEARCH_RESULTS;
+$max_list    = ($_GET['pull_down_max']) ? (int)$_GET['pull_down_max'] : MAX_DISPLAY_SEARCH_RESULTS;
 $ship_date   = $_POST['ship_date']      ? gen_db_date($_POST['ship_date']) : date('Y-m-d');
 $action      = $_POST['action'];
 // load the sort fields
@@ -63,7 +65,7 @@ switch ($action) {
     $str = "order-id	order-item-id	quantity	ship-date	carrier-code	carrier-name	tracking-number	ship-method\n";
 	// fetch every shipment for the given post_date
 	$result = $db->Execute("SELECT ref_id, carrier, method, ship_date, tracking_id 
-	  FROM ".TABLE_SHIPPING_LOG." WHERE ship_date LIKE '$ship_date%'");
+	  FROM ".TABLE_SHIPPING_LOG." WHERE ship_date LIKE '" . db_input($ship_date) . "%'");
 	if ($result->RecordCount() == 0) {
 	  $messageStack->add('No valid Amazon orders have been shipped on the date selected!', 'caution');
 	  break;
@@ -83,7 +85,7 @@ switch ($action) {
 	  }
 	  $no_dups[] = $purchase_invoice_id;
 	  $details = $db->Execute("SELECT purch_order_id, bill_primary_name FROM ".TABLE_JOURNAL_MAIN." 
-	    WHERE journal_id=12 AND purchase_invoice_id='$purchase_invoice_id'");
+	    WHERE journal_id=12 AND purchase_invoice_id='" . db_input($purchase_invoice_id) . "'");
 	  if (strpos($details->fields['bill_primary_name'], 'Amazon') !== false) {
 		switch ($result->fields['carrier']) {
 		  case 'fedex': 
@@ -116,7 +118,7 @@ switch ($action) {
 		$output .= $result->fields['tracking_id'] . "\t";
 		$output .= $method . "\n";
 		$str .= $output;
-		$db->Execute("UPDATE ".TABLE_SHIPPING_LOG." SET amazon_confirm='1' WHERE ref_id LIKE '$purchase_invoice_id%'");
+		$db->Execute("UPDATE ".TABLE_SHIPPING_LOG." SET amazon_confirm='1' WHERE ref_id LIKE '" . db_input($purchase_invoice_id) . "%'");
 	  }
 	  $result->MoveNext();
 	}
@@ -201,7 +203,7 @@ if (isset($search_text) && $search_text <> '') {
   $search_fields = array('bill_primary_name', 'ship_primary_name', 'purchase_invoice_id', 'purch_order_id');
   // hook for inserting new search fields to the query criteria.
   if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  $search = ' and (' . implode(' like \'%' . $search_text . '%\' or ', $search_fields) . ' like \'%' . $search_text . '%\')';
+  $search = ' and (' . implode(' like \'%' . db_input($search_text) . '%\' or ', $search_fields) . ' like \'%' . db_input($search_text) . '%\')';
 } else {
   $search = '';
 }

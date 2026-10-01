@@ -86,7 +86,7 @@ function check_form() {
 }
 
 function deleteWO(id) {
-  location.href = 'index.php?module=work_orders&page=main&action=delete&id='+id;
+  submitPost('index.php?module=work_orders&page=main', {action: 'delete', id: id});
 }
 
 function InventoryList(rowCnt) {

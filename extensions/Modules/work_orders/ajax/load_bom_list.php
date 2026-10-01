@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -21,15 +22,15 @@ $security_level = validate_ajax_user();
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $xml    = NULL;
-$sku_id = $_GET['skuID'];
-$qty    = $_GET['qty'];
+$sku_id = (int)$_GET['skuID'];
+$qty    = (float)$_GET['qty'];
 if (!$sku_id || !$qty) die;
 
-$result = $db->Execute("select sku, description, qty from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = '" . $sku_id . "'");
+$result = $db->Execute("select sku, description, qty from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . $sku_id);
 $short = array();
 while (!$result->EOF) {
   $stock = $db->Execute("select quantity_on_hand, quantity_on_sales_order, quantity_on_allocation 
-    from " . TABLE_INVENTORY . " where sku = '" . $result->fields['sku'] . "' limit 1");
+    from " . TABLE_INVENTORY . " where sku = '" . db_input($result->fields['sku']) . "' limit 1");
   $qty_available = $stock->fields['quantity_on_hand'] - $stock->fields['quantity_on_sales_order'] - $stock->fields['quantity_on_allocation'];
   if ($qty_available < ($qty * $result->fields['qty'])) {
     $short[] = sprintf(WO_TEXT_PARTS_SHORTAGE, $qty_available, $qty * $result->fields['qty'], $result->fields['sku'], $result->fields['description']);

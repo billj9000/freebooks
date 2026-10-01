@@ -1,6 +1,6 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
 // | Copyright(c) 2026 Bill Jones                                    |
 // | Portions Copyright(c) 2008-2014 PhreeSoft                       |
@@ -30,9 +30,15 @@ switch ($_REQUEST['action'] ?? '') {
   case 'save':
 	validate_security($security_level, 2);
   	// read the input variables
-	$mod       = $_POST['mod'] ?? '';
+	$mod       = (string)($_POST['mod'] ?? '');
+	// It names a file to include, a class and files to write: an installed module only.
+	if (!preg_match('/^[a-z0-9_]+$/', $mod) || !is_file(DIR_FS_MODULES . $mod . '/classes/install.php')) {
+	  $messageStack->add(ERROR_NO_PERMISSION, 'error');
+	  break;
+	}
 	$mod_admin = $mod . '_admin';
 	require_once(DIR_FS_MODULES . $mod . '/classes/install.php');
+	if (!class_exists($mod_admin)) break;
 	$mod_info  = new $mod_admin;
 	// read the existing xml file to set as base, if it exists
 	if (file_exists(DIR_FS_MODULES . $mod . '/' . $mod . '.xml')) {

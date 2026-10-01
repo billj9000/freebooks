@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -88,10 +89,13 @@ switch ($_REQUEST['action']) {
 	db_perform(TABLE_DC_DOCUMENT, $sql_array, 'update', 'id = ' . $id);
 	break;
   case 'del_checkout':
+	// The toolbar submits the form; only a POST carries the CSRF check.
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
 	$db->Execute("update " . TABLE_DC_DOCUMENT . " set checkout_id = 0 where id = " . $doc_id);
     break;
   case 'check_out':
-	$db->Execute("update " . TABLE_DC_DOCUMENT . " set checkout_id = " . $_SESSION['admin_id'] . " where id = " . $doc_id);
+	if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
+	$db->Execute("update " . TABLE_DC_DOCUMENT . " set checkout_id = " . (int)$_SESSION['admin_id'] . " where id = " . $doc_id);
 	// now perform the download
   case 'download':
 	$doc_details = $db->Execute("select file_name, revision from " . TABLE_DC_DOCUMENT . " where id = '" . $doc_id . "'");

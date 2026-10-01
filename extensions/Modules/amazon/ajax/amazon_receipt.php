@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,17 +19,20 @@
 //
 
 /**************   Check user security   *****************************/
-$security_level = validate_ajax_user();
+$security_level = validate_ajax_user(SECURITY_ID_AMAZON_PAYMENT_INTERFACE);
 /**************  include page specific files    *********************/
 /**************   page specific initialization  *************************/
 $error = false;
-$filename = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/' . $_GET['fn'] . '.txt';
+// It names a file in the temp directory: letters, digits, '_' and '-' only.
+$fn = basename((string)($_GET['fn'] ?? ''));
+$fn_ok = (bool)preg_match('/^[A-Za-z0-9_\-]+$/', $fn);
+$filename = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/' . $fn . '.txt';
 $xml = NULL;
 
 // Check for the file to exist
-if (!file_exists($filename)) {
+if (!$fn_ok || !file_exists($filename)) {
   $error = true;
-  $xml .= xmlEntry("error", 'No payment file named: ' . $_GET['fn'] . ' could be found!');
+  $xml .= xmlEntry("error", 'No payment file named: ' . $fn . ' could be found!');
 } else { // read the file and sort by order_id
   $lines = file($filename);
   array_shift($lines);	// discard summary line

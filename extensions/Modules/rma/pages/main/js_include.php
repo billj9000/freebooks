@@ -100,7 +100,7 @@ function processSkuDetails(xml) { // call back function
 }
 
 function deleteItem(id) { // deletes a RMA
-  location.href = 'index.php?module=rma&page=main&action=delete&cID='+id;
+  submitPost('index.php?module=rma&page=main', {action: 'delete', cID: id});
 }
 
 function addItemRow() {

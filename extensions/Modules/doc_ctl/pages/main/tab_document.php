@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   FreeBooks ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -102,7 +103,7 @@ $fieldset_content .= '  </thead>' . chr(10);
 $fieldset_content .= '  <tbody class="">' . chr(10);
 $fieldset_content .= '  <tr>' . chr(10);
 $fieldset_content .= '    <td>' . TEXT_FILENAME . '</td>' . chr(10);
-$fieldset_content .= '    <td>' . $doc_details->fields['file_name'] . '</td>' . chr(10);
+$fieldset_content .= '    <td>' . htmlspecialchars((string)$doc_details->fields['file_name'], ENT_QUOTES) . '</td>' . chr(10);
 $fieldset_content .= '  </tr><tr>' . chr(10);
 $fieldset_content .= '    <td>' . TEXT_OWNER . '</td>' . chr(10);
 $fieldset_content .= '    <td>' . get_owner_name($doc_details->fields['doc_owner']) . '</td>' . chr(10);

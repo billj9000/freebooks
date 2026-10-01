@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -43,7 +44,7 @@ if ($query_result->RecordCount() > 0) {
   	if (security_check($query_result->fields['security'])) {
   	  $fieldset_content .= '  <tr class="' . ($odd?'odd':'even') . '" style="cursor:pointer">' . chr(10);
 	  $fieldset_content .= '	<td onclick="fetch_doc(' . $query_result->fields['id'] . ')">' . html_icon(get_mime_image($query_result->fields['doc_ext'], $query_result->fields['type']), '', 'small') . '</td>' . chr(10);
-	  $fieldset_content .= '	<td onclick="fetch_doc(' . $query_result->fields['id'] . ')">' . $query_result->fields['title'] . '</td>' . chr(10);
+	  $fieldset_content .= '	<td onclick="fetch_doc(' . $query_result->fields['id'] . ')">' . htmlspecialchars((string)$query_result->fields['title'], ENT_QUOTES) . '</td>' . chr(10);
 	  $fieldset_content .= '	<td align="right"> ' . chr(10);
 	  $fieldset_content .= '	</td>' . chr(10);
 	  $fieldset_content .= '  </tr>' . chr(10);

@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -18,6 +18,28 @@
 //  Path: /modules/shipping/methods/yrc/ship_mgr.php
 //
 ?>
+<script>
+// Voiding a label is a change, so it is POSTed - with the page's csrf_token,
+// which index.php checks - into the label manager popup.
+function yrcDeleteLabel(sID) {
+  window.open('', 'popup_label_mgr', 'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50');
+  var form = document.createElement('form');
+  form.method = 'post';
+  form.target = 'popup_label_mgr';
+  form.action = 'index.php?module=shipping&page=popup_label_mgr&method=yrc';
+  form.style.display = 'none';
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  var fields = {todo: 'delete', sID: sID, csrf_token: meta ? meta.getAttribute('content') : ''};
+  Object.keys(fields).forEach(function(k) {
+    var input = document.createElement('input');
+    input.type = 'hidden'; input.name = k; input.value = fields[k];
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+</script>
 <h1><?php echo constant('MODULE_SHIPPING_' . strtoupper($method_id) . '_TEXT_TITLE'); ?></h1>
 <table class="ui-widget" style="border-style:none;width:100%">
  <tbody class="ui-widget-content">
@@ -58,7 +80,7 @@
 			echo '    <td align="right">' . $currencies->format_full($result->fields['cost']) . '</td>' . chr(10);
 			echo '    <td align="right">';
 	  		echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'yrc\', \'edit\', ' . $result->fields['id'] . ')"') . chr(10);
-	  		echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) window.open(\'index.php?module=shipping&amp;page=popup_label_mgr&amp;method=yrc&amp;sID=' . $result->fields['shipment_id'] . '&amp;action=delete\',\'popup_label_mgr\',\'width=800,height=700,resizable=1,scrollbars=1,top=50,left=50\')"') . chr(10);
+	  		echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small', 'onclick="if (confirm(\'' . SHIPPING_DELETE_CONFIRM . '\')) yrcDeleteLabel(' . (int)$result->fields['shipment_id'] . ')"') . chr(10);
 			echo '    </td>';
 			echo '  </tr>' . chr(10);
 			$result->MoveNext();
