@@ -77,6 +77,32 @@ function phreedom_implode_security($levels) {
   return implode(',', $settings);
 }
 
+/**
+ * A company's display title, read from its config.php without running it.
+ * Running every company's config.php to list them would define each one's
+ * DB_SERVER_* constants over the last, and load every company's database
+ * credentials into a request that only needs their names.
+ * Falls back to the directory name when the title cannot be found.
+ */
+function company_config_title($company) {
+  $source = @file_get_contents(DIR_FS_MY_FILES . $company . '/config.php');
+  if ($source === false) return $company;
+  $key    = strtolower($company . '_TITLE');
+  $tokens = array_values(array_filter(token_get_all($source), function($t) {
+    return !is_array($t) || !in_array($t[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT));
+  }));
+  for ($i = 0; $i + 5 < count($tokens); $i++) {
+    if (!is_array($tokens[$i]) || strtolower($tokens[$i][1]) <> 'define' || $tokens[$i+1] !== '(') continue;
+    if (!is_array($tokens[$i+2]) || $tokens[$i+2][0] <> T_CONSTANT_ENCAPSED_STRING) continue;
+    if (strtolower(substr($tokens[$i+2][1], 1, -1)) <> $key || $tokens[$i+3] !== ',') continue;
+    if (!is_array($tokens[$i+4]) || $tokens[$i+4][0] <> T_CONSTANT_ENCAPSED_STRING) continue;
+    $literal = $tokens[$i+4][1];
+    $inner   = substr($literal, 1, -1);
+    return $literal[0] == "'" ? strtr($inner, array("\\\\" => "\\", "\\'" => "'")) : stripcslashes($inner);
+  }
+  return $company;
+}
+
 function load_company_dropdown($include_select = false) {
   $output = array();
   $i = 1;
@@ -85,9 +111,8 @@ function load_company_dropdown($include_select = false) {
 	if ($file <> '.' && $file <> '..' && is_dir(DIR_FS_MY_FILES . $file)) {
 	  if (file_exists(DIR_FS_MY_FILES . $file . '/config.txt')) convert_cfg($file);
 	  if (file_exists(DIR_FS_MY_FILES . $file . '/config.php')) {
-		require_once (DIR_FS_MY_FILES . $file . '/config.php');
 		$output[$i] = array(
-		  'text' => constant($file . '_TITLE'), 
+		  'text' => company_config_title($file),
 		  'file' => $file,
 		);
 		$i++;
