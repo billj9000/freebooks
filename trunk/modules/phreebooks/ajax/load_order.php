@@ -74,7 +74,7 @@ if ($cID && !$just_ship) { // build the contact data
   $contact->fields['ship_gl_acct_id'] = ($type == 'v') ? AP_DEF_FREIGHT_ACCT : AR_DEF_FREIGHT_ACCT;
   $invoices = fill_paid_invoice_array(0, $cID, $type);
   $terms    = explode(':', $contact->fields['special_terms']);
-  $contact->fields['credit_limit'] = $terms[4] ? $terms[4] : ($type == 'v' ? AP_CREDIT_LIMIT_AMOUNT : AR_CREDIT_LIMIT_AMOUNT);
+  $contact->fields['credit_limit'] = !empty($terms[4]) ? $terms[4] : ($type == 'v' ? AP_CREDIT_LIMIT_AMOUNT : AR_CREDIT_LIMIT_AMOUNT);
   $contact->fields['credit_remaining'] = $contact->fields['credit_limit'] - $invoices['balance'] + $order->fields['total_amount'];
   $bill_add   = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . " 
     where ref_id = '" . $cID . "' and type in ('" . $type . "m', '" . $type . "b')");
@@ -128,6 +128,7 @@ if (!empty($order->fields)) {
 	// fetch the line items
 	$item_list = array();
 	$subtotal  = 0;
+	$discount = 0;
 	if ($so_po_ref_id) {	// then there is a purchase order/sales order to load first
       if (JOURNAL_ID == 12) { // fetch the sales order number
 	    $result = $db->Execute("select purchase_invoice_id from " . TABLE_JOURNAL_MAIN . " where id = " . $so_po_ref_id);
@@ -191,6 +192,7 @@ if (!empty($order->fields)) {
 	if ($id) {
 	  // retrieve item information
 	  $subtotal = 0;
+	  $discount = 0;
 	  $ordr_items = $db->Execute("select * from " . TABLE_JOURNAL_ITEM . " where ref_id = " . $id . " order by item_cnt, id");
 	  switch (JOURNAL_ID) { // determine where to put value, qty or pstd
 		case  3:
@@ -212,10 +214,11 @@ if (!empty($order->fields)) {
 		    from " . TABLE_INVENTORY . " where sku = '" . db_input($ordr_items->fields['sku']) . "'");
 		  $inv_details->fields['quantity_on_hand'] = $ordr_items->fields['qty'] + $inv_details->fields['quantity_on_hand'];
 		  if (!in_array($inv_details->fields['inventory_type'], $cog_types)) $inv_details->fields['quantity_on_hand'] = 'NA';
-	  	} else if ($ordr_items->fields['gl_type'] == 'dsc') {
-		  $discount = $ordr_items->fields['credit_amount'] + $ordr_items->fields['debit_amount'];
-		} else {
+	  	} else {
+		  // Total, tax, freight and discount rows are not stock; they carry no inventory details.
+		  if ($ordr_items->fields['gl_type'] == 'dsc') $discount = $ordr_items->fields['credit_amount'] + $ordr_items->fields['debit_amount'];
 		  $inv_details = new objectInfo();
+		  $inv_details->fields = array_fill_keys(array('inventory_type', 'inactive', 'item_weight', 'quantity_on_hand', 'lead_time'), null);
 		}
 //$debug .= ' processing quantity_on_hand = ' . $inv_details->fields['quantity_on_hand'] . ' and total = ' . $total . chr(10);
 		if ($so_po_ref_id) {
@@ -261,7 +264,7 @@ if (!empty($order->fields)) {
 			'serialize'   				=> $ordr_items->fields['serialize_number'],
 			'proj_id'     				=> $ordr_items->fields['project_id'],
 			'purch_package_quantity'	=> $ordr_items->fields['purch_package_quantity'],
-			'date_1'      				=> substr($ordr_items->fields['date_1'], 0, 10),
+			'date_1'      				=> substr((string)$ordr_items->fields['date_1'], 0, 10),
 			'unit_price'  				=> $currencies->precise($ordr_items->fields['qty'] ? ($total / $ordr_items->fields['qty']) : '0', true, $currencies_code, $currencies_value),
 			'total'       				=> $currencies->format($total, true, $currencies_code, $currencies_value),
 			'full_price'  				=> $currencies->format($ordr_items->fields['full_price'], true, $currencies_code, $currencies_value),
