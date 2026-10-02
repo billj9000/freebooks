@@ -43,9 +43,12 @@ usort($mainmenu, 'fbmenu_sort');
 <div id="content-wrap">
 <?php
 
+// An item without an order sorts last rather than failing the comparison.
 function fbmenu_sort($a, $b) {
-  if (is_integer($a['order']) && is_integer($b['order'])) return $a['order'] - $b['order'];
-  return strcmp($a['order'], $b['order']);
+  $a_order = $a['order'] ?? PHP_INT_MAX;
+  $b_order = $b['order'] ?? PHP_INT_MAX;
+  if (is_integer($a_order) && is_integer($b_order)) return $a_order <=> $b_order;
+  return strcmp((string)$a_order, (string)$b_order);
 }
 
 function fbmenu_permitted(array $items) {
