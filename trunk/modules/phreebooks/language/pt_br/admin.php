@@ -212,7 +212,7 @@ define('TEXT_GENERAL_JOURNAL','Propriedades Contabilidade Geral');
 define('TEXT_NUMBER','Número');
 define('TEXT_ACCOUNT_AGING','Atraso Contas');
 define('TEXT_PAYMENT_TERMS','Termos Pagamento');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Plano Contas Padrão');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Plano Contas Padrão'); // also defined in inventory/admin.php, phreedom/admin.php
 define('MODULE_PHREEBOOKS_NOTES_4','PRIORIDADE MÉDIA: Atualizar as contas padrão para cliente e fornecedor, depois de carregar Plano de Contas (aba Empresa -> Módulo Administração -> Propriedades Módulo Contabilidade -> Clientes/fornecedores)');
 define('MODULE_PHREEBOOKS_NOTES_3','PRIORIDADE ALTA: Alterar ou importar plano de contas das especificações padrão (aba Empresa -> Módulo Administração -> Propriedades Módulo Contabilidade -> Plano de Contas)');
 define('MODULE_PHREEBOOKS_NOTES_2','PRIORIDADE BAIXA: Complete as especificações de servidor de email (aba Empresa -> Módulo Administração -> Email)');

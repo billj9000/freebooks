@@ -29,7 +29,7 @@ define('BOX_PROJECTS_COSTS','Project Costs');
 define('BOX_BRANCHES', 'Branch');
 define('TEXT_CUSTOMER','Customer');
 define('TEXT_VENDOR','Vendor');
-define('TEXT_EMPLOYEE','Employee');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Employee'); // also defined in contacts/admin.php, contacts/language.php
 define('TEXT_BRANCHES', 'Branch');
 if (!defined('TEXT_PROJECT')) define('TEXT_PROJECT','Project'); // phreedom's language.php also defines this, loaded earlier during install
 define('TEXT_PROJECTS','Projects');

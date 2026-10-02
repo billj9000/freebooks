@@ -16,7 +16,7 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/import_bank/language/en_us/admin.php
 //
-define('MODULE_IMPORT_BANK_TITLE','Import Bank Statement');
+if (!defined('MODULE_IMPORT_BANK_TITLE')) define('MODULE_IMPORT_BANK_TITLE','Import Bank Statement'); // also defined in import_bank/language.php
 define('MODULE_IMPORT_BANK_DESCRIPTION','With this module you can import .csv bank statements. The list is then checked for any outstanding bill or previous bookings with the same description.');
 define('BOX_BANK_IMPORT_ADMIN','Bank Import Settings');
 define('TEXT_BANK_IMPORT_SETTINGS','Bank Import Settings');

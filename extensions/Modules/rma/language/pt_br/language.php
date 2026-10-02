@@ -22,7 +22,7 @@ define('TEXT_CUSTOMER_ID','ID Cliente');
 define('TEXT_TELEPHONE','Telefone');
 define('TEXT_DATE_MANUFACTURE','Fabricante DLC');
 define('TEXT_DATE_WARRANTY','Data Expiração Garantia');
-define('TEXT_DETAILS','Detalhes');
+if (!defined('TEXT_DETAILS')) define('TEXT_DETAILS','Detalhes'); // also defined in cp_action/language.php, doc_ctl/language.php, phreedom/language.php
 define('TEXT_DISPOSITION','Disposição');
 define('TEXT_REASON_FOR_RETURN','Motivo Retorno');
 define('TEXT_ENTERED_BY','Digitado por');

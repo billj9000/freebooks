@@ -5,7 +5,7 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/import_bank/language/nl_nl/admin.php
 
-define('MODULE_IMPORT_BANK_TITLE','Importeer Bank rekening');
+if (!defined('MODULE_IMPORT_BANK_TITLE')) define('MODULE_IMPORT_BANK_TITLE','Importeer Bank rekening'); // also defined in import_bank/language.php
 define('MODULE_IMPORT_BANK_DESCRIPTION','met deze module kunt u uw .csv bank rekeningen overzicht importeren deze wordt dan gecontroleerd op openstaande rekening of eventueel eerdere boekingen met dezelfde omschrijving.');
 define('BOX_BANK_IMPORT_ADMIN','Bank Import Instellingen');
 define('TEXT_BANK_IMPORT_SETTINGS','Bank Import Instellingen');

@@ -11,7 +11,6 @@
 define('MENU_HEADING_GL','Главная книга');
 define('MENU_HEADING_BANKING','Банкинг');
 define('BOX_AR_QUOTE','Quotes');
-define('BOX_AR_QUOTE_STATUS','Sales Quote Manager');
 define('BOX_AR_SALES_ORDER','Новый заказ');
 define('BOX_AR_ORDER_STATUS','Управление заказами');
 define('BOX_AR_INVOICE','Продажи/Счета');
@@ -26,7 +25,6 @@ define('BOX_AP_ORDER_STATUS','Управление закупками');
 define('BOX_AP_RECEIVE_INVENTORY','Закупки/Приходы');
 define('BOX_AR_POINT_OF_PURCHASE','Точка Закупки');
 define('BOX_AP_CREDIT_MEMO','Кт М.О. поставщики');
-define('BOX_AP_RFQ_STATUS','Purchase Quote Manager');
 define('BOX_BANKING_CUSTOMER_DEPOSITS','Депозит покупателя');
 define('BOX_BANKING_VENDOR_DEPOSITS','Vendor Deposits');
 define('BOX_BANKING_CUSTOMER_RECEIPTS','Платежи от клиентов');
@@ -61,7 +59,6 @@ define('ORD_TEXT_20_C_WINDOW_TITLE','Customer Refund');
 define('ORD_TEXT_20_V_WINDOW_TITLE','Платеж поставщику');
 define('BOX_TEXT_NEW_TITLE','Новый %s');
 define('BOX_STATUS_MGR','Список %s');
-define('BOX_GL_BUDGET','Бюджетирование');
 define('PO_EXPORT_PROFILES_TITLE','Профили экспорта заказов на закупку');
 
 ?>

@@ -14,7 +14,7 @@ define('MODULE_PHREEBOOKS_NOTES_1','PRIORITY MEDIUM: Enter company information (
 define('MODULE_PHREEBOOKS_NOTES_2','PRIORITY LOW: Set up mail server settings (Company -> Module Admin -> Email tab)');
 define('MODULE_PHREEBOOKS_NOTES_3','PRIORITY HIGH: Enter or import chart of accounts (Company -> Module Admin -> PhreeBooks Module -> Chart of Accounts tab)');
 define('MODULE_PHREEBOOKS_NOTES_4','PRIORITY MEDIUM: Set default general ledger accounts for customer and vendors, after loading GL accounts (Company -> PhreeeBooks Module Properties -> Customers/Vendors tab)');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Счет GL по умолчанию');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Счет GL по умолчанию'); // also defined in inventory/admin.php, phreedom/admin.php
 define('TEXT_PAYMENT_TERMS','Условия оплаты');
 define('TEXT_ACCOUNT_AGING','Счет износа');
 define('TEXT_GENERAL_JOURNAL','Настройки Главной Книги');

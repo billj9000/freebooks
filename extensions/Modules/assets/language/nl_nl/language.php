@@ -32,8 +32,8 @@ define('TEXT_IMAGE','Afbeelding');
 define('TEXT_LAND','Land');
 define('TEXT_RETIRE_DATE','Pensioen Datum');
 define('TEXT_SOFTWARE','Software');
-define('TEXT_TABS','Tabbladen');
-define('TEXT_USED','Gebruikt');
+if (!defined('TEXT_TABS')) define('TEXT_TABS','Tabbladen'); // also defined in phreedom/admin.php
+if (!defined('TEXT_USED')) define('TEXT_USED','Gebruikt'); // also defined in phreedom/language.php
 define('TEXT_VEHICLE','Voertuig');
 /************ Assets defines *********************/
 define('ASSETS_HEADING_NEW_ITEM','Nieuwe Activa');

@@ -12,7 +12,7 @@ define('OPEN_POS_DRAWER_DESC','Permite a abertura da gaveta do PDV quando o paga
 define('SORT_ORDER_DESC','Ordenar visualização. Mais baixo é mostrado antes.');
 define('OPEN_POS_DRAWER','0');
 define('TEXT_REMOVE_MESSAGE','Tem certeza de que quer remover este módulo e todos os dados associados com ele?');
-define('TEXT_PRODUCTION','Produção');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Produção'); // also defined in shipping/language.php
 define('TEXT_AUTHORIZE','Autorizar');
 define('TEXT_CAPTURE','Capturar');
 define('TEXT_PAYMENT_MODULES_AVAILABLE','Métodos de Pagamento Disponíveis');

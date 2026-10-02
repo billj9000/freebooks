@@ -23,7 +23,7 @@ define('HEADING_TITLE_MODULES_SHIPPING','Shipping Services');
 define('SHIPPING_HEADING_SHIP_MGR','Shipping Module Manager');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Shipping Methods Available');
 // General Defines
-define('TEXT_PRODUCTION','Production');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Production'); // also defined in payment/admin.php
 if (!defined('TEXT_TEST')) define('TEXT_TEST','Test'); // phreedom's language.php also defines this, loaded first by every entry point that uses both
 define('TEXT_PDF','PDF');
 define('TEXT_GIF','GIF');
@@ -31,7 +31,7 @@ define('TEXT_THERMAL','Thermal');
 define('TEXT_PAGKAGE_DEFAULTS','Package Defaults');
 define('TEXT_SHIPMENT_DEFAULTS','Shipment Defaults');
 define('TEXT_SHIPMENTS_ON','Shipments On: ');
-define('TEXT_REMOVE_MESSAGE','Are you sure you want to remove this shipping method?');
+define('SHIPPING_TEXT_REMOVE_MESSAGE','Are you sure you want to remove this shipping method?');
 define('SHIPPING_BUTTON_CREATE_LOG_ENTRY','Create a Shipment Entry');
 define('SHIPPING_SET_BY_SYSTEM',' (Set by the system)');
 define('SHIPPING_POPUP_WINDOW_TITLE','Shipping Rate Estimator');

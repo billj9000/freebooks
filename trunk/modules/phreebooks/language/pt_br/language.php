@@ -243,7 +243,7 @@ define('ORD_TAX_RATE','Valor Taxa');
 define('ORD_TAXABLE','Taxável');
 define('TEXT_SHIPPED','Entregue');
 define('ORD_SUBTOTAL','Subtotal');
-define('TEXT_SALES_REP','Rep Vendas');
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Rep Vendas'); // also defined in contacts/language.php
 define('TEXT_SHIP_BY_DATE','Entrega por Data');
 define('ORD_SHIP_TO','Entregar para:');
 define('TEXT_PO_BAL','Saldo OC');
@@ -270,7 +270,7 @@ define('ORD_FREIGHT_SERVICE','Serviço');
 define('ORD_FREIGHT_ESTIMATE','Frete Estimado');
 define('ORD_FREIGHT','Frete');
 define('GL_FISCAL_YEAR','Ano Fiscal');
-define('TEXT_EXPIRATION_DATE','Data Validade');
+if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Data Validade'); // also defined in inventory/language.php
 define('ORD_EXPECTED_DATES','Datas Estimadas Entrega - ');
 define('ORD_DROP_SHIP','Envio Direto');
 define('ORD_DISCOUNT_PERCENT','Percentual Desconto (%)');
@@ -284,7 +284,7 @@ define('TEXT_CREDIT_PAID','Crédito Pago');
 define('ORD_COPY_BILL','Copiar -->');
 define('ORD_CLOSED','Fechado?');
 define('ORD_CASH_ACCOUNT','Conta Caixa');
-define('TEXT_BUYER','Comprador');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Comprador'); // also defined in contacts/language.php
 define('ORD_AR_ACCOUNT','C/R Conta');
 define('ORD_AP_ACCOUNT','C/P Conta');
 define('ORD_ADD_UPDATE','Inserir/Alterar');

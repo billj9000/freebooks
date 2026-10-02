@@ -55,7 +55,7 @@
     } else {
       echo '    <td class="text-center">' . constant('MODULE_SHIPPING_' . strtoupper($method) . '_SORT_ORDER') . '</td>' . chr(10);
       echo '    <td class="text-center text-nowrap">' . chr(10);
-      if ($security_level > 3) echo '      <button type="button" class="btn btn-primary btn-sm" onclick="if (confirm(\'' . TEXT_REMOVE_MESSAGE . '\')) submitToDo(\'remove_' . $method . '\')">' . TEXT_REMOVE . '</button>' . chr(10);
+      if ($security_level > 3) echo '      <button type="button" class="btn btn-primary btn-sm" onclick="if (confirm(\'' . SHIPPING_TEXT_REMOVE_MESSAGE . '\')) submitToDo(\'remove_' . $method . '\')">' . TEXT_REMOVE . '</button>' . chr(10);
       echo html_icon('categories/preferences-system.png', TEXT_PROPERTIES, 'medium', 'onclick="toggleProperties(\'prop_' . $method . '\')"') . chr(10);
       echo '    </td>' . chr(10);
       echo '  </tr>' . chr(10);

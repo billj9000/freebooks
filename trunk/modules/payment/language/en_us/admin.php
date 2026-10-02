@@ -23,7 +23,7 @@ define('MODULE_PAYMENT_DESCRIPTION','The payment module is a wrapper for user co
 // Headings
 define('TEXT_PAYMENT_MODULES_AVAILABLE','Payment Methods Available');
 // Defaults
-define('TEXT_PRODUCTION','Production');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Production'); // also defined in shipping/language.php
 define('TEXT_AUTHORIZE','Authorize');
 define('TEXT_CAPTURE','Capture');
 define('TEXT_REMOVE_MESSAGE','Are you sure you want to remove this module and all the data associated with it?');

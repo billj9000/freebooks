@@ -61,8 +61,8 @@ define('ZENCART_DISABLED_NOTICE','The ZenCart integration is disabled. Enable it
 // VAT invoice email — fallback default body if ZENCART_VAT_INVOICE_MESSAGE is ever cleared
 define('ZENCART_VAT_INVOICE_MESSAGE_DEFAULT','Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.');
 
-define('ZENCART_CATALOG_URL','ZenCart - product URL.');
-define('ZENCART_CATALOG_MODEL','ZenCart - product model.');
+if (!defined('ZENCART_CATALOG_URL')) define('ZENCART_CATALOG_URL','ZenCart - product URL.'); // also defined in zencart/admin.php
+if (!defined('ZENCART_CATALOG_MODEL')) define('ZENCART_CATALOG_MODEL','ZenCart - product model.'); // also defined in zencart/admin.php
 define('ZENCART_LBL_LIST_ICON_ENABLED','Show the ZenCart upload icon on each row of the inventory list page. The Save & Upload button on an item\'s own edit page is controlled separately and is unaffected by this setting.');
 
 ?>

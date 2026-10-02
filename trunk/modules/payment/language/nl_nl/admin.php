@@ -11,7 +11,7 @@
 define('MODULE_PAYMENT_TITLE','Betaal Module');
 define('MODULE_PAYMENT_DESCRIPTION','De betaal module is een huls voor gebruiker configureerbare betaal methodes. Sommige methodes zijn beschikbaar in de kern software andere zijn beschikbaar voor download van de PhreeSoft website. <b>Aantekening: Dit is een kern module en zou niet verwijderd moeten worden!</b>');
 define('TEXT_PAYMENT_MODULES_AVAILABLE','Beschikbare Betaal Modules');
-define('TEXT_PRODUCTION','Productie');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Productie'); // also defined in shipping/language.php
 define('TEXT_AUTHORIZE','Autoriseer');
 define('TEXT_CAPTURE','Vastleggen');
 define('TEXT_REMOVE_MESSAGE','Weet u zeker dat u deze module en alle geassocieerden data wil verwijderen?');

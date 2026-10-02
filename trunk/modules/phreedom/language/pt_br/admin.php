@@ -66,7 +66,7 @@ define('EXTRA_FIELDS_LOG','Campos Extra (%s)');
 define('EXTRA_TABS_DELETE_ERROR','Este nome de já existe, por favor utilize outro nome.');
 define('EXTRA_TABS_DELETE_INTRO','Tem certeza de que quer remover esta aba?\\nAbas não podem ser removidas se há um campo dentro dela.');
 define('INV_INFO_HEADING_NEW_CATEGORY','Nova Aba');
-define('TEXT_NEW_FIELD','Novo Campo');
+if (!defined('TEXT_NEW_FIELD')) define('TEXT_NEW_FIELD','Novo Campo'); // also defined in assets/admin.php
 define('INV_INFO_HEADING_EDIT_CATEGORY','Alterar Aba');
 define('EXTRA_TABS_INSERT_INTRO','Por favor, entre a nova aba com suas propriedades');
 define('INV_EDIT_INTRO','Por favor, faça as alterações necessárias');
@@ -281,7 +281,7 @@ define('TEXT_COLLATION','Collation');
 define('TEXT_TABLE_STATS','Tabela Estatísticas');
 define('IE_HEADING_TITLE','Importação/Exportação e Saldos Inicias');
 define('HEADING_MODULE_IMPORT','Módulo Importação/Exportação Dados');
-define('TEXT_TABS','Abas');
+if (!defined('TEXT_TABS')) define('TEXT_TABS','Abas'); // also defined in assets/language.php
 define('TEXT_REQUIRED','OBRIGATÓRIO');
 define('TEXT_TAB_NAME','Título Aba');
 define('TEXT_DOWNLOAD','Download');
@@ -291,7 +291,7 @@ define('TEXT_LOCAL','Local');
 define('TEXT_EXTRA_FIELDS','Campos Customizados');
 define('TEXT_EXTRA_TABS','Abas Customizadas');
 define('CHARSET','utf-8');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Contas Contábeis Padrão');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Contas Contábeis Padrão'); // also defined in inventory/admin.php, phreebooks/admin.php
 define('HTML_PARAMS','lang=\"pt-BR\" xml:lang=\"pt-BR\"');
 define('TITLE','EDS Brasil ERP');
 define('LANGUAGE','Portugues (BR)');

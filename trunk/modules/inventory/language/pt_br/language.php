@@ -16,9 +16,9 @@ define('PRICE_SHEET_DEFAULT_DELETED','A Tabela de Preço padrão foi removida, p
 define('TEXT_AVERAGE_USE','Giro Médio (não inclui o mês corrente)');
 define('PRICE_SHEET_MSG_DELETE','Tem certeza de que quer remover esta Tabela de Preço?');
 define('TEXT_SPECIAL_PRICING','Preços Especiais');
-define('TEXT_EXPIRATION_DATE','Data Expiração');
+if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Data Expiração'); // also defined in phreebooks/language.php
 define('TEXT_BULK_EDIT','Carregar Preços Item');
-define('TEXT_REVISION','Rev. Nível');
+if (!defined('TEXT_REVISION')) define('TEXT_REVISION','Rev. Nível'); // also defined in doc_ctl/language.php, work_orders/language.php
 define('TEXT_EFFECTIVE_DATE','Data Inicial');
 define('TEXT_SHEET_NAME','Nome Tabela');
 define('TEXT_REVISE','Nova Revisão');
@@ -246,5 +246,5 @@ define('INV_ENTRY_HS_CODE',             'HS Code');
 define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
 define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
 define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
-
+define('INV_TEXT_MARGIN_BY_PERCENT', 'Margem percentual');
 ?>

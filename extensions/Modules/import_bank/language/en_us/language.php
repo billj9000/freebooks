@@ -16,10 +16,10 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/import_bank/language/en_us/language.php
 //
-define('MODULE_IMPORT_BANK_TITLE',  'Import Bank Statement');
+if (!defined('MODULE_IMPORT_BANK_TITLE')) define('MODULE_IMPORT_BANK_TITLE',  'Import Bank Statement'); // also defined in import_bank/admin.php
 define('HEADING_MODULE_IMPORT_BANK','Import Bank Statement');
 define('GEN_BANK_IMPORT_MESSAGE',	'Select the. csv file to import and click Import <br> If there is no bank account column in your .csv then select a bank account from the drop down box.');
-define('TEXT_IMPORT',				'Import');
+if (!defined('TEXT_IMPORT')) define('TEXT_IMPORT',				'Import'); // also defined in phreedom/language.php
 define('SAMPLE_CSV',				'Sample CSV');
 if (!defined('TEXT_REQUIRED')) define('TEXT_REQUIRED', 'REQUIRED');
 if (!defined('TEXT_LEGEND'))   define('TEXT_LEGEND',   'Legend');

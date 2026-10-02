@@ -18,7 +18,7 @@ define('TEXT_LINK_TO','Ссылка:');
 define('TEXT_NEW_CONTACT','Новый контакт');
 define('TEXT_SALES_REP','Отчет по продажам');
 define('TEXT_COPY_ADDRESS','Адрес трансфера');
-define('GEN_PRIMARY_NAME','Имя/Компания');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Имя/Компания'); // also defined in phreedom/language.php
 define('GEN_EMPLOYEE_NAME','Имя сотрудника');
 define('GEN_CONTACT','Внимание');
 define('GEN_ADDRESS1','Адрес1');
@@ -125,7 +125,6 @@ define('ACT_TERMS_USE_DEFAULTS','Условия по умолчанию');
 define('ACT_COD_SHORT','COD');
 define('ACT_COD_LONG','Оплата при получении');
 define('ACT_PREPAID','Предоплата');
-define('ACT_SPECIAL_TERMS','Спец условия');
 define('ACT_END_OF_MONTH','Из конца месяца');
 define('ACT_DAY_NEXT_MONTH','Из указаной даты');
 define('ACT_DUE_ON','До: ');

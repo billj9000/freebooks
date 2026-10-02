@@ -34,7 +34,7 @@ define('TEXT_CUSTOMER_NOTES','Cliente Anotações');
 define('TEXT_CUSTOMER_ID','Cliente ID');
 define('TEXT_CUSTOMER_INFO','Cliente Informação');
 define('TEXT_CUSTOMER_NAME','Cliente Nome');
-define('TEXT_DETAILS','Detalhes');
+if (!defined('TEXT_DETAILS')) define('TEXT_DETAILS','Detalhes'); // also defined in doc_ctl/language.php, phreedom/language.php, rma/language.php
 define('TEXT_ENTERED_BY','Inserido por');
 define('TEXT_IMPLEMENTATION','Implementação');
 define('TEXT_INVESTIGATION','Investigação');

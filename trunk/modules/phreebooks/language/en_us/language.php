@@ -53,7 +53,7 @@ define('BNK_ERROR_PAYMENT_CURRENCY','%s cannot take a payment in %s - it sends t
 define('ORD_ADD_UPDATE', 'Add/Update');
 define('ORD_AP_ACCOUNT', 'A/P Account');
 define('ORD_AR_ACCOUNT', 'A/R Account');
-define('TEXT_BUYER','Buyer');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Buyer'); // also defined in contacts/language.php
 define('ORD_CASH_ACCOUNT', 'Cash Account');
 define('ORD_CLOSED','Closed?');
 define('ORD_COPY_BILL','Copy -->');
@@ -67,7 +67,7 @@ define('ORD_DELIVERY_DATES', 'Delivery Dates');
 define('ORD_DISCOUNT_PERCENT','Discount Percent (%)');
 define('ORD_DROP_SHIP', 'Drop Ship');
 define('ORD_EXPECTED_DATES','Expected Delivery Dates - ');
-define('TEXT_EXPIRATION_DATE','Expiration Date');
+if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Expiration Date'); // also defined in inventory/language.php
 define('GL_FISCAL_YEAR','Fiscal Year');
 define('ORD_FREIGHT', 'Freight');
 define('ORD_FREIGHT_TAX', 'Freight Tax');
@@ -93,7 +93,7 @@ define('TEXT_RECEIVE_FROM','Receive From:');
 define('ORD_SHIP_CARRIER', 'Carrier');
 define('TEXT_SO_BAL','SO Bal');
 define('TEXT_PO_BAL','PO Bal');
-define('TEXT_SALES_REP','Sales Rep');
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Sales Rep'); // also defined in contacts/language.php
 define('TEXT_SHIP_BY_DATE', 'Ship By Date');
 define('ORD_SHIP_TO', 'Ship to:');
 define('TEXT_SHIPPED', 'Shipped');

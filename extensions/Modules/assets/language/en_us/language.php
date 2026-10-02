@@ -32,8 +32,8 @@ define('TEXT_IMAGE','Image');
 define('TEXT_LAND','Land');
 define('TEXT_RETIRE_DATE','Retire Date');
 define('TEXT_SOFTWARE','Software');
-define('TEXT_TABS','Tabs');
-define('TEXT_USED','Used');
+if (!defined('TEXT_TABS')) define('TEXT_TABS','Tabs'); // also defined in phreedom/admin.php
+if (!defined('TEXT_USED')) define('TEXT_USED','Used'); // also defined in phreedom/language.php
 define('TEXT_VEHICLE','Vehicle');
 /************ Assets defines *********************/
 define('ASSETS_HEADING_NEW_ITEM','New Asset');

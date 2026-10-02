@@ -51,7 +51,7 @@ define('TEXT_DEC_PCNT','Decrease by Percent');
 define('TEXT_INC_AMT','Increase by Amount');
 define('TEXT_INC_PCNT','Increase by Percent');
 define('TEXT_MARK_UP_BY_PERCENT', 'Mark up by Percent');
-define('TEXT_MARGIN', 'Margin by Percent');
+define('INV_TEXT_MARGIN_BY_PERCENT', 'Margin by Percent');
 define('TEXT_TIERED_PRICING', 'Tiered Pricing');
 
 
@@ -237,9 +237,9 @@ define('TEXT_USE_AS_DEFAULT','Use as Default');
 define('TEXT_PRICE_SHEETS','Price Sheets');
 define('TEXT_SALES_PRICE_SHEETS','Sales Price Sheets');
 define('TEXT_SHEET_NAME','Sheet Name');
-define('TEXT_REVISION','Rev. Level');
+if (!defined('TEXT_REVISION')) define('TEXT_REVISION','Rev. Level'); // also defined in doc_ctl/language.php, work_orders/language.php
 define('TEXT_EFFECTIVE_DATE','Effective Date');
-define('TEXT_EXPIRATION_DATE','Expiration Date');
+if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Expiration Date'); // also defined in phreebooks/language.php
 define('TEXT_BULK_EDIT','Load Item Pricing');
 define('TEXT_SPECIAL_PRICING','Special Pricing');
 define('PRICE_SHEET_MSG_DELETE','Are you sure you want to delete this price sheet?');
@@ -257,7 +257,7 @@ define('INV_IMAGE_FILE_TYPE_ERROR','That file is not a readable image. Check tha
 define('INV_IMAGE_FILE_WRITE_ERROR','There was a problem writing the image file to the specified directory.');
 define('ITEM_IS_OUT_OF_STOCK', 'item is out of stock');
 define('TEXT_SAVE_AND_COPY_TO_NEW', 'Save and Copy to New');
-define('TEXT_EXTRA_FIELDS', 'Custom Fields');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Custom Fields'); // also defined in contacts/language.php, phreedom/admin.php
 define('TEXT_NO_IMAGE', 'No Image');
 define('TEXT_CUSTOM_TAB', 'Custom Tabs');
 

@@ -46,7 +46,7 @@ define('TEXT_CUSTOMER_NOTES','Customer Notes');
 define('TEXT_CUSTOMER_ID','Customer ID');
 define('TEXT_CUSTOMER_INFO','Customer Information');
 define('TEXT_CUSTOMER_NAME','Customer Name');
-define('TEXT_DETAILS','Details');
+if (!defined('TEXT_DETAILS')) define('TEXT_DETAILS','Details'); // also defined in doc_ctl/language.php, phreedom/language.php, rma/language.php
 define('TEXT_ENTERED_BY','Entered By');
 define('TEXT_IMPLEMENTATION','Implementation');
 define('TEXT_INVESTIGATION','Investigation');

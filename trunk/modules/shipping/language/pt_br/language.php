@@ -129,7 +129,7 @@ define('SHIPPING_POPUP_WINDOW_RATE_TITLE','Estimativa Entrega - Taxas');
 define('SHIPPING_POPUP_WINDOW_TITLE','Estimativa Taxa Entrega');
 define('SHIPPING_SET_BY_SYSTEM',' (Especificado pelo Sistema)');
 define('SHIPPING_BUTTON_CREATE_LOG_ENTRY','Criar uma Entrada de EntregaCreate a Shipment Entry');
-define('TEXT_REMOVE_MESSAGE','Tem certeza de que quer remover este método de entrega?');
+define('SHIPPING_TEXT_REMOVE_MESSAGE','Tem certeza de que quer remover este método de entrega?');
 define('TEXT_SHIPMENTS_ON','Entregas em: ');
 define('TEXT_SHIPMENT_DEFAULTS','Padrão Entrega');
 define('TEXT_PAGKAGE_DEFAULTS','Padrão Embalagem');
@@ -137,7 +137,7 @@ define('TEXT_THERMAL','Térmica');
 define('TEXT_GIF','GIF');
 define('TEXT_PDF','PDF');
 if (!defined('TEXT_TEST')) define('TEXT_TEST','Teste'); // phreedom's language.php also defines this, loaded first by every entry point that uses both
-define('TEXT_PRODUCTION','Produção');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Produção'); // also defined in payment/admin.php
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Métodos Entrega Disponíveis');
 define('SHIPPING_HEADING_SHIP_MGR','Módulo Gerenciamento Entrega');
 define('HEADING_TITLE_MODULES_SHIPPING','Serviços Entrega');
@@ -188,7 +188,6 @@ define('SHIPPING_RET_LOCAL','Imprimir Etiqueta Retorno Local');
 define('SHIPPING_RET_MAILS','Transportador Imprime e Envia Etiqueta Retorno');
 define('SHIPPING_SENDER','Remetente');
 define('SHIPPING_RECEIPIENT','Destinatário');
-if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Terceiro'); // already defined above ('Recibo/Terceiro Conta #', which wins) — this file defines it twice
 define('SHIPPING_COLLECT','Coleta');
 
 // Shipping Packages page

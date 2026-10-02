@@ -8,10 +8,10 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/import_bank/language/pt_br/language.php
 
-define('MODULE_IMPORT_BANK_TITLE','Importar lançamentos bancários');
+if (!defined('MODULE_IMPORT_BANK_TITLE')) define('MODULE_IMPORT_BANK_TITLE','Importar lançamentos bancários'); // also defined in import_bank/admin.php
 define('HEADING_MODULE_IMPORT_BANK','Importar lançamentos bancários');
 define('GEN_BANK_IMPORT_MESSAGE','Seleciona o arquivo .csv para importar e tecle Importar <br> Se não existe a coluna conta bancária no seu .csv selecione uma conta bancária na caixa de seleção.');
-define('TEXT_IMPORT','Importar');
+if (!defined('TEXT_IMPORT')) define('TEXT_IMPORT','Importar'); // also defined in phreedom/language.php
 define('SAMPLE_CSV','Exemplo de CSV');
 if (!defined('TEXT_REQUIRED')) define('TEXT_REQUIRED', 'OBRIGATÓRIO');
 if (!defined('TEXT_LEGEND'))   define('TEXT_LEGEND',   'Legenda');

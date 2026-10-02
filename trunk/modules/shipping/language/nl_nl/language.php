@@ -11,14 +11,14 @@
 define('HEADING_TITLE_MODULES_SHIPPING','Verzending Services');
 define('SHIPPING_HEADING_SHIP_MGR','Verzending Module Manager');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Beschikbare Verzend Methodes');
-define('TEXT_PRODUCTION','Productie');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Productie'); // also defined in payment/admin.php
 if (!defined('TEXT_TEST')) define('TEXT_TEST','Test'); // phreedom's language.php also defines this, loaded first by every entry point that uses both
 define('TEXT_PDF','PDF');
 define('TEXT_GIF','GIF');
 define('TEXT_THERMAL','Thermisch');
 define('TEXT_PAGKAGE_DEFAULTS','Pakket Standaardwaarden');
 define('TEXT_SHIPMENT_DEFAULTS','Verzend Standaardwaarden');
-define('TEXT_REMOVE_MESSAGE','Weet u zeker dat u deze module en alle geassocieerden data wil verwijderen?');
+define('SHIPPING_TEXT_REMOVE_MESSAGE','Weet u zeker dat u deze module en alle geassocieerden data wil verwijderen?');
 define('SHIPPING_BUTTON_CREATE_LOG_ENTRY','Maak een verzending aan');
 define('SHIPPING_SET_BY_SYSTEM',' (Ingesteld door het systeem)');
 define('SHIPPING_POPUP_WINDOW_TITLE','Verzending tarief calculator');
@@ -188,7 +188,6 @@ define('SHIPPING_RET_LOCAL','Print Locale Retour Label');
 define('SHIPPING_RET_MAILS','Koerier Print en mailt labels retour');
 define('SHIPPING_SENDER','Zender');
 define('SHIPPING_RECEIPIENT','Ontvanger');
-if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Ontv/Derde Acct #'); // this file defines it twice (identical text) — guarding just removes the redefinition warning
 define('SHIPPING_COLLECT','Verzamel');
 
 // Shipping Packages page

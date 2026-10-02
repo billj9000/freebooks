@@ -37,7 +37,7 @@ define('TEXT_OWNER','Proprretário');
 define('TEXT_PATH','Caminho');
 define('TEXT_RECENTLY_ADDED','Documentos Recentes');
 define('TEXT_REMOVE_BOOKMARK','Remover Marcação');
-define('TEXT_REVISION','Revisão');
+if (!defined('TEXT_REVISION')) define('TEXT_REVISION','Revisão'); // also defined in inventory/language.php, work_orders/language.php
 define('TEXT_THUMBNAIL','Miniatura');
 define('TEXT_UNLOCK_DOC','Destravar Documentos');
 define('TEXT_UPLOAD_FILE','Subir Revisão');

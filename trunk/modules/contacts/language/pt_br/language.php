@@ -21,7 +21,6 @@ define('ACT_COD_SHORT','Contra Apresentação');
 define('ACT_TERMS_USE_DEFAULTS','Usar Condição Padrão');
 define('ACT_TERMS_DEFAULT','Padrão: ');
 define('ACT_TERMS_DUE','Condições (Vencimento)');
-define('ACT_SPECIAL_TERMS','Condições Especiais');
 define('ACT_PAYMENT_CREDIT_CARD_CVV2','Código Segurança');
 define('ACT_EXP','Exp');
 define('ACT_CARD_HINT','Card Hint');
@@ -121,18 +120,18 @@ define('GEN_ADDRESS1','Endereço 1');
 define('GEN_CONTACT','Atenção');
 define('GEN_EMPLOYEE_NAME','Nome Funcionário');
 define('TEXT_NEW_LEAD','Novo Assunto');
-define('GEN_PRIMARY_NAME','Nome/Empresa');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Nome/Empresa'); // also defined in phreedom/language.php
 define('TEXT_FOLLOW_UP_CALL','Follow Up');
 define('TEXT_RETURN_CALL','Ligação Retornada');
 define('TEXT_NEW_CALL','Nova Ligação');
-define('TEXT_SALES_REP','Representante Vendas');
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Representante Vendas'); // also defined in phreebooks/language.php
 define('TEXT_COPY_ADDRESS','Endereço Transferência');
 define('TEXT_LINK_TO','Link Para:');
 define('TEXT_NEW_CONTACT','Novo Contato');
-define('TEXT_EMPLOYEE','Funcionário');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Funcionário'); // also defined in contacts/admin.php
 define('TEXT_CONTACTS','Contatos');
 define('ACT_SHORT_NAME','ID Contato');
-define('TEXT_BUYER','Comprador');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Comprador'); // also defined in phreebooks/language.php
 define('ACT_POPUP_TERMS_WINDOW_TITLE','Condições Pagamento');
 define('ACT_CATEGORY_I_ADDRESS','Incluir/Editar Contato');
 define('ACT_POPUP_WINDOW_TITLE','Pesquisa Contato');

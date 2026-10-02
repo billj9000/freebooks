@@ -45,7 +45,7 @@ define('TEXT_TILL','Till');
 define('TEXT_OPEN_DRAWER','Open Drawer');
 define('TEXT_PRINT_PREVIOUS','Print Previous Receipt');
 define('TEXT_AMOUNT_ORIGINAL_CURRENCY','Orig Amount');
-define('TEXT_SALES','Sales');
+if (!defined('TEXT_SALES')) define('TEXT_SALES','Sales'); // also defined in contacts/language.php
 define('PHREEPOS_HANDELING_CASH_DIFFERENCE','Posted Cash difference in till');
 define('POS_HEADING_CLOSING','Day Closing');
 define('NEW_BALANCE','New Till Balance');

@@ -19,10 +19,7 @@
 
 define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_TITLE',       'Royal Mail Click & Drop');
 define('MODULE_SHIPPING_ROYAL_MAIL_TEXT_DESCRIPTION', 'Royal Mail Click & Drop label printing (OBA)');
-define('MODULE_SHIPPING_ROYAL_MAIL_TITLE',            'Royal Mail Title');
 define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_SHORT',      'Royal Mail');
-define('MODULE_SHIPPING_ROYAL_MAIL_API_KEY',          'Click & Drop API Key');
-define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER',       'Sort Order');
 // Admin field descriptions
 define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_DESC',      'Title shown for this carrier.');
 define('MODULE_SHIPPING_ROYAL_MAIL_API_KEY_DESC',    'Click & Drop API key. Obtain from your Click & Drop account under Settings &rarr; API.');

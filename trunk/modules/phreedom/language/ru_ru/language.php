@@ -202,7 +202,7 @@ define('TEXT_PROFILE','Profile');
 define('TEXT_PROJECT','Проект');
 define('TEXT_PROPERTIES','Свойства');
 define('TEXT_PO_NUMBER','PO #');
-define('GEN_PRIMARY_NAME','Имя/Компания');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Имя/Компания'); // also defined in contacts/language.php
 define('TEXT_PURCH_ORDER','Заказы покупателей');
 define('ORD_PURCHASE_TAX','Налог на покупку');
 define('TEXT_PURCHASE','Purchases');

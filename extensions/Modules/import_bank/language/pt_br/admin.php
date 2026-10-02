@@ -8,7 +8,7 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/import_bank/language/pt_br/admin.php
 
-define('MODULE_IMPORT_BANK_TITLE','Importar lançamentos bancários');
+if (!defined('MODULE_IMPORT_BANK_TITLE')) define('MODULE_IMPORT_BANK_TITLE','Importar lançamentos bancários'); // also defined in import_bank/language.php
 define('MODULE_IMPORT_BANK_DESCRIPTION','Com este módulo você pode importar lançamentos bancários. Esta lista será verificada contra as cobranças pendenes ou lançamentos anteriores com a mesma descrição.');
 define('BOX_BANK_IMPORT_ADMIN','Propriedades Importação Bancos');
 define('TEXT_BANK_IMPORT_SETTINGS','Propriedades Importação Bancos');

@@ -19,14 +19,7 @@
 
 define('MODULE_SHIPPING_DHL_EXPRESS_TEXT_TITLE',       'DHL Express');
 define('MODULE_SHIPPING_DHL_EXPRESS_TEXT_DESCRIPTION', 'DHL Express international courier');
-define('MODULE_SHIPPING_DHL_EXPRESS_TITLE',            'DHL Express Title');
 define('MODULE_SHIPPING_DHL_EXPRESS_TITLE_SHORT',      'DHL Express');
-define('MODULE_SHIPPING_DHL_EXPRESS_API_KEY',          'API Key (username)');
-define('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET',       'API Secret (password)');
-define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER',        'Export Account Number');
-define('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT', 'Import Account Number');
-define('MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE',        'Mode');
-define('MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',       'Sort Order');
 // Admin panel field descriptions (one per key() entry)
 define('MODULE_SHIPPING_DHL_EXPRESS_TITLE_DESC',          'Title shown in the shipping estimator.');
 define('MODULE_SHIPPING_DHL_EXPRESS_API_KEY_DESC',        'DHL Express Commerce API key (username). Obtain from the DHL developer portal.');

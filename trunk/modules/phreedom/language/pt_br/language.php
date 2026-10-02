@@ -137,7 +137,7 @@ define('TEXT_VERSION','Versão');
 define('TEXT_UTILITIES','Utilitários');
 define('TEXT_VALUE','Valor');
 define('TEXT_USERS','usuários');
-define('TEXT_USED','Utilizado');
+if (!defined('TEXT_USED')) define('TEXT_USED','Utilizado'); // also defined in assets/language.php
 define('TEXT_URL','URL');
 define('GEN_USERNAME','Nome Usuário');
 define('TEXT_UPDATE','Atualizar');
@@ -219,7 +219,7 @@ define('TEXT_PURCHASE','Compras');
 define('TEXT_QUANTITY','Quantidade');
 define('TEXT_PURCH_ORDER','Ordens de Compra');
 define('ORD_PURCHASE_TAX','Imposto Compra');
-define('GEN_PRIMARY_NAME','Nome/Empresa');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Nome/Empresa'); // also defined in contacts/language.php
 define('TEXT_PO_NUMBER','PO #');
 define('TEXT_PROPERTIES','Propriedades');
 define('TEXT_PROFILE','Perfil');
@@ -261,7 +261,7 @@ define('TEXT_NO','Não');
 define('TEXT_MOVE_RIGHT','Mover Para Direita');
 define('TEXT_MOVE_UP','Mover Para Cima');
 define('TEXT_NEXT','Próximo');
-define('TEXT_NA','N/A');
+if (!defined('TEXT_NA')) define('TEXT_NA','N/A'); // also defined in work_orders/language.php
 define('TEXT_MOVE_LEFT','Mover Para Esquerda');
 define('TEXT_MOVE','Mover');
 define('TEXT_MOVE_DOWN','Mover Para Baixo');
@@ -286,7 +286,7 @@ define('TEXT_INSTALL','Instalar');
 define('TEXT_INVOICE','Fatura');
 define('TEXT_INACTIVE','Inativo');
 define('TEXT_INFO','Info');
-define('TEXT_IMPORT','Importar');
+if (!defined('TEXT_IMPORT')) define('TEXT_IMPORT','Importar'); // also defined in import_bank/language.php
 define('TEXT_HORIZONTAL','Horizontal');
 define('TEXT_HISTORY','História');
 define('TEXT_HOME','Home');
@@ -342,7 +342,7 @@ define('TEXT_DISPLAY_NUMBER','Mostrando <b>%d</b> a <b>%d</b> (de <b>%d</b>) ');
 define('JS_CTL_PANEL_DELETE_BOX','Você tem certeza de que quer excluir esta caixa?');
 define('GEN_DISPLAY_NAME','Nome Visualização');
 define('TEXT_DISCOUNT','Desconto');
-define('TEXT_DETAILS','Detalhes');
+if (!defined('TEXT_DETAILS')) define('TEXT_DETAILS','Detalhes'); // also defined in cp_action/language.php, doc_ctl/language.php, rma/language.php
 define('TEXT_DESC','Desc');
 define('TEXT_DEPARTMENT','Departamento');
 define('TEXT_DESCRIPTION','Descrição');

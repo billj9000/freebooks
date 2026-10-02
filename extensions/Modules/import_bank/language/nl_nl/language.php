@@ -5,9 +5,9 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/import_bank/language/nl_nl/language.php
 
-define('MODULE_IMPORT_BANK_TITLE','Importeer Bank rekening');
+if (!defined('MODULE_IMPORT_BANK_TITLE')) define('MODULE_IMPORT_BANK_TITLE','Importeer Bank rekening'); // also defined in import_bank/admin.php
 define('GEN_IMPORT_MESSAGE','Selecteer het .csv bestand dat u wilt importeren en klik op importeer');
-define('TEXT_IMPORT','Importeer');
+if (!defined('TEXT_IMPORT')) define('TEXT_IMPORT','Importeer'); // also defined in phreedom/language.php
 define('SAMPLE_CSV','Voorbeeld CSV');
 define('HEADING_MODULE_IMPORT_BANK','Importeer bankrekening overzicht');
 define('GEN_BANK_IMPORT_MESSAGE',	'Selecteer het .csv bestand dat u wilt importeren en klik op importeer.<br> Als er geen bank rekening kolom in het .csv bestand staat selecteer er dan een uit het keuze veld.');

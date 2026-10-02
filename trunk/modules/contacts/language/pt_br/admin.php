@@ -42,7 +42,7 @@ define('CONTACT_BILL_FIELD_REQ','Campo obrigatório ou não: %s deve ser inserid
 define('NEXT_VEND_ID_NUM_DESC','Próxima ID Fornecedor');
 define('TEXT_CONTACT_TYPE','Tipo Contato');
 define('NEXT_CUST_ID_NUM_DESC','Próxima ID Cliente');
-define('TEXT_EMPLOYEE','Funcionário');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Funcionário'); // also defined in contacts/language.php
 define('TEXT_VENDOR','Fornecedor');
 define('TEXT_CUSTOMER','Cliente');
 define('COST_TYPE_OTH','Outros');

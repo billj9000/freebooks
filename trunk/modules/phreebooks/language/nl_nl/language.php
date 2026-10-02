@@ -54,7 +54,7 @@ define('BNK_ERROR_PAYMENT_CURRENCY','%s cannot take a payment in %s - it sends t
 define('ORD_ADD_UPDATE','Toevoegen/Update');
 define('ORD_AP_ACCOUNT','Crediteuren Grootboek');
 define('ORD_AR_ACCOUNT','Debiteuren Grootboek');
-define('TEXT_BUYER','Koper');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Koper'); // also defined in contacts/language.php
 define('ORD_CASH_ACCOUNT','Kas Grootboek');
 define('ORD_CLOSED','Gesloten?');
 define('ORD_COPY_BILL','Kopieer -->');
@@ -68,7 +68,7 @@ define('ORD_DELIVERY_DATES','Levering Data');
 define('ORD_DISCOUNT_PERCENT','Kortingspercentage (%)');
 define('ORD_DROP_SHIP','Verwijderd verzending');
 define('ORD_EXPECTED_DATES','Verwachte Leverings data - ');
-define('TEXT_EXPIRATION_DATE','Eind Datum');
+if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Eind Datum'); // also defined in inventory/language.php
 define('GL_FISCAL_YEAR','Fiscale Jaar');
 define('ORD_FREIGHT','Vracht');
 define('ORD_FREIGHT_ESTIMATE','Vracht kosten schatting');
@@ -93,7 +93,7 @@ define('TEXT_RECEIVE_FROM','Ontvangen van:');
 define('ORD_SHIP_CARRIER','Koerier');
 define('TEXT_SO_BAL','VO Bal');
 define('TEXT_PO_BAL','IO Bal');
-define('TEXT_SALES_REP','Verkoper');
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Verkoper'); // also defined in contacts/language.php
 define('TEXT_SHIP_BY_DATE','Verzend per Datum');
 define('ORD_SHIP_TO','Verzending naar:');
 define('TEXT_SHIPPED','Verzonden');

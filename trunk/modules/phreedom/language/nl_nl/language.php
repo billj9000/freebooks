@@ -165,7 +165,7 @@ define('TEXT_RECEIVE_ALL','Ontvang Inkoop Order');
 define('ORD_PURCHASE_TAX','Inkoop Belasting');
 define('TEXT_PURCHASE','Inkopen');
 define('TEXT_PO_NUMBER','Inkoop Order #');
-define('GEN_PRIMARY_NAME','Naam/Bedrijf');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Naam/Bedrijf'); // also defined in contacts/language.php
 define('TEXT_PURCH_ORDER','Inkoop Orders');
 define('TEXT_PROFILE','Profiel');
 define('TEXT_PROJECT','Project');
@@ -230,7 +230,7 @@ define('TEXT_INSERT','Invoegen');
 define('TEXT_INSTALL','Installeer');
 define('TEXT_INFO','Info');
 define('TEXT_INACTIVE','Inactief');
-define('TEXT_IMPORT','Importeer');
+if (!defined('TEXT_IMPORT')) define('TEXT_IMPORT','Importeer'); // also defined in import_bank/language.php
 define('TEXT_HORIZONTAL','Horizontaal');
 define('TEXT_HISTORY','Historie');
 define('TEXT_HIDE','Verberg');
@@ -447,7 +447,7 @@ define('TEXT_PRODUCT_DEFAULT','Van Product');
 define('TEXT_ITEM', 'Item');
 define('TEXT_EMAIL_RECEIVED','Email Ontvangen');
 define('TEXT_EMAIL_SEND','Email Verzonden');
-define('TEXT_USED','Gebruikt');
+if (!defined('TEXT_USED')) define('TEXT_USED','Gebruikt'); // also defined in assets/language.php
 define('SORRY_YOU_ARE_LOGGED_OUT','Sorry u moet opnieuw inloggen');
 define('TEXT_EMAIL_MESSAGE', 'A password reset was requested for your \'%1$s\' account.' . "\n\n" . 'To choose a new password, open this link (valid for %2$d minutes):' . "\n\n" . '%3$s' . "\n\n" . 'If you did not request this, no action is needed - your password has not been changed.');
 // Password reset (token flow) - added 2026-08-09

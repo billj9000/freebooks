@@ -21,15 +21,15 @@
 // headings
 define('MENU_HEADING_MY_COMPANY','My Company');
 define('MENU_HEADING_CONFIG','Configuration');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts'); // also defined in inventory/admin.php, phreebooks/admin.php
 define('MENU_HEADING_EMAIL','Email Preferences');
 define('TEXT_EXTRA_TABS', 'Custom Tabs');
-define('TEXT_EXTRA_FIELDS', 'Custom Fields');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Custom Fields'); // also defined in contacts/language.php, inventory/language.php
 define('TEXT_LOCAL','Local');
 define('TEXT_DEBUG','Debug and Troubleshooting');
 define('TEXT_LEGEND','Legend');
 define('TEXT_TAB_NAME','Tab Title');
-define('TEXT_TABS','Tabs');
+if (!defined('TEXT_TABS')) define('TEXT_TABS','Tabs'); // also defined in assets/language.php
 define('TEXT_REQUIRED','REQUIRED');
 define('HEADING_MODULE_IMPORT','Module Data Import/Export');
 define('IE_HEADING_TITLE','Import/Export and Beginning Balances');
@@ -306,7 +306,7 @@ define('EXTRA_TABS_TAB_NAME', 'Tab name<br />Name should be short (10) with no s
 define('EXTRA_TABS_INSERT_INTRO', 'Please enter the new tab with its properties');
 define('INV_EDIT_INTRO', 'Please make any necessary changes');
 define('INV_INFO_HEADING_NEW_CATEGORY', 'New Tab');
-define('TEXT_NEW_FIELD','New Field');
+if (!defined('TEXT_NEW_FIELD')) define('TEXT_NEW_FIELD','New Field'); // also defined in assets/admin.php
 define('INV_INFO_HEADING_EDIT_CATEGORY', 'Edit Tab');
 define('EXTRA_TABS_DELETE_INTRO', 'Are you sure you want to delete this tab?\nTabs cannot be deleted if there is a field within the tab.');
 define('EXTRA_TABS_DELETE_ERROR','This tab name already exists, please use another name.');

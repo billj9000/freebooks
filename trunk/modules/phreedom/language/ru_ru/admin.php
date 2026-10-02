@@ -26,7 +26,7 @@
 
 define('MENU_HEADING_MY_COMPANY','Моя компания');
 define('MENU_HEADING_CONFIG','Конфиг');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Счета GL по умолчанию');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Счета GL по умолчанию'); // also defined in inventory/admin.php, phreebooks/admin.php
 define('MENU_HEADING_EMAIL','Настройки Email');
 define('TEXT_LOCAL','Local');
 define('TEXT_DEBUG','Debug and Troubleshooting');

@@ -37,12 +37,12 @@ define('TEXT_HOURS','Hours');
 define('TEXT_MFG','Mfg');
 define('TEXT_MFG_INIT','Mfg Sign-off');
 define('TEXT_MINUTES','Minutes');
-define('TEXT_NA','N/A');
+if (!defined('TEXT_NA')) define('TEXT_NA','N/A'); // also defined in phreedom/language.php
 define('TEXT_PRIORITY','Priority');
 define('TEXT_PROCEDURE','Procedure');
 define('TEXT_QA','QA');
 define('TEXT_QA_INIT','QA Sign-off');
-define('TEXT_REVISION','Revision');
+if (!defined('TEXT_REVISION')) define('TEXT_REVISION','Revision'); // also defined in doc_ctl/language.php, inventory/language.php
 define('TEXT_REVISION_DATE','Rev Date');
 define('TEXT_SPECIAL_NOTES','Work Order Notes and Comments');
 define('TEXT_STEP','Step');

@@ -200,7 +200,7 @@ define('TEXT_SALES_PRICE_SHEETS','Verkoop Prijs Lijsten');
 define('TEXT_SHEET_NAME','Lijst naam');
 define('TEXT_REVISION','Revisie nummer');
 define('TEXT_EFFECTIVE_DATE','Start Datum');
-define('TEXT_EXPIRATION_DATE','Eind Datum');
+if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Eind Datum'); // also defined in phreebooks/language.php
 define('TEXT_BULK_EDIT','Laad product prijzen');
 define('TEXT_SPECIAL_PRICING','Speciale Prijzen');
 define('PRICE_SHEET_MSG_DELETE','Weet u zeker dat u deze prijslijst wil verwijderen');
@@ -247,4 +247,5 @@ define('INV_ENTRY_HS_CODE',             'HS Code');
 define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
 define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
 define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('INV_TEXT_MARGIN_BY_PERCENT', 'Marge in procenten');
 ?>

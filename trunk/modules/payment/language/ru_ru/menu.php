@@ -22,7 +22,6 @@
 //  Version: 3.7
 // Path: //modules/payment/language/ru_ru/menu.php
 
-define('MENU_HEADING_PHREEPAY','PhreePay Payment Module');
 define('MENU_HEADING_PHREEPAY','PhreePay модуль');
 // The Request payment action on invoices, shown by the phreebooks pages.
 define('PAY_REQUEST_TITLE', 'Request payment');

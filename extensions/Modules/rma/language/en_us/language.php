@@ -34,7 +34,7 @@ define('TEXT_CUSTOMER_ID','Customer ID');
 define('TEXT_TELEPHONE','Telephone');
 define('TEXT_DATE_MANUFACTURE','Manufacturer DLC');
 define('TEXT_DATE_WARRANTY','Date Warranty Expires');
-define('TEXT_DETAILS','Details');
+if (!defined('TEXT_DETAILS')) define('TEXT_DETAILS','Details'); // also defined in cp_action/language.php, doc_ctl/language.php, phreedom/language.php
 define('TEXT_DISPOSITION','Disposition');
 define('TEXT_REASON_FOR_RETURN','Reason for Return');
 define('TEXT_ENTERED_BY','Entered By');

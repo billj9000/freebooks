@@ -9,7 +9,7 @@
 // Path: /modules/assets/language/pt_br/admin.php
 
 define('TEXT_EDIT_FIELD','Editar Campo Ativo');
-define('TEXT_NEW_FIELD','Novo Campo Ativo');
+if (!defined('TEXT_NEW_FIELD')) define('TEXT_NEW_FIELD','Novo Campo Ativo'); // also defined in phreedom/admin.php
 define('TEXT_EDIT_TAB','Editar Aba Ativo');
 define('TEXT_NEW_USED','Novo/Usado');
 define('TEXT_NEW_TAB','Nova Aba Ativo');

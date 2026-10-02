@@ -25,14 +25,14 @@ define('ACT_POPUP_WINDOW_TITLE', 'Contact Search');
 define('ACT_POPUP_TERMS_WINDOW_TITLE', 'Payment Terms');
 // General defines
 define('ACT_CATEGORY_I_ADDRESS','Add/Edit Contact');
-define('TEXT_BUYER','Buyer');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Buyer'); // also defined in phreebooks/language.php
 define('ACT_SHORT_NAME','Contact ID');
 define('TEXT_CONTACTS','Contacts');
-define('TEXT_EMPLOYEE','Employee');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Employee'); // also defined in contacts/admin.php, contacts/menu.php
 define('TEXT_LINK_TO','Link To:');
 define('TEXT_NEW_CONTACT','New Contact');
-define('TEXT_SALES',    'Sales');
-define('TEXT_SALES_REP','Sales Rep');
+if (!defined('TEXT_SALES')) define('TEXT_SALES',    'Sales'); // also defined in phreepos/language.php
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Sales Rep'); // also defined in phreebooks/language.php
 define('TEXT_COPY_ADDRESS','Transfer Address');
 define('TEXT_NEW_CALL','New Call');
 define('TEXT_RETURN_CALL','Returned Call');
@@ -44,7 +44,7 @@ define('TEXT_WHOLESALE','Wholesale');
 define('CONTACT_LEVEL', 'Customer Level');
 
 // Address/contact identifiers
-define('GEN_PRIMARY_NAME', 'Name/Company');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME', 'Name/Company'); // also defined in phreedom/language.php
 define('GEN_EMPLOYEE_NAME', 'Employee Name');
 define('GEN_CONTACT', 'Attention');
 define('GEN_ADDRESS1', 'Address1');
@@ -192,6 +192,6 @@ define('ACT_ERROR_DUPLICATE_CONTACT','The contact ID already exists in the syste
 define('CRM_ROW_DELETE_ALERT','Are you sure you want to remove this CRM note?');
 // java script errors
 define('ACT_JS_SHORT_NAME', '* The \'ID\' entry cannot be blank.');
-define('TEXT_EXTRA_FIELDS', 'Custom Fields');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Custom Fields'); // also defined in inventory/language.php, phreedom/admin.php
 
 ?>

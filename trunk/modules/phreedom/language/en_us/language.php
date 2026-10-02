@@ -94,7 +94,7 @@ define('INV_ENTRY_ITEM_TAXABLE', 'Default Sales Tax');
 define('TEXT_DEPARTMENT','Department');
 define('TEXT_DESCRIPTION','Description');
 define('TEXT_DESC','Desc');
-define('TEXT_DETAILS','Details');
+if (!defined('TEXT_DETAILS')) define('TEXT_DETAILS','Details'); // also defined in cp_action/language.php, doc_ctl/language.php, rma/language.php
 define('TEXT_DISCOUNT','Discount');
 define('GEN_DISPLAY_NAME','Display Name');
 define('TEXT_DISPLAY_NUMBER', 'Displaying <b>%d</b> to <b>%d</b> (of <b>%d</b>) ');
@@ -152,7 +152,7 @@ define('TEXT_HERE', 'here');
 define('TEXT_HIDE','Hide');
 define('TEXT_HISTORY','History');
 define('TEXT_HORIZONTAL','Horizontal');
-define('TEXT_IMPORT','Import');
+if (!defined('TEXT_IMPORT')) define('TEXT_IMPORT','Import'); // also defined in import_bank/language.php
 define('TEXT_INACTIVE','Inactive');
 define('TEXT_INFO', 'Info'); // Information
 define('TEXT_INSERT', 'Insert');
@@ -179,7 +179,7 @@ define('TEXT_MOVE_DOWN','Move Down');
 define('TEXT_MOVE_LEFT','Move Left');
 define('TEXT_MOVE_RIGHT','Move Right');
 define('TEXT_MOVE_UP','Move Up');
-define('TEXT_NA','N/A'); // not applicable
+if (!defined('TEXT_NA')) define('TEXT_NA','N/A'); // not applicable
 define('TEXT_NEXT','Next');
 define('TEXT_NO','No');
 define('TEXT_NO_DOCUMENTS','No documents have been found!');
@@ -219,7 +219,7 @@ define('TEXT_PROFILE','Profile');
 define('TEXT_PROJECT','Project');
 define('TEXT_PROPERTIES','Properties');
 define('TEXT_PO_NUMBER', 'PO #');
-define('GEN_PRIMARY_NAME', 'Name/Company');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME', 'Name/Company'); // also defined in contacts/language.php
 define('TEXT_PURCH_ORDER','Purchase Orders');
 define('ORD_PURCHASE_TAX', 'Purchase Tax');
 define('TEXT_PURCHASE','Purchases');
@@ -322,7 +322,7 @@ define('TEXT_UP','Up');
 define('TEXT_UPDATE','Update');
 define('TEXT_URL','URL');
 define('GEN_USERNAME','Username');
-define('TEXT_USED','Used');
+if (!defined('TEXT_USED')) define('TEXT_USED','Used'); // also defined in assets/language.php
 define('TEXT_USERS','Users');
 define('TEXT_UTILITIES','Utilities');
 define('TEXT_VALUE', 'Value');

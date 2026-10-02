@@ -49,7 +49,7 @@ define('TEXT_COGS_ACCOUNT','Conta Custo Vendas');
 define('TEXT_INVENTORY_ACCOUNT','Conta Inventário');
 define('TEXT_INVENTORY_TYPES','Tipo Inventário');
 define('TEXT_SALES_ACCOUNT','Conta Vendas');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Contas Padrão Contabilidade Geral');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Contas Padrão Contabilidade Geral'); // also defined in phreebooks/admin.php, phreedom/admin.php
 define('INV_HEADING_FIELD_PROPERTIES','Tipo e Propriedades de Campo (Selecione Uma)');
 define('BOX_INV_ADMIN','Administração Inventário');
 define('MODULE_INVENTORY_DESCRIPTION','O Módulo Inventário contém todas as funcionalidades para armazenar e manipular produtos e serviços utilizados em sua empresa. Isto inclui itens para uso interno e externo e produtos vendidos. <b>ATENÇÃO: Este é um módulo central e não deve ser removido!</b>');

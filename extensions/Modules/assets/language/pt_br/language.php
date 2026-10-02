@@ -40,9 +40,9 @@ define('ASSETS_ENTRY_ASSETS_TYPE','Tipo Ativo');
 define('ASSETS_ENTRY_ASSET_TYPE','Entre o Tipo de Ativo');
 define('ASSETS_ENTER_ASSET_ID','Criar um Novo Ativo');
 define('ASSETS_HEADING_NEW_ITEM','Novo Ativo');
-define('TEXT_USED','Usado');
+if (!defined('TEXT_USED')) define('TEXT_USED','Usado'); // also defined in phreedom/language.php
 define('TEXT_VEHICLE','Veículo');
-define('TEXT_TABS','Abas');
+if (!defined('TEXT_TABS')) define('TEXT_TABS','Abas'); // also defined in phreedom/admin.php
 define('TEXT_SOFTWARE','Software');
 define('ASSETS_IMAGE_PATH_ERROR','Erro no caminho especificado para carregar a imagem!');
 define('ASSETS_IMAGE_FILE_TYPE_ERROR','Este arquivo não é uma imagem legível. Verifique se é realmente um JPEG, PNG ou GIF.');

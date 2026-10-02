@@ -16,9 +16,11 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/inventory/defaults.php
 //
-define('INVENTORY_DIR_ATTACHMENTS',  DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/attachments/');
-define('MAX_INVENTORY_SKU_LENGTH', 24); // database is currently set for a maximum of 24 characters
-define('MAX_NUM_PRICE_LEVELS', 5);
+// Pages that need this file's arrays re-run it with require, so the constants
+// are defined only the first time.
+if (!defined('INVENTORY_DIR_ATTACHMENTS')) define('INVENTORY_DIR_ATTACHMENTS',  DIR_FS_MY_FILES . $_SESSION['company'] . '/inventory/attachments/');
+if (!defined('MAX_INVENTORY_SKU_LENGTH'))  define('MAX_INVENTORY_SKU_LENGTH', 24); // database is currently set for a maximum of 24 characters
+if (!defined('MAX_NUM_PRICE_LEVELS'))      define('MAX_NUM_PRICE_LEVELS', 5);
 // the inventory type indexes should not be changed or the inventory module won't work.
 // system generated types (not to be displayed are: ai - assembly item, mi - master stock with attributes)
 $inventory_types = array(
@@ -69,7 +71,7 @@ $price_mgr_adjustments = array(
   '3' => TEXT_INC_AMT,
   '4' => TEXT_INC_PCNT,
   '5' => TEXT_MARK_UP_BY_PERCENT, // Mark up by Percent
-  '6' => TEXT_MARGIN, // Margin by Percent
+  '6' => INV_TEXT_MARGIN_BY_PERCENT,
   '7' => TEXT_TIERED_PRICING, // tiered pricing
 );
 $price_mgr_rounding = array(

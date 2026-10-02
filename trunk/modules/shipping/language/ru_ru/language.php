@@ -11,14 +11,14 @@
 define('HEADING_TITLE_MODULES_SHIPPING','Службы доставки');
 define('SHIPPING_HEADING_SHIP_MGR','Управление модулями доставки');
 define('TEXT_SHIPPING_MODULES_AVAILABLE','Shipping Methods Available');
-define('TEXT_PRODUCTION','Production');
+if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Production'); // also defined in payment/admin.php
 if (!defined('TEXT_TEST')) define('TEXT_TEST','Тест'); // phreedom's language.php also defines this (untranslated 'Test'), loaded first — its value already wins today, guarding just removes the warning
 define('TEXT_PDF','PDF');
 define('TEXT_GIF','GIF');
 define('TEXT_THERMAL','Thermal');
 define('TEXT_PAGKAGE_DEFAULTS','Package Defaults');
 define('TEXT_SHIPMENT_DEFAULTS','Shipment Defaults');
-define('TEXT_REMOVE_MESSAGE','Are you sure you want to remove this module and all the data associated with it?');
+define('SHIPPING_TEXT_REMOVE_MESSAGE','Are you sure you want to remove this module and all the data associated with it?');
 define('SHIPPING_BUTTON_CREATE_LOG_ENTRY','Create a Shipment Entry');
 define('SHIPPING_SET_BY_SYSTEM',' (Set by the system)');
 define('SHIPPING_POPUP_WINDOW_TITLE','Shipping Rate Estimator');
@@ -173,7 +173,6 @@ define('SHIPPING_RET_LOCAL','Print Local Return Label');
 define('SHIPPING_RET_MAILS','Carrier Prints and Mails Return Label');
 define('SHIPPING_SENDER','Отправитель');
 define('SHIPPING_RECEIPIENT','Receipient');
-if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Третья сторона'); // this file defines it twice (identical text) — guarding just removes the redefinition warning
 define('SHIPPING_COLLECT','Collect');
 
 // Shipping Packages page

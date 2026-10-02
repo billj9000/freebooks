@@ -10,19 +10,19 @@
 define('ACT_POPUP_WINDOW_TITLE','Account Zoeken');
 define('ACT_POPUP_TERMS_WINDOW_TITLE','Betalingsregels');
 define('ACT_CATEGORY_I_ADDRESS','Toevoegen/Bewerk Contact');
-define('TEXT_BUYER','Koper');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Koper'); // also defined in phreebooks/language.php
 define('ACT_SHORT_NAME','Contact ID');
 define('TEXT_CONTACTS','Contacten');
-define('TEXT_EMPLOYEE','Medewerker');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Medewerker'); // also defined in contacts/admin.php, contacts/menu.php
 define('TEXT_LINK_TO','Link naar:');
 define('TEXT_NEW_CONTACT','Nieuw Contact');
-define('TEXT_SALES_REP','Verkoper');
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Verkoper'); // also defined in phreebooks/language.php
 define('TEXT_COPY_ADDRESS','Kopieer Adres');
 define('TEXT_NEW_CALL','Nieuw Gesprek');
 define('TEXT_RETURN_CALL','Terug Gebeld');
 define('TEXT_FOLLOW_UP_CALL','Vervolg Gesprek');
 define('TEXT_NEW_LEAD','Nieuwe Aanwijzing');
-define('GEN_PRIMARY_NAME','Naam/Bedrijf');
+if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Naam/Bedrijf'); // also defined in phreedom/language.php
 define('GEN_EMPLOYEE_NAME','Medewerker Naam');
 define('GEN_CONTACT','Attentie');
 define('GEN_ADDRESS1','Adres1');
@@ -128,7 +128,6 @@ define('ACT_TERMS_USE_DEFAULTS','Gebruik standaard leveringsregelement');
 define('ACT_COD_SHORT','Remb.');
 define('ACT_COD_LONG','Rembours');
 define('ACT_PREPAID','Vooraf betalen.');
-define('ACT_SPECIAL_TERMS','Vervalt met aantal dagen');
 define('ACT_END_OF_MONTH','Vervalt einde van de maand');
 define('ACT_DAY_NEXT_MONTH','Vervalt op een speciale datum');
 define('ACT_DUE_ON','Vervalt op: ');

@@ -37,8 +37,8 @@ define('ZENCART_CATALOG_ADD','Allow upload to ZenCart Catalog');
 // Stored in xtra_fields.description (varchar(64)) — keep these at or under 64 chars.
 define('ZENCART_CATALOG_CATEGORY_ID',"ZenCart - category ID. Must match Zen Cart's category.");
 define('ZENCART_CATALOG_MANUFACTURER',"ZenCart - manufacturer. Must match Zen Cart's manufacturer.");
-define('ZENCART_CATALOG_URL','ZenCart - product URL.');
-define('ZENCART_CATALOG_MODEL','ZenCart - product model.');
+if (!defined('ZENCART_CATALOG_URL')) define('ZENCART_CATALOG_URL','ZenCart - product URL.'); // also defined in zencart/language.php
+if (!defined('ZENCART_CATALOG_MODEL')) define('ZENCART_CATALOG_MODEL','ZenCart - product model.'); // also defined in zencart/language.php
 define('ZENCART_CATALOG_DESCRIPTION','ZenCart - HTML long product description.');
 define('ZENCART_LBL_CATCH_ALL_ACCT','Catch-all customer contact ID for orders where email cannot be matched or a new customer cannot be created (0 = skip such orders)');
 define('ZENCART_LBL_DEFAULT_TAX','Fallback tax rate ID when ZenCart\'s item tax % cannot be matched in the Tax Rates table (0 = untaxed)');

@@ -69,7 +69,7 @@ define('EXTRA_FIELDS_LOG','Extra Velden (%s)');
 define('EXTRA_TABS_DELETE_ERROR','Dit tabblad naam bestaat al, gebruik dan een andere naam.');
 define('EXTRA_TABS_DELETE_INTRO','Weet u zeker dat u deze tabblad te verwijderen? \\n Tabbladen kunnen niet worden verwijderd als er een veld gebruik maakt van het tabblad.');
 define('INV_INFO_HEADING_EDIT_CATEGORY','Bewerk Tabblad');
-define('TEXT_NEW_FIELD','Nieuw Veld');
+if (!defined('TEXT_NEW_FIELD')) define('TEXT_NEW_FIELD','Nieuw Veld'); // also defined in assets/admin.php
 define('INV_INFO_HEADING_NEW_CATEGORY','Nieuw Tabblad');
 define('INV_EDIT_INTRO','Maak de nodige wijzigingen');
 define('EXTRA_TABS_INSERT_INTRO','Vul de nieuwe tabblad eigenschappen in');
@@ -281,14 +281,14 @@ define('TEXT_TABLE_STATS','Tabel Statistieken');
 define('IE_HEADING_TITLE','Import/Export Informatie');
 define('HEADING_MODULE_IMPORT','Module Data Import/Export');
 define('TEXT_REQUIRED','VEREIST');
-define('TEXT_TABS','Tabbladen');
+if (!defined('TEXT_TABS')) define('TEXT_TABS','Tabbladen'); // also defined in assets/language.php
 define('TEXT_LEGEND','Legenda');
 define('TEXT_DEBUG','Debug en Troubleshooting');
 define('TEXT_LOCAL','lokaal');
 define('TEXT_EXTRA_FIELDS','Speciale Velden');
 define('TEXT_EXTRA_TABS','Speciale Tabbladen');
 define('MENU_HEADING_EMAIL','Email Voorkeuren');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen'); // also defined in inventory/admin.php, phreebooks/admin.php
 define('MENU_HEADING_CONFIG','Configuratie');
 define('MENU_HEADING_MY_COMPANY','Mijn Bedrijf');
 define('INV_LABEL_CHECK_BOX_FIELD','Check Box (Ja of Nee)');

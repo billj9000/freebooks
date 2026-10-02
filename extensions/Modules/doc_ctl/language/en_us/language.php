@@ -46,7 +46,7 @@ define('TEXT_OWNER','Owner');
 define('TEXT_PATH','Path');
 define('TEXT_RECENTLY_ADDED','Recently Added Documents');
 define('TEXT_REMOVE_BOOKMARK','Remove Bookmark');
-define('TEXT_REVISION','Revision');
+if (!defined('TEXT_REVISION')) define('TEXT_REVISION','Revision'); // also defined in inventory/language.php, work_orders/language.php
 define('TEXT_THUMBNAIL','Thumbnail');
 define('TEXT_UNLOCK_DOC','Unlock Document');
 define('TEXT_UPLOAD_FILE','Upload Revision');

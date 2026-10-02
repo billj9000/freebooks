@@ -14,7 +14,7 @@ define('BOX_INV_ADMIN','Управление модулем');
 define('INV_TABS_HEADING_TITLE','Пользовательские Табы');
 define('INV_FIELDS_HEADING_TITLE','Пользовательские поля');
 define('INV_HEADING_FIELD_PROPERTIES','Тип поля и свойства (выберите один)');
-define('TEXT_DEFAULT_GL_ACCOUNTS','Счет главной книги по умолчанию');
+if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Счет главной книги по умолчанию'); // also defined in phreebooks/admin.php, phreedom/admin.php
 define('TEXT_INVENTORY_TYPES','Тип единицы');
 define('TEXT_SALES_ACCOUNT','Счет главной книги(продажи)');
 define('TEXT_INVENTORY_ACCOUNT','Счет главной книги(склад)');
