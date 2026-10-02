@@ -242,6 +242,7 @@ define('GL_DELETE_GL_ROW','Are you sure you want to delete this journal row?');
 define('GL_DELETE_ALERT','Are you sure you want to delete this journal entry?');
 define('GL_ERROR_DIED_CREATING_RECORD','Died trying to build a journal entry with id = ');
 define('GL_ERROR_POSTING_CHART_BALANCES','Error posting chart of account balances to account id: ');
+define('GL_ERROR_NO_SUCH_ACCOUNT','This entry posts to a general ledger account that is not in the chart of accounts (%s). Choose an account for every line and save again.');
 define('GL_ERROR_OUT_OF_BALANCE_A','Trial balance is out of balance. Debits: ');
 define('GL_ERROR_OUT_OF_BALANCE_B',' and credits: ');
 define('GL_ERROR_OUT_OF_BALANCE_C',' in period ');

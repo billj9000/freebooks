@@ -227,6 +227,17 @@ function fillOrder(xml) {
 	    document.getElementById(tagName).style.color = '';
 	  }
 	});
+    // An order saved without its own account - every one imported, and some
+    // entered - would load a blank here and post its total to no account, which
+    // the ledger refuses. Its total row's account is the right one; failing that,
+    // the form's default.
+    if (document.getElementById('gl_acct_id') && !document.getElementById('gl_acct_id').value) {
+      var ttlAcct = '';
+      Array.from(orderData.getElementsByTagName("Item")).forEach(function(item) {
+        if (xmlText(item, "gl_type") == 'ttl' && xmlText(item, "gl_account")) ttlAcct = xmlText(item, "gl_account");
+      });
+      document.getElementById('gl_acct_id').value = ttlAcct || default_GL_acct;
+    }
     // fix some special cases, checkboxes, and active fields
     insertValue('bill_to_select', xmlText(orderData, "bill_address_id"));
     insertValue('ship_to_select', xmlText(orderData, "ship_address_id"));

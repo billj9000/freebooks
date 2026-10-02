@@ -106,6 +106,7 @@ define('GL_ERROR_UPDATING_ACCOUNT_HISTORY','Erro atualizando histórico conta cl
 define('GL_ERROR_DELETING_ACCOUNT_HISTORY','Erro removendo registro de histórico conta cliente/fornecedor');
 define('GL_ERROR_TRIAL_BALANCE','Balancete Geral não bate (Usualmente pode ser acertado com o reenvio da transação). Débitos = %s e créditos = %s no período %s');
 define('GL_ERROR_POSTING_CHART_BALANCES','Erro enviando carta de saldos de contas para a conta id: ');
+define('GL_ERROR_NO_SUCH_ACCOUNT','Este lançamento usa uma conta contábil que não está no plano de contas (%s). Escolha uma conta para cada linha e salve novamente.');
 define('GL_DELETE_ALERT','Tem certeza de que quer remover este lançamento de diário?');
 define('GL_ERROR_DIED_CREATING_RECORD','Problema tentando construir um lançamento de diário com id = ');
 define('GL_DELETE_GL_ROW','Tem certeza de que quer remover esta linha de diário?');

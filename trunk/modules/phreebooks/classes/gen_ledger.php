@@ -305,6 +305,21 @@ class journal {
 		    $this->affected_accounts[$value['gl_account']] = 1;
 		  }
 		}
+		// Every amount posts to an account in the chart. One that is blank or not
+		// there would be given a balance row of its own below, out of sight of the
+		// chart, the reports and the trial balance - money moved where nobody can
+		// see it. Refused instead, which rolls the whole entry back.
+		if (!empty($accounts)) {
+		  $known = array();
+		  $found = $db->Execute("SELECT id FROM " . TABLE_CHART_OF_ACCOUNTS . " WHERE id IN ('"
+		    . implode("','", array_map('db_input', array_map('strval', array_keys($accounts)))) . "')");
+		  while (!$found->EOF) { $known[(string)$found->fields['id']] = true; $found->MoveNext(); }
+		  foreach ($accounts as $gl_acct => $values) {
+		    if (!isset($known[(string)$gl_acct])) {
+		      return $this->fail_message(sprintf(GL_ERROR_NO_SUCH_ACCOUNT, (string)$gl_acct === '' ? TEXT_NOT_SPECIFIED : $gl_acct));
+		    }
+		  }
+		}
 		if (!empty($accounts)) foreach ($accounts as $gl_acct => $values) {
 		  if  (round($values['credit'], $precision) <> 0 || round($values['debit'], $precision) <> 0) {
 		    $sql = "UPDATE " . TABLE_CHART_OF_ACCOUNTS_HISTORY . " SET 
