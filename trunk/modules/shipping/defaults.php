@@ -18,7 +18,7 @@
 //  Path: /modules/shipping/defaults.php
 //
 
-if (defined('DIR_FS_WORKING')) define('DEFAULT_MOD_DIR', DIR_FS_WORKING . 'methods/');
+if (defined('DIR_FS_WORKING') && !defined('DEFAULT_MOD_DIR')) define('DEFAULT_MOD_DIR', DIR_FS_WORKING . 'methods/');
 if (!empty($_SESSION['company'])) {
     define('SHIPPING_DEFAULT_LABEL_DIR', DIR_FS_MY_FILES . $_SESSION['company'] . '/shipping/labels/');
     define('SHIPPING_DEFAULT_LABEL_WS',  DIR_WS_MY_FILES . $_SESSION['company'] . '/shipping/labels/');

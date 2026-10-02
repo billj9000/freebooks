@@ -24,19 +24,21 @@ $locale = (defined('LOCALE') && LOCALE <> '') ? LOCALE : 'en_US';
 setlocale(LC_ALL, $locale.'.UTF-8');
 setlocale(LC_CTYPE, 'C');
 
-define('DEFAULT_THEME','default');
-define('DEFAULT_MENU','top');
-define('DEFAULT_COLORS','start');
-define('MAX_CP_COLUMNS', 3); // set the maximum number of dashboard columns
-define('LOGIN_MAX_ATTEMPTS',    5);  // failed logins before lockout
-define('LOGIN_LOCKOUT_MINUTES', 15); // lockout duration
-define('PW_RESET_TTL_MIN',      60); // password-reset link lifetime (minutes)
-define('PW_RESET_COOLDOWN_MIN',  5); // min minutes between reset emails for one account (anti-flood)
-define('VERSION_CHECK_URL','http://www.phreesoft.com/revisions.xml');
-define('MAX_IMPORT_CSV_ITEMS',5); // for importing linked tables if possible with csv
-define('DEFAULT_TEXT_LENGTH', '32');
-define('DEFAULT_REAL_DISPLAY_FORMAT', '10,2');
-define('DEFAULT_INPUT_FIELD_LENGTH', 120);
+// The Forms pages re-run this file with require for $DateChoices, so the
+// constants are defined only the first time.
+if (!defined('DEFAULT_THEME')) define('DEFAULT_THEME','default');
+if (!defined('DEFAULT_MENU')) define('DEFAULT_MENU','top');
+if (!defined('DEFAULT_COLORS')) define('DEFAULT_COLORS','start');
+if (!defined('MAX_CP_COLUMNS')) define('MAX_CP_COLUMNS', 3); // set the maximum number of dashboard columns
+if (!defined('LOGIN_MAX_ATTEMPTS')) define('LOGIN_MAX_ATTEMPTS',    5);  // failed logins before lockout
+if (!defined('LOGIN_LOCKOUT_MINUTES')) define('LOGIN_LOCKOUT_MINUTES', 15); // lockout duration
+if (!defined('PW_RESET_TTL_MIN')) define('PW_RESET_TTL_MIN',      60); // password-reset link lifetime (minutes)
+if (!defined('PW_RESET_COOLDOWN_MIN')) define('PW_RESET_COOLDOWN_MIN',  5); // min minutes between reset emails for one account (anti-flood)
+if (!defined('VERSION_CHECK_URL')) define('VERSION_CHECK_URL','http://www.phreesoft.com/revisions.xml');
+if (!defined('MAX_IMPORT_CSV_ITEMS')) define('MAX_IMPORT_CSV_ITEMS',5); // for importing linked tables if possible with csv
+if (!defined('DEFAULT_TEXT_LENGTH')) define('DEFAULT_TEXT_LENGTH', '32');
+if (!defined('DEFAULT_REAL_DISPLAY_FORMAT')) define('DEFAULT_REAL_DISPLAY_FORMAT', '10,2');
+if (!defined('DEFAULT_INPUT_FIELD_LENGTH')) define('DEFAULT_INPUT_FIELD_LENGTH', 120);
 
 // used to build pull downs for filtering
 $DateChoices = array(

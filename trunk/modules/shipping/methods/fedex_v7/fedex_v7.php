@@ -55,16 +55,16 @@ if (defined('MODULE_SHIPPING_FEDEX_V7_GDF')) define('fedex_v7_GndFrt',MODULE_SHI
 if (defined('MODULE_SHIPPING_FEDEX_V7_ECF')) define('fedex_v7_EcoFrt',MODULE_SHIPPING_FEDEX_V7_ECF);
 // FedEx WSDL paths
 define('MODULE_SHIPPING_FEDEX_RATE_WSDL_VERSION','10');
-define('PATH_TO_TEST_RATE_WSDL',  DIR_FS_WORKING . 'methods/fedex_v7/TestRateService_v10.wsdl');
-define('PATH_TO_RATE_WSDL',       DIR_FS_WORKING . 'methods/fedex_v7/RateService_v10.wsdl');
+define('FEDEX_V7_PATH_TO_TEST_RATE_WSDL',  DIR_FS_WORKING . 'methods/fedex_v7/TestRateService_v10.wsdl');
+define('FEDEX_V7_PATH_TO_RATE_WSDL',       DIR_FS_WORKING . 'methods/fedex_v7/RateService_v10.wsdl');
 
 define('MODULE_SHIPPING_FEDEX_SHIP_WSDL_VERSION','10');
-define('PATH_TO_TEST_SHIP_WSDL',  DIR_FS_WORKING . 'methods/fedex_v7/TestShipService_v10.wsdl');
-define('PATH_TO_SHIP_WSDL',       DIR_FS_WORKING . 'methods/fedex_v7/ShipService_v10.wsdl');
+define('FEDEX_V7_PATH_TO_TEST_SHIP_WSDL',  DIR_FS_WORKING . 'methods/fedex_v7/TestShipService_v10.wsdl');
+define('FEDEX_V7_PATH_TO_SHIP_WSDL',       DIR_FS_WORKING . 'methods/fedex_v7/ShipService_v10.wsdl');
 
-define('PATH_TO_TEST_CLOSE_WSDL', DIR_FS_WORKING . 'methods/fedex_v7/TestCloseService_v2.wsdl');
-define('PATH_TO_TRACK_WSDL',      DIR_FS_WORKING . 'methods/fedex_v7/TrackService_v4.wsdl');
-define('PATH_TO_CLOSE_WSDL',      DIR_FS_WORKING . 'methods/fedex_v7/CloseService_v2.wsdl');
+define('FEDEX_V7_PATH_TO_TEST_CLOSE_WSDL', DIR_FS_WORKING . 'methods/fedex_v7/TestCloseService_v2.wsdl');
+define('FEDEX_V7_PATH_TO_TRACK_WSDL',      DIR_FS_WORKING . 'methods/fedex_v7/TrackService_v4.wsdl');
+define('FEDEX_V7_PATH_TO_CLOSE_WSDL',      DIR_FS_WORKING . 'methods/fedex_v7/CloseService_v2.wsdl');
 ini_set("soap.wsdl_cache_enabled", "0");
 // guaranteed time delivery times
 define('GUAR_TIME_A1','08:00:00'); // First Overnight
@@ -264,9 +264,9 @@ class fedex_v7 {
 	}
 
 	if (MODULE_SHIPPING_FEDEX_V7_TEST_MODE == 'Test') {
-	  $client = new SoapClient(PATH_TO_TEST_RATE_WSDL, array('trace' => 1));
+	  $client = new SoapClient(FEDEX_V7_PATH_TO_TEST_RATE_WSDL, array('trace' => 1));
 	} else {
-	  $client = new SoapClient(PATH_TO_RATE_WSDL, array('trace' => 1));
+	  $client = new SoapClient(FEDEX_V7_PATH_TO_RATE_WSDL, array('trace' => 1));
 	}
 	// fisrt check if small package
 	if ($pkg->split_large_shipments || ($pkg->num_packages == 1 && $pkg->pkg_weight <= FEDEX_V7_MAX_SINGLE_BOX_WEIGHT)) {
@@ -513,9 +513,9 @@ class fedex_v7 {
 		  return false;
 		}
 		if (MODULE_SHIPPING_FEDEX_V7_TEST_MODE == 'Test') {
-			$client = new SoapClient(PATH_TO_TEST_SHIP_WSDL, array('trace' => 1));
+			$client = new SoapClient(FEDEX_V7_PATH_TO_TEST_SHIP_WSDL, array('trace' => 1));
 		} else {
-			$client = new SoapClient(PATH_TO_SHIP_WSDL, array('trace' => 1));
+			$client = new SoapClient(FEDEX_V7_PATH_TO_SHIP_WSDL, array('trace' => 1));
 		}
 		for ($key = 0; $key < count($sInfo->package); $key++) {
 		  $labels = array();
@@ -944,9 +944,9 @@ class fedex_v7 {
 	}
 	$result = array();
 	if (MODULE_SHIPPING_FEDEX_V7_TEST_MODE == 'Test') {
-	  $client = new SoapClient(PATH_TO_TEST_SHIP_WSDL, array('trace' => 1));
+	  $client = new SoapClient(FEDEX_V7_PATH_TO_TEST_SHIP_WSDL, array('trace' => 1));
 	} else {
-	  $client = new SoapClient(PATH_TO_SHIP_WSDL, array('trace' => 1));
+	  $client = new SoapClient(FEDEX_V7_PATH_TO_SHIP_WSDL, array('trace' => 1));
 	}
 	  $request = $this->FormatFedExDeleteRequest($method, $tracking_number);
 //echo 'request = '; print_r($request); echo '<br />';  
@@ -1020,7 +1020,7 @@ class fedex_v7 {
 			$messageStack->add('Tracking only works on the FedEx production server!','error');
 			return false;
 		} else {
-			$client = new SoapClient(PATH_TO_TRACK_WSDL, array('trace' => 1));
+			$client = new SoapClient(FEDEX_V7_PATH_TO_TRACK_WSDL, array('trace' => 1));
 		}
 		if ($log_id) {
 			$shipments  = $db->Execute("select id, ref_id, deliver_date, actual_date, tracking_id, notes 
@@ -1128,9 +1128,9 @@ class fedex_v7 {
 	function closeFedEx($close_date = '', $report_only = false, $report_type = 'MANIFEST') {
 		global $messageStack;
 		if (MODULE_SHIPPING_FEDEX_V7_TEST_MODE == 'Test') {
-			$client = new SoapClient(PATH_TO_TEST_CLOSE_WSDL, array('trace' => 1));
+			$client = new SoapClient(FEDEX_V7_PATH_TO_TEST_CLOSE_WSDL, array('trace' => 1));
 		} else {
-			$client = new SoapClient(PATH_TO_CLOSE_WSDL, array('trace' => 1));
+			$client = new SoapClient(FEDEX_V7_PATH_TO_CLOSE_WSDL, array('trace' => 1));
 		}
 		$today = date('c');
 		if (!$close_date) $close_date = $today;

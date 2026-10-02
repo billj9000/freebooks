@@ -17,7 +17,7 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/pages/popup_shipping/pre_process.php
 //
-define('DEFAULT_MOD_DIR', DIR_FS_MODULES . 'shipping/methods/');
+if (!defined('DEFAULT_MOD_DIR')) define('DEFAULT_MOD_DIR', DIR_FS_MODULES . 'shipping/methods/');
 $security_level = validate_user(0, true);
 /**************  include page specific files  *********************/
 gen_pull_language('contacts');

@@ -53,7 +53,7 @@ if (defined('MODULE_SHIPPING_ENDICIA_3DS')) define('endicia_3Dpm',  MODULE_SHIPP
 define('MODULE_SHIPPING_ENDICIA_WSDL_URL','https://LabelServer.Endicia.com/LabelService/EwsLabelService.asmx?WSDL'); // Production Server
 define('MODULE_SHIPPING_ENDICIA_TEST_WSDL_URL','https://www.envmgr.com/LabelService/EwsLabelService.asmx?WSDL'); // Test Server
 define('MODULE_SHIPPING_ENDICIA_ELS_URL', 'https://www.endicia.com/ELS/ELSServices.cfc?wsdl');
-define('MODULE_SHIPPING_USPS_TRACKING_URL','https://tools.usps.com/go/TrackConfirmAction_input?tracking=');
+if (!defined('MODULE_SHIPPING_USPS_TRACKING_URL')) define('MODULE_SHIPPING_USPS_TRACKING_URL','https://tools.usps.com/go/TrackConfirmAction_input?tracking=');
 define('MODULE_SHIPPING_ENDICIA_DIAL_A_ZIP_URL','http://www.dial-a-zip.com/XML-Dial-A-ZIP/DAZService.asmx/MethodZIPValidate');
 
 class endicia {

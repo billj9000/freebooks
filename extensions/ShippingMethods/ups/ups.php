@@ -51,16 +51,16 @@ define('ups_I3D',   MODULE_SHIPPING_UPS_XPD);
 define('ups_IGND',  MODULE_SHIPPING_UPS_STD);
 //define('ups_GndFrt',MODULE_SHIPPING_UPS_GDF);
 // UPS WSDL paths
-//define('PATH_TO_TEST_RATE_WSDL',  DIR_FS_WORKING . 'methods/ups/TestRateService_v7.wsdl');
-//define('PATH_TO_TEST_SHIP_WSDL',  DIR_FS_WORKING . 'methods/ups/TestShipService_v7.wsdl');
-//define('PATH_TO_TEST_CLOSE_WSDL', DIR_FS_WORKING . 'methods/ups/TestCloseService_v2.wsdl');
-define('PATH_TO_RATE_WSDL',       DIR_FS_WORKING . 'methods/ups/RateWS.wsdl');
-define('PATH_TO_LTL_RATE_WSDL',   DIR_FS_WORKING . 'methods/ups/FreightRate.wsdl');
-define('PATH_TO_SHIP_WSDL',       DIR_FS_WORKING . 'methods/ups/Ship.wsdl');
-define('PATH_TO_LTL_SHIP_WSDL',   DIR_FS_WORKING . 'methods/ups/FreightShip.wsdl');
-define('PATH_TO_VOID_WSDL',       DIR_FS_WORKING . 'methods/ups/Void.wsdl');
-//define('PATH_TO_TRACK_WSDL',      DIR_FS_WORKING . 'methods/ups/TrackService_v4.wsdl');
-//define('PATH_TO_CLOSE_WSDL',      DIR_FS_WORKING . 'methods/ups/CloseService_v2.wsdl');
+//define('UPS_PATH_TO_TEST_RATE_WSDL',  DIR_FS_WORKING . 'methods/ups/TestRateService_v7.wsdl');
+//define('UPS_PATH_TO_TEST_SHIP_WSDL',  DIR_FS_WORKING . 'methods/ups/TestShipService_v7.wsdl');
+//define('UPS_PATH_TO_TEST_CLOSE_WSDL', DIR_FS_WORKING . 'methods/ups/TestCloseService_v2.wsdl');
+define('UPS_PATH_TO_RATE_WSDL',       DIR_FS_WORKING . 'methods/ups/RateWS.wsdl');
+define('UPS_PATH_TO_LTL_RATE_WSDL',   DIR_FS_WORKING . 'methods/ups/FreightRate.wsdl');
+define('UPS_PATH_TO_SHIP_WSDL',       DIR_FS_WORKING . 'methods/ups/Ship.wsdl');
+define('UPS_PATH_TO_LTL_SHIP_WSDL',   DIR_FS_WORKING . 'methods/ups/FreightShip.wsdl');
+define('UPS_PATH_TO_VOID_WSDL',       DIR_FS_WORKING . 'methods/ups/Void.wsdl');
+//define('UPS_PATH_TO_TRACK_WSDL',      DIR_FS_WORKING . 'methods/ups/TrackService_v4.wsdl');
+//define('UPS_PATH_TO_CLOSE_WSDL',      DIR_FS_WORKING . 'methods/ups/CloseService_v2.wsdl');
 ini_set("soap.wsdl_cache_enabled", "0");
 
 class ups {
@@ -621,7 +621,7 @@ class ups {
 /* The LTL needs debugging, UPS doesn't support PHP and doesn't provide examples for their web services, gotta love them
 	  // now check Ground LTL
       if ($pkg->pkg_weight >= 150) {
-	    $client = new SoapClient(PATH_TO_LTL_RATE_WSDL, array('trace' => 1));
+	    $client = new SoapClient(UPS_PATH_TO_LTL_RATE_WSDL, array('trace' => 1));
 	    $strXML = $this->FormatLTLRateRequest($pkg);
 	    try {
 echo 'UPS LTL Freight XML Submit String:<pre>' . ($strXML) . '</pre><br />';
