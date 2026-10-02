@@ -116,7 +116,7 @@ else { define('DIR_WS_ICONS', 'themes/default/icons/'); } // use default
 $messageStack = new messageStack;
 $toolbar      = new toolbar;
 // determine what company to connect to
-$db_company = (isset($_SESSION['company'])) ? $_SESSION['company'] : ($_SESSION['companies'][$_POST['company']] ?? '');
+$db_company = (isset($_SESSION['company'])) ? $_SESSION['company'] : ($_SESSION['companies'][$_POST['company'] ?? ''] ?? '');
 // A password-reset link is clicked cold — often on a different device with a fresh session that has
 // no company list yet — so the reset flow names its company directly in the URL. basename() blocks
 // path traversal and the file_exists() check below still gates it to a real installed company.
