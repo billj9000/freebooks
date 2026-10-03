@@ -410,7 +410,6 @@
 		break;
 	  case '5': // Due at end of month
 		if ($terms[1] <> 0) {
-		} else {
 		  $result['long']  = ACT_DISCOUNT . $terms[1] . ACT_EARLY_DISCOUNT . ACT_DUE_IN . $terms[2] . ACT_TERMS_EARLY_DAYS;
 		  $result['short'] = $terms[1] . ACT_EARLY_DISCOUNT_SHORT . $terms[2] . ', ';
 		}
