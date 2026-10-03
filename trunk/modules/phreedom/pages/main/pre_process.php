@@ -37,15 +37,20 @@ if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a page opened from
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'validate':
-    $admin_name     = db_prepare_input($_POST['admin_name']);
-    $admin_pass     = db_prepare_input($_POST['admin_pass']);
-    $admin_company  = $_SESSION['companies'][$_POST['company']];
-    $admin_language = db_prepare_input($_POST['language']);
+    $admin_name     = db_prepare_input($_POST['admin_name'] ?? '');
+    $admin_pass     = db_prepare_input($_POST['admin_pass'] ?? '');
+    $admin_company  = $_SESSION['companies'][$_POST['company'] ?? ''] ?? '';
+    $admin_language = db_prepare_input($_POST['language'] ?? '');
+    // Without a listed company there is no database to check the user against, so it is a failed login.
+    if ($admin_company === '' || !isset($db) || !$db->db_connected) {
+      $messageStack->add(ERROR_WRONG_LOGIN, 'error');
+      $_REQUEST['action'] = 'login';
+      break;
+    }
     $sql = "select admin_id, admin_name, inactive, display_name, admin_email, admin_pass, account_id, admin_prefs, admin_security, failed_attempts, locked_until,
         (locked_until IS NOT NULL AND locked_until > UTC_TIMESTAMP()) AS is_locked
 		from " . TABLE_USERS . " where admin_name = '" . db_input($admin_name) . "'";
-	$result = false;
-    if ($db->db_connected) $result = $db->Execute($sql);
+	$result = $db->Execute($sql);
 	if (!$result || $admin_name <> $result->fields['admin_name'] || $result->fields['inactive']) {
       $error = true;
       $messageStack->add(ERROR_WRONG_LOGIN, 'error');
