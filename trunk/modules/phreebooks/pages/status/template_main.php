@@ -137,7 +137,7 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         $shipped      = $result->fields['shipment_id'];
         $date_shipped = substr($result->fields['ship_date'], 0, 10);
       }
-      $temp         = explode(':', $query_result->fields['shipper_code']);
+      $temp         = explode(':', $query_result->fields['shipper_code']) + array('', ''); // a code without a service has no second part
       $shipper_code = preg_replace('/[^a-z0-9_]/', '', strtolower($temp[0]));
       $ship_meth    = defined('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') ? constant('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') : $temp[0];
       $ship_srv     = defined($temp[0].'_'.$temp[1]) ? constant($temp[0].'_'.$temp[1]) : $temp[1];

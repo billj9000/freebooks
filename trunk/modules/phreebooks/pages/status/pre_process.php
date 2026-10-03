@@ -55,7 +55,7 @@ $date_today = date('Y-m-d');
 $custom_path = DIR_FS_WORKING . 'custom/pages/status/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'toggle':
     $id     = db_prepare_input($_POST['rowSeq']);
 	$result = $db->Execute("select waiting from " . TABLE_JOURNAL_MAIN . " where id = '" . db_input($id) . "'");
@@ -172,14 +172,14 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search = '';
 }
 
-if($_REQUEST['store_id']) $search .= " and store_id = '" . (int)$_REQUEST['store_id'] . "' ";
+if (!empty($_REQUEST['store_id'])) $search .= " and store_id = '" . (int)$_REQUEST['store_id'] . "' ";
 // J18/J20 share a journal_id across two account types; restrict the list to the
 // requested type via the contact it's billed to
 if (in_array(JOURNAL_ID, array(18, 20))) {
   $search .= " and bill_acct_id in (select id from " . TABLE_CONTACTS . " where type = '" . db_input($account_type) . "')";
 }
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 
 $query_raw    = "select " . implode(', ', $field_list) . " from " . TABLE_JOURNAL_MAIN . " 
 	where journal_id = " . JOURNAL_ID . $period_filter . $search . " order by $disp_order, purchase_invoice_id DESC";
