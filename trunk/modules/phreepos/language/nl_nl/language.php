@@ -1,10 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// Phreedom Language Translation File
-// Generated: 2011-11-27 05:02:36
-// Module/Method: phreepos
-// ISO Language: nl_nl
-// Version: 1.2
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // Path: /modules/phreepos/language/nl_nl/language.php
 
@@ -43,6 +42,7 @@ define('TEXT_SHOW_COUNT_HELP','Toon tel hulp');
 define('EXCEED_MAX_DISCOUNT','U heeft het maximum kortingspercentage van %s overschreden');
 define('POS_ERROR_CONTACT_REQUIRED','Deze verkoop heeft een klant nodig voordat deze kan worden opgeslagen.');
 define('POS_ERROR_POSTING','De verkoop kon niet in het grootboek worden geboekt. Er is niets opgeslagen.');
+define('POS_ERROR_OTHER_TRANS_INCOMPLETE','Kies een transactiesoort en een kassa, en vul een bedrag groter dan nul in. Er is niets opgeslagen.');
 define('EXCEED_MAX_DISCOUNT_SKU','U heeft het maximum kortingspercentage van %s overschreden voor artiekel %s');
 define('OTHER_OPTIONS','Overige Opties');
 define('POS_PRINT_OTHER','Print Andere Bon');

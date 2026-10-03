@@ -37,7 +37,7 @@ class other_transactions {
            if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
            $this->$key = db_prepare_input($value);
          }
-         $this->id = isset($_POST['sID'])? $_POST['sID'] : $_GET['sID'];
+         $this->id = $_POST['sID'] ?? $_GET['sID'] ?? '';
          // It goes into SQL: a whole number, or empty for a new record.
          $this->id = ctype_digit((string)$this->id) ? (string)$this->id : '';
          $this->store_ids = gen_get_store_ids();

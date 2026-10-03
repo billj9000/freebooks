@@ -47,13 +47,25 @@ if (file_exists($custom_path)) { include($custom_path); }
 	if ($security_level < 2) {
 	  $error .= ERROR_NO_PERMISSION;
 	}
-	$transaction->get_transaction_info($_POST['Other_trans_type']);
-	$tills->get_till_info($_POST['ot_till_id']);
 	// currency values (convert to DEFAULT_CURRENCY to store in db)
-	$order->currencies_code     = db_prepare_input($_POST['ot_currencies_code']);
+	$order->currencies_code     = db_prepare_input($_POST['ot_currencies_code'] ?? '');
 	// An exchange rate of zero is not a rate. Absent or zero means the home
 	// currency, and every amount below is divided by it.
 	$order->currencies_value    = (float)db_prepare_input($_POST['ot_currencies_value'] ?? '') ?: 1;
+	$amount = (float)$currencies->clean_value(db_prepare_input($_POST['ot_amount'] ?? ''), $order->currencies_code) / $order->currencies_value;
+	// Nothing is posted without a known transaction type, a known till and an amount to move.
+	if (!$error && (!$transaction->get_transaction_info($_POST['Other_trans_type'] ?? '') || empty($transaction->type)
+	    || !$tills->get_till_info($_POST['ot_till_id'] ?? '') || empty($tills->till_id) || !($amount > 0))) {
+	  $error .= POS_ERROR_OTHER_TRANS_INCOMPLETE;
+	}
+	if (!$error) {
+	// Post() reads these from the entry itself - the balance update chooses its work by journal_id -
+	// so they are set here as well as in the main record.
+	$order->journal_id = JOURNAL_ID;
+	$order->post_date  = date('Y-m-d');
+	$order->period     = CURRENT_ACCOUNTING_PERIOD;
+	$order->admin_id   = $_SESSION['admin_id'];
+	$order->store_id   = $tills->store_id;
 	// load journal main data	
 	$order->journal_main_array = array(
 		'period'              => CURRENT_ACCOUNTING_PERIOD,
@@ -64,31 +76,31 @@ if (file_exists($custom_path)) { include($custom_path); }
 		'purchase_invoice_id' => '',
 		'admin_id'            => $_SESSION['admin_id'],
 		'store_id'            => $tills->store_id,
-		'total_amount'		  => ($currencies->clean_value(db_prepare_input($_POST['ot_amount']), $order->currencies_code) / $order->currencies_value),
+		'total_amount'		  => $amount,
 	);
+	// The side a transaction does not use is zero: the amount columns are numbers.
 	switch($transaction->type){
 		case 'cash_in':
-			$credit_amount = '';
-			$debit_amount  = $currencies->clean_value(db_prepare_input($_POST['ot_amount']), $order->currencies_code) / $order->currencies_value;
-			$tills->adjust_balance($debit_amount);
+			$credit_amount = 0;
+			$debit_amount  = $amount;
 			break;
 		default:
-			$debit_amount  = '';
-			$credit_amount = $currencies->clean_value(db_prepare_input($_POST['ot_amount']), $order->currencies_code) / $order->currencies_value;
-			$tills->adjust_balance(-$credit_amount);
+			$debit_amount  = 0;
+			$credit_amount = $amount;
 	}
+	$ot_desc = db_prepare_input($_POST['ot_desc'] ?? '');
 	$order->journal_rows[] = array(
 			'id'            => '',
 			'qty'           => '1',
 			'gl_type'		=> 'ttl',
 			'gl_account'    => $tills->gl_acct_id,
-			'description'   => (db_prepare_input($_POST['ot_desc']) == '')? $transaction->description : db_prepare_input($_POST['ot_desc']),
+			'description'   => ($ot_desc == '') ? $transaction->description : $ot_desc,
 			'debit_amount'  => $debit_amount,
 			'credit_amount' => $credit_amount,
 			'post_date'     => date('Y-m-d'));
 	
 	if($transaction->type == 'expenses'){
-		$tax = $currencies->clean_value(db_prepare_input($_POST['ot_tax']), $order->currencies_code) / $order->currencies_value;
+		$tax = (float)$currencies->clean_value(db_prepare_input($_POST['ot_tax'] ?? ''), $order->currencies_code) / $order->currencies_value;
 		$tax_auths      = gen_build_tax_auth_array();
 		$order->journal_rows[] = array(
 			'id'            => '',
@@ -121,12 +133,20 @@ if (file_exists($custom_path)) { include($custom_path); }
 			'post_date'     => date('Y-m-d'));
 	}
 	
-	
-	// Post() answers true when it succeeded; $error carries message text.
-	// Post() reports its own reason through messageStack.
-	if (!$order->Post('insert', true)) $error .= POS_ERROR_POSTING;
+	// The till balance and the journal entry are one change: both are kept or neither is.
+	// Post() answers true when it succeeded and rolls back itself on its own failures.
+	$db->transStart();
+	$tills->adjust_balance($transaction->type == 'cash_in' ? $amount : -$amount);
+	if ($order->Post('insert', true)) {
+	  $db->transCommit();
+	} else {
+	  $db->transRollback();
+	  $error .= POS_ERROR_POSTING;
+	}
+	}
 	if ( DEBUG )           $messageStack->write_debug();
-						$xml .= "\t" . xmlEntry("action",			$_REQUEST['action']);
+$xml = '';
+						$xml .= "\t" . xmlEntry("action",			$_REQUEST['action'] ?? '');
 if ($error)  			$xml .= "\t" . xmlEntry("error", 			$error);
 //if ($order->errormsg)	$xml .= "\t" . xmlEntry("error", 			$order->errormsg);
 echo createXmlHeader() . $xml . createXmlFooter();

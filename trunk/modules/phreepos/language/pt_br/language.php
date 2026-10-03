@@ -1,10 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// Arquivo Tradução Idioma  Phreedom 
-// Generated: 2013-10-22 05:28:46
-// Module/Method: phreepos
-// ISO Language: pt_br
-// Version: 3.6
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // Path: /modules/phreepos/language/pt_br/language.php
 
@@ -42,6 +41,7 @@ define('TEXT_SHOW_COUNT_HELP','Mostrar auxílio contagem');
 define('EXCEED_MAX_DISCOUNT','Você excedeu o desconto máximo de %s porcento.');
 define('POS_ERROR_CONTACT_REQUIRED','Esta venda precisa de um cliente antes de poder ser guardada.');
 define('POS_ERROR_POSTING','A venda não pôde ser lançada no livro-razão. Nada foi guardado.');
+define('POS_ERROR_OTHER_TRANS_INCOMPLETE','Escolha um tipo de transação e um caixa, e informe um valor maior que zero. Nada foi guardado.');
 define('EXCEED_MAX_DISCOUNT_SKU','Você excedeu o desconto máximo de %s porcentoe para o SKU %s.');
 define('OTHER_OPTIONS','Outras Opções');
 define('POS_PRINT_OTHER','Imprimir Outro Cupom');

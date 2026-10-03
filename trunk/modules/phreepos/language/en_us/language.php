@@ -57,6 +57,7 @@ define('TEXT_SHOW_COUNT_HELP','Show count help');
 define('EXCEED_MAX_DISCOUNT','You have exceded the maximum discount of %s percentage.');
 define('POS_ERROR_CONTACT_REQUIRED','This sale needs a customer before it can be saved.');
 define('POS_ERROR_POSTING','The sale could not be posted to the ledger. Nothing was saved.');
+define('POS_ERROR_OTHER_TRANS_INCOMPLETE','Choose a transaction type and a till, and enter an amount greater than zero. Nothing was saved.');
 define('EXCEED_MAX_DISCOUNT_SKU','You have exceded the maximum discount of %s percentage for sku %s.');
 define('OTHER_OPTIONS','Other Options');
 define('POS_PRINT_OTHER','Print Other Receipt');
