@@ -1580,20 +1580,20 @@ function gen_db_date($raw_date = '', $separator = '/') {
 
   function history_filter($key=false, $defaults = array()) {
   	if (!$key) $key = $_GET['module'];
-  	if (!isset($_REQUEST['sf']))   $_REQUEST['sf']   = isset($_SESSION[$key]['sf'])   ? $_SESSION[$key]['sf']   : $defaults['sf'];
-  	if (!isset($_REQUEST['so']))   $_REQUEST['so']   = isset($_SESSION[$key]['so'])   ? $_SESSION[$key]['so']   : $defaults['so'];
+  	if (!isset($_REQUEST['sf']))   $_REQUEST['sf']   = isset($_SESSION[$key]['sf'])   ? $_SESSION[$key]['sf']   : ($defaults['sf'] ?? '');
+  	if (!isset($_REQUEST['so']))   $_REQUEST['so']   = isset($_SESSION[$key]['so'])   ? $_SESSION[$key]['so']   : ($defaults['so'] ?? '');
   	if (!isset($_REQUEST['list'])) $_REQUEST['list'] = isset($_SESSION[$key]['list']) ? $_SESSION[$key]['list'] : 1;
   	$_REQUEST['list'] = max(1, $_REQUEST['list']);
   	if (!isset($_REQUEST['search_text'])) $_REQUEST['search_text'] = isset($_SESSION[$key]['search']) ? $_SESSION[$key]['search'] : '';
   	if ( $_REQUEST['search_text'] == TEXT_SEARCH) $_REQUEST['search_text'] = '';
-  	if (!$_REQUEST['action'] && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search'; // if enter key pressed and search not blank
-  	if ( $_REQUEST['search_text'] <> '' && $_REQUEST['search_text'] <> $_SESSION[$key]['search']) $_REQUEST['list'] = 1;
+  	if (empty($_REQUEST['action']) && $_REQUEST['search_text'] <> '') $_REQUEST['action'] = 'search'; // if enter key pressed and search not blank
+  	if ( $_REQUEST['search_text'] <> '' && $_REQUEST['search_text'] <> ($_SESSION[$key]['search'] ?? '')) $_REQUEST['list'] = 1;
   	$_default_period = isset($_SESSION['admin_prefs']['default_period']) ? $_SESSION['admin_prefs']['default_period'] : CURRENT_ACCOUNTING_PERIOD;
   	if (!isset($_REQUEST['search_period'])) $_REQUEST['search_period']= isset($_SESSION[$key]['period'])? $_SESSION[$key]['period']: $_default_period;
   	if (!isset($_REQUEST['search_date']))   $_REQUEST['search_date']  = isset($_SESSION[$key]['date'])  ? $_SESSION[$key]['date']  : '';
-  	if ($_REQUEST['reset']) {
-  		$_REQUEST['sf']    = $defaults['sf'];
-  		$_REQUEST['so']    = $defaults['so'];
+  	if (!empty($_REQUEST['reset'])) {
+  		$_REQUEST['sf']    = $defaults['sf'] ?? '';
+  		$_REQUEST['so']    = $defaults['so'] ?? '';
   		$_REQUEST['list']  = 1;
   		$_REQUEST['search_text']  = '';
   		$_REQUEST['search_period']= CURRENT_ACCOUNTING_PERIOD;
@@ -1631,14 +1631,16 @@ function gen_db_date($raw_date = '', $separator = '/') {
   function html_heading_bar($heading_array, $extra_headings = array(TEXT_ACTION)) {
 	global $PHP_SELF;
 	$result = array();
-	$output .= html_hidden_field('sf', $_REQUEST['sf']) . chr(10);
-    $output .= html_hidden_field('so', ($_REQUEST['so'] == 'desc' ? 'desc' : 'asc') ) . chr(10);
+	$sort_field = $_REQUEST['sf'] ?? '';
+	$sort_order = $_REQUEST['so'] ?? '';
+	$output  = html_hidden_field('sf', $sort_field) . chr(10);
+    $output .= html_hidden_field('so', ($sort_order == 'desc' ? 'desc' : 'asc') ) . chr(10);
 	foreach ($heading_array as $key => $value) {
 	  if (!isset($result['disp_order'])) $result['disp_order'] = $key; // set the first key to the default
       $image_asc  = 'sort_asc_disabled.png';
       $image_desc = 'sort_desc_disabled.png';
-	  if ($value == $_REQUEST['sf'] || ($result['disp_order'] == $key && $_REQUEST['sf'] == '') ){
-	       if ($_REQUEST['so'] == 'desc'){
+	  if ($value == $sort_field || ($result['disp_order'] == $key && $sort_field == '') ){
+	       if ($sort_order == 'desc'){
 	           $result['disp_order'] = $key . ' DESC';
                $image_desc = 'sort_desc.png';
 	       }else{
@@ -1831,7 +1833,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 /**************************************************************************************************************/
 function validate_user($token = 0, $user_active = false) {
   global $messageStack;
-  $security_level = $_SESSION['admin_security'][$token];
+  $security_level = $_SESSION['admin_security'][$token] ?? 0; // no entry for this token means no access
   if (!in_array($security_level, array(1,2,3,4)) && !$user_active) { // not suppose to be here, bail
     $messageStack->add(ERROR_NO_PERMISSION, 'error');
     gen_redirect(html_href_link(FILENAME_DEFAULT, '', 'SSL'));
