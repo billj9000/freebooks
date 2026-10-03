@@ -20,6 +20,11 @@
 
 class orders extends journal {
  var $closed = '0';
+ // The order screen reads these before any order is loaded, so a new order declares them empty.
+ var $so_po_ref_id, $recur_frequency, $bill_acct_id, $bill_address_id, $bill_add_update, $bill_telephone1,
+     $bill_email, $terms, $terms_text, $item_count, $weight, $printed, $waiting, $purch_order_id,
+     $sales_order_num, $rep_id, $item_rows, $subtotal, $disc_percent, $discount, $sales_tax, $del_attach,
+     $total_amount;
 	
   function __construct() {
 	parent::__construct(); // initialize affected_accounts, post_ids, unpost_ids, cogs_entry
