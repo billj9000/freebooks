@@ -188,7 +188,13 @@ function fillBill(xml) {
     // fix some special cases, checkboxes, and active fields
 	var shipper_code = xmlText(bill, "shipper_code");
 	if (shipper_code && (journalID == '18' || (journalID == '20' && account_type == 'c'))) { // holds payment method for receipts and customer refunds
-	  document.getElementById('shipper_code').value = shipper_code;
+	  var method_list = document.getElementById('shipper_code');
+	  method_list.value = shipper_code;
+	  // A method no longer installed, or a label from an import, is shown as recorded rather than left unselected.
+	  if (method_list.selectedIndex < 0) {
+	    method_list.add(new Option(shipper_code, shipper_code));
+	    method_list.value = shipper_code;
+	  }
 	  activateFields();
 	  var payFields = xmlText(bill, "payment_fields");
 	  if (payFields) {
@@ -513,9 +519,10 @@ function updateTotalPrices() {
 function activateFields() {
   if (payments_installed) {
     var index = document.getElementById('shipper_code').selectedIndex;
+    // A recorded method that is not installed has no panel of fields.
     for (var i=0; i<document.getElementById('shipper_code').options.length; i++) {
-  	  document.getElementById('pm_'+i).style.visibility = 'hidden';
+  	  if (document.getElementById('pm_'+i)) document.getElementById('pm_'+i).style.visibility = 'hidden';
     }
-    document.getElementById('pm_'+index).style.visibility = '';
+    if (document.getElementById('pm_'+index)) document.getElementById('pm_'+index).style.visibility = '';
   }
 }
