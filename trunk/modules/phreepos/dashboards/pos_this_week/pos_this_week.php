@@ -29,7 +29,7 @@ class pos_this_week extends ctl_panel {
 		$contents = '';
 		$control  = '';
 		for($i=0; $i<=7; $i++){
-			if ('Mon'== strftime("%a", time()-($i * 24 * 60 * 60)) ){
+			if ('Mon'== date('D', time()-($i * 24 * 60 * 60)) ){
 				$a = $i;
 			} 
 		}

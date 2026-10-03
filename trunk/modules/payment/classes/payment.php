@@ -404,7 +404,7 @@ class payment {
   	$months = array();
   	for ($i = 1; $i < 13; $i++) {
   		$j = ($i < 10) ? '0' . $i : $i;
-  		$months[] = array('id' => sprintf('%02d', $i), 'text' => $j.'-'.strftime('%B',mktime(0,0,0,$i,1,2000)));
+  		$months[] = array('id' => sprintf('%02d', $i), 'text' => $j.'-'.date('F',mktime(0,0,0,$i,1,2000)));
   	}
   	return $months;
   }
@@ -413,7 +413,7 @@ class payment {
   	$years = array();
   	$today = getdate();
   	for ($i = $today['year']; $i < $today['year'] + 10; $i++) {
-  		$year = strftime('%Y',mktime(0,0,0,1,1,$i));
+  		$year = date('Y',mktime(0,0,0,1,1,$i));
   		$years[] = array('id' => $year, 'text' => $year);
   	}
   	return $years;

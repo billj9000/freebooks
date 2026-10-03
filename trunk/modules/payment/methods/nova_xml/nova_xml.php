@@ -119,11 +119,11 @@ class nova_xml extends payment {
     global $order;
     for ($i = 1; $i < 13; $i++) {
       $j = ($i < 10) ? '0' . $i : $i;
-      $expires_month[] = array('id' => sprintf('%02d', $i), 'text' => $j . '-' . strftime('%B',mktime(0,0,0,$i,1,2000)));
+      $expires_month[] = array('id' => sprintf('%02d', $i), 'text' => $j . '-' . date('F',mktime(0,0,0,$i,1,2000)));
     }
     $today = getdate();
     for ($i = $today['year']; $i < $today['year'] + 10; $i++) {
-      $expires_year[] = array('id' => strftime('%Y',mktime(0,0,0,1,1,$i)), 'text' => strftime('%Y',mktime(0,0,0,1,1,$i)));
+      $expires_year[] = array('id' => date('Y',mktime(0,0,0,1,1,$i)), 'text' => date('Y',mktime(0,0,0,1,1,$i)));
     }
     $selection = array(
 	  'id'     => $this->code,

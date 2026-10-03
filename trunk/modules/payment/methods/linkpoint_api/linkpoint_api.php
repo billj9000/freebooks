@@ -130,12 +130,12 @@ class linkpoint_api extends payment {
     global $order;
 
     for ($i=1; $i<13; $i++) {
-      $expires_month[] = array('id' => sprintf('%02d', $i), 'text' => strftime('%B',mktime(0,0,0,$i,1,2000)));
+      $expires_month[] = array('id' => sprintf('%02d', $i), 'text' => date('F',mktime(0,0,0,$i,1,2000)));
     }
 
     $today = getdate();
     for ($i = $today['year']; $i < $today['year'] + 10; $i++) {
-      $expires_year[] = array('id' => strftime('%Y',mktime(0,0,0,1,1,$i)), 'text' => strftime('%Y',mktime(0,0,0,1,1,$i)));
+      $expires_year[] = array('id' => date('Y',mktime(0,0,0,1,1,$i)), 'text' => date('Y',mktime(0,0,0,1,1,$i)));
     }
     $selection = array (
 	  'id'     => $this->code,
@@ -271,7 +271,7 @@ class linkpoint_api extends payment {
 				array (	'title' => MODULE_PAYMENT_CC_TEXT_CREDIT_CARD_NUMBER,
 						'field' => str_repeat('X', (strlen($this->cc_card_number) - 4)) . substr($this->cc_card_number, -4)	),
 				array (	'title' => MODULE_PAYMENT_CC_TEXT_CREDIT_CARD_EXPIRES,
-						'field' => strftime('%B, %Y', mktime(0, 0, 0, $this->field_2, 1, '20' . $this->field_3)))
+						'field' => date('F, Y', mktime(0, 0, 0, $this->field_2, 1, '20' . $this->field_3)))
 			));
 
 		return $confirmation;
