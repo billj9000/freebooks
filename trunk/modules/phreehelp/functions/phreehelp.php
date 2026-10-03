@@ -190,6 +190,7 @@ function retrieve_index() {
 	switch (count($element)) { // currently handles two levels deep
 	  case '1': $index_array[$element[0]]['doc_url']   = $index->fields['doc_url']; break;
 	  case '2':
+		$index_array[$element[0]]['children'][$element[1]]['id']        = $index->fields['id'];
 		$index_array[$element[0]]['children'][$element[1]]['doc_url']   = $index->fields['doc_url'];
 		$index_array[$element[0]]['children'][$element[1]]['doc_title'] = $element[1];
 		break;
