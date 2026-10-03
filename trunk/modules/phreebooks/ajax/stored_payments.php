@@ -1,9 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
-
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -33,12 +33,18 @@ if (!is_numeric($contact_id)) {
 }
 
 $enc_data = new encryption();
+$enc_key  = $_SESSION['admin_encrypt'] ?? ''; // entered once per session; absent until then
 $sql = "select id, hint, enc_value from ".TABLE_DATA_SECURITY." where module='contacts' and ref_1 = " . (int)$contact_id;
 $result = $db->Execute($sql);
+// Stored details cannot be read without the key, so they are refused before any decryption is tried.
+if ($enc_key === '' && $result->RecordCount() > 0) {
+  echo createXmlHeader() . xmlEntry('error', BNK_ERROR_NO_ENCRYPT_KEY) . createXmlFooter();
+  die;
+}
 while (!$result->EOF) {
-	$data = $enc_data->decrypt($_SESSION['admin_encrypt'], $result->fields['enc_value']);
+	$data = $enc_data->decrypt($enc_key, $result->fields['enc_value']);
 	$fields = explode(':', $data);
-	if (strlen($fields[3]) == 2) $fields[3] = '20'.$fields[3]; // make sure year is 4 digits
+	if (strlen($fields[3] ?? '') == 2) $fields[3] = '20'.$fields[3]; // make sure year is 4 digits
 	$xml .= "<Payment>\n";
 	$xml .= "\t" . xmlEntry("id",   $result->fields['id']);
 	$xml .= "\t" . xmlEntry("name", $fields[0]); // will be the name field for credit cards
@@ -47,12 +53,6 @@ while (!$result->EOF) {
 	$xml .= "</Payment>\n";
 	$result->MoveNext();
 }
-// error check
-if (!$_SESSION['admin_encrypt'] && $result->RecordCount() > 0) { // no permission to enter page, return error
-  echo createXmlHeader() . xmlEntry('error', BNK_ERROR_NO_ENCRYPT_KEY) . createXmlFooter();
-  die;
-}
-
 echo createXmlHeader() . $xml . createXmlFooter();
 die;
 ?>
