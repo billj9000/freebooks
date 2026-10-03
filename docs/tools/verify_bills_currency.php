@@ -101,11 +101,10 @@ ok('the base class defaults to refusing', array_key_exists('multi_currency', $de
 $safe   = ['cod', 'directdebit', 'freecharger', 'moneyorder', 'paypal'];
 // Sends an amount and assumes the company's currency beside it. Left that way on
 // purpose: each needs its own change and none of them can be tested here, so the
-// page refuses rather than charges. paypal_nvp is the older of the two PayPal
-// methods and is NOT the one that was taught - they are separate modules.
+// page refuses rather than charges.
 // square_terminal is told the currency, but Square takes only its location's,
 // so it refuses another currency too, before Square would.
-$unsafe = ['authorizenet', 'firstdata', 'linkpoint_api', 'nova_xml', 'paypal_nvp', 'square_terminal'];
+$unsafe = ['authorizenet', 'firstdata', 'linkpoint_api', 'nova_xml', 'square_terminal'];
 foreach (array_merge($safe, $unsafe) as $code) {
     $file = DIR_FS_MODULES . 'payment/methods/' . $code . '/' . $code . '.php';
     if (!file_exists($file)) { skip($code, 'not installed'); continue; }

@@ -139,8 +139,8 @@ cannot carry a per-order rate, which is why shipping is handled this way.)</p>
 <p>The payment module map tells FreeBooks which payment method and GL account to
 use for each ZenCart payment module. Format:</p>
 <pre>zcmodule=fbmodule:glacct, ...</pre>
-<p>Example: <code>paypalexpress=paypal_nvp:1020, stripe=freecharger:1030</code></p>
-<p>Either part may be omitted (e.g. <code>paypalexpress=paypal_nvp</code> or
+<p>Example: <code>paypalr=paypal:1020, stripe=freecharger:1030</code></p>
+<p>Either part may be omitted (e.g. <code>paypalr=paypal</code> or
 <code>stripe=:1030</code>). Unmapped modules use <code>freecharger</code> with
 the default cash account.</p>
 

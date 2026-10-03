@@ -58,7 +58,7 @@ Navigate to **Modules → ZenCart → Admin** to configure:
 zcmodule=fbmodule:glacct, ...
 ```
 
-Example: `paypalexpress=paypal_nvp:1020, stripe=freecharger:1030`
+Example: `paypalr=paypal:1020, stripe=freecharger:1030`
 
 Either `fbmodule` or `:glacct` may be omitted. The FreeBooks module code controls which Cash Receipts payment method label appears; the GL account overrides the default cash account. If a ZenCart payment module is not in the map, `freecharger` is used with the default cash account.
 

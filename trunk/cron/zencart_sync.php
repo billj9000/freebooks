@@ -508,7 +508,7 @@ foreach ($zc_tax_rates as $rate) {
 }
 // Build a map of ZenCart payment module code → [fbmodule, glacct].
 // Configured as "zcmodule=fbmodule:glacct,..." in ZENCART_PAYMENT_MAP.
-// Either fbmodule or glacct may be omitted (e.g. "paypalexpress=paypal_nvp" or "stripe=:1030").
+// Either fbmodule or glacct may be omitted (e.g. "paypalr=paypal" or "stripe=:1030").
 $payment_map = [];
 if (defined('ZENCART_PAYMENT_MAP') && ZENCART_PAYMENT_MAP !== '') {
     foreach (explode(',', ZENCART_PAYMENT_MAP) as $_entry) {

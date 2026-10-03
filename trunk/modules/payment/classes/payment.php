@@ -36,8 +36,8 @@ class payment {
    * refund() is: a method that transmits an amount to a gateway and names
    * DEFAULT_CURRENCY beside it will charge the right NUMBER in the wrong
    * currency, which is a real payment for the wrong money and not an error
-   * anybody sees. Six of the methods shipped here do that - authorizenet,
-   * firstdata, linkpoint_api, nova_xml, paypal and paypal_nvp - and until each
+   * anybody sees. Four of the methods shipped here do that - authorizenet,
+   * firstdata, linkpoint_api and nova_xml - and until each
    * is given the entry's code and rate, the page refuses rather than charges.
    *
    * Set true where it is safe: a method that transmits NO amount (cod,
