@@ -280,7 +280,8 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	global $db, $currencies;
 	$negate = ((JOURNAL_ID == 20 && $type == 'c') || (JOURNAL_ID == 18 && $type == 'v')) ? true : false;
 	// first read all currently open invoices and the payments of interest and put into an array
-	$paid_indeces = array();
+	$paid_indeces   = array();
+	$payment_fields = ''; // a new payment has no stored details yet
 	if ($id > 0) { 
 	  $result = $db->Execute("select distinct so_po_item_ref_id from " . TABLE_JOURNAL_ITEM . " where ref_id = " . $id);
 	  while (!$result->EOF) {
@@ -326,6 +327,11 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	  $amount = ($result->fields['debit_amount']) ? $result->fields['debit_amount'] : $result->fields['credit_amount'];
 	  if ($negate) $amount = -$amount;
 	  $index = $result->fields['so_po_item_ref_id'];
+	  // An invoice this payment closed is not among the open ones read above; its row starts empty here.
+	  if (in_array($result->fields['gl_type'], array('dsc', 'chk', 'pmt')) && !isset($open_invoices[$index])) {
+	    $open_invoices[$index] = array('total_amount' => 0, 'description' => '', 'discount' => 0, 'amount_paid' => 0,
+	      'currencies_code' => '', 'currencies_value' => '');
+	  }
 	  switch ($result->fields['gl_type']) {
 	    case 'dsc': // it's the discount field
 		  $open_invoices[$index]['discount']      = $amount;
@@ -350,7 +356,7 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	$item_list = array();
 	foreach ($open_invoices as $key => $line_item) {
 	  // fetch some information about the invoice
-	  $sql = "select id, post_date, terms, purchase_invoice_id, purch_order_id, gl_acct_id, waiting  
+	  $sql = "select id, post_date, terms, purchase_invoice_id, purch_order_id, gl_acct_id, waiting, currencies_code, currencies_value
 		from " . TABLE_JOURNAL_MAIN . " where id = " . $key;
 	  $result = $db->Execute($sql);
 	  $due_dates = calculate_terms_due_dates($result->fields['post_date'], $result->fields['terms'], ($type == 'v' ? 'AP' : 'AR'));
@@ -364,8 +370,8 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	  // never set them, has no code at all. Home currency at par is what such a
 	  // record has always meant, and is what every screen has shown it as, so that
 	  // is what it keeps rather than an empty code the formatter cannot look up.
-	  $doc_code   = $line_item['currencies_code']  ?: DEFAULT_CURRENCY;
-	  $doc_value  = $line_item['currencies_value'] ?: 1;
+	  $doc_code   = $line_item['currencies_code']  ?: ($result->fields['currencies_code']  ?: DEFAULT_CURRENCY);
+	  $doc_value  = $line_item['currencies_value'] ?: ($result->fields['currencies_value'] ?: 1);
 	  $show_code  = $display_code ?: $doc_code;
 	  $show_value = $display_code ? ($display_value ?: 1) : $doc_value;
 	  $item_list[] = array(
