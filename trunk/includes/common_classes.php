@@ -616,7 +616,7 @@ class encryption {
 		$payment[] = $params['number'];
 		$payment[] = $params['exp_mon'];
 		$payment[] = $params['exp_year'];
-		$payment[] = $params['cvv2'];
+		$payment[] = ''; // the card security code keeps its place but is never stored, encrypted or not
 		if (isset($params['alt1'])) $payment[] = $params['alt1'];
 		if (isset($params['alt2'])) $payment[] = $params['alt2'];
 		$val = implode(':', $payment).':';

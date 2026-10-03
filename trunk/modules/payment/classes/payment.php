@@ -83,7 +83,9 @@ class payment {
 	$this->field_6 = isset($_POST[$this->code.'_field_6']) ? $_POST[$this->code.'_field_6'] : '';//$this->alternate 2
 	$card_number = trim($this->field_1);
 	$card_number = substr($card_number, 0, 4) . '********' . substr($card_number, -4);
-	$this->payment_fields = implode(':', array($this->field_0, $card_number, $this->field_2, $this->field_3, $this->field_4, $this->field_5, $this->field_6));
+	// Saved with the entry, so the card security code (field_4) keeps its place but never its value:
+	// card rules forbid storing it once the payment is authorised.
+	$this->payment_fields = implode(':', array($this->field_0, $card_number, $this->field_2, $this->field_3, '', $this->field_5, $this->field_6));
   }
 
     function update() {
