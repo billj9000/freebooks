@@ -372,8 +372,8 @@
   function gen_terms_to_language($terms_encoded, $short = true, $type = 'AR') {
 	gen_pull_language('contacts'); // required for calculating terms
 	$type   = strtoupper($type);
-	$terms  = explode(':', $terms_encoded);
-	$result = array();
+	$terms  = explode(':', (string)$terms_encoded);
+	$result = array('long' => '', 'short' => ''); // each case appends to these
 	switch ($terms[0]) {
 	  default:
 	  case '0': // Default terms
