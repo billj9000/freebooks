@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -28,6 +29,8 @@ define('YRC_RATE_URL','https://my.yrc.com/dynamic/national/servlet');
 define('yrc_GndFrt',MODULE_SHIPPING_YRC_GDF);
 define('yrc_2DFrt', MODULE_SHIPPING_YRC_2DF);
 define('yrc_3DFrt', MODULE_SHIPPING_YRC_3DF);
+
+#[\AllowDynamicProperties]
 
 class yrc {
   var $YRCRateCodes = array( // YRC Rate code maps

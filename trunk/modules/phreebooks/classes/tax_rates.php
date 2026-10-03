@@ -18,6 +18,8 @@
 //  Path: /modules/phreebooks/classes/tax_rates.php
 //
 
+#[\AllowDynamicProperties]
+
 class tax_rates {
 	const NOT_FROM_FORMS = array('code', 'db_table', 'help_path', 'type', 'error', 'id', 'security_id');
 	public $code        = 'tax_rates'; // needs to match class name

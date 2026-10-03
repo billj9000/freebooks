@@ -78,6 +78,8 @@ define('GUAR_TIME_2D','16:30:00'); // 2 Day and Saver
 define('GUAR_TIME_GD','17:00:00'); // Ground
 define('GUAR_TIME_RE','19:00:00'); // Residential
 
+#[\AllowDynamicProperties]
+
 class fedex_v7 {
   // FedEx Rate code maps
   var $FedExRateCodes = array(	

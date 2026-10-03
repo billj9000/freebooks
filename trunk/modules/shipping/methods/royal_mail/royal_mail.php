@@ -52,6 +52,8 @@ define('royal_mail_RMIPT', 'International Business Parcel Tracked');
 define('royal_mail_ER1',   'Parcelforce Europriority');
 define('royal_mail_ECA',   'Parcelforce GlobalPriority');
 
+#[\AllowDynamicProperties]
+
 class royal_mail {
 
   // Internal code → Click & Drop API serviceCode.

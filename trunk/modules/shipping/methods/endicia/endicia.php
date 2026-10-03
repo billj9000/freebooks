@@ -56,6 +56,8 @@ define('MODULE_SHIPPING_ENDICIA_ELS_URL', 'https://www.endicia.com/ELS/ELSServic
 if (!defined('MODULE_SHIPPING_USPS_TRACKING_URL')) define('MODULE_SHIPPING_USPS_TRACKING_URL','https://tools.usps.com/go/TrackConfirmAction_input?tracking=');
 define('MODULE_SHIPPING_ENDICIA_DIAL_A_ZIP_URL','http://www.dial-a-zip.com/XML-Dial-A-ZIP/DAZService.asmx/MethodZIPValidate');
 
+#[\AllowDynamicProperties]
+
 class endicia {
 
   var $buyPostageAmounts = array(

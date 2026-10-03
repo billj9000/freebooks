@@ -21,6 +21,8 @@
 require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 
+#[\AllowDynamicProperties]
+
 class chart_of_accounts {
 	// The account number "id" is a field of the form itself, so it is not listed here.
 	const NOT_FROM_FORMS = array('db_table', 'title', 'extra_buttons', 'help_path', 'error', 'security_id');

@@ -18,6 +18,8 @@
 //  Path: /modules/shipping/classes/shipping.php
 //
 
+#[\AllowDynamicProperties]
+
 class shipment {
 	var $additional_handling        = '0';
 	var $cod                        = '0';

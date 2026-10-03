@@ -20,6 +20,8 @@
 
 require_once(DIR_FS_MODULES . 'contacts/defaults.php');
 
+#[\AllowDynamicProperties]
+
 class project_phases {
     public $extra_buttons    = '';
     public $db_table         = TABLE_PROJECTS_PHASES;

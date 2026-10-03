@@ -18,6 +18,8 @@
 //  Path: /modules/phreepos/classes/tills.php
 //
 
+#[\AllowDynamicProperties]
+
 class tills {
 	public $code                    = 'tills';
     public $db_table     			= TABLE_PHREEPOS_TILLS;

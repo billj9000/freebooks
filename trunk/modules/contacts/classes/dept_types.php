@@ -18,6 +18,8 @@
 //  Path: /modules/contacts/classes/dept_types.php
 //
 
+#[\AllowDynamicProperties]
+
 class dept_types {
     public $extra_buttons = '';
     public $db_table      = TABLE_DEPT_TYPES;

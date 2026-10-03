@@ -20,6 +20,7 @@
 // Revision history
 // 2012-05-11 - Created
 gen_pull_language('payment');
+#[\AllowDynamicProperties]
 class payment {
   public $payment_fields;
   public $refund_error = '';

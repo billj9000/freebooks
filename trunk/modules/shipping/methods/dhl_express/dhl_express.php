@@ -46,6 +46,8 @@ define('dhl_express_DHL_C', 'DHL Medical Express (Domestic)');
 define('dhl_express_DHL_H', 'DHL Economy Select');
 define('dhl_express_DHL_8', 'DHL Express Easy');
 
+#[\AllowDynamicProperties]
+
 class dhl_express {
 
   function __construct() {

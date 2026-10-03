@@ -18,6 +18,8 @@
 //  Path: /modules/phreepos/classes/other_transactions.php
 //
 
+#[\AllowDynamicProperties]
+
 class other_transactions {
 	public $code        	= 'other_transactions'; // needs to match class name
     public $db_table     	= TABLE_PHREEPOS_OTHER_TRANSACTIONS;

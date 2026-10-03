@@ -63,6 +63,8 @@ define('UPS_PATH_TO_VOID_WSDL',       DIR_FS_WORKING . 'methods/ups/Void.wsdl');
 //define('UPS_PATH_TO_CLOSE_WSDL',      DIR_FS_WORKING . 'methods/ups/CloseService_v2.wsdl');
 ini_set("soap.wsdl_cache_enabled", "0");
 
+#[\AllowDynamicProperties]
+
 class ups {
   // UPS Time in Transit code map (US Only)
   var $UPSTnTCodes = array(

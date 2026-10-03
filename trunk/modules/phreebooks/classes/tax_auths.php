@@ -18,6 +18,8 @@
 //  Path: /modules/phreebooks/classes/tax_auths.php
 //
 
+#[\AllowDynamicProperties]
+
 class tax_auths {
 	const NOT_FROM_FORMS = array('code', 'db_table', 'help_path', 'type', 'error', 'id', 'security_id');
 	public $code        = 'tax_auths'; // needs to match class name
