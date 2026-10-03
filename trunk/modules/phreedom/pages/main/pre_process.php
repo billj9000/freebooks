@@ -32,6 +32,7 @@ $menu_id      = isset($_GET['mID']) ? $_GET['mID'] : 'index'; // default to inde
 $menu_id      = preg_replace('/[^A-Za-z0-9_]/', '', (string)$menu_id);
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_req') $_REQUEST['action'] = 'pw_lost_req';
 if (isset($_GET['req']) && $_GET['req'] == 'pw_lost_sub') $_REQUEST['action'] = 'pw_lost_sub';
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a page opened from a link carries no action
 // pw_reset_form / pw_reset_save arrive as an explicit action= on the e-mailed link (see pw_lost_sub)
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
@@ -361,6 +362,7 @@ switch ($_REQUEST['action']) {
 	if (isset($_POST['company'])) { // find default company
 	  $company_index = $_POST['company'];
 	} else {
+	  $company_index   = ''; // no default company preselects nothing
 	  $default_company = defined('DEFAULT_COMPANY') ? DEFAULT_COMPANY : '';
 	  if (isset($_COOKIE['pb_company'])) $default_company = $_COOKIE['pb_company'];
 	  foreach ($_SESSION['companies'] as $key => $value) {
