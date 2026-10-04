@@ -282,6 +282,11 @@ class ms extends inventory {//Master Stock Item parent of mi
 				}
 			}
 		}
+		// Only the fields the master changed are still in the update; a changed weight or size
+		// reaches every bundle that ships these children as its parts.
+		if (array_intersect_key($sql_data_array, array_flip(array('item_weight', 'item_length', 'item_width', 'item_height')))) {
+			inv_bundle_pieces_changed($update_list);
+		}
 		if (count($delete_list) && $security_level < 4){
 			$messageStack->add(ERROR_NO_PERMISSION,'error');
 			$this->get_ms_list();

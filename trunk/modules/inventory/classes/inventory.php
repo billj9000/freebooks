@@ -523,7 +523,15 @@ class inventory {
 				$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = " . (int)$this->id . " and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'c' )");
 			}
 			unset($sql_data_array['creation_date]']);
+			$was = $db->Execute("select sku, item_weight, item_length, item_width, item_height from " . TABLE_INVENTORY . " where id = " . (int)$this->id);
 			db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "id = " . (int)$this->id);
+			// A part's weight and size travel with every bundle that ships as its parts.
+			foreach (array('item_weight', 'item_length', 'item_width', 'item_height') as $key) {
+				if (isset($sql_data_array[$key]) && (float)$sql_data_array[$key] != (float)$was->fields[$key]) {
+					inv_bundle_pieces_changed(array($was->fields['sku']));
+					break;
+				}
+			}
 			gen_add_audit_log(INV_LOG_INVENTORY . TEXT_UPDATE, $this->sku . ' - ' . $sql_data_array['description_short']);
 		}else{
 			db_perform(TABLE_INVENTORY, $sql_data_array, 'insert');
