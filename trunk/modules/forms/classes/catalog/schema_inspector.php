@@ -26,9 +26,8 @@
  * a name the author may use — so there is no path by which typed text becomes
  * part of a statement.
  *
- * PhreeForm's equivalent was a free-form `<relationship>` textbox pasted into
- * the WHERE clause, which is the whole of §1.1. There is deliberately no method
- * on this class that accepts a fragment.
+ * There is deliberately no method on this class that accepts a fragment: a
+ * free-form `<relationship>` pasted into the WHERE clause is the whole of §1.1.
  *
  * Two responsibilities beyond listing:
  *

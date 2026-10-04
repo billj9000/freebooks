@@ -17,12 +17,10 @@
  * This renderer is the payoff for typing values instead of pre-formatting them,
  * and it is worth being concrete about what it fixes.
  *
- * PhreeForm formatted in the DATA layer: ProcessData() ran during
- * BuildDataArray(), so by the time any output format saw a value it was already
- * a display string. A money column marked `dlr` reached the CSV writer as
- * "$ 1,234.50" and a date as "08/10/2026" — so a report built to be readable as
- * a PDF exported as text no importer could parse, and the only workaround was to
- * maintain a second copy of the report with the formatting stripped.
+ * Formatting in the DATA layer hands every output format a display string: a
+ * money column marked `dlr` would reach the CSV writer as "$ 1,234.50" and a
+ * date as "08/10/2026" — text no importer can parse — and a report readable as a
+ * PDF would need a second copy with the formatting stripped to export.
  *
  * Here the document carries typed values and each renderer decides. The PDF
  * renderer formats for a human; this one does not format at all:

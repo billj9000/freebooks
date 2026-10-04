@@ -28,10 +28,7 @@ $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'form
 // on a list their document is not on.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, 'module=forms&page=canvas', 'SSL') . '\'"';
-// 11.10, the receipt editor's own topic. This pointed at 11.06, "Editing a
-// Report" - a receipt is not a report, and 11.07 is no better because that
-// describes moving boxes on a page, which is exactly what a receipt has none
-// of. Neither existing topic could be right; this one was written for it.
+// 11.10, the receipt editor's own topic.
 $toolbar->add_help('11.10');
 echo $toolbar->build_toolbar();
 
@@ -111,11 +108,10 @@ foreach ($forms_receipt_rows as $line) {
                        value="<?php echo htmlspecialchars($v['index']); ?>">
 <?php   if ($cell['isText']) { ?>
 <?php     // A textarea for the reason the canvas has one: a text input strips
-          // line feeds outright. Here nothing has one yet - no shipped receipt
-          // carries a multi-line field - but SerialRenderer::overlay() splits
-          // its value on "\n" and pads EACH part to the cell width, so the
-          // renderer was built expecting one and only the editor refused. A
-          // single row, so the grid keeps its shape. ?>
+          // line feeds outright. No shipped receipt carries a multi-line
+          // field, but SerialRenderer::overlay() splits its value on "\n" and
+          // pads EACH part to the cell width, so the editor keeps one intact.
+          // A single row, so the grid keeps its shape. ?>
                 <textarea name="field[<?php echo $row; ?>][text]" rows="1"
                           class="form-control form-control-sm"><?php
                     echo htmlspecialchars($v['text']); ?></textarea>

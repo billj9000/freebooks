@@ -74,10 +74,9 @@ final class CustomDatasetStore
         $this->problems = [];
         $datasets = [];
 
-        // An installation enabled before custom datasets existed has no table
-        // until the module is updated. Reports must keep working meanwhile:
-        // "there are no custom datasets" is the right answer, and taking the
-        // page down over it would not be.
+        // An installation whose module has not been updated has no table yet.
+        // Reports must keep working meanwhile: "there are no custom datasets"
+        // is the right answer, and taking the page down over it would not be.
         if (function_exists('db_table_exists') && !db_table_exists($this->table)) {
             return [];
         }

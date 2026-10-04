@@ -21,9 +21,9 @@
  *
  * A serial form is what PhreeForm's `serialform` flag marks and BuildSeq()
  * prints: character cells for a till printer, not a page. Its geometry is not
- * "coordinates Forms reads badly" — there are none. Measured on the shipped
- * receipt, `abscissa` and `ordinate` are EMPTY on all 19 fields, and BuildSeq()
- * never reads them. Three other things place a value instead:
+ * "coordinates Forms reads badly" — there are none: a receipt's `abscissa` and
+ * `ordinate` are empty, and BuildSeq() never reads them. Three other things
+ * place a value instead:
  *
  *   - SEQUENCE. Fields are laid down in order.
  *   - WIDTH and ALIGN. Each field is padded into a cell that many characters

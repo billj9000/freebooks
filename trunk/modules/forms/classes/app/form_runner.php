@@ -28,11 +28,8 @@
  *     Context constants can only be known by reading the template back
  *   - five providers serve forms, against the three that serve reports
  *
- * All of this existed already, but only inside docs/tools/render_forms_document.php,
- * where the dataset came from an environment variable and the record ids from
- * argv. That tool proved the layers work; this is the same wiring with the
- * answers coming from the application instead, so that a page — and eventually
- * the Print button on an order — can ask for a form and get one.
+ * A page, and the Print button on an order, asks for a form through this and gets
+ * one.
  *
  * This class sits ABOVE the seam and freely reads the database and application
  * settings. What it returns is a Document, which is free of both.
@@ -76,8 +73,8 @@ final readonly class FormPlan
          *
          * Not always the primary key, and getting this wrong produces an empty
          * document rather than an error. The Deposit Slip breaks on
-         * `purchase_invoice_id`, so handing it journal_main ids selects nothing
-         * — which is precisely what happened before this existed.
+         * `purchase_invoice_id`, so handing it journal_main ids selects
+         * nothing.
          */
         public string $recordKey = 'id',
     ) {}
@@ -91,7 +88,7 @@ final class FormRunner
      * special_class => provider, for the four forms Forms serves in code (§5).
      *
      * A form with NO special_class is query-driven and takes the dataset route;
-     * that is the majority — 9 of the 18 shipped forms.
+     * about half the shipped forms do.
      */
     private const PROVIDERS = [
         'entry_builder'     => EntryDocumentProvider::class,
@@ -202,8 +199,8 @@ final class FormRunner
      * date preference letter, used by the statement providers).
      *
      * The definition is CLONED for the same reason DocumentRunner clones it:
-     * the legacy engine consumes a definition as it reads it, so one that has
-     * been near the old engine — or that will be — must not be shared.
+     * the run-dialog answers are written onto it below, and a caller that
+     * still holds the object must get it back intact.
      *
      * @param list<int|string>    $recordIds
      * @param array<string,mixed> $params
@@ -240,10 +237,9 @@ final class FormRunner
 
     // ── the native format ────────────────────────────────────────────────────
     //
-    // The same two routes taken from a Definition, alongside the legacy pair
-    // rather than in place of it, so verify_forms_native.php can render one
-    // definition both ways and compare the bytes. Step 6 deletes plan(), run()
-    // and everything above this line.
+    // The same two routes taken from a Definition. Both pairs are kept:
+    // verify_forms_native.php renders one definition both ways and compares
+    // the bytes.
 
     /**
      * How a native form will be served.
@@ -371,9 +367,8 @@ final class FormRunner
         // serves the two forms that declare one, and the others describe
         // documents nothing counts — a statement is per contact, a receipt is
         // the till roll. A definition that asks anyway is told so rather than
-        // quietly printing uncounted, because "the flag never moved" is
-        // precisely the fault this whole piece of work exists to end. Said
-        // HERE, above the statement branch, because that branch returns.
+        // quietly printing uncounted. Said HERE, above the statement branch,
+        // because that branch returns.
         if ($printed !== null && $class !== EntryDocumentProvider::class) {
             $this->warnings[] = 'This form asks to mark its records printed, but the'
                 . ' builder that serves it cannot: they will print uncounted.';
@@ -411,8 +406,7 @@ final class FormRunner
      *
      * The key column comes from the DEFINITION rather than from the hook's
      * eventual UPDATE, because only the definition knows it: `record_ids` are
-     * not always primary keys, and PhreeForm's own statement used
-     * formbreakfield as the WHERE column for exactly that reason.
+     * not always primary keys, so the WHERE column is formbreakfield.
      *
      * @return array{table:string,field:string,key:string}|null
      */
@@ -434,12 +428,11 @@ final class FormRunner
     /**
      * The company block, derived from the template rather than from a fixed list.
      *
-     * PhreeForm resolved CDta/CBlk elements by calling constant() on the stored
-     * field name at render time, so the set of constants a form needs is
-     * whatever that form happens to reference — there is no canonical list to
-     * hard-code. Reading them back off the converted template is the only way
-     * the Context is guaranteed to cover the form, and it keeps constant() on
-     * this side of the seam where it belongs.
+     * A CDta/CBlk element names a constant that is read at render time, so the
+     * set of constants a form needs is whatever that form happens to reference
+     * — there is no canonical list to hard-code. Reading them back off the
+     * converted template is the only way the Context is guaranteed to cover the
+     * form, and it keeps constant() on this side of the seam where it belongs.
      *
      * A name that is not defined is left OUT rather than blanked, so the
      * renderer's own missing-binding handling decides what to draw.
@@ -468,11 +461,11 @@ final class FormRunner
      * A query-driven form: the dataset route.
      *
      * The definition's own filterlist matters more here than it looks. These
-     * are the filters PhreeForm applied invisibly — the journal id that makes a
-     * Purchase Order a purchase order, the address-book type that picks the
-     * billing address — and without them the query returns every journal and
-     * every address on file, which renders a document that is wrong rather than
-     * one that is empty.
+     * are the filters a definition applies invisibly — the journal id that
+     * makes a Purchase Order a purchase order, the address-book type that picks
+     * the billing address — and without them the query returns every journal
+     * and every address on file, which renders a document that is wrong rather
+     * than one that is empty.
      */
     private function queryProvider(
         object $report, FormPlan $plan, object $template,
@@ -481,12 +474,11 @@ final class FormRunner
         $dataset = $this->catalog->get($plan->name);
         $map     = TemplateConverter::mapFor($dataset);
 
-        // ReportConverter does this, and doing it a second time here was a
-        // mistake worth naming: a hand-rolled loop that treated every filter as
-        // an equality matched nothing on the Deposit Slip, whose journal filter
-        // holds the LIST "2, 18, 19". The legacy modes — IN_LIST, RANGE,
-        // NULL, the boolean synonyms, and column-to-column comparison — are all
-        // in that one converter, and a form's filters are the same filters.
+        // ReportConverter does this, and only ReportConverter: a form's filters
+        // are the same filters, in the same legacy modes — IN_LIST (the Deposit
+        // Slip's journal filter holds the LIST "2, 18, 19"), RANGE, NULL, the
+        // boolean synonyms, and column-to-column comparison — and treating
+        // every filter as an equality matches nothing.
         $converter = new ReportConverter();
         $filters   = $converter->convertFilters($report, $dataset);
         $this->warnings = array_merge($this->warnings, $converter->warnings());

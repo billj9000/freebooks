@@ -19,23 +19,21 @@
 /**
  * Forms — turning a stored definition into a Document, for the application.
  *
- * Everything below this class had been driven only by `docs/tools/`. This is the
- * wiring the application needs: given a definition and the run dialog's answers,
- * pick the provider, hand it a converted definition, and return a Document. It
- * is deliberately the only place that knows the routes a definition can take, so
- * a page never has to.
+ * The wiring the application needs: given a definition and the run dialog's
+ * answers, pick the provider, hand it a converted definition, and return a
+ * Document. It is deliberately the only place that knows the routes a definition
+ * can take, so a page never has to.
  *
  *   dataset      — the ordinary query-driven path, via ReportDocumentProvider
  *   provider     — a special_class Forms serves in code (§5, §11)
  *   form         — served, but by FormRunner and the print page, not here
  *   unsupported  — a definition Forms cannot yet serve, named and explained
  *
- * The last two matter for opposite reasons. PhreeForm and Forms coexist through
- * the transition, so a page has to be able to say "this one still runs on the
- * old engine" rather than produce an empty report and let the user believe it.
- * And a form is not a report: it has no columns and no grouping, so running one
- * here yields a plausible page of rows that is not the document anyone asked
- * for — which is what the document list did until `form` existed.
+ * The last two matter for opposite reasons. A page has to be able to say that a
+ * definition cannot be served rather than produce an empty report and let the
+ * user believe it. And a form is not a report: it has no columns and no
+ * grouping, so running one here would yield a plausible page of rows that is
+ * not the document anyone asked for.
  *
  * This class sits ABOVE the seam and freely reads the database and application
  * settings. What it returns is a Document, which is free of both.
@@ -119,11 +117,10 @@ final class DocumentRunner
      * Special classes that were DELETED rather than ported, and whose reports
      * therefore take the ordinary query-driven route (§11.11).
      *
-     * The definitions still name them, because nothing rewrote the stored XML —
-     * so a runner that treats "has a special_class" as "needs a provider"
-     * declines four working reports. The aged pair's six pseudo-columns are
-     * computed fields on the transactions dataset now; there is nothing left to
-     * dispatch to.
+     * Stored definitions still name them, so a runner that treats "has a
+     * special_class" as "needs a provider" would decline working reports. The
+     * aged pair's pseudo-columns are computed fields on the transactions
+     * dataset; there is nothing to dispatch to.
      */
     private const DATASET_SERVED = ['aged_receivables', 'aged_summary'];
 
@@ -143,11 +140,10 @@ final class DocumentRunner
         $special = trim((string)($report->special_class ?? ''));
 
         // A FORM is not a table, and asking first is what stops it being served
-        // as one. Only the four special_class forms were being declined here;
-        // the nine query-driven ones carry no special_class at all, so they fell
-        // through to the dataset route and the document list offered PDF and CSV
-        // buttons that rendered an invoice as rows and columns. Reporttype is
-        // the definition's own answer to the question, and it covers both.
+        // as one. Most forms carry no special_class at all and would otherwise
+        // fall through to the dataset route, rendering an invoice as rows and
+        // columns. Reporttype is the definition's own answer to the question,
+        // and it covers both kinds.
         if (($report->reporttype ?? '') === 'frm') {
             return new RunPlan(RunPlan::FORM, $special,
                 ['This is a form. Forms prints it, but a form is per record, so printing one'
@@ -188,11 +184,9 @@ final class DocumentRunner
      * $params carries the run dialog's answers: `dates` (a PhreeForm date
      * preference letter), `period`, `gl_account`.
      *
-     * The definition is CLONED first, and that is not defensive habit. The
-     * legacy engine consumes a definition as it reads it — `BuildDataArray()`
-     * array_shift()s the group list away and `build_criteria()` writes resolved
-     * filter modes back onto the object — so a definition object that has been
-     * near the old engine, or that will be, must not be shared with this one.
+     * The definition is CLONED first: the run-dialog answers are written onto
+     * it below, and a caller that still holds the object must get it back
+     * intact.
      *
      * @param array<string,mixed> $params
      */
@@ -224,10 +218,8 @@ final class DocumentRunner
     // ── the native format ────────────────────────────────────────────────────
     //
     // The same two routes, taken from a Definition instead of from PhreeForm
-    // XML. They sit ALONGSIDE the legacy pair rather than replacing it, for the
-    // length of one release: that is what lets verify_forms_native.php render
-    // the same definition both ways and hold the two to a byte comparison. Step
-    // 6 deletes plan(), run() and everything above this line.
+    // XML. Both pairs are kept: verify_forms_native.php renders the same
+    // definition both ways and holds the two to a byte comparison.
 
     /**
      * How a native definition will be served.
@@ -316,13 +308,10 @@ final class DocumentRunner
         $filters = array_merge($definition->filters,
             DateRangeFilters::build($dataset, fn() => $definition->dateField, $range, $this->warnings));
 
-        // Everything the definition carries, and not a subset of it. This used
-        // to pass columns, filters and sorts only — matching runDataset(), which
-        // was itself incomplete — so a report printed with no company name, no
-        // titles, no filter description, on default A4 margins, in the
-        // renderer's own fonts. It looked like a report; it was not the report
-        // the author had drawn. §13.9 recorded that gap; the editor's preview
-        // is what made it impossible to leave.
+        // Everything the definition carries, and not a subset of it: without the
+        // company name, the titles, the filter description, the margins and the
+        // fonts, a report would look like a report but not the one the author
+        // drew (§13.9).
         return (new ReportDocumentProvider(
             db:              $this->db,
             catalog:         $this->catalog,
@@ -411,18 +400,18 @@ final class DocumentRunner
     /**
      * The line under the titles saying what the report was narrowed to.
      *
-     * PhreeForm prints "Report Filters:Grouped by: …; Sorted by: …; Date Range:
-     * …;" and the band is drawn whether or not there is text for it, so leaving
-     * this null prints a rule with nothing above it. Built from the definition
+     * The band prints "Report Filters:Grouped by: …; Sorted by: …; Date Range:
+     * …;" and is drawn whether or not there is text for it, so leaving this
+     * null prints a rule with nothing above it. Built from the definition
      * rather than from the SQL: what an author wants to read back is the
      * grouping and the period, not a WHERE clause.
      */
     private function describe(Definition $definition, DateRange $range, ?Dataset $dataset = null): ?string
     {
         // A field KEY is how the definition stores it; a heading is what the
-        // author called it. PhreeForm printed "Grouped by: Post Date", and
-        // "Grouped by: post_date" is the same line written in the wrong
-        // language — the storage layer's, not the reader's.
+        // author called it. The line reads "Grouped by: Post Date": "Grouped
+        // by: post_date" is the same line written in the wrong language —
+        // the storage layer's, not the reader's.
         $label = function (string $key) use ($definition, $dataset): string {
             foreach ($definition->columns as $column) {
                 if ($column->key === $key && trim($column->heading) !== '') return trim($column->heading);

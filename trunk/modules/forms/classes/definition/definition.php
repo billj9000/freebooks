@@ -20,10 +20,9 @@
  * Forms — a stored definition, in Forms' own terms. See docs/forms-design.md §13.3.
  *
  * This is what a `.form` file holds and what the designer will edit. It is the
- * native format's in-memory shape, and the reason it exists is narrow: Forms
- * currently reads PhreeForm's XML at every run and converts it on the way past,
- * which means the format Forms can express is bounded by the format PhreeForm
- * could store. That is a ceiling on every feature after 1.0.0.
+ * native format's in-memory shape, and the reason it exists is narrow: a legacy
+ * XML definition is converted on every run, and what it can express is bounded
+ * by what that format can store. A native definition has no such ceiling.
  *
  * The distinction that makes this worth a class rather than an array: a
  * Definition is ALREADY CONVERTED. Its fields, filters, sorts and bindings are
@@ -99,9 +98,8 @@ final readonly class Definition
      *   definition MEANS, not merely how it prints: a serial form has no
      *   coordinates at all — `abscissa` and `ordinate` are empty on every field
      *   of the shipped receipt — and lays out by sequence, alignment and a
-     *   row break instead — see $serialTemplate, and §13.27. The legacy import
-     *   used to drop this flag, which turned a receipt into a page of elements
-     *   silently stacked at 0,0.
+     *   row break instead — see $serialTemplate, and §13.27. Without the
+     *   flag a receipt would read as a page of elements stacked at 0,0.
      */
     public function __construct(
         public string       $id          = '',
@@ -112,9 +110,8 @@ final readonly class Definition
         /**
          * How the document is DELIVERED, which is part of the definition and
          * not of the run: the download name a form prefers, and the covering
-         * message it is emailed with. Both were read straight off the legacy
-         * object by the print page, so a native definition that dropped them
-         * would silently rename every downloaded invoice and send it with a
+         * message it is emailed with. A definition that dropped them would
+         * silently rename every downloaded invoice and send it with a
          * generated message in place of the one the company wrote.
          */
         public string       $filenamePrefix = '',
@@ -171,11 +168,10 @@ final readonly class Definition
      * should be trusting a stored string: this value reaches an UPDATE, and it
      * comes out of a definition file that a person may have edited. Anything
      * that is not a plain `table.field` pair of identifiers is no counter at
-     * all — the caller prints the document and marks nothing, which is what
-     * PhreeForm did with a malformed one too.
+     * all — the caller prints the document and marks nothing.
      *
-     * The table name is stored UNPREFIXED, as PhreeForm stored it; whoever
-     * builds the SQL adds DB_PREFIX.
+     * The table name is stored UNPREFIXED; whoever builds the SQL adds
+     * DB_PREFIX.
      *
      * @return array{table:string,field:string}|null
      */

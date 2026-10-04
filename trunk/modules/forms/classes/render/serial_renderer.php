@@ -26,7 +26,7 @@
  * Faithful to PhreeForm's BuildSeq()/formatReceipt() by intent, including where
  * those are WRONG. Two of their behaviours produce visibly broken output on the
  * shipped receipt — a line of double the paper width, and a stray line of
- * spaces (§13.27 records both, measured). They are reproduced here rather than
+ * spaces (§13.27 records both). They are reproduced here rather than
  * corrected, because a definition prints the same before and after the engine
  * changes under it; an author who wants the fault gone fixes it in the receipt
  * editor, where they can SEE it, and the change is theirs and visible in the

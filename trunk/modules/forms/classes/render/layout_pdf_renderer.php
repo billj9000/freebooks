@@ -25,11 +25,9 @@
  *
  * WHAT THIS RENDERER MAY NOT DO, and why it matters (docs/forms-design.md §2.1):
  * it never queries, never emits an HTTP header, never calls exit(), and never
- * mutates business data. Everything it draws arrives in the Document. The
- * legacy engine broke all four — most consequentially the last, since
- * setprintedfield fired an UPDATE from inside the PDF builder, so merely
- * previewing an invoice incremented its printed counter. Forms declares that as
- * an AfterRenderHook which the CALLER runs on delivery.
+ * mutates business data. Everything it draws arrives in the Document. Mutating
+ * data from here would mean a preview incrementing an invoice's printed counter;
+ * that counter is an AfterRenderHook which the CALLER runs on delivery.
  *
  * Pagination lives here rather than in the document. The document describes a
  * logical layout; how it breaks across sheets is this layer's business, which
@@ -37,16 +35,15 @@
  *
  * ── The two-pass total ──────────────────────────────────────────────────────
  * A total belongs on the last page, but its value is only known once every row
- * has been placed — and by then earlier pages are already committed. PhreeForm
- * solved this by pre-seeding every Ttl with the literal "Continued" and relying
- * on TCPDF calling Footer() late enough on the final page to pick up the real
- * figure. That is a side effect of call ordering, and it silently prints
- * "Continued" as a total if the ordering ever shifts.
+ * has been placed — and by then earlier pages are already committed. Relying on
+ * TCPDF calling Footer() late enough on the final page to pick up the real
+ * figure is a side effect of call ordering, and would print "Continued" as a
+ * total if the ordering ever shifted.
  *
- * Here the same output is produced deliberately: the renderer tracks which page
- * ends each group, and a ContinuedOnOverflow element draws its placeholder on
- * every page of the group except the last, where it draws the value. The
- * decision is explicit and testable rather than emergent.
+ * So the renderer tracks which page ends each group, and a ContinuedOnOverflow
+ * element draws its placeholder on every page of the group except the last,
+ * where it draws the value. The decision is explicit and testable rather than
+ * emergent.
  */
 
 namespace FreeBooks\Forms\Render;
@@ -110,8 +107,8 @@ final class LayoutPdfRenderer implements FormsRenderer
          * filename is the form's own furniture and lives with the report
          * images; a bound one is a path into business data, and the element
          * carries the folder (Image::$pathPrefix). Resolving both against the
-         * report images made the Work Order look for a product photo among the
-         * logos and silently draw nothing.
+         * report images would have the Work Order look for a product photo
+         * among the logos and draw nothing.
          */
         private readonly ?string   $linkedImageDirectory = null,
     ) {}
@@ -306,7 +303,7 @@ final class LayoutPdfRenderer implements FormsRenderer
      * itself, because a ContinuedOnOverflow element has to be drawn on exactly
      * the pages where that method says no. A condition tested only there would
      * therefore work on every element except totals, which is the shape of bug
-     * §13.50 was — right in the common case, silently wrong in one branch.
+     * §13.50 describes — right in the common case, silently wrong in one branch.
      * drawElement() is the one gate every element kind passes through.
      *
      * A Table is the exception and is tested at its own call site, because it
@@ -414,11 +411,10 @@ final class LayoutPdfRenderer implements FormsRenderer
         $box    = $element->box;
         $colour = $element->style?->borderColour ?? $element->style?->colour;
         if ($colour) $this->pdf->SetDrawColor($colour->r, $colour->g, $colour->b);
-        // The same default a Rect gets, and the one the manual has always
-        // described: 1 point is the usual thin rule. It was 0 — a hairline,
-        // whose printed weight is the device's business rather than the
-        // document's — which no shipped form relies on, because every line the
-        // converter writes carries an explicit width of its own (§13.49).
+        // The same default a Rect gets, and the one the manual describes: 1
+        // point is the usual thin rule. No shipped form relies on it: every
+        // line the converter writes carries an explicit width of its own
+        // (§13.49).
         $this->pdf->SetLineWidth(($element->style?->borderSize ?? 1) * self::PT_TO_MM);
         $this->pdf->Line($box->x, $box->y, $box->x + ($box->width ?? 0), $box->y + ($box->height ?? 0));
     }
@@ -472,10 +468,8 @@ final class LayoutPdfRenderer implements FormsRenderer
 
         // 'position' MUST be empty. TCPDF reads 'L' as "align to the left
         // MARGIN" and throws away the x it was given, so a barcode positioned
-        // at 118 mm printed at 8 mm — measured, on the only barcode in the
-        // shipped set. The legacy FormBarCode() passes '' for exactly this
-        // reason; the port did not, and nothing noticed because a barcode's
-        // data is right wherever the ink lands.
+        // at 118 mm would print at 8 mm. The legacy FormBarCode() passes ''
+        // for the same reason.
         //
         // The rest matches FormBarCode() too: the human-readable code is
         // printed beneath the bars in the element's own font, and 'fitwidth'

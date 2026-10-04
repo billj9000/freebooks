@@ -30,8 +30,8 @@
  * 'image_with_path' for the picture. They are the same string; keeping the names
  * distinct is what lets the template bind each to the right element.
  *
- * Two legacy defects are corrected rather than reproduced, both of which lost
- * data silently; see fixRefLists() and §12.3.1.
+ * Two legacy defects are corrected rather than reproduced, both of which lose
+ * data silently; see buildRefLists() and §12.3.1.
  *
  * A provider sits ABOVE the seam, so database access here is correct and
  * expected; it is the returned Document that must be free of it.
@@ -177,14 +177,11 @@ final class WorkOrderDocumentProvider implements DocumentProvider
      * Reference documents and specifications: those named on the work order
      * itself, plus every one named by a step, de-duplicated and sorted.
      *
-     * wo_builder lost both halves of this. It read 'ref_specs' from a query that
-     * selected 'ref_spec', so the order-level specifications were always empty;
-     * and it guarded the per-step merge with
-     * `count(is_array($docs > 0) ? $docs > 0 : [])`, where `$docs > 0` compares
-     * an array to an integer and yields true, is_array(true) is false, and the
-     * count of [] is 0 — so the guard was never satisfied and no step ever
-     * contributed. The intent was plainly `count($docs) > 0`; between them the
-     * two defects left the form printing at most the order-level ref_doc list.
+     * The order-level specifications come from 'ref_spec', the column the query
+     * selects, and every step's documents are merged in whenever a step names
+     * any. wo_builder reads 'ref_specs' and guards the step merge with a test
+     * that is never satisfied, so it prints at most the order-level ref_doc list
+     * (§12.3.1).
      *
      * @param list<array<string,mixed>> $steps
      * @return array{ref_docs:string,ref_specs:string}

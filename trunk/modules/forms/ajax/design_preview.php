@@ -130,11 +130,11 @@ try {
 
 $warnings = $binding->warnings();
 if ($document instanceof TableDocument && count($document->rows) === 0) {
-  // An empty report used to end here, with a sentence. But column widths,
-  // alignment, grouping and totals are exactly what an author is judging, and
-  // none of them is visible on a page of furniture — so the REAL document is
-  // filled with invented rows and says so in its filter band (§13.2). A fresh
-  // install has no data at all and must still be able to lay a report out.
+  // An empty report is filled with invented rows, and says so in its filter
+  // band (§13.2): column widths, alignment, grouping and totals are exactly
+  // what an author is judging, and none of them is visible on a page of
+  // furniture. A fresh install has no data at all and must still be able to
+  // lay a report out.
   $note = FORMS_DESIGN_PREVIEW_SAMPLE
         . ($warnings ? ' ' . implode(' ', $warnings) : '');
   $document = SampleData::fill($document, $dataset, $note, $edited->groupBy);

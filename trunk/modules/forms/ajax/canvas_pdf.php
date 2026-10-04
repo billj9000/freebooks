@@ -122,12 +122,11 @@ if (!$plan->runnable()) forms_canvas_fail(implode(' ', $plan->notes));
  * they are already converted — so the ids come from asking the record table for
  * rows, and whether any of them actually builds a document is settled by trying.
  *
- * The schema-checking this used to do inline now lives in RecordSelector, which
- * was already the module's answer to "which records", already checks a column
- * against the schema rather than quoting it, and already knows what a record is
- * CALLED. The picker needs that last part and this endpoint needed the first
- * two; having them in one place is what stops the canvas and the print page
- * naming the same invoice differently.
+ * The schema-checking lives in RecordSelector, the module's answer to "which
+ * records": it checks a column against the schema rather than quoting it, and
+ * knows what a record is CALLED. The picker needs that last part and this
+ * endpoint the first two, and having them in one place is what stops the canvas
+ * and the print page naming the same invoice differently.
  */
 $selector  = new RecordSelector($db);
 $available = $selector->recent($plan->recordTable, $plan->recordKey, 20, $definition->group);
@@ -153,8 +152,8 @@ if ($forms_canvas_reference !== '') {
 
 // strval, because PHP turns a numeric-string array key into an INTEGER. The
 // record keys here are '516' and friends, so array_keys() hands back ints and a
-// strict comparison against the posted string never matches — which would not
-// have failed loudly, merely sent every choice down the slower path below.
+// strict comparison against the posted string would never match - quietly,
+// sending every choice down the slower path below.
 $candidates = array_map('strval', array_keys($available));
 if ($forms_canvas_wanted !== '' && in_array($forms_canvas_wanted, $candidates, true)) {
   $candidates = array_merge(array($forms_canvas_wanted),

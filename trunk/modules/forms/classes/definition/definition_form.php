@@ -30,10 +30,9 @@
  * declared identifiers. They never supply a name.** Every column, group, sort
  * and filter key submitted is checked against the resolved dataset before it
  * reaches a Definition, and one that is not there is refused rather than
- * stored. PhreeForm's designer opened with a bare SHOW TABLES and let an author
- * put SQL in a field NAME, which is why any report author was a database-wide
- * read primitive (§1.1). An author who can only name what the dataset declares
- * cannot reach a table it does not.
+ * stored. Letting an author name any table, or put SQL in a field NAME, would
+ * make every report author a database-wide read primitive (§1.1). An author who
+ * can only name what the dataset declares cannot reach a table it does not.
  *
  * That check is not a formality here. The editor offers a `<select>` of the
  * dataset's fields, and a select is a suggestion: the browser is under the
@@ -107,9 +106,8 @@ final class DefinitionForm
             group:       $base->group,
             // Carried, not edited. The editor draws no control for either, and
             // anything the form cannot show has to be copied across explicitly
-            // or it is deleted by the first save — which is precisely what the
-            // round-trip check in verify_forms_pages.php exists to catch, and
-            // did, the moment these two were added to the format.
+            // or it is deleted by the first save; the round-trip check in
+            // verify_forms_pages.php holds it to that.
             filenamePrefix: $base->filenamePrefix,
             emailMessage:   $base->emailMessage,
             provider:    $base->provider,

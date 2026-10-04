@@ -20,23 +20,16 @@
 /**
  * Lookup tables the Formatter needs for the hints that resolve an id to a name.
  *
- * PhreeForm did these with per-module `pf_process_*` hooks that queried inside
- * the formatting call. The Formatter takes them as data instead, because a
+ * The Formatter takes them as data rather than querying for them, because a
  * renderer that can query is a renderer coupled to the data layer (design §2.1)
  * — so the arrays are gathered here, above the seam, and handed down.
  *
  * An absent label is OMITTED rather than blanked, so an unknown code renders as
- * itself. That matches the legacy hooks' isset() fallbacks: a report showing a
- * raw account type is recoverable, one showing an empty cell is not.
+ * itself: a report showing a raw account type is recoverable, one showing an
+ * empty cell is not.
  *
  * **The countries come from gen_pull_countries()**, which reads phreedom's
- * `locales.xml`, rather than from PhreeForm's `$arrLocales`. That global is set
- * in `phreeform/config_phreeform.php` — a file whose entire body is commented
- * out, and has been throughout this project. So `cvt_iso2` and `cvt_cntry` were
- * offered by the format list, documented in the manual, and did NOTHING: both
- * tables were empty, every code fell through the `?? $key` and printed itself.
- * Precisely the silence §13.31 set out to abolish, hiding one level below where
- * that work looked — the name was known, and the table behind it was not there.
+ * `locales.xml`.
  *
  * @return array<string,array<string,string>>
  */
@@ -45,14 +38,6 @@ function forms_formatter_lookups(): array
     // phreebooks/defaults.php builds $coa_types_list out of COA_*_DESC, which
     // live in that module's ADMIN language file — so requiring it without pulling
     // that first is a fatal on an undefined constant.
-    //
-    // It used to be pulled by accident: phreeform/defaults.php calls
-    // gen_pull_language() for every module with a config_phreeform.php, and
-    // phreebooks has one. Every Forms page required phreeform's bootstrap, so
-    // the language was always there and nothing here had to ask. Dropping that
-    // require took the accident with it, and the first thing to run a report
-    // died in this function. Asked for explicitly now, which is what it always
-    // needed to do.
     if (!defined('COA_00_DESC')) gen_pull_language('phreebooks', 'admin');
     require(DIR_FS_MODULES . 'phreebooks/defaults.php');   // $coa_types_list
 
@@ -90,7 +75,7 @@ function forms_formatter_lookups(): array
  *
  * **Why a list at all.** Formatter::format() ends in `default => plain()` and
  * has no extension point, so a name it does not know does nothing whatever,
- * silently. A free-text box therefore made a misspelling and a decision look
+ * silently. A free-text box would make a misspelling and a decision look
  * exactly alike, with the value printing unformatted either way and nothing
  * said. The vocabulary is closed at 30 names, of which 25 can be honoured by a
  * format alone, so it can simply be offered (§13.31).
@@ -232,11 +217,11 @@ function forms_formats_in_use($definition): array
 /**
  * The document-wide values a report's page furniture is drawn from.
  *
- * PhreeForm read COMPANY_NAME straight from a global inside its render loop.
- * Passing it explicitly is what lets a renderer be tested without booting the
- * application (§4), and it is the reason the company name appears on a report
- * at all: TablePdfRenderer draws the heading band from `context`, so a Document
- * built without one prints a blank line where the company should be.
+ * Passed explicitly rather than read from a global, which is what lets a
+ * renderer be tested without booting the application (§4), and it is the reason
+ * the company name appears on a report at all: TablePdfRenderer draws the
+ * heading band from `context`, so a Document built without one prints a blank
+ * line where the company should be.
  *
  * A name that is not defined is left OUT rather than blanked, so the renderer's
  * own missing-value handling decides what to draw.
@@ -287,8 +272,8 @@ function forms_email_block(array $fields): array
 /**
  * Who the message is from, defaulting to the signed-in user.
  *
- * PhreeForm offers this and it matters: a report emailed by the bookkeeper
- * should come back to the bookkeeper, not to the company's generic address.
+ * It matters: a report emailed by the bookkeeper should come back to the
+ * bookkeeper, not to the company's generic address.
  *
  * @return array{0: string, 1: string} name, address
  */
@@ -321,12 +306,9 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
 {
     $allowed = array();
 
-    // A receipt keeps its fields somewhere else entirely. It has no ->template,
-    // so the loop below walked an empty list and this function answered "no
-    // names" for every receipt there is - which is why the receipt editor could
-    // not offer a binding to add. The elements themselves are the same kinds a
-    // page uses, so they go through the same loop rather than a second copy of
-    // these rules.
+    // A receipt keeps its fields somewhere else entirely and has no ->template.
+    // The elements themselves are the same kinds a page uses, so they go
+    // through the same loop rather than a second copy of these rules.
     $elements = array();
     foreach ($definition->serialTemplate?->fields ?? array() as $field) $elements[] = $field->element;
     foreach ($definition->template?->elements ?? array() as $element)   $elements[] = $element;
@@ -344,11 +326,9 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
         if ($element instanceof \FreeBooks\Forms\Document\Table) {
             foreach ($element->columns as $column) $allowed[$column->bind->name] = true;
         }
-        // A block's parts, which used to be missing from this list and did not
-        // show it: parts were carried past the canvas untouched, so a name it
-        // could not offer was a name nothing asked it about. With the parts
-        // editable (§13.30) the omission became visible at once — the grid had
-        // no entry to select for a line that was bound perfectly well.
+        // A block's parts. With the parts editable (§13.30), a name missing
+        // from this list is a line the grid has no entry to select, however
+        // well it is bound.
         //
         // Context parts stay out, here as everywhere: they are the COMPANY's
         // details rather than the record's, nothing may be re-pointed at one,
@@ -387,8 +367,6 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
         } catch (\Throwable $e) { continue; }
         // Either shape: a page runs to a LayoutDocument and a receipt to a
         // SerialDocument, and both carry the Records whose keys are the answer.
-        // Testing only for the first meant a receipt fell through to "no names"
-        // even where its provider had just produced them.
         if (!($document instanceof \FreeBooks\Forms\Document\LayoutDocument
               || $document instanceof \FreeBooks\Forms\Document\SerialDocument)
             || count($document->records) === 0) continue;
@@ -407,16 +385,9 @@ function forms_binding_names($definition, $runner, $catalog, $db): array
 /**
  * The paper sizes a document may sit on.
  *
- * Forms' own, rather than PhreeForm's $PaperSizes. Two differences, both
- * deliberate:
- *
- *   - **No FPDF branch.** PhreeForm offers five sizes and adds seven more only
- *     when PDF_APP is 'TCPDF'. Forms is TCPDF unconditionally, so it offers the
- *     lot, always — the same reasoning as forms_font_names().
- *   - **Keyed by NAME.** PhreeForm keys "A4:210:297" because its designer
- *     carried the dimensions along; a native definition stores the name alone
- *     and TCPDF looks the dimensions up itself. The editor had to split those
- *     keys apart on every load, which is a conversion happening in a page.
+ * All of them, always: Forms is TCPDF unconditionally, the same reasoning as
+ * forms_font_names(). Keyed by NAME: a definition stores the name alone and
+ * TCPDF looks the dimensions up itself.
  *
  * The three named sizes take a label because "Legal" and "Letter" are words
  * before they are sizes; A0-A9 and Tabloid are the same in every language.
@@ -437,10 +408,8 @@ function forms_paper_sizes(): array
 /**
  * The %tokens% a stored email message carries, filled in.
  *
- * PhreeForm's TextReplace() did this by reading `global $report` for the
- * document's title — a hidden dependency that made the function correct only
- * where that global happened to be set, and silently wrong where it was not.
- * The title is a parameter here for that reason.
+ * The title is a parameter rather than read from a global, so the function
+ * is right wherever it is called.
  *
  * Same three tokens, same spelling, because they are in the stored definitions
  * of every company that has ever set an email message.
@@ -468,11 +437,8 @@ function forms_fill_tokens(string $text, string $title = ''): string
  * They are not the same thing, which is the whole reason the canvas offers a
  * list: nobody would guess that the default face is spelled "freeserif".
  *
- * Read from here rather than from PhreeForm's $Fonts, which is the same four
- * names minus one: its list drops freeserif unless PDF_APP is 'TCPDF'. Forms
- * has no such branch — its renderers extend TCPDF and nothing else — so
- * carrying that condition across would have meant an editor that could not
- * offer the very face it draws with, for a reason belonging to another engine.
+ * Not conditional on PDF_APP: Forms' renderers extend TCPDF and nothing else,
+ * so the face they draw with is always on offer.
  *
  * A label is read through defined() so that a missing language string shows the
  * stored name rather than an empty row in a select. An unlabelled entry is a
@@ -498,9 +464,8 @@ function forms_font_names(): array
 /**
  * The folder names the catalogue already carries.
  *
- * The document list used to sort by `doc_group` and print it — `cust:inv`,
- * `vend:po`, `bnk:chk` — which is an internal code, so the page looked
- * unordered when in fact it was ordered by something nobody can read.
+ * `doc_group` (`cust:inv`, `vend:po`, `bnk:chk`) is an internal code
+ * nobody can read, so the document list groups by these names instead.
  *
  * The names exist, in the same table, as rows with `doc_type = '0'` that the
  * list deliberately excludes. There are three kinds of them:
@@ -556,22 +521,15 @@ function forms_folder_for(string $group, bool $isForm, array $titles): string
  * without the HTTP delivery, the record selector, or a $messageStack.
  *
  * Reads whichever format the definition is stored in, through the same
- * format-aware loader the print page uses. That is the whole point of it:
- * `get_report_details()` (phreeform/functions/phreeform.php) refuses a native
- * definition outright, adding a page message and returning false — reasonable
- * for a page, fatal for a caller with no page to read it from. Before this, a
- * cron script or an ajax handler calling that function would find its report
- * simply stopped rendering, silently, the first time someone saved the same
- * form in the Forms editor (design §13.7 step 6, the render-to-string trap).
+ * format-aware loader the print page uses, and reports failure through
+ * error_log() rather than a page message, because a caller with no page has
+ * nowhere to read one (design §13.7 step 6).
  *
  * Not for a report (`type=rpt`): that is DocumentRunner's, and
  * planDefinition() on one reports itself unrunnable, which this treats as
  * failure like anything else.
  *
- * A RECEIPT it does handle, and this docblock said otherwise for longer than it
- * was true — the §13.16 note about Forms having no renderer for character-cell
- * text died with §13.28. The same dead sentence was still guarding the shipping
- * set (§13.36) and still describing this function; both are corrected.
+ * A RECEIPT it does handle (§13.28).
  *
  * @param list<int> $recordIds  usually one id — the journal entry, the work
  *   order — matching what the definition's provider or dataset key expects.
@@ -740,12 +698,11 @@ function forms_document_action($store, string $type, int $securityLevel): int
  * The script behind New, Copy and Delete on the two document lists.
  *
  * Its own `<script>` block, emitted AFTER whatever the page's own js_include
- * contains, and that is the whole point of it being here rather than pasted
- * into each page: the canvas's script is `type="module"`, and a function
- * declared inside a module is scoped to that module. An `onclick="formsDocNew()"`
- * on a page whose script is a module finds nothing at all — which is exactly
- * what happened, and it fails silently, because a handler naming an undefined
- * function is only an error when it is clicked.
+ * contains, and that is the whole point of it being here rather than pasted into
+ * each page: the canvas's script is `type="module"`, and a function declared
+ * inside a module is scoped to that module. An `onclick="formsDocNew()"` on a
+ * page whose script is a module finds nothing at all, and fails silently, because
+ * a handler naming an undefined function is only an error when it is clicked.
  *
  * Listeners are DELEGATED from the document rather than written as inline
  * handlers, so nothing has to be global and a title never has to survive being

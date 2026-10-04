@@ -65,8 +65,7 @@ enum Align: string
  *
  * ContinuedOnOverflow is the pagination-aware case (design doc open risk 1):
  * a total renders placeholder text on every page but the last, where it
- * resolves to the real value. Verified against the proving PO — 8 pages,
- * "Continued" on 1–7, the real total on page 8.
+ * resolves to the real value.
  */
 enum Visibility
 {
@@ -317,11 +316,9 @@ final readonly class Style
         /**
          * Weight and slant, as TCPDF's font style.
          *
-         * New in Forms: PhreeForm passed '' for the style on every SetFont it
-         * ever made, and no shipped definition carries a tag for either — so
-         * this is not a setting that was lost in the port but one the old
-         * format could not express. It is the first thing the native format
-         * exists to allow (§13.3).
+         * The legacy format cannot express either — PhreeForm passes '' for
+         * the style on every SetFont — so a converted definition never
+         * carries one; it is a native-format setting (§13.3).
          */
         public bool     $bold       = false,
         public bool     $italic     = false,
@@ -361,11 +358,10 @@ final readonly class PageSetup
  *
  * This is the report author's data, not a renderer preference. PhreeForm stores
  * a font, size, colour and alignment per band in each report definition, and
- * they genuinely vary: across the 36 shipped report definitions there are eight
- * distinct style signatures. Five reports colour the company heading blue and
- * their first title red; seven centre their data columns where the rest align
- * left. A renderer with fixed defaults would silently restyle about a fifth of
- * the library, so the values cross the seam rather than living in the renderer.
+ * they genuinely vary between reports — a coloured company heading, a red first
+ * title, centred data columns — so a renderer with fixed defaults would
+ * silently restyle many of them. The values cross the seam rather than living
+ * in the renderer.
  *
  * Every field is optional. A renderer applies its own default wherever one is
  * null, which is what lets a document built by hand — or by a provider that has
@@ -428,11 +424,10 @@ final readonly class Context
  * A side effect to run *after* the document is delivered.
  *
  * Declarative on purpose — data, not a closure — so a Document stays a plain
- * value object that can be serialised, cached and compared. PhreeForm fired
- * these from inside the PDF builder (setprintedfield incrementing
- * journal_main.printed), which meant a preview or a diff run mutated business
- * data. Hooks are executed by the caller, never by a renderer, and must fire on
- * delivery rather than render.
+ * value object that can be serialised, cached and compared. Fired from inside a
+ * renderer, a preview or a diff run would mutate business data
+ * (journal_main.printed). Hooks are executed by the caller, never by a
+ * renderer, and must fire on delivery rather than render.
  */
 final readonly class AfterRenderHook
 {

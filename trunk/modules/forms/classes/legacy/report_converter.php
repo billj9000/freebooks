@@ -150,11 +150,10 @@ final class ReportConverter
                 format:    $hint === '' ? null : new Format($hint),
                 // A structural report's columns break and total exactly as any
                 // other report's do — the provider decides where the ROWS come
-                // from, not how the page is laid out. Omitting these let both
-                // default to false, so every column of every provider-backed
-                // report stacked into a single band down the left of the page
-                // and no column carried a total. The dataset builder above has
-                // always read them; this one simply never did.
+                // from, not how the page is laid out. Omitted, both would
+                // default to false, stacking every column of every
+                // provider-backed report into a single band down the left of
+                // the page with no column carrying a total.
                 total:     $this->truthy($field->total ?? null),
                 pageBreak: $this->truthy($field->columnbreak ?? null),
             );
@@ -205,12 +204,11 @@ final class ReportConverter
     /**
      * The field key the report groups on, or null.
      *
-     * A group key carries a `processing` hint like any other field, and four of
-     * the shipped reports group by a contact id with the `branch` hint. Without
-     * the same re-pointing the columns get, the break is correct but the
-     * heading reads "Group Total For: 128" where PhreeForm printed the customer
-     * name. Call this AFTER convertColumns(), which resets the resolved-column
-     * list this adds to.
+     * A group key carries a `processing` hint like any other field, and shipped
+     * reports group by a contact id with the `branch` hint. Without the same
+     * re-pointing the columns get, the break is correct but the heading reads
+     * "Group Total For: 128" where the name belongs. Call this AFTER
+     * convertColumns(), which resets the resolved-column list this adds to.
      */
     /**
      * Behaviour a special_class supplied that its definition does not state.
@@ -378,7 +376,7 @@ final class ReportConverter
      * ALL and applies nothing at all, even though it carries a min_val.
      *
      * Reading min_val as "equals" instead, which is the obvious guess, silently
-     * over-filters: on Sales By SKU it cut 4,707 rows to 636.
+     * over-filters.
      */
     private const CRIT_CHOICES = [
         0  => ['ALL', 'RANGE', 'EQUAL'],
@@ -400,9 +398,8 @@ final class ReportConverter
      * The report's date range, as filters on its date field.
      *
      * `$report->datefield` names the column the range applies to, and it is not
-     * always a date: one shipped definition stores `description` there, which is
-     * harmless only because its preference is "all dates". Eight more store a
-     * bare `post_date` with no table, which legacy resolves by textual accident.
+     * always a date: a definition may store `description` there, harmless only
+     * while its preference is "all dates", or a bare `post_date` with no table.
      * Both go through the same `mapName()` as every other field, so both either
      * map or produce a warning.
      *

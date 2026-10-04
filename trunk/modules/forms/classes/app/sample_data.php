@@ -192,19 +192,15 @@ final class SampleData
     /**
      * Invented text of a believable length for the field it stands in.
      *
-     * This used to be the field's own NAME plus a line number, on the reasoning
-     * that a value saying `bill_primary_name 1` tells an author which box they
-     * are looking at. It does — and it also lies about the one thing a layout is
-     * judged on. A field name is longer than the data it stands for, near enough
-     * always, so a narrow box bound to a long name WRAPPED in the preview and
-     * would not have wrapped in life: `purchase_invoice_id 1` measures 35 mm at
-     * 10 pt where a real `INV-1043` measures 15, and the second line landed on
-     * the row below. The cheque looked broken and was not.
+     * Not the field's own NAME: a field name is longer than the data it stands
+     * for, near enough always, so a narrow box bound to a long name would wrap in
+     * the preview and not in life — `purchase_invoice_id 1` measures 35 mm at 10
+     * pt where a real `INV-1043` measures 15, and the second line lands on the
+     * row below.
      *
-     * Identification is not lost, because the canvas never depended on it: every
-     * box is outlined and coloured by kind, carries its label and coordinates in
-     * a tooltip, is named in the Elements list, and is described in the inspector
-     * when selected. Only the drawn text changes here.
+     * Identification does not need it: every box is outlined and coloured by
+     * kind, carries its label and coordinates in a tooltip, is named in the
+     * Elements list, and is described in the inspector when selected.
      *
      * The lists carry a SPREAD of lengths rather than one typical value, so a few
      * rows show what a long entry does. That is strictly more informative than a
@@ -297,11 +293,9 @@ final class SampleData
         $name = strtolower($name);
         return match (true) {
             str_contains($name, 'date')                              => ValueType::Date,
-            // On a word boundary, not anywhere in the string. `count` is a
-            // substring of COUNTRY, COUNTY, ACCOUNT and DISCOUNT, so
-            // `bill_country_code` was typed as an integer and previewed as "8".
-            // Harmless while every sample read as its own field name; visible
-            // the moment the samples started standing in for real values.
+            // On a word boundary, not anywhere in the string: `count` is a
+            // substring of COUNTRY, COUNTY, ACCOUNT and DISCOUNT, and
+            // `bill_country_code` is not an integer.
             (bool)preg_match('/(^|_)(qty|quantity|count)(_|$)/', $name) => ValueType::Integer,
             str_contains($name, 'amount'), str_contains($name, 'total'),
             str_contains($name, 'price'),  str_contains($name, 'cost'),
@@ -409,13 +403,11 @@ final class SampleData
     /**
      * Text of a believable length for the column it is in.
      *
-     * This named its own column — "Customer 3" under a Customer heading — so that
-     * an author resizing a column could tell which one they were looking at. The
-     * heading is drawn directly above the cell, so that was never the only clue;
-     * and the width it produced was the length of the HEADING, which is what an
-     * author is trying to judge against and is not evidence of anything. Worse
-     * here than on a form, because a heading is usually SHORTER than the data
-     * under it: the column looked comfortable and overflowed in life.
+     * Not the column's own name ("Customer 3" under a Customer heading): the
+     * heading is drawn directly above the cell, so it identifies the column
+     * already, and a width from the HEADING is not evidence of anything — a
+     * heading is usually SHORTER than the data under it, so the column would look
+     * comfortable and overflow in life.
      *
      * The key is what the kind is guessed from, being the field name rather than
      * the author's caption for it; the heading is the fallback when a resolved

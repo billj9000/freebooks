@@ -20,12 +20,11 @@
  * Forms — which dataset serves a legacy report definition.
  *
  * A PhreeForm definition names the tables it reads (`<tables>`); a Forms report
- * names a dataset. Nothing in the definition says which, so until now the
- * mapping lived in whoever was typing the command — and got it wrong twice on
- * the shipped set alone. Naming the wrong dataset does not fail cleanly: every
- * column comes back UNMAPPED, the date range is dropped, and the row counts
- * differ by orders of magnitude, which reads exactly like a broken converter
- * (§12.2, trap 4).
+ * names a dataset, and nothing in the definition says which. Naming the wrong
+ * dataset does not fail cleanly: every column comes back UNMAPPED, the date
+ * range is dropped, and the row counts differ by orders of magnitude, which
+ * reads exactly like a broken converter (§12.2, trap 4). So the mapping is
+ * decided here, by rule.
  *
  * The rule, in order:
  *

@@ -19,13 +19,13 @@
  * carry raw SQL expressions. Everything a report author can do is bounded by
  * what is defined here.
  *
- * The shape comes from §6.1, which found the whole shipped library forms only
- * five connected components and that no report spans more than one. The largest
- * (44 of 56 documents) is split into Transactions and General Ledger, because a
- * dataset is a curated view chosen for usability rather than the maximal graph.
+ * The shape comes from §6.1: no report spans more than one connected component
+ * of the schema, and the largest is split into Transactions and General Ledger,
+ * because a dataset is a curated view chosen for usability rather than the
+ * maximal graph.
  *
  * The field lists are not exhaustive schema dumps. They cover what the shipped
- * definitions actually reference (§6.2 counted 117 distinct table.column uses)
+ * definitions actually reference (§6.2)
  * plus the identifying columns a report author needs to filter on. Adding a
  * field is a one-line change here; that is the intended way to extend a dataset,
  * and it is why the admin UI never needs a table picker over the whole schema.
@@ -56,7 +56,7 @@ final class ShippedDatasets
      *
      * `journal_main` -> `journal_item` is one-to-many, so a query over this
      * dataset returns one row per LINE, and a form groups them by its break
-     * field. That is the same shape PhreeForm produced.
+     * field.
      */
     public static function transactions(): Dataset
     {
@@ -80,7 +80,7 @@ final class ShippedDatasets
                 // postings against cash accounts — need this to be reachable
                 // from the transaction side. LEFT, so a line whose account has
                 // no chart row still appears; any filter on account_type
-                // excludes those anyway, which is what legacy's INNER join did.
+                // excludes those anyway, as an INNER join would.
                 new Join('chart_of_accounts', [
                     new JoinCondition('journal_item', 'gl_account', 'chart_of_accounts', 'id'),
                 ], JoinType::Left),
@@ -122,7 +122,8 @@ final class ShippedDatasets
                 // resolving one is a database lookup, which a renderer may not
                 // do (§4.3.1) — so the join to `users` would have to happen
                 // here. It deliberately does not: `users` is a sensitive table
-                // and pulling it into the dataset behind 44 documents would
+                // and pulling it into the dataset behind most documents
+                // would
                 // hand every report author a route to it. The provider resolves
                 // these instead.
                 new FieldDefinition('admin_id', 'Entered By (id)', 'journal_main', 'admin_id', ValueType::Integer),
@@ -167,9 +168,7 @@ final class ShippedDatasets
 
                 // The serial itself, not the flag beside it. `item_serialize`
                 // says WHETHER a line is serialized; this is the number, and
-                // the three-part cheque prints it on the stub. A real column
-                // the dataset simply never declared, so the definition that
-                // asked for it bound to a name no record supplies.
+                // the three-part cheque prints it on the stub.
                 new FieldDefinition('item_serial_number', 'Serial Number',  'journal_item', 'serialize_number'),
 
                 // What the line is worth, whichever side of the entry it sits
@@ -187,11 +186,10 @@ final class ShippedDatasets
                 ),
                 new FieldDefinition('item_date_1',      'Item Date',        'journal_item', 'date_1',        ValueType::Date),
 
-                // A computed field: the per-unit price the line worked out to.
-                // PhreeForm wrote `journal_item.debit_amount /journal_item.qty`
-                // straight into a report's field list. Here the arithmetic is
-                // named, typed and defined once, in code — which is the whole
-                // point of the shipped tier.
+                // A computed field: the per-unit price the line worked out to,
+                // named, typed and defined once, in code, rather than written
+                // into a report's field list — which is the whole point of the
+                // shipped tier.
                 new FieldDefinition(
                     key:        'item_unit_price',
                     label:      'Unit Price',
@@ -199,9 +197,9 @@ final class ShippedDatasets
                     type:       ValueType::Money,
                     expression: '(CASE WHEN journal_item.qty = 0 THEN 0 ELSE journal_item.debit_amount / journal_item.qty END)',
                     sortable:   true,
-                    // What the shipped definitions wrote inline. The guard
-                    // against division by zero is new: PhreeForm's raw
-                    // expression divides regardless.
+                    // The inline expression the shipped definitions carry,
+                    // with a guard against division by zero that the raw
+                    // expression lacks.
                     legacyNames: ['journal_item.debit_amount / journal_item.qty'],
                 ),
 
@@ -216,8 +214,7 @@ final class ShippedDatasets
                 //
                 // Four shipped definitions write this inline — Sales Order,
                 // Customer Quotes, Vendor Credit Memo and the three-part Bank
-                // Check — and until this field existed their unit-price column
-                // bound to a name no record supplies and printed nothing at all.
+                // Check — and their unit-price column binds to it.
                 //
                 // Named with the side as a SUFFIX rather than matching the
                 // net pair's convention (where the bare name is the credit
@@ -234,9 +231,8 @@ final class ShippedDatasets
                     legacyNames: ['journal_item.credit_amount / journal_item.qty'],
                 ),
 
-                // Net movement on the line. The sales reports total this, and
-                // wrote the subtraction inline; naming it once means the reports
-                // agree on what "net" means.
+                // Net movement on the line. The sales reports total this; naming
+                // it once means the reports agree on what "net" means.
                 new FieldDefinition(
                     key:        'item_net',
                     label:      'Net Amount',
@@ -251,9 +247,9 @@ final class ShippedDatasets
                 // a journal line carries the amount on the side its account
                 // takes, so Sales By SKU (credit - debit) and Sales By Rep
                 // (debit - credit) are reading opposite sides of the same
-                // entry and both expect a positive number. PhreeForm wrote
-                // whichever subtraction suited inline, which is why three
-                // shipped reports reference this exact string.
+                // entry and both expect a positive number. Shipped
+                // definitions write whichever subtraction suits inline,
+                // and reference this exact string.
                 new FieldDefinition(
                     key:        'item_net_debit',
                     label:      'Net Amount (Debit Side)',
@@ -290,24 +286,17 @@ final class ShippedDatasets
     /**
      * The aging buckets, as ordinary dataset fields.
      *
-     * PhreeForm computed these in two special classes that between them ran one
-     * query per row, re-implemented the engine's own group-total loop, and could
-     * only be used by the four reports written against them. As fields they cost
-     * one query for any number of rows, group and total through the normal report
-     * path, and can be put on any transactions report.
+     * As fields they cost one query for any number of rows, group and total
+     * through the normal report path, and can be put on any transactions report.
      *
-     * **The sign rule is neither legacy class's.** Both were wrong, in opposite
-     * directions, and the data says so plainly: a customer invoice and a vendor
+     * **The sign rule follows the ledger.** A customer invoice and a vendor
      * credit memo both carry their ttl amount as a DEBIT, while a vendor bill and
      * a customer credit memo both carry it as a CREDIT. So the side a document
      * sits on follows the ledger, not the document type, and the rule that makes
      * every base document positive and every credit memo negative is to negate
      * the payables journals (6 and 7) and leave the receivables journals (12 and
-     * 13) alone.
-     *
-     * `aged_receivables` negated {6, 13}, which read a vendor credit memo as a
-     * positive payable. `aged_summary` negated {7, 13}, which read a vendor BILL
-     * as negative. Adopting either would have carried one of those forward.
+     * 13) alone. Negating {6, 13} instead would read a vendor credit memo as a
+     * positive payable, and {7, 13} a vendor BILL as negative.
      *
      * @return list<FieldDefinition>
      */
@@ -376,8 +365,8 @@ final class ShippedDatasets
      * Today, and the three aging cutoffs for each side, as bound parameters.
      *
      * Receivables and payables age independently — AR_AGING_PERIOD_* against
-     * AP_AGING_DATE_* — which `aged_summary` overlooked, so a payables summary
-     * bucketed by the receivables periods.
+     * AP_AGING_DATE_* — so a payables summary is bucketed by the payables
+     * periods.
      *
      * @return array<string,string>
      */
@@ -443,11 +432,10 @@ final class ShippedDatasets
                 // opening + debits - credits, and the report shows it in
                 // whichever column its sign calls for — so each side is the
                 // balance clamped at zero, and exactly one of the pair is
-                // non-zero for any account. GREATEST() is how PhreeForm wrote it
-                // inline — note the missing space after `debit_amount` in the
-                // stored definition, which is harmless only because
-                // TemplateConverter::normalise() strips whitespace before
-                // matching.
+                // non-zero for any account. The stored legacy definition writes
+                // it inline with GREATEST() and no space after `debit_amount`,
+                // which still matches because TemplateConverter::normalise()
+                // strips whitespace before matching.
                 new FieldDefinition(
                     key:        'trial_debit',
                     label:      'Trial Balance Debit',
@@ -514,8 +502,8 @@ final class ShippedDatasets
                 new FieldDefinition('lead_time',        'Lead Time',        'inventory', 'lead_time',           ValueType::Integer),
                 // The vendor is stored as an id. The name is a contacts lookup,
                 // and joining contacts here would widen a dataset that exists to
-                // be about stock — so the id is what a report gets, exactly as
-                // the legacy Re-order Worksheet printed it.
+                // be about stock — so the id is what a report gets, as the
+                // Re-order Worksheet prints it.
                 new FieldDefinition('vendor_id',        'Vendor (id)',      'inventory', 'vendor_id',           ValueType::Integer),
                 // Despite the column name this is the inventory ASSET account;
                 // `wage` is a leftover from PhreeBooks' service-item handling.
@@ -539,9 +527,8 @@ final class ShippedDatasets
                 // copy is what tells the pruner this report is per-movement.
                 new FieldDefinition('history_sku',      'SKU (Movement)',   'inventory_history', 'sku'),
 
-                // §6.2 counted nine computed expressions across the library,
-                // all simple arithmetic; this is the one the stock valuation
-                // reports use.
+                // The computed expression the stock valuation reports use
+                // (§6.2).
                 new FieldDefinition(
                     key:        'history_value',
                     label:      'Remaining Value',
@@ -560,11 +547,9 @@ final class ShippedDatasets
                 // `history_sku` + `_avg_cost`. Renaming either half breaks the
                 // link silently.
                 //
-                // PhreeForm ran pb_get_avg_cost() once PER ROW — two queries a
-                // row for avg_total — so the valuation reports issued several
-                // thousand round trips to print one page. Expressing it here
-                // makes it one statement, and puts the definition of "average
-                // cost" in the dataset where a report author can see it.
+                // As SQL it is one statement rather than queries per row, and
+                // the definition of "average cost" sits in the dataset where a
+                // report author can see it.
                 new FieldDefinition(
                     key:        'history_sku_avg_cost',
                     label:      'Average Cost',
@@ -779,30 +764,28 @@ final class ShippedDatasets
      * ── Why this exists as its own dataset ───────────────────────────────────
      * A purchase order often has to show the SUPPLIER's part number rather than
      * ours, and `inventory_purchase_details` is where that lives. It is not in
-     * `transactions` and deliberately stays out: that dataset is behind 44
-     * documents, its join is one-to-many on (sku, vendor_id), and those columns
-     * are not unique — `production` has a duplicate pair today — so adding it there
-     * would put an extra row into unrelated reports to serve one form.
+     * `transactions` and deliberately stays out: that dataset is behind most
+     * documents, its join is one-to-many on (sku, vendor_id), and those columns are
+     * not unique, so adding it there would put an extra row into unrelated reports
+     * to serve one form.
      *
      * DatasetResolver picks the NARROWEST dataset that covers a definition's
      * tables, so every existing report keeps resolving to `transactions` and
      * only a definition that names `inventory_purchase_details` lands here.
      *
      * ── The customisation this replaces (§1.1, §8.2) ─────────────────────────
-     * `production` had already solved this the PhreeForm way: its Purchase Order
-     * declares the extra table with a hand-written `<relationship>` and prints a
-     * column whose FIELD NAME is
+     * A customised Purchase Order may declare the extra table with a
+     * hand-written `<relationship>` and print a column whose FIELD NAME is
      *
      *     IF(inventory_purchase_details.vendor_sku <> '',
      *        inventory_purchase_details.vendor_sku,
      *        SUBSTRING_INDEX(inventory_purchase_details.description_purchase, ' ', 1))
      *
      * — a report author writing SQL, which is the whole of §1.1 and the reason
-     * Forms exists. Forms declined that definition rather than executing it.
-     * Naming the expression here as a shipped field, with the legacy string in
-     * `legacyNames`, converts the customisation instead of running it: the same
-     * document prints, and the arithmetic is now the catalog's rather than the
-     * report's. That is what §8.2 migration looks like in practice.
+     * Forms exists, and which Forms will not execute. Naming the expression here
+     * as a shipped field, with the legacy string in `legacyNames`, converts the
+     * customisation instead of running it: the same document prints, and the
+     * arithmetic is the catalog's rather than the report's (§8.2).
      */
     public static function purchasing(): Dataset
     {

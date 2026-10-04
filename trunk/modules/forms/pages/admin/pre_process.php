@@ -20,12 +20,9 @@
  * Forms module settings (design §11.16).
  *
  * Reached from Company -> Module Administration, which links every installed
- * module's `page=admin` from the properties icon. One setting so far: whether
- * the Print buttons open Forms or PhreeForm.
- *
- * It is a page rather than a line in the installer because the answer changes
- * during the transition and has to be reversible without a deploy — that is the
- * whole reason the switch exists rather than the buttons simply being repointed.
+ * module's `page=admin` from the properties icon. It holds the renderer
+ * defaults, and the tools that re-stamp every document's paper and rebuild the
+ * document list.
  */
 
 $security_level = validate_user(SECURITY_ID_CONFIGURATION);
@@ -62,18 +59,16 @@ switch ($_REQUEST['action'] ?? '') {
   case 'restamp':
     // Re-target every stored document onto FORMS_DEFAULT_PAPER.
     //
-    // Documents are seeded on the paper the install chose, but an installation
-    // that predates that choice — or one that answered it wrongly — has
-    // definitions on the wrong paper and no way to fix them short of editing
-    // each by hand. This and the rebuild below lived on PhreeForm's tools tab
-    // and came over with the engine (§13.42).
+    // Documents are seeded on the paper the install chose, but one seeded on
+    // the wrong paper has no way to fix its definitions short of editing each
+    // by hand (§13.42).
     validate_security($security_level, 3);
     require_once(DIR_FS_WORKING . 'functions/seed.php');
     $stamped = $skipped = 0;
     // Anchored on the <orientation> that FOLLOWS the page size, so it cannot
-    // match one of the many font <size> elements. Only reachable now on a
-    // company restored from a backup old enough to still hold xml; every
-    // migrated definition goes through forms_restamp_native() above it.
+    // match one of the many font <size> elements. Reached only on a company
+    // restored from a backup that still holds xml; every native definition
+    // goes through forms_restamp_native() above it.
     $pattern = '#(<size><!\[CDATA\[)[^\]]*(\]\]></size>\s*<orientation>)#';
     foreach (scandir(FORMS_DIR_DEFINITIONS) as $document) {
       // `pf_` AND DIGITS. A definition Forms has rewritten keeps its original
@@ -108,19 +103,15 @@ switch ($_REQUEST['action'] ?? '') {
     //
     // The first thing anyone reaches for after a restore has left the list
     // wrong, which is exactly when a company is likeliest to hold a mixture of
-    // native definitions and xml originals — so it reads BOTH. It used to read
-    // only xml, and handed a native file to xml_to_object(), which returns the
-    // JSON string rather than failing: every field read off it was NULL, and a
-    // native company was rebuilt into a catalogue of nameless documents, filed
-    // under Miscellaneous, each file renamed to a fresh id, reported as
-    // success.
+    // native definitions and xml originals — so it reads BOTH, each as what it
+    // is. xml_to_object() handed a native file returns the JSON string rather
+    // than failing, and every field read off it would be NULL.
     validate_security($security_level, 3);
     require_once(DIR_FS_MODULES . 'forms/classes/document/load.php');
     require_once(DIR_FS_MODULES . 'forms/classes/legacy/legacy_reader.php');
     // load_reports() below calls admin_add_report_heading() and
-    // admin_add_report_folder(), which live here. PhreeForm's tools tab got
-    // them for free because its own page required this file; this one did not,
-    // and the rebuild died on the first module it tried to re-file.
+    // admin_add_report_folder(), which live here, so this page requires the
+    // file itself.
     require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
 
     $db->Execute("truncate " . TABLE_PHREEFORM);
@@ -132,11 +123,8 @@ switch ($_REQUEST['action'] ?? '') {
       if (!file_exists(DIR_FS_MODULES . $entry . '/classes/install.php')) continue;
       // The module's own ADMIN language, before its install class runs: the
       // folder names load_reports() files documents under are constants in it
-      // (PB_PF_CUST_QUOTE and its kind), and without them the rebuild dies on
-      // the first module it reaches — after truncating the list. PhreeForm's
-      // equivalent pulled it per module in the same loop, and the port dropped
-      // the line. Fourth time a transitive language pull has bitten in this
-      // work (§13.34, §13.37, §13.41).
+      // (PB_PF_CUST_QUOTE and its kind), and without them the rebuild would
+      // die on the first module it reaches — after truncating the list.
       gen_pull_language($entry, 'admin');
       require_once(DIR_FS_MODULES . $entry . '/classes/install.php');
       $classname = $entry . '_admin';
@@ -158,10 +146,10 @@ switch ($_REQUEST['action'] ?? '') {
         $title = (string)$native->title;
         $group = (string)($native->group ?? '');
         $type  = (string)$native->type;
-        // A native definition carries no per-document ACL: PhreeForm's was
-        // replaced by the three SECURITY_ID_FORMS_* keys, and 'u:0;g:0' —
-        // unrestricted — is what that column means now, and what
-        // forms_seed_native() writes.
+        // A native definition carries no per-document ACL: the three
+        // SECURITY_ID_FORMS_* keys replace it, so 'u:0;g:0' — unrestricted
+        // — is what that column means, and what forms_seed_native()
+        // writes.
         $security = 'u:0;g:0';
       } else {
         $legacy = \FreeBooks\Forms\Legacy\LegacyReader::parse($contents);
@@ -219,9 +207,9 @@ foreach (forms_paper_sizes() as $name => $label) {
   $forms_paper_choices[] = array('id' => $name, 'text' => $label);
 }
 
-// An installation enabled before a key existed has no row for it, so the
-// constant falls back to the define() in defaults.php — which is the shipped
-// value, and what such an installation is actually using.
+// An installation with no row for a key falls back to the define() in
+// defaults.php — the shipped value, and what such an installation is
+// actually using.
 $forms_paper        = (string)($_POST['forms_default_paper']        ?? FORMS_DEFAULT_PAPER);
 $forms_rowspace     = (string)($_POST['forms_default_rowspace']     ?? FORMS_DEFAULT_ROWSPACE);
 $forms_column_width = (string)($_POST['forms_default_column_width'] ?? FORMS_DEFAULT_COLUMN_WIDTH);

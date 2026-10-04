@@ -135,8 +135,7 @@ final class StatementDocumentProvider implements DocumentProvider
         $f['statement_total'] = $statementTotal;
         $f['balance_due']     = $balanceDue;
         // The statement's own date is the day it is produced, not a stored one.
-        // The legacy formatted it here with date(DATE_FORMAT); it stays a date
-        // so the renderer applies the locale.
+        // It stays a date so the renderer applies the locale.
         $f['post_date']       = date('Y-m-d');
 
         $rows = [];

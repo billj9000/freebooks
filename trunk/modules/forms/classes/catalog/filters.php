@@ -14,13 +14,9 @@
 /**
  * Forms — filters, as field + operator + value rather than as SQL.
  *
- * PhreeForm's build_criteria() concatenated the stored min/max values into the
- * WHERE clause. Numeric-looking criteria were interpolated unquoted, so a
- * crafted value became syntax — the same class of bug fixed at three separate
- * call sites in gen_db_date(), gen_build_sql_date() and popup_gen during the
- * 2026-08 audit. Fixing the shape rather than the call sites is the point of
- * this file: a filter cannot carry syntax, because the operator is an enum and
- * the value never reaches the statement.
+ * A filter cannot carry syntax, because the operator is an enum and the value
+ * never reaches the statement. Concatenating stored values into the WHERE
+ * clause — numeric-looking ones unquoted — lets a crafted value become syntax.
  *
  * Every value becomes a bound parameter. The only text the builder emits is the
  * operator's own keyword and a placeholder.
@@ -83,12 +79,12 @@ enum FilterOperator: string
 /**
  * Arithmetic over dataset FIELDS, for comparing a column to other columns.
  *
- * PhreeForm supports this and the shipped library uses it: the Re-order
- * Worksheet asks for items where `quantity_on_hand` is less than
- * `(minimum_stock_level + quantity_on_sales_order - quantity_on_order)`. That
- * cannot be a bound parameter — it is not a value — and binding it anyway is
- * not a safe failure: MySQL coerces the string to 0, so the report silently
- * becomes "items with negative stock" and returns 251 rows instead of 986.
+ * The shipped library uses this: the Re-order Worksheet asks for items where
+ * `quantity_on_hand` is less than `(minimum_stock_level +
+ * quantity_on_sales_order - quantity_on_order)`. That cannot be a bound
+ * parameter — it is not a value — and binding it anyway is not a safe
+ * failure: MySQL coerces the string to 0, so the report silently becomes
+ * "items with negative stock".
  *
  * It is also the obvious place to reintroduce injection, so nothing here is
  * free text. An expression is a list of tokens that are either a dataset field

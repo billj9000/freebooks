@@ -30,16 +30,12 @@
  * by something. No filter or sort a report author could write would produce a
  * balance sheet, so the structure is code.
  *
- * What they no longer do is format. All three legacy classes returned arrays of
- * ProcessData()-formatted strings, which is why the same definition could not
- * produce a readable PDF and a usable CSV. Every cell here is a TypedValue and
- * the renderer decides.
+ * They do not format: every cell is a TypedValue and the renderer decides, so
+ * one definition produces a readable PDF and a usable CSV.
  *
- * Section headings, blank separators and subtotals each carry their own RowKind
- * (added 2026-08-14). The legacy emitted all of them as plain data rows, which
- * is why no renderer could set "Gross Profit" differently from the account line
- * above it. They are still compared against the legacy as data rows, because
- * that is what PhreeForm produced.
+ * Section headings, blank separators and subtotals each carry their own
+ * RowKind, so a renderer can set "Gross Profit" differently from the account
+ * line above it.
  *
  * A provider sits ABOVE the seam, so database access here is correct and
  * expected; it is the returned Document that must be free of it.
@@ -266,11 +262,11 @@ final class IncomeStatementDocumentProvider extends FinancialStatementProvider
      * Every account of a type, with all six figures, in ONE query per figure
      * rather than four cursors advanced in lockstep.
      *
-     * is_budget stepped four result sets together with MoveNext(), which is
-     * only correct while every one returns the same accounts in the same order.
-     * An account with no history row in the prior year drops out of that cursor
-     * and every subsequent row reads its neighbour's figures. Keying by account
-     * id cannot misalign.
+     * Four cursors stepped together with MoveNext() are only correct while
+     * every one returns the same accounts in the same order: an account with no
+     * history row in the prior year drops out of that cursor and every
+     * subsequent row reads its neighbour's figures. Keying by account id cannot
+     * misalign.
      *
      * @return list<array<string,mixed>>
      */
@@ -349,11 +345,6 @@ final class IncomeStatementDocumentProvider extends FinancialStatementProvider
  * solely to read one number off. Four columns: caption, account balance, account
  * type total, section total — the definition's own field names are placeholders
  * (`journal_main.id` four times over), because the class filled them by position.
- *
- * The legacy read `global $Seq` from inside add_bal_sheet_data() to format its
- * amounts — a variable owned by the caller's scope, which is why the class could
- * not be called from anywhere else. Nothing here is formatted, so the question
- * does not arise.
  */
 final class BalanceSheetDocumentProvider extends FinancialStatementProvider
 {
@@ -450,9 +441,6 @@ final class BalanceSheetDocumentProvider extends FinancialStatementProvider
     /**
      * Retained earnings for the year to date: income less cost of sales less
      * expenses, over the fiscal year up to this period.
-     *
-     * balance_sheet got this by constructing an income_statement and building
-     * an entire report to read one property off it. It is three sums.
      */
     private function ytdNetIncome(): float
     {
@@ -497,17 +485,10 @@ final class BalanceSheetDocumentProvider extends FinancialStatementProvider
  * Sheet, the definition names none of them: it lists the field `id` five times
  * over because the class filled each row by position.
  *
- * Three things the legacy did that this does not:
- *
- * 1. It read the account out of `$report->filterlist[0]->min_val`, on the
- *    stated assumption that "the gl account is the first criteria". Reordering
- *    the report's filters silently reconciled the wrong account, or none.
- *    The account is a constructor argument here, so the caller says which.
- * 2. It interpolated that value — which arrives from the run dialog — straight
- *    into two SQL statements. Both queries below bind it.
- * 3. It keyed its working list by `journal_main.id`, so where one entry had
- *    several lines against the account, only the last survived to be printed
- *    while every one of them was added to the total. See listItems().
+ * The account is a constructor argument, so the caller says which — never the
+ * report's first filter, whose order an author can change. It is bound into
+ * both queries, never interpolated. And the working list holds one row per
+ * journal LINE, not per entry; see listItems().
  */
 final class AccountReconciliationDocumentProvider extends FinancialStatementProvider
 {
@@ -579,9 +560,8 @@ final class AccountReconciliationDocumentProvider extends FinancialStatementProv
 
         // The bank's own balance, implied: what the statement must show for the
         // ledger to agree with it once the items above are allowed for. The
-        // legacy calls it the unreconciled difference and its author left a
-        // "check this" note beside it; the arithmetic is right, and the two
-        // lines that follow are the proof, so it keeps its caption.
+        // legacy calls it the unreconciled difference; the arithmetic is right,
+        // and the two lines that follow are the proof, so it keeps its caption.
         $rows[] = $this->subtotal(self::label('RW_RECON_DIFF', 'Unreconciled Difference'),
                                   [$total => $closing - $depositsInTransit + $paymentsInTransit]);
         $rows[] = $this->subtotal(self::label('RW_RECON_EB', 'Ending GL Balance'), [$total => $closing]);
@@ -612,13 +592,10 @@ final class AccountReconciliationDocumentProvider extends FinancialStatementProv
     /**
      * Every journal line against the account matching a reconciliation state.
      *
-     * One row per LINE. acct_recon collected these into an array keyed by
-     * `journal_main.id`, so a journal entry touching the account more than once
-     * — a point-of-sale entry recording the sale, its payment and the till
-     * total all against the cash account — kept only whichever line the driver
-     * returned last, while the running totals had already counted all of them.
-     * The observed effect on `demo` was a reconciliation listing two of its six
-     * cleared transactions underneath totals covering all six: a bank
+     * One row per LINE. Keyed by `journal_main.id`, a journal entry touching
+     * the account more than once — a point-of-sale entry recording the sale,
+     * its payment and the till total all against the cash account — would keep
+     * only one of its lines while the running totals count all of them: a bank
      * reconciliation that does not show the transactions it is totalling.
      *
      * A line whose debit and credit cancel is neither a deposit nor a payment

@@ -20,10 +20,8 @@
  * Module installer for Forms.
  *
  * Creates one table. Report DEFINITIONS are left where they are — Forms reads
- * the existing PhreeForm catalog, so enabling the module makes every stored
- * report runnable through the new engine without a migration and without
- * touching the old one, which is what lets the two coexist during the
- * transition (design §9, decisions C and D).
+ * the existing catalog, so every stored report is runnable without a
+ * migration (design §9, decisions C and D).
  *
  * What is new is `forms_datasets`: the join graphs an admin defines through the
  * UI (§3.2). One row per dataset holding the whole definition as JSON — it is
@@ -37,13 +35,9 @@ class forms_admin {
    *
    * Read at construction so that install and update both see it. An
    * installation that answered this question once — at install time, or on
-   * PhreeForm's admin tab — should not be asked again by a module that is
-   * taking the question over, and should certainly not have the answer
-   * replaced by a shipped default without being told.
-   *
-   * When PhreeForm goes, these constants stop existing and the shipped
-   * defaults below apply to new installations only; every existing one already
-   * has its own row by then.
+   * PhreeForm's admin tab — keeps its answer rather than having it replaced by
+   * a shipped default. Where the PhreeForm constant is not defined, the
+   * shipped default applies.
    */
   const INHERITS = array(
     'FORMS_DEFAULT_PAPER'        => 'PF_DEFAULT_PAPERSIZE',
@@ -77,20 +71,18 @@ class forms_admin {
       'phreebooks' => '1.0.0',
     );
     $this->keys    = array(
-      // The three renderer defaults, which were PhreeForm's settings and are
-      // now Forms' own. Each INHERITS the PhreeForm value where the
-      // installation has one, so an admin who tuned a column width or chose A4
-      // at install time keeps that answer instead of silently reverting to what
-      // this module happens to ship. See below.
+      // The three renderer defaults. Each INHERITS the PhreeForm value where
+      // the installation still has one, so an admin who tuned a column width or
+      // chose A4 at install time keeps that answer instead of silently
+      // reverting to what this module ships. See below.
       //
-      // Paper is stored as the NAME. PhreeForm keeps "A4:210:297" because its
-      // designer carried the dimensions along; a native definition stores the
-      // name alone and TCPDF looks the dimensions up itself.
+      // Paper is stored as the NAME: a native definition stores the name alone
+      // and TCPDF looks the dimensions up itself, so a legacy "A4:210:297" is
+      // reduced to its name.
       'FORMS_DEFAULT_PAPER'        => 'Letter',
       'FORMS_DEFAULT_ROWSPACE'     => '2',
       'FORMS_DEFAULT_COLUMN_WIDTH' => '25',
 
-      // Inherited outright from PhreeForm's install class, which is deleted.
       // TCPDF is not a choice for Forms — its renderers extend it and nothing
       // else — but the constant is read by currencies::format_full() in core,
       // as a parameter default, so it has to exist.
@@ -103,9 +95,8 @@ class forms_admin {
       if ($key === 'FORMS_DEFAULT_PAPER') $value = explode(':', $value)[0];
       if ($value !== '') $this->keys[$key] = $value;
     }
-    // Where a company's definitions and their images live. PhreeForm's install
-    // class created these; with it deleted, a fresh install would have had
-    // nowhere to seed a document into and no obvious sign of why.
+    // Where a company's definitions and their images live; a fresh install
+    // needs them to seed a document into.
     //
     // The FOLDER keeps its name. Renaming it is a migration every backup,
     // restore and installed extension would have to be taught, in exchange for
@@ -115,10 +106,10 @@ class forms_admin {
       'phreeform/images',
     );
     $this->tables  = array(
-      // The document catalogue, inherited from PhreeForm's install class: one
-      // row per report or form, and the thing every page of Forms reads first.
-      // Unchanged from the definition that module shipped, MyISAM and all, so
-      // that an existing company and a new one hold the same table.
+      // The document catalogue: one row per report or form, and the thing
+      // every page of Forms reads first. Declared as existing companies hold
+      // it, MyISAM and all, so that an existing company and a new one hold the
+      // same table.
       TABLE_PHREEFORM => "CREATE TABLE " . TABLE_PHREEFORM . " (
           id int(10) unsigned NOT NULL auto_increment,
           parent_id int(11) NOT NULL default '0',
@@ -161,18 +152,17 @@ class forms_admin {
 
   function update($module) {
     // Only keys that are MISSING, never keys that are set. Module Administration
-    // does not write keys on update at all, so an installation enabled before a
-    // key existed would never get its row; but rewriting every key with its
-    // shipped default would silently undo the admin's own choices on each
-    // update, and one of these keys decides where the Print buttons point.
-    // An absent constant is exactly an absent row — application_top defines one
-    // per configuration row — so `defined()` is the test.
+    // does not write keys on update at all, so an installation enabled by an
+    // earlier release would lack a newer key's row; but rewriting every key with
+    // its shipped default would silently undo the admin's own choices on each
+    // update. An absent constant is exactly an absent row — application_top
+    // defines one per configuration row — so `defined()` is the test.
     foreach ($this->keys as $key => $value) {
       if (!defined($key)) write_configure($key, $value);
     }
     // Otherwise the same path as install: the table is created if it is
-    // missing, which is what an installation enabled before custom datasets
-    // existed needs.
+    // missing, which is what an installation enabled by an earlier release
+    // needs.
     $result = $this->install($module);
     // And record that it ran. Without this the status stays where it was, the
     // per-login cascade sees STATUS differing from VERSION every time, and this

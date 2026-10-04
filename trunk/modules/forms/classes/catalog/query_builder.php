@@ -27,8 +27,7 @@
  *   4. `?` placeholders.
  *
  * No caller-supplied value is ever concatenated. Filter values, date bounds and
- * record ids all leave as bound parameters, which is what makes the difference
- * between this and PhreeForm's build_criteria().
+ * record ids all leave as bound parameters.
  *
  * The result is a Query — SQL plus its parameters — rather than a string, so a
  * caller cannot accidentally execute the one without the other.
@@ -53,13 +52,11 @@ final class QueryBuilder
      * the bare name everywhere else.
      *
      * FreeBooks supports a table-name prefix, set at install time and baked
-     * into configure.php as DB_PREFIX; the shipped installs use an empty one,
-     * which is why the catalog got away with emitting bare names. Prefixing
-     * every REFERENCE instead — which is what PhreeForm's prefixTables() does,
-     * by string-replacing "table." throughout — would mean rewriting field
-     * references, join conditions, ORDER BY and the raw SQL inside every
-     * computed expression, and getting any of those wrong fails only on an
-     * install nobody here is running.
+     * into configure.php as DB_PREFIX; the shipped installs use an empty one.
+     * Prefixing every REFERENCE instead, by string-replacing "table."
+     * throughout, would mean rewriting field references, join conditions,
+     * ORDER BY and the raw SQL inside every computed expression, and getting
+     * any of those wrong fails only on a prefixed install.
      *
      * Aliasing moves the whole problem to the two places a table is introduced.
      * A dataset then reads the same on every install, and an expression like
@@ -163,18 +160,16 @@ final class QueryBuilder
      * because some documents need them. Joining all of it unconditionally is not
      * merely wasteful, it changes the ANSWER: address_book is one-to-many, so a
      * report over journal_main + journal_item alone returns twice as many rows
-     * once an unused address_book join is bolted on. PhreeForm avoided this by
-     * making each report name its own tables; pruning is how a shared dataset
-     * gets the same result.
+     * once an unused address_book join is bolted on. Pruning gives a shared
+     * dataset the same result as a report naming its own tables.
      *
      * Pruning is decided by REFERENCE, not by join type. Keeping every INNER
      * join looks like the cautious choice — an INNER join can exclude rows, so
      * removing one changes which records appear — but on real reports it is the
      * more damaging one. `transactions` joins journal_item INNER because most
      * documents are line-grain; Open Purchase Orders selects only header
-     * columns, and carrying the unreferenced line join turned its 55 orders
-     * into 955 rows, one per line. Legacy had no such problem because each
-     * report named its own tables, so a table it did not use was simply absent.
+     * columns, and carrying the unreferenced line join would turn each order
+     * into one row per line.
      *
      * An unreferenced join contributes exactly two things: row multiplication
      * when it is one-to-many, and silent exclusion of parents with no children.

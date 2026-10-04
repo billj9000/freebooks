@@ -50,8 +50,8 @@ abstract readonly class Element
         public ?string    $label   = null,   // designer-facing description only
         /**
          * When this element prints, as a test against the record — null being
-         * "always", which is what every element written before this existed
-         * means and what the codec writes nothing for.
+         * "always", which is what an element with no condition means and what
+         * the codec writes nothing for.
          *
          * It sits on Element rather than inside a text element because the
          * question is not "which of these strings" but "does this print at
@@ -61,8 +61,8 @@ abstract readonly class Element
          * with conditions that do not overlap is then the general case of
          * choosing between alternatives, rather than a mechanism of its own.
          *
-         * Last in the signature, like $label, so that adding it moved no
-         * existing call site.
+         * Last in the signature, like $label, so a call site that needs
+         * no condition leaves it out.
          */
         public ?Condition $when    = null,
     ) {}

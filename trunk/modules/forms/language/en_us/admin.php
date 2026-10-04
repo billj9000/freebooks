@@ -28,8 +28,7 @@ define('MODULE_FORMS_DESCRIPTION', 'Reports and forms engine. Runs the document 
 define('FORMS_ADMIN_TITLE',        'Forms Module Settings');
 define('FORMS_ADMIN_CONFIG_INFO',  'Settings');
 
-// The renderer defaults. Each was a PhreeForm setting, on a tab that goes when
-// that module does — so they live here or they become unreachable.
+// The renderer defaults, set on the module's own settings page.
 define('FORMS_DEFAULT_PAPER_TEXT',        'Paper size');
 define('FORMS_DEFAULT_PAPER_DESC',        'The paper a document sits on when its own layout does not say. A document that names its own size keeps it.');
 define('FORMS_DEFAULT_ROWSPACE_TEXT',     'Row spacing');
@@ -38,7 +37,7 @@ define('FORMS_DEFAULT_COLUMN_WIDTH_TEXT', 'Default column width');
 define('FORMS_DEFAULT_COLUMN_WIDTH_DESC', 'Width in millimetres for a report column whose definition declares none. 25 is the shipped value.');
 define('FORMS_ADMIN_PRINT_CAUTION',       'Printing needs the <b>Forms - Run and print documents</b> permission. Anyone whose role does not grant it cannot open a document from a Print button, so check the roles in Company &rarr; User Security.');
 
-/***** the tools card: two actions that came over with the engine *****/
+/***** the tools card: re-stamp the paper, rebuild the list *****/
 define('FORMS_ADMIN_TOOLS_INFO',    'Tools');
 
 define('FORMS_TOOLS_RESTAMP_TITLE',   'Re-stamp Paper Size');

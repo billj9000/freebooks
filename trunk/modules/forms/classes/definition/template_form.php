@@ -28,31 +28,24 @@
  * draw would delete the rest on the first save. Silently, which is the way this
  * kind of editor usually loses things.
  *
- * What is carried has shrunk as the canvas has grown. A Table's columns and a
- * FieldBlock's parts were on that list until §13.30 gave them editors; a
- * Table's source, a Table's heading style, an Image's folder prefix and a
- * Line's type are still on it.
- *
- * The rule that replaced "carry everything structural" is narrower and applies
- * per key: **an ABSENT key is carried, a PRESENT one is rebuilt.** So a post
- * from a page that knows nothing of columns leaves a table's columns exactly as
- * they were, while a post that names them replaces them. That is what keeps an
- * older cached page, or a partial submission, from emptying a table — the
- * failure the blanket carry existed to prevent, kept without freezing the
- * structures it protected.
+ * Carried today: a Table's source, a Table's heading style, an Image's folder
+ * prefix and a Line's type. A Table's columns and a FieldBlock's parts have
+ * editors (§13.30), and follow the per-key rule: **an ABSENT key is carried, a
+ * PRESENT one is rebuilt.** So a post from a page that knows nothing of columns
+ * leaves a table's columns exactly as they were, while a post that names them
+ * replaces them. That is what keeps an older cached page, or a partial
+ * submission, from emptying a table.
  *
  * **An author names only what exists.** Every binding submitted is checked
  * against the list of names the document can actually supply. For a
  * query-driven form that is the dataset's fields; for one of the nine built by
  * a provider it is what the provider WAS OBSERVED to supply, since a provider
  * declares nothing — §13.8 risk 3, answered by running the form once and
- * reading the keys back off the Record. `entry_builder` supplies 76,
- * `statement_builder` 26, `wo_builder` 25.
+ * reading the keys back off the Record.
  *
  * ## Geometry is submitted as STORED, not as drawn
  *
- * Two element types have a stored box that is not the box on screen, and both
- * were found by looking at the canvas rather than at the code (§13.11):
+ * Two element types have a stored box that is not the box on screen (§13.11):
  *
  *   - a `Line`'s width and height are a SIGNED offset to its end point, so a
  *     line drawn upward has a negative height;
@@ -79,26 +72,13 @@ final class TemplateForm
     /**
      * What an author may add: all nine kinds (§13.30).
      *
-     * The list used to be five. The rule behind it was never "these are the
-     * important ones" but "these are the ones the canvas can COMPLETE" — a
-     * Table created with no columns and a FieldBlock created with no parts were
-     * elements that drew nothing and could not be repaired on the page that
-     * made them, so offering them would have been offering a dead end.
-     *
-     * An image left the exclusion first, when the canvas learnt to put a file
-     * in the images folder (§13.13): its whole sub-structure is one filename,
-     * and once there was a control for it there was no reason to withhold it.
-     *
-     * The other four leave it for the same reason and nothing else. A Table's
-     * columns and a FieldBlock's parts are now edited here rather than carried
-     * past, a PageNumber's pattern is one string, and a Barcode needs a binding
-     * — which this class already gates — plus a symbology. The test has not
-     * moved; the canvas has caught up with it.
-     *
-     * This matters most for the kinds it was previously impossible to obtain: a
-     * form created from scratch could be given text, values, rules, boxes and a
-     * logo, which is not an invoice. Line items and an address block were
-     * reachable only by copying a form that already had them.
+     * The test for offering a kind is that the canvas can COMPLETE it, so that
+     * nothing offered is a dead end: a Table's columns and a FieldBlock's parts
+     * are edited here, an image's file is put in the images folder (§13.13), a
+     * PageNumber's pattern is one string, and a Barcode needs a binding — which
+     * this class gates — plus a symbology. A form created from scratch can
+     * therefore be given line items and an address block as well as text,
+     * values, rules, boxes and a logo.
      */
     public const ADDABLE = ['text', 'field', 'block', 'table', 'line', 'rect',
                             'image', 'pagenum', 'barcode'];
@@ -142,28 +122,16 @@ final class TemplateForm
      * field of the record (§13.55).
      *
      * These are CONTEXT bindings: the same value on every record a form prints,
-     * read from the configuration rather than from the transaction. They were
-     * absent from the palette until §13.55, which meant an author could keep one
-     * an existing form already had but could never add one.
+     * read from the configuration rather than from the transaction.
      *
      * **This is the list the company settings page edits**, and that is the only
-     * defensible source for it. The first version of this constant copied the
-     * nine names out of `forms_report_context()` instead, which was the wrong
-     * oracle twice over (§13.56):
+     * defensible source for it — not `forms_report_context()`, which serves a
+     * REPORT's heading band and lists only what that needs (§13.56). The state
+     * or province is `COMPANY_ZONE`; nothing defines `COMPANY_STATE_PROVINCE`.
      *
-     *   - that function serves a REPORT's heading band, where only the company
-     *     name is really used, so its list had never had to be complete — it was
-     *     missing `COMPANY_WEBSITE`, `COMPANY_FAX`, `COMPANY_TELEPHONE2`,
-     *     `COMPANY_ZONE` and `COMPANY_ID`, four of which stored forms already
-     *     bind;
-     *   - and it carried `COMPANY_STATE_PROVINCE`, which this application does
-     *     not define ANYWHERE. Not seeded, not on the settings page, not read by
-     *     any code. The state or province is `COMPANY_ZONE`.
-     *
-     * A FORM never depended on that list: `FormRunner::contextFor()` reads the
-     * names off the template and resolves whatever is defined, which is why the
-     * thirteen-odd forms binding `COMPANY_WEBSITE` and `COMPANY_FAX` have always
-     * printed correctly. Only the PALETTE was narrow.
+     * A FORM does not depend on this list: `FormRunner::contextFor()` reads the
+     * names off the template and resolves whatever is defined. Only the PALETTE
+     * does.
      *
      * A name outside this set is NOT a context binding, whatever it is called.
      * The set is closed for the same reason the operator list is: an author
@@ -414,9 +382,9 @@ final class TemplateForm
                             $box, $this->symbology($row, $original->symbology, $what),
                             $style, $visible, $label, $when),
 
-            // Parts and columns are edited here now (§13.30) — but only when
-            // the post actually carries them. Absent, they are carried, which
-            // is what stops a stale page from emptying a table.
+            // Parts and columns are edited here (§13.30) — but only when the
+            // post actually carries them. Absent, they are carried, which is
+            // what stops a stale page from emptying a table.
             $original instanceof FieldBlock =>
                 new FieldBlock($this->parts($row, $original->parts, $allowed, $what),
                                $box, $style, $visible, $label, $when),
@@ -459,13 +427,11 @@ final class TemplateForm
      * A brand-new element. Any of the nine kinds (§13.30).
      *
      * A Table and a FieldBlock may be created EMPTY — with no columns and no
-     * parts. That was the objection to offering them at all, and it stopped
-     * being one when the inspector gained the grids that fill them: an empty
-     * table draws nothing for as long as it takes to add the first column,
-     * which is a state the author is passing through rather than one they are
-     * stuck in. The renderer already tolerates it — an empty column list draws
-     * no cells, it does not fail — so the intermediate state costs a blank
-     * outline and nothing else.
+     * parts — because the inspector has the grids that fill them: an empty
+     * table draws nothing for as long as it takes to add the first column, a
+     * state the author is passing through rather than stuck in. The renderer
+     * tolerates it — an empty column list draws no cells, it does not fail —
+     * so the intermediate state costs a blank outline and nothing else.
      *
      * @param array<string,mixed> $row
      * @param array<string,true>  $allowed
@@ -561,7 +527,7 @@ final class TemplateForm
     {
         $name = trim((string)($row['bind'] ?? ''));
         // The NAME decides the scope, which is the whole mental model this
-        // control now asks an author to hold: one list, and where a value comes
+        // control asks an author to hold: one list, and where a value comes
         // from follows from which entry was picked.
         if (in_array($name, self::CONTEXT_NAMES, true)) return Binding::context($name);
 
@@ -668,10 +634,10 @@ final class TemplateForm
         $colour = self::colourFrom((string)($row['colour'] ?? ''));
         $align  = Align::tryFrom((string)($row['align'] ?? ''));
         $border = trim((string)($row['borderSize'] ?? ''));
-        // Independent of the text colour, and used: 16 shipped elements draw
-        // black text inside a silver rule. The renderer reads
-        // `borderColour ?? colour`, so leaving this unset makes the rule follow
-        // the text — which is a default, not a conflation.
+        // Independent of the text colour, and used: shipped forms draw black
+        // text inside a silver rule. The renderer reads `borderColour ??
+        // colour`, so leaving this unset makes the rule follow the text — which
+        // is a default, not a conflation.
         $borderColour = array_key_exists('borderColour', $row)
             ? self::colourFrom((string)$row['borderColour'])
             : $fallback?->borderColour;
@@ -736,9 +702,9 @@ final class TemplateForm
      *
      * The three answers of `subRows()`, for the same reason and with the same
      * distinction. An ABSENT `when_bind` is a post that says nothing about the
-     * condition — a page cached from before this control existed — and says
-     * nothing is not says none; it CARRIES. A present but blank one is an
-     * author who cleared the field, and clears the condition.
+     * condition — a page that does not know the control — and says nothing is
+     * not says none; it CARRIES. A present but blank one is an author who
+     * cleared the field, and clears the condition.
      *
      * Every failure below leans the same way: towards the element continuing to
      * print. That is not symmetry, it is the only safe direction. A binding
@@ -767,10 +733,9 @@ final class TemplateForm
         // reason here. The palette a caller computes is not always the palette
         // the condition was set against: a tool checking that a form survives
         // an untouched save passes none at all, and a page that cannot run the
-        // form to observe its provider's fields computes a smaller one. Re-
-        // gating then reports a condition nobody touched as a name this form
-        // cannot supply, on a save where nothing happened. Measured: an
-        // untouched save of the invoice warned about both of its bank blocks.
+        // form to observe its provider's fields computes a smaller one.
+        // Re-gating then reports a condition nobody touched as a name this
+        // form cannot supply, on a save where nothing happened.
         if ($current !== null && $current->bind->name === $name
             && $current->op->value === $opKey && $current->value === $value) {
             return $current;
@@ -807,13 +772,8 @@ final class TemplateForm
      * decides the scope: one of the company's own details is a Context binding,
      * anything else is a field of the record.
      *
-     * That rule replaced a flat refusal (§13.55). A Context binding used to be
-     * left alone entirely — correctly, while the palette held only record
-     * fields: the canvas sent nothing for such an element, so the only way here
-     * was a stale page or a hand-made post, and both deserved an answer rather
-     * than an edit that appeared to work and did not. Now the control is a real
-     * dropdown carrying both groups, so refusing what it offers would be the
-     * surprise instead.
+     * The control is a dropdown carrying both groups, so a Context binding it
+     * offers is accepted rather than refused (§13.55).
      *
      * An Aggregate binding keeps its scope and its field list: it is a total,
      * not a place a value is read from, and re-pointing one through this
@@ -1003,9 +963,7 @@ final class TemplateForm
      *
      * Test 1 is not a convenience. A form's own address block binds to names
      * that are perfectly real and that the palette may not list — and dropping
-     * them would empty the block on the first save of a form nobody edited,
-     * which is exactly what happened to eight parts of the company block on
-     * three shipped documents when this was written with only test 2.
+     * them would empty the block on the first save of a form nobody edited.
      *
      * @param array<string,mixed>   $entry
      * @param array<string,Binding> $kept  bindings this element already has
@@ -1070,9 +1028,9 @@ final class TemplateForm
      * Style unconditionally, so every column converted from a PhreeForm table
      * carries one, and most of them carry nothing but defaults. Letting those
      * collapse to null would rewrite the stored file of every shipped form the
-     * first time anybody opened and saved it — a diff on 14 documents that
-     * nobody asked for and that the byte-identity check (§13.24) would then
-     * report as a difference between us and the master.
+     * first time anybody opened and saved it — a diff nobody asked for, which
+     * the byte-identity check (§13.24) would report as a difference from the
+     * master.
      *
      * The non-null fallback is what forces the Style back: `style()` returns
      * null only when there is nothing set AND nothing to fall back to.

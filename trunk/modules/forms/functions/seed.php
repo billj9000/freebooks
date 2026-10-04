@@ -34,19 +34,17 @@
  * re-encode through `DefinitionCodec` would put the shipped bytes through a
  * round trip for no reason: the file is already exactly what the loader wants.
  *
- * It is the same reasoning `ImportReport()` uses when it edits the page size in
- * the XML rather than rebuilding the object, and the same reasoning behind the
- * re-stamp being a substitution rather than a re-serialisation.
+ * The re-stamp is a substitution rather than a re-serialisation for the same
+ * reason.
  *
  * ## What the catalogue row needs, and where it comes from
  *
  * `doc_title`, `doc_group` and `doc_ext` are the definition's own `title`,
  * `group` and `type` — `type` is literally `rpt` or `frm`, the same values the
  * column takes. The other two columns carry no information and are constants:
- * measured across every row on two companies, `doc_type` is always `'s'` and
- * `security` always `'u:0;g:0'`. PhreeForm's per-document ACL string is
- * replaced by the three SECURITY_ID_FORMS_* keys (decision F), so writing the
- * unrestricted value is not a shortcut — it is what the field means now.
+ * `doc_type` is always `'s'` and `security` always `'u:0;g:0'`. The three
+ * SECURITY_ID_FORMS_* keys replace a per-document ACL (decision F), so the
+ * unrestricted value is what the field means.
  */
 
 /**
@@ -63,15 +61,12 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   $contents = @file_get_contents($path);
   if ($contents === false) return false;
 
-  // Decoded to OBJECTS, not arrays. An empty JSON object survives
-  // json_decode($s, true) as an empty PHP array, and json_encode() then writes it
-  // back as `[]` — so a definition with `"style": {}` was seeded as
-  // `"style": []`, and every seeded file differed from the shipped one it was
-  // supposed to be a copy of. Harmless to read, because DefinitionCodec treats
-  // the two the same; fatal to the claim this function makes below, that a seeded
-  // file is byte-identical to one the editor would write. That claim is what
-  // every comparison between a company's definitions and the shipped set rests
-  // on, including adopting a tidied layout back into the shipping set.
+  // Decoded to OBJECTS, not arrays. An empty JSON object survives json_decode($s,
+  // true) as an empty PHP array, and json_encode() then writes it back as `[]` —
+  // so `"style": {}` would be seeded as `"style": []`. DefinitionCodec reads the
+  // two alike, but a seeded file has to be byte-identical to one the editor would
+  // write: every comparison between a company's definitions and the shipped set
+  // rests on it, including adopting a tidied layout back into the shipping set.
   $definition = json_decode($contents);
   if (!$definition instanceof stdClass
       || !isset($definition->title) || !isset($definition->type)) {
@@ -85,9 +80,8 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   }
 
   // The installer's Letter/A4 answer, applied to the seeded copy. Without this
-  // a native seeding path loses that choice on exactly the installs that have
-  // just made it — the trap §13.5 names, and the reason ImportReport() does the
-  // same thing to the XML.
+  // a native seeding path would lose that choice on exactly the installs that
+  // have just made it — the trap §13.5 names.
   //
   // Size only. PF_DEFAULT_ORIENTATION is deliberately NOT applied: several
   // shipped reports choose landscape on purpose and would be squeezed onto a
@@ -97,10 +91,10 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
     // The two formats spell a paper differently, and the caller passes the
     // LEGACY spelling because the installer, the company manager and
     // PF_DEFAULT_PAPERSIZE all carry it: "A4:210:297", name and dimensions.
-    // A native definition stores the name alone — the converter has always
-    // done explode(':')[0] — and TCPDF looks a paper up BY NAME, so writing
-    // the full token here produces a size no renderer can resolve, and every
-    // seeded document silently falls back to A4.
+    // A native definition stores the name alone — the converter takes
+    // explode(':')[0] — and TCPDF looks a paper up BY NAME, so writing the
+    // full token here would produce a size no renderer can resolve, and
+    // every seeded document would silently fall back to A4.
     $definition->page->size = explode(':', $paper_size)[0];
   }
 
@@ -108,9 +102,9 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
   $group = (string)($definition->group ?? '');
   $type  = (string)$definition->type;
 
-  // Same refusal ImportReport() makes: a definition of this name already in the
-  // catalog WITH its file on disk is not re-seeded, because that would silently
-  // replace a document someone may have edited.
+  // A definition of this name already in the catalog WITH its file on disk is
+  // not re-seeded, because that would silently replace a document someone may
+  // have edited.
   $rID    = '';
   $result = $db->Execute("select id from " . TABLE_PHREEFORM . "
     where doc_title = '" . $db->prepare_input($title) . "' and doc_type <> '0'");
@@ -124,8 +118,7 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
 
   // The folder this document belongs in, by group. Reports and forms have
   // separate folder rows ('fr' and 'ff'), and a group with neither falls back
-  // to Miscellaneous — the same lookup save_report() makes, and the reason a
-  // document in an unfoldered group still appears.
+  // to Miscellaneous, so a document in an unfoldered group still appears.
   $folder = $db->Execute("select id from " . TABLE_PHREEFORM . "
     where doc_group = '" . $db->prepare_input($group) . "' and doc_type = '0'
       and doc_ext in ('ff', 'fr')");
@@ -173,11 +166,10 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
  * Re-target one stored definition onto a paper size, if it is a native one.
  *
  * The re-stamp in Report Settings walks every `pf_*` file and substitutes the
- * page size textually. That substitution is anchored on XML, so a native
- * definition matches nothing and is counted as skipped — which is a company
- * asking to move onto A4 and being told, quietly, that some of its documents
- * would not move. Every document is native after the migration, so without
- * this the feature ends up applying to nothing at all.
+ * page size textually. That substitution is anchored on XML, so without this
+ * every native definition would match nothing and be counted as skipped, and
+ * a company asking to move onto A4 would be told, quietly, that its documents
+ * would not move.
  *
  * Rewritten as decoded JSON rather than by string substitution: the native
  * format has one `"size"` key inside `page`, and reaching it structurally is
@@ -186,7 +178,7 @@ function forms_seed_native($path, $save_path, $paper_size = '') {
  * no codec, no round trip through the object model.
  *
  * @return ?bool true stamped, false failed, null not a native file (so the
- *   caller applies its own rule — the two formats coexist until step 6)
+ * caller applies its own rule)
  */
 function forms_restamp_native($file, $paper_size) {
   $contents = @file_get_contents($file);
@@ -194,9 +186,8 @@ function forms_restamp_native($file, $paper_size) {
   if (!str_starts_with(ltrim($contents), '{')) return null;   // not ours to stamp
 
   // Objects, for the reason forms_seed_native() gives: decoding to arrays turns
-  // every `{}` in the file into `[]` on the way back out, so a re-stamp quietly
-  // rewrote parts of a definition it was not asked about — the very thing the
-  // note above says it has no business doing.
+  // every `{}` in the file into `[]` on the way back out, so a re-stamp would
+  // quietly rewrite parts of a definition it was not asked about.
   $definition = json_decode($contents);
   if (!$definition instanceof stdClass || !isset($definition->page->size)) return false;
 
@@ -215,13 +206,10 @@ function forms_restamp_native($file, $paper_size) {
  * Seed one document from a PhreeForm **xml** master, converting on the way in.
  *
  * The companion to forms_seed_native(), for a module that ships only xml — an
- * extension, or somebody's own module written before any of this. It replaces
- * ImportReport(), which did the same job by storing the xml verbatim and
- * leaving every load to convert it afresh.
- *
- * This is decision L arriving early: the converter surviving as an import path
- * rather than as a loader branch. What lands on disk is a native definition, so
- * the company that receives it needs no legacy reader at all.
+ * extension, or somebody's own module. The xml is converted on the way in
+ * rather than stored verbatim, so no load has to convert it afresh: the
+ * converter is an import path, not a loader branch (decision L), and the
+ * company that receives it needs no legacy reader at all.
  *
  * Same refusal as its sibling — a document of this title already in the catalog
  * WITH its file on disk is not replaced, because that would silently overwrite

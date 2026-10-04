@@ -17,9 +17,6 @@
 //  Path: /modules/forms/language/en_us/language.php
 //
 
-// "(Forms)" was there to tell this apart from PhreeForm's own Reports entry.
-// With that module deleted there is nothing to tell it apart from, and a
-// qualifier that no longer qualifies anything is just noise in a menu.
 define('BOX_FORMS_DOCUMENTS',      'Reports');
 define('FORMS_PAGE_TITLE',         'Reports');
 define('FORMS_PAGE_INTRO',         'Every report this company has. Forms — invoices, orders, statements — are printed from the document that owns them, and laid out under Tools &rarr; Form Layout.');
@@ -229,8 +226,7 @@ define('FORMS_DESIGN_PREVIEW_DATES', 'Preview covering');
 define('FORMS_DESIGN_PREVIEW_AS_SET','As the report is set');
 define('FORMS_DESIGN_PREVIEW_SAMPLE','SAMPLE DATA — this report returned no rows, so the figures below are invented to show the layout.');
 
-// The filter description drawn under a report's titles. PhreeForm printed the
-// same line, which is why the band exists at all.
+// The filter description drawn under a report's titles.
 define('FORMS_FILTER_PREFIX',       'Report Filters: ');
 define('FORMS_FILTER_GROUPED_BY',   'Grouped by: %s');
 define('FORMS_FILTER_SORTED_BY',    'Sorted by: %s');

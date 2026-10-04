@@ -19,9 +19,8 @@
 /**
  * Printing a form from the document that owns it (design §11.16).
  *
- * Every Print button in FreeBooks opens PhreeForm's popup_gen with the same four
- * parameters, and this page answers on the same contract so that pointing a
- * button here is a URL change and nothing more:
+ * Every Print button in FreeBooks opens this page through gen_print_form_url(),
+ * with these parameters:
  *
  *     ?module=forms&page=print&gID=j12:inv&date=a
  *         &xfld=journal_main.id&xcr=EQUAL&xmin=1234
@@ -32,7 +31,7 @@
  *   xcr   EQUAL, IN_LIST or RANGE
  *   xmin  the value, a comma list, or the low end of a range
  *   xmax  the high end of a range
- *   date  a PhreeForm date preference letter, for the statement forms
+ *   date  a date preference letter, for the statement forms
  *
  * The translation from those to the ids a provider takes is RecordSelector's,
  * and choosing the provider is FormRunner's; this page is the glue and the
@@ -43,10 +42,7 @@ $security_level = validate_user(SECURITY_ID_FORMS_RUN);
 
 require(DIR_FS_WORKING . 'defaults.php');
 // Definitions and images are found through FORMS_DIR_DEFINITIONS, which the
-// require above sets. Same order as the Forms main page for the rest of it:
-// PhreeForm's language file feeds its defaults.php, which supplies the font
-// table and loads each module's pf_process_* hooks behind an
-// `isset($loaded_modules)` guard it can only satisfy at file scope.
+// require above sets.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
@@ -67,9 +63,9 @@ $forms_custom = new CustomDatasetStore($db, new SchemaInspector($db), TABLE_FORM
 $forms_custom->registerAll($catalog);
 
 $runner   = new FormRunner($db, $catalog);
-// Through the format-aware loader, never get_report_details(): a definition the
-// report editor has saved is native, and the legacy XML reader returns a string
-// for it — which reaches plan() as "must be of type object, string given".
+// Through the format-aware loader, which reads either format: a native
+// definition read as XML comes back as a string, which reaches plan() as "must
+// be of type object, string given".
 $loader   = new DefinitionLoader($catalog);
 
 /** The definition behind an id, or false with the reason on the stack. */
@@ -99,10 +95,8 @@ $forms_plan     = null;
 $forms_selection = null;
 
 // ── which form ───────────────────────────────────────────────────────────────
-// The group is listed whether or not a form has already been chosen. Choosing
-// one used to REPLACE the list with the delivery screen, which is what made
-// printing two successive pages in one window; the list now stays and the
-// choice is shown in it, so the popup only ever grows (§13.46).
+// The group is listed whether or not a form has already been chosen, with the
+// choice shown in it, so the popup only ever grows (§13.46).
 if ($forms_gID !== '') {
   // Forms only. A group can hold reports too, and a Print button on an order
   // means the form, not the listing.
@@ -182,16 +176,15 @@ function forms_print_render(): ?object
   }
 
   // An element the template could not bind is a form printing one field fewer
-  // than its author drew. Saying so is the whole difference from PhreeForm.
+  // than its author drew, so it is said.
   foreach ($runner->warnings() as $warning) {
     $messageStack->add(sprintf(FORMS_WARN_CONVERSION, $warning), 'caution');
   }
 
   // A receipt: text for a till printer, not a page (§13.27). Rendered here so
   // that the Print button on a point-of-sale entry works exactly as every other
-  // Print button does — gen_print_form_url() switches them on a company
-  // setting, not per document, so pos:rcpt arrives here whether or not anyone
-  // meant it to.
+  // Print button does — gen_print_form_url() sends every Print button here, so
+  // pos:rcpt arrives here too.
   if ($document instanceof SerialDocument) {
     if (count($document->records) === 0) {
       $messageStack->add(FORMS_PRINT_NO_RECORDS, 'error');
@@ -310,8 +303,8 @@ switch ($_REQUEST['action'] ?? '') {
     $result = (new EmailDelivery(
         // $filename is the name the RECIPIENT should see, and it is separate
         // from $path on purpose: the staged file carries a unique suffix so two
-        // people emailing the same invoice cannot overwrite each other. Passing
-        // only the path attaches "Invoice-fdaec59de5bc-pdf", with no extension.
+        // people emailing the same invoice cannot overwrite each other, and
+        // passing only the path would attach that name, with no extension.
         function (string $path, string $filename, $rendered)
             use ($to_name, $to_email, $subject, $body, $from_name, $from_email, $block): bool {
           return (bool)validate_send_mail(
@@ -334,8 +327,8 @@ switch ($_REQUEST['action'] ?? '') {
 
 /***************   Prepare the screen   *************************/
 // Who the document is for, so the email field arrives filled in. Read from the
-// journal the same way popup_gen reads it, and only when the selection is on a
-// journal — a statement is per contact and has no bill_email of its own.
+// journal, and only when the selection is on a journal — a statement is per
+// contact and has no bill_email of its own.
 //
 // rEmail/rName are the caller's own answer, used where the journal has none:
 // the work order button sends them because wo_journal_main is not journal_main
@@ -352,11 +345,9 @@ $forms_bcc_email  = (string)($_POST['bcc_email']  ?? '');
 //
 // ONLY when they all go to the same place. The Sales Invoice Manager's "Print
 // Selected" sends every ticked invoice as one IN_LIST, and those invoices need
-// not belong to one customer. This used to read the FIRST record's address and
-// fill it in, which put one customer in the To field of an email whose single
-// attachment holds everybody's invoices. Nothing about the screen said so: the
-// address was real, the name beside it was real, and a person checking the To
-// field would find it correct for one of the documents being sent.
+// not belong to one customer: filling in the first record's address would put
+// one customer in the To field of an email whose single attachment holds
+// everybody's invoices, and nothing on the screen would say so.
 //
 // So the address is offered only where the selection agrees on it. Where it
 // does not, the field is left empty and the template says why - the empty field
@@ -395,9 +386,8 @@ if ($forms_to_email === '' && !$forms_email_many) {
 
 // A different form was picked from the group. Its subject and message replace
 // what is on screen, because those came from the form that was showing and are
-// the definition's words rather than the person's - the same reason PhreeForm
-// re-fetched them on the radio. The recipient fields above ARE the person's,
-// typed or looked up, and survive the change.
+// the definition's words rather than the person's. The recipient fields above
+// ARE the person's, typed or looked up, and survive the change.
 $forms_reselect = ($_REQUEST['action'] ?? '') === 'reselect';
 $forms_subject  = $forms_reselect ? '' : (string)($_POST['subject'] ?? '');
 if ($forms_subject === '' && $forms_report) {

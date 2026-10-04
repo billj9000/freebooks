@@ -25,14 +25,12 @@
  * page's view, download and email, and forms_render_to_string() for the callers
  * with no page — the emailed PayPal invoice and the point-of-sale receipt.
  *
- * ## Why not in the renderer, where PhreeForm had it
+ * ## Why not in the renderer
  *
- * PhreeForm incremented journal_main.printed from inside BuildPDF(), so
- * anything that built a form marked its records printed: a preview, a diff
- * harness, a tool measuring output. Ours cannot, because a renderer is handed
- * hooks it has no way to run. What that buys is concrete — the canvas preview,
- * the receipt preview and the field-discovery probe in forms_binding_names()
- * all build real documents from real records, and none of them may touch the
+ * A renderer is handed hooks it has no way to run, so building a document
+ * never marks its records printed. That matters: the canvas preview, the
+ * receipt preview and the field-discovery probe in forms_binding_names() all
+ * build real documents from real records, and none of them may touch the
  * counter.
  *
  * ## What a failure means

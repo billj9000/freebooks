@@ -66,9 +66,9 @@ final readonly class Template
  * The data for one rendered form.
  *
  * `values` is a single flat namespace holding header fields *and* totals
- * together — confirmed against Invoice.xml, where invoice_subtotal, sales_tax,
- * total_paid and balance_due sit alongside post_date and rep_id as ordinary
- * Data bindings. That is why totals need no separate concept.
+ * together — as in Invoice.xml, where invoice_subtotal, sales_tax, total_paid
+ * and balance_due sit alongside post_date and rep_id as ordinary Data
+ * bindings. That is why totals need no separate concept.
  *
  * `currency` is per-record, not per-document: PhreeForm's posted_cur formatting
  * depends on the currency the individual record was posted in.
@@ -135,14 +135,13 @@ final readonly class LayoutDocument implements Document
  * Replaces PhreeForm's magic string prefixes, where $Data[$row][0] held 'd',
  * 'g:<label>' or 'r:<title>' and every consumer re-parsed them. PhreeForm had
  * three; the structural reports need six, because a financial statement is
- * mostly rows that are neither data nor a group break — "Revenues" is a
- * heading, "Gross Profit" is a subtotal, and the gap between sections is a
- * separator. The legacy emitted all three as `'d'`, which is why no renderer
- * could style a subtotal differently from an account line.
+ * mostly rows that are neither data nor a group break — "Revenues" is a heading,
+ * "Gross Profit" is a subtotal, and the gap between sections is a separator —
+ * and a renderer styles each differently.
  *
  * Ask the predicates rather than comparing cases. `$row->kind !== RowKind::Data`
- * used to mean "this is a total" and now does not — a section heading is not a
- * total, and treating it as one draws a caption band over a heading.
+ * does not mean "this is a total" — a section heading is not a total, and
+ * treating it as one draws a caption band over a heading.
  */
 enum RowKind
 {

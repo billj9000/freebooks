@@ -19,18 +19,16 @@
 /**
  * Forms — which records a form is being asked to print.
  *
- * Every Print button in FreeBooks opens PhreeForm with the same four
- * parameters, and they are the contract this has to honour if Forms is to be
- * reachable from the documents that own the forms:
+ * Every Print button in FreeBooks opens the print page with the same four
+ * parameters, and they are the contract this has to honour:
  *
  *     &xfld=journal_main.id&xcr=EQUAL&xmin=1234
  *     &xfld=journal_main.id&xcr=IN_LIST&xmin=12,13,14
  *     &xfld=journal_main.purchase_invoice_id&xcr=RANGE&xmin=1000&xmax=1099
  *
- * PhreeForm turned those straight into SQL and let the query do the selecting.
- * Forms' providers take a list of ids instead, so the translation happens here
- * — once, in one place, above the seam — and the providers stay ignorant of
- * where their ids came from.
+ * Forms' providers take a list of ids, so the translation happens here — once,
+ * in one place, above the seam — and the providers stay ignorant of where
+ * their ids came from.
  *
  * ── Why this is a query and not string manipulation ──────────────────────────
  * EQUAL on the record table's own key is just the value, and that is the common
@@ -372,10 +370,9 @@ final class RecordSelector
      * `journal_main` holds every transaction there is. A form is made a Sales
      * Invoice by the journal its records sit in, and nothing in the definition
      * says so: a provider-backed form carries no filters at all, and its plan
-     * names only the table. So the list offered while laying out an invoice was
-     * every recent transaction — measured on a real company, six of the newest
-     * twenty were invoices and the rest were receipts, sales orders and a
-     * purchase order.
+     * names only the table. Without this restriction the list offered while
+     * laying out an invoice would be every recent transaction — receipts, sales
+     * orders and purchase orders among the invoices.
      *
      * Taken from `phreebooks/pages/status/pre_process.php`, which is where the
      * application itself decides which form type a journal prints through. That
@@ -562,8 +559,8 @@ final class RecordSelector
      *
      * Nothing in three cases, and each is deliberate: a group this does not
      * know, a table with no `journal_id` to restrict by, and no group given —
-     * the print page calls every method here without one, and must keep seeing
-     * what it always saw.
+     * the print page calls every method here without one, and is never
+     * restricted.
      *
      * The ids come from a constant and are cast, so nothing an author or a URL
      * supplies reaches this clause.

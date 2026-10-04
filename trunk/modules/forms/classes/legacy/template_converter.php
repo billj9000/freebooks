@@ -410,8 +410,8 @@ final class TemplateConverter
 
             case 'TDup':
                 // "Draw that table again, here." It carries a position and
-                // NOTHING else — no columns, no width, no height — which is
-                // why reading it as a table with its own field list found none.
+                // NOTHING else — no columns, no width, no height — so read as a
+                // table with its own field list it has none.
                 //
                 // §4.3 dropped the CONCEPT because the model has no duplicate
                 // element, not because the shape cannot be expressed: two

@@ -14,8 +14,8 @@
 /**
  * Forms — builds a TableDocument from a catalog dataset.
  *
- * The reports half of the module: 30 of the 56 shipped documents are
- * query-driven reports (§7), and this serves all of them.
+ * The reports half of the module: it serves every shipped
+ * query-driven report (§7).
  *
  * ── What changes from PhreeForm ──────────────────────────────────────────────
  * BuildDataArray() returned a tagged 2-D array where $Data[$row][0] held 'd',
@@ -95,9 +95,8 @@ final class ReportDocumentProvider implements DocumentProvider
 
         $sorts = $this->sorts;
         // A group only breaks correctly on ordered rows, so the group field
-        // leads the sort unless the caller already sorted by it. PhreeForm left
-        // this to the report author and produced repeated group headings when
-        // they got it wrong.
+        // leads the sort unless the caller already sorted by it. Left to the
+        // report author, a wrong sort produces repeated group headings.
         if ($this->groupBy !== null) {
             $groupSortKey = $this->resolvedColumns[$this->groupBy] ?? $this->groupBy;
             $alreadyFirst = isset($sorts[0]) && $sorts[0]->fieldKey === $groupSortKey;
@@ -108,10 +107,9 @@ final class ReportDocumentProvider implements DocumentProvider
         $result = $this->db->ExecutePrepared($query->sql, $query->params);
 
         // Buffer, then resolve, then build. Resolution has to be BATCHED — the
-        // whole point of doing it here rather than in the renderer — so the ids
-        // must all be known before the first row is turned into cells.
-        // PhreeForm looked each one up inside its render loop, which on the
-        // Re-order Worksheet is 986 queries to print one vendor column.
+        // whole point of doing it here rather than in the renderer, where it
+        // would be a query per row — so the ids must all be known before the
+        // first row is turned into cells.
         $rawRows = [];
         while (!$result->EOF) { $rawRows[] = $result->fields; $result->MoveNext(); }
         $resolved = $this->resolveNames($rawRows);
@@ -139,17 +137,16 @@ final class ReportDocumentProvider implements DocumentProvider
                 // any two contacts sharing a short_name — into one group.
                 $break = $raw[$this->resolvedColumns[$this->groupBy] ?? $this->groupBy] ?? null;
                 $value = $raw[$this->groupBy] ?? null;
-                // Compare as strings. A nullable column mixes NULL and '' —
-                // Sales By SKU has 33 of one and 416 of the other — and MySQL
-                // sorts them adjacent, so a strict comparison breaks the blank
-                // run in two and prints the same empty group heading twice.
-                // Casting collapses them, as PhreeForm's loose `<>` did.
+                // Compare as strings. A nullable column mixes NULL and '', and
+                // MySQL sorts them adjacent, so a strict comparison breaks the
+                // blank run in two and prints the same empty group heading
+                // twice. Casting collapses them, as PhreeForm's loose `<>`
+                // did.
                 //
                 // What it does NOT inherit is that comparison's other half:
-                // `<>` between two numeric strings compares NUMERICALLY, so
-                // PhreeForm silently merged the SKUs '0001' and '1', and '1e2'
-                // with '100'. Those are different products and get different
-                // groups here.
+                // `<>` between two numeric strings compares NUMERICALLY, which
+                // would merge the SKUs '0001' and '1', and '1e2' with '100'.
+                // Those are different products and get different groups here.
                 $key = $break === null ? '' : (string)$break;
                 if ($haveGroup && $key !== $currentGroup) {
                     $rows[]      = $this->totalRow(RowKind::GroupTotal, $groupTotals,

@@ -41,8 +41,8 @@
  * - **Full-width fill before text.** Each row paints a background strip from the
  *   current y to the bottom margin *before* the cells are written, then the
  *   cells overwrite it. Painting only the row's own height leaves hairline gaps
- *   between rows at some sizes; this is PhreeForm's fix and it is preserved
- *   because the diff harness compares pixels.
+ *   between rows at some sizes; this is PhreeForm's fix, kept so converted
+ *   reports print as they did.
  *
  * Pagination is manual, exactly as in the legacy engine: TCPDF's auto page break
  * is switched off and the renderer decides when a row will not fit, because the
@@ -128,15 +128,14 @@ final class TablePdfRenderer implements FormsRenderer
 
         // Orientation is decided before the canvas exists, because it cannot be
         // changed afterwards. A report whose columns do not fit the page it
-        // declares is printed landscape rather than clipped: PhreeForm let the
-        // bands run past the right margin and TCPDF cut whatever fell outside,
-        // silently losing the tail of the last column. 25 of the 43 shipped
-        // dataset reports declare more width than their portrait page.
+        // declares is printed landscape rather than clipped: past the right
+        // margin TCPDF cuts whatever falls outside, losing the tail of the last
+        // column.
         //
         // The designer's WIDTHS are never overridden to achieve this — turning
         // the paper is a change to the paper, not to the report. Only a table
         // too wide even for landscape is scaled, and then only by the little it
-        // is over (the three that need it are 8–10 mm past a 277 mm page).
+        // is over.
         $orientation = $this->orientationFor($doc, $page);
         $pdf = new PdfCanvas($orientation, 'mm', PdfCanvas::paperFormat($page->size), true, 'UTF-8', false);
         $pdf->SetCellPadding(0);
@@ -193,9 +192,9 @@ final class TablePdfRenderer implements FormsRenderer
             if ($needed <= $printable + 0.01) return $candidate;
         }
         // Wider than any orientation of this paper. Take the widest one anyway,
-        // so the scaling that follows is the smallest it can be: the five
-        // shipped reports in this position are 8-10 mm past a 277 mm landscape
-        // page, where portrait would have meant shrinking them to two thirds.
+        // so the scaling that follows is the smallest it can be: a table a
+        // little past a landscape page would shrink by about a third on
+        // portrait.
         return 'L';
     }
 
@@ -225,10 +224,9 @@ final class TablePdfRenderer implements FormsRenderer
         // A trailing band with no closing column still needs a right edge — but
         // ONLY when one is actually open. When the last column breaks (which is
         // the ordinary side-by-side grid, and most of the library), $band has
-        // already moved past the last band in use, and adding an edge here
-        // invented an empty column one default-width wide. The table then
-        // measured wider than it was, and layOutColumns() scaled every band down
-        // to fit a width nothing occupied — shrinking reports that fitted.
+        // already moved past the last band in use, and adding an edge here would
+        // invent an empty column one default-width wide: the table would measure
+        // wider than it is, and layOutColumns() would shrink a report that fits.
         if ($open && !isset($edges[$band])) {
             $edges[$band] = $edges[$band - 1] + $this->defaultColumnWidth;
         }
@@ -386,7 +384,7 @@ final class TablePdfRenderer implements FormsRenderer
         $groupBreakPending  = false;
 
         foreach ($doc->rows as $row) {
-            // Three different questions, which used to be one. The caption band
+            // Three different questions. The caption band
             // belongs only to a group break, because only a break keeps its
             // caption outside the cells; a subtotal or a section heading is set
             // in the totals style but prints its own first column; and a

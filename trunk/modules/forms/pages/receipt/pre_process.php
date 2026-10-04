@@ -40,8 +40,8 @@ $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 require(DIR_FS_WORKING . 'defaults.php');
 // FORMS_DIR_DEFINITIONS is what the loader resolves `pf_<id>` against, and the
 // require above sets it. Without it every load fails on a relative path, and a
-// page that finds no definitions says the company has none. Nothing from
-// PhreeForm: a receipt has no faces to choose and no paper to sit on.
+// page that finds no definitions says the company has none. A receipt has no
+// faces to choose and no paper to sit on, so nothing else is needed.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 require(DIR_FS_MODULES . 'phreedom/defaults.php');
@@ -117,19 +117,15 @@ $forms_receipt_formats = forms_format_choices(forms_formats_in_use($forms_receip
 /**
  * Keep the PhreeForm original beside the native file, once.
  *
- * The same guarantee the canvas and the report editor make, and it matters
- * most here: PhreeForm is the only other engine that can print a receipt, and
- * once this page has saved one it can no longer read it.
+ * The same guarantee the canvas and the report editor make.
  */
 function forms_receipt_keep_original($path) {
   $kept = $path . '.pre-forms';
   if (file_exists($kept) || !file_exists($path)) return;
   // Only a PhreeForm original. A definition that is ALREADY native has no
   // original to keep, and copying it here would put a native file under a name
-  // that says it is XML — which is what `test` holds fourteen of, written by
-  // this function before the guard. Nothing reads them (LegacyReader::original()
-  // returns null for one), but a file whose name lies about its contents is a
-  // trap laid for the next tool.
+  // that says it is XML: a file whose name lies about its contents is a trap
+  // laid for the next tool.
   $contents = (string)@file_get_contents($path);
   if (\FreeBooks\Forms\Definition\DefinitionLoader::isNative($contents)) return;
   @copy($path, $kept);

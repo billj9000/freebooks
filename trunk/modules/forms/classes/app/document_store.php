@@ -19,11 +19,7 @@
 /**
  * Forms — creating, copying, renaming and deleting a document. See §13.29.
  *
- * The catalogue half of Forms, and the last thing PhreeForm could do that Forms
- * could not: both editors opened an existing `rID` and nothing else, so the
- * route to a new form was "copy one in PhreeForm, edit the copy in Forms".
- * A report engine that cannot add a report is not a replacement, which is why
- * this is a step 6 blocker rather than a convenience.
+ * The catalogue half of Forms.
  *
  * One class rather than four page actions because a document is TWO things that
  * must agree — a catalogue row and a definition file — and every operation here
@@ -58,14 +54,13 @@ final class DocumentStore
      * A configuration row holding the id of a form is how the ZenCart VAT
      * invoice is chosen, and deleting that form leaves the setting pointing at
      * nothing — which does not fail loudly, it just stops emailing invoices
-     * (see §13.26, where exactly that class of silence was the bug). Matching
-     * by name generalises to settings not written yet.
+     * (§13.26). Matching by name generalises to settings not written yet.
      *
-     * Anchored at the END, and that is not tidiness. Matching the word anywhere
-     * caught MODULE_FORMS_PRINT_BUTTONS — a boolean whose value of 1 happens to
-     * equal a document id, so every company would have refused to delete
-     * document 1 for a reason that made no sense. A key that NAMES a document
-     * ends in what it names.
+     * Anchored at the END, and that is not tidiness: a key that NAMES a
+     * document ends in what it names. Matching the word anywhere would catch
+     * settings that merely mention one — a boolean whose value of 1 happens to
+     * equal a document id would refuse the deletion of document 1 for a reason
+     * that makes no sense.
      */
     public const SETTING_NAMES = '(_FORM|_DOCUMENT|_REPORT|_RECEIPT|_INVOICE|_STATEMENT)$';
 
@@ -127,8 +122,7 @@ final class DocumentStore
      *
      * The copy is written in the NATIVE format whatever the original was in,
      * because it is written by Forms — the same thing that happens the first
-     * time either editor saves. The original is untouched, so a company that
-     * still wants PhreeForm to print the stock document keeps it.
+     * time either editor saves. The original is untouched.
      *
      * @throws DocumentStoreException
      */
@@ -357,10 +351,9 @@ final class DocumentStore
     /**
      * Two documents of the same name is not merely untidy.
      *
-     * Several places resolve a document BY TITLE — ImportReport() upserts on it,
-     * and the invoice a payment link attaches is chosen with `order by doc_title
-     * limit 1` (§13.26). A duplicate title makes which one they find a matter of
-     * collation.
+     * Several places resolve a document BY TITLE — the invoice a payment link
+     * attaches is chosen with `order by doc_title limit 1` (§13.26). A duplicate
+     * title makes which one they find a matter of collation.
      *
      * @throws DocumentStoreException
      */

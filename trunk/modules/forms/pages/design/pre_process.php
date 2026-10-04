@@ -19,20 +19,16 @@
 /**
  * The report editor (design §13.7 step 2).
  *
- * The smaller half of the designer, and the half that has to exist first: it
- * exercises load and save end to end before any canvas is built. A report is a
- * column list with grouping, sorting and filters — dragging boxes around one
- * would be theatre (§13.1) — so this is a grid, with the live preview rendered
- * through the engine that will print it.
+ * A report is a column list with grouping, sorting and filters — dragging
+ * boxes around one would be theatre (§13.1) — so this is a grid, with the live
+ * preview rendered through the engine that will print it.
  *
  * Three things about it are load-bearing rather than incidental:
  *
  * 1. **Saving writes the NATIVE format.** The definition it opened may have
- *    been PhreeForm XML; what it writes back never is. That is decision I, and
- *    it means a saved definition is one PhreeForm can no longer read — so the
- *    XML is kept beside it as `pf_<id>.pre-forms`, exactly as the bulk
- *    migration will (§13.3 condition 2), and the page says so before the
- *    author commits to it.
+ *    been PhreeForm XML; what it writes back never is. That is decision I, so the
+ *    XML is kept beside it as `pf_<id>.pre-forms` (§13.3 condition 2), and the
+ *    page says so before the author commits to it.
  * 2. **The preview and the save build the definition the same way**, through
  *    DefinitionForm. A preview assembled by different code is a preview of a
  *    different report, which is the one defect a preview must not have.
@@ -40,19 +36,17 @@
  *    on the page are a convenience; the POST is whatever the browser sends
  *    (§13.4).
  *
- * Gated on SECURITY_ID_FORMS_AUTHOR — defined since 1.00 and unused until now.
- * It is the middle tier of decision F: running a document, authoring one and
- * defining which tables may join are three different privileges.
+ * Gated on SECURITY_ID_FORMS_AUTHOR, the middle tier of decision F: running a
+ * document, authoring one and defining which tables may join are three
+ * different privileges.
  */
 
 $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 
 require(DIR_FS_WORKING . 'defaults.php');
 // Definitions are found through FORMS_DIR_DEFINITIONS, which the require above
-// sets. What phreeform is still wanted for, in this order and at file scope, is
-// the font table — its language file defines the PF_FONT_* constants its
-// defaults.php reads — and $PaperSizes. That and $DateChoices are plain
-// variables, so they would vanish if this moved inside a function.
+// sets. phreedom/defaults.php is required at file scope because $DateChoices is
+// a plain variable, and would vanish if this moved inside a function.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 require(DIR_FS_MODULES . 'phreedom/defaults.php');   // $DateChoices
@@ -91,10 +85,8 @@ function forms_design_keep_original($path) {
   if (file_exists($kept) || !file_exists($path)) return;
   // Only a PhreeForm original. A definition that is ALREADY native has no
   // original to keep, and copying it here would put a native file under a name
-  // that says it is XML — which is what `test` holds fourteen of, written by
-  // this function before the guard. Nothing reads them (LegacyReader::original()
-  // returns null for one), but a file whose name lies about its contents is a
-  // trap laid for the next tool.
+  // that says it is XML: a file whose name lies about its contents is a trap
+  // laid for the next tool.
   $contents = (string)@file_get_contents($path);
   if (\FreeBooks\Forms\Definition\DefinitionLoader::isNative($contents)) return;
   @copy($path, $kept);
@@ -114,8 +106,8 @@ if ($forms_design_id > 0) {
   }
 }
 
-// A form is not a report, and the canvas that edits one is step 3. Saying so is
-// better than offering a column grid for a positioned layout.
+// A form is not a report: it is edited on the form canvas. Saying so is better
+// than offering a column grid for a positioned layout.
 if ($forms_design_definition !== null && $forms_design_definition->isForm()) {
   $messageStack->add(FORMS_DESIGN_IS_FORM, 'caution');
   $forms_design_definition = null;
@@ -169,11 +161,9 @@ define('PAGE_TITLE', $forms_design_definition !== null
     ? sprintf(FORMS_DESIGN_TITLE_FOR, $forms_design_definition->title)
     : FORMS_DESIGN_TITLE);
 
-// This page no longer lists anything. It used to answer "no report chosen" with
-// a chooser of its own, which was a second list of the same reports the Reports
-// page lists — labelled with the raw doc_group codes that page deliberately
-// stopped showing. One list, and the editor is opened from the Edit button on
-// it; arriving here with no report now says so and points at that list.
+// This page lists nothing. There is one list of reports, the Reports page, and
+// the editor opens from the Edit button on it; arriving here with no report
+// says so and points at that list.
 
 // On a refused save, redisplay the submitted values; otherwise the stored ones.
 $forms_design_values = $forms_design_definition === null ? array()
@@ -222,9 +212,8 @@ $forms_design_aligns = array(
   array('id' => Align::Right->value,   'text' => FORMS_DESIGN_ALIGN_RIGHT),
 );
 
-// Keyed by the name a definition stores. PhreeForm keyed "A4:210:297" and this
-// page split the dimensions off again on every load, which is a conversion
-// happening in a page; forms_paper_sizes() hands back what is stored.
+// Keyed by the name a definition stores: forms_paper_sizes() hands back what
+// is stored.
 $forms_design_papers = array();
 foreach (forms_paper_sizes() as $name => $label) {
   $forms_design_papers[] = array('id' => $name, 'text' => $label);

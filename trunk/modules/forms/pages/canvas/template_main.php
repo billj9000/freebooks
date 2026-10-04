@@ -23,10 +23,9 @@ $toolbar->icon_list['save']['show']   = $forms_canvas_definition !== null && $se
 $toolbar->icon_list['save']['params'] = 'onclick="formsCanvasSave()"';
 // Back to the list of FORMS, not to the document list. Cancel means "stop
 // editing this one", and the useful destination is the others — which is also
-// where the author came from if they arrived by Tools -> Form Layout. Sending
-// them to Documents was wrong from that door and right only by accident from
-// the other. With nothing open this page IS that list, so Cancel then leaves
-// the editing side altogether.
+// where the author came from if they arrived by Tools -> Form Layout. With
+// nothing open this page IS that list, so Cancel then leaves the editing side
+// altogether.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, $forms_canvas_definition !== null
         ? 'module=forms&page=canvas' : 'module=forms&page=main', 'SSL') . '\'"';
@@ -49,7 +48,7 @@ if ($forms_canvas_definition === null) { ?>
     <table class="table table-borderless table-hover table-sm mb-0">
       <thead class="table-dark">
         <?php // No Group column: the folder is the heading above each block, and
-              // the raw code it used to print here is not a name. ?>
+              // a raw code printed here would not be a name. ?>
         <tr>
           <th><?php echo FORMS_COL_TITLE; ?></th>
           <th class="text-end">&nbsp;</th>
@@ -177,11 +176,8 @@ if ($forms_canvas_definition === null) { ?>
 
 <?php echo html_form('forms_canvas_form', FILENAME_DEFAULT,
     'module=forms&page=canvas&action=save&rID=' . (int)$forms_canvas_id); ?>
-<?php // A field, not a hidden value. It was hidden because the canvas had no
-      // way to rename anything, so posting the stored name back was the only
-      // safe thing to do; renaming is now the store's job and this is where a
-      // form's name is edited (§13.29). TemplateForm::apply() has always read
-      // this key — it simply never saw a different value. ?>
+<?php // A field, not a hidden value: this is where a form's name is edited, and
+      // renaming is the store's job (§13.29). TemplateForm::apply() reads this key. ?>
 <div class="mb-2 d-inline-block">
   <label class="form-label mb-0 small"><?php echo FORMS_CANVAS_NAME; ?></label>
   <input type="text" name="title" maxlength="64" size="40"
@@ -377,10 +373,10 @@ if ($forms_canvas_definition === null) { ?>
               // type=text> applies the HTML value sanitization algorithm, which
               // STRIPS carriage returns and line feeds - not replacing them
               // with a space, simply removing them - so a bank block loaded
-              // into one came back as a single run-on line, and the next edit
-              // to any control on that element wrote the flattened value back
-              // over the stored one. Silently. Four elements of the shipped
-              // invoice carry line breaks, so this was not hypothetical.
+              // into one would come back as a single run-on line, and the next
+              // edit to any control on that element would write the flattened
+              // value back over the stored one, silently. Four elements of the
+              // shipped invoice carry line breaks.
               //
               // It also stops Enter submitting the form. This control sits
               // inside forms_canvas_form, and Enter in a text input is implicit
@@ -421,12 +417,9 @@ if ($forms_canvas_definition === null) { ?>
 
             <?php
               // One control, two groups: the fields this record supplies, then
-              // the company's own details at the end (§13.55). A company detail
-              // used to be shown here as read-only words, because the palette
-              // held record fields only and the select would have shown an
-              // empty box on an element bound perfectly well — which also meant
-              // one could never be ADDED. Now the name decides where the value
-              // comes from, and both are choosable.
+              // the company's own details at the end (§13.55). The name decides
+              // where the value comes from, so both are choosable and either
+              // can be added.
             ?>
             <div class="mb-2" id="ins_bind_row">
               <label class="form-label mb-0 small" for="ins_bind"><?php echo FORMS_CANVAS_BIND; ?></label>
@@ -515,9 +508,9 @@ if ($forms_canvas_definition === null) { ?>
             <?php // A table's HEADING ROW has a style of its own, and the
                   // renderer reads `headerStyle ?? style`: the frame round an
                   // invoice's column headings is this border, not the one
-                  // above. Without these four the heading was drawn on every
-                  // page and could not be changed from the editor that drew it
-                  // — the same gap §13.30 closed for the columns themselves. ?>
+                  // above. These four let the heading drawn on every page be
+                  // changed from the editor that draws it, as §13.30 does for
+                  // the columns. ?>
             <div class="border rounded p-2 mb-2 d-none" id="ins_heading_row">
               <div class="small fw-semibold mb-1"><?php echo FORMS_CANVAS_HEADING; ?></div>
               <div class="row g-1">

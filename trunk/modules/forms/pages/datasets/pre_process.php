@@ -19,16 +19,14 @@
 /**
  * Defining datasets — the join builder (design §3.2, §3.3).
  *
- * The dangerous privilege of the three, and the one PhreeForm gave away with
- * every report-writing permission. It has its own security id.
+ * The dangerous privilege of the three, with its own security id.
  *
  * The rule this page exists to keep: **an author picks identifiers; they never
  * supply SQL syntax.** Every table and column offered comes from
  * SchemaInspector, and everything submitted is checked against it again before
  * storage — so a name that was not offered, whether typed, replayed or forged,
  * does not survive. There is deliberately no free-form condition box anywhere
- * on this page; that box is PhreeForm's `<relationship>` field and it is the
- * whole of §1.1.
+ * on this page: such a box is the whole of §1.1.
  *
  * The worst a careless author can still do is expose a table they should not
  * have — a data-exposure problem, auditable and reversible. They cannot inject
@@ -184,9 +182,6 @@ foreach ($store->problems() as $problem) {
 
 /**
  * How many stored report definitions name this dataset.
- *
- * Reports still live in the PhreeForm catalog and name their TABLES, not a
- * dataset, so "in use" means the resolver would pick this dataset for them.
  */
 function forms_datasets_in_use($datasetId) {
   global $db;
@@ -200,9 +195,9 @@ function forms_datasets_in_use($datasetId) {
     $schema = new \FreeBooks\Forms\Catalog\SchemaInspector($db);
     (new \FreeBooks\Forms\Catalog\CustomDatasetStore($db, $schema, TABLE_FORMS_DATASETS))
         ->registerAll($catalog);
-    // The loader, not get_report_details(): a native definition NAMES its
-    // dataset, so nothing has to be inferred from a table list — and the legacy
-    // reader cannot parse one at all.
+    // The loader reads a definition in whichever format it is stored in, and a
+    // native definition NAMES its dataset, so nothing has to be inferred from a
+    // table list.
     $loader = new \FreeBooks\Forms\Definition\DefinitionLoader($catalog);
 
     $result = $db->Execute("select id from " . TABLE_PHREEFORM . " where doc_type <> '0'");

@@ -208,10 +208,10 @@ final class DateRangeFilters
         if ($range->isOpen()) return [];
 
         // "By period" compares a period number, not a date, so it needs the
-        // dataset's period field rather than the report's date field. Three of
-        // the seven shipped datasets have no period at all; there the range is
-        // dropped with a warning, since the alternative is a report that
-        // silently covers all time while claiming a period in its header.
+        // dataset's period field rather than the report's date field. A
+        // dataset with no period at all drops the range with a warning, since
+        // the alternative is a report that silently covers all time while
+        // claiming a period in its header.
         if ($range->period !== null) {
             $periodKey = self::periodKey($dataset);
             if ($periodKey === null) {

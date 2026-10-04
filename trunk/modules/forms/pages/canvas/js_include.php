@@ -36,10 +36,10 @@
  * against a real render.
  */
 // The document actions, in a block of their OWN and BEFORE the return below.
-// Two reasons, and both bit: this file returns early on the CHOOSER, which is
-// the only place New, Copy and Delete appear at all; and the script that
-// follows is a `type="module"`, where a function declaration is not global, so
-// an inline handler could never have reached one (§13.29).
+// Two reasons: this file returns early on the CHOOSER, which is the only place
+// New, Copy and Delete appear at all; and the script that follows is a
+// `type="module"`, where a function declaration is not global, so an inline
+// handler could not reach one (§13.29).
 forms_document_actions_script();
 
 if ($forms_canvas_definition === null) return;
@@ -683,13 +683,10 @@ function describeSelection() {
        ['text', 'field', 'block', 'pagenum', 'table', 'barcode'].indexOf(box.kind) >= 0);
 
   // A line and a box ARE the outline, and the width control IS their thickness
-  // — the renderer's SetLineWidth for both comes from `borderSize`. Labelled
-  // "Border width" it read as a property of something else, so the panel looked
-  // as though a rule's thickness could not be set at all; the control an author
-  // reached for instead was Size, which a rule has no use for. Both are fixed
-  // here: the width is named for what it does, and the three settings the
-  // renderer never looks at on these two kinds are taken off the panel
-  // (design §13.49, issue #65).
+  // — the renderer's SetLineWidth for both comes from `borderSize`. So the
+  // width is named for what it does, and the three settings the renderer never
+  // looks at on these two kinds are taken off the panel (design §13.49, issue
+  // #65).
   const outline = box.kind === 'line' || box.kind === 'rect';
   document.getElementById('ins_border_label').textContent = outline
     ? <?php echo json_encode(FORMS_CANVAS_THICKNESS); ?>
@@ -704,11 +701,10 @@ function describeSelection() {
   show('ins_size_row',  !outline);
   show('ins_align_row', !outline);
   // And ONE colour, not two. The renderer reads `borderColour ?? colour`, so on
-  // a line and a box the two swatches were two ways to say one thing with an
-  // unstated precedence — and on every rectangle in the shipped set, where
-  // `borderColour` is set and `colour` is not, the one labelled Colour could
-  // not change anything at all. The surviving swatch is seeded with whichever
-  // value is in force and writes to the one that wins.
+  // a line and a box two swatches would be two ways to say one thing with an
+  // unstated precedence — and on a rectangle with `borderColour` set, the one
+  // labelled Colour could not change anything at all. The one swatch is seeded
+  // with whichever value is in force and writes to the one that wins.
   show('ins_colour_row', !outline);
   document.getElementById('ins_bordercolour_label').textContent = outline
     ? <?php echo json_encode(FORMS_DESIGN_COLOUR); ?>
@@ -716,11 +712,10 @@ function describeSelection() {
   show('ins_table_note', box.kind === 'table');
   show('ins_src_row',  box.kind === 'image' && box.source === 'file');
 
-  // The four kinds the canvas learnt in §13.30. A page number's whole content
-  // is one pattern and a barcode's is one symbology, so both are edited in
-  // place; a table's columns and a block's lines are grids, and the button
-  // carries the count so the sidebar says how many there are without opening
-  // anything.
+  // The four kinds of §13.30. A page number's whole content is one pattern
+  // and a barcode's is one symbology, so both are edited in place; a table's
+  // columns and a block's lines are grids, and the button carries the count
+  // so the sidebar says how many there are without opening anything.
   show('ins_pattern_row',   box.kind === 'pagenum');
   show('ins_symbology_row', box.kind === 'barcode');
   set('ins_pattern', value.pattern);
@@ -741,13 +736,10 @@ function describeSelection() {
       <?php echo json_encode(FORMS_CANVAS_PARTS_EDIT); ?>
         .replace('%d', subRows(value.parts).length);
   }
-  // One control for both kinds of binding (§13.55). A company detail used to be
-  // shown as read-only words here — the palette held only what the RECORD
-  // supplies, so the select had no option to match and showed an empty box on
-  // an element bound perfectly well. That also made a company detail impossible
-  // to ADD: the only ones on any form were the ones it was born with. The
-  // palette now carries both groups and TemplateForm decides the scope from the
-  // name, so the select is live whatever the element is currently bound to.
+  // One control for both kinds of binding (§13.55). The palette carries what
+  // the RECORD supplies and the company's own details, and TemplateForm decides
+  // the scope from the name, so the select is live whatever the element is
+  // bound to, and a company detail can be added like any other.
   const bindable = box.kind === 'field' || box.kind === 'barcode'
                    || (box.kind === 'image' && box.source === 'bound');
   show('ins_bind_row', bindable);
@@ -817,9 +809,9 @@ function borderColourShown(box, value) {
  * measured against — whatever the field held when focus first arrived — goes
  * stale, while describeSelection() rewrites the field underneath it. A later
  * edit that happens to land back on that stale value fires no `change` at all.
- * That is why setting a border to 0 was sometimes remembered and sometimes not:
- * it depended on what the border had been on whichever element the author last
- * clicked into the field on, which is not a thing anybody can see.
+ * Unchecked, setting a border to 0 would be remembered or not depending on what
+ * the border was on the element the author last clicked into the field on,
+ * which is not a thing anybody can see.
  *
  * Blurring here puts both right. The pending edit is committed against the
  * element it was typed for — inspectorChanged() runs while `selected` is still
@@ -901,10 +893,9 @@ function inspectorChanged() {
   if (borderColour !== borderColourShown(box, value)) value.borderColour = borderColour;
   const hdrBorderColour = document.getElementById('ins_hdr_bordercolour').value;
   if (hdrBorderColour !== (value.hdrBorderColour || '#000000')) value.hdrBorderColour = hdrBorderColour;
-  // Written for every bindable element, company details included. The guard
-  // that used to stand here skipped context elements because their control was
-  // not the one on screen; now it is, and skipping would make a company detail
-  // the one binding an author could see and not change.
+  // Written for every bindable element, company details included: skipping
+  // them would make a company detail the one binding an author could see and
+  // not change.
   const bind = document.getElementById('ins_bind').value;
   if (bind !== '') value.bind = bind;
   const src = document.getElementById('ins_src').value;
@@ -1012,10 +1003,9 @@ function formsCanvasAdd(kind) {
                 // A line and a box are given a thickness rather than left
                 // blank. Blank draws the renderer's own default — a hairline
                 // for a rule — so the one control that matters on a new
-                // element started out empty and looked like one that did not
-                // apply. 1 point is the thin rule the manual has always
-                // described, and matches what an unset box has always drawn
-                // (§13.49).
+                // element would start out empty and look like one that did
+                // not apply. 1 point is the thin rule the manual describes,
+                // and what an unset box draws (§13.49).
                 borderSize: (kind === 'line' || kind === 'rect') ? '1' : '',
                 borderShow: '', truncate: '', bold: '', italic: '', src: '',
                 hdrSize: '', hdrBorderSize: '', hdrBorderColour: '', hdrBorderShow: '',
@@ -1201,8 +1191,8 @@ function subWrite(key) {
  * Say so when there is nothing in it.
  *
  * An empty table and an empty block both draw NOTHING, and an element that
- * draws nothing looks on the canvas exactly like one that is broken. Since both
- * can now be created empty, the state is reachable on purpose and has to be
+ * draws nothing looks on the canvas exactly like one that is broken. Both can
+ * be created empty, so the state is reachable on purpose and has to be
  * explained where it is reached rather than discovered at the printer.
  */
 function subShowEmpty(spec) {
@@ -1403,9 +1393,8 @@ function zoneAt(div, clientX, clientY) {
  * Not `event.target.closest()`, which is the uppermost one, and uppermost is the
  * wrong answer on a form. Every box is a filled surface (see place()), and the
  * array order is the drawing order, so a frame drawn around a block of fields
- * covers all of them: clicking any field inside it selected the frame instead,
- * every time, with no way in from the page at all. Reported from use, and the
- * reason the Elements list had to be the answer.
+ * covers all of them: clicking any field inside it would select the frame
+ * instead, with no way in from the page at all.
  *
  * Smallest-wins reads the author's intent directly — a container is essentially
  * never what someone is pointing at when they point inside it — and costs the
@@ -1417,8 +1406,8 @@ function zoneAt(div, clientX, clientY) {
  * that corner, and the resize the author aimed at silently becomes a drag of
  * something else. A held box keeps the pointer while the pointer is on a handle.
  *
- * Stacking no longer decides anything here, which is what makes the hover z-index
- * bump in highlight() safe: it is now purely something to look at.
+ * Stacking decides nothing here, which is what makes the hover z-index bump in
+ * highlight() safe: it is purely something to look at.
  */
 function boxAt(clientX, clientY) {
   let best = null, bestArea = Infinity;
@@ -1685,8 +1674,7 @@ window.formsCanvasRedo   = formsCanvasRedo;
 
 // Every control in the inspector, or the one left out is a control that looks
 // editable and does nothing — no error, no console, just a form that will not
-// redraw. The heading-row four were added to the panel and forgotten here, and
-// the only symptom was that changing them appeared to have no effect.
+// redraw.
 ['ins_label','ins_x','ins_y','ins_w','ins_h','ins_text','ins_font','ins_size','ins_border',
  'ins_align','ins_visible','ins_bordershow','ins_colour','ins_bordercolour',
  'ins_when_bind','ins_when_op','ins_when_value',
@@ -1782,9 +1770,9 @@ function escapeHtml(text) {
 }
 
 // The hover highlight is driven from pointermove, not from `mouseover`, because
-// the two now disagree: mouseover fires on entering a DIV, and the div entered is
-// the frame in front. Inside one frame the pointer can cross a dozen fields
-// without a single mouseover, so the highlight would name the frame throughout.
+// the two disagree: mouseover fires on entering a DIV, and the div entered is the
+// frame in front. Inside one frame the pointer can cross a dozen fields without a
+// single mouseover, so the highlight would name the frame throughout.
 layer.addEventListener('pointerleave', function () { hovering = null; });
 
 document.getElementById('forms_canvas_show').addEventListener('change', function () {

@@ -38,9 +38,8 @@ function formsPrint(action) {
 // Answered by the page rather than by a fragment of it, because more changes
 // than the name: the records the form selects come from its own plan, whether
 // it can run at all comes from the definition, and the email subject and
-// message are the definition's words. PhreeForm fetched just the message over
-// AJAX and left the rest stale. Re-rendering costs one small request and is the
-// same code that drew the page on arrival, so the two cannot disagree.
+// message are the definition's words. Re-rendering costs one small request and
+// is the same code that drew the page on arrival, so the two cannot disagree.
 //
 // target is set back to _self explicitly: a View earlier in this page's life
 // left it on _blank, and reselecting would then open the popup's own reload in
@@ -56,24 +55,22 @@ function formsPick() {
 // &autoprint=1 — show the document without a click.
 //
 // Square Terminal sends it: the browser is already on the payment screen and
-// the till operator wants the receipt, not a dialog. PhreeForm answered it by
-// guessing which form the group meant (it preferred one whose label said
-// "Invoice") and fetching the PDF into a full-screen iframe. Neither is needed
-// here — pre_process.php has already resolved the single form in the group, so
-// this only has to press the button.
+// the till operator wants the receipt, not a dialog. pre_process.php has
+// already resolved the single form in the group, so this only has to press the
+// button.
 //
 // The View button's presence IS the readiness test, since template_main.php
 // draws it only once a form is resolved and records selected. Into _self rather
 // than a new tab, so the popup that opened for this becomes the viewer instead
 // of spawning a second window.
 //
-// A group holding several forms is refused outright. The page now arrives with
-// the first of them chosen so that an ATTENDED print is one click - but nobody
-// is watching this one, and the person who would have seen which form was
-// selected is not there to see it. Printing whichever form sorts first, unasked,
-// is worse than printing nothing; alphabetical order is not a decision anyone
-// made. Counting the options is how that is known here, because by this point
-// the page no longer says how large the group was.
+// A group holding several forms is refused outright. The page arrives with the
+// first of them chosen so that an ATTENDED print is one click - but nobody is
+// watching this one, and the person who would have seen which form was selected
+// is not there to see it. Printing whichever form sorts first, unasked, is worse
+// than printing nothing; alphabetical order is not a decision anyone made.
+// Counting the options is how that is known here, because by this point the page
+// does not say how large the group was.
 document.addEventListener('DOMContentLoaded', function() {
   if (new URLSearchParams(window.location.search).get('autoprint') !== '1') return;
   if (document.querySelectorAll('input[type="radio"][name="rID"]').length > 1) return;

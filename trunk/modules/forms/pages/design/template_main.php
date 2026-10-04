@@ -21,12 +21,9 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 $toolbar->icon_list['save']['show']   = $forms_design_definition !== null && $security_level > 2;
 $toolbar->icon_list['save']['params'] = 'onclick="document.getElementById(\'forms_design_form\').submit()"';
-// Back to the Reports list, which is the only list of reports there is. It used
-// to return to this page's own chooser — a second list of the same reports — so
-// cancelling an edit left the author looking at something they had not come
-// from. The canvas still returns to ITS list, and that is not inconsistent:
-// forms are kept off the Reports page, so the canvas's chooser is the only list
-// a form appears on.
+// Back to the Reports list, which is the only list of reports there is. The
+// canvas returns to ITS list, and that is not inconsistent: forms are kept off
+// the Reports page, so the canvas's chooser is the only list a form appears on.
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \''
     . html_href_link(FILENAME_DEFAULT, 'module=forms&page=main', 'SSL') . '\'"';
 $toolbar->add_help('11.06');
@@ -123,9 +120,8 @@ $bands   = (array)($style['band'] ?? array());
                          <?php echo !empty($column['total']) ? 'checked' : ''; ?>></td>
               <?php // Ticked, the next field starts a new column; unticked, it stacks
                     // underneath this one. Nearly every report ticks every column,
-                    // which is why omitting the control was invisible in the markup
-                    // and catastrophic in the output: an unticked box posts NOTHING,
-                    // so every column collapsed into one stacked band. ?>
+                    // and an unticked box posts NOTHING, so without this control
+                    // every column would collapse into one stacked band. ?>
               <td class="text-center"><input type="checkbox" class="form-check-input"
                          name="column[<?php echo $i; ?>][pageBreak]" value="1"
                          <?php echo !empty($column['pageBreak']) ? 'checked' : ''; ?>></td>

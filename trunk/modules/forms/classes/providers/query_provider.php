@@ -29,9 +29,9 @@
  * Two things make that fold less obvious than it looks, and both are handled
  * here rather than left to the caller:
  *
- *   1. **Joins multiply rows.** The proving PO has 211 line items but the
- *      dataset's address_book join returns 422 rows, because a vendor has more
- *      than one address on file. The legacy form dealt with this by filtering
+ *   1. **Joins multiply rows.** A vendor with more than one address on file
+ *      makes the dataset's address_book join return each line more than once.
+ *      The legacy form dealt with this by filtering
  *      address_book.type — a *data* concern the caller must state, since only
  *      the caller knows which address a given document wants. What the provider
  *      does guarantee is that duplicate LINES are not emitted: line rows are
@@ -40,7 +40,7 @@
  *   2. **Ids are not names.** rep_id and admin_id identify a user, and turning
  *      one into a name is a query — which the renderer may not make (§4.3.1),
  *      and which the Transactions dataset deliberately cannot express, because
- *      reaching `users` from the dataset behind 44 documents would hand every
+ *      reaching `users` from the dataset behind most documents would hand every
  *      report author a route into it. Resolution therefore happens HERE, in one
  *      batched lookup, and the document carries the finished name.
  */
@@ -186,9 +186,8 @@ final class QueryDocumentProvider implements DocumentProvider
     /**
      * Look up every referenced user in one query.
      *
-     * PhreeForm called pb_get_user_name() per field per record, from inside the
-     * render loop — a query per printed document, issued below the seam. One
-     * batched lookup here replaces all of them.
+     * One batched lookup, rather than a query per field per record from inside
+     * the render loop, below the seam.
      *
      * @param array<string,array{header:array,lines:array,seen:array}> $groups
      * @param array<string,mixed> $headerKeys
@@ -209,9 +208,9 @@ final class QueryDocumentProvider implements DocumentProvider
         $ids   = array_keys($ids);
         $table = defined('TABLE_USERS') ? TABLE_USERS : 'users';
         // display_name only, matching pb_get_user_name(). Falling back to
-        // admin_name would be friendlier but would differ from every document
-        // printed so far: on this install display_name is unset for every user,
-        // so the legacy Buyer box prints blank and so must this one.
+        // admin_name would be friendlier but would differ from documents
+        // already printed: where display_name is unset, the Buyer box prints
+        // blank, and so must this one.
         $sql   = "SELECT admin_id, display_name FROM $table WHERE admin_id IN ("
                . implode(', ', array_fill(0, count($ids), '?')) . ')';
 

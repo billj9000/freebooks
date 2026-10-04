@@ -218,9 +218,8 @@ final class SerialForm
      *
      * A table always breaks the row whatever the form said — it prints whole
      * lines of its own, and a table that did not break would run the next
-     * field onto the end of its last row. The renderer used to force this at
-     * print time; refusing it here means the stored definition says what
-     * happens.
+     * field onto the end of its last row. Forcing it here, rather than at
+     * print time, means the stored definition says what happens.
      */
     private function cell(array $row, SerialCell $current, bool $isTable = false): SerialCell
     {

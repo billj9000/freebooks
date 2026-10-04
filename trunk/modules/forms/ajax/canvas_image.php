@@ -19,9 +19,9 @@
 /**
  * An image file, into the folder a form draws from.
  *
- * The canvas can point an image element at a file, and until now that file had
- * to already be there — put in place over the file system, which the person
- * laying out an invoice does not have. This is the way in.
+ * The canvas can point an image element at a file, and this is how the file
+ * gets there: the person laying out an invoice has no access to the file
+ * system.
  *
  * Answers in JSON, unlike the two ajax ops beside it: those stream a PDF into a
  * viewer, this one is called by script that has to act on the ANSWER — the name

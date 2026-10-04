@@ -117,10 +117,9 @@ final class CanvasLayout
 
             // An image is stored with a WIDTH and no height — every logo in the
             // shipped set is — because TCPDF's Image() works the missing side
-            // out from the file's aspect ratio. Passing that 0 straight to the
-            // browser drew the logo as a two-pixel sliver: a box that is not
-            // wrong so much as absent, on the one element an author most wants
-            // to see the edges of.
+            // out from the file's aspect ratio. Passed straight to the browser,
+            // that 0 would draw the logo as a two-pixel sliver, on the one
+            // element an author most wants to see the edges of.
             //
             // Unlike a block of text, this really is knowable: it depends on the
             // FILE, not on the record. So it is measured here, and only what
@@ -179,9 +178,8 @@ final class CanvasLayout
                 // record — the company's own phone number, address, tax number.
                 // The palette does not offer these (`forms_binding_names()`
                 // skips them) because they are not the record's to supply, so
-                // the inspector's list has no entry to select and showed an
-                // empty control on an element that is bound perfectly well. It
-                // says so in words instead, and offers nothing to change:
+                // the inspector's list has no entry to select. It says so in
+                // words instead, and offers nothing to change:
                 // TemplateForm::binding() refuses to retarget one anyway.
                 'context' => ($element instanceof Field || $element instanceof Barcode)
                                 && $element->bind->scope === Scope::Context,

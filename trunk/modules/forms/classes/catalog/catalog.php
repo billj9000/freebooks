@@ -14,11 +14,11 @@
 /**
  * Forms — the catalog: datasets, their join graphs, and their fields.
  *
- * This file is where PhreeForm's central vulnerability is designed out. There,
- * CreateTableList() offered every table `SHOW TABLES` returned — including
- * `users`, `configuration` and `data_security` — and the join condition was a
- * free-form text box concatenated straight into the query. Anyone who could
- * print an invoice could therefore author arbitrary SQL (§1.1).
+ * This file is where free-form SQL is designed out of report authoring.
+ * Offering every table `SHOW TABLES` returns — including `users`,
+ * `configuration` and `data_security` — and concatenating a free-form join
+ * condition into the query would let anyone who can print an invoice author
+ * arbitrary SQL (§1.1).
  *
  * The rule that replaces it (§3.3): **an author picks identifiers; they never
  * supply SQL syntax.** Every identifier here is validated on construction
@@ -89,12 +89,11 @@ final class Identifier
 /**
  * One equality linking two tables.
  *
- * A list of these expresses a compound join. That is not hypothetical: the
- * shipped library uses only simple `a.b = c.d` (all 11 relationships), but a
- * customised install of ours joins inventory_purchase_details on BOTH sku and
+ * A list of these expresses a compound join. That is not hypothetical: a
+ * customised install can join inventory_purchase_details on BOTH sku and
  * vendor_id. A single-pair model would silently fail to express it, and the
- * temptation would then be to re-introduce the free-form condition box that
- * caused the original vulnerability.
+ * temptation would then be to re-introduce a free-form condition box — the
+ * vulnerability this design removes.
  */
 final readonly class JoinCondition
 {
@@ -142,8 +141,8 @@ final readonly class Join
 /**
  * One selectable field.
  *
- * `column` is the ordinary case. `expression` is the escape hatch that keeps
- * PhreeForm's flexibility — the live Purchase Order selects
+ * `column` is the ordinary case. `expression` is the escape hatch for a
+ * computed value — the Purchase Order selects
  * `IF(vendor_sku <> '', vendor_sku, SUBSTRING_INDEX(description_purchase,' ',1))`
  * — and it is exactly what a Custom dataset may not contain, since it IS raw
  * SQL. Dataset enforces that; the constructor only requires that one of the two
@@ -156,7 +155,7 @@ final readonly class FieldDefinition
      *   A computed field has no table.column for the converter to match on, so
      *   without this the legacy expression it stands in for would be reported as
      *   unconvertible. Naming them here is how a shipped dataset says "this
-     *   arithmetic used to be written inline, and now it is this field".
+     *   inline legacy arithmetic is this field".
      */
     public function __construct(
         public string    $key,           // stable name used by templates and filters
@@ -206,9 +205,8 @@ final readonly class FieldDefinition
 /**
  * A curated view onto the join graph: the unit a report author works inside.
  *
- * Not the same thing as a connected component of the schema. §6.1 found the
- * whole shipped library forms only five components and that no report spans
- * more than one — but the largest component (44 documents) is split into
+ * Not the same thing as a connected component of the schema. No report
+ * spans more than one component (§6.1), but the largest is split into
  * "Transactions" and "General Ledger" here, because a dataset is chosen for
  * usability, not maximality.
  */

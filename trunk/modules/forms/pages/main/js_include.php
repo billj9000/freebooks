@@ -22,9 +22,8 @@
 // only thing that works. template_index.php emits js_include.php inside the
 // <HEAD>, before <body> and long before the page's own markup. A getElementById
 // at the top level of this file therefore returns null every time, and the first
-// guard that tests one bails out of the whole script: every button on the page
-// highlights and does nothing. The version before this one delegated on
-// `document`, which exists in the head, and so never met this.
+// guard that tests one would bail out of the whole script: every button on the
+// page would highlight and do nothing.
 //
 // Bootstrap is loaded with `defer`, and deferred scripts are guaranteed to have
 // run by DOMContentLoaded — so `bootstrap` is safe to name in here too.
@@ -145,8 +144,8 @@ function run(row, format, fromDialog) {
   url.searchParams.set('format', format);
   if (fromDialog) {
     // Only what was asked for. Sending an answer the document does not use
-    // would be harmless; sending one it DOES use, that the user never saw, is
-    // how a report drawn as "this quarter" came to run over all time.
+    // would be harmless; sending one it DOES use, that the user never saw,
+    // would run a report drawn as "this quarter" over all time.
     if (row.dataset.needsDates  === '1' && dates  && dates.value)  url.searchParams.set('dates', dates.value);
     if (row.dataset.needsPeriod === '1' && period && period.value) url.searchParams.set('period', period.value);
     if (row.dataset.needsGl     === '1' && gl     && gl.value)     url.searchParams.set('gl_account', gl.value);
@@ -259,5 +258,5 @@ apply();
 <?php
 // A block of its OWN, outside whatever this page's script is — the
 // canvas's is a module, and a function declared in a module is not
-// global, so an inline handler could never see one (§13.29).
+// global, so an inline handler could not see one (§13.29).
 forms_document_actions_script();

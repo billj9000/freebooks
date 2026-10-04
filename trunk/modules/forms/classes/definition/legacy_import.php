@@ -19,10 +19,10 @@
 /**
  * Forms — a PhreeForm definition, converted once into a native one. See §13.3.
  *
- * The conversion Forms currently performs on EVERY run, hoisted out of the two
- * runners and performed once instead. Nothing here is new logic: it is the same
- * DatasetResolver, ReportConverter and TemplateConverter calls, in the same
- * order, with the answers kept rather than thrown away after the render.
+ * A legacy definition's conversion, performed once. Nothing here is separate
+ * logic: it is the same DatasetResolver, ReportConverter and TemplateConverter
+ * calls the runners make, in the same order, with the answers kept rather than
+ * thrown away after the render.
  *
  * The order genuinely matters and is not a tidiness point. ReportConverter is
  * stateful across the call sequence — convertColumns() builds the field map and
@@ -31,16 +31,16 @@
  * different order produces a definition that is subtly less than the one the
  * runner would have built, and nothing errors.
  *
- * This class is the ONLY thing that will still read PhreeForm XML after the
- * migration, and it survives as the designer's "Import a PhreeForm definition"
- * (decision L) rather than as a loader branch. That is why it is here in the
- * definition layer rather than in legacy/: it is a feature of the new format,
- * not a part of the old one.
+ * This class is how a PhreeForm XML definition becomes a native one: the
+ * loader's legacy branch uses it, and decision L keeps it as the designer's
+ * "Import a PhreeForm definition". That is why it is here in the definition
+ * layer rather than in legacy/: it is a feature of the new format, not a part
+ * of the old one.
  *
  * What it does not decide: whether a definition is fit to migrate. It converts
- * and it reports, through warnings(). §13.3 condition 1 — block the migration
- * on anything unconvertible rather than skipping it — reads those warnings and
- * is step 6's business.
+ * and it reports, through warnings(); the migration reads those warnings and
+ * blocks on anything unconvertible rather than skipping it (§13.3 condition
+ * 1).
  */
 
 namespace FreeBooks\Forms\Definition;
@@ -73,11 +73,11 @@ final class DefinitionBuilder
      * Special classes DELETED rather than ported, whose reports take the
      * ordinary dataset route (DocumentRunner::DATASET_SERVED).
      *
-     * They are named here for the last time. A native definition records the
-     * route it takes, and the behaviour these classes supplied — the aged
-     * summary's per-account roll-up — is already baked into the converted group
-     * and totalsOnly by ReportConverter's SPECIAL_CLASS_PROFILES. After the
-     * migration there is nothing left for a runner to except.
+     * A native definition records the route it takes, and the behaviour these
+     * classes supplied — the aged summary's per-account roll-up — is baked into
+     * the converted group and totalsOnly by ReportConverter's
+     * SPECIAL_CLASS_PROFILES, so a runner of native definitions has nothing to
+     * except.
      */
     private const DATASET_SERVED = ['aged_receivables', 'aged_summary'];
 
@@ -94,10 +94,8 @@ final class DefinitionBuilder
     {
         $this->warnings = [];
 
-        // The legacy engines CONSUME a definition as they read it (BuildDataArray()
-        // shifts the group list away, build_criteria() writes resolved modes back),
-        // and so, in a smaller way, does this. A caller that still holds the object
-        // must get it back intact.
+        // Parts of the conversion consume the object as they read it, so it works
+        // on a copy: a caller that still holds the object must get it back intact.
         $report = unserialize(serialize($report));
 
         $special = trim((string)($report->special_class ?? ''));
@@ -124,12 +122,11 @@ final class DefinitionBuilder
     {
         $converter = new TemplateConverter();
 
-        // Carried rather than dropped, even though nothing can draw one yet.
-        // The conversion runs whichever way this reads, and the coordinates it
-        // produces for a serial form are meaningless — every field of a receipt
-        // stores an EMPTY abscissa and ordinate, because BuildSeq() lays out by
-        // sequence and alignment instead. Losing the flag here is what let a
-        // receipt look like an ordinary form with everything at 0,0 (§13.27).
+        // Carried rather than dropped. The coordinates the conversion produces
+        // for a serial form are meaningless — every field of a receipt stores
+        // an EMPTY abscissa and ordinate, because a receipt lays out by
+        // sequence and alignment instead — and without the flag a receipt would
+        // read as an ordinary form with everything at 0,0 (§13.27).
         $serial = !empty($report->serialform);
 
         if ($special !== '') {
@@ -198,8 +195,7 @@ final class DefinitionBuilder
      * Two of the shipped forms declare one — the Invoice and the Deposit
      * Receipt — and it is the only reason `journal_main.printed` is ever
      * non-zero, which is what the Sales Invoice Manager's "unprinted" filter
-     * reads. The tag was dropped by this converter until §13.45, so every
-     * migrated company silently stopped counting.
+     * reads (§13.45).
      *
      * A malformed value is a WARNING rather than a failure: it costs a counter,
      * not a document, and refusing to convert the form over it would be a worse

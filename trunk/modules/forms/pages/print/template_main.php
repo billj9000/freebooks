@@ -32,8 +32,7 @@ if ($forms_ready) {
   $toolbar->icon_list['print']['show'] = false;
 }
 // 11.09, the topic about printing a document you have open - which is what
-// this window IS. It pointed at 11.02, "Designing Reports and Forms", so the
-// Help button on the print window opened the designer's documentation.
+// this window IS.
 $toolbar->add_help('11.09');
 echo $toolbar->build_toolbar();
 
@@ -48,12 +47,9 @@ echo html_hidden_field('action', '') . chr(10);
 ?></h1>
 
 <?php
-// The group's forms and the delivery options are ONE screen. They were two:
-// this card listed the forms with a button beside each, and the button was a
-// link that navigated the popup to the same page again with rID set, replacing
-// the list with the delivery screen. Two pages in one window, and the second
-// looked nothing like the first. The list now lives where the document's name
-// goes, so choosing changes a value on the screen the person is already on.
+// The group's forms and the delivery options are ONE screen: the list lives
+// where the document's name goes, so choosing changes a value on the screen
+// the person is already on.
 $forms_several = count($forms_choices) > 1;
 if ($forms_several || ($forms_report && $forms_plan)) { ?>
 <div class="fb-card card mb-2">
@@ -61,11 +57,9 @@ if ($forms_several || ($forms_report && $forms_plan)) { ?>
   <div class="card-body">
     <table class="table table-borderless table-sm mb-0">
       <tbody>
-        <?php // What a PERSON is about to print. This card used to answer with
-              // "Served by: built in code: entry_builder" and "Records selected:
-              // 1 — id = 993" — the provider class and the filter expression,
-              // both true and both meaningless to whoever pressed Print. Which
-              // code serves a document belongs on the Reports list, where an
+        <?php // What a PERSON is about to print. Not the provider class or the filter
+              // expression - both true and both meaningless to whoever pressed Print.
+              // Which code serves a document belongs on the Reports list, where an
               // administrator is looking at the catalogue. ?>
         <tr>
           <td style="width:35%"><?php echo FORMS_PRINT_DOCUMENT; ?></td>

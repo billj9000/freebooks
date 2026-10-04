@@ -20,9 +20,9 @@
  * Forms — the images a form may draw, and how a new one gets there.
  *
  * The canvas offers a fixed-filename image a list of what is in the reports
- * images folder. Until now the only way into that folder was the file system,
- * which is not something the user of an accounts package has, so a logo could
- * be positioned but never supplied.
+ * images folder. Without an upload the only way into that folder is the file
+ * system, which is not something the user of an accounts package has, so a
+ * logo could be positioned but never supplied.
  *
  * ## Why this is a class and not four lines in the ajax op
  *

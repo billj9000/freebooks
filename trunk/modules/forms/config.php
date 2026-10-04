@@ -93,18 +93,15 @@ define('MODULE_FORMS_VERSION', '1.0.0');
 
 // Security IDs.
 //
-// Three, not one. PhreeForm conflated running a document with authoring one and
-// with defining which tables may be joined — SECURITY_ID_PHREEFORM granted all
-// three, which is why any report author was a database-wide read primitive
-// (design §1.1, §3.1, decision F). Running is constant and harmless; defining a
-// join graph is rare and dangerous, and they should never have shared a key.
+// Three, not one: running a document, authoring one, and defining which tables
+// may be joined (design §1.1, §3.1, decision F). Running is constant and
+// harmless; defining a join graph is rare and dangerous, so they do not share a
+// key.
 define('SECURITY_ID_FORMS_RUN',      8);  // run and print documents
 define('SECURITY_ID_FORMS_AUTHOR',   9);  // write a report inside a dataset
 define('SECURITY_ID_FORMS_DATASETS', 10); // define which tables join, and how
 
-// Datasets defined through the admin UI (design §3.2). Report DEFINITIONS still
-// live in the PhreeForm catalog, so enabling Forms needs no migration and both
-// engines keep working on the same definitions; only this is new.
+// Datasets defined through the admin UI (design §3.2).
 define('TABLE_FORMS_DATASETS', DB_PREFIX . 'forms_datasets');
 
 if (defined('MODULE_FORMS_STATUS')) {
@@ -121,16 +118,12 @@ if (defined('MODULE_FORMS_STATUS')) {
 
   // The report editor has NO entry of its own, and that is deliberate. It is
   // reached from the Edit button beside a report on the list above, which is the
-  // only list of reports there is; an entry here landed on a second list of the
-  // same reports, labelled with the raw doc_group codes the list above stopped
-  // showing. Two lists of one thing, and the worse of them on the menu.
+  // only list of reports there is.
   //
-  // What the entry USED to be for, and what replaced it: phreedom's roles page
-  // builds itself by walking $mainmenu, so a security id named by no entry
-  // appears nowhere on it and cannot be granted to anybody. That is still true —
-  // but SECURITY_ID_FORMS_AUTHOR is named by the form canvas below, which was
-  // added later and shares it. Removing THAT entry would make the permission
-  // ungrantable; removing this one does not.
+  // phreedom's roles page builds itself by walking $mainmenu, so a security id
+  // named by no entry appears nowhere on it and cannot be granted to anybody.
+  // SECURITY_ID_FORMS_AUTHOR stays grantable because the form canvas below names
+  // it.
   //
   // The form canvas. Shares SECURITY_ID_FORMS_AUTHOR with the report editor:
   // both are "write a document", and the two exist separately because a form is
@@ -149,10 +142,8 @@ if (defined('MODULE_FORMS_STATUS')) {
   // The RECEIPT editor has no entry of its own, for the same reason the report
   // editor has none: there is one list of forms, and it is the canvas chooser
   // above. A receipt is listed there like any other form, marked as one, and
-  // opening it lands on the editor that can edit it — the list knows which,
-  // so nobody has to (§13.28). A second menu entry would have been a second
-  // list of the same forms, which is exactly what the report editor's entry
-  // was removed for.
+  // opening it lands on the editor that can edit it — the list knows which, so
+  // nobody has to (§13.28).
   //
   // Safe to omit for the reason spelled out above: SECURITY_ID_FORMS_AUTHOR is
   // still named by the canvas entry, so it remains grantable on the roles page.
@@ -169,12 +160,7 @@ if (defined('MODULE_FORMS_STATUS')) {
   );
 }
 
-// The document catalogue: one row per report or form, read by Forms and — while
-// it is still installed — by PhreeForm. Shared BY DESIGN (§13.3), which is what
-// made running the two side by side possible at all.
-//
-// Defined here as well as in phreeform/config.php, guarded, so that Forms keeps
-// working when that module goes. The TABLE keeps its name: renaming it is a
-// migration every backup, restore and installed extension would have to be
-// taught, in exchange for a word.
+// The document catalogue: one row per report or form (§13.3). The TABLE keeps
+// its name: renaming it is a migration every backup, restore and installed
+// extension would have to be taught, in exchange for a word.
 if (!defined('TABLE_PHREEFORM')) define('TABLE_PHREEFORM', DB_PREFIX . 'phreeform');

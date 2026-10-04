@@ -71,9 +71,9 @@ final class Formatter
     /**
      * The number words, as language KEYS with English fallbacks.
      *
-     * Keys because these are translatable and PhreeForm defined them; the
-     * fallbacks are what makes `n2wrd` keep working after that language file
-     * goes. TEXT_HUNDERD is spelled as it is spelled in the file.
+     * Keys because these are translatable; the fallbacks keep `n2wrd`
+     * working where no language file defines them. TEXT_HUNDERD is spelled
+     * as it is spelled in the language files.
      */
     private const UNITS = [1 => 'TEXT_ONE', 'TEXT_TWO', 'TEXT_THREE', 'TEXT_FOUR', 'TEXT_FIVE',
                            'TEXT_SIX', 'TEXT_SEVEN', 'TEXT_EIGHT', 'TEXT_NINE'];
@@ -99,7 +99,7 @@ final class Formatter
      * this class has no extension point — the `pf_process_{module}` hook that
      * made PhreeForm's list open is PhreeForm's, and Forms does not call it. So
      * a name that is not in one of the three lists on this class does nothing
-     * at all, silently, and an editor offering free text was inviting authors
+     * at all, silently, and an editor offering free text would invite authors
      * to type into a box where a misspelling and a decision look identical.
      *
      * Deliberately NOT the whole vocabulary. RESOLUTION_HINTS are excluded,
@@ -233,13 +233,12 @@ final class Formatter
     {
         if ($value->raw === null) return '';
 
-        // Deliberately no per-type conversion, Boolean included. A boolean once
-        // rendered here as "Yes"/"" — which reads better, and is wrong: with no
-        // hint PhreeForm's ProcessData() returns the value untouched, and
-        // `yesBno` is how a definition asks for Yes/blank. Converting anyway
-        // silently changed every unhinted boolean column in every converted
-        // report — the Vendor List prints an Inactive column of 0s and 1s, and
-        // started printing blanks.
+        // Deliberately no per-type conversion, Boolean included. "Yes"/"" reads
+        // better, and is wrong: with no hint PhreeForm's ProcessData() returns
+        // the value untouched, and `yesBno` is how a definition asks for
+        // Yes/blank. Converting anyway would change every unhinted boolean
+        // column in every converted report — the Vendor List's Inactive column
+        // of 0s and 1s would print blanks.
         return (string)$value->raw;
     }
 
@@ -302,18 +301,12 @@ final class Formatter
     /**
      * An amount written out in words, for the line on a cheque.
      *
-     * Forms' own, rather than PhreeForm's value_to_words_en_us(). The call it
-     * replaced was guarded with function_exists(), which reads like caution and
-     * is the opposite: after step 6 that function is gone, the guard is
-     * satisfied by the `else` branch, and `n2wrd` quietly prints the NUMBER on
-     * every cheque. Nobody would see a failure — they would see a cheque.
-     *
-     * The check that would have caught it dies in the same commit, because it
-     * compares this hint against value_to_words_en_us(). So the algorithm is
-     * reproduced here exactly — same recursion, same order, same spacing, same
-     * hyphen between tens and units, and the same `TEXT_HUNDERD` misspelling,
-     * which is a language KEY and not a word. While both exist they can be
-     * compared, which is the only moment that comparison is available.
+     * Forms' own, reproducing PhreeForm's value_to_words_en_us() exactly — same
+     * recursion, same order, same spacing, same hyphen between tens and units,
+     * and the same `TEXT_HUNDERD` misspelling, which is a language KEY and not
+     * a word — so converted cheques print unchanged. Nothing else supplies it:
+     * without it `n2wrd` would print the NUMBER on every cheque, and nobody
+     * would see a failure — they would see a cheque.
      *
      * en_us in its bones: it says DOLLARS, and it writes the cents as `NN/100`.
      * That is what the shipped cheque forms expect. A locale that needs

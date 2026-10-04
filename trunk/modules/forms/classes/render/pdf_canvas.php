@@ -23,23 +23,15 @@
  * invokes on page transitions and which are the sole hook for drawing content
  * that repeats on every page. Both delegate straight back to the renderer, so
  * the layout decisions stay readable and testable instead of being tangled into
- * a PDF subclass (docs/forms-design.md §2.2). PhreeForm's equivalent
- * (form_generator.php) inlined its whole drawing engine here and reached out to
- * $report/$FieldValues globals from inside Header().
+ * a PDF subclass (docs/forms-design.md §2.2).
  *
  * PER-RECORD PAGE NUMBERING uses TCPDF's own page groups, so an invoice reads
  * "2 of 3" within itself rather than counting across a 40-invoice batch.
  *
- * This is worth spelling out because it is a deliberate departure. PhreeForm
- * predates that feature and hand-rolled the equivalent: it tracked groups
- * itself, wrote {nb<n>} placeholders, and then overrode the protected
- * _putpages() to rewrite TCPDF's raw page buffers ($this->page, $this->pages)
- * before output. That single hack is what pins the phreeform module to the
- * TCPDF 6.x line — TCPDF 7 is a shim over tc-lib-pdf where _putpages() and
- * those properties do not exist.
- *
- * Using the documented API instead means Forms touches no TCPDF internals at
- * all, so the renderer is not an obstacle to a future TCPDF upgrade.
+ * The documented API means Forms touches no TCPDF internals — no override of
+ * the protected _putpages() and no rewriting of the raw page buffers, neither
+ * of which exists in TCPDF 7, a shim over tc-lib-pdf — so the renderer is not
+ * an obstacle to a future TCPDF upgrade.
  */
 
 namespace FreeBooks\Forms\Render;
@@ -56,14 +48,10 @@ final class PdfCanvas extends \TCPDF
      *
      * TCPDF::getPageSizeFromFormat() looks the name up in a table keyed in
      * UPPERCASE and, finding nothing, silently returns A4. Definitions store
-     * "Letter" — that is what PhreeForm's `Letter:216:282` reduces to — so every
-     * Letter document was being printed on A4: 210 × 297 mm instead of
-     * 215.9 × 279.4, which is 6 mm narrower and 18 mm longer. Nothing failed;
-     * the page was simply the wrong size, and only a US install would notice.
-     *
-     * A4, A5 and the rest of the ISO names pass through unchanged because they
-     * are already uppercase, which is why this went unseen: the shipped
-     * definitions on a European install were right by accident.
+     * "Letter" — what PhreeForm's `Letter:216:282` reduces to — so without this
+     * a Letter document prints on A4, 6 mm narrower and 18 mm longer, with
+     * nothing failing. A4, A5 and the rest of the ISO names pass through
+     * unchanged because they are already uppercase.
      *
      * An unknown name still falls back to A4 inside TCPDF. That is its choice to
      * make and this does not second-guess it — but it is worth knowing that a

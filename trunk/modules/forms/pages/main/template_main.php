@@ -52,11 +52,11 @@ echo $toolbar->build_toolbar();
           // cuts off the row dropdowns — a menu that opens and is invisible. ?>
     <table class="table table-borderless table-hover table-sm mb-0" id="forms_documents">
       <thead class="table-dark">
-        <?php // No Group column: the group is the heading each block sits under
-              // now, and printing the raw code beside every row was what made an
-              // ordered list look unordered. No "Served by" column either — the
-              // dataset or provider a definition resolved to is diagnostic, so it
-              // sits under the title for the people who can act on it. ?>
+        <?php // No Group column: the group is the heading each block sits under,
+              // by name; a raw code beside every row makes an ordered list look
+              // unordered. No "Served by" column either — the dataset or provider a
+              // definition resolved to is diagnostic, so it sits under the title
+              // for the people who can act on it. ?>
         <tr>
           <th><?php echo FORMS_COL_TITLE; ?></th>
           <th class="text-end"><?php echo FORMS_COL_ACTIONS; ?></th>
@@ -170,8 +170,8 @@ echo $toolbar->build_toolbar();
 <?php   } elseif ($plan->isForm()) {
           // This page lists doc_ext='rpt', so a form should not reach here —
           // but isForm() is decided by the DEFINITION, not by the catalogue
-          // row, and the two disagreed once already: a query-driven form with
-          // no special_class planned as an ordinary dataset and rendered an
+          // row, and the two can disagree: a query-driven form with no
+          // special_class plans as an ordinary dataset and would render an
           // invoice as a table. So the case is kept, and it says where the
           // document actually lives rather than offering a button that cannot
           // work from a list with no record in it.
@@ -182,8 +182,7 @@ echo $toolbar->build_toolbar();
 <?php   }
         // Authoring is a separate permission from running (decision F), so the
         // Edit button appears for the users who hold it and for nobody else.
-        // Only for reports: a form is laid out on a page, and the canvas that
-        // edits one is a later step.
+        // Only for reports: a form is laid out on the form canvas.
         if ($forms_can_author && !$plan->isForm()) { ?>
             <a class="btn btn-primary btn-sm ms-1"
                href="<?php echo html_href_link(FILENAME_DEFAULT,

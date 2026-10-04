@@ -29,7 +29,7 @@
  * and read by a human diffing two versions of a form:
  *
  * 1. **Defaults are omitted.** A `Style` with nothing set writes nothing at
- *    all. Elements average 42 per form, and a file where every one of them
+ *    all. A form has dozens of elements, and a file where every one of them
  *    spells out eight nulls is a file nobody reads.
  * 2. **Key order is fixed**, so re-saving a definition nobody edited produces
  *    a byte-identical file and an empty diff. verify_forms_native.php asserts
@@ -144,12 +144,11 @@ final class DefinitionCodec
             $this->put($form, 'recordTable', $definition->recordTable, '');
             $this->put($form, 'recordKey',   $definition->recordKey,   'id');
             // Omitted by put()'s default for every form that counts nothing,
-            // which is all but two of the shipped set — so adding the key
-            // changes no stored byte of the rest (§13.45).
+            // so such a form stores no key for it (§13.45).
             $this->put($form, 'printedField', $definition->printedField, '');
-            // Omitted for every ordinary form by put()'s default, so adding it
-            // does not change a single stored byte of the 61 that are not
-            // receipts — which the byte-identity check depends on.
+            // Omitted for every ordinary form by put()'s default, so a form
+            // that is not a receipt stores no key for it — which the
+            // byte-identity check depends on.
             $this->put($form, 'serial',      $definition->serial,      false);
             // A receipt's layout replaces the element list rather than joining
             // it: the two describe the same document in incompatible terms, and
@@ -230,10 +229,9 @@ final class DefinitionCodec
      * The empty object is not a tidiness question. `Table` resolves its heading
      * row as `$element->headerStyle ?? $element->style`, so a headerStyle that
      * specifies nothing still WINS over the element's own style, while a null
-     * one falls back to it. Collapsing the two prints the heading row of every
-     * converted table in a different font from the one PhreeForm used — which
-     * is exactly what the byte comparison in verify_forms_native.php caught,
-     * and what no amount of reading the object graph would have shown.
+     * one falls back to it. Collapsing the two would print the heading row of
+     * every converted table in a different font from the one its definition
+     * names.
      */
     private function styleToArray(?Style $style): array|\stdClass|null
     {
@@ -354,9 +352,9 @@ final class DefinitionCodec
      * An element's condition, or nothing at all when it has none.
      *
      * Omitted rather than written as null, which is rule 1 doing real work
-     * here: every one of the 57 shipped definitions has a condition on no
-     * element, and a spelled-out `"when": null` on each of their ~42 elements
-     * would rewrite every file in the shipping set to say nothing.
+     * here: most elements have no condition, and a spelled-out `"when": null`
+     * on each of them would rewrite every file in the shipping set to say
+     * nothing.
      *
      * @return array<string,mixed>|null
      */
@@ -450,10 +448,11 @@ final class DefinitionCodec
             style:           $this->reportStyleFromArray((array)($report['style'] ?? [])),
 
             // Null for a receipt, not an empty Template. Building one anyway
-            // gave a saved receipt BOTH layouts — harmless to print, because
-            // the serial one wins, but it is the contradiction Definition's
-            // own docblock rules out, and anything asking "which kind of
-            // document is this?" by looking at $template got the wrong answer.
+            // would give a saved receipt BOTH layouts — harmless to print,
+            // because the serial one wins, but it is the contradiction
+            // Definition's own docblock rules out, and anything asking "which
+            // kind of document is this?" by looking at $template would get the
+            // wrong answer.
             template:    $type === Definition::FORM && !isset($form['serialLayout'])
                             ? new Template(array_map([$this, 'elementFromArray'],
                                 (array)($form['elements'] ?? [])))

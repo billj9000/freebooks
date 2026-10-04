@@ -21,16 +21,14 @@
  *
  * The format-aware loader, and it is deliberately the ONLY place that knows a
  * definition can be in two formats. Everything above it receives a Definition
- * and cannot tell which file it came from, which is what makes step 6 a
- * deletion rather than a refactor: when the migration has converted the tree,
- * the legacy branch here goes and nothing else changes.
+ * and cannot tell which file it came from.
  *
  * Detection is by CONTENT, not by filename or by a database column. The
  * alternatives were both considered and both are worse:
  *
- *   - a filename suffix means the migration has to rename 57 files atomically
- *     while the catalog's `pf_<id>` convention is wired into ImportReport(),
- *     the designer, the backup and the restore;
+ *   - a filename suffix would mean renaming every definition file atomically
+ *     while the catalog's `pf_<id>` convention is wired into the designer,
+ *     the backup and the restore;
  *   - a column on the catalog table means a row and a file that can disagree,
  *     and the disagreement is silent — a row saying "native" over legacy XML
  *     produces a parse error at print time rather than at migration time.
@@ -107,10 +105,9 @@ final class DefinitionLoader
         // Through Forms' own reader, which normalises the shapes a single-child
         // tag collapses to — one <tables> arrives as an object where two arrive
         // as an array — because every converter downstream assumes that has
-        // been done. It is a class rather than these twelve lines because the
-        // same twelve were also in get_report_details(), in the tool bootstrap
-        // and in one verifier, and because reading a PhreeForm definition
-        // outlives this branch: decision L keeps it as Import.
+        // been done. It is a class so that every reader of a PhreeForm
+        // definition — this branch, the tool bootstrap, and Import (decision
+        // L) — normalises it the same way.
         $report = LegacyReader::parse($contents);
         if ($report === null) {
             throw new DefinitionException("The definition 'pf_$id' is neither native nor PhreeForm XML.");
@@ -128,8 +125,7 @@ final class DefinitionLoader
      * Writes through a temporary file in the same directory and renames, so a
      * failed or interrupted write cannot leave a half-written definition where
      * a whole one was. rename() within a directory is atomic on every
-     * filesystem FreeBooks runs on, which matters most during the one bulk
-     * conversion this format exists for.
+     * filesystem FreeBooks runs on.
      */
     public function save(Definition $definition, string|int $id): void
     {

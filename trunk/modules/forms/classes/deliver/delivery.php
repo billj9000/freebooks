@@ -22,10 +22,8 @@
  * The last of the five layers: bytes in, somewhere out. It exists as its own
  * layer for one reason — the same `RenderedOutput` has to be able to go to a
  * browser download, an email attachment and a file on disk without any of those
- * paths knowing how the document was built or drawn. PhreeForm had no such
- * split: `BuildPDF()` chose the output method, set the headers and echoed the
- * body itself, so "the same report, but attached to an email" meant a second
- * code path through the whole engine.
+ * paths knowing how the document was built or drawn, so "the same report, but
+ * attached to an email" is not a second code path through the whole engine.
  *
  * Every deliverer takes what it needs as an argument — a header sink, a mailer,
  * a directory. None of them reads a global or touches the database. That is not
@@ -74,13 +72,11 @@ interface Delivery
 /**
  * Filename and header-value hygiene.
  *
- * Both matter more than they look. PhreeForm wrote
- * `header("Content-disposition: attachment; filename=" . $report->title . ".csv")`
- * — unquoted, unescaped, and taken from a user-editable report title. A title
- * containing a newline injects arbitrary response headers; one containing a
- * quote or a semicolon truncates the filename. A filename is also the one string
- * in this layer that reaches a filesystem path, so it is where traversal would
- * enter.
+ * Both matter more than they look. A filename taken from a user-editable title and
+ * written into a header unquoted and unescaped is an injection: a title containing
+ * a newline injects arbitrary response headers; one containing a quote or a
+ * semicolon truncates the filename. A filename is also the one string in this
+ * layer that reaches a filesystem path, so it is where traversal would enter.
  */
 final class Filename
 {
@@ -177,8 +173,7 @@ final class HttpDelivery implements Delivery
             // Refuse rather than warn. Output has already begun, so the headers
             // will not apply and the bytes would be appended to whatever page
             // was mid-render — a corrupt download that looks like a broken PDF
-            // rather than a broken caller. This is the failure mode that made a
-            // shipped form silently unprintable (§12.3.1).
+            // rather than a broken caller (§12.3.1).
             return DeliveryResult::failure(
                 'Output had already started, so the document was not sent.');
         }

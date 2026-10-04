@@ -19,17 +19,17 @@
 /**
  * The Forms document list, and the run path.
  *
- * This is the first place the five layers are driven by the application rather
- * than by docs/tools: catalog and definition in, Document out, renderer to
- * bytes, delivery to the browser. Each step is a separate call, which is what
- * makes "the same report as a PDF and as a CSV" one code path instead of two.
+ * The five layers, driven by the application: catalog and definition in,
+ * Document out, renderer to bytes, delivery to the browser. Each step is a
+ * separate call, which is what makes "the same report as a PDF and as a CSV"
+ * one code path instead of two.
  */
 
 $security_level = validate_user(SECURITY_ID_FORMS_RUN);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// No PhreeForm. Definitions are found through FORMS_DIR_DEFINITIONS, the labels
-// and the fonts through Forms' own language file, and the email tokens through
+// Definitions are found through FORMS_DIR_DEFINITIONS, the labels and the fonts
+// through Forms' own language file, and the email tokens through
 // forms_fill_tokens() — all of which the two requires here supply.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
@@ -53,10 +53,9 @@ $forms_custom->registerAll($catalog);
 foreach ($forms_custom->problems() as $problem) $messageStack->add($problem, 'caution');
 
 $runner  = new DocumentRunner($db, $catalog);
-// Definitions are read through the format-aware loader, never through
-// get_report_details(): once the report editor has saved one, it is a native
-// file and the legacy XML reader hands back a string. plan() then dies on
-// "must be of type object, string given", which is a whole page lost to one
+// Definitions are read through the format-aware loader, which reads either
+// format: a native file read as XML comes back as a string, and plan() would
+// die on "must be of type object, string given" - a whole page lost to one
 // edited report.
 $loader  = new DefinitionLoader($catalog);
 $forms_store = new DocumentStore($db, $catalog, $loader, TABLE_PHREEFORM);
@@ -110,8 +109,7 @@ switch ($_REQUEST['action'] ?? '') {
       break;
     }
     // Asked for rather than defaulted: reconciling whichever account happens to
-    // sort first is a plausible-looking wrong answer, and the legacy class's
-    // habit of taking it from filterlist[0] is exactly what the port removed.
+    // sort first is a plausible-looking wrong answer.
     if ($plan->needsGlAccount && ($_GET['gl_account'] ?? '') === '') {
       $messageStack->add(FORMS_ERROR_GL_REQUIRED, 'error');
       break;
@@ -129,7 +127,7 @@ switch ($_REQUEST['action'] ?? '') {
     }
 
     // A column the dataset could not serve is a report that prints one column
-    // fewer than its author drew. Silence there would be the PhreeForm habit.
+    // fewer than its author drew, so it is said rather than passed over.
     foreach ($runner->warnings() as $warning) {
       $messageStack->add(sprintf(FORMS_WARN_CONVERSION, $warning), 'caution');
     }
@@ -156,9 +154,9 @@ switch ($_REQUEST['action'] ?? '') {
     $output = $renderer->render($document);
 
     // Delivery is its own call, and its own layer: the SAME bytes go to a
-    // download, an email attachment or a file without the renderer knowing.
-    // Emailing a report is that sentence being true rather than aspirational —
-    // no second render path, and CSV attaches exactly as PDF does.
+    // download, an email attachment or a file without the renderer knowing. So
+    // emailing a report needs no second render path, and CSV attaches exactly
+    // as PDF does.
     if ($emailing) {
       $to_email = trim((string)$_POST['to_email']);
       $to_name  = trim((string)($_POST['to_name'] ?? '')) ?: $to_email;
@@ -206,14 +204,9 @@ switch ($_REQUEST['action'] ?? '') {
 }
 
 /***************   Prepare the list   *************************/
-// The catalog is PhreeForm's, deliberately: enabling Forms must not require a
-// migration, and a definition has to be runnable by both engines while the two
-// coexist.
 // REPORTS only. A form has no action on this page that works: it cannot be run
-// from here — it needs a record, which only the document that owns it knows, so
-// the Print button always landed on an explanation — and laying one out is what
-// Tools -> Form Layout is for. Listing forms here offered two buttons, one that
-// could not work and one that duplicated another page.
+// from here — it needs a record, which only the document that owns it knows —
+// and laying one out is what Tools -> Form Layout is for.
 // Both needed while the list is built: each row carries the answers its own
 // definition stores, so the run dialog can open already set to them. Required at
 // top level — phreedom/defaults.php sets $DateChoices as a plain variable, and
@@ -233,8 +226,7 @@ $result = $db->Execute("select id, doc_title, doc_group, doc_type from " . TABLE
 while (!$result->EOF) {
   // A definition Forms cannot serve is still LISTED, marked with the reason —
   // it is what the user is looking for when a document they expect is missing.
-  // Dropping the row instead would answer "we cannot run this" with silence,
-  // which is the PhreeForm habit the whole module exists to break.
+  // Dropping the row instead would answer "we cannot run this" with silence.
   try {
     $definition = $loader->load($result->fields['id']);
     $plan       = $runner->planDefinition($definition);
@@ -261,10 +253,10 @@ while (!$result->EOF) {
                   },
     // What the run dialog opens on. The date range is offered as "as the report
     // is set", which sends nothing and lets the runner fall back to the stored
-    // preference — the page used to preselect 'All' and send it on every run,
-    // so a report drawn as "this quarter" quietly ran over all time. The period
-    // has no such fallback for the structural providers, which cannot do
-    // anything with period 0, so the stored one is named outright.
+    // preference; preselecting a range would send it on every run and override
+    // the report's own. The period has no such fallback for the structural
+    // providers, which cannot do anything with period 0, so the stored one is
+    // named outright.
     // The stored preference is a CODE, and may carry operands — 'b:from:to' is
     // an explicit range — so it is the letter that names the choice.
     'dates_as_set' => $definition
@@ -275,15 +267,13 @@ while (!$result->EOF) {
   $result->MoveNext();
 }
 
-// Sorted by the name shown, not by the code sorted on. Ordering by doc_group put
-// Employees between General Ledger and Inventory, because the code is `hr` —
-// which is exactly the kind of "why is this here?" the codes caused.
+// Sorted by the name shown, not by the code: ordering by doc_group would put
+// Employees between General Ledger and Inventory, because its code is `hr`.
 usort($forms_documents, function ($a, $b) {
   return strcasecmp($a['folder'], $b['folder']) ?: strcasecmp($a['title'], $b['title']);
 });
 
-// The same preference letters a definition stores, so a report run here and one
-// run through PhreeForm resolve to the same range. The FIRST entry sends nothing
+// The same preference letters a definition stores. The FIRST entry sends nothing
 // at all, which is what makes "as the report is set" work: the runner falls back
 // to the definition's own preference whenever the parameter is empty, so leaving
 // the dialog alone runs the report as its author drew it. Its text is completed

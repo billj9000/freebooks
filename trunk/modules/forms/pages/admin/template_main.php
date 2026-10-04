@@ -24,10 +24,7 @@ $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
 if ($security_level > 2) $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
 else                     $toolbar->icon_list['save']['show']   = false;
-// 11.03, the settings topic. This pointed at 11.05 because that topic was
-// about the Print-buttons ENGINE SWITCH, which this page used to hold; the
-// switch went with PhreeForm and the Help button was left aimed at a page
-// about something else.
+// 11.03, the settings topic.
 $toolbar->add_help('11.03');
 echo $toolbar->build_toolbar();
 ?>
@@ -40,7 +37,8 @@ echo $toolbar->build_toolbar();
         <tr>
           <td style="white-space:nowrap"><?php echo FORMS_DEFAULT_PAPER_TEXT; ?></td>
           <?php // form-select is width:100% of its cell, so the cell needs a width
-                // of its own — 1% collapsed it to a stub with the arrow only. ?>
+                // of its own — 1% would collapse it to a stub with the arrow
+                // only. ?>
           <td style="width:14rem"><?php echo html_pull_down_menu('forms_default_paper', $forms_paper_choices, $forms_paper, 'class="form-select form-select-sm"'); ?></td>
           <td class="text-muted small"><?php echo FORMS_DEFAULT_PAPER_DESC; ?></td>
         </tr>
@@ -60,8 +58,7 @@ echo $toolbar->build_toolbar();
   </div>
 </div>
 
-<?php // Both actions came over from PhreeForm's tools tab when that module was
-      // deleted (§13.42). A card rather than a second tab: this page has one
+<?php // The two tools (§13.42), on a card rather than a second tab: this page has one
       // screen's worth of content, and a tab strip over two cards is furniture.
       //
       // Shown only to somebody who could actually use them: both branches call

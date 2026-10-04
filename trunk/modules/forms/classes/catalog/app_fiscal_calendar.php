@@ -69,10 +69,10 @@ final class AppFiscalCalendar implements FiscalCalendar
         $result  = $this->db->Execute("SELECT period, start_date, end_date FROM $table ORDER BY period");
         $periods = [];
         while (!$result->EOF) {
-            // A period with no dates is not a period. Legacy would hand the
-            // sentinel '0000-00-00' straight into a comparison, which MySQL
-            // accepts and then matches nothing; treating it as undefined lets
-            // the caller say so instead.
+            // A period with no dates is not a period. The sentinel
+            // '0000-00-00' in a comparison is accepted by MySQL and matches
+            // nothing, so it is treated as undefined, and the caller can say
+            // so.
             $start = (string)$result->fields['start_date'];
             $end   = (string)$result->fields['end_date'];
             if (!gen_date_is_empty($start) && !gen_date_is_empty($end)) {

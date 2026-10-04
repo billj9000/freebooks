@@ -17,32 +17,25 @@
 //  Path: /modules/forms/pages/canvas/pre_process.php
 //
 /**
- * The form canvas, read-only (design §13.7 step 3).
+ * The form canvas (design §13.7 steps 3 and 4).
  *
  * A form is positioned boxes on a page, so unlike a report it genuinely wants a
- * canvas (§13.1). This is the half of it that proves the approach before any
- * dragging is built: the REAL rendered PDF underneath, rasterized in the
- * browser, with the element outlines drawn on a transparent layer above it.
+ * canvas (§13.1): the REAL rendered PDF underneath, rasterized in the browser,
+ * with the element outlines drawn on a transparent layer above it, and drag,
+ * resize, snap, add, delete, z-order and an inspector on top.
  *
- * That is decision H, and the thing it settles is open risk 1 — that a box
- * drawn at 140 mm sits over the text rendered at 140 mm, across page sizes,
- * orientations and zoom levels. It is the cheapest point at which to abandon
- * approach C if the alignment does not hold, which is why it comes before
- * anything can be moved.
- *
- * Step 4 added the editing: drag, resize, snap, add, delete, z-order and an
- * inspector. What did not change is where the picture comes from — the boxes
- * are still drawn over the real rendered PDF, which is the whole reason the
- * positions can be trusted while they are being moved.
+ * That is decision H. Because the picture is the real render, a box drawn at
+ * 140 mm sits over the text rendered at 140 mm across page sizes, orientations
+ * and zoom levels, which is the whole reason the positions can be trusted while
+ * they are being moved.
  */
 
 $security_level = validate_user(SECURITY_ID_FORMS_AUTHOR);
 
 require(DIR_FS_WORKING . 'defaults.php');
-// No PhreeForm. Definitions and images are found through FORMS_DIR_DEFINITIONS
-// and the palette's faces through forms_font_names(), both of which the two
-// requires here supply — so the page that draws a form no longer bootstraps the
-// engine it replaces to do it.
+// Definitions and images are found through FORMS_DIR_DEFINITIONS and the
+// palette's faces through forms_font_names(), both supplied by the two requires
+// here.
 require_once(DIR_FS_WORKING . 'functions/forms.php');
 require_once(DIR_FS_MODULES . 'forms/classes/app/load.php');
 
@@ -98,10 +91,9 @@ if ($forms_canvas_definition !== null && !$forms_canvas_definition->isForm()) {
 // is the system's business to know, not something a user should have to work
 // out from a list before clicking.
 //
-// This is still the guard it replaces. The redirect happens before anything
-// reads the template, and the save branch below is gated on a definition being
-// loaded — so the canvas can no more write a receipt now than when it declined
-// to open one. The list beside it links receipts straight here, so this is
+// The redirect happens before anything reads the template, and the save branch
+// below is gated on a definition being loaded, so the canvas cannot write a
+// receipt. The list links receipts straight to their editor, so this is
 // reached by a bookmark or an old link rather than in normal use.
 if ($forms_canvas_definition !== null && $forms_canvas_definition->isSerial()) {
   gen_redirect(html_href_link(FILENAME_DEFAULT,
@@ -138,9 +130,9 @@ if ($forms_canvas_definition !== null) {
   //
   // Restricted to the kind of transaction this form prints (§13.54). The
   // document's GROUP is what says which — a provider-backed form carries no
-  // filters at all — and without it the list was every recent row of
+  // filters at all — and without it the list would be every recent row of
   // journal_main: receipts and sales orders offered while laying out an
-  // invoice, which is a list an author has to ignore rather than use.
+  // invoice, a list an author has to ignore rather than use.
   $forms_canvas_records = (new RecordSelector($db))->recent(
       $forms_canvas_plan->recordTable, $forms_canvas_plan->recordKey, 20,
       $forms_canvas_definition->group);
@@ -158,10 +150,8 @@ function forms_canvas_keep_original($path) {
   if (file_exists($kept) || !file_exists($path)) return;
   // Only a PhreeForm original. A definition that is ALREADY native has no
   // original to keep, and copying it here would put a native file under a name
-  // that says it is XML — which is what `test` holds fourteen of, written by
-  // this function before the guard. Nothing reads them (LegacyReader::original()
-  // returns null for one), but a file whose name lies about its contents is a
-  // trap laid for the next tool.
+  // that says it is XML: a file whose name lies about its contents is a trap
+  // laid for the next tool.
   $contents = (string)@file_get_contents($path);
   if (\FreeBooks\Forms\Definition\DefinitionLoader::isNative($contents)) return;
   @copy($path, $kept);
@@ -333,11 +323,10 @@ define('PAGE_TITLE', $forms_canvas_definition !== null
 // With nothing chosen, the forms this user could look at.
 $forms_canvas_choices = array();
 if ($forms_canvas_definition === null) {
-  // This is the forms catalogue, not merely a chooser: with Documents now
-  // listing reports alone, every form in the company is reached from here.
-  // Folder NAMES, not the doc_group codes it used to print — `cust:inv` is an
-  // internal key, and a list sorted by one looks unsorted to the person reading
-  // the other.
+  // This is the forms catalogue, not merely a chooser: Documents lists reports
+  // alone, so every form in the company is reached from here. Folder NAMES, not
+  // doc_group codes — `cust:inv` is an internal key, and a list sorted by one
+  // looks unsorted to the person reading the other.
   $forms_canvas_folders = forms_folder_titles($db);
   $result = $db->Execute("select id, doc_title, doc_group from " . TABLE_PHREEFORM . "
     where doc_type <> '0' and doc_ext = 'frm' order by doc_group, doc_title");

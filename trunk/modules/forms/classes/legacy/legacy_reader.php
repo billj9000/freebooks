@@ -20,22 +20,14 @@
  * Forms — reading a PhreeForm definition. See §13.33.
  *
  * The one place that turns PhreeForm XML into the object every converter in
- * this directory expects. It exists for two reasons, and the second is the one
- * that made it urgent.
+ * this directory expects. One copy of the normalisation, so every converter is
+ * handed the same shape — a mismatch is not an exception but a form that
+ * renders with one table instead of two.
  *
- * **It was written four times.** `get_report_details()`, `DefinitionLoader`,
- * `legacyOriginal()` in the tool bootstrap and `verify_forms_serial.php` each
- * carried their own copy of the same twelve lines. Four copies of a
- * normalisation is four chances for a converter to be handed a shape it does
- * not expect, and the failure is not an exception — it is a form that renders
- * with one table instead of two.
- *
- * **PhreeForm's copy is going.** `get_report_details()` lives in the module
- * step 6 deletes, and reading a PhreeForm definition does NOT stop being
- * necessary when it does: decision L keeps the converter as an **Import**
- * feature, for the definition that turns up on a USB stick two years from now,
- * and `.pre-forms` originals stay on disk as the record of what a migrated
- * document used to be. The reader has to outlive the engine.
+ * Reading a PhreeForm definition stays necessary without PhreeForm: decision L
+ * keeps the converter as an **Import** feature, for the definition that turns
+ * up on a USB stick years from now, and `.pre-forms` originals stay on disk as
+ * the record of what a migrated document was.
  *
  * ## What "normalise" means, and why nothing works without it
  *
@@ -47,12 +39,11 @@
  *
  * ## Why xml_to_object() is wrapped rather than replaced
  *
- * It is core — `includes/common_functions.php` — not PhreeForm's, so it does
- * not go away in step 6 and there is nothing to rescue. Copying ninety lines of
- * hand-rolled parser into this module to own it would add a second parser that
- * has to agree with the first about CDATA, self-closing tags and attributes,
- * and would be tested by nothing. What Forms needed to own is the SHAPE, which
- * is what this file is.
+ * It is core — `includes/common_functions.php` — so there is nothing to rescue.
+ * Copying ninety lines of hand-rolled parser into this module to own it would
+ * add a second parser that has to agree with the first about CDATA,
+ * self-closing tags and attributes, and would be tested by nothing. What Forms
+ * needs to own is the SHAPE, which is what this file is.
  */
 
 namespace FreeBooks\Forms\Legacy;
