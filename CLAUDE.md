@@ -110,6 +110,14 @@ catches marker words, and most history has none, so the re-read is the check tha
 This applies to FreeBooks' own shipped code (`trunk/`, `extensions/`). Third-party code keeps its
 upstream comments, and `docs/tools/` is out of scope.
 
+## Commit Messages
+
+No attribution lines: never add `Co-Authored-By:`, "Generated with …" or any similar credit to a
+commit message or PR body. Attribution is switched off in the Claude Code settings, and that only
+stops it being added automatically — a line typed into the message still lands in public history.
+A message ends with its body, and `Closes #N` when there is an issue. The local `commit-msg` git
+hook refuses such a line, but the hook is not in the repository, so a fresh clone has none.
+
 ## No Private Names in Anything Committed
 
 Everything in this repository is public. Git history is permanent — a name committed once stays
