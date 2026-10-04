@@ -66,6 +66,7 @@ the connection and import options.</p>
     <tr><td>Create invoice</td><td>Also create a Sales Invoice (journal 12) for each imported order</td></tr>
     <tr><td>Default sales rep</td><td>FreeBooks rep ID for imported orders; 0 = none</td></tr>
     <tr><td>Last imported order ID</td><td>Highest ZenCart order ID successfully imported; edit to re-import from a given point</td></tr>
+    <tr><td>Store time zone</td><td>The time zone the store records its orders in. Each downloaded order is dated by the company's own time zone, converted from this one, so an order placed just after midnight lands on the right day. Leave it as the company's unless the store runs in another zone. An order whose time cannot be read is skipped and reported, not imported under a guessed date.</td></tr>
     <tr><td>Payment module map</td><td>Maps ZenCart payment codes to FreeBooks modules and GL accounts (see Order Import below)</td></tr>
   </tbody>
 </table>

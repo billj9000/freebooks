@@ -146,13 +146,24 @@
 
           <tr class="zc-row">
             <td class="zc-label">
+              <strong>Store time zone</strong>
+              <span class="hint"><?php echo ZENCART_LBL_STORE_TIMEZONE; ?></span>
+            </td>
+            <td class="zc-field"><?php
+              $zones = array(array('id' => '', 'text' => ZENCART_TEXT_SAME_AS_COMPANY . ' (' . str_replace('_', ' ', date_default_timezone_get()) . ')'));
+              foreach (timezone_identifiers_list() as $zone) $zones[] = array('id' => $zone, 'text' => str_replace('_', ' ', $zone));
+              echo html_pull_down_menu('zencart_store_timezone', $zones, $_POST['zencart_store_timezone'] ?? (defined('ZENCART_STORE_TIMEZONE') ? ZENCART_STORE_TIMEZONE : ''), 'class="form-select form-select-sm"'); ?></td>
+          </tr>
+
+          <tr class="zc-row shaded">
+            <td class="zc-label">
               <strong>Payment module map</strong>
               <span class="hint"><?php echo ZENCART_LBL_PAYMENT_MAP; ?></span>
             </td>
             <td class="zc-field"><?php echo html_input_field('zencart_payment_map', isset($_POST['zencart_payment_map']) ? $_POST['zencart_payment_map'] : (defined('ZENCART_PAYMENT_MAP') ? ZENCART_PAYMENT_MAP : ''), 'class="form-control form-control-sm"'); ?></td>
           </tr>
 
-          <tr class="zc-row shaded">
+          <tr class="zc-row">
             <td class="zc-label">
               <strong>Shipping method map</strong>
               <span class="hint"><?php echo ZENCART_LBL_SHIPPING_MAP; ?></span>
@@ -162,7 +173,7 @@
 
           <tr class="table-secondary"><th colspan="2">Shipment Notifications</th></tr>
 
-          <tr class="zc-row">
+          <tr class="zc-row shaded">
             <td class="zc-label">
               <strong>Shipped status code</strong>
               <span class="hint"><?php echo ZENCART_SHIP_ID; ?></span>
@@ -170,7 +181,7 @@
             <td class="zc-field"><?php echo html_input_field('zencart_status_confirm_id', $_POST['zencart_status_confirm_id'] ? $_POST['zencart_status_confirm_id'] : ZENCART_STATUS_CONFIRM_ID, 'class="form-control-sm" size="10"'); ?></td>
           </tr>
 
-          <tr class="zc-row shaded">
+          <tr class="zc-row">
             <td class="zc-label">
               <strong>Partially shipped status code</strong>
               <span class="hint"><?php echo ZENCART_PARTIAL_ID; ?></span>
@@ -178,7 +189,7 @@
             <td class="zc-field"><?php echo html_input_field('zencart_status_partial_id', $_POST['zencart_status_partial_id'] ? $_POST['zencart_status_partial_id'] : ZENCART_STATUS_PARTIAL_ID, 'class="form-control-sm" size="10"'); ?></td>
           </tr>
 
-          <tr class="zc-row">
+          <tr class="zc-row shaded">
             <td class="zc-label">
               <strong>Send shipping notifications</strong>
               <span class="hint"><?php echo ZENCART_LBL_NOTIFY_SHIPMENTS; ?></span>
@@ -186,7 +197,7 @@
             <td class="zc-field"><?php echo html_pull_down_menu('zencart_notify_shipments', $sel_yes_no, $_POST['zencart_notify_shipments'] ? $_POST['zencart_notify_shipments'] : (defined('ZENCART_NOTIFY_SHIPMENTS') ? ZENCART_NOTIFY_SHIPMENTS : '0'), 'class="form-select form-select-sm w-auto"'); ?></td>
           </tr>
 
-          <tr class="zc-row shaded">
+          <tr class="zc-row">
             <td class="zc-label">
               <strong>Notification message</strong>
               <span class="hint"><?php echo ZENCART_LBL_NOTIFY_MESSAGE; ?></span>
@@ -194,7 +205,7 @@
             <td class="zc-field"><?php echo html_input_field('zencart_notify_message', isset($_POST['zencart_notify_message']) ? $_POST['zencart_notify_message'] : (defined('ZENCART_NOTIFY_MESSAGE') ? ZENCART_NOTIFY_MESSAGE : ZENCART_CONFIRM_MESSAGE), 'class="form-control-sm" size="60"'); ?></td>
           </tr>
 
-          <tr class="zc-row">
+          <tr class="zc-row shaded">
             <td class="zc-label">
               <strong>"Updated By" name</strong>
               <span class="hint"><?php echo ZENCART_LBL_UPDATED_BY; ?></span>
@@ -204,7 +215,7 @@
 
           <tr class="table-secondary"><th colspan="2">VAT Invoice Email</th></tr>
 
-          <tr class="zc-row shaded">
+          <tr class="zc-row">
             <td class="zc-label">
               <strong>Email VAT invoices</strong>
               <span class="hint"><?php echo ZENCART_LBL_VAT_INVOICE; ?></span>
@@ -212,7 +223,7 @@
             <td class="zc-field"><?php echo html_pull_down_menu('zencart_vat_invoice', $sel_yes_no, isset($_POST['zencart_vat_invoice']) ? $_POST['zencart_vat_invoice'] : (defined('ZENCART_VAT_INVOICE') ? ZENCART_VAT_INVOICE : '0'), 'class="form-select form-select-sm w-auto"'); ?></td>
           </tr>
 
-          <tr class="zc-row">
+          <tr class="zc-row shaded">
             <td class="zc-label">
               <strong>Invoice form</strong>
               <span class="hint"><?php echo ZENCART_LBL_VAT_INVOICE_FORM; ?></span>
@@ -220,7 +231,7 @@
             <td class="zc-field"><?php echo html_pull_down_menu('zencart_vat_invoice_form', zencart_pull_invoice_forms(), isset($_POST['zencart_vat_invoice_form']) ? $_POST['zencart_vat_invoice_form'] : (defined('ZENCART_VAT_INVOICE_FORM') ? ZENCART_VAT_INVOICE_FORM : ''), 'class="form-select form-select-sm w-auto"'); ?></td>
           </tr>
 
-          <tr class="zc-row shaded">
+          <tr class="zc-row">
             <td class="zc-label">
               <strong>Email subject</strong>
               <span class="hint"><?php echo ZENCART_LBL_VAT_INVOICE_SUBJECT; ?></span>
@@ -228,7 +239,7 @@
             <td class="zc-field"><?php echo html_input_field('zencart_vat_invoice_subject', isset($_POST['zencart_vat_invoice_subject']) ? $_POST['zencart_vat_invoice_subject'] : (defined('ZENCART_VAT_INVOICE_SUBJECT') ? ZENCART_VAT_INVOICE_SUBJECT : ''), 'class="form-control-sm" size="40"'); ?></td>
           </tr>
 
-          <tr class="zc-row">
+          <tr class="zc-row shaded">
             <td class="zc-label">
               <strong>Email message</strong>
               <span class="hint"><?php echo ZENCART_LBL_VAT_INVOICE_MESSAGE; ?></span>
@@ -236,7 +247,7 @@
             <td class="zc-field"><?php echo html_input_field('zencart_vat_invoice_message', isset($_POST['zencart_vat_invoice_message']) ? $_POST['zencart_vat_invoice_message'] : (defined('ZENCART_VAT_INVOICE_MESSAGE') ? ZENCART_VAT_INVOICE_MESSAGE : ''), 'class="form-control-sm" size="60"'); ?></td>
           </tr>
 
-          <tr class="zc-row shaded">
+          <tr class="zc-row">
             <td class="zc-label">
               <strong>BCC address</strong>
               <span class="hint"><?php echo ZENCART_LBL_VAT_INVOICE_BCC; ?></span>

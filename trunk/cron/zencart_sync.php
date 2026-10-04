@@ -562,7 +562,11 @@ foreach ($zc_orders as $zc) {
         $zc_conv_rate = 1.0;
     }
 
-    $post_date = date('Y-m-d', strtotime($zc['orderDate'] ?? 'now'));
+    $post_date = zc_order_date($zc['orderDate'] ?? '');
+    if ($post_date === '') {
+        fwrite(STDERR, ts() . " Order $zc_id: order time '" . ($zc['orderDate'] ?? '') . "' could not be read. Skipping.\n");
+        continue;
+    }
     $period    = gen_calculate_period($post_date, true);
     if (!$period) {
         fwrite(STDERR, ts() . " Order $zc_id: $post_date is outside accounting periods. Skipping.\n");
@@ -1030,6 +1034,22 @@ function zc_sync_stock(): void
     } else {
         fwrite(STDERR, ts() . " Stock sync failed" . ($sync_msgs ? ": $sync_msgs" : '') . "\n");
     }
+}
+
+// The store records an order's time in its own zone and sends it without one. Read it in the
+// store's zone (the company's unless set otherwise) and date the order by the company's day.
+// A time that cannot be read gives no date, so the order is skipped as outside every period
+// rather than imported under a guessed one.
+function zc_order_date(string $store_time): string
+{
+    $store_zone = (defined('ZENCART_STORE_TIMEZONE') && in_array(ZENCART_STORE_TIMEZONE, timezone_identifiers_list(), true))
+        ? ZENCART_STORE_TIMEZONE : date_default_timezone_get();
+    try {
+        $when = new DateTime($store_time !== '' ? $store_time : 'now', new DateTimeZone($store_zone));
+    } catch (Exception $e) {
+        return '';
+    }
+    return $when->setTimezone(new DateTimeZone(date_default_timezone_get()))->format('Y-m-d');
 }
 
 // Products whose details changed since the last push - an edit, or a bundle whose parts changed -

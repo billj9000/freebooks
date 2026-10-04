@@ -29,6 +29,8 @@ define('ZENCART_USE_PRICES','Do you want to use price sheets?');
 define('ZENCART_TEXT_PRICE_SHEET','ZenCart Price Sheet to use');
 define('ZENCART_SHIP_ID','ZenCart numeric status code for Shipped Orders');
 define('ZENCART_PARTIAL_ID','ZenCart numeric status code for Partially Shipped Orders');
+define('ZENCART_LBL_STORE_TIMEZONE','Time zone the ZenCart store records its orders in. Downloaded orders are dated by the company\'s own time zone, converted from this one. Leave it as the company\'s unless the store runs elsewhere.');
+define('ZENCART_TEXT_SAME_AS_COMPANY','Same as the company');
 define('ZENCART_LBL_NOTIFY_SHIPMENTS','Send shipping notifications to ZenCart in the daily cron (emails customers when their order is shipped, using the status codes above)');
 define('ZENCART_LBL_NOTIFY_MESSAGE','Shipping notification message — use {date}, {carrier}, {service}, {tracking} in any order');
 define('ZENCART_LBL_UPDATED_BY','Name shown in the ZenCart order status "Updated By" column');

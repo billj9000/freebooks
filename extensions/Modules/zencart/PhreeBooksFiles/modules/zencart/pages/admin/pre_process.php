@@ -36,6 +36,8 @@ switch ($_REQUEST['action']) {
 		$messageStack->add_session(ERROR_NO_PERMISSION,'error');
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL')); 
 	}
+	// Only empty (the company's zone) or a zone PHP knows; anything else would date orders wrongly.
+	if (!empty($_POST['zencart_store_timezone']) && !in_array($_POST['zencart_store_timezone'], timezone_identifiers_list(), true)) unset($_POST['zencart_store_timezone']);
 	// save general tab
 	foreach ($install->keys as $key => $default) {
 	  $field = strtolower($key);

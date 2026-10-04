@@ -64,6 +64,7 @@ class zencart_admin {
 	  'ZENCART_SHIPPING_MAP'          => '',
 	  'ZENCART_NON_SHIP_SKUS'         => '',
 	  'ZENCART_VAT_INVOICE'           => '0',
+	  'ZENCART_STORE_TIMEZONE'        => '', // empty: the store keeps the company's time zone
 	  'ZENCART_VAT_INVOICE_FORM'      => '',
 	  'ZENCART_VAT_INVOICE_SUBJECT'   => 'VAT Invoice {invoice}',
 	  'ZENCART_VAT_INVOICE_MESSAGE'   => 'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.',

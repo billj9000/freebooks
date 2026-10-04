@@ -171,12 +171,7 @@ class dhl_express {
     $toCity   = trim($pkg->ship_to_city_town ?? $pkg->ship_to_city ?? '');
     $isDomestic = ($fromISO2 === $toISO2);
 
-    $ts = strtotime($pkg->ship_date);
-    if (!$ts) $ts = time();
-    // Advance to tomorrow if noon UTC today has already passed
-    $noonUtc = gmmktime(12, 0, 0, (int)gmdate('n', $ts), (int)gmdate('j', $ts), (int)gmdate('Y', $ts));
-    if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
-    $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
+    $shipDate = $this->plannedShipTime($pkg->ship_date);
 
     $packages = $api_packages;
 
@@ -288,10 +283,7 @@ class dhl_express {
       ? gen_get_country_iso_2_from_3($sInfo->ship_country_code)
       : $sInfo->ship_country_code;
     $isDomestic  = ($fromISO2 === $toISO2);
-    $ts       = strtotime($sInfo->ship_date);
-    $noonUtc  = gmmktime(12, 0, 0, (int)gmdate('n', $ts), (int)gmdate('j', $ts), (int)gmdate('Y', $ts));
-    if ($noonUtc <= time()) $ts = strtotime('+1 day', $ts);
-    $shipDate = gmdate('Y-m-d', $ts) . 'T12:00:00GMT+00:00';
+    $shipDate = $this->plannedShipTime($sInfo->ship_date);
     // item values and total_amount are stored in base (home) currency; convert to invoice currency
     $fx = max(1e-9, (float)($sInfo->currencies_value ?? 1));
     if (!empty($sInfo->line_items)) {
@@ -601,6 +593,16 @@ class dhl_express {
       return false;
     }
     return true;
+  }
+
+  // DHL's plannedShippingDateAndTime: noon on the ship date in the company's time zone, with
+  // that zone's offset - or noon tomorrow once today's has passed, since DHL refuses a time
+  // in the past. Built from the date's own parts so a daylight-saving change cannot move it.
+  private function plannedShipTime($ship_date) {
+    $ts   = strtotime((string)$ship_date) ?: time();
+    $noon = mktime(12, 0, 0, (int)date('n', $ts), (int)date('j', $ts), (int)date('Y', $ts));
+    if ($noon <= time()) $noon = mktime(12, 0, 0, (int)date('n', $noon), (int)date('j', $noon) + 1, (int)date('Y', $noon));
+    return date('Y-m-d', $noon) . 'T12:00:00GMT' . date('P', $noon);
   }
 
   private function toKg($value, $unit) {
