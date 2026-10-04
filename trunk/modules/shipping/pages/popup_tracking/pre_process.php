@@ -106,8 +106,8 @@ if ($sID) {
   $label_file_path   = SHIPPING_DEFAULT_LABEL_DIR . $cInfo->carrier . '/' . str_replace('-', '/', $ship_date_only) . '/';
   if (!empty(glob($label_file_path . $cInfo->tracking_id . '*.pdf'))) {
     // Paperless Trade commercial invoice (DHL) is saved alongside the label as
-    // "{tracking}-invoice.pdf" but was never a shipping_log row of its own, so it
-    // has to be picked back up from disk when re-opening a previously booked shipment.
+    // "{tracking}-invoice.pdf" but is not a shipping_log row of its own, so it has
+    // to be picked back up from disk when re-opening a shipment already booked.
     $label_ids = array($cInfo->tracking_id);
     if (is_file($label_file_path . $cInfo->tracking_id . '-invoice.pdf')) {
       $label_ids[] = $cInfo->tracking_id . '-invoice';

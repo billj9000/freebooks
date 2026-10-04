@@ -470,8 +470,8 @@ var $PackageMap = array( // for rate estimates, assume this set of options
 		  'book_cost'     => $book_cost,
 		  'net_cost'      => $net_cost,
 //		  'zone'          => '',
-		  // label_mgr reads this key on every label; commented out it was an
-		  // undefined index, and the '' it evaluated to reached a DATETIME.
+		  // label_mgr reads this key on every label, so it is always set: an
+		  // empty value would reach a DATETIME.
 		  'delivery_date' => $del_date,
 //		  'dim_weight'    => '',
 //		  'billed_weight' => '',

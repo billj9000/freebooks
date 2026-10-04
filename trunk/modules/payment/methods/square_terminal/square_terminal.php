@@ -278,7 +278,7 @@ class square_terminal extends payment {
       . '  document.getElementById("square_terminal_field_0").value = "";' . "\n"
       . '  document.getElementById("sq_term_status").innerText = sqTermStatusSending;' . "\n"
       // The total on screen is in the ENTRY's currency, so the terminal has to be
-      // told which one - it was charging every amount as the company's (#63).
+      // told which one, or it would charge the amount as the company's (#63).
       . '  var curEl = document.getElementById("currencies_code");' . "\n"
       . '  var cur = curEl ? curEl.value : "";' . "\n"
       . '  fetch("index.php?module=phreebooks&page=ajax&op=sq_term_create&"+new URLSearchParams({amount:raw,payment_type:ptype,currency:cur})).then(function(r){return r.json();}).then(function(r) {' . "\n"

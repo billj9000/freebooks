@@ -22,8 +22,8 @@ require_once(DIR_FS_MODULES . 'payment/classes/payment.php');
 class paypal extends payment {
   // Safe on a foreign-currency entry (issue #63). Both outbound paths - the
   // payment link and the PayPal invoice - are told which currency to name, and
-  // refund() has always honoured the one it is handed. The other five gateways
-  // shipped here still assume the company's, so they keep the base default.
+  // refund() honours the one it is handed. The card gateways shipped here assume
+  // the company's, so they keep the base default.
   public $multi_currency = true;
   public $code        = 'paypal';
   public $title       = MODULE_PAYMENT_PAYPAL_TEXT_TITLE;
@@ -330,11 +330,10 @@ class paypal extends payment {
     }
     if (!empty($customer['email'])) $billing_info['email_address'] = $customer['email'];
 
-    // The currency the CALLER settles in. It used to be the company's, always,
-    // which put a pound code on an invoice whose line items were dollars - and
-    // PayPal takes the code at its word (issue #63). The old value is the
-    // fallback rather than the rule, so a caller that has nothing to say about
-    // currency behaves exactly as it did.
+    // The currency the CALLER settles in, falling back to the company's for a
+    // caller that has nothing to say about currency. PayPal takes the code at its
+    // word, so a pound code on an invoice whose line items are dollars would bill
+    // in pounds (issue #63).
     if ($currency === null) $currency = defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'USD';
     $detail = [
       'currency_code' => $currency,

@@ -261,7 +261,7 @@ class payment {
 
   // The table is created from the payment module's own declaration, the one
   // the installer and the migration use, so there is a single definition of it.
-  // A table made before external_ref existed gets it here, once.
+  // A table without external_ref gets it here, once.
   function ensure_requests_table() {
     global $db;
     static $checked = false;
@@ -288,7 +288,7 @@ class payment {
   //
   // The unit price is what the line charged, divided by its quantity - not
   // full_price, which is the list price: a price sheet or a price changed on the
-  // invoice leaves it behind, and lines priced from it did not add up to the
+  // invoice leaves it behind, and lines priced from it would not add up to the
   // invoice. Where the charge does not divide into a whole-cent unit price (3
   // for 10.00), the line is one unit at its whole amount, its quantity named,
   // so that every line is exactly what the invoice charged.
