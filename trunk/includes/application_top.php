@@ -43,8 +43,8 @@ if (file_exists(DIR_FS_ADMIN . 'vendor/autoload.php')) require_once(DIR_FS_ADMIN
 // set the type of request (secure or not). Behind a reverse proxy that
 // terminates TLS itself (Fly, Traefik, nginx, most CDNs/load balancers), the
 // app never sees $_SERVER['HTTPS'] — the original protocol is signaled via
-// the standard X-Forwarded-Proto header instead, which the legacy checks
-// below never looked at, causing an infinite HTTP<->HTTPS redirect loop.
+// the standard X-Forwarded-Proto header instead. The checks below read it too:
+// without it every request is redirected between HTTP and HTTPS forever.
 $request_type = (
   (isset($_SERVER['HTTPS']) && (strtolower($_SERVER['HTTPS']) == 'on' || $_SERVER['HTTPS'] == '1')) ||
   strstr(strtoupper($_SERVER['HTTP_X_FORWARDED_BY'] ?? ''), 'SSL') ||
@@ -102,7 +102,7 @@ gen_pull_language($module);
 // menu_bs.php from, and the colour names one a stylesheet is linked from. Both
 // arrive from the user's own profile form, so both are checked against what is
 // installed rather than trusted, and fall back to the default. Checked here as
-// well as on save, because a row saved before this existed is still read.
+// well as on save, because a row saved by an earlier release is still read.
 $_theme = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_SESSION['admin_prefs']['theme'] ?? ''));
 if ($_theme === '' || !is_dir(DIR_FS_THEMES . $_theme)) $_theme = DEFAULT_THEME;
 define('DIR_WS_THEMES', 'themes/' . $_theme . '/');

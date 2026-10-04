@@ -188,9 +188,8 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		// the known sizes rather than trusted: the value is written to
 		// FORMS_DEFAULT_PAPER and from there into every seeded definition.
 		//
-		// The NAME alone now — "A4", not "A4:210:297". PhreeForm keyed its list
-		// by name and dimensions because its designer carried them along; a
-		// native definition stores the name and TCPDF looks the rest up.
+		// The NAME alone — "A4", not "A4:210:297": a definition stores the name
+		// and TCPDF looks the rest up.
 		$paper_size      = db_prepare_input($_POST['papersize'] ?? '');
 		$known           = function_exists('forms_paper_sizes') ? forms_paper_sizes() : array();
 		if (!isset($known[$paper_size])) $paper_size = 'A4';
@@ -321,7 +320,7 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  				// happens here, so writing the choice afterwards would update
 	  				// the row and leave the constant holding the shipped default —
 	  				// and the documents are seeded from the constant further down.
-	  				// The failure would be silent: every document simply Letter.
+	  				// The failure would be silent: every document would print on Letter.
 	  				if ($entry == 'forms') $install_mod->keys['FORMS_DEFAULT_PAPER'] = $paper_size;
 	  				if ($entry == 'phreedom') $install_mod->keys['TIMEZONE'] = $timezone;
 	  				// Same reasoning, and the same one moment, for the chart's own
@@ -356,8 +355,8 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 			    		write_configure('MODULE_' . strtoupper($entry) . '_STATUS', constant('MODULE_' . strtoupper($entry) . '_VERSION'));
 			    		// Load the remaining configuration constants
 			    		foreach ($install_mod->keys as $key => $value) write_configure($key, $value);
-			    		// Both are optional on an install class; calling one a module
-			    		// does not define fataled the install (see 'labels').
+			    		// Both are optional on an install class, so each is called only
+			    		// where the module defines it.
 			    		if ($company_demo && method_exists($install_mod, 'load_demo')) {
 			    		  if ($install_mod->load_demo()) $error = true;
 			    		}
@@ -420,20 +419,6 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		  		// install reports now that categories are set up
 		  		if ($entry <> '.' && $entry <> '..' ) admin_add_reports($entry, DIR_FS_MY_FILES . $_SESSION['company'] . '/phreeform/', $paper_size);
 		  	}
-			// A FRESH install seeds native definitions (design §13.5), and
-			// PhreeForm cannot read one — its own loader refuses the format by
-			// design. So a new company whose Print buttons still pointed at
-			// PhreeForm would have a Print button that errors on every
-			// document it has. The key ships OFF so that INSTALLING Forms on an
-			// existing company changes nothing; a new company has nothing to
-			// preserve and everything to lose by leaving it off.
-			//
-			// No new mechanism: it is the same per-company switch the settings
-			// page offers, set differently at the one moment the difference is
-			// knowable.
-			// MODULE_FORMS_PRINT_BUTTONS used to be written here, to point a new
-			// installation's Print buttons at Forms rather than PhreeForm. There
-			// is only one engine now, so there is nothing to point.
 		}
 		if (!$error) { // input admin username record, clear the tables first
 			if (DEBUG) $messageStack->debug("\n  installing users");

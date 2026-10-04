@@ -52,7 +52,6 @@ $https_domain = gen_get_top_level_domain(HTTPS_SERVER);
 $current_domain = (($request_type == 'NONSSL') ? $http_domain : $https_domain);
 
 // set the session cookie parameters — match includes/application_top.php's hardened flags
-// (this file previously used the old 4-arg form with no httponly/secure/samesite)
 session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'domain' => (gen_not_null($current_domain) ? $current_domain : ''), 'httponly' => true, 'samesite' => 'Lax', 'secure' => ENABLE_SSL_ADMIN === 'true']);
 session_start();
 

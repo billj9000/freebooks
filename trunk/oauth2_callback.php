@@ -100,8 +100,8 @@ if (!$client_id || !$client_secret) {
 // X-Forwarded-Proto: Fly (and most reverse proxies) terminate TLS at the edge and forward
 // internally over plain HTTP, so $_SERVER['HTTPS'] alone is unset even though the browser's
 // original request — and the redirect_uri the JS sent to the provider using
-// window.location.protocol — was https. Missing this produced an http:// mismatch against
-// the https:// registered with the provider (AADSTS500112 on Microsoft).
+// window.location.protocol — was https. Without it the redirect_uri is http:// and does not
+// match the https:// one registered with the provider (Microsoft reports AADSTS500112).
 $is_https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
   || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
 $redirect_uri = ($is_https ? 'https' : 'http')

@@ -36,8 +36,8 @@
   /**
    * Set PHP's time zone for this request: the company's TIMEZONE setting once its
    * configuration is loaded, else the installation's DEFAULT_TIMEZONE from configure.php
-   * (pages before login), else Europe/London - what every installation used before the
-   * setting existed. Call it wherever a process starts, and again after the company's
+   * (pages before login), else Europe/London, so an installation without either stays on
+   * UK time. Call it wherever a process starts, and again after the company's
    * configuration loads. Returns the zone applied.
    */
   function gen_apply_timezone() {
@@ -533,12 +533,8 @@
    * exactly (modules/forms/pages/print/) — so this is one place rather than
    * nine that would drift apart.
    *
-   * It used to CHOOSE, between Forms and PhreeForm, on MODULE_FORMS_PRINT_BUTTONS
-   * and on whether the person clicking held SECURITY_ID_FORMS_RUN. Both were
-   * scaffolding for running the two engines side by side, and both go with the
-   * engine that is no longer there. A user without the key now reaches the
-   * Forms print page and is refused by it, which is what should happen: the
-   * alternative was a silent fallback to an engine nobody can see any more.
+   * It does not check SECURITY_ID_FORMS_RUN: a user without it reaches the Forms
+   * print page and is refused there, rather than sent anywhere else.
    *
    * $xmin comes last in the query string on purpose: most callers are inside a
    * window.open() and append the id in JavaScript, so they pass '' and
@@ -1035,16 +1031,15 @@ function gen_db_date($raw_date = '', $separator = '/') {
 // Section 2. Database Functions
 /**************************************************************************************************************/
   /**
-   * TRIAL DIAGNOSTIC, 2026-08-22. An empty string handed to a column that is not
-   * a string: report it, and write what the column means by empty instead.
+   * An empty string handed to a column that is not a string: report it, and write
+   * what the column means by empty instead.
    *
    * db_perform() quotes every value, so a form field left blank arrives at a
    * DATE or a DOUBLE as ''. A server with sql_mode empty coerced that silently -
    * which is what FreeBooks has always relied on - while a server at its
    * defaults refuses the whole statement and the save fails with nothing
-   * written. The local database was switched to strict to find these; static
-   * analysis flagged 89 candidates but cannot tell which can really be empty at
-   * runtime, so the answer is collected from real use instead.
+   * written. Reading the code cannot tell which fields can really arrive empty,
+   * so the answer is collected from real use.
    *
    * LOGGING IS ALWAYS ON. COERCING IS OPT-IN, via FB_EMPTY_COLUMN_COERCE=1, and
    * off by default so that the safe behaviour is the one you get by forgetting.
@@ -1102,7 +1097,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
       // one refuses the whole write - an order whose address line is a character
       // too long would not be saved at all. Cut here, as the lax server does, and
       // log it, so the column can be widened. Always, not only when coercing:
-      // on a lax server the result is the same as before.
+      // on a lax server the result is what the server would have written itself.
       if (is_string($value) && in_array($info['data_type'], array('varchar', 'char'), true)
           && ($width = (int)$info['character_maximum_length']) > 0 && mb_strlen($value, 'UTF-8') > $width) {
         $data[$column] = mb_substr($value, 0, $width, 'UTF-8');
@@ -1169,8 +1164,8 @@ function gen_db_date($raw_date = '', $separator = '/') {
    * The three shapes of blank that reach a column as the empty string.
    *
    * db_input() is addslashes((string)($x ?? '')), so a PHP null and a false both
-   * arrive as '' with nothing in the array to show for it. Checking only for ''
-   * meant every one of those went unseen - no log line, and no coercion either.
+   * arrive as '' with nothing in the array to show for it. All three are checked
+   * for, so each is logged and coerced alike.
    */
   function db_value_is_blank($value) {
     return $value === '' || $value === null || $value === false;
@@ -1706,10 +1701,6 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return '<li class="nav-item"><a class="' . $cls . '" data-bs-toggle="tab" href="#' . $name . '">' . $text . '</a></li>' . chr(10);
   }
 
-  // build_dir_html() and build_dir_tree() were here: a collapsible document tree
-  // with exactly one caller, PhreeForm's report list, and the only thing in core
-  // that read PF_DEFAULT_TRIM_LENGTH. Both went with it. Forms' document list
-  // folds by heading in its own page (§13.22) rather than through a core helper.
 
   function strtolower_utf8($string){
     $convert_from = array(
@@ -1924,7 +1915,7 @@ function validate_ajax_user($token = 0) {
 	}
 	// Validate by file extension only — the browser-supplied 'type' (Content-Type) is
 	// attacker-controlled and trivially spoofed, so it must never be able to bypass the
-	// extension allowlist (it previously did, via the $textfile OR-bypass below).
+	// extension allowlist.
 	$ext = strtolower(pathinfo($_FILES[$filename]['name'], PATHINFO_EXTENSION));
 	if (!is_array($extension)) $extension = array($extension);
 	if (in_array($ext, $extension)) {
@@ -2061,8 +2052,8 @@ function validate_ajax_user($token = 0) {
       // PHPMailer falls back to basename($path), which is wrong whenever the
       // file was staged under a generated name — Forms stages each attachment
       // uniquely so two people emailing the same invoice cannot overwrite each
-      // other, and the result arrived as "Invoice-fdaec59de5bc-pdf" with no
-      // extension. Callers passing only 'file' are unaffected.
+      // other, and the recipient would see that name, with no extension.
+      // Callers passing only 'file' are unaffected.
       // Accepts either a single ['file'=>.., 'name'=>..] shape (existing callers) or a list of
       // such arrays, so one call can attach multiple files to the same email.
       if (gen_not_null($attachments_list)) {
@@ -2465,9 +2456,9 @@ function PhreebooksExceptionHandler($exception) {
 	global $messageStack;
     // Log before branching. An uncaught exception always terminates the
     // request, so it must be recorded on every path -- including AJAX, which
-    // exits below and previously produced no log entry at all. Logging is also
-    // unconditional rather than gated on DEBUG, which defaults to '0' and so
-    // left these failures with no trace in production. Both points match
+    // exits below. Logging is also unconditional rather than gated on DEBUG,
+    // which defaults to '0': a failure in production must leave a trace. Both
+    // points match
     // PhreebooksErrorHandler, which logs every error level before it branches.
   	$text  = date('Y-m-d H:i:s') . " User: " . ($_SESSION['admin_id'] ?? '') . " Company: " . ($_SESSION['company'] ?? '');
     $text .= " Exception: '" . $exception->getMessage() . "' line " . $exception->getLine() . " in file " . $exception->getFile();

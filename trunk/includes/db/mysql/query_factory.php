@@ -227,10 +227,8 @@ HTML;
      * Execute a statement with bound parameters.
      *
      * Additive counterpart to Execute(), which takes only a finished SQL string
-     * and so leaves callers to interpolate their own values — the shape behind
-     * the injection defects fixed across popup_gen, gen_db_date() and
-     * gen_build_sql_date(). The connection has always been PDO; this exposes
-     * what it could already do.
+     * and so leaves callers to interpolate their own values. Values passed here
+     * are bound as parameters by PDO, not written into the SQL by the caller.
      *
      * Returns the same queryFactoryResult cursor as Execute(), so callers use
      * MoveNext()/EOF()/fields identically. Deliberately not cached: the cache is

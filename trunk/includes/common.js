@@ -404,8 +404,8 @@ function buildIcon(imagePath, alt, params) {
 // gives up the moment the person touches the form, so a late-arriving response
 // can never be mistaken for the state they started from.
 //
-// With no snapshot at all fbDocModified() answers true. Every caller then does
-// what it did before this existed - saving something unchanged is wasteful, but
+// With no snapshot at all fbDocModified() answers true, and every caller saves as
+// though the document changed - saving something unchanged is wasteful, but
 // treating an edit as unchanged would throw the edit away.
 //
 var fb_doc_form     = null;  // the form being watched, once fbDocInit has run
@@ -426,8 +426,8 @@ function fbDocInit(form_name) {
   // answer back later without an event of any kind.
   //
   // The cost of counting a click too eagerly is only that no snapshot is taken,
-  // which reads as changed and behaves as this page did before any of this
-  // existed. The cost of counting one too late is an edit treated as no edit. So
+  // which reads as changed, so the document is saved as usual. The cost of
+  // counting one too late is an edit treated as no edit. So
   // this errs early, every time, and never asks whether a snapshot exists yet.
   var touched = function() { fb_doc_touched = true; fbDocSyncIcons(); };
   fb_doc_form.addEventListener('input',  touched, true);
