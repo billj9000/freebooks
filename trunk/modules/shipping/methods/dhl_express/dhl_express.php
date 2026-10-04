@@ -341,16 +341,24 @@ class dhl_express {
       $receiverRegNums[] = array('typeCode' => 'VAT', 'number' => $shipVat, 'issuerCountryCode' => $toISO2);
     }
 
+    // Delivery Duty Paid: DHL bills the destination's duties and taxes to our account rather
+    // than collecting them from the recipient. That takes all three: the DDP incoterm, the
+    // "Duties & Taxes Paid" service (DD) and a duties-taxes account.
+    $shipperAccount = ($companyISO2 !== '' && $fromISO2 === $companyISO2)
+      ? $accountExport
+      : ($accountImport ?: $accountExport);
+    $isDDP    = !$isDomestic && ($sInfo->delivery_term ?? '') === 'DDP';
+    $accounts = array(array('typeCode' => 'shipper', 'number' => $shipperAccount));
+    if ($isDDP) $accounts[] = array('typeCode' => 'duties-taxes', 'number' => $shipperAccount);
+    $services = array();
+    if (!$isDomestic) $services[] = array('serviceCode' => 'WY');
+    if ($isDDP)       $services[] = array('serviceCode' => 'DD');
+
     $body = array(
       'plannedShippingDateAndTime' => $shipDate,
       'pickup'      => array('isRequested' => false),
       'productCode' => $productCode,
-      'accounts'    => array(array(
-        'typeCode' => 'shipper',
-        'number'   => ($companyISO2 !== '' && $fromISO2 === $companyISO2)
-          ? $accountExport
-          : ($accountImport ?: $accountExport),
-      )),
+      'accounts'    => $accounts,
       'customerDetails' => array(
         'shipperDetails' => array(
           'postalAddress' => array(
@@ -384,7 +392,7 @@ class dhl_express {
         'declaredValue'        => $declaredValue,
         'declaredValueCurrency'=> $sInfo->currencies_code ?: 'GBP',
         'unitOfMeasurement'    => 'metric',
-        'incoterm'             => 'DAP',
+        'incoterm'             => $isDDP ? 'DDP' : 'DAP',
       ),
       'outputImageProperties' => array(
         'printerDPI'     => 300,
@@ -401,9 +409,9 @@ class dhl_express {
       'customerReferences' => array(
         array('value' => $sInfo->purchase_invoice_id, 'typeCode' => 'CU'),
       ),
-    // Paperless Trade: required on international shipments so DHL auto-generates and
+    // Paperless Trade (WY): required on international shipments so DHL auto-generates and
     // electronically uploads the commercial invoice for customs clearance (Issue #59).
-    ) + (!$isDomestic ? array('valueAddedServices' => array(array('serviceCode' => 'WY'))) : array());
+    ) + ($services ? array('valueAddedServices' => $services) : array());
 
     if (!$isDomestic) {
       $currency     = $sInfo->currencies_code ?: (defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : 'GBP');

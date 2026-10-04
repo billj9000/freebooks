@@ -30,6 +30,7 @@ define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NOKEY',  'Royal Mail: Click & Drop API 
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_CANCEL', 'Royal Mail: Click & Drop did not cancel order %s (%s). The shipment is kept here; cancel it in Click & Drop if it should not go.');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_ORDER', 'Royal Mail: this shipment has no Click & Drop order number saved, so it cannot be cancelled from here. Cancel it in Click & Drop.');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_BAD_FORMAT', 'Royal Mail: Package format \'%s\' is not valid for service \'%s\'. Valid formats: %s.');
+define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_DUTY', 'Royal Mail: the prepaid duty must be an amount from 0 to 99,999.99.');
 // Label form — customs section
 define('RM_CUSTOMS_SECTION',           'Customs / Export Information');
 define('RM_TEXT_DECLARATION_CATEGORY', 'Declaration Category');
@@ -37,6 +38,11 @@ define('RM_TEXT_DECLARED_VALUE',       'Declared Value');
 define('RM_TEXT_HS_CODE',              'HS / Commodity Code');
 define('RM_TEXT_ORIGIN_COUNTRY',       'Country of Origin');
 define('RM_TEXT_RETURNS_LABEL',        'Include Returns Label');
+define('RM_TEXT_DELIVERY_TERMS',       'Delivery Terms');
+define('RM_TERMS_DDU',                 'Duty unpaid (DDU/DAP) - the recipient pays');
+define('RM_TERMS_DDP',                 'Duty paid (DDP) - we pay');
+define('RM_TEXT_DUTY_PAID',            'Prepaid Duty');
+define('RM_TEXT_RECIPIENT_BUSINESS',   'Recipient is a business');
 // Label form — line items table
 define('RM_LINE_ITEMS_HEADER',   'Shipment Contents (Customs Declaration)');
 define('RM_TEXT_UNIT_WEIGHT',    'Unit Weight');

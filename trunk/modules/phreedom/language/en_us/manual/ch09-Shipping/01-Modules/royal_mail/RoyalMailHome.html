@@ -90,6 +90,13 @@ and contact support to update the module's service map.</p>
 <p>Recipient EORI and VAT numbers can be entered per-shipment on the label form. They are
 pre-filled from the customer contact record if available.</p>
 
+<h4>Northern Ireland</h4>
+<p>A parcel from Great Britain to a Northern Ireland (BT) postcode uses the UK domestic services,
+but under the Windsor Framework Click &amp; Drop needs the shipment contents and whether the
+recipient is a business before it will print the label. FreeBooks recognises a GB address with a
+BT postcode and sends both. For a business recipient and goods over &pound;135, Click &amp; Drop
+also needs a UKIMS number, the sender's or the recipient's; FreeBooks does not send one.</p>
+
 <h4>Getting a Rate Quote</h4>
 <ol>
   <li>Open a sales invoice or order.</li>
@@ -118,9 +125,18 @@ pre-filled from the customer contact record if available.</p>
       <li><strong>Include Returns Label</strong> &mdash; tick to request a returns label be
           included in the same PDF alongside the outbound label.</li>
       <li><strong>Customs / Export Information</strong> &mdash; shown automatically for
-          international destinations. Select the declaration category and verify the line-item
+          international destinations and for Northern Ireland. Select the declaration category and verify the line-item
           table showing SKU, description, HS code, country of origin, quantity, weight, and
           unit value. Edit fields directly in the table as required.</li>
+      <li><strong>Delivery Terms</strong> &mdash; international shipments only. <em>Duty unpaid
+          (DDU/DAP)</em>, the default, leaves the recipient to pay any import duty and taxes.
+          <em>Duty paid (DDP)</em> means you have already collected them; enter the amount in
+          <strong>Prepaid Duty</strong>, in the order's currency, and Click &amp; Drop prints it on
+          the customs form. A DDP shipment must use a Click &amp; Drop service that offers DDP to
+          that country.</li>
+      <li><strong>Recipient is a business</strong> &mdash; Northern Ireland only. Tick it when the
+          parcel goes to a business. It is ticked to start with when the customer record has a VAT
+          or EORI number.</li>
     </ul>
   </li>
   <li>Click <strong>Print Label</strong>. FreeBooks submits the order to Click &amp; Drop and

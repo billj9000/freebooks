@@ -74,17 +74,33 @@ function filterFormatOptions() {
   }
 }
 
+// Keep in sync with royal_mail::isNorthernIreland() in royal_mail.php.
+function isNorthernIreland(fromCC, toCC) {
+  var fp = document.getElementById('sender_postal_code');
+  var tp = document.getElementById('ship_postal_code');
+  var isBT = function(el) { return !!el && /^\s*BT/i.test(el.value); };
+  var isGB = function(cc) { return cc === 'GBR' || cc === 'GB'; };
+  return isGB(fromCC) && isGB(toCC) && isBT(tp) && !isBT(fp);
+}
+
+// The customs cards show for an international shipment and for one to Northern Ireland;
+// delivery terms only for international, the business box only for Northern Ireland.
 function toggleCustoms() {
   var sc = document.getElementById('sender_country_code');
   var rc = document.getElementById('ship_country_code');
   var fromCC = sc ? sc.value : '';
   var toCC   = rc ? rc.value : '';
   var isDomestic = (fromCC !== '' && toCC !== '' && fromCC === toCC);
-  var display = isDomestic ? 'none' : '';
-  var sec = document.getElementById('customs_section');
-  if (sec) sec.style.display = display;
-  var li = document.getElementById('line_items_section');
-  if (li) li.style.display = display;
+  var isNI       = isDomestic && isNorthernIreland(fromCC, toCC);
+  var show = function(id, on) { var el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+  show('customs_section',        !isDomestic || isNI);
+  show('line_items_section',     !isDomestic || isNI);
+  show('row_delivery_terms',     !isDomestic);
+  show('row_recipient_business', isNI);
+  var term = document.getElementById('delivery_term');
+  var ddp  = !!term && term.value === 'DDP';
+  show('label_duty', ddp);
+  show('input_duty', ddp);
 }
 
 function swapShipAddresses() {

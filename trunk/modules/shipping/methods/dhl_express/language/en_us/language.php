@@ -39,6 +39,9 @@ define('DHL_TEXT_DECLARED_VALUE', 'Declared Value');
 define('DHL_TEXT_HS_CODE',        'HS / Commodity Code');
 define('DHL_TEXT_ORIGIN_COUNTRY', 'Country of Origin');
 define('DHL_TEXT_EXPORT_REASON',  'Reason for Export');
+define('DHL_TEXT_DELIVERY_TERMS', 'Delivery Terms');
+define('DHL_TERMS_DAP',           'Duty unpaid (DAP) - the recipient pays');
+define('DHL_TERMS_DDP',           'Duty paid (DDP) - billed to our DHL account');
 define('DHL_TEXT_IS_CUSTOMS',     'Customs Declarable');
 // Line items table
 define('DHL_LINE_ITEMS_HEADER',  'Shipment Contents (Customs Declaration)');

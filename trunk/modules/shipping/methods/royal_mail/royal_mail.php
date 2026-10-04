@@ -111,6 +111,15 @@ class royal_mail {
     return self::FORMATS_BY_SERVICE[$internalCode] ?? self::ALL_FORMATS;
   }
 
+  // Great Britain to Northern Ireland: one country to Click & Drop, so domestic services and
+  // labels, but the Windsor Framework needs the customs contents and isRecipientABusiness, and
+  // without them Click & Drop will not apply postage. Northern Ireland postcodes start "BT".
+  // Keep in sync with isNorthernIreland() in label_mgr/js_include.php.
+  static function isNorthernIreland($fromISO2, $fromPostcode, $toISO2, $toPostcode) {
+    $isBT = function($p) { return strncasecmp(ltrim((string)$p), 'BT', 2) === 0; };
+    return $fromISO2 === 'GB' && $toISO2 === 'GB' && $isBT($toPostcode) && !$isBT($fromPostcode);
+  }
+
   function __construct() {
     $this->code = 'royal_mail';
   }
@@ -175,6 +184,22 @@ class royal_mail {
       ? (strlen($toCC) === 3 ? gen_get_country_iso_2_from_3($toCC) : $toCC)
       : '';
     if ($fromISO2 !== '' && $toISO2 !== '' && $fromISO2 === $toISO2) $isDomestic = true;
+    $isNI = $isDomestic && self::isNorthernIreland($fromISO2, $sInfo->sender_postal_code ?? '',
+                                                   $toISO2, $sInfo->ship_postal_code ?? '');
+
+    // Delivery Duty Paid: we pay the destination's duty, and Click & Drop prints the prepaid
+    // amount on the customs form. With no deliveryTerm Click & Drop applies DDU_DAP, where the
+    // recipient pays, so that case sends nothing.
+    $isDDP = !$isDomestic && ($sInfo->delivery_term ?? '') === 'DDP';
+    $dutyPaid = 0;
+    if ($isDDP) {
+      $dutyIn = str_replace(',', '', trim((string)($sInfo->customs_duty_costs ?? '')));
+      if ($dutyIn !== '' && (!is_numeric($dutyIn) || (float)$dutyIn < 0 || (float)$dutyIn > 99999.99)) {
+        $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_DUTY, 'error');
+        return false;
+      }
+      $dutyPaid = round((float)$dutyIn, 2);
+    }
 
     // Despatch date
     $ts           = strtotime($sInfo->ship_date ?? 'today') ?: time();
@@ -213,9 +238,9 @@ class royal_mail {
       return false;
     }
 
-    // Customs line item contents for international shipments
+    // Customs line item contents for international and Northern Ireland shipments
     $contents = array();
-    if (!$isDomestic && !empty($sInfo->line_items)) {
+    if ((!$isDomestic || $isNI) && !empty($sInfo->line_items)) {
       foreach ($sInfo->line_items as $item) {
         if ((float)($item['qty'] ?? 0) <= 0) continue;
         $originCC = trim($item['origin'] ?? '');
@@ -285,12 +310,17 @@ class royal_mail {
       'currencyCode'        => $currency,
       'subtotal'            => $goodsValue,
       'shippingCostCharged' => 0,
-      'total'               => $goodsValue,
+      'total'               => round($goodsValue + $dutyPaid, 2),
       'recipient'           => $recipient,
       'billing'             => $billing,
       'packages'            => $packages,
       'postageDetails'      => $postageDetails,
     );
+    if ($isDDP) {
+      $order['deliveryTerm'] = 'DDP';
+      if ($dutyPaid > 0) $order['customsDutyCosts'] = $dutyPaid;
+    }
+    if ($isNI) $order['isRecipientABusiness'] = !empty($sInfo->recipient_is_business);
 
     if (!$isDomestic && $recipientVat) {
       $order['importer'] = array('vatNumber' => $recipientVat);

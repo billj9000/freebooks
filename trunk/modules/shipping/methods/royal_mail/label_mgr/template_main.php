@@ -69,7 +69,7 @@ $sel_sm = 'class="form-select form-select-sm"';
           </div>
           <div class="col-5">
             <label class="form-label"><?php echo GEN_POSTAL_CODE; ?></label>
-            <input type="text" class="form-control form-control-sm" name="sender_postal_code" id="sender_postal_code"
+            <input type="text" class="form-control form-control-sm" name="sender_postal_code" id="sender_postal_code" onchange="toggleCustoms()"
                    value="<?php echo htmlspecialchars($sInfo->sender_postal_code ?? ''); ?>" maxlength="15">
           </div>
           <div class="col-12">
@@ -141,7 +141,7 @@ $sel_sm = 'class="form-select form-select-sm"';
           </div>
           <div class="col-5">
             <label class="form-label"><?php echo GEN_POSTAL_CODE; ?></label>
-            <input type="text" class="form-control form-control-sm" name="ship_postal_code" id="ship_postal_code"
+            <input type="text" class="form-control form-control-sm" name="ship_postal_code" id="ship_postal_code" onchange="toggleCustoms()"
                    value="<?php echo htmlspecialchars($sInfo->ship_postal_code ?? ''); ?>" maxlength="15">
           </div>
           <div class="col-12">
@@ -268,7 +268,7 @@ $sel_sm = 'class="form-select form-select-sm"';
   </div>
 </div>
 
-<!-- === Customs section (hidden for domestic) === -->
+<!-- === Customs section (hidden for domestic, except Northern Ireland) === -->
 <div id="customs_section" class="mb-3">
   <div class="card">
     <div class="card-header py-1 fb-widget-header"><?php echo RM_CUSTOMS_SECTION; ?></div>
@@ -288,6 +288,44 @@ $sel_sm = 'class="form-select form-select-sm"';
           echo html_pull_down_menu('customs_declaration_category', $categories,
             $sInfo->customs_declaration_category ?? 'saleOfGoods', $sel_sm);
           ?>
+        </div>
+      </div>
+      <div class="row g-2 align-items-center mt-1" id="row_delivery_terms">
+        <label class="col-auto col-form-label col-form-label-sm"><?php echo RM_TEXT_DELIVERY_TERMS; ?></label>
+        <div class="col-auto">
+          <?php
+          $terms = array(
+            array('id' => 'DDU', 'text' => RM_TERMS_DDU),
+            array('id' => 'DDP', 'text' => RM_TERMS_DDP),
+          );
+          echo html_pull_down_menu('delivery_term', $terms, $sInfo->delivery_term ?? 'DDU',
+            $sel_sm . ' onchange="toggleCustoms()"');
+          ?>
+        </div>
+        <label class="col-auto col-form-label col-form-label-sm ms-2" id="label_duty" for="customs_duty_costs"><?php echo RM_TEXT_DUTY_PAID; ?></label>
+        <div class="col-auto" id="input_duty">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control form-control-sm text-end" style="width:7em"
+                   name="customs_duty_costs" id="customs_duty_costs"
+                   value="<?php echo htmlspecialchars($sInfo->customs_duty_costs ?? ''); ?>" maxlength="9">
+            <span class="input-group-text"><?php echo htmlspecialchars($order_currency ?: $home_currency); ?></span>
+          </div>
+        </div>
+      </div>
+      <div class="row g-2 align-items-center mt-1" id="row_recipient_business">
+        <div class="col-auto">
+          <div class="form-check">
+            <?php
+            // A returning post carries the box as it was left; a fresh form ticks it for a
+            // customer with a VAT or EORI number on record.
+            $is_business = isset($sInfo->delivery_term)
+              ? !empty($sInfo->recipient_is_business)
+              : (trim($sInfo->ship_vat_number ?? '') !== '' || trim($sInfo->ship_eori_number ?? '') !== '');
+            ?>
+            <input class="form-check-input" type="checkbox" name="recipient_is_business"
+                   id="recipient_is_business" value="1"<?php echo $is_business ? ' checked' : ''; ?>>
+            <label class="form-check-label" for="recipient_is_business"><?php echo RM_TEXT_RECIPIENT_BUSINESS; ?></label>
+          </div>
         </div>
       </div>
     </div>
@@ -354,7 +392,7 @@ $sel_sm = 'class="form-select form-select-sm"';
 </div>
 
 <?php if (!empty($sInfo->line_items)): ?>
-<!-- === Line items / Customs declaration (hidden for domestic) === -->
+<!-- === Line items / Customs declaration (hidden for domestic, except Northern Ireland) === -->
 <div id="line_items_section" class="card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo RM_LINE_ITEMS_HEADER; ?></div>
   <div class="card-body py-2 px-2">

@@ -287,6 +287,18 @@ $sel_sm = 'class="form-select form-select-sm"';
           ?>
         </div>
       </div>
+      <div class="row g-2 align-items-center mt-1">
+        <label class="col-auto col-form-label col-form-label-sm"><?php echo DHL_TEXT_DELIVERY_TERMS; ?></label>
+        <div class="col-auto">
+          <?php
+          $terms = array(
+            array('id' => 'DAP', 'text' => DHL_TERMS_DAP),
+            array('id' => 'DDP', 'text' => DHL_TERMS_DDP),
+          );
+          echo html_pull_down_menu('delivery_term', $terms, $sInfo->delivery_term ?? 'DAP', $sel_sm);
+          ?>
+        </div>
+      </div>
     </div>
   </div>
 </div>
