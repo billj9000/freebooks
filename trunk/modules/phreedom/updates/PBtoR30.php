@@ -81,8 +81,8 @@ if (defined('MODULE_SHIPPING_STOREPICKUP_SORT_ORDER')) write_configure('MODULE_S
 if (defined('MODULE_SHIPPING_TABLE_SORT_ORDER'))       write_configure('MODULE_SHIPPING_TABLE_STATUS',       '0.1');
 if (defined('MODULE_SHIPPING_UPS_SORT_ORDER'))         write_configure('MODULE_SHIPPING_UPS_STATUS',         '0.1');
 if (defined('MODULE_SHIPPING_USPS_SORT_ORDER'))        write_configure('MODULE_SHIPPING_USPS_STATUS',        '0.1');
-// Load the reports module. This was phreeform; it is forms, which owns the
-// document catalogue, the definitions directory and the seeding (§13.39).
+// Load the reports module: forms, which owns the document catalogue, the
+// definitions directory and the seeding (§13.39).
 $mInstall = null;
 if (is_file(DIR_FS_MODULES . 'forms/classes/install.php')) {
   gen_pull_language('forms', 'admin');

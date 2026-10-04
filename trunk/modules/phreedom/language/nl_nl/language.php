@@ -450,7 +450,7 @@ define('TEXT_EMAIL_SEND','Email Verzonden');
 if (!defined('TEXT_USED')) define('TEXT_USED','Gebruikt'); // also defined in assets/language.php
 define('SORRY_YOU_ARE_LOGGED_OUT','Sorry u moet opnieuw inloggen');
 define('TEXT_EMAIL_MESSAGE', 'A password reset was requested for your \'%1$s\' account.' . "\n\n" . 'To choose a new password, open this link (valid for %2$d minutes):' . "\n\n" . '%3$s' . "\n\n" . 'If you did not request this, no action is needed - your password has not been changed.');
-// Password reset (token flow) - added 2026-08-09
+// Password reset (token flow)
 define('ERROR_PW_RESET_INVALID', 'This password reset link is invalid or has expired. Please request a new one.');
 define('SUCCESS_PASSWORD_RESET', 'Your password has been reset. You can now log in with your new password.');
 define('TEXT_SET_NEW_PASSWORD', 'Set a New Password');

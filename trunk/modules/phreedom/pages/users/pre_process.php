@@ -124,7 +124,7 @@ switch ($_REQUEST['action']) {
 		// it and a server at its defaults refuses the whole row. A role has no
 		// password, and a new user given none starts without one -
 		// pw_validate_password() refuses an empty stored hash outright, so neither
-		// can be logged in to. A lax server was storing this same '' implicitly.
+		// can be logged in to.
 		if (!isset($sql_data_array['admin_pass'])) $sql_data_array['admin_pass'] = '';
 		db_perform(TABLE_USERS, $sql_data_array);
 		$admin_id = db_insert_id();

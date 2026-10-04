@@ -220,8 +220,8 @@ function admin_check_versions($module, $prerequisites = NULL) {
 	foreach ($prerequisites as $mod => $version) {
 	  $constant = 'MODULE_' . strtoupper($mod) . '_VERSION';
 	  // defined() rather than assigning constant() and testing it: an undefined
-	  // constant throws in PHP 8, so the module-not-installed case took the
-	  // request down instead of reporting itself.
+	  // constant throws in PHP 8, and a module that is not installed is to be
+	  // reported, not to take the request down.
 	  if (!defined($constant)) {
 	    $messageStack->add(sprintf(ERROR_MODULE_NOT_INSTALLED, $module, $mod),'error');
 		$error = true;
@@ -313,10 +313,8 @@ function admin_add_report_folder($parent_id, $doc_title, $doc_group, $doc_ext) {
 }
 
 function admin_add_reports($module, $save_path = null, $paper_size = '') {
-  // Computed rather than taken from a module constant. It used to default to
-  // PF_DIR_MY_REPORTS, so a core function's SIGNATURE could not be evaluated
-  // without PhreeForm loaded — which made deleting that module a fatal here,
-  // in phreedom, for every caller.
+  // Computed rather than taken from a module constant, so the function can
+  // be called whichever modules are loaded.
   if ($save_path === null) {
     $save_path = DIR_FS_MY_FILES . ($_SESSION['company'] ?? '') . '/phreeform/';
   }
@@ -343,11 +341,10 @@ function admin_add_reports($module, $save_path = null, $paper_size = '') {
   if (defined('MODULE_FORMS_STATUS') && file_exists($native)) require_once($native);
 
   // The IMAGES those definitions name, into the company they are being seeded
-  // into. phreebooks_admin::install() copies the logo to
-  // DIR_FS_MY_FILES . $_SESSION['company'] — the company the ADMIN is logged
-  // into, not the one being created — so a new company got a form whose logo
-  // box pointed at a file it did not have, and every invoice printed with an
-  // empty rectangle. Silently, because that copy is a @copy.
+  // into. phreebooks_admin::install() copies the logo into DIR_FS_MY_FILES .
+  // $_SESSION['company'] — the company the ADMIN is logged into, not the one
+  // being created — and with a @copy that fails silently, so without this a
+  // new company's invoices would print an empty logo box.
   //
   // Driven by what the definitions actually reference, so a module that ships a
   // form with its own logo is covered without anything being listed twice.
@@ -375,14 +372,13 @@ function admin_add_reports($module, $save_path = null, $paper_size = '') {
   foreach ($files as $file) if (strtolower(substr($file, -4)) == '.xml') {
     $json = substr($file, 0, -4) . '.json';
     if (!function_exists('forms_seed_native')) {
-      // No Forms, no seeding. Every shipped definition is native now, and
-      // ImportReport() — which used to be the fallback here — goes with
-      // PhreeForm. A company without Forms has nothing that can read either.
+      // No Forms, no seeding: every shipped definition is native, and a
+      // company without Forms has nothing that can read one.
       continue;
     }
     // A native master beside the xml wins; an xml on its own is CONVERTED on
-    // the way in rather than stored verbatim, which is what ImportReport() did
-    // and what left every load converting it afresh (decision L).
+    // the way in rather than stored verbatim, so it is not converted afresh on
+    // every load (decision L).
     $seeded = file_exists($read_path . $json)
             ? forms_seed_native($read_path . $json, $save_path, $paper_size)
             : forms_seed_legacy($read_path . $file, $save_path, $paper_size);

@@ -31,8 +31,7 @@ history_filter('roles');
  * The roles page is built from $mainmenu, so a security id no menu item carries
  * has no row — it can be seeded by an upgrade and then never changed by anyone.
  * SECURITY_ID_DASHBOARDS is exactly that: the Company Links, Notes and To-Do
- * panels are dashboards, not pages, and they used to borrow the PhreeForm key
- * precisely because it had a menu behind it.
+ * panels are dashboards, not pages.
  *
  * Kept OUT of $mainmenu deliberately. That array is the real navigation as well
  * as the source of this page, so an entry added for a permission would render
@@ -98,7 +97,7 @@ switch ($_REQUEST['action']) {
 		// it and a server at its defaults refuses the whole row. A role has no
 		// password, and a new user given none starts without one -
 		// pw_validate_password() refuses an empty stored hash outright, so neither
-		// can be logged in to. A lax server was storing this same '' implicitly.
+		// can be logged in to.
 		if (!isset($sql_data_array['admin_pass'])) $sql_data_array['admin_pass'] = '';
 		db_perform(TABLE_USERS, $sql_data_array);
 		$admin_id = db_insert_id();

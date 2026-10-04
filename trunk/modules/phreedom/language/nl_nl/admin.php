@@ -29,7 +29,7 @@ define('GEN_LOG_LOGIN','Inloggen Gebruiker -> ');
 define('GEN_LOG_LOGIN_FAILED','Inloggen van gebruiker mislukt - id -> ');
 define('GEN_LOG_LOGOFF','Gebruikker Uitgelogd -> ');
 define('INV_FIELD_RESERVED_WORD','De ingevoerde naam is een gereserveerd woord. Kies alstublieft een andere naam.');
-// INV_IMAGE_* now live in the inventory module's language.php, alongside the code that
+// INV_IMAGE_* live in the inventory module's language.php, alongside the code that
 // raises them. Defining them here too collides when both files load.
 define('INV_CANNOT_DELETE_SYSTEM','Velden in de categorie Systeem kunnen niet verwijderd worden');
 define('INV_CATEGORY_CANNOT_DELETE','Kan categorie niet verwijderen. Het wordt gebruikt door veld: ');
@@ -296,7 +296,7 @@ define('INV_LABEL_CHECK_BOX_FIELD','Check Box (Ja of Nee)');
 define('TEXT_TAB_NAME','Tabblad Titel');
 define('TEXT_COPYRIGHT_NOTICE','Dit programma is gratis software: je kunt het herdistribueren en / of <br>wijzigen onder de voorwaarden van de GNU General Public License zoals<br>gepubliceerd door de Free Software Foundation, ofwel versie 3 van<br>de Licentie, of een latere versie. Dit programma wordt verspreid<br>in de hoop dat het nuttig zal zijn, maar ZONDER ENIGE GARANTIE;<br>zelfs zonder de impliciete garantie van VERKOOPBAARHEID of GESCHIKTHEID<br>VOOR EEN BEPAALD DOEL. Zie de GNU General Public License voor<br>meer details. De licentie die is gebundeld met dit pakket is<br>gelegen %s.');
 
-// Password reset (token flow) - added 2026-08-09
+// Password reset (token flow)
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 ?>

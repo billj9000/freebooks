@@ -277,10 +277,9 @@ class phreedom_admin {
 		  if (!defined($key)) write_configure($key, $value);
 		}
 		admin_install_dirs($mod_init->dirlist, DIR_FS_MY_FILES.$_SESSION['company'].'/');
-	    // Stamp here rather than trusting each module to remember. Sixteen of
-	    // them did not, and the cost of forgetting is invisible: the cascade only
-	    // knows to stop when STATUS reaches VERSION, so an update that does not
-	    // record itself runs again on every login, for ever. A module that does
+	    // Stamp here rather than trusting each module to remember: the cascade
+	    // only knows to stop when STATUS reaches VERSION, so an update that does
+	    // not record itself would run again on every login. A module that does
 	    // stamp simply writes the same value twice.
 	    //
 	    // The return value is no use as a signal: several of these end with
@@ -334,7 +333,7 @@ class phreedom_admin {
 	    if (!db_table_exists($table)) if (!$db->Execute($create_table_sql)) $error = true;
 	  }
 	  // The NAME, quoted — see phreehelp/classes/install.php for why the bare
-	  // constant wrote nothing.
+	  // constant writes nothing.
 	  write_configure('PHREEHELP_FORCE_RELOAD', '1');
 	}
     if (gen_version_is_legacy(MODULE_PHREEDOM_STATUS, '3.2')) {

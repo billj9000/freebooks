@@ -465,7 +465,7 @@ define('GEN_LOG_INSTALL_SUCCESS','Module %s: ');
 
 define('TEXT_PRODUCT_DEFAULT','Product Default');
 
-// Password reset (token flow) - added 2026-08-09
+// Password reset (token flow)
 define('ERROR_PW_RESET_INVALID', 'This password reset link is invalid or has expired. Please request a new one.');
 define('SUCCESS_PASSWORD_RESET', 'Your password has been reset. You can now log in with your new password.');
 define('TEXT_SET_NEW_PASSWORD', 'Set a New Password');

@@ -221,7 +221,7 @@ define('GEN_LOG_LOGIN_FAILED','Failed User Login - id -> ');
 define('GEN_LOG_LOGOFF','User Logoff -> ');
 define('GEN_LOG_RESEND_PW','Re-sent Password to email -> ');
 
-// Password reset (token flow) - added 2026-08-09
+// Password reset (token flow)
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 ?>

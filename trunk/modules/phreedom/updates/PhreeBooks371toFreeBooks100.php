@@ -214,8 +214,7 @@ foreach ($date_columns as $col) {
 // ---- column widths ----------------------------------------------------------
 // Names, addresses and descriptions arrive from outside - the web shop, carrier
 // and payment services - longer than these columns held. A lax server cut them
-// to fit without a word (about a thousand addresses and a thousand product
-// descriptions were found cut at exactly the width); a strict one refuses the
+// to fit without a word; a strict one refuses the
 // whole write, so an order with a long address line would not import at all.
 // Widened as the installer now declares them; only ever widened.
 db_widen_column(TABLE_AUDIT_LOG, 'reference_id', 64, "varchar(64) NOT NULL default ''");

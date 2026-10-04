@@ -104,9 +104,9 @@ function retrieve_toc() {
 }
 
 // Renders the Contents tab as a nested <ul> tree (fb-help-tree, styled in
-// template_main.php) instead of the old GIF-spacer <div> rows. Folders
-// default open at the top level and collapsed below, toggled client-side
-// by the existing Toggle()/Expand()/Collapse() JS in template_main.php.
+// template_main.php). Folders default open at the top level and collapsed
+// below, toggled client-side by Toggle()/Expand()/Collapse() in
+// template_main.php.
 function build_help_tree($name, $full_array, $index = -1, $level = 0) {
   $entries = (isset($full_array[$index]) && is_array($full_array[$index])) ? $full_array[$index] : array();
   if (empty($entries)) return '';
@@ -142,9 +142,8 @@ function build_help_tree($name, $full_array, $index = -1, $level = 0) {
 // Shared by the Index tab (retrieve_index) and Search tab (search_results).
 // Same fb-help-tree markup as build_help_tree; groups always render
 // collapsed since there's no natural "top level" here. Note: doc_title
-// values already contain HTML entities as authored in each page's
-// <title> tag, so they are intentionally NOT re-escaped here (matches
-// the original behavior of this function).
+// values already contain HTML entities as authored in each page's <title>
+// tag, so they are intentionally NOT re-escaped here.
 function build_href($array_tree, $ref = '') {
   ksort($array_tree);
   if (empty($array_tree)) return '';

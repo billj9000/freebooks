@@ -66,11 +66,9 @@ class phreehelp_admin {
 	  }
 	}
 	// The NAME, quoted. Passing the constant hands write_configure() its VALUE
-	// — '0' or '1' — and neither does what was meant: '0' is falsy, so the
+	// — '0' or '1' — and neither does what is meant: '0' is falsy, so the
 	// function returns at its own `if (!$constant)` guard and writes nothing at
-	// all, which is precisely the case this line exists for. A module update
-	// therefore never asked for the reindex, and a new or edited manual topic
-	// stayed invisible until somebody set the flag by hand.
+	// all, which is precisely the case this line exists for.
 	write_configure('PHREEHELP_FORCE_RELOAD', '1');
 	if (!$error) {
 	  write_configure('MODULE_' . strtoupper($module) . '_STATUS', constant('MODULE_' . strtoupper($module) . '_VERSION'));

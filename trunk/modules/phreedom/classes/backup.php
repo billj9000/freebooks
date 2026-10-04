@@ -48,8 +48,7 @@ class backup {
 	// running without strict mode is allowed to hold things its own columns do
 	// not permit - an ENUM whose value is none of its members comes back as the
 	// empty string, and a strict destination refuses it. That refusal aborts the
-	// copy partway, leaving a half-built company, over rows the source has been
-	// serving happily for months.
+	// copy partway, leaving a half-built company.
 	//
 	// This does not make the data good: it copies it as faithfully as a dump
 	// and restore of the same server would, which is all a copy promises. Rows
@@ -114,10 +113,9 @@ class backup {
 	  if ($type == 'data' || $type == 'both') {
 		// Pull rows in bounded chunks rather than one SELECT * covering the whole table —
 		// query_factory's Execute() always buffers the full result set in memory (PDO
-		// fetchAll()), so a large table (e.g. a full-history company's journal_item at
-		// 200K+ rows) can exceed memory_limit before a single row is written. Chunking
-		// keeps memory bounded regardless of table size; the emitted SQL is byte-for-byte
-		// identical to the previous single-query version.
+		// fetchAll()), so a large table can exceed memory_limit before a single row is
+		// written. Chunking keeps memory bounded regardless of table size, and does not
+		// change the SQL written.
 		$count_result = $db->Execute('SELECT COUNT(*) AS cnt FROM ' . $table . $params);
 		$total_rows   = (int)$count_result->fields['cnt'];
 		if ($total_rows > 0) {
@@ -135,30 +133,23 @@ class backup {
 				$sql_head = "INSERT INTO $table (`" . join('`,`', $keys) . '`) VALUES ' . lnbr;
 				$chunk_query .= $sql_head;
 			  }
-			  // A NULL is written as NULL, not as ''. Quoting every column meant a
-			  // nullable one came back as an empty string, and for a DATETIME that
-			  // is not a value any strict server will take - which is every server
-			  // at its defaults. It is only invisible here because this stack runs
-			  // with sql_mode empty, where '' is silently accepted and stored as
-			  // 0000-00-00 00:00:00: the column stops being NULL and every
-			  // `IS NULL` test against it quietly changes its answer.
-			  //
+			  // A NULL is written as NULL, not as ''. For a DATETIME, '' is not a
+			  // value a strict server takes - which is every server at its defaults -
+			  // and a lax one stores it as 0000-00-00 00:00:00, so the column stops
+			  // being NULL and every `IS NULL` test against it changes its answer.
 			  // Both the company copy and the whole-database backup are written by
-			  // this loop, so the same fault made a backup unrestorable onto a
-			  // stock server the moment any nullable column held a NULL - which
-			  // users.locked_until and users.pw_reset_expires always do.
+			  // this loop, and users.locked_until and users.pw_reset_expires always
+			  // hold a NULL.
+			  //
 			  // Newlines inside a value are escaped, so a row is always ONE physical
 			  // line. db_executeSql() replays this file with file() - a statement per
 			  // line, trim()med, rejoined with a space - so a value containing a
-			  // newline was split across lines and could not survive: at best the
-			  // newline became a space and the indentation was lost, at worst a
-			  // fragment starting '#' or '-' was skipped as a comment, or one holding
-			  // a ';' ended the statement early and the restore stopped on a syntax
-			  // error partway through a table.
-			  //
-			  // That is the whole-database backup as much as the company copy, and it
-			  // was silent in the mangling case: notes on documents, product copy and
-			  // label templates came back as one long line and nothing said so.
+			  // newline would be split across lines: at best the newline becomes a
+			  // space and the indentation is lost, at worst a fragment starting '#'
+			  // or '-' is skipped as a comment, or one holding a ';' ends the
+			  // statement early and the restore stops on a syntax error partway
+			  // through a table. Notes on documents, product copy and label templates
+			  // all hold newlines.
 			  //
 			  // addslashes() first (quotes and backslashes), then the newlines, so a
 			  // value that genuinely contains a backslash followed by n is already
@@ -315,14 +306,9 @@ class backup {
   function db_executeSql($sql_file, $table_prefix = '') {
 //echo 'start SQL execute';
     global $db;
-    // All four are built by appending inside the loop below, and $errors is
-    // appended to ONLY when a query fails — so on a clean run it stayed
-    // undefined and this returned array('errors' => null). PHP 8 made
-    // count(null) fatal, which meant copy_db_table() died on the SUCCESS path:
-    // creating or copying a company failed with "count(): Argument #1 must be
-    // of type Countable|array, null given" precisely when nothing had gone
-    // wrong. $results and $string are the same shape of bug one step behind:
-    // a run with no executed statement returns null and '' respectively.
+    // All four are built by appending inside the loop below, and $errors only
+    // when a query fails, so each starts empty here: callers count() them on
+    // the success path too, and count(null) is fatal in PHP 8.
     $ignored_count = 0;
     $errors        = array();
     $return_output = array();
@@ -460,7 +446,6 @@ class backup {
 
         if ($complete_line) {
           if ($debug==true) echo ((!$ignore_line) ? '<br />About to execute.': 'Ignoring statement. This command WILL NOT be executed.').'<br />Debug info:<br />$ line='.$line.'<br />$ complete_line='.$complete_line.'<br />$ keep_together='.$keep_together.'<br />SQL='.$newline.'<br /><br />';
-          // get_magic_quotes_runtime() removed in PHP 7.4; magic quotes no longer exist
           if (trim(str_replace(';','',$newline)) != '' && !$ignore_line) $output=$db->Execute($newline);
           $results++;
           $string .= $newline.'<br />';

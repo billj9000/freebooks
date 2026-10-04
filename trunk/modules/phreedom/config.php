@@ -44,11 +44,9 @@ define('SECURITY_ID_ROLES',            5);
 define('SECURITY_ID_HELP',             6);
 define('SECURITY_ID_MY_PROFILE',       7);
 define('SECURITY_ID_CONFIGURATION',   11); // admin for all modules
-// The Company Links / Notes / To-Do dashboards. They used SECURITY_ID_PHREEFORM
-// — id 3 — which was never anything to do with them: they borrowed a constant
-// that happened to exist, and it disappears with that module. 12 is the next
-// free id, and phreedom_admin::update() copies each role's level for 3 across
-// to it, because changing a dashboard's key silently changes who can see it.
+// The Company Links / Notes / To-Do dashboards. phreedom_admin::update() copies
+// each role's level for id 3 across to this one, because changing a dashboard's
+// key silently changes who can see it.
 define('SECURITY_ID_DASHBOARDS',      12);
 define('SECURITY_ID_BACKUP',          18);
 define('SECURITY_ID_ENCRYPTION',      20);

@@ -110,9 +110,8 @@ switch ($_REQUEST['action']) {
 	    write_configure('MODULE_' . strtoupper($method) . '_STATUS', constant('MODULE_' . strtoupper($method) . '_VERSION'));
 	    // Load the remaining configuration constants
 	    foreach ($mInstall->keys as $key => $value) write_configure($key, $value);
-	    // method_exists, because these are OPTIONAL on an install class and a
-	    // module that omits one used to fatal the whole operation rather than
-	    // simply having nothing to contribute.
+	    // method_exists, because these are OPTIONAL on an install class: each
+	    // is called only where the module defines it.
 	    if ($demo && method_exists($mInstall, 'load_demo')) $error = $mInstall->load_demo();
 		if (method_exists($mInstall, 'load_reports')) $mInstall->load_reports($method);
 		admin_add_reports($method);
@@ -276,9 +275,8 @@ switch ($_REQUEST['action']) {
 			  write_configure('MODULE_' . strtoupper($entry) . '_STATUS', constant('MODULE_' . strtoupper($entry) . '_VERSION'));
 			  // Load the remaining configuration constants
 			  foreach ($install_mod->keys as $key => $value) write_configure($key, $value);
-			  // Optional on an install class: 'labels' has never had load_demo(),
-			  // and calling it unconditionally made creating a company with demo
-			  // data die on a module that simply has no demo data to load.
+			  // Optional on an install class, so each is called only where the
+			  // module defines it. 'labels' has no demo data.
 			  if ($task == 'demo' && method_exists($install_mod, 'load_demo')) {
 			    if ($install_mod->load_demo()) $error = true;
 			  }
@@ -312,20 +310,9 @@ switch ($_REQUEST['action']) {
 	  // install reports now that categories are set up
 	  if (($_POST['forms_action'] ?? '') <> 'data') { // if=data reports have been copied, else load basic reports
 	    foreach ($copy_modules as $entry) admin_add_reports($entry, DIR_FS_MY_FILES . $db_name . '/phreeform/', $paper_size);
-	    // Those are NATIVE definitions now (design §13.5), and PhreeForm cannot
-	    // open one — so a new company whose Print buttons pointed at PhreeForm
-	    // would have a Print button that errors on every document it owns. The
-	    // configuration table is copied from the company this was created from,
-	    // so without this the new company inherits whatever that one chose,
-	    // which has nothing to do with what its own definitions are in.
-	    //
 	    // $db is the NEW company's connection from the top of this branch, so
-	    // this writes where the definitions went.
-	    // MODULE_FORMS_PRINT_BUTTONS used to be written here, to point a new
-	    // company's Print buttons at Forms rather than PhreeForm. One engine
-	    // now, so there is nothing to point.
-	    // Forms reads its own key. The name alone: a native definition stores
-	    // "A4", never "A4:210:297".
+	    // this writes where the definitions went. Forms reads its own key. The
+	    // name alone: a definition stores "A4", never "A4:210:297".
 	    if (defined('MODULE_FORMS_STATUS') && $paper_size <> '') {
 	      write_configure('FORMS_DEFAULT_PAPER', $paper_size);
 	    }
@@ -364,8 +351,7 @@ switch ($_REQUEST['action']) {
 	  validate_fiscal_year($dates['ThisYear'], '1', $dates['ThisYear'] . '-' . $dates['ThisMonth'] . '-01');
 	  // Before the history records, not after: build_and_check_account_history_records()
 	  // writes one row per account per period, so an empty chart gives it nothing
-	  // to build. Creating a company with phreebooks set to anything but 'data'
-	  // used to leave it with no chart of accounts at all.
+	  // to build.
 	  if ($chart_info) phreebooks_chart_insert($chart_info['accounts']);
 	  build_and_check_account_history_records();
 	  // NOT gen_auto_update_period(): it asks gen_calculate_period(), which

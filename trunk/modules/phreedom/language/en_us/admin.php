@@ -348,7 +348,7 @@ define('INV_LABEL_TIME_STAMP_VALUE', 'System field to track the last date and ti
 define('INV_FIELD_NAME_RULES','Fieldnames cannot contain spaces or special characters and must be 64 characters or less.');
 define('INV_CATEGORY_CANNOT_DELETE','Cannot delete category. It is being used by field: ');
 define('INV_CANNOT_DELETE_SYSTEM','Fields in the System category cannot be deleted!');
-// INV_IMAGE_* now live in the inventory module's language.php, alongside the code that
+// INV_IMAGE_* live in the inventory module's language.php, alongside the code that
 // raises them. Defining them here too collides when both files load.
 define('INV_FIELD_RESERVED_WORD','The field name entered is a reserved word. Please choose a new field name.');
 // Audit Log Messages
@@ -371,7 +371,7 @@ define('CD_OAUTH2_NOT_AUTHORIZED',    'Not yet authorised.');
 define('CD_OAUTH2_ERROR_NO_TOKEN',    'OAuth2 token refresh failed. Re-authorise in Admin &rsaquo; Email.');
 define('CD_OAUTH2_ERROR_NO_CURL',     'OAuth2 requires the PHP cURL extension.');
 
-// Password reset (token flow) - added 2026-08-09
+// Password reset (token flow)
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 

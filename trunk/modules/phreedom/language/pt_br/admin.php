@@ -24,7 +24,7 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/phreedom/language/pt_br/admin.php
 
-// INV_IMAGE_* now live in the inventory module's language.php, alongside the code that
+// INV_IMAGE_* live in the inventory module's language.php, alongside the code that
 // raises them. Defining them here too collides when both files load.
 define('GEN_ADM_TOOLS_SEQ_DESC','Alterações na sequência podem ser feitas aqui.<br />ATENÇÃO 1: FreeBooks não permite sequências duplicadas, certifique-se que a nova sequência não conflite com os valores já lançados.<br />ATENÇÃO 2: O próximo número de depósito pe gerado pelo sistema e utiliza a data corrente.<br />ATENÇÃO 3: o próximo número de cheuqe pode ser digitado na tela de pagamento antes de lançar um pagamento e será sequenciado a partir do número lançado.');
 define('INV_CANNOT_DELETE_SYSTEM','Campos da categoria Sistema não podem ser removidos!');
@@ -301,7 +301,7 @@ define('GEN_LOG_LOGIN_FAILED','Failed User Login - id -> ');
 define('GEN_LOG_LOGOFF','User Logoff -> ');
 define('GEN_LOG_RESEND_PW','Re-sent Password to email -> ');
 
-// Password reset (token flow) - added 2026-08-09
+// Password reset (token flow)
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
 ?>

@@ -187,21 +187,18 @@ foreach ($mainmenu as $key => $menu_heading) {
 function create_row($array) {
   global $odd, $settings;
   // One row per PERMISSION, not per menu entry. The radios are named
-  // sID_<security_id>, so two entries sharing an id become a single radio group
-  // in the browser: choosing a level on one row cleared the other, and neither
-  // row looked authoritative. Report Editor and Form Layout share
-  // SECURITY_ID_FORMS_AUTHOR on purpose — both are "write a document" — and any
-  // module may do the same. The first VISIBLE entry to claim an id keeps the row.
+  // sID_<security_id>, so two entries sharing an id would be one radio group in
+  // the browser drawn as two rows, each clearing the other. Report Editor and
+  // Form Layout share SECURITY_ID_FORMS_AUTHOR on purpose — both are "write a
+  // document" — and any module may do the same. The first VISIBLE entry to claim
+  // an id keeps the row.
   //
-  // Visible is the operative word, and it has to be tested before the claim.
-  // An entry hidden from this page can never draw a row, so if it is allowed to
-  // claim the id first it does not merge with the visible entry — it erases it.
-  // Every "xxx_mgr" menu item is preceded by a hidden "new_xxx" item sharing its
-  // security id (Inventory, Customers, Vendors, Employees, Branches, Projects),
-  // so claim-before-visibility dropped all six manager rows from this page. A
-  // permission with no row is not merely ungrantable: the levels are saved from
-  // the sID_ fields that POST, so saving any user silently STRIPPED the id it
-  // already held, and the user lost the page the next time they opened it.
+  // Visibility is tested before the claim. An entry hidden from this page can
+  // never draw a row, so one allowed to claim the id first would erase the
+  // visible entry's row rather than merge with it - and every "xxx_mgr" menu item
+  // is preceded by a hidden "new_xxx" item sharing its security id. A permission
+  // with no row is not merely ungrantable: the levels are saved from the sID_
+  // fields that POST, so saving a user would strip the id they already hold.
   static $drawn = array();
   if (!empty($array['submenu']) && $array['text'] != BOX_HEADING_CONFIGURATION) foreach ($array['submenu'] as $menu_item) {
     create_row($menu_item);
