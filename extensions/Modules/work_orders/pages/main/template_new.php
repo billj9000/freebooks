@@ -26,8 +26,8 @@ echo html_hidden_field('sku_id', $sku_id)         . chr(10);
 echo html_hidden_field('store_id', $store_id)     . chr(10);
 echo html_hidden_field('close_date', $close_date) . chr(10);
 // Set by submitToDo() from fbDocModified(). '1' unless the javascript could
-// establish that nothing changed, so a browser that never ran it posts as
-// before rather than silently dropping an edit.
+// establish that nothing changed, so a browser that never ran it saves as
+// usual rather than silently dropping an edit.
 echo html_hidden_field('doc_modified', '1')       . chr(10);
 // customize the toolbar actions
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL') . '\'"';

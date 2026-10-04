@@ -46,7 +46,7 @@ switch ($_REQUEST['action'] ?? '') {
 	// not a rewrite of it, so an unchanged record is left alone and read-only may
 	// print. doc_modified is set by submitToDo() from fbDocModified(); it is '1'
 	// unless the browser established that nothing changed, so a client that never
-	// ran the javascript behaves as it always did rather than dropping an edit.
+	// ran the javascript saves as usual rather than dropping an edit.
 	$doc_unchanged = !empty($_POST['id']) && isset($_POST['doc_modified']) && $_POST['doc_modified'] == '0';
 	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	$id       = (int)db_prepare_input($_POST['id']);

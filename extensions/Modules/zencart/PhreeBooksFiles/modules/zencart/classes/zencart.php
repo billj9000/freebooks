@@ -219,11 +219,10 @@ class zencart {
 
                 // Derive the parcel weight from the very pieces being sent, rather than
                 // trusting the stored column. item_weight is only recalculated when the
-                // bundle is SAVED (pb::save()), so any bundle not re-saved since - which is
-                // every one of them the day this ships - would otherwise send accurate
-                // pieces alongside its old hand-entered placeholder. Deriving here makes the
-                // two agree by construction: the declared weight is always exactly the sum
-                // of what is in the parcel, whatever the save history.
+                // bundle is SAVED (pb::save()), so a bundle not re-saved since its weight was
+                // typed by hand would otherwise send accurate pieces alongside that figure.
+                // Deriving here makes the two agree by construction: the declared weight is
+                // always exactly the sum of what is in the parcel, whatever the save history.
                 //
                 // A ships-complete bundle is deliberately NOT derived: its weight is the
                 // real packed parcel, packaging included, which is a fact only the user has.
@@ -253,8 +252,8 @@ class zencart {
     // kg, matching productZencartLength / productWeight.
     //
     // Zero dimensions are sent through exactly as they are held. A component with no
-    // measurements packs as zero volume, which is what happens today - substituting a
-    // guess here would quietly change quotes on real orders.
+    // measurements packs as zero volume; substituting a guess here would quietly change
+    // quotes on real orders. Measurements belong on the component's own item record.
     //
     // Kept separate from the pb branch above so an mb/mp master can attach the same shape
     // to each attributes.variants[] entry when per-variant bundles are pushed.

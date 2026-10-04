@@ -230,10 +230,10 @@ function pull_down_price_sheet_list() {
     return $output;
 }
 
-// Pull-down list of every installed cust:inv PhreeForm form, for the "which form to
-// email as the VAT invoice" setting. Listing by doc_group/doc_ext (rather than a fixed
-// title) means any custom invoice form built in the PhreeForm designer shows up here
-// automatically, with no code change.
+// Pull-down list of every installed cust:inv form, for the "which form to email as the
+// VAT invoice" setting. Listing by doc_group/doc_ext (rather than a fixed title) means
+// any custom invoice form laid out in Forms shows up here automatically, with no code
+// change.
 function zencart_pull_invoice_forms(): array {
     global $db;
     if (!defined('TABLE_PHREEFORM')) define('TABLE_PHREEFORM', DB_PREFIX . 'phreeform');

@@ -157,9 +157,8 @@ function printWOrder(id) { // request funtion
 function fillwoDetail(xml) { // call back function
   if (!xml) return;
   var id = xmlText(xml, "id");
-  // gen_print_form_url() decides which engine prints and ends the query string
-  // at "xmin=", so the id and the email hints append the same way they always
-  // did. The hints have to come after it for that reason.
+  // gen_print_form_url() ends the query string at "xmin=", so the id is appended
+  // straight after it and the email hints have to come after the id.
   var details = "<?php echo gen_print_form_url('inv:wo', 'wo_journal_main.id', 'EQUAL'); ?>"+id;
   if (xmlText(xml, "sEmail")) details += "&sEmail="+xmlText(xml, "sEmail");
   if (xmlText(xml, "sName"))  details += "&sName=" +xmlText(xml, "sName");
