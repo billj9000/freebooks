@@ -26,7 +26,7 @@ class tabs {
   function btn_save($id = '') {
   	global $db, $messageStack;
 	if ($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] < 2) {
-	  $messageStack->add_session(ERROR_NO_PERMISSION,'error');
+	  $messageStack->add(ERROR_NO_PERMISSION,'error');
 	  return false;
 	}
     $tab_name = db_prepare_input($_POST['tab_name']);
@@ -56,7 +56,7 @@ class tabs {
   function btn_delete($id = 0) {
   	global $db, $messageStack;
 	if ($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] < 4) {
-	  $messageStack->add_session(ERROR_NO_PERMISSION,'error');
+	  $messageStack->add(ERROR_NO_PERMISSION,'error');
 	  return false;
 	}
 	$result = $db->Execute("select field_name from " . TABLE_EXTRA_FIELDS . " where id = " . (int)$id);

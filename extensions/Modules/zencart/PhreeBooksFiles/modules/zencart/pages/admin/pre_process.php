@@ -33,7 +33,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
 	if ($security_level < 3) {
-		$messageStack->add_session(ERROR_NO_PERMISSION,'error');
+		$messageStack->add(ERROR_NO_PERMISSION,'error');
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL')); 
 	}
 	// Only empty (the company's zone) or a zone PHP knows; anything else would date orders wrongly.
@@ -49,11 +49,11 @@ switch ($_REQUEST['action']) {
 	    $entry = trim($entry);
 	    if ($entry === '') continue;
 	    if (strpos($entry, '=') === false) {
-	      $messageStack->add_session(sprintf(ZENCART_WARN_PAYMENT_MAP_FMT, $i + 1, htmlspecialchars($entry)), 'caution');
+	      $messageStack->add(sprintf(ZENCART_WARN_PAYMENT_MAP_FMT, $i + 1, htmlspecialchars($entry)), 'caution');
 	      continue;
 	    }
 	    $zc_mod = trim(explode('=', $entry, 2)[0]);
-	    if ($zc_mod === '') $messageStack->add_session(sprintf(ZENCART_WARN_PAYMENT_MAP_EMPTY, $i + 1), 'caution');
+	    if ($zc_mod === '') $messageStack->add(sprintf(ZENCART_WARN_PAYMENT_MAP_EMPTY, $i + 1), 'caution');
 	  }
 	}
 	// Validate shipping map: pipe-separated, each entry must be zc_module:keyword=fb_module:fb_service
@@ -62,17 +62,17 @@ switch ($_REQUEST['action']) {
 	    $entry = trim($entry);
 	    if ($entry === '') continue;
 	    if (strpos($entry, '=') === false) {
-	      $messageStack->add_session(sprintf(ZENCART_WARN_SHIPPING_MAP_FMT, $i + 1, htmlspecialchars($entry)), 'caution');
+	      $messageStack->add(sprintf(ZENCART_WARN_SHIPPING_MAP_FMT, $i + 1, htmlspecialchars($entry)), 'caution');
 	      continue;
 	    }
 	    [$zc_side, $fb_side] = explode('=', $entry, 2);
 	    $zc_mod    = trim(explode(':', trim($zc_side), 2)[0]);
 	    $fb_module = trim(explode(':', trim($fb_side), 2)[0]);
 	    if ($zc_mod === '') {
-	      $messageStack->add_session(sprintf(ZENCART_WARN_SHIPPING_MAP_EMPTY, $i + 1), 'caution');
+	      $messageStack->add(sprintf(ZENCART_WARN_SHIPPING_MAP_EMPTY, $i + 1), 'caution');
 	    }
 	    if ($fb_module !== '' && !is_dir(DIR_FS_MODULES . 'shipping/methods/' . $fb_module)) {
-	      $messageStack->add_session(sprintf(ZENCART_WARN_SHIPPING_MAP_MODULE, $i + 1, htmlspecialchars($fb_module)), 'caution');
+	      $messageStack->add(sprintf(ZENCART_WARN_SHIPPING_MAP_MODULE, $i + 1, htmlspecialchars($fb_module)), 'caution');
 	    }
 	  }
 	}

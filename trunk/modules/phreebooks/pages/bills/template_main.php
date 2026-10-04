@@ -19,10 +19,10 @@
 //
 echo html_form('bills_form', FILENAME_DEFAULT, gen_get_all_get_params(array('action', 'oID'))) . chr(10);
 echo html_hidden_field('action',            '') . chr(10);
-echo html_hidden_field('id',              $order->id) . chr(10);
-echo html_hidden_field('bill_acct_id',    $order->bill_acct_id) . chr(10);
-echo html_hidden_field('bill_address_id', $order->bill_address_id) . chr(10);
-echo html_hidden_field('bill_telephone1', $order->bill_telephone1) . chr(10);
+echo html_hidden_field('id',              $order->id ?? '') . chr(10);
+echo html_hidden_field('bill_acct_id',    $order->bill_acct_id ?? '') . chr(10);
+echo html_hidden_field('bill_address_id', $order->bill_address_id ?? '') . chr(10);
+echo html_hidden_field('bill_telephone1', $order->bill_telephone1 ?? '') . chr(10);
 // Set by submitToDo() from fbDocModified(). '1' unless the javascript could
 // establish that nothing changed, so a browser that never ran it posts as
 // before rather than silently dropping an edit.
@@ -116,22 +116,22 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
         $frow(TEXT_DATE, html_calendar_field($cal_bills));
         if (ENABLE_MULTI_BRANCH) {
           $frow(GEN_STORE_ID, html_pull_down_menu('store_id', gen_get_store_ids(),
-                $order->store_id ? $order->store_id : $_SESSION['admin_prefs']['def_store_id'], $fs));
+                !empty($order->store_id) ? $order->store_id : $_SESSION['admin_prefs']['def_store_id'], $fs));
         }
         $txn_url = null;
         // It names a variable holding a payment object: an installed payment method only.
         $active_pm = isset($order->shipper_code) && in_array($order->shipper_code, array_column($payment_modules, 'id'), true) ? $order->shipper_code : '';
-        if ($order->purch_order_id && $active_pm && isset($$active_pm) && method_exists($$active_pm, 'get_transaction_url')) {
+        if (!empty($order->purch_order_id) && $active_pm && isset($$active_pm) && method_exists($$active_pm, 'get_transaction_url')) {
           $txn_url = $$active_pm->get_transaction_url($order->purch_order_id);
         }
         $frow(TEXT_REFERENCE, $txn_url
           ? '<a href="' . htmlspecialchars($txn_url, ENT_QUOTES) . '" target="_blank" rel="noopener">'
             . htmlspecialchars($order->purch_order_id, ENT_QUOTES) . '</a>'
             . html_hidden_field('purch_order_id', $order->purch_order_id)
-          : html_input_field('purch_order_id', $order->purch_order_id, $fcr));
+          : html_input_field('purch_order_id', $order->purch_order_id ?? '', $fcr));
         $frow(JOURNAL_ID == 20 ? TEXT_BUYER : TEXT_SALES_REP,
               html_pull_down_menu('rep_id', gen_get_rep_ids($account_type),
-                $order->rep_id ? $order->rep_id : $default_sales_rep, $fs));
+                !empty($order->rep_id) ? $order->rep_id : $default_sales_rep, $fs));
         $frow(BNK_CASH_ACCOUNT,
               html_pull_down_menu('gl_acct_id', $gl_array_list, $order->gl_acct_id, str_replace('">', '" onchange="loadNewBalance()">', $fs)));
         $frow(BNK_DISCOUNT_ACCOUNT,
@@ -143,7 +143,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
         $frow(TEXT_TOTAL . (ENABLE_MULTI_CURRENCY ? ' (<span id="currency_label">'
                 . htmlspecialchars(isset($order->currencies_code) ? $order->currencies_code : DEFAULT_CURRENCY)
                 . '</span>)' : ''),
-              html_input_field('total', $order->total_amount, $fcr . ' readonly'));
+              html_input_field('total', $order->total_amount ?? '', $fcr . ' readonly'));
         if (JOURNAL_ID == 20 && $account_type == 'v') {
           $frow(BNK_ACCOUNT_BALANCE,      html_input_field('acct_balance', $currencies->format($acct_balance), $fcr . ' readonly'));
           $frow(BNK_BALANCE_AFTER_CHECKS, html_input_field('end_balance',  $currencies->format($acct_balance), $fcr . ' readonly'));
@@ -164,7 +164,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
         <?php } ?>
       </div>
       <div class="card-body py-2 px-2">
-        <?php echo html_pull_down_menu('shipper_code', $payment_modules, $order->shipper_code, 'class="form-select form-select-sm mb-2" onchange="activateFields()"') . chr(10); ?>
+        <?php echo html_pull_down_menu('shipper_code', $payment_modules, $order->shipper_code ?? '', 'class="form-select form-select-sm mb-2" onchange="activateFields()"') . chr(10); ?>
         <div style="position:relative;min-height:120px;">
           <?php
           $count = 0;
@@ -172,7 +172,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
             $value = $pmt_class['id'];
             echo '<div id="pm_' . $count . '" style="visibility:hidden;position:absolute;top:0;left:0;width:100%">' . chr(10);
             $disp_fields = $$value->selection();
-            for ($i = 0; $i < count(is_array($disp_fields['fields']) ? $disp_fields['fields'] : []); $i++) {
+            for ($i = 0; $i < count(is_array($disp_fields['fields'] ?? null) ? $disp_fields['fields'] : []); $i++) {
               echo $disp_fields['fields'][$i]['title'] . chr(10);
               echo $disp_fields['fields'][$i]['field'] . chr(10);
             }
@@ -209,7 +209,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
       </tr>
     </thead>
     <tbody id="item_table">
-      <?php if ($order->id_1) {
+      <?php if (!empty($order->id_1)) {
         $i = 1;
         while (true) {
           $id_num    = 'id_'    . $i;
@@ -247,10 +247,10 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
           } else {
             echo html_hidden_field($curr_num, $row_curr) . chr(10);
           }
-          echo '<td>' . html_input_field($amt_num,   $currencies->format($currencies->clean_value($order->$amt_num,   $row_curr), false, $row_curr), 'class="form-control form-control-sm text-end" readonly')   . '</td>' . chr(10);
+          echo '<td>' . html_input_field($amt_num,   $currencies->format($currencies->clean_value($order->$amt_num ?? '',   $row_curr), false, $row_curr), 'class="form-control form-control-sm text-end" readonly')   . '</td>' . chr(10);
           echo '<td>' . html_input_field($desc_num,  $order->$desc_num,                                               $extra_params . 'class="form-control form-control-sm" maxlength="64"') . '</td>' . chr(10);
-          echo '<td>' . html_input_field($dscnt_num, $currencies->format($currencies->clean_value($order->$dscnt_num, $row_curr), false, $row_curr), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateRowTotal(' . $i . ')"') . '</td>' . chr(10);
-          echo '<td>' . html_input_field($total_num, $currencies->format($currencies->clean_value($order->$total_num, $row_curr), false, $row_curr), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateUnitPrice(' . $i . ')"') . '</td>' . chr(10);
+          echo '<td>' . html_input_field($dscnt_num, $currencies->format($currencies->clean_value($order->$dscnt_num ?? '', $row_curr), false, $row_curr), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateRowTotal(' . $i . ')"') . '</td>' . chr(10);
+          echo '<td>' . html_input_field($total_num, $currencies->format($currencies->clean_value($order->$total_num ?? '', $row_curr), false, $row_curr), $extra_params . 'class="form-control form-control-sm text-end" onchange="updateUnitPrice(' . $i . ')"') . '</td>' . chr(10);
           echo '<td class="text-center">' . (($extra_params) ? '&nbsp;' : html_checkbox_field($pay_num, '1', ($order->$pay_num ? true : false), '', 'onclick="updatePayValues(' . $i . ')"')) . '</td>' . chr(10);
           echo '</tr>' . chr(10);
           $i++;

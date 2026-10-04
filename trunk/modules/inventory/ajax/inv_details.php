@@ -25,15 +25,15 @@ require(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 /**************   page specific initialization  *************************/
 $stock_note = array();
 // One of the following identifers is required.
-$sku    = db_prepare_input($_GET['sku']); // specifies the sku, could be a search field as well
-$UPC    = db_prepare_input($_GET['upc']); // specifies the upc code
-$iID    = (int)$_GET['iID']; // specifies the item database id
+$sku    = db_prepare_input($_GET['sku'] ?? ''); // specifies the sku, could be a search field as well
+$UPC    = db_prepare_input($_GET['upc'] ?? ''); // specifies the upc code
+$iID    = (int)($_GET['iID'] ?? 0); // specifies the item database id
 // optional for more detailed operation
-$bID    = (int)$_GET['bID']; // specifies the branch ID
-$cID    = (int)$_GET['cID']; // specifies the contact ID
-$jID    = db_prepare_input($_GET['jID']); // specifies the journal ID
-$rID    = db_prepare_input($_GET['rID']); // specifies the row to update
-$qty    = db_prepare_input($_GET['qty']); // specifes the quantity (for pricing)
+$bID    = (int)($_GET['bID'] ?? 0); // specifies the branch ID
+$cID    = (int)($_GET['cID'] ?? 0); // specifies the contact ID
+$jID    = db_prepare_input($_GET['jID'] ?? ''); // specifies the journal ID
+$rID    = db_prepare_input($_GET['rID'] ?? ''); // specifies the row to update
+$qty    = db_prepare_input($_GET['qty'] ?? ''); // specifes the quantity (for pricing)
 $strict = isset($_GET['strict']) ? $_GET['strict'] : false; // specifes strict match of sku value
 // some error checking
 if (!$sku && !$UPC && !$iID) {
@@ -63,6 +63,7 @@ if ($iID) {
 }
 
 if (!$bID) $bID = 0; // assume only one branch or main branch if not specified
+$xml = '';
 if ($cID) $xml .= xmlEntry("cID", $cID);
 if ($jID) $xml .= xmlEntry("jID", $jID);
 if ($rID) $xml .= xmlEntry("rID", $rID);
@@ -128,7 +129,7 @@ if($vendor) {
 		from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' GROUP BY sku" );
 	if($purchase->RecordCount() == 1 )foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
 }
-if($inventory_array['purch_package_quantity'] == 0) $inventory_array['purch_package_quantity'] = 1;
+if(empty($inventory_array['purch_package_quantity'])) $inventory_array['purch_package_quantity'] = 1;
 if (!$qty){
 	if($jID == 6 && $inventory_array['purch_package_quantity'] != 0) {
 		$qty = $inventory_array['purch_package_quantity'];
@@ -288,7 +289,7 @@ if (!empty($stock_note)) {
     $xml .= "</stock_note>\n";
   }
 }
-if ($debug) $xml .= xmlEntry('debug', $debug);
+if (!empty($debug)) $xml .= xmlEntry('debug', $debug);
 echo createXmlHeader() . $xml . createXmlFooter();
 die;
 ?>

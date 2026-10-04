@@ -175,6 +175,7 @@ $order        = new orders();
 $custom_path = DIR_FS_WORKING . 'custom/pages/orders/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; js_include reads it too
 switch ($_REQUEST['action']) {
   case 'save':
   case 'email':
@@ -221,7 +222,7 @@ switch ($_REQUEST['action']) {
 	$order->bill_telephone1     = db_prepare_input(($_POST['bill_telephone1']     <> GEN_TELEPHONE1)     ? $_POST['bill_telephone1']     : '', ADDRESS_BOOK_TELEPHONE1_REQUIRED);
 	$order->bill_email          = db_prepare_input(($_POST['bill_email']          <> GEN_EMAIL)          ? $_POST['bill_email']          : '', ADDRESS_BOOK_EMAIL_REQUIRED);
 	if (defined('MODULE_SHIPPING_STATUS')) {
-	  $order->ship_short_name     = db_prepare_input($_POST['ship_search']);
+	  $order->ship_short_name     = db_prepare_input($_POST['ship_search'] ?? '');
 	  $order->ship_add_update     = isset($_POST['ship_add_update']) ? $_POST['ship_add_update'] : 0;
 	  $order->ship_acct_id        = ctype_digit((string)db_prepare_input($_POST['ship_acct_id'])) ? db_prepare_input($_POST['ship_acct_id']) : '';
 	  $order->ship_address_id     = db_prepare_input($_POST['ship_address_id']);
@@ -235,7 +236,7 @@ switch ($_REQUEST['action']) {
 	  $order->ship_country_code   = db_prepare_input($_POST['ship_country_code']);
 	  $order->ship_telephone1     = db_prepare_input(($_POST['ship_telephone1']     <> GEN_TELEPHONE1)     ? $_POST['ship_telephone1']     : '', ADDRESS_BOOK_TELEPHONE1_REQUIRED);
 	  $order->ship_email          = db_prepare_input(($_POST['ship_email']          <> GEN_EMAIL)          ? $_POST['ship_email']          : '', ADDRESS_BOOK_EMAIL_REQUIRED);
-	  $order->shipper_code        = implode(':', array(db_prepare_input($_POST['ship_carrier']), db_prepare_input($_POST['ship_service'])));
+	  $order->shipper_code        = implode(':', array(db_prepare_input($_POST['ship_carrier'] ?? ''), db_prepare_input($_POST['ship_service'] ?? '')));
 	  $order->ship_packages       = db_prepare_input($_POST['ship_packages'] ?? '');
 	  $order->drop_ship           = isset($_POST['drop_ship']) ? $_POST['drop_ship'] : 0;
 	  $order->freight             = $currencies->clean_value(db_prepare_input($_POST['freight']), $order->currencies_code) / $order->currencies_value;

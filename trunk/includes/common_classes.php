@@ -351,7 +351,7 @@ class ctl_panel {
 	public $default_params 		= array();
 
   	function __construct() {
-  		if ($this->security_id <> '' ) $this->valid_user = ($_SESSION['admin_security'][$this->security_id] > 0)? true : false;
+  		if ($this->security_id <> '' ) $this->valid_user = (($_SESSION['admin_security'][$this->security_id] ?? 0) > 0)? true : false;
   		else $this->valid_user = true;
   	}
 

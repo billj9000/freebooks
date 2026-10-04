@@ -39,7 +39,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
 	if ($security_level < 2) {
-	  $messageStack->add_session(ERROR_NO_PERMISSION,'error');
+	  $messageStack->add(ERROR_NO_PERMISSION,'error');
 	  gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	  break;
 	}
@@ -169,7 +169,7 @@ switch ($_REQUEST['action']) {
 
   case 'delete':
 	if ($security_level < 4) {
-		$messageStack->add_session(ERROR_NO_PERMISSION,'error');
+		$messageStack->add(ERROR_NO_PERMISSION,'error');
 		gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 		break;
 	}

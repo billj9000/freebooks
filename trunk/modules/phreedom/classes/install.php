@@ -307,17 +307,17 @@ class phreedom_admin {
 	    $versions = xml_to_object($revisions);
 		$latest  = $versions->Revisions->Phreedom->Current;
 		$current = MODULE_PHREEDOM_VERSION;
-		if ($latest > $current) $messageStack->add_session(sprintf(TEXT_VERSION_CHECK_NEW_VER, $current, $latest), 'caution');
+		if ($latest > $current) $messageStack->add(sprintf(TEXT_VERSION_CHECK_NEW_VER, $current, $latest), 'caution');
 		foreach ($loaded_modules as $mod) { // check rest of modules
 		  if ($mod == 'phreedom') continue; // skip this module
 		  $latest  = $versions->Revisions->Modules->$mod->Current;
 		  $current = constant('MODULE_' . strtoupper($mod) . '_VERSION');
-		  if ($latest > $current) $messageStack->add_session(sprintf(TEXT_VERSION_CHECK_NEW_MOD_VER, $mod, $current, $latest), 'caution');
+		  if ($latest > $current) $messageStack->add(sprintf(TEXT_VERSION_CHECK_NEW_MOD_VER, $mod, $current, $latest), 'caution');
 		}
 	  }
     }
 	// Make sure the install directory has been moved/removed
-	if (is_dir(DIR_FS_ADMIN . 'install')) $messageStack->add_session(TEXT_INSTALL_DIR_PRESENT, 'caution');
+	if (is_dir(DIR_FS_ADMIN . 'install')) $messageStack->add(TEXT_INSTALL_DIR_PRESENT, 'caution');
   }
 
   function update($module) {

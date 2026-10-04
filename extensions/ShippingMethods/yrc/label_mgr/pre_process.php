@@ -189,11 +189,11 @@ switch ($action) {
 	  while(true) {
 		$filename = $file_path . $tracking_number . ($cnt > 0 ? '-'.$cnt : '') . '.lpt';
 		if   (is_file($filename)) {
-		  if (!unlink($filename)) $messageStack->add_session('Trouble removing label file (' . $filename . ')','caution');
+		  if (!unlink($filename)) $messageStack->add('Trouble removing label file (' . $filename . ')','caution');
 		} else {
 		  $filename = $file_path . $tracking_number . ($cnt > 0 ? '-'.$cnt : '') . '.pdf';
 		  if (is_file($filename)) {
-		    if (!unlink($filename)) $messageStack->add_session('Trouble removing label file (' . $filename . ')','caution');
+		    if (!unlink($filename)) $messageStack->add('Trouble removing label file (' . $filename . ')','caution');
 		  } else {
 		    break; // file does not exist, exit loop
 		  }

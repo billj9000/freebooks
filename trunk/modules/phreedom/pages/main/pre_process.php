@@ -82,7 +82,7 @@ switch ($_REQUEST['action']) {
 	    if (isset($_SESSION['pb_type']) && $_SESSION['pb_type']) $get_params .= '&amp;type=' . $_SESSION['pb_type'];
 	  }
 	  // check safe mode
-	  if (get_cfg_var('safe_mode')) $messageStack->add_session(SAFE_MODE_ERROR, 'error');
+	  if (get_cfg_var('safe_mode')) $messageStack->add(SAFE_MODE_ERROR, 'error');
       gen_redirect(html_href_link(FILENAME_DEFAULT, $get_params, 'SSL'));
     } else {
 	  // Note: This is assigned to admin id = 1 since the user is not logged in.
@@ -240,7 +240,7 @@ switch ($_REQUEST['action']) {
       pw_reset_token = NULL, pw_reset_expires = NULL, failed_attempts = 0, locked_until = NULL
       where admin_id = " . (int)$pw_reset_user['admin_id']);
     gen_add_audit_log(GEN_LOG_PW_RESET_DONE . $pw_reset_user['admin_email']);
-    $messageStack->add_session(SUCCESS_PASSWORD_RESET, 'success');
+    $messageStack->add(SUCCESS_PASSWORD_RESET, 'success');
     gen_redirect(html_href_link(FILENAME_DEFAULT, '', 'SSL'));
     break;
   case 'logout':

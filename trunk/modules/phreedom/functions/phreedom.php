@@ -893,7 +893,7 @@ function csv_explode($str, $delim = ',', $enclose = '"', $preserve = false){
 	$phreedom->initialize($loaded_modules);
 	if (defined('TABLE_CONTACTS')) {
 	  $dept = $db->Execute("select dept_rep_id from " . TABLE_CONTACTS . " where id = " . (int)$user['account_id']);
-	  $_SESSION['department'] = $dept->fields['dept_rep_id'];
+	  $_SESSION['department'] = $dept->fields['dept_rep_id'] ?? ''; // a user need not be linked to a contact
 	}
   }
 

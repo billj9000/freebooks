@@ -566,7 +566,7 @@ class amazon {
 	            $output['main-image-url'] = PPS_FULL_URL . $result->fields['image_with_path'];
 	        } else {
 	            $output['main-image-url'] = '';
-	            $messageStack->add_session('Image at path: '.$result->fields['image_with_path'].' for sku ' . $output['sku'] . ' must be of type jpg or gif for amazon!', 'error');
+	            $messageStack->add('Image at path: '.$result->fields['image_with_path'].' for sku ' . $output['sku'] . ' must be of type jpg or gif for amazon!', 'error');
 	        }
 //			$output['other-image-url1'] = $result->fields['other-image-url1'];
 //			$output['other-image-url2'] = $result->fields['other-image-url2'];
@@ -584,7 +584,7 @@ class amazon {
 	        $output['item-width']       = $result->fields['dim_width'];
 	        $output['package-weight-unit-of-measure'] = 'LB'; // $result->fields['package_weight_unit_of_measure'];
 	        if ($result->fields['item_weight'] == 0) {
-	            $messageStack->add_session('Item ' . $result->fields['sku'] . ' has no weight. Please edit the inventory record and add a weight.', 'error');
+	            $messageStack->add('Item ' . $result->fields['sku'] . ' has no weight. Please edit the inventory record and add a weight.', 'error');
 	        }
 	        $output['package-weight']   = $result->fields['package_weight']>0 ? $result->fields['package_weight'] : ceil($result->fields['item_weight']);
 	        $output['package-length-unit-of-measure'] = 'IN'; // $result->fields['package_length_unit_of_measure'];

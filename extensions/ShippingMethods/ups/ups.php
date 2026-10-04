@@ -744,7 +744,7 @@ echo 'Fault Response <pre>' . htmlspecialchars($client->__getLastResponse()) . '
 		}
 		fclose($handle);
 	  }
-	  $messageStack->add_session('Successfully retrieved the UPS shipping label. Tracking # ' . $ups_results[$key]['tracking'],'success');
+	  $messageStack->add('Successfully retrieved the UPS shipping label. Tracking # ' . $ups_results[$key]['tracking'],'success');
 	}
 	return $returnArray;
   }
@@ -1075,10 +1075,10 @@ echo 'Fault Response <pre>' . htmlspecialchars($client->__getLastResponse()) . '
 		$file_name = false; // file does not exist, skip
 	  }
 	  if ($file_name) if (!unlink($file_path . $file_name)) {
-		$messageStack->add_session('Trouble deleting label file (' . $file_path . $file_name . ')', 'caution');
+		$messageStack->add('Trouble deleting label file (' . $file_path . $file_name . ')', 'caution');
 	  }
 	  // if we are here the delete was successful, the lack of an error indicates success
-	  $messageStack->add_session('Successfully deleted the shipping label. Tracking # ' . $tracking_number, 'success');
+	  $messageStack->add('Successfully deleted the shipping label. Tracking # ' . $tracking_number, 'success');
 	  return true;
 	}
 

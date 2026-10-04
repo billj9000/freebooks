@@ -29,7 +29,7 @@ $company  = db_input($_SESSION['company']);
 switch ($_REQUEST['action']) {
   case 'delete':
     if ($security_level < 3) {
-      $messageStack->add_session(ERROR_NO_PERMISSION, 'error');
+      $messageStack->add(ERROR_NO_PERMISSION, 'error');
       break;
     }
     if (!empty($_POST['key_id'])) {

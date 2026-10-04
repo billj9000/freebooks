@@ -94,6 +94,7 @@ $custom_path = DIR_FS_WORKING . 'custom/pages/bills/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 
 /***************   Act on the action request   *************************/
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; js_include reads it too
 switch ($_REQUEST['action']) {
   case 'save':
   case 'print':

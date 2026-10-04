@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -52,7 +53,7 @@ class pos_this_week extends ctl_panel {
 				$result->MoveNext();
 		  	}
 		}
-		if (!$params['num_rows'] && $result->RecordCount() > 0) {
+		if (empty($params['num_rows']) && $result->RecordCount() > 0) {
 		  	$contents .= '<div style="float:right"><b>' . $currencies->format_full($total, true, $result->fields['currencies_code'], $result->fields['currencies_value']) . '</b></div>';
 		  	$contents .= '<div><b>' . TEXT_TOTAL . '</b></div>' . chr(10);
 		}

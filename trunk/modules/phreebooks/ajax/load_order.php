@@ -27,11 +27,11 @@ require_once(DIR_FS_MODULES . 'phreebooks/defaults.php');
 require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 /**************   page specific initialization  *************************/
-$cID       = (int)db_prepare_input($_GET['cID']);
-$oID       = (int)db_prepare_input($_GET['oID']);
-$jID       = db_prepare_input($_GET['jID']);
-$so_po     = db_prepare_input($_GET['so_po']); // pull from a so/po for invoice/receipt
-$just_ship = db_prepare_input($_GET['ship_only']);
+$cID       = (int)db_prepare_input($_GET['cID'] ?? 0);
+$oID       = (int)db_prepare_input($_GET['oID'] ?? 0);
+$jID       = db_prepare_input($_GET['jID'] ?? '');
+$so_po     = db_prepare_input($_GET['so_po'] ?? ''); // pull from a so/po for invoice/receipt
+$just_ship = db_prepare_input($_GET['ship_only'] ?? '');
 define('JOURNAL_ID',$jID);
 $cog_types = explode(',', COG_ITEM_TYPES);
 $error = false;
@@ -75,7 +75,7 @@ if ($cID && !$just_ship) { // build the contact data
   $invoices = fill_paid_invoice_array(0, $cID, $type);
   $terms    = explode(':', $contact->fields['special_terms']);
   $contact->fields['credit_limit'] = !empty($terms[4]) ? $terms[4] : ($type == 'v' ? AP_CREDIT_LIMIT_AMOUNT : AR_CREDIT_LIMIT_AMOUNT);
-  $contact->fields['credit_remaining'] = $contact->fields['credit_limit'] - $invoices['balance'] + $order->fields['total_amount'];
+  $contact->fields['credit_remaining'] = $contact->fields['credit_limit'] - $invoices['balance'] + ($order->fields['total_amount'] ?? 0); // a new order has no total yet
   $bill_add   = $db->Execute("select * from " . TABLE_ADDRESS_BOOK . " 
     where ref_id = '" . $cID . "' and type in ('" . $type . "m', '" . $type . "b')");
   //fix some special fields
