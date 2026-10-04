@@ -14,7 +14,7 @@
 // Returns a list-group fragment of inventory items matching a SKU prefix
 // or a vendor part number - the vendor_sku column on
 // inventory_purchase_details, falling back to a match inside the free-text
-// description_purchase for rows that predate that column - for the Quick
+// description_purchase for rows without one - for the Quick
 // Label Print page's live search box. Mirrors the matching behavior of the
 // Inventory Manager's own search box (pre_process.php), minus the
 // description_short/description_sales fields, which aren't useful for a

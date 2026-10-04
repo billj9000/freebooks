@@ -62,7 +62,7 @@ class labels_admin {
 
   // Every install class is expected to answer this: the company manager and the
   // installer call it unconditionally when the new company is asked for demo
-  // data, and its absence was a fatal there rather than a skipped step.
+  // data, so it exists even with nothing to load.
   function load_demo() {
     return false;
   }

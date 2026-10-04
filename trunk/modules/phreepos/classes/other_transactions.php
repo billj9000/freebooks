@@ -206,8 +206,8 @@ class other_transactions {
   	
   	function get_transaction_info($id){
   		global $db;
-  		// See tills::get_till_info - an absent id made a syntax error out of the
-  		// statement rather than an empty result.
+  		// See tills::get_till_info - an absent id would make a syntax error of
+  		// the statement rather than an empty result.
   		if (!is_numeric($id)) return false;
   		$sql = "select * from " . $this->db_table . " where ot_id = " . (int)$id;
         $result = $db->Execute($sql);

@@ -256,15 +256,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 		  	$rID    = $result->fields['id']; // only one form available, use it
 
 		  	// Forms prints a receipt as character-cell text through
-		  	// SerialRenderer (§13.27), so what comes back is the same string
-		  	// BuildForm() used to return and goes into the same response.
-		  	//
-		  	// The PhreeForm fallback that used to sit here was already dead: it
-		  	// was reached only when forms_render_to_string() returned null, and
-		  	// that function has rendered receipts since §13.28. It could not
-		  	// have run on a migrated company either — get_report_details()
-		  	// refuses a native definition, which is what this form becomes the
-		  	// moment the receipt editor saves it.
+		  	// SerialRenderer (§13.27), and that string goes into the response.
 		  	$output = null;
 		  	if (defined('MODULE_FORMS_STATUS')) {
 		  		require_once(DIR_FS_MODULES . 'forms/functions/forms.php');

@@ -252,19 +252,16 @@ class api_resource_invoices {
 
     if ($needs_payment_reference) {
       // A receipt's 'pmt'/'chk' row's so_po_item_ref_id holds the *paid
-      // document's own journal_main.id* directly (confirmed against a real
-      // receipt — banking.php's pay-invoice screen builds item_rows one per
-      // open invoice being paid, 'id' = that invoice's journal_main.id, NOT
-      // a journal_item.id). Do not join this against journal_item.id: that
-      // column is a separate auto-increment sequence that can numerically
-      // collide with journal_main.id values for unrelated records,
-      // silently attaching a completely different customer's payment
-      // reference to this invoice (found the hard way — id collision
-      // between an early invoice's own line-item ids and nearby unrelated
-      // receipts' journal_main ids). Ordered so the most recent receipt
-      // with a non-blank reference comes first per invoice; a
-      // partially-paid invoice with several receipts otherwise has no
-      // single "the" reference.
+      // document's own journal_main.id* directly - banking.php's
+      // pay-invoice screen builds item_rows one per open invoice being
+      // paid, 'id' = that invoice's journal_main.id, NOT a journal_item.id.
+      // Do not join this against journal_item.id: that column is a separate
+      // auto-increment sequence that can numerically collide with
+      // journal_main.id values for unrelated records, silently attaching a
+      // completely different customer's payment reference to this invoice.
+      // Ordered so the most recent receipt with a non-blank reference comes
+      // first per invoice; a partially-paid invoice with several receipts
+      // otherwise has no single "the" reference.
       $sql = "SELECT pay_items.so_po_item_ref_id AS invoice_id, pay.purch_order_id AS payment_reference
               FROM " . TABLE_JOURNAL_ITEM . " pay_items
               JOIN " . TABLE_JOURNAL_MAIN . " pay ON pay.id = pay_items.ref_id

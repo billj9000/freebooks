@@ -217,7 +217,7 @@ class mb extends inventory {//Master Build (combination of Master Stock Item and
 		$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku like '" . db_input($this->sku) . "-%'");
 		// the 'sku' delete only catches rows where THIS master is used as someone else's
 		// component - it never touches the master's own template row or any child's own
-		// BOM row, both keyed by ref_id, so those were left orphaned.
+		// BOM row, both keyed by ref_id, so those are deleted by ref_id below.
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($this->sku) . "'");
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$this->id);
 		if (!empty($child_ids)) {

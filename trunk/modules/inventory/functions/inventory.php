@@ -36,7 +36,7 @@
   function inv_vendor_sku($sku, $vendor_id) {
 	// Resolves the supplier's own part number for an item: the explicit
 	// vendor_sku column if set, else the first word of description_purchase
-	// (the long-standing convention before vendor_sku existed), else ''.
+	// (the convention for items without one), else ''.
 	global $db;
 	if (!$sku || !$vendor_id) return '';
 	$result = $db->Execute("select vendor_sku, description_purchase from " . TABLE_INVENTORY_PURCHASE

@@ -230,7 +230,7 @@ switch ($_REQUEST['action']) {
 	// The field is a column name in the SQL: only one this page offers in its
 	// filter list (built the same way below). The criterion is a position in
 	// $filter_criteria or the 'contains' text, and the value is escaped. The
-	// session is checked too, as it may hold a filter saved before this check.
+	// session is checked too, as it may hold a filter saved by an earlier release.
 	$allowed_filter_fields = array();
 	$result = $db->Execute("SELECT field_name FROM " . TABLE_EXTRA_FIELDS ." WHERE module_id = 'inventory' AND use_in_inventory_filter = '1'");
 	while (!$result->EOF) {

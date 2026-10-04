@@ -210,7 +210,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		$db->Execute("delete from " . TABLE_INVENTORY_PURCHASE . " where sku like '" . db_input($this->sku) . "-%'");
 		// the 'sku' delete only catches rows where THIS master is used as someone else's
 		// component - it never touches the master's own template row or any child's own
-		// BOM row, both keyed by ref_id, so those were left orphaned.
+		// BOM row, both keyed by ref_id, so those are deleted by ref_id below.
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where sku = '" . db_input($this->sku) . "'");
 		$db->Execute("delete from " . TABLE_INVENTORY_ASSY_LIST . " where ref_id = " . (int)$this->id);
 		if (!empty($child_ids)) {
@@ -293,12 +293,12 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 				}
 			}
 		}
-		// Phase 2: a BOM line naming an ms-typed master resolves to the mi child matching
-		// each variant's own attribute code (e.g. H707 -> H707-RD for the RD variant),
-		// instead of every variant sharing the literal master SKU. Single-attribute
-		// bundles only - a two-attribute bundle keeps the Phase 1 literal-copy behaviour,
-		// since which axis should drive a given linked component is not yet expressible.
-		// All-or-nothing: if any variant can't resolve, nothing is generated this save.
+		// A BOM line naming an ms-typed master resolves to the mi child matching each
+		// variant's own attribute code (e.g. H707 -> H707-RD for the RD variant), instead
+		// of every variant sharing the literal master SKU. Single-attribute bundles only
+		// - a two-attribute bundle keeps the literal SKU, since which axis should drive a
+		// given linked component is not yet expressible. All-or-nothing: if any variant
+		// can't resolve, nothing is generated this save.
 		$resolved_bom = array();
 		foreach ($sku_list as $sku) {
 			$resolved_bom[$sku] = $bom_list;

@@ -372,8 +372,8 @@ function adoptMasterAttributes(xml) {
     idx0.options.add(opt);
   });
   // masterStockTitle() writes into the sku list's first body row, so it must run after
-  // masterStockBuildSkus() has actually created one - calling it first, with the table
-  // still in its pre-attribute empty state, is what threw "rows[1] is undefined".
+  // masterStockBuildSkus() has created one: with the table still empty there is no row
+  // to write into.
   masterStockBuildSkus();
   masterStockTitle(0);
 }

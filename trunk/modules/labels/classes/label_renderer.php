@@ -78,7 +78,7 @@ class LabelRenderer {
   // conditional layout, e.g. `{% if upc %}...{% endif %}`. This is safe because the sandbox
   // checks tags, filters, functions, methods and property access INDEPENDENTLY: allowing the
   // `if` tag does not loosen the filter/function/method/property allowlists, so an attacker
-  // writing `{% if x|map('system') %}` is still stopped by the filter policy. Verified: the
+  // writing `{% if x|map('system') %}` is still stopped by the filter policy. The
   // RCE gadgets (`map`/`filter` callables, `constant()`, `attribute()` onto an object's
   // method/property) remain blocked identically with or without `if` — the label context
   // holds only strings, and `_self` is the template-name string in Twig 3, not the object.

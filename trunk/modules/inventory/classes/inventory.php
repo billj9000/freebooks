@@ -364,8 +364,8 @@ class inventory {
 	
 	/**
 	 * The full path of an existing image file under this company's inventory
-	 * images directory, or false. The relative path is stored data and was once
-	 * a posted field, so it is only trusted once it resolves inside that
+	 * images directory, or false. The relative path is stored data, so it is only
+	 * trusted once it resolves inside that
 	 * directory: nothing outside it can be read over or deleted.
 	 * @param string $relative
 	 */

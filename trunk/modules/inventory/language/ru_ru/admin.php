@@ -75,7 +75,7 @@ define('INV_LABEL_TIME_STAMP_VALUE','System field to track the last date and tim
 define('INV_FIELD_NAME_RULES','Fieldnames cannot contain spaces or special<br />characters and must be 64 characters or less');
 define('INV_CATEGORY_CANNOT_DELETE','Не могу удалить категорию. Используется полем: ');
 define('INV_CANNOT_DELETE_SYSTEM','Fields in the System category cannot be deleted!');
-// INV_IMAGE_* now live in this module's language.php - the item page raises them and
+// INV_IMAGE_* live in this module's language.php - the item page raises them and
 // never loads admin.php. Defining them here too collides when both files load.
 define('INV_FIELD_RESERVED_WORD','The field name entered is a reserved word. Please choose a new field name.');
 define('INV_TOOLS_VALIDATE_SO_PO','Инвентаризация: проверка количества товаров в заказах');

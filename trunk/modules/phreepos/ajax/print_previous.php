@@ -45,9 +45,7 @@ if (!$error ) {
 	$rID    = $result->fields['id']; // only one form available, use it
 
 	// Forms prints a receipt as character-cell text through SerialRenderer
-	// (§13.27), so what comes back is the same string BuildForm() used to
-	// return and goes into the same response. The PhreeForm fallback that used
-	// to sit here was already dead — see the note in save_main.php.
+	// (§13.27), and that string goes into the response.
 	$output = null;
 	if (defined('MODULE_FORMS_STATUS')) {
 		require_once(DIR_FS_MODULES . 'forms/functions/forms.php');

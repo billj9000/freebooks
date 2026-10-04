@@ -102,10 +102,7 @@ class ma extends inventory { //Item Assembly formerly know as 'as' but this resu
 	 * overrides this to true.
 	 *
 	 * It has to be one overridable rule rather than the same expression written out at
-	 * each site. pb already set allow_edit_bom = true when LOADING an item, but save()
-	 * re-derived it from the database and the override did not reach that far, so a
-	 * bundle that had ever been sold rendered an editable BOM, reported a successful
-	 * save and threw the change away.
+	 * each site, so a subclass's answer holds when loading an item and when saving one.
 	 */
 	function bom_editable($last_journal_date, $quantity_on_hand) {
 		return (($last_journal_date == '0000-00-00 00:00:00' || $last_journal_date == '')

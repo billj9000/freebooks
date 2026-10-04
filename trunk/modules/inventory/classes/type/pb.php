@@ -24,10 +24,9 @@ class pb extends ma {
 	/**
 	 * A bundle's parts list is ALWAYS editable: there is no assembly step to lock it,
 	 * and no stock of its own to contradict. Overriding the rule itself rather than the
-	 * flag is what makes that true everywhere - loading an item AND saving one. Setting
-	 * the flag after load, as this class used to, left save() free to re-derive it from
-	 * last_journal_date, so any bundle that had ever been sold silently discarded every
-	 * BOM edit while reporting that it had saved.
+	 * flag is what makes that true everywhere - loading an item AND saving one, where
+	 * save() would otherwise re-derive it from last_journal_date and discard the BOM
+	 * edit of any bundle that has ever been sold.
 	 */
 	function bom_editable($last_journal_date, $quantity_on_hand) { return true; }
 
