@@ -365,6 +365,9 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 				}
 			}
 		}
+		// Each variant weighs its own parts (below), so the master's weight is never copied
+		// over a variant's - nor over the parcel weight of one that ships as one item.
+		unset($sql_data_array['item_weight']);
 		foreach($update_list as $sku) { //update with reduced number of fields.
 			$sql_data_array['sku'] = $sku;
 			if(isset($sql_data_array['description_short'])) 	$sql_data_array['description_short'] 	= sprintf($this->description_short, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
@@ -395,11 +398,18 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 				db_perform(TABLE_INVENTORY_ASSY_LIST, $list_array, 'insert');
 			}
 		}
-		// Only the fields the master changed are still in the update; a changed weight or size
-		// reaches every bundle that ships these children as its parts.
-		if (array_intersect_key($sql_data_array, array_flip(array('item_weight', 'item_length', 'item_width', 'item_height')))) {
-			inv_bundle_pieces_changed($update_list);
+		// A variant that ships as its parts weighs them, as a Product Bundle does, from its
+		// own resolved Bill of Materials - a red kit from the red hose.
+		$reweighed = array();
+		foreach (array_merge($insert_list, $update_list) as $sku) {
+			$child = $db->Execute("select id, item_weight, ship_complete from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
+			if ($child->EOF || $child->fields['ship_complete'] == '1') continue;
+			if (round(inv_bundle_reweigh($child->fields['id']), 4) != round((float)$child->fields['item_weight'], 4)) $reweighed[] = $sku;
 		}
+		// Only the sizes the master changed are still in the update; a changed size, or a
+		// variant's changed weight, reaches every bundle that ships these children as its parts.
+		$resized = array_intersect_key($sql_data_array, array_flip(array('item_length', 'item_width', 'item_height'))) ? $update_list : array();
+		inv_bundle_pieces_changed(array_merge($resized, array_intersect($reweighed, $update_list)));
 		if (count($delete_list) && $security_level < 4){
 			$messageStack->add(ERROR_NO_PERMISSION,'error');
 			$this->get_ms_list();

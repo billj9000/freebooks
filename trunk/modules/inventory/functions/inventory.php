@@ -112,9 +112,10 @@
    *
    * A Product Bundle that ships as its separate parts sends each part's weight and
    * dimensions as its shipping pieces, and weighs what is in it. So every such bundle
-   * using one of these SKUs is given its weight again - the sum of its parts - and a new
-   * last_update, which is how anything sending products elsewhere (the Zen Cart module's
-   * incremental push, for one) knows to send it again. Nothing is sent from here.
+   * using one of these SKUs - a variant of a Master Product Bundle included - is given its
+   * weight again and a new last_update (inv_bundle_reweigh()), which is how anything
+   * sending products elsewhere (the Zen Cart module's incremental push, for one) knows to
+   * send it again. Nothing is sent from here.
    *
    * A bundle that ships as one item is left alone: it sends no pieces, and its weight is
    * the packed parcel, which only the user knows.
@@ -128,22 +129,34 @@
 	$in = "'" . implode("','", array_map('db_input', $skus)) . "'";
 	$bundles = $db->Execute("SELECT DISTINCT b.id FROM " . TABLE_INVENTORY_ASSY_LIST . " a"
 	  . " INNER JOIN " . TABLE_INVENTORY . " b ON b.id = a.ref_id"
-	  . " WHERE a.sku IN ($in) AND b.inventory_type = 'pb' AND b.ship_complete = '0'");
+	  . " WHERE a.sku IN ($in) AND b.inventory_type IN ('pb', 'pc') AND b.ship_complete = '0'");
 	$marked = 0;
 	while (!$bundles->EOF) {
-	  $id    = (int)$bundles->fields['id'];
-	  // One inventory row per part, read and rounded as pb::derive_bom_weight() and pb::save()
-	  // do, so the two ways a bundle gets its weight agree.
-	  $part_weight = "(SELECT i.item_weight FROM " . TABLE_INVENTORY . " i WHERE i.sku = a.sku LIMIT 1)";
-	  $parts = $db->Execute("SELECT SUM(a.qty * $part_weight) AS weight, COUNT($part_weight) AS parts"
-	    . " FROM " . TABLE_INVENTORY_ASSY_LIST . " a WHERE a.ref_id = $id");
-	  $set = "last_update = '" . date('Y-m-d H:i:s') . "'";
-	  if ((int)$parts->fields['parts'] > 0) $set .= ", item_weight = " . round((float)$parts->fields['weight'], 4);
-	  $db->Execute("UPDATE " . TABLE_INVENTORY . " SET $set WHERE id = $id");
+	  inv_bundle_reweigh((int)$bundles->fields['id']);
 	  $marked++;
 	  $bundles->MoveNext();
 	}
 	return $marked;
+  }
+
+  /**
+   * Give one bundle the weight of the parts now in its Bill of Materials, and a new
+   * last_update. A bundle with no known parts keeps its weight. Returns the weight it now
+   * has. The caller decides whether the bundle weighs its parts at all - one that ships
+   * as one item does not.
+   */
+  function inv_bundle_reweigh($id) {
+	global $db;
+	$id = (int)$id;
+	// One inventory row per part, read and rounded as pb::derive_bom_weight() and pb::save()
+	// do, so the two ways a bundle gets its weight agree.
+	$part_weight = "(SELECT i.item_weight FROM " . TABLE_INVENTORY . " i WHERE i.sku = a.sku LIMIT 1)";
+	$parts = $db->Execute("SELECT SUM(a.qty * $part_weight) AS weight, COUNT($part_weight) AS parts"
+	  . " FROM " . TABLE_INVENTORY_ASSY_LIST . " a WHERE a.ref_id = $id");
+	$set = "last_update = '" . date('Y-m-d H:i:s') . "'";
+	if ((int)$parts->fields['parts'] > 0) $set .= ", item_weight = " . round((float)$parts->fields['weight'], 4);
+	$db->Execute("UPDATE " . TABLE_INVENTORY . " SET $set WHERE id = $id");
+	return (float)$db->Execute("SELECT item_weight FROM " . TABLE_INVENTORY . " WHERE id = $id")->fields['item_weight'];
   }
 
   /**
