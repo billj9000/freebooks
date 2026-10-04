@@ -785,9 +785,17 @@ foreach ($zc_orders as $zc) {
     unset($_auth_totals, $_fb_tax, $_fb_total, $_rounding, $_dec, $_a, $_t, $_row, $_rate, $_auth);
 
     // Build order description (stored in journal_main.description)
+    // The column holds 64 characters; the full comment is kept in notes, so a
+    // long one is cut at a word and marked rather than left for the database to cut.
     $desc = 'ZenCart Order #' . $zc_id;
     if (!empty($zc['comments'])) {
-        $desc .= ' - ' . substr((string)$zc['comments'], 0, 180);
+        $desc .= ' - ' . preg_replace('/\s+/u', ' ', trim((string)$zc['comments']));
+        if (mb_strlen($desc) > 64) {
+            $cut  = mb_substr($desc, 0, 61);
+            $word = mb_strrpos($cut, ' ');
+            if ($word !== false && $word > mb_strlen('ZenCart Order #' . $zc_id . ' -')) $cut = mb_substr($cut, 0, $word);
+            $desc = rtrim($cut, " -,.;:") . '...';
+        }
     }
 
     // Populate orders object
