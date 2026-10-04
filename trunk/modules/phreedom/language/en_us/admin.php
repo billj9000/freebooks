@@ -182,6 +182,7 @@ define('CD_01_12_DESC', 'Enter the company\'s fax number');
 define('CD_01_13_DESC', 'Enter the general company email address');
 define('CD_01_14_DESC', 'Enter the homepage of the company website (without the http://)');
 define('CD_01_15_DESC', 'Enter the company\'s (Federal) tax ID number');
+define('CD_01_TIMEZONE_DESC', 'Time zone the company works in. Document dates, scheduled jobs and logged times all use it.');
 define('CD_01_16_DESC', 'Enter the company ID number. This number is used to identify transactions generated locally versus imported/exported transactions.');
 define('CD_01_18_DESC', 'Enable multiple branch functionality.<br />If No is selected, only one company location will be assumed.');
 define('CD_01_19_DESC', 'Enable multiple currencies in user entry screens.<br />If No is selected, only the default currency wil be used.');

@@ -118,6 +118,7 @@ while (!$_cfg->EOF) {
     }
     $_cfg->MoveNext();
 }
+gen_apply_timezone(); // the company's time zone, as the web pages use
 unset($_cfg);
 
 // ─── TABLE_* constants ────────────────────────────────────────────────────────

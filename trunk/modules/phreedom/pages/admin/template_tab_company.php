@@ -88,6 +88,13 @@
           <td><?php echo CD_01_15_DESC; ?></td>
           <td><?php echo html_input_field('tax_id', $_POST['tax_id'] ? $_POST['tax_id'] : TAX_ID, ''); ?></td>
         </tr>
+        <tr>
+          <td><?php echo CD_01_TIMEZONE_DESC; ?></td>
+          <td><?php
+            $zones = array();
+            foreach (timezone_identifiers_list() as $zone) $zones[] = array('id' => $zone, 'text' => str_replace('_', ' ', $zone));
+            echo html_pull_down_menu('timezone', $zones, $_POST['timezone'] ?? date_default_timezone_get(), 'class="form-select form-select-sm"'); ?></td>
+        </tr>
       </tbody>
     </table>
   </div>

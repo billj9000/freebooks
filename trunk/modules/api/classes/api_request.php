@@ -216,6 +216,7 @@ class api_request {
       if (!defined($k)) define($k, $cfg->fields['configuration_value']);
       $cfg->MoveNext();
     }
+    gen_apply_timezone(); // the company's time zone, as the web pages use
 
     // Define only the TABLE_* constants the resource classes need.
     // Deliberately NOT loading module config.php files — those have menu-building

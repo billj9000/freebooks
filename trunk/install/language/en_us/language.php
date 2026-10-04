@@ -95,6 +95,7 @@ define('TEXT_FY_MONTH_INFO', 'Select a starting month to set as your first accou
 define('TEXT_FY_YEAR_INFO', 'Select a starting year to set as your first fiscal year. The month selected above and this year selection will be the earliest date that journal entries can be made.');
 define('TEXT_PRINTING_INFO','Printing Information');
 define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
+define('TEXT_TIMEZONE_INFO', 'Select the time zone the company works in. Document dates, scheduled jobs and logged times use it, and it becomes the default for companies added later. It can be changed under Company settings.');
 
 define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','The company name is empty');
 define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY', 'The administrator user name cannot be empty');

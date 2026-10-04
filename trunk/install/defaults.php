@@ -47,6 +47,8 @@ $config_contents = "<" . "?php\n" .
 "define('DIR_FS_ADMIN', 'DEFAULT_DIR_FS_ADMIN'); // Physical path eg: /var/www/public_html/app_dir/\n\n" .
 "// Set the default language, this can be changed at login or through the url with GET parameters.\n" .
 "define('DEFAULT_LANGUAGE','DEFAULT_DEFAULT_LANGUAGE');\n\n" .
+"// The time zone used before a company is chosen, and the default for new companies.\n" .
+"define('DEFAULT_TIMEZONE','DEFAULT_DEFAULT_TIMEZONE');\n\n" .
 "// Set the default company, this can be changed at login or through the url with GET parameters.\n" .
 "define('DEFAULT_COMPANY','');\n\n" .
 "// Set the database information, the login, passwrod and db name are stored in the company directory\n" .

@@ -19,7 +19,6 @@
 //
 
 // set the locale 
-if (defined('TIMEZONE') && TIMEZONE <> '') date_default_timezone_set(TIMEZONE);
 $locale = (defined('LOCALE') && LOCALE <> '') ? LOCALE : 'en_US';
 setlocale(LC_ALL, $locale.'.UTF-8');
 setlocale(LC_CTYPE, 'C');

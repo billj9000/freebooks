@@ -146,6 +146,8 @@ switch ($_REQUEST['action']) {
 	break;
   case 'save':
   	validate_security($security_level, 3);
+	// Only a zone PHP knows is stored; anything else would be ignored on every request after.
+	if (isset($_POST['timezone']) && !in_array($_POST['timezone'], timezone_identifiers_list(), true)) unset($_POST['timezone']);
 	// save general tab
 	foreach ($install->keys as $key => $default) {
 	  $field = strtolower($key);

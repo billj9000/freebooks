@@ -178,6 +178,7 @@ define('CD_01_18_DESC','Permitir funcionalidade múltiplas filiais.<br />Se não
 define('CD_01_16_DESC','Entre o número ID da empresa. Este número é utilizado para identificar transações geradas localmente contra transações importação/exportação.');
 define('CD_01_14_DESC','Entre a homepage do site da empresa (sem o http://)');
 define('CD_01_15_DESC','Entre o CNPJ da empresa');
+define('CD_01_TIMEZONE_DESC','Fuso horário em que a empresa trabalha. As datas dos documentos, as tarefas agendadas e os horários registrados o utilizam.');
 define('CD_01_13_DESC','Entre o endereço de email geral da empresa');
 define('CD_01_12_DESC','Entre o número Fax');
 define('CD_01_11_DESC','Entre o número de telefone secundário');

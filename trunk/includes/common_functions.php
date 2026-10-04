@@ -33,6 +33,22 @@
 // Section 1. General Functions
 /**************************************************************************************************************/
 // Redirect to another page or site
+  /**
+   * Set PHP's time zone for this request: the company's TIMEZONE setting once its
+   * configuration is loaded, else the installation's DEFAULT_TIMEZONE from configure.php
+   * (pages before login), else Europe/London - what every installation used before the
+   * setting existed. Call it wherever a process starts, and again after the company's
+   * configuration loads. Returns the zone applied.
+   */
+  function gen_apply_timezone() {
+	$zone = 'Europe/London';
+	if (defined('TIMEZONE') && TIMEZONE !== '')                       $zone = TIMEZONE;
+	elseif (defined('DEFAULT_TIMEZONE') && DEFAULT_TIMEZONE !== '')   $zone = DEFAULT_TIMEZONE;
+	if (!in_array($zone, timezone_identifiers_list(), true)) $zone = 'Europe/London';
+	date_default_timezone_set($zone);
+	return $zone;
+  }
+
   function gen_redirect($url) {
     global $messageStack;
 	// clean up URL before executing it

@@ -121,6 +121,7 @@ while (!$_cfg->EOF) {
     }
     $_cfg->MoveNext();
 }
+gen_apply_timezone(); // the company's time zone, as the web pages use
 
 // The currency class reads its own permission out of the session. A cron has no
 // login, so it is given the rights this job needs and no others. Declared here

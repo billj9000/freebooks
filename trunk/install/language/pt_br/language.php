@@ -86,6 +86,7 @@ define('TEXT_FY_MONTH_INFO', 'Selecione um mês de início para seu primeiro perío
 define('TEXT_FY_YEAR_INFO', 'Selecione o ano de início para seu primeiro ano fiscal. O mês selecionado acima e esta seleção de ano serão a menor data em que lançamentos de diário poderão ser feitas.');
 define('TEXT_PRINTING_INFO','Printing Information');
 define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
+define('TEXT_TIMEZONE_INFO', 'Selecione o fuso horário em que a empresa trabalha. As datas dos documentos, as tarefas agendadas e os horários registrados o utilizam, e ele passa a ser o padrão para empresas adicionadas depois. Pode ser alterado em Configurações da empresa.');
 
 define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','O nome da empresa está vazio');
 define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY', 'O nome de usuário do administrador não pode ser vazio');

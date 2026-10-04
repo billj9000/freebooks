@@ -180,6 +180,7 @@ define('CD_01_19_DESC','Activeer meerdere valuta in de gebruikers schermen.<br /
 define('CD_01_18_DESC','Activeer meerdere vestiging functies.<br />Als Nee geselecteerd is dan zal er vanuit worden gegaan dat er 1 bedrijfs locatie is.');
 define('CD_01_16_DESC','Het bedrijfs id nummer. Dit nummer wordt gebruikt om lokaal gemaakte transacties te identificeren.  tegen import en export transacties.');
 define('CD_01_15_DESC','Het bedrijfs btw-nummer');
+define('CD_01_TIMEZONE_DESC','Tijdzone waarin het bedrijf werkt. Documentdatums, geplande taken en vastgelegde tijden gebruiken deze.');
 define('CD_01_14_DESC','Het adres van de bedrijfs website (zonder het http://)');
 define('CD_01_13_DESC','Het bedrijfs algemene email adres');
 define('CD_01_12_DESC','Het bedrijfs fax nummer');

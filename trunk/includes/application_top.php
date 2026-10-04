@@ -91,6 +91,7 @@ else { require_once(DIR_FS_MODULES . 'phreedom/language/en_us/language.php'); }
 require_once(DIR_FS_MODULES  . 'phreedom/defaults.php');
 require_once(DIR_FS_INCLUDES . 'common_functions.php');
 require_once(DIR_FS_INCLUDES . 'common_classes.php');
+gen_apply_timezone(); // the installation's default until a company's configuration is loaded
 set_error_handler("PhreebooksErrorHandler");
 set_exception_handler('PhreebooksExceptionHandler');
 // pull in the custom language over-rides for this module/page
@@ -138,6 +139,7 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
 	define($result->fields['configuration_key'], $result->fields['configuration_value']);
 	$result->MoveNext();
   }
+  gen_apply_timezone(); // now the company's own
   // DEBUG is now known — only show PHP errors to the browser when it's explicitly on.
   ini_set('display_errors', (defined('DEBUG') && DEBUG) ? '1' : '0');
   if (!defined('DATE_FORMAT_CALENDAR')) {

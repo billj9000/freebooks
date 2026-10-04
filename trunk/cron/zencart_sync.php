@@ -132,6 +132,7 @@ while (!$_cfg->EOF) {
     }
     $_cfg->MoveNext();
 }
+gen_apply_timezone(); // the company's time zone, as the web pages use
 
 // ─── TABLE_* constants ────────────────────────────────────────────────────────
 // Defined directly rather than loading module config.php files, which are

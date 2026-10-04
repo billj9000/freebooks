@@ -62,6 +62,7 @@ define('TEXT_FY_MONTH_INFO','Selecteer een start maand om in te stellen als uw e
 define('TEXT_FY_YEAR_INFO','Selecteer een start jaar om als uw eerste Boek jaar in te stellen. Er kunnen dan geen boekingen gemaakt worden eerder dan de geselecteerde jaar en maand.');
 define('TEXT_PRINTING_INFO','Printing Information');
 define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
+define('TEXT_TIMEZONE_INFO', 'Kies de tijdzone waarin het bedrijf werkt. Documentdatums, geplande taken en vastgelegde tijden gebruiken deze, en hij wordt de standaard voor later toegevoegde bedrijven. Te wijzigen onder Bedrijfsinstellingen.');
 define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','De bedrijfsnaam is leeg');
 define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY','Admin gebruikersnaam is leeg');
 define('ERROR_TEXT_ADMIN_EMAIL_ISEMPTY','Admin email leeg');

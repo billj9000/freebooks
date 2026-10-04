@@ -48,6 +48,7 @@ class phreedom_admin {
 	  'COMPANY_EMAIL'              => 'webmaster@mycompany.com',
 	  'COMPANY_WEBSITE'            => '',
 	  'TAX_ID'                     => '',
+	  'TIMEZONE'                   => (defined('DEFAULT_TIMEZONE') && DEFAULT_TIMEZONE !== '') ? DEFAULT_TIMEZONE : 'Europe/London',
 	  'ENABLE_MULTI_BRANCH'        => '0',
 	  'ENABLE_MULTI_CURRENCY'      => '0',
 	  'ENABLE_ENCRYPTION'          => '0',

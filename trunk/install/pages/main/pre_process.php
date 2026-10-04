@@ -194,6 +194,12 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		$paper_size      = db_prepare_input($_POST['papersize'] ?? '');
 		$known           = function_exists('forms_paper_sizes') ? forms_paper_sizes() : array();
 		if (!isset($known[$paper_size])) $paper_size = 'A4';
+		// The company's time zone, checked against the zones PHP knows. It is the installation's
+		// default (configure.php) and the first company's setting, and the dates seeded below use it.
+		$timezone        = db_prepare_input($_POST['timezone'] ?? '');
+		if (!in_array($timezone, timezone_identifiers_list(), true)) $timezone = 'Europe/London';
+		date_default_timezone_set($timezone);
+		if (!defined('DEFAULT_TIMEZONE')) define('DEFAULT_TIMEZONE', $timezone);
 
 		// The chart of accounts this company keeps its books on. Checked against
 		// the shipped list rather than trusted: the value names a file that gets
@@ -317,6 +323,7 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 	  				// and the documents are seeded from the constant further down.
 	  				// The failure would be silent: every document simply Letter.
 	  				if ($entry == 'forms') $install_mod->keys['FORMS_DEFAULT_PAPER'] = $paper_size;
+	  				if ($entry == 'phreedom') $install_mod->keys['TIMEZONE'] = $timezone;
 	  				// Same reasoning, and the same one moment, for the chart's own
 	  				// account choices: these keys are INSERTED here, and it is the
 	  				// insert that define()s the constant. Written afterwards they
@@ -481,6 +488,7 @@ switch ($_REQUEST['action'] ?? 'welcome') {
 		  $config_contents = str_replace('DEFAULT_DIR_WS_ADMIN',     DIR_WS_ADMIN, $config_contents);
 		  $config_contents = str_replace('DEFAULT_DIR_FS_ADMIN',     DIR_FS_ADMIN, $config_contents);
 		  $config_contents = str_replace('DEFAULT_DEFAULT_LANGUAGE', $lang,        $config_contents);
+		  $config_contents = str_replace('DEFAULT_DEFAULT_TIMEZONE', $timezone,    $config_contents);
 		  $config_contents = str_replace('DEFAULT_DB_TYPE',          DB_TYPE,      $config_contents);
 		  $config_contents = str_replace('DEFAULT_DB_PREFIX',        DB_PREFIX,    $config_contents);
 		  if (file_exists('../includes/configure.php')) {

@@ -167,6 +167,7 @@ function fb_bootstrap(?string $company = null, bool $withPhreeForm = true): stri
             define($cfg->fields['configuration_key'], $cfg->fields['configuration_value']);
         $cfg->MoveNext();
     }
+    gen_apply_timezone(); // the company's time zone, as the web pages use
     if (!defined('DATE_FORMAT_CALENDAR')) define('DATE_FORMAT_CALENDAR', 'mm-dd-yy');
 
     // web-path constants html_href_link() needs (normally derived from the request)

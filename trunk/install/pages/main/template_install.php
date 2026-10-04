@@ -129,6 +129,17 @@
 	<td><?php echo TEXT_FY_YEAR_INFO; ?></td>
 	<td><?php echo html_pull_down_menu('fy_year', $sel_fy_year, $_POST['fy_year'] ?? date('Y')); ?></td>
    </tr>
+   <tr>
+	<td><?php echo TEXT_TIMEZONE_INFO; ?></td>
+	<td><?php
+	  $zones = array();
+	  foreach (timezone_identifiers_list() as $zone) $zones[] = array('id' => $zone, 'text' => str_replace('_', ' ', $zone));
+	  echo html_pull_down_menu('timezone', $zones, $_POST['timezone'] ?? 'Europe/London');
+	  if (!isset($_POST['timezone'])) { // first view: offer the zone the browser is in ?>
+	  <script>(function () { try { var z = Intl.DateTimeFormat().resolvedOptions().timeZone, s = document.getElementById('timezone');
+	    if (z && s && s.querySelector('option[value="' + z + '"]')) s.value = z; } catch (e) {} })();</script>
+	  <?php } ?></td>
+   </tr>
 
    <tr class="ui-widget-header"><th colspan="2"><?php echo TEXT_PRINTING_INFO; ?></th></tr>
    <tr>
