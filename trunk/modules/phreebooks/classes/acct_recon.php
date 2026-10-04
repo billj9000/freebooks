@@ -55,8 +55,7 @@ class acct_recon {
 		  }
 		  // Cast: the unused side of the pair is set to '' so it prints blank,
 		  // and PHP 8 raises "Unsupported operand types: int + string" on the
-		  // first payment row rather than treating '' as zero. This report has
-		  // been fatally broken since the PHP 8 upgrade.
+		  // first payment row rather than treating '' as zero.
 		  $dep_in_transit += (float)$dep_amount;
 		  $chk_in_transit += (float)$pmt_amount;
 		  $bank_list[$result->fields['id']] = array(

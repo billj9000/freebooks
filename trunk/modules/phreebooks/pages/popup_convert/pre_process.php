@@ -104,7 +104,7 @@ switch ($_REQUEST['action']) {
 }
 
 /*****************   prepare to display templates  *************************/
-// Without an id this built "where id = " and ended on the crash page. There is
+// Without an id the query would end "where id = ", a syntax error. There is
 // nothing to convert if nothing was named.
 if (!is_numeric($id)) {
   $messageStack->add(ORD_ERROR_NOTHING_SELECTED, 'error');

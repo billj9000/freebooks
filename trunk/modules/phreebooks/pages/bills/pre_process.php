@@ -102,7 +102,7 @@ switch ($_REQUEST['action']) {
 	// rewrite of it, so an unchanged record is left alone and read-only may print.
 	// doc_modified is set by submitToDo() from fbDocModified(); it is '1' unless
 	// the browser established that nothing changed, so a client that never ran the
-	// javascript behaves as it always did rather than dropping an edit.
+	// javascript saves as usual rather than dropping an edit.
 	$doc_unchanged = (($_POST['id'] ?? '') <> '') && isset($_POST['doc_modified']) && $_POST['doc_modified'] == '0';
 	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	// create and retrieve customer account (defaults also)
@@ -143,10 +143,7 @@ switch ($_REQUEST['action']) {
 	//
 	// Every journal amount is STORED in the home currency - that is the design,
 	// and orders/pre_process.php divides by the rate for the same reason - so the
-	// figures typed on the page are divided back here. Before this the page had
-	// no currency at all: banking.php stamped DEFAULT_CURRENCY at 1.0 whatever
-	// was being settled, and a customer paid against a USD credit memo was
-	// recorded as a pound payment (issue #63).
+	// figures typed on the page are divided back here (issue #63).
 	$order->currencies_code     = db_prepare_input($_POST['currencies_code'] ?? '') ?: DEFAULT_CURRENCY;
 	$order->currencies_value    = (float)db_prepare_input($_POST['currencies_value'] ?? '') ?: 1;
 	$cur_code                   = $order->currencies_code;

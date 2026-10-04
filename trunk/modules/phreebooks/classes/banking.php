@@ -22,10 +22,9 @@ class banking extends journal {
 	
 	function __construct() {
 		global $db;
-		// Where a blank form starts, and no longer where it finishes: the page
-		// overwrites both from the documents being settled, and before it did
-		// every receipt and payment was stamped as a home-currency one whatever
-		// it actually settled (issue #63).
+		// Where a blank form starts, not where it finishes: the page overwrites
+		// both from the documents being settled, so a receipt or payment is
+		// stamped with the currency it actually settles (issue #63).
 		$this->currencies_code     = DEFAULT_CURRENCY;
 		$this->currencies_value    = '1.0';
 		$this->journal_id          = JOURNAL_ID;
@@ -147,16 +146,16 @@ class banking extends journal {
 						if (method_exists($r_proc, 'refund')) {
 							// In the currency the ENTRY settles, not the company's.
 							//
-							// This is where the currency stops being a display
-							// question and starts being money. total_amount is the
-							// home-currency figure, as every journal amount is, so
-							// refunding it as-is sent 73.23 GBP to a card that was
-							// charged 100.00 USD - a gateway that accepts it refunds
-							// the wrong sum, and one that does not rejects the
-							// currency and the refund silently never happens. The
-							// rate is the one the entry carries, and the decimals are
-							// the settling currency's: JPY has none, and 100 yen sent
-							// as 10000 is a refund a hundred times too big (issue #63).
+							// This is where the currency stops being a display question
+							// and starts being money. total_amount is the home-currency
+							// figure, as every journal amount is, so refunding it as-is
+							// would send 73.23 GBP to a card that was charged 100.00
+							// USD - a gateway that accepts it refunds the wrong sum,
+							// and one that does not rejects the currency and the refund
+							// silently never happens. The rate is the one the entry
+							// carries, and the decimals are the settling currency's:
+							// JPY has none, and 100 yen sent as 10000 is a refund a
+							// hundred times too big (issue #63).
 							$pay_code  = $this->currencies_code ?: DEFAULT_CURRENCY;
 							$pay_rate  = $this->currencies_value ?: 1;
 							$dp = isset($currencies->currencies[$pay_code]['decimal_places'])

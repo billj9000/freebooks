@@ -51,15 +51,11 @@ switch ($_REQUEST['action']) {
 	if (!$std_chart) if (!validate_upload('file_name', 'text', 'txt')) break;
 
 	// The new chart is read BEFORE anything is emptied. Replacing truncates two
-	// tables, and doing that first meant a file that turned out not to be a
-	// chart left the company with no chart of accounts at all and nothing to
-	// put back.
+	// tables, so a file that turns out not to be a chart must be found out
+	// first, while the company's chart is still there.
 	//
 	// A shipped chart is read through phreebooks_chart_read(), which knows where
-	// the charts for this locale actually are - this page used to list them out
-	// of en_us when the locale had no charts directory of its own but then read
-	// each one back from the locale's path, so the drop down offered names that
-	// could not be opened. An uploaded file is parsed as it always was.
+	// the charts for this locale are. An uploaded file is parsed directly.
 	if ($std_chart) {
 	  $chart_info = phreebooks_chart_read($std_chart);
 	  if (!$chart_info) { $messageStack->add(sprintf(GL_CHART_NOT_READ, $std_chart), 'error'); break; }
@@ -68,9 +64,9 @@ switch ($_REQUEST['action']) {
 	  $chart_info = false;
 	  $accounts   = xml_to_object(file_get_contents($_FILES['file_name']['tmp_name']));
 	  if (is_object($accounts) && isset($accounts->ChartofAccounts)) $accounts = $accounts->ChartofAccounts; // just pull the first one
-	  // A file that is not a chart parses to a string or to false, and reading
-	  // ->account off either is how an unhelpful upload became an unhelpful
-	  // warning rather than a message saying what was wrong.
+	  // A file that is not a chart parses to a string or to false; it is
+	  // caught here, with a message saying what is wrong, rather than as a
+	  // warning from reading ->account off it.
 	  if (!is_object($accounts)) { $messageStack->add(sprintf(GL_CHART_NOT_READ, $_FILES['file_name']['name']), 'error'); break; }
 	  if (isset($accounts->account) && is_object($accounts->account)) $accounts->account = array($accounts->account); // in case of only one chart entry
 	  $chart_accounts = (isset($accounts->account) && is_array($accounts->account)) ? $accounts->account : array();

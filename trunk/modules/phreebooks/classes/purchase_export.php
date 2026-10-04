@@ -118,10 +118,7 @@ class purchase_export {
 		}, (string)$template);
 	}
 
-	// A safe, portable filename for the Content-Disposition header - unlike
-	// GenerateCSVFile() (phreeform/functions/phreeform.php), which builds a
-	// sanitized display name but then puts the raw, unsanitized title into
-	// the header.
+	// A safe, portable filename for the Content-Disposition header.
 	function safe_filename($name, $extension) {
 		$name = preg_replace('/[^A-Za-z0-9_-]+/', '_', (string)$name);
 		$name = trim($name, '_');

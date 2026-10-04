@@ -29,10 +29,8 @@ switch (JOURNAL_ID) {
   case 12: $security_token = SECURITY_ID_SALES_INVOICE;      break;
   case 13: $security_token = SECURITY_ID_SALES_CREDIT;       break;
   default:
-	// A journal id this page does not serve. It used to die() with a developer's
-	// sentence naming a file that no longer exists, which reached the user as a
-	// blank page carrying one line of text and no way back. The application has
-	// its own way of saying this.
+	// A journal id this page does not serve. A die() here reaches the user as a
+	// blank page with no way back.
 	global $messageStack;
 	$messageStack->add(sprintf(ORD_ERROR_BAD_JOURNAL_ID, (int)JOURNAL_ID), 'error');
 	gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=phreedom&page=main', 'SSL'));
@@ -192,7 +190,7 @@ switch ($_REQUEST['action']) {
 	//
 	// doc_modified is set by submitToDo() from fbDocModified(). It is '1' unless
 	// the browser established that nothing changed, so a client that never ran
-	// the javascript behaves as it always did rather than dropping an edit.
+	// the javascript saves as usual rather than dropping an edit.
 	$doc_unchanged = (($_POST['id'] ?? '') <> '') && isset($_POST['doc_modified']) && $_POST['doc_modified'] == '0';
 	validate_security($security_level, ($doc_unchanged && $_REQUEST['action'] == 'print') ? 1 : 2);
   	if (!isset($_POST['total'])) { // check for truncated post vars

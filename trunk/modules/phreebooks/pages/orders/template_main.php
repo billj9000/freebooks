@@ -36,8 +36,8 @@ echo html_hidden_field('weight',          $order->weight) . chr(10);
 echo html_hidden_field('currencies_code', $order->currencies_code) . chr(10);
 echo html_hidden_field('printed',         $order->printed);
 // Set by submitToDo() from fbDocModified(). '1' unless the javascript could
-// establish that nothing changed, so a browser that never ran it posts as
-// before rather than silently dropping an edit.
+// establish that nothing changed, so a browser that never ran it saves as
+// usual rather than silently dropping an edit.
 echo html_hidden_field('doc_modified',    '1') . chr(10);
 echo html_hidden_field('override_user',   '');
 echo html_hidden_field('override_pass',   '');
@@ -114,7 +114,7 @@ if ($security_level < 4) $toolbar->icon_list['delete']['show'] = false;
 // Printing an existing document only reads it - printDocument() opens the form
 // popup on the stored record without posting - so read-only may print. What it
 // may not do is save, and printDocument() will not offer to. Purchases and
-// vendor credits have no form of their own to print, as before.
+// vendor credits have no form of their own to print.
 if (JOURNAL_ID == 6 || JOURNAL_ID == 7) $toolbar->icon_list['print']['show'] = false;
 if ($security_level < 2) {
   $toolbar->icon_list['save']['show']  = false;

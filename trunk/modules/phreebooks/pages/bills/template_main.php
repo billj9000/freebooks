@@ -24,8 +24,8 @@ echo html_hidden_field('bill_acct_id',    $order->bill_acct_id ?? '') . chr(10);
 echo html_hidden_field('bill_address_id', $order->bill_address_id ?? '') . chr(10);
 echo html_hidden_field('bill_telephone1', $order->bill_telephone1 ?? '') . chr(10);
 // Set by submitToDo() from fbDocModified(). '1' unless the javascript could
-// establish that nothing changed, so a browser that never ran it posts as
-// before rather than silently dropping an edit.
+// establish that nothing changed, so a browser that never ran it saves as
+// usual rather than silently dropping an edit.
 echo html_hidden_field('doc_modified',    '1') . chr(10);
 // The currency this entry settles in, and the rate. Hidden rather than a
 // chooser: an entry does not get to pick, it takes the currency of whatever is
@@ -137,9 +137,8 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
         $frow(BNK_DISCOUNT_ACCOUNT,
               html_pull_down_menu('gl_disc_acct_id', $gl_array_list, $order->gl_disc_acct_id, $fs));
         // The heading says which currency the figure is in, and it is the ENTRY's
-        // rather than the company's - it used to read (GBP) on a page settling a
-        // dollar invoice. `currency_label` is kept in step by the javascript as
-        // rows are ticked.
+        // rather than the company's. `currency_label` is kept in step by the
+        // javascript as rows are ticked.
         $frow(TEXT_TOTAL . (ENABLE_MULTI_CURRENCY ? ' (<span id="currency_label">'
                 . htmlspecialchars(isset($order->currencies_code) ? $order->currencies_code : DEFAULT_CURRENCY)
                 . '</span>)' : ''),
@@ -195,9 +194,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
         <th class="text-center"><?php echo BNK_INVOICE_NUM; ?></th>
         <th class="text-center"><?php echo BNK_DUE_DATE; ?></th>
         <?php // Each row says its own currency, because a customer can be owed in
-              // two. The three money headings no longer name one: they used to say
-              // (GBP) on every page, which was true of what was stored and not of
-              // what the customer was billed (issue #63). ?>
+              // two, so the three money headings name none (issue #63). ?>
         <?php if (ENABLE_MULTI_CURRENCY) { ?>
         <th class="text-center"><?php echo BNK_CURRENCY; ?></th>
         <?php } ?>

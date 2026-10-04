@@ -199,8 +199,7 @@ define('SETUP_TAX_GL_ACCT','Grootboekrekeningnummer ');
 define('SETUP_TAX_RATE','Belasting tarief (procent)');
 define('SETUP_TAX_AUTH_EDIT_INTRO','Maak de nodige wijzigingen');
 // contacts' admin.php also defines these, loaded earlier during install; see
-// the equivalent en_us note above — contacts' SETUP_INFO_DESC_SHORT text
-// already wins today, guarding here changes nothing observable.
+// the equivalent en_us note.
 if (!defined('SETUP_INFO_DESC_SHORT')) define('SETUP_INFO_DESC_SHORT','Verkorte Naam (15 karakters max)');
 if (!defined('SETUP_INFO_DESC_LONG')) define('SETUP_INFO_DESC_LONG','Lange Omschrijving (64 karakters max)');
 define('SETUP_INFO_GL_ACCOUNT','Grootboekrekening om belasting op te boeken');

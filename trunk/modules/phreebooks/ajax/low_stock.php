@@ -25,10 +25,8 @@ $security_level = validate_ajax_user();
 $cID = db_prepare_input($_GET['cID'] ?? ''); //vendor
 $sID = db_prepare_input($_GET['sID'] ?? ''); //store
 $rID = db_prepare_input($_GET['rID'] ?? ''); //row
-// Both ids go straight into the WHERE clause. Without a vendor that read
-// " p.vendor_id = " and the statement died of a syntax error, which came back to
-// the browser as an ajax reply quoting raw SQL. There is no low stock to report
-// for a vendor nobody named.
+// Both ids go straight into the WHERE clause, so a missing vendor would be a
+// syntax error. There is no low stock to report for a vendor nobody named.
 if (!is_numeric($cID)) {
   echo createXmlHeader() . xmlEntry('error', PB_ERROR_NO_VENDOR_GIVEN) . createXmlFooter();
   die;
@@ -40,15 +38,13 @@ if (ENABLE_MULTI_BRANCH) {
   $quantity_where = "remaining";
   // Grouped by sku, every other column is bare - which ONLY_FULL_GROUP_BY, the
   // default in MySQL 8, refuses unless the server can prove one value per group.
-  // It cannot: inventory.sku carries no unique key and as many as three rows
-  // share one, so this query has always been choosing among them arbitrarily.
+  // It cannot: inventory.sku carries no unique key and several rows can share
+  // one, so the query would choose among them arbitrarily.
   //
-  // Each bare column is therefore wrapped in min(), which keeps exactly the row
-  // count the page has today and makes that choice deterministic instead of
-  // whatever the server happened to reach first. The HAVING needs the same
-  // treatment, for the same reason. Aliases are unchanged: the template reads
-  // these by name. min() rather than any_value() so as not to require MariaDB
-  // 10.5 of anyone.
+  // Each bare column is therefore wrapped in min(), which keeps one row per sku
+  // and makes the choice deterministic. The HAVING needs the same treatment, for
+  // the same reason. Aliases are unchanged: the template reads these by name.
+  // min() rather than any_value() so as not to require MariaDB 10.5 of anyone.
   $sql = "select min(a.id) as id, a.sku, min(full_price) as full_price, min(item_weight) as item_weight,
   	min(lead_time) as lead_time, min(reorder_quantity) as reorder_quantity, sum(remaining) as 'quantity',
   	min(inactive) as inactive, min(account_inventory_wage) as account_inventory_wage,

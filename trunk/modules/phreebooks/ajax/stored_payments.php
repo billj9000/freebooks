@@ -23,10 +23,9 @@ $security_level = validate_ajax_user();
 /**************   page specific initialization  *************************/
 $contact_id = db_prepare_input($_GET['contact_id'] ?? '');
 $xml = NULL;
-// The id is interpolated into the WHERE clause. Absent, it made "ref_1 = " and a
-// syntax error, answered to the browser as an ajax reply quoting raw SQL. A
-// contact nobody named has no stored payments, which is an empty answer rather
-// than an error.
+// The id is interpolated into the WHERE clause, so a missing one would be a
+// syntax error. A contact nobody named has no stored payments, which is an empty
+// answer rather than an error.
 if (!is_numeric($contact_id)) {
 	echo createXmlHeader() . createXmlFooter();
 	die;

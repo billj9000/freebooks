@@ -325,22 +325,16 @@ if (!empty($order->fields)) { // there was an order to open
   //
   // journal_main.freight is stored in the home currency like every other
   // journal amount, and fillOrder() writes any OrderData tag straight into the
-  // form field of the same name - so the box that recalculateCurrencies() then
-  // treats as being in the display currency was holding the home-currency
-  // figure. On the usual paths it went unnoticed, because an frt line item
-  // follows in the same response and orders.js overwrites the box with the
-  // item's already-converted total.
+  // form field of the same name, which recalculateCurrencies() then treats as
+  // being in the display currency. So it is converted here, at the one place
+  // the value leaves the server. An order's frt line item would overwrite the
+  // box anyway, but a credit memo raised from an invoice keeps only the stock
+  // lines (the loop above), so the memo relies on this value. Discount needs
+  // nothing: fillOrder() sets it to zero after the item loop.
   //
-  // Raising a credit memo from an invoice takes the other path. There the
-  // source document's items are read by the loop above that keeps only the
-  // stock lines - frt is dropped - so nothing overwrites it, and a memo made
-  // from a USD invoice offered the pounds. (Discount escapes this because
-  // fillOrder() forces it to zero after the item loop whatever arrived.)
-  //
-  // Converted here, at the one place the value leaves the server, so both paths
-  // agree and neither has to know which of them it is. total_amount is left
-  // alone deliberately: credit_remaining above is computed against the
-  // home-currency balance of the open documents, and is right as it stands.
+  // total_amount is left alone deliberately: credit_remaining above is computed
+  // against the home-currency balance of the open documents, and is right as it
+  // stands.
   if (isset($order->fields['freight'])) {
     $order->fields['freight'] = $currencies->format((float)$order->fields['freight'],
         true, $currencies_code ?: DEFAULT_CURRENCY, $currencies_value ?: 1);

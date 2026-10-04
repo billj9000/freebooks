@@ -289,7 +289,7 @@ define('ORD_AR_ACCOUNT','C/R Conta');
 define('ORD_AP_ACCOUNT','C/P Conta');
 define('ORD_ADD_UPDATE','Inserir/Alterar');
 define('BNK_TEXT_SAVE_PAYMENT_INFO','Salvar Informação Pagamento ');
-// Added for issue #63; not yet translated - an English string is a page that
+// Not yet translated (issue #63): an English string is a page that
 // works, where a missing constant is a fatal (gen_pull_language() loads ONE
 // locale file, never en_us as well).
 define('BNK_CURRENCY','Currency');

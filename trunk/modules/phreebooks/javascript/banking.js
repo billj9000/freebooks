@@ -238,9 +238,9 @@ function fillBill(xml) {
 	}
 	// Two codes, and they are not the same question. `display_code` is what the
 	// figures above are IN; `currencies_code` is what the document was raised in.
-	// On anything posted since this page learnt about currencies they agree - the
-	// server prices a stored record's rows in the record's own currency, so that
-	// the column adds up. Where they differ the record predates that, and the row
+	// On a record this release posted they agree - the server prices a stored
+	// record's rows in the record's own currency, so that the column adds up.
+	// Where they differ the record was posted by an earlier release, and the row
 	// says so rather than showing a dollar figure under a pound heading.
 	var rowCurr  = xmlText(item, "currencies_code") || defaultCurrency;
 	var rowShown = xmlText(item, "display_code")    || rowCurr;
@@ -261,9 +261,8 @@ function fillBill(xml) {
 		document.getElementById('total_' + jIndex).readOnly = true;
 		var waitRow = document.getElementById('item_table').rows[rowCnt-1];
 		waitRow.className = 'table-warning';
-		// The LAST cell, not the seventh. The currency column moved the checkbox
-		// along by one, and an index counted from the wrong end silently blanks
-		// the amount instead.
+		// The LAST cell: counted from the end, so a column added before it does
+		// not move the amount.
 		waitRow.cells[waitRow.cells.length-1].innerHTML = '&nbsp;'; // remove checkbox
 	} else if (xmlText(item, "amount_paid")) {
 		document.getElementById('pay_' + jIndex).checked    = true;
@@ -287,7 +286,7 @@ function fillBill(xml) {
  *
  * A stored record already has a code in the hidden field and keeps it - the
  * server priced its rows to match, so re-deriving from the rows would agree
- * anyway, and on a record posted before any of this existed it would not.
+ * anyway, and on a record posted by an earlier release it would not.
  */
 function entryCurrency() {
   var field = document.getElementById('currencies_code');

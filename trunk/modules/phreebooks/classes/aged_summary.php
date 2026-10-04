@@ -37,10 +37,8 @@ class aged_summary {
 	// find list of accounts within search filter 
 	$today = date('Y-m-d');
 	// Payables and receivables have independent aging settings, and this class
-	// serves both AgedReceivablesSummary and AgedPayablesSummary. It aged every
-	// row by AR_AGING_PERIOD_*, so a payables summary bucketed by the
-	// receivables periods whenever the two are configured differently. Pick the
-	// cutoffs per row from the journal, as aged_receivables already does.
+	// serves both AgedReceivablesSummary and AgedPayablesSummary, so the
+	// cutoffs are picked per row from the journal, as aged_receivables does.
 	$ar_late = array(
 	  gen_specific_date($today, -AR_AGING_PERIOD_1),
 	  gen_specific_date($today, -AR_AGING_PERIOD_2),

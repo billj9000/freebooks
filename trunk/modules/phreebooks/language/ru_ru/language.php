@@ -40,7 +40,7 @@ define('BNK_TEXT_DEPOSIT_ID','Deposit Ticket ID');
 define('BNK_TEXT_PAYMENT_ID','Payment Ref #');
 define('BNK_TEXT_WITHDRAWAL','Withdrawal');
 define('BNK_TEXT_SAVE_PAYMENT_INFO','Сохранить платежную информацию');
-// Added for issue #63; not yet translated - an English string is a page that
+// Not yet translated (issue #63): an English string is a page that
 // works, where a missing constant is a fatal (gen_pull_language() loads ONE
 // locale file, never en_us as well).
 define('BNK_CURRENCY','Currency');

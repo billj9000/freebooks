@@ -678,7 +678,7 @@ class journal {
 		  case 16:
 			// issue #71: an unticked Re-stock line still credits the customer/vendor
 			// (handled entirely outside this function) but the item isn't coming
-			// back, so skip the COGS reversal same as a blank sku always has.
+			// back, so skip the COGS reversal, as for a blank sku.
 			if (in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0') break;
 			if (in_array($inv_type, ['pb', 'pc'])) {
 			  if ($this->journal_id == 16) return $this->fail_message(GL_ERROR_PB_CANNOT_ADJUST);
@@ -782,9 +782,9 @@ class journal {
 	  default:
 		$db_field = 'quantity_on_sales_order';
 	}
-	// issue #71: an unticked Re-stock line was never posted to inventory (see
-	// Post_inventory), so treat it the same way a blank sku always has here -
-	// skip the row entirely rather than reversing an adjustment that never happened.
+	// issue #71: an unticked Re-stock line is never posted to inventory (see
+	// Post_inventory), so treat it as a blank sku here - skip the row entirely
+	// rather than reversing an adjustment that never happened.
 	for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku'] && !(in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0')) {
 	  switch ($this->journal_id) {
 		case  4:
@@ -1375,8 +1375,8 @@ class journal {
    *
    * db_perform() quotes every value it is handed, so an empty box arrives at a
    * DATE or a DOUBLE as the string '', which is not a date and not a number. A
-   * server with sql_mode empty took it, coerced it to 0000-00-00 or to 0, and
-   * said nothing. A server at its defaults - every stock MariaDB, and so every
+   * server with sql_mode empty takes it, coerces it to 0000-00-00 or to 0, and
+   * says nothing. A server at its defaults - every stock MariaDB, and so every
    * other install - refuses the whole INSERT, and the save fails with nothing
    * written.
    *

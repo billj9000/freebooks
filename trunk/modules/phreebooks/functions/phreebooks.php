@@ -130,11 +130,7 @@ function load_coa_info($types = array()) { // includes inactive accounts
  * A locale with its own charts directory gets it; anything else falls back to
  * en_us, which in practice is every locale - only en_us has charts.
  *
- * The fallback used to be applied by halves: the settings page scanned en_us
- * for the LIST but then read each file back from the session locale's path, so
- * a locale directory that existed without charts in it produced a drop down of
- * names that could not be opened. One function answers the question now, and
- * every caller reads from the directory it was listed out of.
+ * Every caller reads each file from the directory it was listed out of.
  */
 function phreebooks_chart_dir(): string {
   $locale = !empty($_SESSION['language']) ? basename($_SESSION['language'])
@@ -147,20 +143,17 @@ function phreebooks_chart_dir(): string {
  * One chart of accounts file, read.
  *
  * Beyond the account list a chart may say three things about itself, all
- * optional so that the charts written before any of this existed still parse:
+ * optional, so a chart without them still parses:
  *
  *  - <currency> the currency the company keeps its books in.
  *  - <demo>     whether the shipped demonstration data may be loaded against
  *               it. The demo records name US account numbers literally, so they
  *               only mean anything on a chart numbered the way those charts
- *               are. A chart that says nothing is taken to allow it, which is
- *               what the four US charts shipped before this did.
+ *               are. A chart that says nothing is taken to allow it.
  *  - <defaults> which of the chart's OWN accounts each AR/AP setting means.
  *
- * That last one is the point of the exercise. The settings were shipped holding
- * literal account numbers taken from one chart, so every other chart quietly
- * pointed its defaults at accounts that did not exist - true of USA_General
- * from the day it was added, not just of anything added since.
+ * That last one matters most: the settings name account numbers, and only the
+ * chart knows which of its own accounts each one should be.
  *
  * Returns false rather than a half read chart if the file is not one.
  */
@@ -264,15 +257,15 @@ function phreebooks_chart_insert($accounts): array {
  *
  *  - Building a NEW receipt, nothing is settled yet and there is no currency to
  *    be in, so each document is priced in its own - which is the only figure the
- *    customer would recognise, and the thing this list could not say before.
+ *    customer would recognise.
  *  - Opening a STORED one, the record already has a currency and the arithmetic
  *    on the page is in it. Pricing a row in some other currency there would put
  *    two units in one column and make the total stop adding up. So the caller
  *    passes the record's own pair and every row is shown in it.
  *
  * Either way the row carries `currencies_code`, the DOCUMENT's own, so the page
- * can say when the two differ. That happens only on a record posted before this
- * page understood currencies, where it is worth saying rather than hiding.
+ * can say when the two differ - on a record posted by an earlier release, where
+ * it is worth saying rather than hiding.
  */
 function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = null, $display_value = null) {
 	// to build this data array, all current open invoices need to be gathered and then the paid part needs
@@ -298,9 +291,9 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	// currencies_code/currencies_value come with the document because total_amount does NOT:
 	// every journal amount is stored in the HOME currency (orders/pre_process.php divides the
 	// typed figure by the rate), so a USD invoice carries its GBP carrying value and the pair
-	// above is the only thing that says what the customer was actually billed. Without them
-	// this list showed a foreign invoice as its home-currency equivalent with nothing to say
-	// so, and offered no way to settle it in the currency it was raised in (issue #63).
+	// above is the only thing that says what the customer was actually billed. Without them a
+	// foreign invoice would show as its home-currency equivalent, with no way to settle it in
+	// the currency it was raised in (issue #63).
 	$sql = "select id, journal_id, post_date, terms, purch_order_id, purchase_invoice_id, total_amount, gl_acct_id,
 	  currencies_code, currencies_value 
 	  from " . TABLE_JOURNAL_MAIN . " 
@@ -370,10 +363,9 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	    $line_item['amount_paid']  = -$line_item['amount_paid'];
 	  }
 	  $balance += $line_item['total_amount'];
-	  // A document written before the currency columns existed, or by a path that
-	  // never set them, has no code at all. Home currency at par is what such a
-	  // record has always meant, and is what every screen has shown it as, so that
-	  // is what it keeps rather than an empty code the formatter cannot look up.
+	  // A document with no currency code - posted by an earlier release, or by a
+	  // path that never set one - means home currency at par, so that is what it
+	  // keeps rather than an empty code the formatter cannot look up.
 	  $doc_code   = $line_item['currencies_code']  ?: ($inv['currencies_code']  ?: DEFAULT_CURRENCY);
 	  $doc_value  = $line_item['currencies_value'] ?: ($inv['currencies_value'] ?: 1);
 	  $show_code  = $display_code ?: $doc_code;

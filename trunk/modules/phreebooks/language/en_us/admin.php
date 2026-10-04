@@ -234,11 +234,10 @@ define('SETUP_TAX_DESC_SHORT', 'Short Name');
 define('SETUP_TAX_GL_ACCT', 'GL Account ID');
 define('SETUP_TAX_RATE', 'Tax Rate (percent)');
 define('SETUP_TAX_AUTH_EDIT_INTRO', 'Please make any necessary changes');
-// contacts' admin.php also defines these, loaded earlier during install.
-// Note: its SETUP_INFO_DESC_SHORT text differs ("Short Description (16 chars
-// max)" vs phreebooks' "Short Name (15 chars max)") — contacts' version
-// already wins today (this second define() has always silently failed), so
-// guarding it here changes nothing observable, just removes the warning.
+// contacts' admin.php also defines these, loaded earlier during install, and
+// its text is the one that takes effect ("Short Description (16 chars max)"
+// where phreebooks' says "Short Name (15 chars max)"). Guarded here so the
+// second definition is skipped rather than warned about.
 if (!defined('SETUP_INFO_DESC_SHORT')) define('SETUP_INFO_DESC_SHORT', 'Short Name (15 chars max)');
 if (!defined('SETUP_INFO_DESC_LONG')) define('SETUP_INFO_DESC_LONG', 'Long Description (64 chars max)');
 define('SETUP_INFO_GL_ACCOUNT', 'GL Account to record tax:');
