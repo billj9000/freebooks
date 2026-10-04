@@ -290,6 +290,7 @@ class phreepos extends journal {
 	  $cc_info['cvv2']    = isset($_POST[$method.'_field_4']) ? db_prepare_input($_POST[$method.'_field_4']) : '';
 	  $cc_info['alt1']    = isset($_POST[$method.'_field_5']) ? db_prepare_input($_POST[$method.'_field_5']) : '';
 	  $cc_info['alt2']    = isset($_POST[$method.'_field_6']) ? db_prepare_input($_POST[$method.'_field_6']) : '';
+	  if ($cc_info['number'] === '') return true; // no card to keep: a method without one (cash, money order), or the number left blank
 	  if (!$enc_value = $encrypt->encrypt_cc($cc_info)) return false;
 	  $payment_array = array(
 		'hint'      => $enc_value['hint'],

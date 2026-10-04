@@ -334,12 +334,13 @@ class journal_19 extends journal {
 	  	$encrypt = new encryption();
 	  	$cc_info = array();
 	  	$cc_info['name']    = $method['f0'];
-	  	$cc_info['number']  = $method['f1'];
+	  	$cc_info['number']  = (string)($method['f1'] ?? '');
 	  	$cc_info['exp_mon'] = $method['f2'];
 	  	$cc_info['exp_year']= $method['f3'];
 	  	$cc_info['cvv2']    = $method['f4'];
 	  	$cc_info['alt1']    = $method['f5'];
 	  	$cc_info['alt2']    = $method['f6'];
+	  	if ($cc_info['number'] === '') return true; // no card to keep: a method without one (cash, money order), or the number left blank
 	  	if (!$enc_value = $encrypt->encrypt_cc($cc_info)) return false;
 	  	$payment_array = array(
 		  'hint'      => $enc_value['hint'],
