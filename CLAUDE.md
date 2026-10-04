@@ -81,6 +81,35 @@ User-facing documentation lives in the **phreehelp** manual. When a change affec
 
 The how — file locations, the required `<head>` meta tags, locale fallback, the reindex requirement and context-sensitive help wiring — is in the `help-manual-topic` skill.
 
+## Comments
+
+A comment states **what the code does and why it is shaped that way**, in the present tense. The
+reader is asking "what does this do, and can I change it?", not "how was this discovered?".
+
+**Leave out — it belongs in the commit message:**
+- what the code used to do, or did before a setting or a fix existed;
+- how, when or by what a fault was found, and what it cost or how long it lasted;
+- defending against a past mistake rather than stating the rule that prevents it;
+- comments about code that has been removed.
+
+**Keep:**
+- anything a reader cannot infer from the code: the rule and its reason, including why an obvious
+  alternative is wrong;
+- compatibility rules stated in the present ("a row saved by an earlier release is still read");
+- pointers such as `(issue #63)` and `design §13.49`, which point to the story rather than tell it;
+- in a migration file, the state being migrated from — that is the file's job.
+
+A comment that only restates the next line is deleted, not reworded. When the same rule appears in
+several places, word it identically.
+
+**Before presenting a change, re-read every comment line it adds against this rule.** A
+`PostToolUse` hook (`.claude/hooks/comment_check.py`) flags the unmistakable markers — "used to",
+"previously", "found by", "before … existed", a date — after each edit to shipped code. It only
+catches marker words, and most history has none, so the re-read is the check that matters.
+
+This applies to FreeBooks' own shipped code (`trunk/`, `extensions/`). Third-party code keeps its
+upstream comments, and `docs/tools/` is out of scope.
+
 ## No Private Names in Anything Committed
 
 Everything in this repository is public. Git history is permanent — a name committed once stays
