@@ -508,13 +508,29 @@ class currencies {
 	}
   }
 
+  // The settings for a currency code. One that is not set up - a document kept in a currency
+  // since removed, or brought in by an import - is shown with the home currency's separators,
+  // two decimals and its own code after the amount, at the rate the caller gives. With no rate
+  // to give it is shown as the home currency, unconverted, rather than as a figure under a
+  // label it was never converted to.
+  private function spec($code, $rate = '') {
+    $code = (string)$code;
+    if (isset($this->currencies[$code])) return $this->currencies[$code];
+    $home = $this->currencies[DEFAULT_CURRENCY] ?? array('title' => '', 'symbol_left' => '', 'symbol_right' => '',
+      'decimal_point' => '.', 'thousands_point' => ',', 'decimal_places' => 2, 'decimal_precise' => 2, 'value' => 1);
+    if (!$rate) return $home;
+    return array_merge($home, array('title' => (string)$code, 'symbol_left' => '', 'symbol_right' => (string)$code,
+      'decimal_places' => 2, 'decimal_precise' => 2, 'value' => $rate));
+  }
+
   // omits the symbol_left and symbol_right (just the formattted number))
   function format($number, $calculate_currency_value = true, $currency_type = DEFAULT_CURRENCY, $currency_value = '') {
+    $c = $this->spec($currency_type, $currency_value);
     if ($calculate_currency_value) {
-      $rate = ($currency_value) ? $currency_value : $this->currencies[$currency_type]['value'];
-      $format_string = number_format($number * $rate, $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
+      $rate = ($currency_value) ? $currency_value : $c['value'];
+      $format_string = number_format($number * $rate, $c['decimal_places'], $c['decimal_point'], $c['thousands_point']);
     } else {
-      $format_string = number_format($number, $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
+      $format_string = number_format($number, $c['decimal_places'], $c['decimal_point'], $c['thousands_point']);
     }
     return $format_string;
   }
@@ -527,26 +543,28 @@ class currencies {
     // item has no cost entered), which PHP 8 fatals on ("string * float") rather than
     // coercing. Treat non-numeric input as 0 instead of trusting the caller.
     if (!is_numeric($number)) $number = 0;
+    $c = $this->spec($currency_type, $currency_value);
     if ($calculate_currency_value) {
-	  $rate = ($currency_value) ? $currency_value : $this->currencies[$currency_type]['value'];
-	  $format_string = number_format($number * $rate, $this->currencies[$currency_type]['decimal_precise'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
+	  $rate = ($currency_value) ? $currency_value : $c['value'];
+	  $format_string = number_format($number * $rate, $c['decimal_precise'], $c['decimal_point'], $c['thousands_point']);
     } else {
-	  $format_string = number_format($number, $this->currencies[$currency_type]['decimal_precise'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
+	  $format_string = number_format($number, $c['decimal_precise'], $c['decimal_point'], $c['thousands_point']);
     }
     return $format_string;
   }
 
   function format_full($number, $calculate_currency_value = true, $currency_type = DEFAULT_CURRENCY, $currency_value = '', $output_format = PDF_APP) {
     if (!is_numeric($number)) $number = 0; // see precise() above - same non-numeric-input guard
+    $c = $this->spec($currency_type, $currency_value);
     if ($calculate_currency_value) {
-	  $rate = ($currency_value) ? $currency_value : $this->currencies[$currency_type]['value'];
-	  $format_number = number_format($number * $rate, $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
+	  $rate = ($currency_value) ? $currency_value : $c['value'];
+	  $format_number = number_format($number * $rate, $c['decimal_places'], $c['decimal_point'], $c['thousands_point']);
     } else {
-	  $format_number = number_format($number, $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']);
+	  $format_number = number_format($number, $c['decimal_places'], $c['decimal_point'], $c['thousands_point']);
     }
-	$zero = number_format(0, $this->currencies[$currency_type]['decimal_places']); // to handle -0.00
+	$zero = number_format(0, $c['decimal_places']); // to handle -0.00
 	if ($format_number == '-'.$zero) $format_number = $zero;
-	$format_string = $this->currencies[$currency_type]['symbol_left'] . ' ' . $format_number . ' ' . $this->currencies[$currency_type]['symbol_right'];
+	$format_string = $c['symbol_left'] . ' ' . $format_number . ' ' . $c['symbol_right'];
     switch ($output_format) {
 	  case 'FPDF': // assumes default character set
 	    $format_string = str_replace('&euro;', chr(128),  $format_string); // Euro
@@ -557,13 +575,14 @@ class currencies {
   }
 
   function get_value($code) {
-    return $this->currencies[$code]['value'];
+    return $this->spec($code)['value'];
   }
 
   function clean_value($number, $currency_type = DEFAULT_CURRENCY) {
+    $c = $this->spec($currency_type);
     // converts the number to standard float format (period as decimal, no thousands separator)
-    $temp  = str_replace($this->currencies[$currency_type]['thousands_point'], '', trim($number));
-    $value = str_replace($this->currencies[$currency_type]['decimal_point'], '.', $temp);
+    $temp  = str_replace($c['thousands_point'], '', trim((string)$number));
+    $value = str_replace($c['decimal_point'], '.', $temp);
     $value = preg_replace("/[^-0-9.]+/","",$value);
     if( $value == null || $value == '') $value = 0;
     return $value;

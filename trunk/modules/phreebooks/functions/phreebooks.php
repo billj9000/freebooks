@@ -359,7 +359,11 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	  $sql = "select id, post_date, terms, purchase_invoice_id, purch_order_id, gl_acct_id, waiting, currencies_code, currencies_value
 		from " . TABLE_JOURNAL_MAIN . " where id = " . $key;
 	  $result = $db->Execute($sql);
-	  $due_dates = calculate_terms_due_dates($result->fields['post_date'], $result->fields['terms'], ($type == 'v' ? 'AP' : 'AR'));
+	  // A payment can point at an entry that is not there - a history import's broken link. Its row
+	  // still lists what was paid, keeping the payment's own link, with the entry's details blank.
+	  $inv = $result->EOF ? array('id' => $key, 'post_date' => '', 'terms' => '', 'purchase_invoice_id' => '',
+	    'purch_order_id' => '', 'gl_acct_id' => '', 'waiting' => '0', 'currencies_code' => '', 'currencies_value' => '') : $result->fields;
+	  $due_dates = calculate_terms_due_dates($inv['post_date'], $inv['terms'], ($type == 'v' ? 'AP' : 'AR'));
 	  if ($negate) {
 	    $line_item['total_amount'] = -$line_item['total_amount'];
 	    $line_item['discount']     = -$line_item['discount'];
@@ -370,17 +374,17 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 	  // never set them, has no code at all. Home currency at par is what such a
 	  // record has always meant, and is what every screen has shown it as, so that
 	  // is what it keeps rather than an empty code the formatter cannot look up.
-	  $doc_code   = $line_item['currencies_code']  ?: ($result->fields['currencies_code']  ?: DEFAULT_CURRENCY);
-	  $doc_value  = $line_item['currencies_value'] ?: ($result->fields['currencies_value'] ?: 1);
+	  $doc_code   = $line_item['currencies_code']  ?: ($inv['currencies_code']  ?: DEFAULT_CURRENCY);
+	  $doc_value  = $line_item['currencies_value'] ?: ($inv['currencies_value'] ?: 1);
 	  $show_code  = $display_code ?: $doc_code;
 	  $show_value = $display_code ? ($display_value ?: 1) : $doc_value;
 	  $item_list[] = array(
-		'id'                  => $result->fields['id'],
-		'waiting'             => $result->fields['waiting'],
-		'purchase_invoice_id' => $result->fields['purchase_invoice_id'],
-		'purch_order_id'      => $result->fields['purch_order_id'],
+		'id'                  => $inv['id'],
+		'waiting'             => $inv['waiting'],
+		'purchase_invoice_id' => $inv['purchase_invoice_id'],
+		'purch_order_id'      => $inv['purch_order_id'],
 		'percent'             => $due_dates['discount'],
-		'post_date'           => $result->fields['post_date'],
+		'post_date'           => $inv['post_date'],
 		'early_date'          => $due_dates['early_date'],
 		'net_date'            => gen_locale_date($due_dates['net_date']),
 		// Not the company's currency. The stored figure is the home-currency one,
@@ -392,7 +396,7 @@ function fill_paid_invoice_array($id, $account_id, $type = 'c', $display_code = 
 		'display_code'        => $show_code,     // what the amounts below are in
 		'display_value'       => $show_value,
 		'total_amount'        => $currencies->format($line_item['total_amount'], true, $show_code, $show_value),
-		'gl_acct_id'          => $result->fields['gl_acct_id'],
+		'gl_acct_id'          => $inv['gl_acct_id'],
 		'description'         => $line_item['description'],
 		'discount'            => $line_item['discount']    ? $currencies->format($line_item['discount'],    true, $show_code, $show_value) : '',
 		'amount_paid'         => $line_item['amount_paid'] ? $currencies->format($line_item['amount_paid'], true, $show_code, $show_value) : '',
@@ -427,7 +431,7 @@ function fetch_partially_paid($id) {
 }
 
 function calculate_terms_due_dates($post_date, $terms_encoded, $type = 'AR') {
-  $terms = explode(':', $terms_encoded);
+  $terms = explode(':', (string)$terms_encoded);
   $date_details = gen_get_dates($post_date);
   $result = array();
   switch ($terms[0]) {
