@@ -291,63 +291,20 @@ function zencart_email_vat_invoice(int $invoice_id, int $acct_id, int $zc_id): b
             return false;
         }
 
-        // Render the invoice form to PDF (return-as-string, delivery_method 'S').
-        // Modelled on modules/payment/ajax/paypal_email_link.php::_paypal_build_invoice_pdf().
+        // The invoice is printed by Forms, which reads the configured form in either format.
+        // Without Forms nothing can print it, so the email is skipped and said so, rather than
+        // sent without its attachment. The cron defines no module tables of its own, and Forms
+        // reads the document catalogue through this one.
+        if (!defined('MODULE_FORMS_STATUS')) {
+            fwrite(STDERR, ts() . " Order $zc_id: VAT invoice email skipped, the Forms module is not installed.\n");
+            return false;
+        }
         if (!defined('TABLE_PHREEFORM')) define('TABLE_PHREEFORM', DB_PREFIX . 'phreeform');
-        gen_pull_language('phreeform');
-        if (!defined('PF_DIR_MY_REPORTS')) require_once(DIR_FS_MODULES . 'phreeform/defaults.php');
-        require_once(DIR_FS_MODULES . 'phreeform/functions/phreeform.php');
-
-        // Most invoice forms (including the stock Invoice-VAT) declare special_class
-        // 'entry_builder', resolved via find_special_class() against $loaded_modules —
-        // normally populated by includes/application_top.php on a web request, but this
-        // cron script never goes through that bootstrap. Build the same list here so the
-        // form's special class (wherever its owning module actually lives) can be found.
-        if (empty($GLOBALS['loaded_modules'])) {
-            $GLOBALS['loaded_modules'] = [];
-            foreach (scandir(DIR_FS_MODULES) as $dir) {
-                if ($dir === '.' || $dir === '..' || !is_dir(DIR_FS_MODULES . $dir)) continue;
-                if (defined('MODULE_' . strtoupper($dir) . '_STATUS')) $GLOBALS['loaded_modules'][] = $dir;
-            }
-        }
-
-        // Forms first, when it is installed: it reads BOTH the legacy xml and
-        // a native definition, where get_report_details() below refuses the
-        // latter outright. Without this branch, the first time an admin saved
-        // the configured VAT invoice form in the Forms editor, this email
-        // would keep "succeeding" with silently no attachment forever after —
-        // exactly the trap named in design §13.7 step 6.
-        $pdf = null;
-        if (defined('MODULE_FORMS_STATUS')) {
-            require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
-            $pdf = forms_render_to_string($form_id, [$invoice_id]);
-        }
-
-        if ($pdf === null) {
-            $report = get_report_details($form_id);
-            if (!$report) {
-                fwrite(STDERR, ts() . " Order $zc_id: VAT invoice email skipped, configured form (id $form_id) could not be loaded.\n");
-                return false;
-            }
-
-            $f = new stdClass();
-            $f->fieldname = 'journal_main.id';
-            $f->default   = 'EQUAL';
-            $f->min_val   = (string)$invoice_id;
-            $f->type      = '';
-            $report->xfilterlist = [$f];
-            $report->datedefault = '';
-
-            // entry_builder::load_query_results() declares `global $report` and iterates
-            // $report->fieldlist to build $FieldValues — without this, header/customer
-            // fields on the form render blank.
-            $GLOBALS['report'] = $report;
-
-            $pdf = BuildForm($report, 'S');
-            if (!is_array($pdf) || empty($pdf['pdf'])) {
-                fwrite(STDERR, ts() . " Order $zc_id: VAT invoice PDF render failed for invoice $inv_num.\n");
-                return false;
-            }
+        require_once(DIR_FS_MODULES . 'forms/functions/forms.php');
+        $pdf = forms_render_to_string($form_id, [$invoice_id]);
+        if ($pdf === null || ($pdf['pdf'] ?? '') === '') {
+            fwrite(STDERR, ts() . " Order $zc_id: VAT invoice PDF for invoice $inv_num could not be printed from form $form_id; the PHP error log says why.\n");
+            return false;
         }
 
         $temp_path = DIR_FS_MY_FILES . $_SESSION['company'] . '/temp/vat_invoice_' . $invoice_id . '_' . time() . '.pdf';
@@ -377,7 +334,7 @@ function zencart_email_vat_invoice(int $invoice_id, int $acct_id, int $zc_id): b
         $bcc = defined('ZENCART_VAT_INVOICE_BCC') ? trim(ZENCART_VAT_INVOICE_BCC) : '';
         if ($bcc !== '') $block['EMAIL_BCC_ADDRESS'] = $bcc;
 
-        $attachments_list = ['file' => $temp_path];
+        $attachments_list = ['file' => $temp_path, 'name' => 'VAT-Invoice-' . $inv_num . '.pdf'];
         $sent = validate_send_mail($to_name, $to_email, $subject, $message, $from_name, $from_address, $block, $attachments_list);
         @unlink($temp_path);
 
