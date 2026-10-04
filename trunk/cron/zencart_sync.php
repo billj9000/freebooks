@@ -473,6 +473,7 @@ $zc_orders = $response['orders'] ?? [];
 if (empty($zc_orders)) {
     echo ts() . " No new orders (last_order=$last_order).\n";
     zc_sync_stock();
+    zc_push_changed();
     zc_confirm_shipments();
     exit(0);
 }
@@ -1012,6 +1013,7 @@ foreach ($zc_orders as $zc) {
 
 echo ts() . " Done. Imported $imported order(s). Highest ZC order ID: $highest_id\n";
 zc_sync_stock();
+zc_push_changed();
 zc_confirm_shipments();
 exit(0);
 
@@ -1026,6 +1028,23 @@ function zc_sync_stock(): void
         echo ts() . " Stock sync complete." . ($sync_msgs ? " ($sync_msgs)" : '') . "\n";
     } else {
         fwrite(STDERR, ts() . " Stock sync failed" . ($sync_msgs ? ": $sync_msgs" : '') . "\n");
+    }
+}
+
+// Products whose details changed since the last push - an edit, or a bundle whose parts changed -
+// go now rather than waiting for someone to log in.
+function zc_push_changed(): void
+{
+    echo ts() . " Sending changed products to ZenCart...\n";
+    $zc   = new zencart();
+    $sent = $zc->pushChangedProducts();
+    $msgs = zc_drain_messages();
+    if ($sent === null) {
+        echo ts() . " Product push skipped: another push is running; its changes go next time.\n";
+    } elseif ($sent === false) {
+        fwrite(STDERR, ts() . " Product push did not complete" . ($msgs ? ": $msgs" : '') . "\n");
+    } else {
+        echo ts() . " Product push complete: $sent product(s) sent.\n";
     }
 }
 

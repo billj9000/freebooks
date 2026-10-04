@@ -190,24 +190,8 @@ class zencart_admin {
     require_once(DIR_FS_MODULES . 'inventory/defaults.php');
   	require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 
-	$error  = false;
-	if(defined('MODULE_ZENCART_LAST_UPDATE') && MODULE_ZENCART_LAST_UPDATE <> '') $where = " and ( last_update >'" . MODULE_ZENCART_LAST_UPDATE . "' or last_journal_date >'" . MODULE_ZENCART_LAST_UPDATE . "')";
-	$result = $db->Execute("select id from " . TABLE_INVENTORY . " where catalog = '1' " . $where);
-	$cnt    = 0;
-	if($result->RecordCount() == 0)	return true;
-	while(!$result->EOF) {
-	  $prodXML = new zencart();
-	  if (!$prodXML->uploadProduct((int)$result->fields['id'], true)) {
-		$error = true;
-		break;
-	  }
-	  $cnt++;
-	  $result->MoveNext();
-	}
-	if ($error) return false;
-	$messageStack->add(sprintf(ZENCART_BULK_UPLOAD_SUCCESS, $cnt), 'success');
-	gen_add_audit_log(ZENCART_BULK_UPLOAD);
-	write_configure('MODULE_ZENCART_LAST_UPDATE', date('Y-m-d H:i:s'));
+	$prodXML = new zencart();
+	return $prodXML->pushChangedProducts() !== false;
   }
 
   function update($module) {

@@ -28,6 +28,44 @@ class zencart {
         return zencart_api_call('updateProducts', ['products' => [$product]]) !== false;
     }
 
+    // Upload every catalog product whose details have changed since the last push - run at
+    // login and by the scheduled sync. A product changed by a posting alone (a sale, a downloaded
+    // order, a receipt) is not included: syncQuantities() sends every product's stock and price
+    // on each scheduled run, so it has nothing further to send.
+    //
+    // The push records the time it STARTED, and only when every upload succeeded, so an edit
+    // saved while it runs is sent next time and a failed upload is retried. Only one push runs
+    // at a time; a second one finding it busy leaves the work for the next.
+    // Returns the number of products sent, false if an upload failed, or null if a push was
+    // already running.
+    public function pushChangedProducts()
+    {
+        global $db, $messageStack;
+        $lock = "'freebooks_zencart_push_" . db_input(DB_DATABASE) . "'";
+        if ((int)$db->Execute("SELECT GET_LOCK($lock, 0) AS got")->fields['got'] !== 1) return null;
+        $started = date('Y-m-d H:i:s');
+        $where   = (defined('MODULE_ZENCART_LAST_UPDATE') && MODULE_ZENCART_LAST_UPDATE <> '')
+            ? " AND last_update > '" . db_input(MODULE_ZENCART_LAST_UPDATE) . "'" : '';
+        $result  = $db->Execute("SELECT id FROM " . TABLE_INVENTORY . " WHERE catalog = '1'" . $where);
+        $sent    = 0;
+        while (!$result->EOF) {
+            $product = new zencart();
+            if (!$product->uploadProduct((int)$result->fields['id'], true)) {
+                $db->Execute("SELECT RELEASE_LOCK($lock)");
+                return false;
+            }
+            $sent++;
+            $result->MoveNext();
+        }
+        if ($sent > 0) {
+            $messageStack->add(sprintf(ZENCART_BULK_UPLOAD_SUCCESS, $sent), 'success');
+            gen_add_audit_log(ZENCART_BULK_UPLOAD);
+        }
+        write_configure('MODULE_ZENCART_LAST_UPDATE', $started);
+        $db->Execute("SELECT RELEASE_LOCK($lock)");
+        return $sent;
+    }
+
     // Builds the ZenCart 'products' payload entry for one inventory item, without sending it —
     // lets callers (e.g. bulk_upload.php) batch several products into one updateProducts call.
     // Returns null (with $messageStack populated) if the item can't be built.
