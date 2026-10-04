@@ -41,6 +41,13 @@ class zencart_admin {
 	      . "shipping_log_id INT NOT NULL PRIMARY KEY,"
 	      . "notified_at DATETIME NOT NULL"
 	      . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+	  TABLE_ZC_SYNC_SENT => "CREATE TABLE " . TABLE_ZC_SYNC_SENT . " ("
+	      . "inventory_id INT NOT NULL PRIMARY KEY,"
+	      . "products_model VARCHAR(64) NOT NULL DEFAULT '',"
+	      . "quantity DOUBLE NOT NULL DEFAULT 0,"
+	      . "price DOUBLE NOT NULL DEFAULT 0,"
+	      . "sent_at DATETIME NOT NULL"
+	      . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 	);
 	// Load configuration constants for this module, must match entries in admin tabs
     $this->keys = array(
@@ -56,6 +63,7 @@ class zencart_admin {
 	  'ZENCART_NOTIFY_MESSAGE'        => 'Your order shipped {date} via {carrier} {service}, tracking number: {tracking}',
 	  'ZENCART_UPDATED_BY'            => 'FreeBooks',
 	  'ZENCART_LAST_ORDER'            => '0',
+	  'ZENCART_LAST_FULL_SYNC'        => '', // the day the stock sync last sent every product
 	  'ZENCART_CUSTOMER_ACCOUNT_ID'   => '0',
 	  'ZENCART_DEFAULT_TAX_RATE_ID'   => '0',
 	  'ZENCART_CREATE_INVOICE'        => '0',
@@ -81,6 +89,15 @@ class zencart_admin {
 	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SHIP_NOTIFY . " ("
 	    . "shipping_log_id INT NOT NULL PRIMARY KEY,"
 	    . "notified_at DATETIME NOT NULL"
+	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+	// The stock and price last sent for each product, so the scheduled sync sends only
+	// what changed. Also created in update() and by the sync itself.
+	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SYNC_SENT . " ("
+	    . "inventory_id INT NOT NULL PRIMARY KEY,"
+	    . "products_model VARCHAR(64) NOT NULL DEFAULT '',"
+	    . "quantity DOUBLE NOT NULL DEFAULT 0,"
+	    . "price DOUBLE NOT NULL DEFAULT 0,"
+	    . "sent_at DATETIME NOT NULL"
 	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 	if (!db_field_exists(TABLE_INVENTORY, 'catalog')) { // setup new tab in table inventory
 	  $result = $db->Execute("select id FROM ".TABLE_EXTRA_TABS." WHERE tab_name='ZenCart'");
@@ -232,6 +249,13 @@ class zencart_admin {
 		  $db->Execute("alter table " . TABLE_INVENTORY . " add column ProductModel varchar(64) default ''");
 	}
 
+	$db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SYNC_SENT . " ("
+	    . "inventory_id INT NOT NULL PRIMARY KEY,"
+	    . "products_model VARCHAR(64) NOT NULL DEFAULT '',"
+	    . "quantity DOUBLE NOT NULL DEFAULT 0,"
+	    . "price DOUBLE NOT NULL DEFAULT 0,"
+	    . "sent_at DATETIME NOT NULL"
+	    . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 	if (!gen_version_is_freebooks(MODULE_ZENCART_STATUS)) {
 	  include(DIR_FS_MODULES . 'zencart/updates/PhreeBooks371toFreeBooks100.php');
 	}

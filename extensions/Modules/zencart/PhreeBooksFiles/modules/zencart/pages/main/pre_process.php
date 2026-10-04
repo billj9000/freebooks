@@ -62,7 +62,7 @@ switch ($_REQUEST['action']) {
     break;
   case 'sync':
     $upXML = new zencart();
-    if ($upXML->syncQuantities()) gen_add_audit_log(ZENCART_PRODUCT_SYNC);
+    if ($upXML->syncQuantities(true)) gen_add_audit_log(ZENCART_PRODUCT_SYNC);
     break;
   case 'confirm':
     $upXML = new zencart();

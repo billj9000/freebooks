@@ -35,6 +35,7 @@ define('ZENCART_BULK_UPLOAD_BTN','Bulk Upload');
 define('ZENCART_PRODUCT_SYNC_TITLE','Synchronize Products');
 define('ZENCART_PRODUCT_SYNC_INFO','Push current stock quantities and retail prices from FreeBooks to ZenCart for all products marked for the catalog. Use this to manually force a quantity sync outside of the scheduled cron run.');
 define('ZENCART_SYNC_QTY_SUCCESS','Successfully synced quantity/price for %s product(s) to ZenCart.');
+define('ZENCART_SYNC_QTY_CHANGED','Sent quantity/price for %s changed product(s) of %s to ZenCart.');
 define('ZENCART_SYNC_QTY_PARTIAL','Synced %s product(s); %s SKU(s) not found in ZenCart:');
 define('ZENCART_PRODUCT_SYNC_TEXT','Synchronize products with e-store');
 define('ZENCART_DELETE_ZENCART','Also delete products in ZenCart that are not falgged to be there.');

@@ -175,6 +175,7 @@ define('TABLE_INVENTORY_SPECIAL_PRICES',  DB_PREFIX . 'inventory_special_prices'
 define('TABLE_SHIPPING_LOG',              DB_PREFIX . 'shipping_log');
 // zencart extension
 define('TABLE_ZC_SHIP_NOTIFY',            DB_PREFIX . 'zc_ship_notify');
+define('TABLE_ZC_SYNC_SENT',              DB_PREFIX . 'zc_sync_sent');
 
 // ─── Core objects ────────────────────────────────────────────────────────────
 $messageStack = new messageStack;
@@ -1033,9 +1034,15 @@ exit(0);
 // ─────────────────────────────────────────────────────────────────────────────
 function zc_sync_stock(): void
 {
-    echo ts() . " Syncing stock quantities to ZenCart...\n";
+    // Each run sends only what changed; the first run after 03:00 each day sends everything,
+    // to put right an edit made in the store or a restore on either side. A day whose 03:00
+    // run is missed has its full sync on the next run.
+    $today = date('Y-m-d');
+    $full  = date('H') >= '03' && (!defined('ZENCART_LAST_FULL_SYNC') || ZENCART_LAST_FULL_SYNC < $today);
+    echo ts() . ($full ? " Syncing stock quantities to ZenCart (all products, daily)...\n" : " Syncing stock quantities to ZenCart...\n");
     $sync = new zencart();
-    $sync_ok = $sync->syncQuantities();
+    $sync_ok = $sync->syncQuantities($full);
+    if ($sync_ok && $full) write_configure('ZENCART_LAST_FULL_SYNC', $today);
     $sync_msgs = zc_drain_messages();
     if ($sync_ok) {
         echo ts() . " Stock sync complete." . ($sync_msgs ? " ($sync_msgs)" : '') . "\n";

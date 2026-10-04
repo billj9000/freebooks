@@ -30,8 +30,8 @@ class zencart {
 
     // Upload every catalog product whose details have changed since the last push - run at
     // login and by the scheduled sync. A product changed by a posting alone (a sale, a downloaded
-    // order, a receipt) is not included: syncQuantities() sends every product's stock and price
-    // on each scheduled run, so it has nothing further to send.
+    // order, a receipt) is not included: syncQuantities() sends the stock and price of every
+    // product where they changed on each scheduled run, so it has nothing further to send.
     //
     // The push records the time it STARTED, and only when every upload succeeded, so an edit
     // saved while it runs is sent next time and a failed upload is retried. Only one push runs
@@ -289,13 +289,32 @@ class zencart {
     }
 
     // Push current available quantity (quantity_on_hand less quantity_on_sales_order) and
-    // retail price for all catalog=1 products.
+    // retail price for catalog=1 products.
     // Items with quantity-tiered price sheets are uploaded individually via uploadProduct()
     // so ZenCart receives the full tier structure. All other items go through the bulk
-    // updateProductsQty endpoint.
-    public function syncQuantities(): bool
+    // updateProductsQty endpoint, which sends only a product whose figures differ from the
+    // ones it last sent (TABLE_ZC_SYNC_SENT) - every figure is worked out each time, so any
+    // cause of a change is caught. $full sends them all, to put right anything changed
+    // behind the sync's back on either side.
+    public function syncQuantities(bool $full = false): bool
     {
         global $db, $messageStack;
+
+        $db->Execute("CREATE TABLE IF NOT EXISTS " . TABLE_ZC_SYNC_SENT . " ("
+            . "inventory_id INT NOT NULL PRIMARY KEY,"
+            . "products_model VARCHAR(64) NOT NULL DEFAULT '',"
+            . "quantity DOUBLE NOT NULL DEFAULT 0,"
+            . "price DOUBLE NOT NULL DEFAULT 0,"
+            . "sent_at DATETIME NOT NULL"
+            . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $last_sent = [];
+        if (!$full) {
+            $rows = $db->Execute("SELECT inventory_id, products_model, quantity, price FROM " . TABLE_ZC_SYNC_SENT);
+            while (!$rows->EOF) {
+                $last_sent[(int)$rows->fields['inventory_id']] = $rows->fields;
+                $rows->MoveNext();
+            }
+        }
 
         $use_sheet  = defined('ZENCART_USE_PRICE_SHEETS') && ZENCART_USE_PRICE_SHEETS == '1'
                    && defined('ZENCART_PRICE_SHEET') && ZENCART_PRICE_SHEET != '' && ZENCART_PRICE_SHEET != '0';
@@ -325,6 +344,8 @@ class zencart {
         }
 
         $bulk_products = [];
+        $bulk_ids      = [];
+        $n_catalog     = 0;
         $n_tiered_ok   = 0;
         $n_tiered_err  = 0;
 
@@ -395,11 +416,18 @@ class zencart {
                 $qty = max(0.0, (float)$result->fields['quantity_on_hand'] - (float)$result->fields['quantity_on_sales_order']);
             }
 
-            $bulk_products[] = [
-                'products_model' => $model,
-                'quantity'       => $qty,
-                'price'          => $price,
-            ];
+            $n_catalog++;
+            $sent = $last_sent[$inv_id] ?? null;
+            if ($sent === null || (string)$sent['products_model'] !== (string)$model
+                || round((float)$sent['quantity'], 4) != round($qty, 4)
+                || round((float)$sent['price'], 4) != round($price, 4)) {
+                $bulk_products[] = [
+                    'products_model' => $model,
+                    'quantity'       => $qty,
+                    'price'          => $price,
+                ];
+                $bulk_ids[] = $inv_id;
+            }
             $result->MoveNext();
         }
 
@@ -409,6 +437,22 @@ class zencart {
         if (!empty($bulk_products)) {
             $response = zencart_api_call('updateProductsQty', ['products' => $bulk_products]);
             if ($response === false) return false;
+            // Recorded once the call succeeds, whatever the store did with each product: its
+            // reply names products by the store's own model, which its hooks may have changed,
+            // so it cannot be matched back. A product the store does not have is recorded too,
+            // so it is not resent every run; the full sync reports it.
+            $now = date('Y-m-d H:i:s');
+            foreach (array_chunk(array_keys($bulk_ids), 500) as $chunk) {
+                $values = [];
+                foreach ($chunk as $i) {
+                    $values[] = "(" . (int)$bulk_ids[$i] . ", '" . db_input($bulk_products[$i]['products_model']) . "', "
+                        . (float)$bulk_products[$i]['quantity'] . ", " . (float)$bulk_products[$i]['price'] . ", '$now')";
+                }
+                $db->Execute("INSERT INTO " . TABLE_ZC_SYNC_SENT . " (inventory_id, products_model, quantity, price, sent_at)"
+                    . " VALUES " . implode(', ', $values)
+                    . " ON DUPLICATE KEY UPDATE products_model = VALUES(products_model), quantity = VALUES(quantity),"
+                    . " price = VALUES(price), sent_at = VALUES(sent_at)");
+            }
             $n_bulk_ok  = count($response['updated']    ?? []);
             $n_bulk_err = count($response['notUpdated'] ?? []);
             if ($n_bulk_err > 0) {
@@ -420,10 +464,16 @@ class zencart {
             }
         }
 
+        if ($full) { // a product taken out of the catalog is sent afresh if it comes back
+            $db->Execute("DELETE s FROM " . TABLE_ZC_SYNC_SENT . " s LEFT JOIN " . TABLE_INVENTORY . " i"
+                . " ON i.id = s.inventory_id AND i.catalog = '1' WHERE i.id IS NULL");
+        }
+
         $n_ok  = $n_bulk_ok  + $n_tiered_ok;
         $n_err = $n_bulk_err + $n_tiered_err;
         if ($n_err == 0) {
-            $messageStack->add(sprintf(ZENCART_SYNC_QTY_SUCCESS, $n_ok), 'success');
+            if ($full) $messageStack->add(sprintf(ZENCART_SYNC_QTY_SUCCESS, $n_ok), 'success');
+            else       $messageStack->add(sprintf(ZENCART_SYNC_QTY_CHANGED, count($bulk_products), $n_catalog), 'success');
         }
         return true;
     }

@@ -157,12 +157,20 @@ to upload all inventory items that have the <em>catalog</em> checkbox set.
 Tick <em>Include Images</em> to include product images.</p>
 
 <h3>Quantity sync</h3>
-<p>The <strong>Synchronize</strong> button (and the cron) pushes current stock
-quantities and prices to ZenCart for all catalog items:</p>
+<p>The cron pushes stock quantities and prices to ZenCart for catalog items. Each
+run works out every item's available quantity and price, and sends only the items
+where either differs from what it last sent &mdash; a sale, a downloaded order, a
+receipt of stock, a price change, a bundle whose parts moved. A run where nothing
+changed sends nothing.</p>
 <ul>
-  <li>Items with <strong>multiple quantity price tiers</strong> are uploaded
-      individually so ZenCart receives the full tier structure and can display
-      quantity discounts.</li>
+  <li><strong>Once a day</strong>, on the first run after 03:00, the cron sends every
+      catalog item whether it changed or not. That puts right anything changed outside
+      the sync, such as a quantity edited in ZenCart's own admin, or a restored backup.
+      Catalog items ZenCart does not have are listed in that run's log.</li>
+  <li>The <strong>Synchronize</strong> button always sends every catalog item.</li>
+  <li>Items with <strong>multiple quantity price tiers</strong>, and Master Stock items,
+      are uploaded individually on every run so ZenCart receives the full tier and
+      attribute structure.</li>
   <li>All other items are sent in a single bulk API call.</li>
 </ul>
 
@@ -190,7 +198,7 @@ status; partially shipped orders receive the Partial status.</p>
 
 <p>The script is safe to run frequently &mdash; it only imports orders with IDs
 higher than the last imported order ID and always runs a stock quantity sync
-at the end.</p>
+at the end, which sends only the items that changed (see <em>Quantity sync</em> above).</p>
 
 <h2>Customizing (Extension Hooks)</h2>
 

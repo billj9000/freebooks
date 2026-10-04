@@ -36,6 +36,7 @@ define('MENU_HEADING_ZENCART_ORDER',     15);
 define('SECURITY_ID_ZENCART_INTERFACE', 200);
 // Database tables used by the ZenCart module (web and cron contexts)
 if (!defined('TABLE_ZC_SHIP_NOTIFY'))    define('TABLE_ZC_SHIP_NOTIFY',    DB_PREFIX . 'zc_ship_notify');
+if (!defined('TABLE_ZC_SYNC_SENT'))      define('TABLE_ZC_SYNC_SENT',      DB_PREFIX . 'zc_sync_sent');
 if (!defined('TABLE_INVENTORY_MS_LIST')) define('TABLE_INVENTORY_MS_LIST', DB_PREFIX . 'inventory_ms_list');
 // New Database Tables
 if (defined('MODULE_ZENCART_STATUS')) {
