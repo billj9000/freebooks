@@ -472,10 +472,10 @@ class fields {
         	}elseif (isset($_POST[$field_name]) && $field_name <> 'id') {
             	$sql_data_array[$field_name] = db_prepare_input($_POST[$field_name]);
         	}
-        	if ($xtra_db_fields->fields['entry_type'] == 'date_time') {
+        	if ($xtra_db_fields->fields['entry_type'] == 'date_time' && array_key_exists($field_name, $sql_data_array)) {
             	$sql_data_array[$field_name] = ($sql_data_array[$field_name]) ? gen_db_date($sql_data_array[$field_name]) : '';
         	}
-    		if ($xtra_db_fields->fields['entry_type'] == 'decimal') {
+    		if ($xtra_db_fields->fields['entry_type'] == 'decimal' && array_key_exists($field_name, $sql_data_array)) {
             	$sql_data_array[$field_name] = ($sql_data_array[$field_name]) ? $currencies->clean_value($sql_data_array[$field_name]) : '';
         	}
         	$xtra_db_fields->MoveNext();

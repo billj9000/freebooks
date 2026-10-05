@@ -30,7 +30,7 @@ echo html_form('pw_lost', FILENAME_DEFAULT, 'module=phreedom&amp;page=main&amp;a
       <label><?php echo TEXT_ADMIN_EMAIL; ?></label>
       <?php echo html_input_field('admin_email', $_POST['admin_email'] ?? '', 'class="form-control form-control-sm"'); ?>
       <label><?php echo TEXT_LOGIN_COMPANY; ?></label>
-      <?php echo html_pull_down_menu('company', load_company_dropdown(), $admin_company, 'class="form-select form-select-sm"'); ?>
+      <?php echo html_pull_down_menu('company', load_company_dropdown(), $admin_company ?? '', 'class="form-select form-select-sm"'); ?>
     </div>
     <div class="text-end mt-3">
       <?php echo html_submit_field('submit', TEXT_PASSWORD_FORGOTTEN, 'class="btn btn-primary btn-sm"'); ?>

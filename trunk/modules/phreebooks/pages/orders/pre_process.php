@@ -265,7 +265,7 @@ switch ($_REQUEST['action']) {
 	$order->gl_acct_id          = db_prepare_input($_POST['gl_acct_id']);
 	$order->terms               = db_prepare_input($_POST['terms']);
 	$order->waiting             = (JOURNAL_ID == 6 || JOURNAL_ID == 7) ? (isset($_POST['waiting']) ? 1 : 0) : ($_POST['waiting'] ? 1 : 0);
-	$order->closed              = ($_POST['closed'] == '1') ? 1 : 0;
+	$order->closed              = (($_POST['closed'] ?? '') == '1') ? 1 : 0;
 	$order->terminal_date       = gen_db_date($_POST['terminal_date']);
 	$order->item_count          = db_prepare_input($_POST['item_count']);
 	$order->weight              = db_prepare_input($_POST['weight']);

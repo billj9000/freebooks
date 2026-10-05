@@ -356,8 +356,8 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
       <?php if (JOURNAL_ID==12) echo '<th>' . ORD_HEADING_NUMBER_10 . '</th>' . chr(10); ?>
       <?php if (ENABLE_MULTI_BRANCH) echo '<th>' . GEN_STORE_ID . '</th>' . chr(10); ?>
       <th><?php echo (in_array(JOURNAL_ID, array(3,4,6,7)) ? TEXT_BUYER : TEXT_SALES_REP); ?></th>
-      <?php if ($template_options['terms']) echo '<th>' . ACT_TERMS_DUE . '</th>'; ?>
-      <?php if ($template_options['terminal_date']) echo '<th>' . (in_array(JOURNAL_ID, array(3,4,9)) ? TEXT_EXPIRATION_DATE : TEXT_SHIP_BY_DATE) . '</th>'; ?>
+      <?php if (!empty($template_options['terms'])) echo '<th>' . ACT_TERMS_DUE . '</th>'; ?>
+      <?php if (!empty($template_options['terminal_date'])) echo '<th>' . (in_array(JOURNAL_ID, array(3,4,9)) ? TEXT_EXPIRATION_DATE : TEXT_SHIP_BY_DATE) . '</th>'; ?>
       <th><?php echo DEF_GL_ACCT_TITLE; ?></th>
     </tr>
   </thead>
@@ -371,8 +371,8 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
         <td class="text-center"><?php echo html_pull_down_menu('store_id', gen_get_store_ids(), $order->store_id ? $order->store_id : $_SESSION['admin_prefs']['def_store_id']); ?></td>
       <?php } ?>
       <td class="text-center"><?php echo html_pull_down_menu('rep_id', gen_get_rep_ids($account_type), $order->rep_id ? $order->rep_id : $default_sales_rep); ?></td>
-      <?php if ($template_options['terms']) echo '<td class="text-center">' . html_input_field('terms_text', gen_terms_to_language('0', true, 'ap'), 'readonly="readonly" size="25"') . '&nbsp;' . html_icon('apps/accessories-text-editor.png', ACT_TERMS_DUE, 'small', 'align="top" style="cursor:pointer" onclick="TermsList()"') . '</td>'; ?>
-      <?php if ($template_options['terminal_date']) echo '<td class="text-center">' . html_calendar_field($cal_terminal) . '</td>'; ?>
+      <?php if (!empty($template_options['terms'])) echo '<td class="text-center">' . html_input_field('terms_text', gen_terms_to_language('0', true, 'ap'), 'readonly="readonly" size="25"') . '&nbsp;' . html_icon('apps/accessories-text-editor.png', ACT_TERMS_DUE, 'small', 'align="top" style="cursor:pointer" onclick="TermsList()"') . '</td>'; ?>
+      <?php if (!empty($template_options['terminal_date'])) echo '<td class="text-center">' . html_calendar_field($cal_terminal) . '</td>'; ?>
       <td class="text-center"><?php echo html_pull_down_menu('gl_acct_id', $gl_array_list, $order->gl_acct_id, ''); ?></td>
     </tr>
   </tbody>

@@ -762,6 +762,7 @@ class inventory {
 		}
 
 		// calculate average usage 
+		$this->history['averages'] = array('12month' => 0, '6month' => 0, '3month' => 0, '1month' => 0);
 		$cnt = 0;
 		foreach ($this->sales_history as $key => $value) {
 	  		if ($cnt == 0) { 

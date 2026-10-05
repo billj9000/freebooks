@@ -60,7 +60,7 @@
           </thead>
           <tbody>
           <?php
-          if ($cInfo->history['open_po']) {
+          if (!empty($cInfo->history['open_po'])) {
             $odd = true;
             foreach ($cInfo->history['open_po'] as $value) {
               echo '<tr class="' . ($odd ? 'odd' : 'even') . '">' . chr(10);
@@ -92,7 +92,7 @@
           </thead>
           <tbody>
           <?php
-          if ($cInfo->history['open_so']) {
+          if (!empty($cInfo->history['open_so'])) {
             $odd = true;
             foreach ($cInfo->history['open_so'] as $value) {
               echo '<tr class="' . ($odd ? 'odd' : 'even') . '">' . chr(10);

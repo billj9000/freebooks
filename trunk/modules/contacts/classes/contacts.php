@@ -60,9 +60,9 @@ class contacts {
           if (in_array($key, self::NOT_FROM_FORMS, true)) continue;
           $this->$key = db_prepare_input($value);
         }
-        $this->special_terms  =  db_prepare_input($_POST['terms']); // TBD will fix when popup terms is redesigned
-        if ($this->id  == '') $this->id  = db_prepare_input($_POST['rowSeq'], true) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID']);
-        if ($this->aid == '') $this->aid = db_prepare_input($_GET['aID'],     true) ? db_prepare_input($_GET['aID'])     : db_prepare_input($_POST['aID']); 
+        $this->special_terms  =  db_prepare_input($_POST['terms'] ?? ''); // TBD will fix when popup terms is redesigned
+        if (($this->id ?? '')  == '') $this->id  = db_prepare_input($_POST['rowSeq'] ?? '', true) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID'] ?? '');
+        if (($this->aid ?? '') == '') $this->aid = db_prepare_input($_GET['aID'] ?? '', true) ? db_prepare_input($_GET['aID']) : db_prepare_input($_POST['aID'] ?? ''); 
         // Both go into SQL unquoted, from the request: a whole number, or empty
         // for a contact not saved yet.
         $this->id  = ctype_digit((string)$this->id)  ? (string)$this->id  : '';

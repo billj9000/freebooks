@@ -243,9 +243,9 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		  		// show error, bad sku, negative quantity. error check sku is valid and qty > 0
 				$error = $messageStack->add(INV_ERROR_BAD_SKU . htmlspecialchars(db_prepare_input($_POST['assy_sku'][$x]), ENT_QUOTES, 'UTF-8'), 'error');
 		  	}else{
-		  		$prices = inv_calculate_sales_price(abs($this->bom[$x]['qty']), $result->fields['id'], 0, 'v');
+		  		$prices = inv_calculate_sales_price(abs((float)$bom_list[$x]['qty']), $result->fields['id'], 0, 'v');
 				$bom_list[$x]['item_cost'] = strval($prices['price']);
-		  		$prices = inv_calculate_sales_price(abs($this->bom[$x]['qty']), $result->fields['id'], 0, 'c');
+		  		$prices = inv_calculate_sales_price(abs((float)$bom_list[$x]['qty']), $result->fields['id'], 0, 'c');
 				$bom_list[$x]['full_price'] = strval($prices['price']);
 		  	}
 		}
@@ -331,7 +331,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		foreach($insert_list as $sku) { // first insert new sku's with all fields
 			$sql_data_array['sku'] = $sku;
 			$sql_data_array['description_short'] 	= sprintf($this->description_short, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
-			$sql_data_array['description_purchase'] = sprintf($this->description_purchase, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
+			$sql_data_array['description_purchase'] = sprintf((string)$this->description_purchase, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			$sql_data_array['description_sales'] 	= sprintf($this->description_sales, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			db_perform(TABLE_INVENTORY, $sql_data_array, 'insert');
 			$new_id = db_insert_id();
@@ -371,7 +371,7 @@ class mp extends inventory { //Master Product Bundle (combination of Master Stoc
 		foreach($update_list as $sku) { //update with reduced number of fields.
 			$sql_data_array['sku'] = $sku;
 			if(isset($sql_data_array['description_short'])) 	$sql_data_array['description_short'] 	= sprintf($this->description_short, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
-			if(isset($sql_data_array['description_purchase'])) 	$sql_data_array['description_purchase'] = sprintf($this->description_purchase, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
+			if(isset($sql_data_array['description_purchase'])) 	$sql_data_array['description_purchase'] = sprintf((string)$this->description_purchase, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			if(isset($sql_data_array['description_sales'])) 	$sql_data_array['description_sales'] 	= sprintf($this->description_sales, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "sku = '" . db_input($sku) . "'");
 			foreach($this->backup_purchase_array as $backUpKey => $backUpRow) {

@@ -24,6 +24,7 @@ require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_WORKING . 'functions/inventory.php');
 require_once(DIR_FS_WORKING . 'classes/inventory_fields.php');
 /**************   page specific initialization  *************************/
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; the custom hooks and templates read it too
 gen_pull_language('inventory','filter');
 $error       = false;
 $processed   = false;
@@ -36,16 +37,17 @@ $first_entry = isset($_GET['add']) ? true : false;
 $_SESSION['inv_f0'] = isset($_SESSION['inv_f0']) ? $_SESSION['inv_f0'] : '0'; // show inactive checkbox - default hidden
 if ($_SERVER['REQUEST_METHOD'] == 'POST') $_SESSION['inv_f0'] = isset($_POST['f0']) ? '1' : '0';
 $f0 = $_SESSION['inv_f0'];
-$f1 = $_GET['f1'] = isset($_POST['f1']) ? $_POST['f1'] : $_GET['f1']; // inventory_type dropdown
-$id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID']);
+$f1 = $_GET['f1'] = isset($_POST['f1']) ? $_POST['f1'] : ($_GET['f1'] ?? ''); // inventory_type dropdown
+$id = isset($_POST['rowSeq']) ? db_prepare_input($_POST['rowSeq']) : db_prepare_input($_GET['cID'] ?? '');
 // It goes into SQL unquoted: a whole number, or empty for none.
 $id = ctype_digit((string)$id) ? (string)$id : '';
 // getting the right inventory type.
 if (!isset($_REQUEST['inventory_type'])){
+	$result = null;
 	if(isset($_REQUEST['cID'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id=".(int)$_REQUEST['cID']);
 	else if (isset($_REQUEST['rowSeq'])) $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE id=".(int)$_REQUEST['rowSeq']);
 	else if (isset($_REQUEST['sku']))	 $result = $db->Execute("SELECT inventory_type FROM ".TABLE_INVENTORY." WHERE sku='".db_input($_REQUEST['sku'])."'");
-	if ($result->RecordCount()>0) $type = $result->fields['inventory_type'];
+	if ($result && $result->RecordCount()>0) $type = $result->fields['inventory_type'];
 } 
 if ($type == 'as') $type = 'ma'; 
 // It names a class file and a class, and can come from the request: only a
@@ -223,9 +225,9 @@ switch ($_REQUEST['action']) {
     break;
   default:
   	//building filter criteria
-  	$_SESSION['filter_field'] 	 = isset( $_REQUEST['filter_field']) 	?  $_REQUEST['filter_field'] : $_SESSION['filter_field'];
-  	$_SESSION['filter_criteria'] = isset( $_REQUEST['filter_criteria']) ?  $_REQUEST['filter_criteria'] : $_SESSION['filter_criteria'];
-  	$_SESSION['filter_value'] 	 = isset( $_REQUEST['filter_value']) 	?  $_REQUEST['filter_value'] : $_SESSION['filter_value'];
+  	$_SESSION['filter_field'] 	 = isset( $_REQUEST['filter_field']) 	?  $_REQUEST['filter_field'] : ($_SESSION['filter_field'] ?? '');
+  	$_SESSION['filter_criteria'] = isset( $_REQUEST['filter_criteria']) ?  $_REQUEST['filter_criteria'] : ($_SESSION['filter_criteria'] ?? '');
+  	$_SESSION['filter_value'] 	 = isset( $_REQUEST['filter_value']) 	?  $_REQUEST['filter_value'] : ($_SESSION['filter_value'] ?? '');
   	$filter_criteria = Array(" = "," != "," LIKE "," NOT LIKE "," > "," < ");
 	// The field is a column name in the SQL: only one this page offers in its
 	// filter list (built the same way below). The criterion is a position in

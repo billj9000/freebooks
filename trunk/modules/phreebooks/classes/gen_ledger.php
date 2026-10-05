@@ -698,8 +698,8 @@ class journal {
 		'gl_type'       => 'cog',		// code for cost of goods charges
 		'description'   => GL_JOURNAL_ENTRY_COGS,
 		'gl_account'    => $gl_acct,
-		'credit_amount' => $values['credit'] ? $values['credit'] : 0,
-		'debit_amount'  => $values['debit']  ? $values['debit']  : 0,
+		'credit_amount' => $values['credit'] ?? 0,
+		'debit_amount'  => $values['debit']  ?? 0,
 		'post_date'     => $this->post_date,
 	  );
 	  db_perform(TABLE_JOURNAL_ITEM, $temp_array, 'insert');
@@ -790,7 +790,7 @@ class journal {
 		case  4:
 		case 10:
 		  $item_array = $this->load_so_po_balance($this->id, '', false);
-		  $bal_before_post = $item_array[$this->journal_rows[$i]['id']]['ordered'] - $item_array[$this->journal_rows[$i]['id']]['processed'];
+		  $bal_before_post = $item_array[$this->journal_rows[$i]['id']]['ordered'] - ($item_array[$this->journal_rows[$i]['id']]['processed'] ?? 0);
 		  if (!$this->closed && $bal_before_post > 0) {
 			if (!$this->update_inventory_status($this->journal_rows[$i]['sku'], $db_field, -$bal_before_post)) return false;
 		  }
@@ -827,7 +827,7 @@ class journal {
 		  // adjust po/so inventory, if necessary, based on min of qty on ordered and qty shipped/received
 		  if ($this->journal_rows[$i]['so_po_item_ref_id']) {
 			$item_array = $this->load_so_po_balance($this->so_po_ref_id, $this->id, false);
-			$bal_before_post = $item_array[$this->journal_rows[$i]['so_po_item_ref_id']]['ordered'] - $item_array[$this->journal_rows[$i]['so_po_item_ref_id']]['processed'];
+			$bal_before_post = $item_array[$this->journal_rows[$i]['so_po_item_ref_id']]['ordered'] - ($item_array[$this->journal_rows[$i]['so_po_item_ref_id']]['processed'] ?? 0);
 			// do not allow qty on order to go below zero.
 			$adjustment = min($this->journal_rows[$i]['qty'], $bal_before_post);
 			if (!$this->update_inventory_status($this->journal_rows[$i]['sku'], $db_field, $adjustment)) return false;
@@ -1058,16 +1058,16 @@ class journal {
 	  // credit inventory cost of inventory
 	  $cogs_acct = $defaults['account_inventory_wage'];
 	  if ($cogs >= 0 ) {
-		$this->cogs_entry[$cogs_acct]['credit'] += $cogs;
+		$this->cogs_entry[$cogs_acct]['credit'] = ($this->cogs_entry[$cogs_acct]['credit'] ?? 0) + $cogs;
 	  } else {
-		$this->cogs_entry[$cogs_acct]['debit']  += -$cogs;
+		$this->cogs_entry[$cogs_acct]['debit']  = ($this->cogs_entry[$cogs_acct]['debit']  ?? 0) - $cogs;
 	  }
 	  // debit cogs account for income statement
-	  $cogs_acct = $this->override_cogs_acct ? $this->override_cogs_acct : $defaults['account_cost_of_sales'];
+	  $cogs_acct = !empty($this->override_cogs_acct) ? $this->override_cogs_acct : $defaults['account_cost_of_sales'];
 	  if ($cogs >= 0 ) {
-		$this->cogs_entry[$cogs_acct]['debit']  += $cogs;
+		$this->cogs_entry[$cogs_acct]['debit']  = ($this->cogs_entry[$cogs_acct]['debit']  ?? 0) + $cogs;
 	  } else {
-		$this->cogs_entry[$cogs_acct]['credit'] += -$cogs;
+		$this->cogs_entry[$cogs_acct]['credit'] = ($this->cogs_entry[$cogs_acct]['credit'] ?? 0) - $cogs;
 	  }
 	}
 	$messageStack->debug(" ... Finished calculating COGS.");
@@ -1514,7 +1514,7 @@ class journal {
 		  $ordr_diff = false;
 		  if (is_array($this->so_po_balance_array)) {
 			foreach($this->so_po_balance_array as $key => $counts) {
-			  if ($counts['ordered'] > $counts['processed']) $ordr_diff = true;
+			  if ($counts['ordered'] > ($counts['processed'] ?? 0)) $ordr_diff = true;
 			}
 		  } else {
 			$ordr_diff = true; // force open since balance array is empty

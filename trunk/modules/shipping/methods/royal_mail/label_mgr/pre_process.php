@@ -29,6 +29,7 @@ $label_data = NULL;
 $pdf_list   = array();
 $sInfo      = new shipment();
 /***************  Act on the action request  ************************/
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; js_include reads it too
 switch ($_REQUEST['action']) {
   case 'save_items':
     $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));

@@ -101,7 +101,7 @@ var ItemMustBeOrderd	 = '<?php echo ITEM_MUST_BE_ORDERD; ?>';
 var printFormUrlBase     = '<?php echo gen_print_form_url(POPUP_FORM_TYPE, 'journal_main.id', 'EQUAL'); ?>';
 <?php 
 echo js_calendar_init($cal_order);
-if ($template_options['terminal_date']) echo js_calendar_init($cal_terminal);
+if (!empty($template_options['terminal_date'])) echo js_calendar_init($cal_terminal);
 ?>
 // List the currency codes and exchange rates
 <?php if (ENABLE_MULTI_CURRENCY) echo $currencies->build_js_currency_arrays(); ?>

@@ -75,7 +75,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search_fields = array('c.short_name', 'a.primary_name', 'a.contact', 'a.telephone1', 'a.telephone2',
   	'a.address1', 'a.address2', 'a.city_town', 'a.postal_code', 'c.account_number');
   // hook for inserting new search fields to the query criteria.
-  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+  if (isset($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
   $search = ' and (' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 } else {
   $search = '';
@@ -87,7 +87,7 @@ $field_list = array('a.address_id', 'c.id', 'a.ref_id', 'a.type', 'a.primary_nam
 	'c.last_date_1', 'c.last_date_2', 'c.inactive');
 
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 
 $query_raw = "select " . implode(', ', $field_list)  . "
 	from " . TABLE_CONTACTS . " c left join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id
