@@ -1003,9 +1003,27 @@ function gen_db_date($raw_date = '', $separator = '/') {
 	return $output;
   }
 
+  // The next document number or ID after $string, counted exactly as PHP's ++ counts. A whole
+  // number adds one. Any other string counts up its trailing letters and digits with carry
+  // (CM0099 -> CM0100, AZ9 -> BA0, Z9 -> AA0) and stops at the first other character, so
+  // WO-9999 becomes WO-0000. ++ on a non-numeric string is deprecated, and str_increment()
+  // refuses the hyphens and spaces numbers here may carry, so the counting is done here.
   function string_increment($string, $increment = 1) {
-	$string++; // just use the built in PHP operation
-	return $string;
+	if ($string === null) return 1;
+	$string = (string)$string;
+	if ($string === '') return '1';
+	if (is_numeric($string)) return $string + 1;
+	$carry = false;
+	$last  = '';
+	for ($pos = strlen($string) - 1; $pos >= 0; $pos--) {
+	  $ch = $string[$pos];
+	  if     ($ch >= 'a' && $ch <= 'z') { $carry = $ch === 'z'; $string[$pos] = $carry ? 'a' : chr(ord($ch) + 1); $last = 'a'; }
+	  elseif ($ch >= 'A' && $ch <= 'Z') { $carry = $ch === 'Z'; $string[$pos] = $carry ? 'A' : chr(ord($ch) + 1); $last = 'A'; }
+	  elseif ($ch >= '0' && $ch <= '9') { $carry = $ch === '9'; $string[$pos] = $carry ? '0' : chr(ord($ch) + 1); $last = '1'; }
+	  else { $carry = false; break; }
+	  if (!$carry) break;
+	}
+	return $carry ? $last . $string : $string;
   }
 
   function install_blank_webpage($filename) {

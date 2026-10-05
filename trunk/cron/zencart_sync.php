@@ -442,8 +442,10 @@ function zc_resolve_variant_sku(string $master_sku, array $options): ?string
 function zc_drain_messages(): string
 {
     $parts = [];
+    // Messages are written for a page; the log is plain text, so markup and entities go.
     foreach ($_SESSION['messageToStack'] ?? [] as $m) {
-        $parts[] = strip_tags($m['text'] ?? '');
+        $text    = html_entity_decode(strip_tags($m['text'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $parts[] = trim(str_replace("\u{00A0}", ' ', $text));
     }
     unset($_SESSION['messageToStack']);
     return implode('; ', array_filter($parts));
