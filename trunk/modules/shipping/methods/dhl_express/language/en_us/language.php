@@ -62,6 +62,8 @@ define('DHL_PICKUP_BOOK_BTN',       'Book collection');
 define('DHL_PICKUP_BOOKED_HEADING', 'Collections booked');
 define('DHL_PICKUP_NEW_HEADING',    'Book a collection');
 define('DHL_PICKUP_NONE',           'No collection booked for this day.');
+define('DHL_PICKUP_ADDRESS',        'Collection address');
+define('DHL_PICKUP_ADDRESS_NOTE',   'Collections are booked at the company address, which is changed on the My Company tab of the company settings.');
 define('DHL_PICKUP_DATE',           'Collection date');
 define('DHL_PICKUP_READY',          'Ready from');
 define('DHL_PICKUP_CLOSE',          'Latest collection');

@@ -44,6 +44,19 @@ $form = array(
   'phone'         => $setting('PHONE', defined('COMPANY_TELEPHONE1') ? COMPANY_TELEPHONE1 : ''),
   'instructions'  => '',
 );
+// The address a booking sends: the company's, as bookPickup() builds it.
+$country_name = '';
+if (defined('COMPANY_COUNTRY')) {
+  foreach (gen_pull_countries()->country as $country) if ($country->iso3 == COMPANY_COUNTRY) $country_name = (string)$country->name;
+}
+$collect_address = array_filter(array_map('trim', array(
+  defined('COMPANY_NAME')        ? COMPANY_NAME        : '',
+  defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '',
+  defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '',
+  defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '',
+  defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '',
+  $country_name,
+)), 'strlen');
 $cancel_reasons = array(
   'not_needed' => DHL_PICKUP_REASON_NOT_NEEDED,
   'error'      => DHL_PICKUP_REASON_ERROR,

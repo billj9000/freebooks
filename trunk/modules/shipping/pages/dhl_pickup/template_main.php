@@ -33,6 +33,10 @@ $h = function ($v) { return htmlspecialchars((string)$v, ENT_QUOTES); };
   <div class="card mb-3">
     <div class="card-header py-2 fb-widget-header"><?php echo DHL_PICKUP_NEW_HEADING; ?></div>
     <div class="card-body">
+      <p class="mb-2">
+        <strong><?php echo DHL_PICKUP_ADDRESS; ?>:</strong> <?php echo $h(implode(', ', $collect_address)); ?><br>
+        <span class="small text-muted"><?php echo DHL_PICKUP_ADDRESS_NOTE; ?></span>
+      </p>
       <div class="row g-2 mb-2">
         <div class="col-sm-4">
           <label class="form-label mb-0" for="pickup_date"><?php echo DHL_PICKUP_DATE; ?></label>
