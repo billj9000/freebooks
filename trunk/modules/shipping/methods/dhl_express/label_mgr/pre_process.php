@@ -99,6 +99,7 @@ switch ($_REQUEST['action']) {
       $temp = $db->Execute("select next_shipment_num from " . TABLE_CURRENT_STATUS);
       $shipment_num = $temp->fields['next_shipment_num'];
       $labels_array = array();
+      shipping_ensure_pickup_schema();
       foreach ($result as $pkg_result) {
         $sql_array = array(
           'ref_id'          => $pkg_result['ref_id'],
@@ -112,6 +113,7 @@ switch ($_REQUEST['action']) {
           'recipient_name'  => $sInfo->sender_primary_name ?? '',
           'recipient_email' => $sInfo->sender_email ?? '',
         );
+        if (isset($pkg_result['package_data'])) $sql_array['package_data'] = $pkg_result['package_data'];
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
         $labels_array[] = $pkg_result['tracking'];
       }

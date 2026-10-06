@@ -62,6 +62,10 @@ class dhl_express {
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER',        'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER_IMPORT', 'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE',      'default' => 'Test'),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_READY',    'default' => '12:00'),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_CLOSE',    'default' => '17:00'),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_LOCATION', 'default' => ''),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_PHONE',    'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',     'default' => '50'),
     );
   }
@@ -75,7 +79,10 @@ class dhl_express {
         );
         return html_pull_down_menu(strtolower($key), $temp, constant($key));
       default:
-        return html_input_field(strtolower($key), constant($key), '');
+        // A setting the installation has never saved is not defined yet; the form offers its default.
+        $value = defined($key) ? constant($key) : '';
+        if (!defined($key)) foreach ($this->keys() as $k) if ($k['key'] === $key) $value = $k['default'];
+        return html_input_field(strtolower($key), $value, '');
     }
   }
 
@@ -532,6 +539,15 @@ class dhl_express {
       $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL . 'No label documents in API response.', 'error');
       return false;
     }
+    // What a collection booking has to send for this shipment. DHL's label documents need
+    // not match the packages one for one, so the whole list travels with the first label.
+    $results[0]['package_data'] = json_encode(array(
+      'customs'          => !$isDomestic,
+      'shipper_postcode' => (string)($sInfo->sender_postal_code ?? ''),
+      'packages'         => array_map(function ($pkg) {
+        return array('weight' => $pkg['weight']) + $pkg['dimensions'];
+      }, $packages),
+    ));
 
     // Paperless Trade commercial invoice (one per shipment, not per package) — save alongside
     // the labels and hand its filename back so the caller can offer it in the label viewer.
@@ -580,7 +596,136 @@ class dhl_express {
     }
     $result = curl_exec($ch);
     $error  = curl_error($ch);
+    $this->lastStatus = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     return $error ? false : $result;
+  }
+
+  // DHL's error reply as one line: its title, detail and any additional details.
+  private function apiError($response) {
+    $data  = json_decode((string)$response, true);
+    if (!is_array($data)) return (string)$response;
+    $parts = array_filter(array(
+      $data['title']  ?? '',
+      $data['detail'] ?? '',
+      !empty($data['additionalDetails']) && is_array($data['additionalDetails'])
+        ? implode('; ', $data['additionalDetails']) : '',
+    ));
+    return implode(' — ', $parts) ?: (string)$response;
+  }
+
+  // ---------------------------------------------------------------
+  //  Collections (MyDHL /pickups)
+  // ---------------------------------------------------------------
+  // Books a one-off courier collection from the company's address. $p holds:
+  // date (Y-m-d), ready and close (HH:MM, company time), location, location_type
+  // (business|residence), instructions (up to 4 lines), contact, phone and
+  // shipments - each with product (DHL product code), customs (bool), tracking
+  // and packages (weight in kg; length, width and height in cm).
+  // Returns array('numbers' => dispatch confirmation numbers, 'warnings' => ...)
+  // or false, with the reason on the message stack.
+  public function bookPickup($p) {
+    global $messageStack;
+    $apiKey    = defined('MODULE_SHIPPING_DHL_EXPRESS_API_KEY')    ? MODULE_SHIPPING_DHL_EXPRESS_API_KEY    : '';
+    $apiSecret = defined('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET') ? MODULE_SHIPPING_DHL_EXPRESS_API_SECRET : '';
+    $account   = defined('MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER') ? MODULE_SHIPPING_DHL_EXPRESS_ACCOUNT_NUMBER : '';
+    if (!$apiKey || !$apiSecret || !$account) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_NOKEY, 'error');
+      return false;
+    }
+    $base = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
+
+    // The ready time is local to the pickup address, written with that zone's offset
+    // on the pickup day itself.
+    list($y, $m, $d) = array_map('intval', explode('-', $p['date']));
+    list($hh, $mm)   = array_map('intval', explode(':', $p['ready']));
+    $ready = sprintf('%sT%02d:%02d:00 GMT%s', $p['date'], $hh, $mm, date('P', mktime($hh, $mm, 0, $m, $d, $y)));
+
+    $a2  = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('addressLine2' => $v) : array(); };
+    $eml = function($v) { $v = trim($v ?? ''); return $v !== '' ? array('email' => $v)        : array(); };
+    $shipments = array();
+    foreach ($p['shipments'] as $s) {
+      $packages = array();
+      foreach ($s['packages'] as $pkg) {
+        $packages[] = array(
+          'weight'     => round((float)$pkg['weight'], 3),
+          'dimensions' => array('length' => (int)$pkg['length'], 'width' => (int)$pkg['width'], 'height' => (int)$pkg['height']),
+        );
+      }
+      $shipments[] = array(
+        'productCode'         => $s['product'],
+        'isCustomsDeclarable' => (bool)$s['customs'],
+        'unitOfMeasurement'   => 'metric',
+        'packages'            => $packages,
+      ) + ($s['tracking'] !== '' ? array('shipmentTrackingNumber' => $s['tracking']) : array());
+    }
+    $instructions = array();
+    foreach ($p['instructions'] as $line) $instructions[] = array('value' => $line);
+
+    $body = array(
+      'plannedPickupDateAndTime' => $ready,
+      'accounts'                 => array(array('typeCode' => 'shipper', 'number' => $account)),
+      'customerDetails'          => array(
+        'shipperDetails' => array(
+          'postalAddress' => array(
+            'postalCode'   => defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '',
+            'cityName'     => defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '',
+            'countryCode'  => defined('COMPANY_COUNTRY')     ? gen_get_country_iso_2_from_3(COMPANY_COUNTRY) : '',
+            'addressLine1' => defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '',
+          ) + $a2(defined('COMPANY_ADDRESS2') ? COMPANY_ADDRESS2 : ''),
+          'contactInformation' => array(
+            'phone'       => $p['phone'],
+            'companyName' => defined('COMPANY_NAME') ? COMPANY_NAME : '',
+            'fullName'    => $p['contact'],
+          ) + $eml(defined('COMPANY_EMAIL') ? COMPANY_EMAIL : ''),
+        ),
+      ),
+      'shipmentDetails' => $shipments,
+    );
+    if ($p['close'] !== '')    $body['closeTime']           = $p['close'];
+    if ($p['location'] !== '') $body['location']            = $p['location'];
+    $body['locationType'] = $p['location_type'];
+    if ($instructions)         $body['specialInstructions'] = $instructions;
+
+    $response = $this->curlRequest('POST', $base . '/pickups', $this->dhlHeaders(), json_encode($body), $apiKey, $apiSecret);
+    if ($response === false) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_PICKUP . 'API request failed.', 'error');
+      return false;
+    }
+    $data = json_decode($response, true);
+    if ($this->lastStatus !== 201 || empty($data['dispatchConfirmationNumbers'])) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_PICKUP . $this->apiError($response), 'error');
+      return false;
+    }
+    return array(
+      'numbers'  => array_values($data['dispatchConfirmationNumbers']),
+      'warnings' => is_array($data['warnings'] ?? null) ? $data['warnings'] : array(),
+    );
+  }
+
+  // Cancels a booked collection. DHL wants the name of whoever cancels and why.
+  // Where DHL has merged the booking with another collection from the same
+  // address, the whole merged collection is cancelled.
+  public function cancelPickup($confirmation, $requestor, $reason) {
+    global $messageStack;
+    $apiKey    = defined('MODULE_SHIPPING_DHL_EXPRESS_API_KEY')    ? MODULE_SHIPPING_DHL_EXPRESS_API_KEY    : '';
+    $apiSecret = defined('MODULE_SHIPPING_DHL_EXPRESS_API_SECRET') ? MODULE_SHIPPING_DHL_EXPRESS_API_SECRET : '';
+    if (!$apiKey || !$apiSecret) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_NOKEY, 'error');
+      return false;
+    }
+    $base = (MODULE_SHIPPING_DHL_EXPRESS_TEST_MODE == 'Production') ? DHL_API_BASE_LIVE : DHL_API_BASE_TEST;
+    $url  = $base . '/pickups/' . rawurlencode($confirmation)
+          . '?' . http_build_query(array('requestorName' => $requestor, 'reason' => $reason), '', '&', PHP_QUERY_RFC3986);
+    $response = $this->curlRequest('DELETE', $url, $this->dhlHeaders(), null, $apiKey, $apiSecret);
+    if ($response === false) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_PICKUP . 'Cancellation request failed.', 'error');
+      return false;
+    }
+    if ($this->lastStatus !== 200) {
+      $messageStack->add(MODULE_SHIPPING_DHL_EXPRESS_ERROR_PICKUP . $this->apiError($response), 'error');
+      return false;
+    }
+    return true;
   }
 
   public function cancelShipment($tracking) {

@@ -29,6 +29,26 @@ function shipping_method_is_valid($name, $installed = true) {
   return !$installed || defined('MODULE_SHIPPING_' . strtoupper($name) . '_STATUS');
 }
 
+/**
+ * Creates the collections table, and gives the shipping log its package_data
+ * column, on an installation that has neither. Both come from the module's own
+ * declarations, the ones the installer uses, so there is a single definition.
+ */
+function shipping_ensure_pickup_schema() {
+  global $db;
+  static $checked = false;
+  if ($checked) return;
+  $checked = true;
+  if (!db_field_exists(TABLE_SHIPPING_LOG, 'package_data')) {
+    $db->Execute("ALTER TABLE " . TABLE_SHIPPING_LOG . " ADD package_data mediumtext NULL AFTER carrier_order_id");
+  }
+  if (!db_table_exists(TABLE_SHIPPING_PICKUPS)) {
+    require_once(DIR_FS_MODULES . 'shipping/classes/install.php');
+    $install = new shipping_admin();
+    $db->Execute($install->tables[TABLE_SHIPPING_PICKUPS]);
+  }
+}
+
 function build_js_methods($methods) {
   global $shipping_defaults;
   $choices         = array_keys($shipping_defaults['service_levels']);

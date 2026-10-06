@@ -123,9 +123,26 @@ class shipping_admin {
 		  recipient_name varchar(64) NOT NULL default '',
 		  recipient_email varchar(100) NOT NULL default '',
 		  carrier_order_id varchar(64) NOT NULL default '',
+		  package_data mediumtext NULL,
 		  PRIMARY KEY  (id),
 		  KEY ref_id (ref_id)
 		) ENGINE=MyISAM  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+	  TABLE_SHIPPING_PICKUPS => "CREATE TABLE " . TABLE_SHIPPING_PICKUPS . " (
+		  id int(11) NOT NULL auto_increment,
+		  carrier varchar(16) NOT NULL default '',
+		  confirmation varchar(255) NOT NULL default '',
+		  pickup_date date NULL default NULL,
+		  ready_time varchar(5) NOT NULL default '',
+		  close_time varchar(5) NOT NULL default '',
+		  location varchar(80) NOT NULL default '',
+		  shipment_ids varchar(255) NOT NULL default '',
+		  status enum('booked','cancelled') NOT NULL default 'booked',
+		  booked_by varchar(64) NOT NULL default '',
+		  booked_at datetime NULL default NULL,
+		  cancelled_at datetime NULL default NULL,
+		  PRIMARY KEY (id),
+		  KEY carrier_date (carrier, pickup_date)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
     );
   }
 

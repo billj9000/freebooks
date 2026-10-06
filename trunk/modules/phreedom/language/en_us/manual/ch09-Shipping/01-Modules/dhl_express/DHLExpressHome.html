@@ -27,6 +27,7 @@ export declarations, and shipment cancellation directly from the invoice list.</
   <li>Multi-package shipments</li>
   <li>Automatic customs / export declaration for international shipments</li>
   <li>Shipment cancellation via the DHL API</li>
+  <li>One-off courier collections booked and cancelled from Shipping Manager</li>
   <li>Label reprint from the Shipment Details popup</li>
   <li>Test (sandbox) and Production modes</li>
 </ul>
@@ -49,6 +50,10 @@ export declarations, and shipment cancellation directly from the invoice list.</
   <li>Enter your API Key, API Secret, and DHL Account Number.</li>
   <li>Set <strong>Mode</strong> to <em>Test</em> to use the sandbox, or <em>Production</em>
       for live shipments.</li>
+  <li>Optionally fill in the four <strong>Collections</strong> settings: the time parcels are
+      usually ready, the latest time the courier can collect, where the courier collects from
+      (for example <em>Reception</em>) and the telephone number DHL calls about a collection.
+      They pre-fill the collection form and can be changed there for each booking.</li>
   <li>Click <strong>Save</strong>.</li>
 </ol>
 
@@ -125,6 +130,34 @@ export declarations, and shipment cancellation directly from the invoice list.</
 </ol>
 <p><strong>Note:</strong> DHL Express cancellations are subject to DHL's own cut-off rules.
 Shipments that have already been collected by DHL may not be cancellable via the API.</p>
+
+<h4>Booking a Collection</h4>
+<p>A label does not book a courier. Regular collections are arranged with DHL on the account;
+for any other day, book a one-off collection once the day's parcels are ready.</p>
+<ol>
+  <li>Open <strong>Shipping Manager</strong> and select the <strong>DHL Express</strong> tab. It
+      lists the day's DHL shipments, with the number of parcels and their weight, and any
+      collections booked for that day.</li>
+  <li>Click <strong>Book collection</strong>. The collection window opens for the day shown;
+      change the <em>Collection date</em> to book up to 10 days ahead. The shipments listed are
+      the DHL labels printed for that date.</li>
+  <li>Check the <em>Ready from</em> and <em>Latest collection</em> times, where to collect from,
+      the type of premises, and the contact name and telephone number. Up to four short notes
+      to the courier can be added, one per line.</li>
+  <li>Tick the shipments to collect. A shipment already in a booked collection, or sent from
+      another postcode, is shown unticked with the reason.</li>
+  <li>A label printed before collections existed has no parcel figures stored with it; enter the
+      number of parcels, the weight of each in kilograms and their size in centimetres, and
+      whether the shipment needs a customs declaration. The figures are kept for next time.</li>
+  <li>Click <strong>Book collection</strong>. DHL returns a confirmation number, which is shown
+      in the window and on the DHL Express tab. Any warning DHL gives with the booking is shown
+      too.</li>
+</ol>
+<p>To cancel, open the collection window for that day, choose a reason beside the collection and
+click <strong>Cancel collection</strong>. FreeBooks sends your user name and the reason to DHL.
+If DHL has merged the booking with another collection from the same address, the merged
+collection is cancelled. To change a booking, cancel it and book again.</p>
+<p>Bookings and cancellations are recorded in the audit log.</p>
 
 <h4>Related Topics</h4>
 <p>
