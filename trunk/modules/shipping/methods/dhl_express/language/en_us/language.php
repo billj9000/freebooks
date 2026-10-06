@@ -31,6 +31,7 @@ define('MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER_DESC',     'Sort order of display
 define('MODULE_SHIPPING_DHL_EXPRESS_PICKUP_READY_DESC',    'Collections: the time parcels are usually ready (HH:MM), offered when booking a collection.');
 define('MODULE_SHIPPING_DHL_EXPRESS_PICKUP_CLOSE_DESC',    'Collections: the latest time the courier can collect (HH:MM), offered when booking a collection.');
 define('MODULE_SHIPPING_DHL_EXPRESS_PICKUP_LOCATION_DESC', 'Collections: where the courier collects from, e.g. Reception (up to 80 characters).');
+define('MODULE_SHIPPING_DHL_EXPRESS_PICKUP_CONTACT_DESC',  'Collections: the contact name DHL is given for a collection. Blank uses the receivables contact name on the My Company tab.');
 define('MODULE_SHIPPING_DHL_EXPRESS_PICKUP_PHONE_DESC',    'Collections: the telephone number DHL calls about a collection. Blank uses the company telephone number.');
 // Error messages
 define('MODULE_SHIPPING_DHL_EXPRESS_ERROR_RATES', 'DHL Express: Rate query failed - ');

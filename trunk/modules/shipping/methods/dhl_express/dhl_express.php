@@ -65,6 +65,7 @@ class dhl_express {
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_READY',    'default' => '12:00'),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_CLOSE',    'default' => '17:00'),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_LOCATION', 'default' => ''),
+      array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_CONTACT',  'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_PICKUP_PHONE',    'default' => ''),
       array('key' => 'MODULE_SHIPPING_DHL_EXPRESS_SORT_ORDER',     'default' => '50'),
     );

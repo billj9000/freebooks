@@ -40,7 +40,7 @@ $form = array(
   'close'         => $setting('CLOSE', '17:00'),
   'location'      => $setting('LOCATION'),
   'location_type' => 'business',
-  'contact'       => defined('AR_CONTACT_NAME') ? AR_CONTACT_NAME : '',
+  'contact'       => $setting('CONTACT', defined('AR_CONTACT_NAME') ? AR_CONTACT_NAME : ''),
   'phone'         => $setting('PHONE', defined('COMPANY_TELEPHONE1') ? COMPANY_TELEPHONE1 : ''),
   'instructions'  => '',
 );
