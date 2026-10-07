@@ -58,6 +58,7 @@ define('TEXT_YES','Ja');
 define('TEXT_WIDTH','Breedte');
 define('TEXT_WEIGHT','Gewicht');
 define('TEXT_VIEW_SHIP_LOG','Bekijk Verzend logboek');
+define('TEXT_PART_SHIPPED', 'Deels verzonden');
 define('TEXT_VIEW','Bekijk');
 define('TEXT_VERTICAL','Verticaal');
 define('TEXT_VERSION','Versie');

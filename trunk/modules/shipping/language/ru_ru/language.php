@@ -207,5 +207,17 @@ define('SHIPPING_LINE_REMOVE', 'Убрать');
 define('SHIPPING_LINE_RESTORE', 'Вернуть');
 define('SHIPPING_ERROR_LINE_QTY', 'Позиция %s: количество должно быть от 0 до %s.');
 define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Все позиции удалены, отправлять нечего.');
+define('SHIPPING_SHORT_TITLE', 'Остаток этой позиции');
+define('SHIPPING_SHORT_LATER', 'Остаток отправим позже');
+define('SHIPPING_SHORT_CANCEL', 'Остаток не будет отправлен');
+define('SHIPPING_LINE_SHIPPED', 'уже отправлено: %s');
+define('SHIPPING_LINE_CANCELLED', 'не будет отправлено: %s');
+define('SHIPPING_LINE_NOTHING_LEFT', 'Отправлять больше нечего');
+define('SHIPPING_ORDER_SHIPMENTS', 'Отправки по этому заказу');
+define('SHIPPING_TEXT_CONTENTS', 'Содержимое');
+define('SHIPPING_TEXT_CANCELLED', 'Не будет отправлено');
+define('SHIPPING_RESTORE_CONFIRM', 'Снова сделать эту позицию ожидающей отправки, чтобы её можно было отправить позже?');
+define('SHIPPING_CANCELLED_RESTORED', '%s шт. %s снова ожидает отправки.');
+define('SHIPPING_CANCELLED_RESTORED_LOG', 'Строка отправки восстановлена');
 
 ?>

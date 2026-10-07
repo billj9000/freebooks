@@ -131,6 +131,7 @@ define('TEXT_WIDTH','Largura');
 define('TEXT_XML','XML');
 define('TEXT_WEIGHT','Peso');
 define('TEXT_VIEW_SHIP_LOG','Ver Log Envio');
+define('TEXT_PART_SHIPPED', 'Parcialmente enviado');
 define('TEXT_VERTICAL','Vertical');
 define('TEXT_VIEW','Ver');
 define('TEXT_VERSION','Versão');

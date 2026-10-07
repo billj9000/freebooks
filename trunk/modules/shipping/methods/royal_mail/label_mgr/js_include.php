@@ -105,15 +105,19 @@ function toggleCustoms() {
 }
 
 // A contents line whose quantity is 0 is not in this shipment: it is greyed out and its button
-// puts back the quantity on the order.
+// puts back what remains to send. A line sent short asks whether the rest follows later.
 function lineQtyChanged(n) {
   var q = document.getElementById('li_qty_' + n);
   if (!q) return;
-  var removed = !(parseFloat(q.value) > 0);
+  var qty     = parseFloat(q.value);
+  var removed = !(qty > 0);
   var row = document.getElementById('li_row_' + n);
   if (row) row.style.opacity = removed ? '0.5' : '';
   var btn = document.getElementById('li_btn_' + n);
   if (btn) btn.textContent = removed ? '<?php echo addslashes(SHIPPING_LINE_RESTORE); ?>' : '<?php echo addslashes(SHIPPING_LINE_REMOVE); ?>';
+  var o     = document.getElementById('li_ord_' + n);
+  var short = document.getElementById('li_short_wrap_' + n);
+  if (short && o) short.style.display = (isNaN(qty) ? 0 : qty) < parseFloat(o.value) ? '' : 'none';
   updateWeight();
 }
 

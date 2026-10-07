@@ -306,6 +306,7 @@ define('TEXT_VERSION','Версия');
 define('TEXT_VERTICAL','Vertical');
 define('TEXT_VIEW','Вид');
 define('TEXT_VIEW_SHIP_LOG','Просмотреть лог отправки');
+define('TEXT_PART_SHIPPED', 'Частично отправлено');
 define('TEXT_WEIGHT','Вес');
 define('TEXT_WIDTH','Ширина');
 define('TEXT_XML','XML');

@@ -129,16 +129,12 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
       <td onclick="location.href='<?php echo $link_page; ?>'"><?php echo $closed; ?></td>
       <td class="text-end" onclick="location.href='<?php echo $link_page; ?>'"><?php echo $total_amount; ?></td>
 <?php if (defined('MODULE_SHIPPING_STATUS') && in_array(JOURNAL_ID, [4, 12])) {
-      $sID          = 0;
-      $shipped      = false;
-      // The invoice's own shipments: its number, or its number with the -N an extra label carries.
-      $ship_ref = db_input($query_result->fields['purchase_invoice_id']);
-      $result = $db->Execute("select id, shipment_id, ship_date from " . TABLE_SHIPPING_LOG . " where ref_id = '" . $ship_ref . "' or ref_id like '" . $ship_ref . "-%'");
-      if ($result->RecordCount() > 0) {
-        $sID          = $result->fields['id'];
-        $shipped      = $result->fields['shipment_id'];
-        $date_shipped = substr($result->fields['ship_date'], 0, 10);
-      }
+      require_once(DIR_FS_MODULES . 'shipping/functions/shipping.php');
+      // Ship is offered until the order has nothing left to send; see shipping_order_state().
+      $ship_state = shipping_order_state($oID, $query_result->fields['purchase_invoice_id']);
+      $sID        = $ship_state['first_log_id'];
+      $can_ship   = !$sID || $ship_state['outstanding'] > 0;
+      $part_ship  = $sID && $ship_state['outstanding'] > 0;
       $temp         = explode(':', $query_result->fields['shipper_code']) + array('', ''); // a code without a service has no second part
       $shipper_code = preg_replace('/[^a-z0-9_]/', '', strtolower($temp[0]));
       $ship_meth    = defined('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') ? constant('MODULE_SHIPPING_' . strtoupper($temp[0]) . '_TITLE_SHORT') : $temp[0];
@@ -162,9 +158,11 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         break;
       case  4:
         if (defined('MODULE_SHIPPING_STATUS') && $shipper_code) {
+          if ($part_ship) echo '<span class="badge bg-warning text-dark">' . TEXT_PART_SHIPPED . '</span>' . chr(10);
           if ($sID) {
             echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'' . $shipper_code . '\', \'edit\', ' . $sID . ')"') . chr(10);
-          } elseif (!$shipped) {
+          }
+          if ($can_ship) {
             echo html_icon('phreebooks/truck-icon.png', TEXT_SHIP, 'small', 'onclick="shipList(' . $oID . ', \'' . $shipper_code . '\')"') . chr(10);
           }
         }
@@ -190,9 +188,11 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
         break;
       case 12:
         if (defined('MODULE_SHIPPING_STATUS') && $shipper_code) {
+          if ($part_ship) echo '<span class="badge bg-warning text-dark">' . TEXT_PART_SHIPPED . '</span>' . chr(10);
           if ($sID) {
             echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(\'' . $shipper_code . '\', \'edit\', ' . $sID . ')"') . chr(10);
-          } elseif (!$shipped) {
+          }
+          if ($can_ship) {
             echo html_icon('phreebooks/truck-icon.png', TEXT_SHIP, 'small', 'onclick="shipList(' . $oID . ', \'' . $shipper_code . '\')"') . chr(10);
           }
         }

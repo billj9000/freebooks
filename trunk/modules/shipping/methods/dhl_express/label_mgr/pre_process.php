@@ -89,7 +89,7 @@ switch ($_REQUEST['action']) {
       $temp = $db->Execute("select next_shipment_num from " . TABLE_CURRENT_STATUS);
       $shipment_num = $temp->fields['next_shipment_num'];
       $labels_array = array();
-      shipping_ensure_pickup_schema();
+      shipping_ensure_schema();
       foreach ($result as $pkg_result) {
         $sql_array = array(
           'ref_id'          => $pkg_result['ref_id'],
@@ -102,6 +102,7 @@ switch ($_REQUEST['action']) {
           'cost'            => $pkg_result['net_cost'],
           'recipient_name'  => $sInfo->sender_primary_name ?? '',
           'recipient_email' => $sInfo->sender_email ?? '',
+          'order_id'        => (int)($_GET['oID'] ?? 0),
         );
         if (isset($pkg_result['package_data'])) $sql_array['package_data'] = $pkg_result['package_data'];
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
@@ -111,6 +112,7 @@ switch ($_REQUEST['action']) {
       if (!empty($result[0]['invoice_tracking'])) {
         $labels_array[] = $result[0]['invoice_tracking'];
       }
+      shipping_record_contents($shipment_num, $shipping_module, (int)($_GET['oID'] ?? 0), $sInfo->line_items);
       $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
       gen_add_audit_log(SHIPPING_LOG_LABEL_PRINTED, $shipment_num . '-' . $sInfo->purchase_invoice_id);
       // DHL labels are always PDF — redirect to viewer, passing email address hints
@@ -144,7 +146,7 @@ switch ($_REQUEST['action']) {
     break;
 
   default:
-    $oID = db_prepare_input($_GET['oID']);
+    $oID = db_prepare_input($_GET['oID'] ?? '');
     if ($oID) {
       $sql = "select journal_id, bill_acct_id, shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
           ship_city_town, ship_state_province, ship_postal_code, ship_country_code, ship_telephone1,
@@ -298,6 +300,8 @@ switch ($_REQUEST['action']) {
           );
           $li_result->MoveNext();
         }
+        // A line earlier shipments sent or cancelled offers only what remains of it.
+        $sInfo->line_items = shipping_apply_progress($sInfo->line_items, $oID);
         // Use goods-only total for the declared value display (excludes shipping/VAT line items)
         if (!empty($sInfo->line_items)) {
           $goods_sum = 0;

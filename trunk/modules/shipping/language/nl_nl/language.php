@@ -222,5 +222,17 @@ define('SHIPPING_LINE_REMOVE', 'Verwijderen');
 define('SHIPPING_LINE_RESTORE', 'Herstellen');
 define('SHIPPING_ERROR_LINE_QTY', 'Artikel %s: de hoeveelheid moet tussen 0 en %s liggen.');
 define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Alle artikelen zijn verwijderd, er valt niets te verzenden.');
+define('SHIPPING_SHORT_TITLE', 'De rest van dit artikel');
+define('SHIPPING_SHORT_LATER', 'Rest volgt later');
+define('SHIPPING_SHORT_CANCEL', 'Rest wordt niet verzonden');
+define('SHIPPING_LINE_SHIPPED', '%s al verzonden');
+define('SHIPPING_LINE_CANCELLED', '%s wordt niet verzonden');
+define('SHIPPING_LINE_NOTHING_LEFT', 'Niets meer te verzenden');
+define('SHIPPING_ORDER_SHIPMENTS', 'Zendingen voor deze order');
+define('SHIPPING_TEXT_CONTENTS', 'Inhoud');
+define('SHIPPING_TEXT_CANCELLED', 'Wordt niet verzonden');
+define('SHIPPING_RESTORE_CONFIRM', 'Dit artikel weer openstaand maken, zodat een latere zending het kan verzenden?');
+define('SHIPPING_CANCELLED_RESTORED', '%s van %s staat weer open.');
+define('SHIPPING_CANCELLED_RESTORED_LOG', 'Zendingsregel hersteld');
 
 ?>

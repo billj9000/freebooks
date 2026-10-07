@@ -116,18 +116,32 @@ export declarations, and shipment cancellation directly from the invoice list.</
 
 <h4>Shipping Part of an Order</h4>
 <p>The <strong>Shipment Contents</strong> table lists the invoice's items, on domestic and
-international shipments alike. Each line's quantity starts at the quantity invoiced and can be
-lowered to send part of it, for example when an item is out of stock or has been credited.</p>
+international shipments alike, each with the quantity still to send. Lower a quantity to send part
+of a line, for example when an item is out of stock, has been credited, or will follow later.</p>
 <ul>
   <li>Click <strong>Remove</strong> to leave an item out of this shipment; the line is greyed out
-      and its quantity set to 0. <strong>Restore</strong> puts the invoiced quantity back.</li>
-  <li>A quantity can be anything from 0 to the quantity invoiced, which is shown beside it.</li>
+      and its quantity set to 0. <strong>Restore</strong> puts back the quantity still to send.</li>
+  <li>A quantity can be anything from 0 to the quantity still to send, which is shown beside it.</li>
+  <li>When a line is sent short, choose what happens to the rest: <em>Rest follows later</em>, the
+      default, keeps it outstanding for a later shipment; <em>Rest won't be shipped</em> records it
+      as never to be sent, for example because it has been credited.</li>
   <li>The total weight and the declared value follow the quantities. An item left out is not on
       the customs declaration, and the shipment's goods description comes from the first item that is sent.</li>
   <li>At least one item must remain: a shipment with every item removed is refused.</li>
   <li>On a domestic shipment only the items and quantities are shown; the customs columns appear
       for international destinations.</li>
 </ul>
+<p><strong>Later shipments.</strong> While anything is still to send, the invoice keeps its
+<strong>Ship</strong> icon in Invoice Manager, beside <strong>View Shipment</strong>, with a
+<em>Part shipped</em> badge. The next label lists each item with what is still to send; an item
+already sent, or recorded as won't be shipped, shows <em>Nothing left to ship</em>. Once everything
+has been sent or recorded as won't be shipped, only View Shipment remains. Service, labour,
+charge, activity and description items never count as still to send.</p>
+<p><strong>Correcting.</strong> View Shipment lists every shipment of the order and what each
+contained. Deleting a shipment makes its items outstanding again. An item recorded as won't be
+shipped has a <strong>Restore</strong> button there, which makes it outstanding again.</p>
+<p>A shipment that recorded no contents, such as a label from another carrier, counts as sending
+the whole invoice.</p>
 <p>Leaving an item out of a shipment changes only the label. Credit an item the customer will not
 receive with a credit memo, as usual.</p>
 

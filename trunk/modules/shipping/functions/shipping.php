@@ -30,11 +30,12 @@ function shipping_method_is_valid($name, $installed = true) {
 }
 
 /**
- * Creates the collections table, and gives the shipping log its package_data
- * column, on an installation that has neither. Both come from the module's own
- * declarations, the ones the installer uses, so there is a single definition.
+ * Creates the collections and shipment contents tables, and gives the shipping log
+ * its package_data and order_id columns, on an installation that lacks them. The
+ * tables come from the module's own declarations, the ones the installer uses, so
+ * there is a single definition.
  */
-function shipping_ensure_pickup_schema() {
+function shipping_ensure_schema() {
   global $db;
   static $checked = false;
   if ($checked) return;
@@ -42,19 +43,66 @@ function shipping_ensure_pickup_schema() {
   if (!db_field_exists(TABLE_SHIPPING_LOG, 'package_data')) {
     $db->Execute("ALTER TABLE " . TABLE_SHIPPING_LOG . " ADD package_data mediumtext NULL AFTER carrier_order_id");
   }
-  if (!db_table_exists(TABLE_SHIPPING_PICKUPS)) {
-    require_once(DIR_FS_MODULES . 'shipping/classes/install.php');
-    $install = new shipping_admin();
-    $db->Execute($install->tables[TABLE_SHIPPING_PICKUPS]);
+  if (!db_field_exists(TABLE_SHIPPING_LOG, 'order_id')) {
+    $db->Execute("ALTER TABLE " . TABLE_SHIPPING_LOG . " ADD order_id int(11) NOT NULL default '0' AFTER package_data, ADD KEY order_id (order_id)");
+  }
+  $install = null;
+  foreach (array(TABLE_SHIPPING_PICKUPS, TABLE_SHIPPING_LOG_ITEMS) as $table) {
+    if (db_table_exists($table)) continue;
+    if (!$install) {
+      require_once(DIR_FS_MODULES . 'shipping/classes/install.php');
+      $install = new shipping_admin();
+    }
+    $db->Execute($install->tables[$table]);
   }
 }
 
 /**
- * The contents lines a label form posted. Each line carries 'ordered', the quantity on the
- * order line it came from, read from the order rather than from the form when the line
- * belongs to order $order_id. A line ships anything from 0 (removed) to that quantity, and at
- * least one line must ship. Returns array('lines' => ..., 'ok' => bool); the lines come back
- * either way, so the form can be shown again, and each refusal is on the message stack.
+ * What earlier shipments of order $order_id have recorded for each of its lines:
+ * array(journal_item id => array('shipped' => qty, 'cancelled' => qty)).
+ */
+function shipping_line_progress($order_id) {
+  global $db;
+  $progress = array();
+  if ((int)$order_id <= 0) return $progress;
+  shipping_ensure_schema();
+  $rows = $db->Execute("SELECT item_ref_id, status, SUM(qty) AS qty FROM " . TABLE_SHIPPING_LOG_ITEMS
+    . " WHERE order_id = " . (int)$order_id . " GROUP BY item_ref_id, status");
+  while (!$rows->EOF) {
+    $id = (int)$rows->fields['item_ref_id'];
+    if (!isset($progress[$id])) $progress[$id] = array('shipped' => 0.0, 'cancelled' => 0.0);
+    $progress[$id][$rows->fields['status']] = (float)$rows->fields['qty'];
+    $rows->MoveNext();
+  }
+  return $progress;
+}
+
+/**
+ * Adds to each of an order's label lines (as the label form loads them, each with
+ * 'id' and the order line's quantity in 'ordered') what earlier shipments recorded:
+ * 'shipped', 'cancelled' and 'remaining', and sets 'qty' to what remains to send.
+ */
+function shipping_apply_progress($lines, $order_id) {
+  $progress = shipping_line_progress($order_id);
+  foreach ($lines as $i => $line) {
+    $done = $progress[(int)($line['id'] ?? 0)] ?? array('shipped' => 0.0, 'cancelled' => 0.0);
+    $lines[$i]['shipped']   = $done['shipped'];
+    $lines[$i]['cancelled'] = $done['cancelled'];
+    $lines[$i]['remaining'] = max(0, (float)$line['ordered'] - $done['shipped'] - $done['cancelled']);
+    $lines[$i]['qty']       = $lines[$i]['remaining'];
+  }
+  return $lines;
+}
+
+/**
+ * The contents lines a label form posted. Each line carries 'ordered', the quantity on
+ * the order line it came from, and 'remaining', that less what earlier shipments sent or
+ * cancelled; both are read from the order and its shipments, not from the form, when the
+ * line belongs to order $order_id. A line ships anything from 0 (removed) to what remains,
+ * and at least one line must ship. 'short' says what happens to the rest of a line sent
+ * short: 'later' leaves it to follow, 'cancel' records it as never to be shipped.
+ * Returns array('lines' => ..., 'ok' => bool); the lines come back either way, so the
+ * form can be shown again, and each refusal is on the message stack.
  */
 function shipping_label_lines_from_post($order_id) {
   global $db, $messageStack;
@@ -67,6 +115,7 @@ function shipping_label_lines_from_post($order_id) {
       . " AND id IN (" . implode(',', $ids) . ")");
     while (!$rows->EOF) { $ordered[(int)$rows->fields['id']] = (float)$rows->fields['qty']; $rows->MoveNext(); }
   }
+  $progress = $ordered ? shipping_line_progress($order_id) : array();
   $lines = array();
   $ok    = true;
   for ($i = 1; $i <= $num; $i++) {
@@ -75,12 +124,18 @@ function shipping_label_lines_from_post($order_id) {
     $id     = (int)($_POST['li_id_' . $i] ?? 0);
     $posted = trim((string)($_POST['li_qty_' . $i] ?? ''));
     $qty    = is_numeric($posted) ? (float)$posted : -1;
-    $max    = $ordered[$id] ?? null;
+    $done   = $progress[$id] ?? array('shipped' => 0.0, 'cancelled' => 0.0);
+    if (isset($ordered[$id])) {
+      $max = max(0, $ordered[$id] - $done['shipped'] - $done['cancelled']);
+    } else {
+      $max = null;
+    }
     if ($qty < 0 || ($max !== null && $qty > $max + 0.000001)) {
       $messageStack->add(sprintf(SHIPPING_ERROR_LINE_QTY, $sku, $max === null ? '-' : (string)$max), 'error');
       $ok  = false;
       $qty = max(0, $qty);
     }
+    $remaining = $max ?? max($qty, (float)($_POST['li_ord_' . $i] ?? 0));
     $lines[] = array(
       'id'          => $id,
       'sku'         => $sku,
@@ -88,7 +143,11 @@ function shipping_label_lines_from_post($order_id) {
       'origin'      => db_prepare_input($_POST['li_origin_' . $i] ?? ''),
       'hs_code'     => db_prepare_input($_POST['li_hs_'     . $i] ?? ''),
       'qty'         => $qty,
-      'ordered'     => $max ?? max($qty, (float)($_POST['li_ord_' . $i] ?? 0)),
+      'ordered'     => $ordered[$id] ?? $remaining,
+      'remaining'   => $remaining,
+      'shipped'     => $done['shipped'],
+      'cancelled'   => $done['cancelled'],
+      'short'       => ($_POST['li_short_' . $i] ?? '') === 'cancel' ? 'cancel' : 'later',
       'weight'      => (float)($_POST['li_wt_'  . $i] ?? 0),
       'value'       => (float)($_POST['li_val_' . $i] ?? 0),
     );
@@ -98,6 +157,77 @@ function shipping_label_lines_from_post($order_id) {
     $ok = false;
   }
   return array('lines' => $lines, 'ok' => $ok);
+}
+
+/**
+ * Records what shipment $shipment_id of order $order_id contained: a 'shipped' row for
+ * each line sent, and a 'cancelled' row for the rest of a line sent short as never to be
+ * shipped. A line left to follow records nothing, so it stays outstanding.
+ */
+function shipping_record_contents($shipment_id, $carrier, $order_id, $lines) {
+  if ((int)$order_id <= 0) return;
+  shipping_ensure_schema();
+  $now = date('Y-m-d H:i:s');
+  foreach ($lines as $line) {
+    if ((int)($line['id'] ?? 0) <= 0) continue;
+    $row = array('shipment_id' => (int)$shipment_id, 'carrier' => $carrier, 'order_id' => (int)$order_id,
+      'item_ref_id' => (int)$line['id'], 'sku' => $line['sku'], 'created_at' => $now);
+    if ($line['qty'] > 0) db_perform(TABLE_SHIPPING_LOG_ITEMS, $row + array('qty' => $line['qty'], 'status' => 'shipped'), 'insert');
+    $short = (float)($line['remaining'] ?? $line['qty']) - $line['qty'];
+    if ($short > 0.000001 && ($line['short'] ?? 'later') === 'cancel') {
+      db_perform(TABLE_SHIPPING_LOG_ITEMS, $row + array('qty' => $short, 'status' => 'cancelled'), 'insert');
+    }
+  }
+}
+
+/**
+ * Forgets what shipment $shipment_id contained once none of its labels is left in the
+ * shipping log, so its lines are outstanding again.
+ */
+function shipping_forget_contents($shipment_id) {
+  global $db;
+  shipping_ensure_schema();
+  $left = $db->Execute("SELECT COUNT(*) AS n FROM " . TABLE_SHIPPING_LOG . " WHERE shipment_id = " . (int)$shipment_id);
+  if ((int)$left->fields['n'] === 0) {
+    $db->Execute("DELETE FROM " . TABLE_SHIPPING_LOG_ITEMS . " WHERE shipment_id = " . (int)$shipment_id);
+  }
+}
+
+/**
+ * Where order $order_id, invoice or purchase number $ref, stands on shipping:
+ * 'first_log_id', its earliest shipping log row, or 0 when it has no shipment;
+ * 'recorded', whether any shipment recorded its contents; and 'outstanding', the
+ * quantity still to send on lines that go in a parcel. A shipment that recorded no
+ * contents (an older label, or a carrier whose label form does not record them)
+ * counts as sending everything, so 'outstanding' is 0 unless 'recorded' is true.
+ */
+function shipping_order_state($order_id, $ref) {
+  global $db;
+  shipping_ensure_schema();
+  $ref   = db_input((string)$ref);
+  $first = $db->Execute("SELECT MIN(id) AS id FROM " . TABLE_SHIPPING_LOG . " WHERE order_id = " . (int)$order_id
+    . ($ref !== '' ? " OR ref_id = '" . $ref . "' OR ref_id LIKE '" . $ref . "-%'" : ''));
+  $state = array('first_log_id' => (int)($first->fields['id'] ?? 0), 'recorded' => false, 'outstanding' => 0.0);
+  if (!$state['first_log_id']) return $state;
+  $progress = shipping_line_progress($order_id);
+  if (!$progress) return $state;
+  $state['recorded'] = true;
+  $lines = $db->Execute("SELECT ji.id, ji.qty FROM " . TABLE_JOURNAL_ITEM . " ji"
+    . " LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku"
+    . " WHERE ji.ref_id = " . (int)$order_id . " AND ji.sku IS NOT NULL AND ji.sku <> ''"
+    . " AND (i.inventory_type IS NULL OR i.inventory_type NOT IN ('" . implode("','", shipping_non_parcel_types()) . "'))");
+  while (!$lines->EOF) {
+    $done = $progress[(int)$lines->fields['id']] ?? array('shipped' => 0.0, 'cancelled' => 0.0);
+    $state['outstanding'] += max(0, (float)$lines->fields['qty'] - $done['shipped'] - $done['cancelled']);
+    $lines->MoveNext();
+  }
+  return $state;
+}
+
+// Inventory types that never go in a parcel: service, labour, charge, activity and
+// description items. They are left out of what an order has still to send.
+function shipping_non_parcel_types() {
+  return array('sv', 'lb', 'ci', 'ai', 'ds');
 }
 
 function build_js_methods($methods) {

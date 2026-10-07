@@ -21,7 +21,7 @@ load_method_language(DIR_FS_MODULES . 'shipping/methods/', 'dhl_express');
 load_specific_method('shipping', 'dhl_express');
 require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'functions/shipping.php');
-shipping_ensure_pickup_schema();
+shipping_ensure_schema();
 
 // The day shown: its labels are the ones offered for collection, and a booking
 // is made for it. DHL takes bookings up to 10 days ahead.

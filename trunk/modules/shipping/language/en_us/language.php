@@ -316,5 +316,17 @@ define('SHIPPING_LINE_REMOVE', 'Remove');
 define('SHIPPING_LINE_RESTORE', 'Restore');
 define('SHIPPING_ERROR_LINE_QTY', 'Item %s: the quantity must be from 0 to %s.');
 define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Every item has been removed, so there is nothing to ship.');
+define('SHIPPING_SHORT_TITLE', 'The rest of this item');
+define('SHIPPING_SHORT_LATER', 'Rest follows later');
+define('SHIPPING_SHORT_CANCEL', 'Rest won\'t be shipped');
+define('SHIPPING_LINE_SHIPPED', '%s already shipped');
+define('SHIPPING_LINE_CANCELLED', '%s won\'t be shipped');
+define('SHIPPING_LINE_NOTHING_LEFT', 'Nothing left to ship');
+define('SHIPPING_ORDER_SHIPMENTS', 'Shipments for this order');
+define('SHIPPING_TEXT_CONTENTS', 'Contents');
+define('SHIPPING_TEXT_CANCELLED', 'Won\'t be shipped');
+define('SHIPPING_RESTORE_CONFIRM', 'Make this item outstanding again, so a later shipment can send it?');
+define('SHIPPING_CANCELLED_RESTORED', '%s of %s is outstanding again.');
+define('SHIPPING_CANCELLED_RESTORED_LOG', 'Shipment line restored');
 
 ?>

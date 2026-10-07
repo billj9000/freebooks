@@ -35,6 +35,7 @@ define('SECURITY_ID_SHIPPING_PACKAGES', 157);
 define('TABLE_SHIPPING_LOG',      DB_PREFIX . 'shipping_log');
 define('TABLE_SHIPPING_PACKAGES', DB_PREFIX . 'shipping_packages');
 define('TABLE_SHIPPING_PICKUPS',  DB_PREFIX . 'shipping_pickups');
+define('TABLE_SHIPPING_LOG_ITEMS', DB_PREFIX . 'shipping_log_items');
 // Set the title menu
 // Set the menus
 if (defined('MODULE_SHIPPING_STATUS')) {

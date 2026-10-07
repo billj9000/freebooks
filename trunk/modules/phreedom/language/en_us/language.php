@@ -330,6 +330,7 @@ define('TEXT_VERSION','Version');
 define('TEXT_VERTICAL','Vertical');
 define('TEXT_VIEW','View');
 define('TEXT_VIEW_SHIP_LOG','View Ship Log');
+define('TEXT_PART_SHIPPED', 'Part shipped');
 define('TEXT_WEIGHT','Weight');
 define('TEXT_WIDTH','Width');
 define('TEXT_XML','XML');

@@ -400,13 +400,18 @@ $sel_sm = 'class="form-select form-select-sm"';
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($sInfo->line_items as $li => $item): $n = $li + 1; ?>
+        <?php foreach ($sInfo->line_items as $li => $item): $n = $li + 1;
+          $li_left = (float)($item['remaining'] ?? $item['ordered'] ?? $item['qty']); // what this shipment may send
+          $li_done = array();
+          if (!empty($item['shipped']))   $li_done[] = sprintf(SHIPPING_LINE_SHIPPED,   (float)$item['shipped']);
+          if (!empty($item['cancelled'])) $li_done[] = sprintf(SHIPPING_LINE_CANCELLED, (float)$item['cancelled']);
+        ?>
         <tr id="li_row_<?php echo $n; ?>">
           <td class="align-middle">
             <?php echo htmlspecialchars($item['sku']); ?>
             <input type="hidden" name="li_sku_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['sku']); ?>">
             <input type="hidden" name="li_id_<?php echo $n; ?>" value="<?php echo (int)($item['id'] ?? 0); ?>">
-            <input type="hidden" name="li_ord_<?php echo $n; ?>" id="li_ord_<?php echo $n; ?>" value="<?php echo (float)($item['ordered'] ?? $item['qty']); ?>">
+            <input type="hidden" name="li_ord_<?php echo $n; ?>" id="li_ord_<?php echo $n; ?>" value="<?php echo $li_left; ?>">
           </td>
           <td class="li-customs"><input type="text" class="form-control form-control-sm"
                      name="li_desc_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['description']); ?>"
@@ -418,12 +423,26 @@ $sel_sm = 'class="form-select form-select-sm"';
                      name="li_hs_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['hs_code']); ?>"
                      maxlength="20" style="width:9em"></td>
           <td class="text-end align-middle text-nowrap">
+<?php if ($li_left > 0): ?>
             <input type="number" class="form-control form-control-sm text-end d-inline-block" style="width:5em"
                    name="li_qty_<?php echo $n; ?>" id="li_qty_<?php echo $n; ?>" value="<?php echo (float)$item['qty']; ?>"
-                   min="0" max="<?php echo (float)($item['ordered'] ?? $item['qty']); ?>" step="any" onchange="lineQtyChanged(<?php echo $n; ?>)">
-            <span class="small text-muted"><?php echo sprintf(SHIPPING_LINE_OF, (float)($item['ordered'] ?? $item['qty'])); ?></span>
+                   min="0" max="<?php echo $li_left; ?>" step="any" onchange="lineQtyChanged(<?php echo $n; ?>)">
+            <span class="small text-muted"><?php echo sprintf(SHIPPING_LINE_OF, $li_left); ?></span>
             <button type="button" class="btn btn-secondary btn-sm" id="li_btn_<?php echo $n; ?>"
                     onclick="lineToggle(<?php echo $n; ?>)"><?php echo SHIPPING_LINE_REMOVE; ?></button>
+            <div id="li_short_wrap_<?php echo $n; ?>" class="mt-1" style="display:none">
+              <select class="form-select form-select-sm d-inline-block w-auto" name="li_short_<?php echo $n; ?>" title="<?php echo SHIPPING_SHORT_TITLE; ?>">
+                <option value="later"<?php echo ($item['short'] ?? 'later') === 'later' ? ' selected' : ''; ?>><?php echo SHIPPING_SHORT_LATER; ?></option>
+                <option value="cancel"<?php echo ($item['short'] ?? '') === 'cancel' ? ' selected' : ''; ?>><?php echo SHIPPING_SHORT_CANCEL; ?></option>
+              </select>
+            </div>
+<?php else: ?>
+            <input type="hidden" name="li_qty_<?php echo $n; ?>" id="li_qty_<?php echo $n; ?>" value="0">
+            <span class="small"><?php echo SHIPPING_LINE_NOTHING_LEFT; ?></span>
+<?php endif; ?>
+<?php if ($li_done): ?>
+            <div class="small text-muted"><?php echo htmlspecialchars(implode(', ', $li_done)); ?></div>
+<?php endif; ?>
           </td>
           <td><input type="text" class="form-control form-control-sm text-end"
                      style="width:8em" name="li_wt_<?php echo $n; ?>" id="li_wt_<?php echo $n; ?>"

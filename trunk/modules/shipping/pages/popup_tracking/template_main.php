@@ -61,6 +61,46 @@ echo $toolbar->build_toolbar();
     </div>
   </div>
 </div>
+<?php if (!empty($order_shipments) && (count($order_shipments) > 1 || array_filter(array_column($order_shipments, 'items')))): ?>
+<div class="card fb-card mt-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_ORDER_SHIPMENTS; ?></div>
+  <div class="card-body p-0">
+    <?php echo html_hidden_field('item_id', ''); ?>
+    <table class="table table-sm table-borderless table-hover mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th><?php echo SHIPPING_TEXT_SHIPMENT_ID; ?></th>
+          <th><?php echo SHIPPING_TEXT_SHIPMENT_DATE; ?></th>
+          <th><?php echo SHIPPING_TEXT_TRACKING_NUM; ?></th>
+          <th><?php echo SHIPPING_TEXT_CONTENTS; ?></th>
+        </tr>
+      </thead>
+      <tbody>
+<?php foreach ($order_shipments as $shipment_id => $s): ?>
+        <tr<?php echo $s['log_id'] === (int)$sID || in_array($cInfo->tracking_id, $s['tracking'], true) ? ' class="table-active"' : ''; ?>>
+          <td><a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&amp;page=popup_tracking&amp;sID=' . $s['log_id'], 'SSL'); ?>"><?php echo (int)$shipment_id; ?></a></td>
+          <td class="text-nowrap"><?php echo gen_locale_date(substr($s['ship_date'], 0, 10)); ?></td>
+          <td><?php echo htmlspecialchars(implode(', ', $s['tracking'])); ?></td>
+          <td>
+<?php   if (!$s['items']) echo '<span class="text-muted">&mdash;</span>'; ?>
+<?php   foreach ($s['items'] as $item): ?>
+            <div class="text-nowrap">
+              <?php echo htmlspecialchars($item['sku']) . ' &times; ' . (float)$item['qty']; ?>
+<?php     if ($item['status'] === 'cancelled'): ?>
+              <span class="badge bg-secondary"><?php echo SHIPPING_TEXT_CANCELLED; ?></span>
+              <button type="button" class="btn btn-secondary btn-sm py-0"
+                      onclick="if (confirm('<?php echo addslashes(SHIPPING_RESTORE_CONFIRM); ?>')) { document.getElementById('item_id').value='<?php echo (int)$item['id']; ?>'; submitToDo('restore_line'); }"><?php echo SHIPPING_LINE_RESTORE; ?></button>
+<?php     endif; ?>
+            </div>
+<?php   endforeach; ?>
+          </td>
+        </tr>
+<?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
 </div>
 </div>
 </form>

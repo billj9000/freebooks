@@ -32,7 +32,8 @@ $method      = (string)($_GET['method'] ?? '');
 if ($method !== '' && !shipping_method_is_valid($method)) $method = '';
 $ship_date   = date('Y-m-d');
 if ($method) $subject_module = new $method();
-if (in_array($_REQUEST['action'], array('delete', 'save'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open
+if (in_array($_REQUEST['action'], array('delete', 'save', 'restore_line'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
   $_REQUEST['action'] = ''; // they change state; the form posts them (CSRF-checked)
 }
 
@@ -43,7 +44,7 @@ if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
   case 'delete':
-    $row = $db->Execute("select carrier, ship_date, tracking_id, carrier_order_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+    $row = $db->Execute("select shipment_id, carrier, ship_date, tracking_id, carrier_order_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
     if ($row->RecordCount() == 0) { $messageStack->add(SHIPPING_DELETE_ERROR, 'error'); break; }
     $del_carrier  = $row->fields['carrier'];
     if (!shipping_method_is_valid($del_carrier, false)) { $messageStack->add(SHIPPING_DELETE_ERROR, 'error'); break; }
@@ -60,9 +61,20 @@ switch ($_REQUEST['action']) {
     $label_path = SHIPPING_DEFAULT_LABEL_DIR . $del_carrier . '/' . str_replace('-', '/', $del_date) . '/';
     foreach (glob($label_path . $del_tracking . '*.pdf') ?: array() as $f) @unlink($f);
     $db->Execute("delete from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+    shipping_forget_contents($row->fields['shipment_id']);
     gen_add_audit_log(SHIPPING_LABEL_DELETED, $sID);
     $sID         = '';
     $close_popup = true;
+    break;
+  case 'restore_line':
+    // A line recorded as never to be shipped becomes outstanding again.
+    shipping_ensure_schema();
+    $item = $db->Execute("select id, sku, qty from " . TABLE_SHIPPING_LOG_ITEMS
+      . " where id = " . (int)($_POST['item_id'] ?? 0) . " and status = 'cancelled'");
+    if ($item->EOF) break;
+    $db->Execute("delete from " . TABLE_SHIPPING_LOG_ITEMS . " where id = " . (int)$item->fields['id']);
+    gen_add_audit_log(SHIPPING_CANCELLED_RESTORED_LOG, $item->fields['sku']);
+    $messageStack->add(sprintf(SHIPPING_CANCELLED_RESTORED, (float)$item->fields['qty'], $item->fields['sku']), 'success');
     break;
   case 'save':
     if (!$method) break;
@@ -127,6 +139,34 @@ if ($sID) {
   } else {
     $label_viewer_url = '';
   }
+  // Every shipment of the same order, with what each contained, oldest first. A log row is
+  // matched by its order id, or by the order's number where it has no order id.
+  shipping_ensure_schema();
+  $log_row  = $db->Execute("select order_id, ref_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+  $order_id = (int)($log_row->fields['order_id'] ?? 0);
+  $ref      = db_input((string)($log_row->fields['ref_id'] ?? ''));
+  $order_shipments = array();
+  $rows = $db->Execute("select id, shipment_id, carrier, ship_date, tracking_id from " . TABLE_SHIPPING_LOG
+    . " where " . ($order_id ? "order_id = " . $order_id . " or " : '') . "ref_id = '" . $ref . "' or ref_id like '" . $ref . "-%'"
+    . " order by ship_date, id");
+  while (!$rows->EOF) {
+    $f = $rows->fields;
+    $k = (int)$f['shipment_id'];
+    if (!isset($order_shipments[$k])) {
+      $order_shipments[$k] = array('log_id' => (int)$f['id'], 'carrier' => $f['carrier'],
+        'ship_date' => $f['ship_date'], 'tracking' => array(), 'items' => array());
+    }
+    $order_shipments[$k]['tracking'][] = $f['tracking_id'];
+    $rows->MoveNext();
+  }
+  if ($order_shipments) {
+    $rows = $db->Execute("select id, shipment_id, sku, qty, status from " . TABLE_SHIPPING_LOG_ITEMS
+      . " where shipment_id in (" . implode(',', array_keys($order_shipments)) . ") order by id");
+    while (!$rows->EOF) {
+      $order_shipments[(int)$rows->fields['shipment_id']]['items'][] = $rows->fields;
+      $rows->MoveNext();
+    }
+  }
   // need to build the methods pull down
   $carrier_methods = array();
   foreach ($shipping_defaults['service_levels'] as $key => $value) {
@@ -166,6 +206,6 @@ $cal_del = array(
 $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';
-define('PAGE_TITLE', $subject_module->title);
+define('PAGE_TITLE', isset($subject_module) ? $subject_module->title : SHIPPING_SHIPMENT_DETAILS);
 
 ?>

@@ -222,5 +222,17 @@ define('SHIPPING_LINE_REMOVE', 'Remover');
 define('SHIPPING_LINE_RESTORE', 'Restaurar');
 define('SHIPPING_ERROR_LINE_QTY', 'Item %s: a quantidade deve estar entre 0 e %s.');
 define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Todos os itens foram removidos; não há nada para enviar.');
+define('SHIPPING_SHORT_TITLE', 'O restante deste item');
+define('SHIPPING_SHORT_LATER', 'O restante segue depois');
+define('SHIPPING_SHORT_CANCEL', 'O restante não será enviado');
+define('SHIPPING_LINE_SHIPPED', '%s já enviado(s)');
+define('SHIPPING_LINE_CANCELLED', '%s não será(ão) enviado(s)');
+define('SHIPPING_LINE_NOTHING_LEFT', 'Nada mais a enviar');
+define('SHIPPING_ORDER_SHIPMENTS', 'Envios deste pedido');
+define('SHIPPING_TEXT_CONTENTS', 'Conteúdo');
+define('SHIPPING_TEXT_CANCELLED', 'Não será enviado');
+define('SHIPPING_RESTORE_CONFIRM', 'Tornar este item pendente outra vez, para que um envio posterior o possa enviar?');
+define('SHIPPING_CANCELLED_RESTORED', '%s de %s está pendente outra vez.');
+define('SHIPPING_CANCELLED_RESTORED_LOG', 'Linha de envio restaurada');
 
 ?>

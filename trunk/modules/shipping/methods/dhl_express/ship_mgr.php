@@ -19,7 +19,7 @@
 load_method_language(DIR_FS_MODULES . 'shipping/methods/', 'dhl_express');
 require_once(DIR_FS_MODULES . 'shipping/methods/dhl_express/dhl_express.php');
 require_once(DIR_FS_MODULES . 'shipping/functions/shipping.php');
-shipping_ensure_pickup_schema();
+shipping_ensure_schema();
 $dhl_popup = 'width=820,height=720,resizable=1,scrollbars=1,top=50,left=50';
 ?>
 <h1><?php echo MODULE_SHIPPING_DHL_EXPRESS_TEXT_TITLE; ?></h1>

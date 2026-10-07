@@ -83,6 +83,7 @@ switch ($_REQUEST['action']) {
       $temp = $db->Execute("select next_shipment_num from " . TABLE_CURRENT_STATUS);
       $shipment_num = $temp->fields['next_shipment_num'];
       $labels_array = array();
+      shipping_ensure_schema();
       foreach ($result as $pkg_result) {
         $sql_array = array(
           'ref_id'           => $pkg_result['ref_id'],
@@ -96,10 +97,12 @@ switch ($_REQUEST['action']) {
           'recipient_name'   => $sInfo->ship_primary_name ?? '',
           'recipient_email'  => $sInfo->ship_email ?? '',
           'carrier_order_id' => $pkg_result['order_id'] ?? '',
+          'order_id'         => (int)($_GET['oID'] ?? 0),
         );
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
         $labels_array[] = $pkg_result['tracking'];
       }
+      shipping_record_contents($shipment_num, $shipping_module, (int)($_GET['oID'] ?? 0), $sInfo->line_items);
       $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
       gen_add_audit_log(SHIPPING_LOG_LABEL_PRINTED, $shipment_num . '-' . $sInfo->purchase_invoice_id);
       gen_redirect(html_href_link(FILENAME_DEFAULT,
@@ -147,6 +150,7 @@ switch ($_REQUEST['action']) {
       }
       $shipments->MoveNext();
     }
+    shipping_forget_contents($shipment_id);
     if (!$error) gen_add_audit_log(SHIPPING_LABEL_DELETED, $shipment_id);
     break;
 
@@ -169,7 +173,7 @@ switch ($_REQUEST['action']) {
     break;
 
   default:
-    $oID = db_prepare_input($_GET['oID']);
+    $oID = db_prepare_input($_GET['oID'] ?? '');
     if ($oID) {
       $sql = "select journal_id, bill_acct_id, shipper_code, ship_primary_name, ship_contact, ship_address1, ship_address2,
           ship_city_town, ship_state_province, ship_postal_code, ship_country_code, ship_telephone1,
@@ -302,6 +306,8 @@ switch ($_REQUEST['action']) {
           );
           $li_result->MoveNext();
         }
+        // A line earlier shipments sent or cancelled offers only what remains of it.
+        $sInfo->line_items = shipping_apply_progress($sInfo->line_items, $oID);
         if (!empty($sInfo->line_items)) {
           $goods_sum = 0;
           foreach ($sInfo->line_items as $_li) $goods_sum += (float)$_li['value'] * (float)$_li['qty'];
