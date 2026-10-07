@@ -128,6 +128,9 @@ also needs a UKIMS number, the sender's or the recipient's; FreeBooks does not s
           international destinations and for Northern Ireland. Select the declaration category and verify the line-item
           table showing SKU, description, HS code, country of origin, quantity, weight, and
           unit value. Edit fields directly in the table as required.</li>
+      <li><strong>Shipment Contents</strong> &mdash; the invoice's items, with the quantity going in
+          this parcel. Change a quantity, or click <strong>Remove</strong> to leave an item out;
+          see <em>Shipping Part of an Order</em> below.</li>
       <li><strong>Delivery Terms</strong> &mdash; international shipments only. <em>Duty unpaid
           (DDU/DAP)</em>, the default, leaves the recipient to pay any import duty and taxes.
           <em>Duty paid (DDP)</em> means you have already collected them; enter the amount in
@@ -143,6 +146,23 @@ also needs a UKIMS number, the sender's or the recipient's; FreeBooks does not s
       retrieves the label PDF; the label viewer opens automatically.</li>
   <li>Print the label from the viewer. Close the popup when done.</li>
 </ol>
+
+<h4>Shipping Part of an Order</h4>
+<p>The <strong>Shipment Contents</strong> table lists the invoice's items, on domestic and
+international shipments alike. Each line's quantity starts at the quantity invoiced and can be
+lowered to send part of it, for example when an item is out of stock or has been credited.</p>
+<ul>
+  <li>Click <strong>Remove</strong> to leave an item out of this shipment; the line is greyed out
+      and its quantity set to 0. <strong>Restore</strong> puts the invoiced quantity back.</li>
+  <li>A quantity can be anything from 0 to the quantity invoiced, which is shown beside it.</li>
+  <li>The total weight and the declared value follow the quantities. An item left out is not on
+      the customs declaration.</li>
+  <li>At least one item must remain: a shipment with every item removed is refused.</li>
+  <li>On a domestic shipment only the items and quantities are shown; the customs columns appear
+      for international destinations and for Northern Ireland.</li>
+</ul>
+<p>Leaving an item out of a shipment changes only the label. Credit an item the customer will not
+receive with a credit memo, as usual.</p>
 
 <h4>Saving Customs Descriptions to Inventory</h4>
 <p>On international shipments, the <strong>Save descriptions to inventory</strong> button in the

@@ -216,5 +216,11 @@ define('SHPKG_TEXT_SORT_ORDER',     'Ordem de Classificação');
 define('SHPKG_ERROR_DUP_CODE',      'Já existe uma embalagem com esse código.');
 define('SHPKG_ERROR_MISSING_CODE',  'O código da embalagem é obrigatório.');
 define('SHPKG_ERROR_MISSING_NAME',  'O nome da embalagem é obrigatório.');
+// Shipment contents on a label
+define('SHIPPING_LINE_OF', 'de %s');
+define('SHIPPING_LINE_REMOVE', 'Remover');
+define('SHIPPING_LINE_RESTORE', 'Restaurar');
+define('SHIPPING_ERROR_LINE_QTY', 'Item %s: a quantidade deve estar entre 0 e %s.');
+define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Todos os itens foram removidos; não há nada para enviar.');
 
 ?>

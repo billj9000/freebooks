@@ -201,5 +201,11 @@ define('SHPKG_TEXT_SORT_ORDER',     'Порядок сортировки');
 define('SHPKG_ERROR_DUP_CODE',      'Упаковка с таким кодом уже существует.');
 define('SHPKG_ERROR_MISSING_CODE',  'Код упаковки обязателен.');
 define('SHPKG_ERROR_MISSING_NAME',  'Наименование упаковки обязательно.');
+// Shipment contents on a label
+define('SHIPPING_LINE_OF', 'из %s');
+define('SHIPPING_LINE_REMOVE', 'Убрать');
+define('SHIPPING_LINE_RESTORE', 'Вернуть');
+define('SHIPPING_ERROR_LINE_QTY', 'Позиция %s: количество должно быть от 0 до %s.');
+define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Все позиции удалены, отправлять нечего.');
 
 ?>

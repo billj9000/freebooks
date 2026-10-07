@@ -310,4 +310,11 @@ define('SHIPPING_LABEL_EMAIL_BODY',    'Please find your shipping label attached
 define('SHIPPING_RECEIPIENT','Receipient');
 if (!defined('SHIPPING_THIRD_PARTY')) define('SHIPPING_THIRD_PARTY','Third Party'); // already defined above ('Recpt/Third Party Acct #', which wins) — this file defines it twice
 define('SHIPPING_COLLECT','Collect');
+// Shipment contents on a label
+define('SHIPPING_LINE_OF', 'of %s');
+define('SHIPPING_LINE_REMOVE', 'Remove');
+define('SHIPPING_LINE_RESTORE', 'Restore');
+define('SHIPPING_ERROR_LINE_QTY', 'Item %s: the quantity must be from 0 to %s.');
+define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Every item has been removed, so there is nothing to ship.');
+
 ?>

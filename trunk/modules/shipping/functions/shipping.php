@@ -49,6 +49,57 @@ function shipping_ensure_pickup_schema() {
   }
 }
 
+/**
+ * The contents lines a label form posted. Each line carries 'ordered', the quantity on the
+ * order line it came from, read from the order rather than from the form when the line
+ * belongs to order $order_id. A line ships anything from 0 (removed) to that quantity, and at
+ * least one line must ship. Returns array('lines' => ..., 'ok' => bool); the lines come back
+ * either way, so the form can be shown again, and each refusal is on the message stack.
+ */
+function shipping_label_lines_from_post($order_id) {
+  global $db, $messageStack;
+  $num     = max(0, (int)($_POST['num_line_items'] ?? 0));
+  $ids     = array();
+  for ($i = 1; $i <= $num; $i++) if ((int)($_POST['li_id_' . $i] ?? 0) > 0) $ids[] = (int)$_POST['li_id_' . $i];
+  $ordered = array();
+  if ($ids && (int)$order_id > 0) {
+    $rows = $db->Execute("SELECT id, qty FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = " . (int)$order_id
+      . " AND id IN (" . implode(',', $ids) . ")");
+    while (!$rows->EOF) { $ordered[(int)$rows->fields['id']] = (float)$rows->fields['qty']; $rows->MoveNext(); }
+  }
+  $lines = array();
+  $ok    = true;
+  for ($i = 1; $i <= $num; $i++) {
+    $sku = db_prepare_input($_POST['li_sku_' . $i] ?? '');
+    if (!$sku) continue;
+    $id     = (int)($_POST['li_id_' . $i] ?? 0);
+    $posted = trim((string)($_POST['li_qty_' . $i] ?? ''));
+    $qty    = is_numeric($posted) ? (float)$posted : -1;
+    $max    = $ordered[$id] ?? null;
+    if ($qty < 0 || ($max !== null && $qty > $max + 0.000001)) {
+      $messageStack->add(sprintf(SHIPPING_ERROR_LINE_QTY, $sku, $max === null ? '-' : (string)$max), 'error');
+      $ok  = false;
+      $qty = max(0, $qty);
+    }
+    $lines[] = array(
+      'id'          => $id,
+      'sku'         => $sku,
+      'description' => db_prepare_input($_POST['li_desc_'   . $i] ?? ''),
+      'origin'      => db_prepare_input($_POST['li_origin_' . $i] ?? ''),
+      'hs_code'     => db_prepare_input($_POST['li_hs_'     . $i] ?? ''),
+      'qty'         => $qty,
+      'ordered'     => $max ?? max($qty, (float)($_POST['li_ord_' . $i] ?? 0)),
+      'weight'      => (float)($_POST['li_wt_'  . $i] ?? 0),
+      'value'       => (float)($_POST['li_val_' . $i] ?? 0),
+    );
+  }
+  if ($ok && $lines && !array_filter($lines, function ($line) { return $line['qty'] > 0; })) {
+    $messageStack->add(SHIPPING_ERROR_NOTHING_TO_SHIP, 'error');
+    $ok = false;
+  }
+  return array('lines' => $lines, 'ok' => $ok);
+}
+
 function build_js_methods($methods) {
   global $shipping_defaults;
   $choices         = array_keys($shipping_defaults['service_levels']);

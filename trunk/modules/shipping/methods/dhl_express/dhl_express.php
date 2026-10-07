@@ -302,6 +302,14 @@ class dhl_express {
       $declaredValue = round((float)($sInfo->customs_value ?: $sInfo->total_value ?: 0) * $fx, 2);
     }
 
+    // The shipment's description is that of its first line that ships; a removed line is not in it.
+    $goodsDescription = $sInfo->customs_description ?: 'Goods';
+    if (!empty($sInfo->line_items)) {
+      foreach ($sInfo->line_items as $_li) {
+        if ((float)$_li['qty'] > 0) { $goodsDescription = $_li['description'] ?: 'Goods'; break; }
+      }
+    }
+
     $packages = array();
     foreach ($sInfo->package as $pkg) {
       $packages[] = array(
@@ -396,7 +404,7 @@ class dhl_express {
       'content' => array(
         'packages'             => $packages,
         'isCustomsDeclarable'  => !$isDomestic,
-        'description'          => (!empty($sInfo->line_items) ? ($sInfo->line_items[0]['description'] ?: 'Goods') : ($sInfo->customs_description ?: 'Goods')),
+        'description'          => $goodsDescription,
         'declaredValue'        => $declaredValue,
         'declaredValueCurrency'=> $sInfo->currencies_code ?: 'GBP',
         'unitOfMeasurement'    => 'metric',

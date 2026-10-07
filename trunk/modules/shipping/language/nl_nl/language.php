@@ -216,5 +216,11 @@ define('SHPKG_TEXT_SORT_ORDER',     'Sorteervolgorde');
 define('SHPKG_ERROR_DUP_CODE',      'Er bestaat al een verpakking met die code.');
 define('SHPKG_ERROR_MISSING_CODE',  'Verpakkingscode is verplicht.');
 define('SHPKG_ERROR_MISSING_NAME',  'Verpakkingsnaam is verplicht.');
+// Shipment contents on a label
+define('SHIPPING_LINE_OF', 'van %s');
+define('SHIPPING_LINE_REMOVE', 'Verwijderen');
+define('SHIPPING_LINE_RESTORE', 'Herstellen');
+define('SHIPPING_ERROR_LINE_QTY', 'Artikel %s: de hoeveelheid moet tussen 0 en %s liggen.');
+define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Alle artikelen zijn verwijderd, er valt niets te verzenden.');
 
 ?>

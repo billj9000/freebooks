@@ -29,6 +29,7 @@ function init() {
     }
   ?>
   toggleCustoms();
+  for (var n = 1; document.getElementById('li_qty_' + n); n++) lineQtyChanged(n);
   updateWeight();
   var w1 = document.getElementById('wt_1');
   if (w1) w1.focus();
@@ -43,8 +44,28 @@ function toggleCustoms() {
   var display = isDomestic ? 'none' : '';
   var sec = document.getElementById('customs_section');
   if (sec) sec.style.display = display;
-  var li = document.getElementById('line_items_section');
-  if (li) li.style.display = display;
+  document.querySelectorAll('#line_items_section .li-customs').forEach(function(el) { el.style.display = display; });
+}
+
+// A contents line whose quantity is 0 is not in this shipment: it is greyed out and its button
+// puts back the quantity on the order.
+function lineQtyChanged(n) {
+  var q = document.getElementById('li_qty_' + n);
+  if (!q) return;
+  var removed = !(parseFloat(q.value) > 0);
+  var row = document.getElementById('li_row_' + n);
+  if (row) row.style.opacity = removed ? '0.5' : '';
+  var btn = document.getElementById('li_btn_' + n);
+  if (btn) btn.textContent = removed ? '<?php echo addslashes(SHIPPING_LINE_RESTORE); ?>' : '<?php echo addslashes(SHIPPING_LINE_REMOVE); ?>';
+  updateWeight();
+}
+
+function lineToggle(n) {
+  var q = document.getElementById('li_qty_' + n);
+  var o = document.getElementById('li_ord_' + n);
+  if (!q || !o) return;
+  q.value = parseFloat(q.value) > 0 ? 0 : o.value;
+  lineQtyChanged(n);
 }
 
 function swapShipAddresses() {

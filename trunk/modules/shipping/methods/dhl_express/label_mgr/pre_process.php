@@ -29,6 +29,7 @@ $label_data = NULL;
 $pdf_list   = array();
 $sInfo      = new shipment();
 /***************  Act on the action request  ************************/
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; js_include reads it too
 switch ($_REQUEST['action']) {
   case 'save_items':
     $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));
@@ -70,24 +71,13 @@ switch ($_REQUEST['action']) {
         );
       }
     }
-    // Line items for customs declaration
-    $sInfo->line_items = array();
-    $num_li = max(0, (int)($_POST['num_line_items'] ?? 0));
-    for ($i = 1; $i <= $num_li; $i++) {
-      $sku = db_prepare_input($_POST['li_sku_' . $i] ?? '');
-      if (!$sku) continue;
-      $sInfo->line_items[] = array(
-        'sku'         => $sku,
-        'description' => db_prepare_input($_POST['li_desc_'   . $i] ?? ''),
-        'origin'      => db_prepare_input($_POST['li_origin_' . $i] ?? ''),
-        'hs_code'     => db_prepare_input($_POST['li_hs_'     . $i] ?? ''),
-        'qty'         => (float)($_POST['li_qty_' . $i] ?? 1),
-        'weight'      => (float)($_POST['li_wt_'  . $i] ?? 0),
-        'value'       => (float)($_POST['li_val_' . $i] ?? 0),
-      );
-    }
+    // The shipment's contents: the order's lines, each with the quantity going in this shipment
+    $contents = shipping_label_lines_from_post($_GET['oID'] ?? 0);
+    $sInfo->line_items = $contents['lines'];
 
-    if (count($sInfo->package) > 0) {
+    if (!$contents['ok']) {
+      $error = true;
+    } elseif (count($sInfo->package) > 0) {
       $shipment = new $shipping_module;
       if (!$result = $shipment->retrieveLabel($sInfo)) $error = true;
     } else {
@@ -276,7 +266,7 @@ switch ($_REQUEST['action']) {
           }
         }
         // Load inventory customs data for each line item
-        $li_sql = "SELECT ji.sku, ji.qty, ji.description, ji.full_price, ji.debit_amount, ji.credit_amount,
+        $li_sql = "SELECT ji.id, ji.sku, ji.qty, ji.description, ji.full_price, ji.debit_amount, ji.credit_amount,
                      i.customs_description, i.country_of_origin, i.hs_code, i.item_weight
                    FROM " . TABLE_JOURNAL_ITEM . " ji
                    LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku
@@ -296,11 +286,13 @@ switch ($_REQUEST['action']) {
             ? $line_total / $qty
             : (float)$f['full_price'];
           $sInfo->line_items[] = array(
+            'id'          => (int)$f['id'],
             'sku'         => $f['sku'],
             'description' => $f['customs_description'] ?: ($f['description'] ?: ''),
             'origin'      => $f['country_of_origin'] ?: '',
             'hs_code'     => $f['hs_code'] ?: '',
             'qty'         => $qty,
+            'ordered'     => $qty,
             'weight'      => (float)$f['item_weight'],
             'value'       => $unit_price,
           );

@@ -131,7 +131,9 @@ echo $toolbar->build_toolbar($add_search = true, $add_periods = true);
 <?php if (defined('MODULE_SHIPPING_STATUS') && in_array(JOURNAL_ID, [4, 12])) {
       $sID          = 0;
       $shipped      = false;
-      $result = $db->Execute("select id, shipment_id, ship_date from " . TABLE_SHIPPING_LOG . " where ref_id like '" . db_input($query_result->fields['purchase_invoice_id']) . "%'");
+      // The invoice's own shipments: its number, or its number with the -N an extra label carries.
+      $ship_ref = db_input($query_result->fields['purchase_invoice_id']);
+      $result = $db->Execute("select id, shipment_id, ship_date from " . TABLE_SHIPPING_LOG . " where ref_id = '" . $ship_ref . "' or ref_id like '" . $ship_ref . "-%'");
       if ($result->RecordCount() > 0) {
         $sID          = $result->fields['id'];
         $shipped      = $result->fields['shipment_id'];

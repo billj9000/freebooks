@@ -43,6 +43,7 @@ function init() {
     }
   ?>
   toggleCustoms();
+  for (var n = 1; document.getElementById('li_qty_' + n); n++) lineQtyChanged(n);
   filterFormatOptions();
   updateWeight();
   var w1 = document.getElementById('wt_1');
@@ -94,13 +95,34 @@ function toggleCustoms() {
   var isNI       = isDomestic && isNorthernIreland(fromCC, toCC);
   var show = function(id, on) { var el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
   show('customs_section',        !isDomestic || isNI);
-  show('line_items_section',     !isDomestic || isNI);
+  document.querySelectorAll('#line_items_section .li-customs').forEach(function(el) { el.style.display = (!isDomestic || isNI) ? '' : 'none'; });
   show('row_delivery_terms',     !isDomestic);
   show('row_recipient_business', isNI);
   var term = document.getElementById('delivery_term');
   var ddp  = !!term && term.value === 'DDP';
   show('label_duty', ddp);
   show('input_duty', ddp);
+}
+
+// A contents line whose quantity is 0 is not in this shipment: it is greyed out and its button
+// puts back the quantity on the order.
+function lineQtyChanged(n) {
+  var q = document.getElementById('li_qty_' + n);
+  if (!q) return;
+  var removed = !(parseFloat(q.value) > 0);
+  var row = document.getElementById('li_row_' + n);
+  if (row) row.style.opacity = removed ? '0.5' : '';
+  var btn = document.getElementById('li_btn_' + n);
+  if (btn) btn.textContent = removed ? '<?php echo addslashes(SHIPPING_LINE_RESTORE); ?>' : '<?php echo addslashes(SHIPPING_LINE_REMOVE); ?>';
+  updateWeight();
+}
+
+function lineToggle(n) {
+  var q = document.getElementById('li_qty_' + n);
+  var o = document.getElementById('li_ord_' + n);
+  if (!q || !o) return;
+  q.value = parseFloat(q.value) > 0 ? 0 : o.value;
+  lineQtyChanged(n);
 }
 
 function swapShipAddresses() {

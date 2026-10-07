@@ -44,7 +44,8 @@ define('RM_TERMS_DDP',                 'Duty paid (DDP) - we pay');
 define('RM_TEXT_DUTY_PAID',            'Prepaid Duty');
 define('RM_TEXT_RECIPIENT_BUSINESS',   'Recipient is a business');
 // Label form — line items table
-define('RM_LINE_ITEMS_HEADER',   'Shipment Contents (Customs Declaration)');
+define('RM_LINE_ITEMS_HEADER',   'Shipment Contents');
+define('RM_LINE_ITEMS_CUSTOMS',  '(Customs Declaration)');
 define('RM_TEXT_UNIT_WEIGHT',    'Unit Weight');
 define('RM_TEXT_UNIT_VALUE',     'Unit Value');
 define('RM_TEXT_SAVE_TO_INV',    'Save descriptions to inventory');

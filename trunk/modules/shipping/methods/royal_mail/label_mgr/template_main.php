@@ -392,46 +392,54 @@ $sel_sm = 'class="form-select form-select-sm"';
 </div>
 
 <?php if (!empty($sInfo->line_items)): ?>
-<!-- === Line items / Customs declaration (hidden for domestic, except Northern Ireland) === -->
+<!-- === Shipment contents; the customs columns are hidden for domestic shipments, except Northern Ireland === -->
 <div id="line_items_section" class="card mb-3">
-  <div class="card-header py-1 fb-widget-header"><?php echo RM_LINE_ITEMS_HEADER; ?></div>
+  <div class="card-header py-1 fb-widget-header"><?php echo RM_LINE_ITEMS_HEADER; ?><span class="li-customs"> <?php echo RM_LINE_ITEMS_CUSTOMS; ?></span></div>
   <div class="card-body py-2 px-2">
     <input type="hidden" name="num_line_items" value="<?php echo count($sInfo->line_items); ?>">
     <table class="table table-sm table-bordered mb-2">
       <thead class="table-light">
         <tr>
           <th><?php echo TEXT_SKU; ?></th>
-          <th><?php echo TEXT_DESCRIPTION; ?></th>
-          <th><?php echo RM_TEXT_ORIGIN_COUNTRY; ?></th>
-          <th><?php echo RM_TEXT_HS_CODE; ?></th>
+          <th class="li-customs"><?php echo TEXT_DESCRIPTION; ?></th>
+          <th class="li-customs"><?php echo RM_TEXT_ORIGIN_COUNTRY; ?></th>
+          <th class="li-customs"><?php echo RM_TEXT_HS_CODE; ?></th>
           <th class="text-end"><?php echo TEXT_QUANTITY; ?></th>
           <th><?php echo RM_TEXT_UNIT_WEIGHT; ?> (<?php echo htmlspecialchars($sInfo->pkg_weight_unit ?? SHIPPING_DEFAULT_WEIGHT_UNIT); ?>)</th>
-          <th><?php echo RM_TEXT_UNIT_VALUE; ?> (<?php echo htmlspecialchars($home_currency); ?>)</th>
+          <th class="li-customs"><?php echo RM_TEXT_UNIT_VALUE; ?> (<?php echo htmlspecialchars($home_currency); ?>)</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($sInfo->line_items as $li => $item): $n = $li + 1; ?>
-        <tr>
+        <tr id="li_row_<?php echo $n; ?>">
           <td class="align-middle">
             <?php echo htmlspecialchars($item['sku']); ?>
             <input type="hidden" name="li_sku_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['sku']); ?>">
-            <input type="hidden" name="li_qty_<?php echo $n; ?>" id="li_qty_<?php echo $n; ?>" value="<?php echo (float)$item['qty']; ?>">
+            <input type="hidden" name="li_id_<?php echo $n; ?>" value="<?php echo (int)($item['id'] ?? 0); ?>">
+            <input type="hidden" name="li_ord_<?php echo $n; ?>" id="li_ord_<?php echo $n; ?>" value="<?php echo (float)($item['ordered'] ?? $item['qty']); ?>">
           </td>
-          <td><input type="text" class="form-control form-control-sm"
+          <td class="li-customs"><input type="text" class="form-control form-control-sm"
                      name="li_desc_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['description']); ?>"
                      maxlength="50" style="min-width:12em"></td>
-          <td><input type="text" class="form-control form-control-sm text-center text-uppercase"
+          <td class="li-customs"><input type="text" class="form-control form-control-sm text-center text-uppercase"
                      style="width:4em" name="li_origin_<?php echo $n; ?>"
                      value="<?php echo htmlspecialchars($item['origin']); ?>" maxlength="2" placeholder="XX"></td>
-          <td><input type="text" class="form-control form-control-sm"
+          <td class="li-customs"><input type="text" class="form-control form-control-sm"
                      name="li_hs_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['hs_code']); ?>"
                      maxlength="10" style="width:8em"></td>
-          <td class="text-end align-middle"><?php echo number_format((float)$item['qty'], 0); ?></td>
+          <td class="text-end align-middle text-nowrap">
+            <input type="number" class="form-control form-control-sm text-end d-inline-block" style="width:5em"
+                   name="li_qty_<?php echo $n; ?>" id="li_qty_<?php echo $n; ?>" value="<?php echo (float)$item['qty']; ?>"
+                   min="0" max="<?php echo (float)($item['ordered'] ?? $item['qty']); ?>" step="any" onchange="lineQtyChanged(<?php echo $n; ?>)">
+            <span class="small text-muted"><?php echo sprintf(SHIPPING_LINE_OF, (float)($item['ordered'] ?? $item['qty'])); ?></span>
+            <button type="button" class="btn btn-secondary btn-sm" id="li_btn_<?php echo $n; ?>"
+                    onclick="lineToggle(<?php echo $n; ?>)"><?php echo SHIPPING_LINE_REMOVE; ?></button>
+          </td>
           <td><input type="text" class="form-control form-control-sm text-end"
                      style="width:8em" name="li_wt_<?php echo $n; ?>" id="li_wt_<?php echo $n; ?>"
                      value="<?php echo number_format((float)$item['weight'], 3); ?>"
                      maxlength="10" onchange="updateWeight()"></td>
-          <td>
+          <td class="li-customs">
             <input type="text" class="form-control form-control-sm text-end"
                    style="width:8em" name="li_val_<?php echo $n; ?>" id="li_val_<?php echo $n; ?>"
                    value="<?php echo number_format((float)$item['value'], 2); ?>"
@@ -448,7 +456,7 @@ $sel_sm = 'class="form-select form-select-sm"';
         <?php endforeach; ?>
       </tbody>
     </table>
-    <div class="text-end">
+    <div class="text-end li-customs">
       <button type="button" class="btn btn-secondary btn-sm"
               onclick="submitToDo('save_items')"><?php echo RM_TEXT_SAVE_TO_INV; ?></button>
     </div>

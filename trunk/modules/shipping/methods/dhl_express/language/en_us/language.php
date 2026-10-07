@@ -50,7 +50,8 @@ define('DHL_TERMS_DAP',           'Duty unpaid (DAP) - the recipient pays');
 define('DHL_TERMS_DDP',           'Duty paid (DDP) - billed to our DHL account');
 define('DHL_TEXT_IS_CUSTOMS',     'Customs Declarable');
 // Line items table
-define('DHL_LINE_ITEMS_HEADER',  'Shipment Contents (Customs Declaration)');
+define('DHL_LINE_ITEMS_HEADER',  'Shipment Contents');
+define('DHL_LINE_ITEMS_CUSTOMS', '(Customs Declaration)');
 define('DHL_TEXT_UNIT_WEIGHT',   'Unit Weight');
 define('DHL_TEXT_UNIT_VALUE',    'Unit Value');
 define('DHL_TEXT_SAVE_TO_INV',   'Save descriptions to inventory');
