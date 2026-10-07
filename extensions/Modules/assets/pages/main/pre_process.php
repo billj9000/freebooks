@@ -404,7 +404,7 @@ switch ($_REQUEST['action']) {
     if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
       $search_fields = array('asset_id', 'serial_number', 'description_short', 'description_long');
 	  // hook for inserting new search fields to the query criteria.
-	  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+	  if (isset($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
 	  $search = ' where ' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\'';
     } else {
 	  $search = '';

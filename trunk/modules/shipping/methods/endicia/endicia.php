@@ -149,6 +149,7 @@ var $PackageMap = array( // for rate estimates, assume this set of options
   }
   
   function configure($key) {
+    $html = '';
     switch ($key) {
 	  case 'MODULE_SHIPPING_ENDICIA_TEST_MODE':
 	    $temp = array(

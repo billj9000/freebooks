@@ -138,6 +138,7 @@ class ups {
   }
 
   function configure($key) {
+    $html = '';
     switch ($key) {
 	  case 'MODULE_SHIPPING_UPS_TEST_MODE':
 	    $temp = array(

@@ -202,7 +202,7 @@ $period_filter = ($acct_period == 'all') ? '' : (' and period = ' . $acct_period
 if (isset($search_text) && $search_text <> '') {
   $search_fields = array('bill_primary_name', 'ship_primary_name', 'purchase_invoice_id', 'purch_order_id');
   // hook for inserting new search fields to the query criteria.
-  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+  if (isset($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
   $search = ' and (' . implode(' like \'%' . db_input($search_text) . '%\' or ', $search_fields) . ' like \'%' . db_input($search_text) . '%\')';
 } else {
   $search = '';

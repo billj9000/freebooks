@@ -30,6 +30,7 @@ require_once(DIR_FS_WORKING . 'classes/install.php');
 $error      = false; 
 $method_dir = DIR_FS_WORKING . 'methods/';
 $install    = new shipping_admin();
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open
 // see if installing or removing a method
 if (substr($_REQUEST['action'], 0, 8) == 'install_') {
   $method = substr($_REQUEST['action'], 8);

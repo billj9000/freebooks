@@ -264,7 +264,7 @@ switch ($_REQUEST['action']) {
 	      $search_fields = array('a.primary_name', 'a.contact', 'a.telephone1', 'a.telephone2', 'a.address1', 
 		  	'a.address2', 'a.city_town', 'a.postal_code', 'c.short_name');
 		  // hook for inserting new search fields to the query criteria.
-		  if (is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
+		  if (isset($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
 		  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
 		}
 		if (!$_SESSION['f0']) $criteria[] = "(c.inactive = '0' or c.inactive = '')"; // inactive flag

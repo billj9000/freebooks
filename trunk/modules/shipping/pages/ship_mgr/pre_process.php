@@ -21,11 +21,11 @@ $security_level = validate_user(SECURITY_ID_SHIPPING_MANAGER);
 /**************  include page specific files    *********************/
 require_once(DIR_FS_WORKING . 'defaults.php');
 /**************   page specific initialization  *************************/
-$date        = $_GET['search_date']       ? gen_db_date($_GET['search_date']) : date('Y-m-d');
-if ($_REQUEST['search_text'] == TEXT_SEARCH) $_REQUEST['search_text'] = '';
+$date        = !empty($_GET['search_date']) ? gen_db_date($_GET['search_date']) : date('Y-m-d');
+if (($_REQUEST['search_text'] ?? '') == TEXT_SEARCH) $_REQUEST['search_text'] = '';
 $module_id   = isset($_POST['module_id']) ? $_POST['module_id'] : '';
 $row_seq     = isset($_POST['rowSeq'])    ? $_POST['rowSeq']    : '';
-$action		 = $_REQUEST['action'];
+$action		 = $_REQUEST['action'] = $_REQUEST['action'] ?? '';
 // load methods
 $installed_modules = load_all_methods('shipping');
 /***************   hook for custom actions  ***************************/

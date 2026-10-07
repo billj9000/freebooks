@@ -26,15 +26,15 @@
     <div style="display:table;width:100%">
       <div style="display:table-row">
         <div style="display:table-cell;text-align:right;padding-right:8px;padding-bottom:4px;white-space:nowrap;vertical-align:middle"><?php echo SHIPPING_METHOD; ?></div>
-        <div style="display:table-cell;padding-bottom:4px;vertical-align:middle"><?php echo html_pull_down_menu('carrier', $sel_method, $_POST['carrier'] ? $_POST['carrier'] : ''); ?></div>
+        <div style="display:table-cell;padding-bottom:4px;vertical-align:middle"><?php echo html_pull_down_menu('carrier', $sel_method, !empty($_POST['carrier']) ? $_POST['carrier'] : ''); ?></div>
       </div>
       <div style="display:table-row">
         <div style="display:table-cell;text-align:right;padding-right:8px;padding-bottom:4px;white-space:nowrap;vertical-align:middle"><?php echo SHIPPING_MONTH; ?></div>
-        <div style="display:table-cell;padding-bottom:4px;vertical-align:middle"><?php echo html_pull_down_menu('fy_month', $sel_fy_month, $_POST['fy_month'] ? $_POST['fy_month'] : '01'); ?></div>
+        <div style="display:table-cell;padding-bottom:4px;vertical-align:middle"><?php echo html_pull_down_menu('fy_month', $sel_fy_month, !empty($_POST['fy_month']) ? $_POST['fy_month'] : '01'); ?></div>
       </div>
       <div style="display:table-row">
         <div style="display:table-cell;text-align:right;padding-right:8px;padding-bottom:4px;white-space:nowrap;vertical-align:middle"><?php echo SHIPPING_YEAR; ?></div>
-        <div style="display:table-cell;padding-bottom:4px;vertical-align:middle"><?php echo html_pull_down_menu('fy_year', $sel_fy_year, $_POST['fy_year'] ? $_POST['fy_year'] : date('Y')); ?></div>
+        <div style="display:table-cell;padding-bottom:4px;vertical-align:middle"><?php echo html_pull_down_menu('fy_year', $sel_fy_year, !empty($_POST['fy_year']) ? $_POST['fy_year'] : date('Y')); ?></div>
       </div>
       <div style="display:table-row">
         <div style="display:table-cell;text-align:right;padding-right:8px;padding-bottom:4px;white-space:nowrap;vertical-align:middle"><?php echo GEN_BACKUP_COMP_TYPE; ?></div>

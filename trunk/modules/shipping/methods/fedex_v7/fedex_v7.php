@@ -184,6 +184,7 @@ class fedex_v7 {
   }
 
   function configure($key) {
+    $html = '';
     switch ($key) {
 	  case 'MODULE_SHIPPING_FEDEX_V7_TEST_MODE':
 	    $temp = array(

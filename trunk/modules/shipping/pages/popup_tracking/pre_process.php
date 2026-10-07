@@ -178,12 +178,19 @@ if ($sID) {
 	}
   }
 } else {
+  // No shipment named: an empty entry, for a new one or for the moment after a delete
+  // before the window closes. The method in the request names the carrier.
   $cInfo = new objectInfo(array(
-	'shipment_id' => $sID, 
-	'carrier'     => $carrier, 
-	'method'      => $method, 
-	'ship_date'   => $ship_date,
+	'shipment_id'  => $sID,
+	'carrier'      => $method,
+	'method'       => '',
+	'ship_date'    => $ship_date,
+	'deliver_date' => '',
+	'ref_id'       => '',
+	'tracking_id'  => '',
+	'cost'         => '',
   ));
+  $carrier_methods = array();
 }
 
 $cal_ship = array(
@@ -206,6 +213,6 @@ $cal_del = array(
 $include_header   = false;
 $include_footer   = false;
 $include_template = 'template_main.php';
-define('PAGE_TITLE', isset($subject_module) ? $subject_module->title : SHIPPING_SHIPMENT_DETAILS);
+define('PAGE_TITLE', $subject_module->title ?? SHIPPING_SHIPMENT_DETAILS);
 
 ?>

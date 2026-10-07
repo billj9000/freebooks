@@ -70,7 +70,7 @@
       foreach ($keys as $value) {
         echo '<tr><td colspan="2">' . constant($value['key'] . '_DESC') . '</td><td class="text-nowrap">';
         if ($custom_method) { echo $properties->configure($value['key']); }
-        else { echo html_input_field(strtolower($value['key']), constant($value['key']), $value['properties']); }
+        else { echo html_input_field(strtolower($value['key']), constant($value['key']), $value['properties'] ?? ''); }
         echo '</td></tr>';
       }
       echo '<tr><td colspan="3"><hr /></td></tr>';
