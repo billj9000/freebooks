@@ -37,6 +37,7 @@ define('MODULE_SHIPPING_DHL_EXPRESS_PICKUP_PHONE_DESC',    'Collections: the tel
 define('MODULE_SHIPPING_DHL_EXPRESS_ERROR_RATES', 'DHL Express: Rate query failed - ');
 define('MODULE_SHIPPING_DHL_EXPRESS_ERROR_LABEL', 'DHL Express: Label creation failed - ');
 define('MODULE_SHIPPING_DHL_EXPRESS_ERROR_NOKEY', 'DHL Express: API credentials not configured.');
+define('MODULE_SHIPPING_DHL_EXPRESS_DELETE_CONFIRM', 'DHL has no way to cancel a label once it is printed. Deleting removes this shipment from FreeBooks only, so do not hand the parcel to DHL. Delete it?');
 define('MODULE_SHIPPING_DHL_EXPRESS_ERROR_PICKUP', 'DHL Express: Collection request failed - ');
 // Label form
 define('DHL_CUSTOMS_SECTION',     'Customs / Export Information');

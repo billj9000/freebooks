@@ -15,7 +15,7 @@
 
 <p>FreeBooks includes a shipping module for DHL Express using the MyDHL API. The module supports
 international and domestic rate queries, label generation for multi-package shipments, customs
-export declarations, and shipment cancellation directly from the invoice list.</p>
+export declarations, and one-off courier collections.</p>
 
 <p>A DHL Express account and API credentials are required. Credentials are obtained from the
 <a href="https://developer.dhl.com" target="_blank">DHL Developer Portal</a>.</p>
@@ -26,7 +26,6 @@ export declarations, and shipment cancellation directly from the invoice list.</
   <li>Label generation for all DHL Express service levels (Worldwide, 9:00, 10:30, 12:00, Domestic, Economy Select, etc.)</li>
   <li>Multi-package shipments</li>
   <li>Automatic customs / export declaration for international shipments</li>
-  <li>Shipment cancellation via the DHL API</li>
   <li>One-off courier collections booked and cancelled from Shipping Manager</li>
   <li>Label reprint from the Shipment Details popup</li>
   <li>Test (sandbox) and Production modes</li>
@@ -153,19 +152,19 @@ receive with a credit memo, as usual.</p>
       contacting DHL again.</li>
 </ol>
 
-<h4>Cancelling a Shipment</h4>
+<h4>Deleting a Shipment</h4>
+<p>DHL has no way to cancel a label once it is printed. Deleting a DHL shipment removes it from
+FreeBooks only: the shipment log entry and the stored label file. Do not hand a parcel whose
+shipment you have deleted to DHL.</p>
 <ol>
   <li>In Invoice Manager, click the <strong>View Shipment</strong> icon on the invoice row.
       The Shipment Details popup opens.</li>
-  <li>Click the <strong>Delete</strong> (bin) icon in the toolbar.</li>
-  <li>A confirmation dialog warns that the shipment will be cancelled at DHL. Confirm to
-      proceed.</li>
-  <li>FreeBooks sends a cancellation request to the DHL API, deletes the stored label file,
-      and removes the shipment log entry. The invoice row reverts to the <em>Ship</em> state
-      and can be re-shipped if required.</li>
+  <li>Click the <strong>Delete</strong> (bin) icon in the toolbar and confirm.</li>
+  <li>The shipment's items become outstanding again, so the invoice offers
+      <strong>Ship</strong> once more and a new label can be printed.</li>
 </ol>
-<p><strong>Note:</strong> DHL Express cancellations are subject to DHL's own cut-off rules.
-Shipments that have already been collected by DHL may not be cancellable via the API.</p>
+<p>If a collection was booked for the parcel, cancel it in the collection window as well, and book
+again if other parcels still need collecting; see <em>Booking a Collection</em>.</p>
 
 <h4>Booking a Collection</h4>
 <p>A label does not book a courier. Regular collections are arranged with DHL on the account;

@@ -23,7 +23,9 @@ $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['delete']['show']   = !empty($sID);
-$delete_confirm = !empty($has_carrier_cancel) ? SHIPPING_CANCEL_CONFIRM : SHIPPING_DELETE_CONFIRM;
+// A carrier whose labels cannot be cancelled with it says so in its own confirmation.
+$carrier_confirm = 'MODULE_SHIPPING_' . strtoupper((string)($cInfo->carrier ?? '')) . '_DELETE_CONFIRM';
+$delete_confirm  = defined($carrier_confirm) ? constant($carrier_confirm) : (!empty($has_carrier_cancel) ? SHIPPING_CANCEL_CONFIRM : SHIPPING_DELETE_CONFIRM);
 $toolbar->icon_list['delete']['params'] = 'onclick="if (confirm(\'' . addslashes($delete_confirm) . '\')) submitToDo(\'delete\')"';
 if (!empty($label_viewer_url)) {
   $toolbar->icon_list['print']['show']   = true;
