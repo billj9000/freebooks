@@ -622,9 +622,11 @@ class journal {
 	}
 	// adjust inventory stock status levels (also fills inv_list array)
 	$item_rows_to_process = count($this->journal_rows); // NOTE: variable needs to be here because journal_rows may grow within for loop (COGS)
-	$price = 0;
 	for ($i = 0; $i < $item_rows_to_process; $i++) {
 	  if ($this->journal_rows[$i]['sku'] ?? null) {
+		// Each line's own unit price: a line with no amount, such as a free item, is priced at
+		// nothing. Order posting writes a non-zero price back as the item's cost or price.
+		$price = 0;
 		if ($this->journal_rows[$i]['debit_amount']  ?? null) $price = $this->journal_rows[$i]['debit_amount']  / $this->journal_rows[$i]['qty'];
 		if ($this->journal_rows[$i]['credit_amount'] ?? null) $price = $this->journal_rows[$i]['credit_amount'] / $this->journal_rows[$i]['qty'];
 		$inv_list = array(
