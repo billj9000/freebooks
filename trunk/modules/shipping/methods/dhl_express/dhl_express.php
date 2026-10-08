@@ -303,7 +303,7 @@ class dhl_express {
     }
 
     // The shipment's description is that of its first line that ships; a removed line is not in it.
-    $goodsDescription = $sInfo->customs_description ?: 'Goods';
+    $goodsDescription = ($sInfo->customs_description ?? '') ?: 'Goods';
     if (!empty($sInfo->line_items)) {
       foreach ($sInfo->line_items as $_li) {
         if ((float)$_li['qty'] > 0) { $goodsDescription = $_li['description'] ?: 'Goods'; break; }
