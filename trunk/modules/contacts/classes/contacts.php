@@ -92,7 +92,7 @@ class contacts {
 		  $result->MoveNext();
 		}
 		// load payment info
-		if ($_SESSION['admin_encrypt'] && ENABLE_ENCRYPTION) {
+		if (!empty($_SESSION['admin_encrypt']) && ENABLE_ENCRYPTION) {
 		  $result = $db->Execute("select id, hint, enc_value from ".TABLE_DATA_SECURITY." where module='contacts' and ref_1=" . (int)$this->id);
 		  $encrypt = new encryption();
 		  while (!$result->EOF) {
@@ -249,11 +249,11 @@ class contacts {
     $sql_data_array['type']            = $this->type;
     $sql_data_array['short_name']      = $this->short_name;
     $sql_data_array['inactive']        = isset($this->inactive) ? '1' : '0';
-    $sql_data_array['contacts_level']  = $this->contacts_level;
+    $sql_data_array['contacts_level']  = $this->contacts_level ?? null;
     $sql_data_array['contact_first']   = $this->contact_first;
     $sql_data_array['contact_middle']  = $this->contact_middle;
     $sql_data_array['contact_last']    = $this->contact_last;
-    $sql_data_array['store_id']        = $this->store_id;
+    $sql_data_array['store_id']        = $this->store_id ?? null;
     $sql_data_array['gl_type_account'] = (is_array($this->gl_type_account)) ? implode('', array_keys($this->gl_type_account)) : $this->gl_type_account;
     $sql_data_array['gov_id_number']   = $this->gov_id_number;
     $sql_data_array['vat_number']      = $this->vat_number ?? '';

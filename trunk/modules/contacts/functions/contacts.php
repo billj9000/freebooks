@@ -65,14 +65,17 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 		$field .= '</table></td></tr>';
 	}
 
+	// The values shown: none for an address type the contact does not have yet.
+	$current = (is_object($entries) && isset($entries->address[$add_type]) && is_array($entries->address[$add_type]))
+		? $entries->address[$add_type] : array();
 	if ($postcode_lookup) {
 		$field .= '<tr><td>';
 		$field .= '<div class="d-flex gap-2 align-items-end p-1">';
 		$field .= '<div><div class="small">' . GEN_COUNTRY . '</div>'
 		        . html_pull_down_menu("address[$add_type][country_code]", gen_get_countries(),
-		            $entries->address[$add_type]['country_code'] ?: COMPANY_COUNTRY) . '</div>';
+		            ($current['country_code'] ?? '') ?: COMPANY_COUNTRY) . '</div>';
 		$field .= '<div><div class="small">' . GEN_POSTAL_CODE . '</div>'
-		        . html_input_field("address[$add_type][postal_code]", $entries->address[$add_type]['postal_code'],
+		        . html_input_field("address[$add_type][postal_code]", ($current['postal_code'] ?? ''),
 		            'size="11" maxlength="10"'
 		            . ' onkeydown="if(event.key===\'Enter\') event.preventDefault();"'
 		            . ' hx-get="index.php?module=contacts&page=ajax&op=postcode_lookup"'
@@ -99,59 +102,59 @@ function draw_address_fields($entries, $add_type, $reset_button = false, $hide_l
 	if (!$short) {
 		$field .= '<tr>';
 		$field .= '  <td align="right">' . GEN_PRIMARY_NAME . '</td>' . chr(10);
-		$field .= '  <td>' . html_input_field("address[$add_type][primary_name]", $entries->address[$add_type]['primary_name'], 'size="49" maxlength="64"', true) . '</td>' . chr(10);
+		$field .= '  <td>' . html_input_field("address[$add_type][primary_name]", ($current['primary_name'] ?? ''), 'size="49" maxlength="64"', true) . '</td>' . chr(10);
 		$field .= '  <td align="right">' . GEN_TELEPHONE1 . '</td>' . chr(10);
-		$field .= '  <td>' . html_input_field("address[$add_type][telephone1]", $entries->address[$add_type]['telephone1'], 'size="21" maxlength="32"', ADDRESS_BOOK_TELEPHONE1_REQUIRED) . '</td>' . chr(10);
+		$field .= '  <td>' . html_input_field("address[$add_type][telephone1]", ($current['telephone1'] ?? ''), 'size="21" maxlength="32"', ADDRESS_BOOK_TELEPHONE1_REQUIRED) . '</td>' . chr(10);
 		$field .= '</tr>';
 	}
 	$field .= '<tr>';
-	$field .= '  <td align="right">' . GEN_CONTACT . html_hidden_field("address[$add_type][address_id]", $entries->address[$add_type]['address_id']) . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][contact]", $entries->address[$add_type]['contact'], 'size="33" maxlength="64"', ADDRESS_BOOK_CONTACT_REQUIRED) . '</td>' . chr(10);
+	$field .= '  <td align="right">' . GEN_CONTACT . html_hidden_field("address[$add_type][address_id]", ($current['address_id'] ?? '')) . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][contact]", ($current['contact'] ?? ''), 'size="33" maxlength="64"', ADDRESS_BOOK_CONTACT_REQUIRED) . '</td>' . chr(10);
 	$field .= '  <td align="right">' . GEN_TELEPHONE2 . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][telephone2]", $entries->address[$add_type]['telephone2'], 'size="21" maxlength="32"') . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][telephone2]", ($current['telephone2'] ?? ''), 'size="21" maxlength="32"') . '</td>' . chr(10);
 	$field .= '</tr>';
 
 	$field .= '<tr>';
 	$field .= '  <td align="right">' . GEN_ADDRESS1 . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][address1]" , $entries->address[$add_type]['address1'], 'size="33" maxlength="64"', ADDRESS_BOOK_ADDRESS1_REQUIRED) . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][address1]" , ($current['address1'] ?? ''), 'size="33" maxlength="64"', ADDRESS_BOOK_ADDRESS1_REQUIRED) . '</td>' . chr(10);
 	$field .= '  <td align="right">' . GEN_FAX . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][telephone3]", $entries->address[$add_type]['telephone3'], 'size="21" maxlength="32"') . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][telephone3]", ($current['telephone3'] ?? ''), 'size="21" maxlength="32"') . '</td>' . chr(10);
 	$field .= '</tr>';
 
 	$field .= '<tr>';
 	$field .= '  <td align="right">' . GEN_ADDRESS2 . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][address2]", $entries->address[$add_type]['address2'], 'size="33" maxlength="64"', ADDRESS_BOOK_ADDRESS2_REQUIRED) . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][address2]", ($current['address2'] ?? ''), 'size="33" maxlength="64"', ADDRESS_BOOK_ADDRESS2_REQUIRED) . '</td>' . chr(10);
 	$field .= '  <td align="right">' . GEN_TELEPHONE4 . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][telephone4]", $entries->address[$add_type]['telephone4'], 'size="21" maxlength="32"') . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][telephone4]", ($current['telephone4'] ?? ''), 'size="21" maxlength="32"') . '</td>' . chr(10);
 	$field .= '</tr>';
 
 	$field .= '<tr>';
 	$field .= '  <td align="right">' . GEN_CITY_TOWN . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][city_town]", $entries->address[$add_type]['city_town'], 'size="25" maxlength="64"', ADDRESS_BOOK_CITY_TOWN_REQUIRED) . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][city_town]", ($current['city_town'] ?? ''), 'size="25" maxlength="64"', ADDRESS_BOOK_CITY_TOWN_REQUIRED) . '</td>' . chr(10);
 	$field .= '  <td align="right">' . GEN_EMAIL . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][email]", $entries->address[$add_type]['email'], 'size="51" maxlength="50"') . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][email]", ($current['email'] ?? ''), 'size="51" maxlength="50"') . '</td>' . chr(10);
 	$field .= '</tr>';
 
 	$field .= '<tr>';
 	$field .= '  <td align="right">' . GEN_STATE_PROVINCE . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][state_province]", $entries->address[$add_type]['state_province'], 'size="25" maxlength="32"', ADDRESS_BOOK_STATE_PROVINCE_REQUIRED) . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][state_province]", ($current['state_province'] ?? ''), 'size="25" maxlength="32"', ADDRESS_BOOK_STATE_PROVINCE_REQUIRED) . '</td>' . chr(10);
 	$field .= '  <td align="right">' . GEN_WEBSITE . '</td>' . chr(10);
-	$field .= '  <td>' . html_input_field("address[$add_type][website]", $entries->address[$add_type]['website'], 'size="51" maxlength="50"') . '</td>' . chr(10);
+	$field .= '  <td>' . html_input_field("address[$add_type][website]", ($current['website'] ?? ''), 'size="51" maxlength="50"') . '</td>' . chr(10);
 	$field .= '</tr>';
 
 	if (!$postcode_lookup) {
 		$field .= '<tr>';
 		$field .= '  <td align="right">' . GEN_POSTAL_CODE . '</td>' . chr(10);
-		$field .= '  <td>' . html_input_field("address[$add_type][postal_code]", $entries->address[$add_type]['postal_code'], 'size="11" maxlength="24"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '</td>' . chr(10);
+		$field .= '  <td>' . html_input_field("address[$add_type][postal_code]", ($current['postal_code'] ?? ''), 'size="11" maxlength="24"', ADDRESS_BOOK_POSTAL_CODE_REQUIRED) . '</td>' . chr(10);
 		$field .= '  <td align="right">' . GEN_COUNTRY . '</td>' . chr(10);
-		$field .= '  <td>' . html_pull_down_menu("address[$add_type][country_code]", gen_get_countries(), $entries->address[$add_type]['country_code'] ? $entries->address[$add_type]['country_code'] : COMPANY_COUNTRY) . '</td>' . chr(10);
+		$field .= '  <td>' . html_pull_down_menu("address[$add_type][country_code]", gen_get_countries(), ($current['country_code'] ?? '') ? ($current['country_code'] ?? '') : COMPANY_COUNTRY) . '</td>' . chr(10);
 		$field .= '</tr>';
 	}
 
 	if ($method <> 'm' || ($add_type == 'im' && substr($add_type, 0, 1) <> 'i')) {
 	  $field .= '<tr>' . chr(10);
 	  $field .= '  <td align="right">' . TEXT_NOTES . '</td>' . chr(10);
-      $field .= '  <td colspan="3">' . html_textarea_field("address[$add_type][notes]", 80, 3, $entries->address[$add_type]['notes']) . chr(10);
+      $field .= '  <td colspan="3">' . html_textarea_field("address[$add_type][notes]", 80, 3, ($current['notes'] ?? '')) . chr(10);
 	  if ($reset_button) $field .= html_icon('actions/view-refresh.png', TEXT_RESET, 'small', 'onclick="clearAddress(\''.$add_type.'\')"') . chr(10);
 	  $field .= '  </td>' . chr(10);
 	  $field .= '</tr>' . chr(10);

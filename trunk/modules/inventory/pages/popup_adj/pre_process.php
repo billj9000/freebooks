@@ -68,7 +68,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
 $field_list = array('m.id', 'm.purchase_invoice_id', 'm.post_date', 'm.store_id', 'm.bill_acct_id', 'sum(i.qty) as qty', 
 	'i.sku', 'count(i.sku) as sku_cnt', 'i.description');
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 $filters[] = "i.gl_type = 'adj'";
 $filters[] = 'm.journal_id = 16';
 $filters[] = ($adj_type == 'xfr') ? 'm.so_po_ref_id <> 0 AND i.qty < 0' : 'm.so_po_ref_id = 0';

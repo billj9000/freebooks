@@ -1825,7 +1825,7 @@ function gen_db_date($raw_date = '', $separator = '/') {
 			$output  .= '<td>';
 			$output  .= '<table frame="border"><tr>';
 			$choices  = explode(',',$params['default']);
-			$selected = explode(',',$cInfo->{$param_array['field_name']});
+			$selected = explode(',', (string)($cInfo->{$param_array['field_name']} ?? ''));
 			$i = 1;
 			while ($choice = array_shift($choices)) {
 				$values = explode(':', $choice);
@@ -1968,17 +1968,17 @@ function validate_ajax_user($token = 0) {
 	  if (strpos("\r", $value) !== false || strpos("\n", $value) !== false) return false;
     }
     // if no text or html-msg supplied, exit
-    if (!gen_not_null($email_text) && !gen_not_null($block['EMAIL_MESSAGE_HTML'])) return false;
+    if (!gen_not_null($email_text) && !gen_not_null($block['EMAIL_MESSAGE_HTML'] ?? '')) return false;
     // if email name is same as email address, use the Store Name as the senders 'Name'
     if ($from_email_name == $from_email_address) $from_email_name = COMPANY_NAME;
     // loop thru multiple email recipients if more than one listed  --- (esp for the admin's "Extra" emails)...
     foreach(explode(',', $to_address) as $key => $to_email_address) {
       //define some additional html message blocks available to templates, then build the html portion.
-      if ($block['EMAIL_TO_NAME'] == '')      $block['EMAIL_TO_NAME']      = $to_name;
-      if ($block['EMAIL_TO_ADDRESS'] == '')   $block['EMAIL_TO_ADDRESS']   = $to_email_address;
-      if ($block['EMAIL_SUBJECT'] == '')      $block['EMAIL_SUBJECT']      = $email_subject;
-      if ($block['EMAIL_FROM_NAME'] == '')    $block['EMAIL_FROM_NAME']    = $from_email_name;
-      if ($block['EMAIL_FROM_ADDRESS'] == '') $block['EMAIL_FROM_ADDRESS'] = $from_email_address;
+      if (($block['EMAIL_TO_NAME'] ?? '') == '')      $block['EMAIL_TO_NAME']      = $to_name;
+      if (($block['EMAIL_TO_ADDRESS'] ?? '') == '')   $block['EMAIL_TO_ADDRESS']   = $to_email_address;
+      if (($block['EMAIL_SUBJECT'] ?? '') == '')      $block['EMAIL_SUBJECT']      = $email_subject;
+      if (($block['EMAIL_FROM_NAME'] ?? '') == '')    $block['EMAIL_FROM_NAME']    = $from_email_name;
+      if (($block['EMAIL_FROM_ADDRESS'] ?? '') == '') $block['EMAIL_FROM_ADDRESS'] = $from_email_address;
       $email_html = $email_text;
       //  if ($attachments_list == '') $attachments_list= array();
       // clean up &amp; and && from email text
@@ -2002,7 +2002,7 @@ function validate_ajax_user($token = 0) {
       $email_html = stripslashes($email_html);
       // Build the email based on whether customer has selected HTML or TEXT, and whether we have supplied HTML or TEXT-only components
       if (!gen_not_null($email_text)) {
-        $text = str_replace('<br[[:space:]]*/?[[:space:]]*>', "\n", $block['EMAIL_MESSAGE_HTML']);
+        $text = str_replace('<br[[:space:]]*/?[[:space:]]*>', "\n", $block['EMAIL_MESSAGE_HTML'] ?? '');
         $text = str_replace('</p>', "</p>\n", $text);
         $text = htmlspecialchars(stripslashes(strip_tags($text)));
       } else {
@@ -2074,7 +2074,7 @@ function validate_ajax_user($token = 0) {
       // Callers passing only 'file' are unaffected.
       // Accepts either a single ['file'=>.., 'name'=>..] shape (existing callers) or a list of
       // such arrays, so one call can attach multiple files to the same email.
-      if (gen_not_null($attachments_list)) {
+      if (!empty($attachments_list)) {
         $files = isset($attachments_list['file']) ? array($attachments_list) : $attachments_list;
         foreach ($files as $file) {
           if (!empty($file['file'])) $mail->addAttachment($file['file'], $file['name'] ?? '');
@@ -2091,11 +2091,12 @@ function validate_ajax_user($token = 0) {
         $messageStack->add(sprintf(EMAIL_SEND_FAILED . '&nbsp;'. $mail->ErrorInfo, $to_name, $to_email_address, $email_subject),'error');
         return false;
 	  }else{
-	  	$temp = $db->Execute("select address_id, ref_id from " . TABLE_ADDRESS_BOOK . " where email ='".$to_email_address."' and ref_id <> 0");
-		$sql_data_array['address_id_from'] 	= $temp->fields['address_id'];
-		$ref_id = $temp->fields['ref_id'];
-		$temp = $db->Execute("select address_id, ref_id from " . TABLE_ADDRESS_BOOK . " where email ='".$from_email_address."'");
-		$sql_data_array['address_id_to'] 	= $temp->fields['address_id'];
+	  	// A recipient or sender not in the address book has no address id and no contact.
+	  	$temp = $db->Execute("select address_id, ref_id from " . TABLE_ADDRESS_BOOK . " where email ='" . db_input($to_email_address) . "' and ref_id <> 0");
+		$sql_data_array['address_id_from'] 	= $temp->fields['address_id'] ?? 0;
+		$ref_id = $temp->fields['ref_id'] ?? 0;
+		$temp = $db->Execute("select address_id, ref_id from " . TABLE_ADDRESS_BOOK . " where email ='" . db_input($from_email_address) . "'");
+		$sql_data_array['address_id_to'] 	= $temp->fields['address_id'] ?? 0;
 		$sql_data_array['Message'] 		= $text;
 		$sql_data_array['Message_html']	= $email_html;
 		//$sql_data_array['IDEmail'] 		= $email['message_id'];?? Rene Unknown
@@ -2109,7 +2110,7 @@ function validate_ajax_user($token = 0) {
 		//$sql_data_array['MsgSize'] 		= $email["SIZE"];?? Rene Unknown
 // 		if(db_table_exists(TABLE_PHREEMAIL)) db_perform(TABLE_PHREEMAIL, $sql_data_array, 'insert');
   		// save in crm_notes
-		$temp = $db->Execute("select account_id from " . TABLE_USERS . " where admin_email = '" . $from_email_address . "'");
+		$temp = $db->Execute("select account_id from " . TABLE_USERS . " where admin_email = '" . db_input($from_email_address) . "'");
 		// Both columns are NOT NULL ints. A recipient not in the address book has
 		// no contact, and a sender address no user owns (the company's own, or a
 		// webhook with nobody logged in) falls back to whoever is signed in, else 0.

@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -53,7 +54,7 @@
 		$field .= '</table></td></tr>' . chr(10);
 		echo $field;
 	}
-    if (!$_SESSION['admin_encrypt']) { ?>
+    if (empty($_SESSION['admin_encrypt'])) { ?>
       <tr><td colspan="2" class="table-warning"><?php echo ACT_NO_ENCRYPT_KEY_ENTERED; ?></td></tr>
 <?php } ?>
       <tr><td colspan="2"><?php echo '&nbsp;'; ?></td></tr>

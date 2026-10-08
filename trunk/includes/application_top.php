@@ -196,7 +196,7 @@ if ($db_company && file_exists(DIR_FS_MY_FILES . $db_company . '/config.php')) {
 }
 $_session_timeout = defined('SESSION_TIMEOUT_ADMIN') ? (int)SESSION_TIMEOUT_ADMIN : $_session_timeout;
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > ($_session_timeout < 360 ? 360 : $_session_timeout))) {
-	$_SESSION = array('language'=>$_SESSION['language'], 'companies'=>$_SESSION['companies']);
+	$_SESSION = array('language'=>$_SESSION['language'] ?? null, 'companies'=>$_SESSION['companies'] ?? null);
 	gen_redirect(html_href_link(FILENAME_DEFAULT, '', 'SSL'));
 }
 $_SESSION['LAST_ACTIVITY'] = time();

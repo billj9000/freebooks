@@ -20,7 +20,7 @@
 echo html_form('inv_adj', FILENAME_DEFAULT, gen_get_all_get_params(array('action'))) . chr(10);
 $hidden_fields = null;
 echo html_hidden_field('action', '') . chr(10);
-echo html_hidden_field('id', $cInfo->id) . chr(10);
+echo html_hidden_field('id', $cInfo->id ?? '') . chr(10);
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, '', 'SSL') . '\'"';
 $toolbar->icon_list['open']['params']   = 'onclick="OpenAdjList()"';
 $toolbar->icon_list['save']['params']   = 'onclick="submitToDo(\'save\')"';
@@ -41,13 +41,13 @@ echo $toolbar->build_toolbar();
     <?php if (ENABLE_MULTI_BRANCH): ?>
     <div class="row g-2 align-items-center mb-2">
       <div class="col-auto text-end"><?php echo GEN_STORE_ID; ?></div>
-      <div class="col-auto"><?php echo html_pull_down_menu('store_id', gen_get_store_ids(), $cInfo->store_id ? $cInfo->store_id : $_SESSION['admin_prefs']['def_store_id'], 'style="font-size:11px"'); ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('store_id', gen_get_store_ids(), !empty($cInfo->store_id) ? $cInfo->store_id : $_SESSION['admin_prefs']['def_store_id'], 'style="font-size:11px"'); ?></div>
     </div>
     <?php else: $hidden_fields .= html_hidden_field('store_id', $_SESSION['admin_prefs']['def_store_id']) . chr(10); ?>
     <?php endif; ?>
     <div class="row g-2 align-items-center mb-2">
       <div class="col-auto text-end"><?php echo INV_REASON_FOR_ADJUSTMENT; ?></div>
-      <div class="col-auto"><?php echo html_input_field('adj_reason', $cInfo->adj_reason, 'class="form-control form-control-sm" style="width:320px"'); ?></div>
+      <div class="col-auto"><?php echo html_input_field('adj_reason', $cInfo->adj_reason ?? '', 'class="form-control form-control-sm" style="width:320px"'); ?></div>
       <div class="col-auto text-end"><?php echo TEXT_POST_DATE; ?></div>
       <div class="col-auto"><?php echo html_calendar_field($cal_adj); ?></div>
     </div>
@@ -55,7 +55,7 @@ echo $toolbar->build_toolbar();
       <div class="col-auto text-end"><?php echo INV_ADJUSTMENT_ACCOUNT; ?></div>
       <div class="col-auto"><?php echo html_pull_down_menu('gl_acct', $gl_array_list, $cInfo->gl_acct ? $cInfo->gl_acct : INV_STOCK_DEFAULT_INVENTORY, 'style="font-size:11px;width:280px"'); ?></div>
       <div class="col-auto text-end"><?php echo TEXT_REFERENCE; ?></div>
-      <div class="col-auto"><?php echo html_input_field('purchase_invoice_id', $cInfo->purchase_invoice_id, 'class="form-control form-control-sm" style="width:160px"'); ?></div>
+      <div class="col-auto"><?php echo html_input_field('purchase_invoice_id', $cInfo->purchase_invoice_id ?? '', 'class="form-control form-control-sm" style="width:160px"'); ?></div>
     </div>
   </div>
 </div>

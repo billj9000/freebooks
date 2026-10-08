@@ -24,8 +24,8 @@ $js_pmt_array= '';
 $js_actions  = '';
 $criteria    = array();
 $tab_list    = array();
-if ($_POST['crm_date']) $_POST['crm_date'] = gen_db_date($_POST['crm_date']);
-if ($_POST['due_date']) $_POST['due_date'] = gen_db_date($_POST['due_date']);
+if (!empty($_POST['crm_date'])) $_POST['crm_date'] = gen_db_date($_POST['crm_date']);
+if (!empty($_POST['due_date'])) $_POST['due_date'] = gen_db_date($_POST['due_date']);
 $type        = isset($_GET['type']) ? $_GET['type'] : 'c'; // default to customer
 // It names a class file and a class: only the contact types there are, so it
 // can never reach outside classes/type/.
@@ -64,7 +64,7 @@ $fields = new contact_fields();
 $custom_path = DIR_FS_WORKING . 'custom/pages/main/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
- 
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; js_include reads it too
 switch ($_REQUEST['action']) {
     case 'new':
         validate_security($security_level, 2);
@@ -90,7 +90,7 @@ switch ($_REQUEST['action']) {
 			 }
 		  }
 		  // payment fields
-		  if (ENABLE_ENCRYPTION && $_POST['payment_cc_name'] && $_POST['payment_cc_number']) { // save payment info
+		  if (ENABLE_ENCRYPTION && !empty($_POST['payment_cc_name']) && !empty($_POST['payment_cc_number'])) { // save payment info
 			  $encrypt = new encryption();
 				$cc_info = array(
 				  'name'    => db_prepare_input($_POST['payment_cc_name']),
@@ -124,7 +124,7 @@ switch ($_REQUEST['action']) {
 		    }
 		    $image_id++;
 		  }
-		  if (is_uploaded_file($_FILES['file_name']['tmp_name'])) { // find an image slot to use
+		  if (is_uploaded_file($_FILES['file_name']['tmp_name'] ?? '')) { // find an image slot to use
 		    $image_id = 0;
 		    while (true) {
 			    if (!file_exists(CONTACTS_DIR_ATTACHMENTS.'contacts_'.$cInfo->id.'_'.$image_id.'.zip')) break;
@@ -241,7 +241,7 @@ switch ($_REQUEST['action']) {
 	  		$result->MoveNext();
 		}
 	    $include_template = 'template_detail.php';
-		define('PAGE_TITLE', ($_REQUEST['action'] == 'new') ? $cInfo->page_title_new : constant('ACT_'.strtoupper($type).'_PAGE_TITLE_EDIT').' - ('.$cInfo->short_name.') '.$cInfo->address['m'][0]->primary_name);
+		define('PAGE_TITLE', ($_REQUEST['action'] == 'new') ? $cInfo->page_title_new : constant('ACT_'.strtoupper($type).'_PAGE_TITLE_EDIT').' - ('.$cInfo->short_name.') '.($cInfo->address[$type . 'm']['primary_name'] ?? ''));
 		break;
   default:
 		$heading_array = array('c.short_name' => constant('ACT_' . strtoupper($type) . '_SHORT_NAME'));
@@ -274,7 +274,7 @@ switch ($_REQUEST['action']) {
 			'a.telephone1', 'c.attachments', 'c.first_date', 'c.last_update', 'c.last_date_1', 'c.last_date_2', 
 			'a.primary_name', 'a.address1', 'a.city_town', 'a.state_province', 'a.postal_code');
 		// hook to add new fields to the query return results
-		if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+		if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 	    $query_raw = "select " . implode(', ', $field_list)  . " 
 			from " . TABLE_CONTACTS . " c left join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id " . $search . " order by $disp_order";
 	    $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);

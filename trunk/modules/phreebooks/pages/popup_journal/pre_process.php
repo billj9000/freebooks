@@ -68,7 +68,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
 $field_list = array('id', 'post_date', 'purchase_invoice_id', 'total_amount', 'store_id');
 		
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 
 $query_raw = "select " . implode(', ', $field_list) . " from " . TABLE_JOURNAL_MAIN . " 
 	where journal_id = 2" . $period_filter . $search . " order by $disp_order, id";

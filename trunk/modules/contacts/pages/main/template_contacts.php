@@ -75,7 +75,6 @@
 	$ctoolbar->icon_list['new']['text']    = TEXT_NEW_CONTACT;
 	$ctoolbar->add_icon('copy', 'onclick="copyContactAddress(\'' . $type . '\')"', 20);
 	$ctoolbar->icon_list['copy']['text']   = TEXT_COPY_ADDRESS;
-	echo $output;
 	echo $ctoolbar->build_toolbar();
 ?>
     </td></tr>
@@ -83,25 +82,25 @@
     <table class="pkg-table">
       <tr>
        <td align="right"><?php echo ACT_SHORT_NAME . html_hidden_field('i_id', ''); ?></td>
-       <td><?php echo html_input_field('i_short_name', $cInfo->i_short_name, 'size="21" maxlength="64"', true); ?></td>
+       <td><?php echo html_input_field('i_short_name', $cInfo->i_short_name ?? '', 'size="21" maxlength="64"', true); ?></td>
        <td align="right"><?php echo TEXT_TITLE; ?></td>
-       <td><?php echo html_input_field('i_contact_middle', $cInfo->i_contact_middle, 'size="33" maxlength="64"', false); ?></td>
+       <td><?php echo html_input_field('i_contact_middle', $cInfo->i_contact_middle ?? '', 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
         <td align="right"><?php echo GEN_FIRST_NAME; ?></td>
-        <td><?php echo html_input_field('i_contact_first', $cInfo->i_contact_first, 'size="33" maxlength="64"', false); ?></td>
+        <td><?php echo html_input_field('i_contact_first', $cInfo->i_contact_first ?? '', 'size="33" maxlength="64"', false); ?></td>
         <td align="right"><?php echo GEN_LAST_NAME; ?></td>
-        <td><?php echo html_input_field('i_contact_last', $cInfo->i_contact_last, 'size="33" maxlength="64"', false); ?></td>
+        <td><?php echo html_input_field('i_contact_last', $cInfo->i_contact_last ?? '', 'size="33" maxlength="64"', false); ?></td>
       </tr>
       <tr>
         <td align="right"><?php echo ACT_ACCOUNT_NUMBER; ?></td>
-        <td><?php echo html_input_field('i_account_number', $cInfo->i_account_number, 'size="17" maxlength="16"'); ?></td>
+        <td><?php echo html_input_field('i_account_number', $cInfo->i_account_number ?? '', 'size="17" maxlength="16"'); ?></td>
         <td align="right"><?php echo ACT_ID_NUMBER; ?></td>
-        <td><?php echo html_input_field('i_gov_id_number', $cInfo->i_gov_id_number, 'size="17" maxlength="32"'); ?></td>
+        <td><?php echo html_input_field('i_gov_id_number', $cInfo->i_gov_id_number ?? '', 'size="17" maxlength="32"'); ?></td>
       </tr>
     </table>
     <table id="im_address_form" class="pkg-table">
-      <?php echo draw_address_fields($cInfo->contact, 'im', false, false, false); ?>
+      <?php echo draw_address_fields($cInfo->contact ?? null, 'im', false, false, false); ?>
     </table>
   </fieldset>
 </div>

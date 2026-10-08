@@ -27,7 +27,7 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('07.04.01');
-$toolbar->search_period = $acct_period;
+$toolbar->search_period = $acct_period ?? null;
 echo $toolbar->build_toolbar($add_search = true);
 ?>
 <h1><?php echo INV_POPUP_WINDOW_TITLE; ?></h1>

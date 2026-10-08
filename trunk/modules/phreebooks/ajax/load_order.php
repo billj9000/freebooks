@@ -142,6 +142,8 @@ if (!empty($order->fields)) {
 		  $subtotal   += $total;
 		  $inv_details = $db->Execute("select inventory_type, inactive, item_weight, quantity_on_hand, lead_time 
 		    from " . TABLE_INVENTORY . " where sku = '" . db_input($ordr_items->fields['sku']) . "'");
+		  // A SKU no longer in inventory has no details.
+		  if ($inv_details->EOF) $inv_details->fields = array_fill_keys(array('inventory_type', 'inactive', 'item_weight', 'quantity_on_hand', 'lead_time'), null);
 		  if (!in_array($inv_details->fields['inventory_type'], $cog_types)) $inv_details->fields['quantity_on_hand'] = 'NA';
 		  $item_list[] = array(
 			'item_cnt'          		=> $ordr_items->fields['item_cnt'],
@@ -212,6 +214,8 @@ if (!empty($order->fields)) {
 		  $subtotal += $total;
 		  $inv_details = $db->Execute("select inactive, inventory_type, item_weight, quantity_on_hand, lead_time 
 		    from " . TABLE_INVENTORY . " where sku = '" . db_input($ordr_items->fields['sku']) . "'");
+		  // A SKU no longer in inventory has no details.
+		  if ($inv_details->EOF) $inv_details->fields = array_fill_keys(array('inventory_type', 'inactive', 'item_weight', 'quantity_on_hand', 'lead_time'), null);
 		  $inv_details->fields['quantity_on_hand'] = $ordr_items->fields['qty'] + $inv_details->fields['quantity_on_hand'];
 		  if (!in_array($inv_details->fields['inventory_type'], $cog_types)) $inv_details->fields['quantity_on_hand'] = 'NA';
 	  	} else {

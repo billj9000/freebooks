@@ -87,7 +87,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
 }
 $field_list = array('id', 'sku', 'inactive', 'description_short', 'lead_time', 'item_cost', 'full_price', 'minimum_stock_level', 'reorder_quantity');
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 
 $query_raw    = "select " . implode(', ', $field_list)  . " from " . TABLE_INVENTORY . $search . " order by $disp_order";
 $query_result = $db->Execute($query_raw, (MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1)).", ".  MAX_DISPLAY_SEARCH_RESULTS);

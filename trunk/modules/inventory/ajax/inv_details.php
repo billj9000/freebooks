@@ -226,7 +226,7 @@ switch($jID) {
 	  $stock_note[] = ORD_INV_STOCK_BAL . $inventory_array['branch_qty_in_stock'];
 	  // fetch open orders
 	  $sku_history = gather_history($inventory_array['sku']);
-	  if (is_array($sku_history['open_po'])) {
+	  if (is_array($sku_history['open_po'] ?? null)) {
 	    $stock_note[] = ORD_INV_OPEN_POS;
 	    foreach ($sku_history['open_po'] as $value) {
 		  $store = $value['store_id'] ? gen_get_contact_name($value['store_id']) : COMPANY_NAME; // get name from id

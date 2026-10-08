@@ -20,7 +20,7 @@
 echo html_form('contacts', FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'post', 'enctype="multipart/form-data"', true) . chr(10);
 // include hidden fields
 echo html_hidden_field('action',        '') . chr(10);
-echo html_hidden_field('f0',         $f0) . chr(10);
+echo html_hidden_field('f0',         $f0 ?? '') . chr(10);
 echo html_hidden_field('id',  $cInfo->id) . chr(10);
 echo html_hidden_field('rowSeq',      '') . chr(10);
 echo html_hidden_field('del_crm_note','') . chr(10);

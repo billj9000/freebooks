@@ -185,7 +185,7 @@ if (!$disp_order) $disp_order = 'post_date';
 $field_list = array('m.id', 'm.journal_id', 'm.post_date', 'm.total_amount', 'm.terms', 'm.gl_acct_id',  
 	'm.purchase_invoice_id', 'm.purch_order_id', 'm.bill_acct_id', 'm.bill_primary_name', 'm.waiting');
 // hook to add new fields to the query return results
-if (is_array($extra_query_list_fields) > 0) $field_list = array_merge($field_list, $extra_query_list_fields);
+if (isset($extra_query_list_fields) && is_array($extra_query_list_fields)) $field_list = array_merge($field_list, $extra_query_list_fields);
 $query_raw = "select " . implode(', ', $field_list) . " 
 	from " . TABLE_JOURNAL_MAIN . " m inner join " . TABLE_CONTACTS . " a on m.bill_acct_id = a.id 
 	where a.type = 'v' and m.journal_id in (6, 7) and m.closed = '0' 

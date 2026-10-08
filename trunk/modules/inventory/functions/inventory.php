@@ -341,7 +341,7 @@
 	$med_avg_diff   = 0.25; // the maximum percentage difference from the median and average, for large swings
 	$cnt   = 0;
 	$sales = array();
-	$history['averages'] = array();
+	$history['averages'] = array('12month' => 0, '6month' => 0, '3month' => 0, '1month' => 0);
 	foreach ($history['sales'] as $key => $value) {
 	  if ($cnt == 0) { $cnt++; continue; } // skip current month since we probably don't have the full months worth
 	  $history['averages']['12month'] += $history['sales'][$key]['usage'];

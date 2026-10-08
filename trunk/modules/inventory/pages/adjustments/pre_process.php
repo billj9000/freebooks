@@ -37,6 +37,7 @@ $glEntry->store_id   = isset($_POST['store_id']) ? (int)$_POST['store_id'] : 0;
 $custom_path = DIR_FS_WORKING . 'custom/pages/adjustments/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 /***************   Act on the action request   *************************/
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; js_include reads it too
 switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 2);

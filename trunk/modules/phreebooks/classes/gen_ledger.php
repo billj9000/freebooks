@@ -182,7 +182,7 @@ class journal {
 	switch ($this->journal_id) {
 	  case  6: // Purchase/Receive Journal
 		$skus = array();
-	  	foreach ($this->journal_rows as $row) if ($row['sku'] <> '') $skus[] = db_input($row['sku']);
+	  	foreach ($this->journal_rows as $row) if (($row['sku'] ?? '') <> '') $skus[] = db_input($row['sku']);
 	  	if (!empty($skus)) {
 	  	  $result = $db->Execute("SELECT sku FROM ".TABLE_INVENTORY." WHERE sku IN ('".implode("', '", $skus)."') AND cost_method='a'");
 	  	  $askus = array();
@@ -622,6 +622,7 @@ class journal {
 	}
 	// adjust inventory stock status levels (also fills inv_list array)
 	$item_rows_to_process = count($this->journal_rows); // NOTE: variable needs to be here because journal_rows may grow within for loop (COGS)
+	$price = 0;
 	for ($i = 0; $i < $item_rows_to_process; $i++) {
 	  if ($this->journal_rows[$i]['sku'] ?? null) {
 		if ($this->journal_rows[$i]['debit_amount']  ?? null) $price = $this->journal_rows[$i]['debit_amount']  / $this->journal_rows[$i]['qty'];
@@ -629,7 +630,7 @@ class journal {
 		$inv_list = array(
 		  'id'                => $this->journal_rows[$i]['id'],
 		  'gl_type'           => $this->journal_rows[$i]['gl_type'],
-		  'so_po_item_ref_id' => $this->journal_rows[$i]['so_po_item_ref_id'],
+		  'so_po_item_ref_id' => $this->journal_rows[$i]['so_po_item_ref_id'] ?? null,
 		  'sku'               => $this->journal_rows[$i]['sku'], 
 		  'description'       => $this->journal_rows[$i]['description'], 
 		  'serialize_number'  => $this->journal_rows[$i]['serialize_number'], 
