@@ -34,11 +34,11 @@
 /**************************************************************************************************************/
 // Redirect to another page or site
   /**
-   * Set PHP's time zone for this request: the company's TIMEZONE setting once its
-   * configuration is loaded, else the installation's DEFAULT_TIMEZONE from configure.php
-   * (pages before login), else Europe/London, so an installation without either stays on
-   * UK time. Call it wherever a process starts, and again after the company's
-   * configuration loads. Returns the zone applied.
+   * Set PHP's time zone, and the database session's, for this request: the company's
+   * TIMEZONE setting once its configuration is loaded, else the installation's
+   * DEFAULT_TIMEZONE from configure.php (pages before login), else Europe/London, so an
+   * installation without either stays on UK time. Call it wherever a process starts, and
+   * again after the company's configuration loads. Returns the zone applied.
    */
   function gen_apply_timezone() {
 	$zone = 'Europe/London';
@@ -46,6 +46,14 @@
 	elseif (defined('DEFAULT_TIMEZONE') && DEFAULT_TIMEZONE !== '')   $zone = DEFAULT_TIMEZONE;
 	if (!in_array($zone, timezone_identifiers_list(), true)) $zone = 'Europe/London';
 	date_default_timezone_set($zone);
+	// The database session follows, so NOW() and CURRENT_TIMESTAMP give the same clock as PHP and
+	// TIMESTAMP columns are read and written in this zone. A numeric offset, because named zones
+	// need time-zone tables that many servers lack; it is the offset now, so a connection held
+	// across a daylight-saving change keeps the old one until it closes.
+	global $db;
+	if (isset($db) && is_object($db) && !empty($db->db_connected) && $db->link) {
+	  $db->link->exec("SET time_zone = '" . date('P') . "'");
+	}
 	return $zone;
   }
 
