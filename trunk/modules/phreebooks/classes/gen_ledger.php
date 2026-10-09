@@ -209,7 +209,7 @@ class journal {
 	  case 16: // Inventory Adjustment Journal
 	  case 19: // POS Journal
 	  case 21: // Inventory Direct Purchase Journal
-	  	if ($this->id) for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku']) {
+	  	if ($this->id) for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku'] ?? '') {
 			// check to see if any future postings relied on this record, queue to re-post if so.
 			$sql = "SELECT id FROM ".TABLE_INVENTORY_HISTORY." WHERE ref_id=" . (int)$this->id . " AND sku='".db_input($this->journal_rows[$i]['sku'])."'";
 			$result = $db->Execute($sql);
@@ -788,7 +788,7 @@ class journal {
 	// issue #71: an unticked Re-stock line is never posted to inventory (see
 	// Post_inventory), so treat it as a blank sku here - skip the row entirely
 	// rather than reversing an adjustment that never happened.
-	for ($i = 0; $i < count($this->journal_rows); $i++) if ($this->journal_rows[$i]['sku'] && !(in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0')) {
+	for ($i = 0; $i < count($this->journal_rows); $i++) if (($this->journal_rows[$i]['sku'] ?? '') && !(in_array($this->journal_id, array(7, 13)) && ($this->journal_rows[$i]['restock'] ?? '1') == '0')) {
 	  switch ($this->journal_id) {
 		case  4:
 		case 10:
