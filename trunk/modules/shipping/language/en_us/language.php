@@ -319,6 +319,8 @@ define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Every item has been removed, so there 
 define('SHIPPING_SHORT_TITLE', 'The rest of this item');
 define('SHIPPING_SHORT_LATER', 'Rest follows later');
 define('SHIPPING_SHORT_CANCEL', 'Rest won\'t be shipped');
+define('SHIPPING_SHORT_CHOOSE', 'Choose…');
+define('SHIPPING_ERROR_SHORT_CHOICE', 'Item %s is sent short: choose whether the rest follows later or won\'t be shipped.');
 define('SHIPPING_LINE_SHIPPED', '%s already shipped');
 define('SHIPPING_LINE_CANCELLED', '%s won\'t be shipped');
 define('SHIPPING_LINE_NOTHING_LEFT', 'Nothing left to ship');

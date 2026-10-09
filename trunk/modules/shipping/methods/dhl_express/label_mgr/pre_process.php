@@ -59,9 +59,9 @@ switch ($_REQUEST['action']) {
       $i++;
       if (!isset($_POST['qty_' . $i])) break;
       if (!$_POST['qty_' . $i] || !$_POST['wt_' . $i]) continue;
-      if (!$_POST['len_' . $i]) $_POST['len_' . $i] = SHIPPING_DEFAULT_LENGTH;
-      if (!$_POST['wid_' . $i]) $_POST['wid_' . $i] = SHIPPING_DEFAULT_WIDTH;
-      if (!$_POST['hgt_' . $i]) $_POST['hgt_' . $i] = SHIPPING_DEFAULT_HEIGHT;
+      if (empty($_POST['len_' . $i])) $_POST['len_' . $i] = SHIPPING_DEFAULT_LENGTH;
+      if (empty($_POST['wid_' . $i])) $_POST['wid_' . $i] = SHIPPING_DEFAULT_WIDTH;
+      if (empty($_POST['hgt_' . $i])) $_POST['hgt_' . $i] = SHIPPING_DEFAULT_HEIGHT;
       for ($j = 0; $j < (int)$_POST['qty_' . $i]; $j++) {
         $sInfo->package[] = array(
           'weight' => $_POST['wt_'  . $i],

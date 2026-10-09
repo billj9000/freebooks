@@ -210,6 +210,8 @@ define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Все позиции удалены, 
 define('SHIPPING_SHORT_TITLE', 'Остаток этой позиции');
 define('SHIPPING_SHORT_LATER', 'Остаток отправим позже');
 define('SHIPPING_SHORT_CANCEL', 'Остаток не будет отправлен');
+define('SHIPPING_SHORT_CHOOSE', 'Выберите…');
+define('SHIPPING_ERROR_SHORT_CHOICE', 'Позиция %s отправляется не полностью: выберите, отправим ли остаток позже или он не будет отправлен.');
 define('SHIPPING_LINE_SHIPPED', 'уже отправлено: %s');
 define('SHIPPING_LINE_CANCELLED', 'не будет отправлено: %s');
 define('SHIPPING_LINE_NOTHING_LEFT', 'Отправлять больше нечего');

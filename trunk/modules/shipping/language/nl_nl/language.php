@@ -225,6 +225,8 @@ define('SHIPPING_ERROR_NOTHING_TO_SHIP', 'Alle artikelen zijn verwijderd, er val
 define('SHIPPING_SHORT_TITLE', 'De rest van dit artikel');
 define('SHIPPING_SHORT_LATER', 'Rest volgt later');
 define('SHIPPING_SHORT_CANCEL', 'Rest wordt niet verzonden');
+define('SHIPPING_SHORT_CHOOSE', 'Kies…');
+define('SHIPPING_ERROR_SHORT_CHOICE', 'Artikel %s wordt niet volledig verzonden: kies of de rest later volgt of niet wordt verzonden.');
 define('SHIPPING_LINE_SHIPPED', '%s al verzonden');
 define('SHIPPING_LINE_CANCELLED', '%s wordt niet verzonden');
 define('SHIPPING_LINE_NOTHING_LEFT', 'Niets meer te verzenden');

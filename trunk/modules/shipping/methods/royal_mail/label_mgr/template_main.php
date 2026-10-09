@@ -442,7 +442,8 @@ $sel_sm = 'class="form-select form-select-sm"';
                     onclick="lineToggle(<?php echo $n; ?>)"><?php echo SHIPPING_LINE_REMOVE; ?></button>
             <div id="li_short_wrap_<?php echo $n; ?>" class="mt-1" style="display:none">
               <select class="form-select form-select-sm d-inline-block w-auto" name="li_short_<?php echo $n; ?>" title="<?php echo SHIPPING_SHORT_TITLE; ?>">
-                <option value="later"<?php echo ($item['short'] ?? 'later') === 'later' ? ' selected' : ''; ?>><?php echo SHIPPING_SHORT_LATER; ?></option>
+                <option value=""><?php echo SHIPPING_SHORT_CHOOSE; ?></option>
+                <option value="later"<?php echo ($item['short'] ?? '') === 'later' ? ' selected' : ''; ?>><?php echo SHIPPING_SHORT_LATER; ?></option>
                 <option value="cancel"<?php echo ($item['short'] ?? '') === 'cancel' ? ' selected' : ''; ?>><?php echo SHIPPING_SHORT_CANCEL; ?></option>
               </select>
             </div>

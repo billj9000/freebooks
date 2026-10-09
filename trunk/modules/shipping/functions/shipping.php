@@ -100,7 +100,8 @@ function shipping_apply_progress($lines, $order_id) {
  * cancelled; both are read from the order and its shipments, not from the form, when the
  * line belongs to order $order_id. A line ships anything from 0 (removed) to what remains,
  * and at least one line must ship. 'short' says what happens to the rest of a line sent
- * short: 'later' leaves it to follow, 'cancel' records it as never to be shipped.
+ * short: 'later' leaves it to follow, 'cancel' records it as never to be shipped; a line of
+ * an order sent short must say which, as the form offers no default.
  * Returns array('lines' => ..., 'ok' => bool); the lines come back either way, so the
  * form can be shown again, and each refusal is on the message stack.
  */
@@ -130,12 +131,18 @@ function shipping_label_lines_from_post($order_id) {
     } else {
       $max = null;
     }
-    if ($qty < 0 || ($max !== null && $qty > $max + 0.000001)) {
+    $bad_qty = $qty < 0 || ($max !== null && $qty > $max + 0.000001);
+    if ($bad_qty) {
       $messageStack->add(sprintf(SHIPPING_ERROR_LINE_QTY, $sku, $max === null ? '-' : (string)$max), 'error');
       $ok  = false;
       $qty = max(0, $qty);
     }
     $remaining = $max ?? max($qty, (float)($_POST['li_ord_' . $i] ?? 0));
+    $short     = in_array($_POST['li_short_' . $i] ?? '', array('later', 'cancel'), true) ? $_POST['li_short_' . $i] : '';
+    if (!$bad_qty && $max !== null && $qty < $max - 0.000001 && $short === '') {
+      $messageStack->add(sprintf(SHIPPING_ERROR_SHORT_CHOICE, $sku), 'error');
+      $ok = false;
+    }
     $lines[] = array(
       'id'          => $id,
       'sku'         => $sku,
@@ -147,7 +154,7 @@ function shipping_label_lines_from_post($order_id) {
       'remaining'   => $remaining,
       'shipped'     => $done['shipped'],
       'cancelled'   => $done['cancelled'],
-      'short'       => ($_POST['li_short_' . $i] ?? '') === 'cancel' ? 'cancel' : 'later',
+      'short'       => $short,
       'weight'      => (float)($_POST['li_wt_'  . $i] ?? 0),
       'value'       => (float)($_POST['li_val_' . $i] ?? 0),
     );
