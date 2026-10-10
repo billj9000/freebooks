@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.XERO.02">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.Xero CSV Export">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Exporting to Xero">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Exporting to Xero</title>
+</head>
+
+<body>
+
+<h1 align="center">Exporting to Xero</h1>
+
+<p>The export page writes your sales invoices and credit memos to a file that Xero's sales invoice
+  import reads. Open it from <b>Customers &rarr; Xero Sync</b>. It needs the Xero Sync permission,
+  which is set for each user on the Users page.</p>
+
+<p>Set up the mapping first, as described in <a href="01-XeroSettings.html">Xero Sync Settings</a>.
+  Until a default account and a rounding account are chosen, the page shows a reminder.</p>
+
+<h4>Checking the documents first</h4>
+<ol>
+  <li>Choose the <b>From</b> and <b>To</b> dates. Both are included.</li>
+  <li>Untick <b>Include credit memos</b> to export invoices only.</li>
+  <li>Press <b>Preview</b>.</li>
+</ol>
+<p>The preview lists each document with its FreeBooks total, the total Xero will work out from the
+  lines, and any rounding line added to make them equal. A row that needs attention is
+  highlighted, and its <b>Status</b> says why:</p>
+<ul>
+  <li><b>Unmapped accounts</b> or <b>Unmapped tax rates</b> &mdash; the document uses an account
+    or tax rate the settings do not map. It is exported to the default account, or untaxed, which
+    is rarely what you want. Add the mapping and preview again.</li>
+  <li><b>Total mismatch</b> &mdash; the difference is larger than the rounding tolerance, which
+    usually means a Xero tax rate differs from FreeBooks'. A rounding line still makes the total
+    agree, but check the document before relying on it.</li>
+  <li><b>Discount left untaxed</b> &mdash; the products on the document have more than one tax
+    rate, so the discount cannot be split between them. Check the tax in Xero.</li>
+  <li><b>No payment reference</b> &mdash; the invoice is to send its payment reference, but it has
+    not been paid. Its PO number is sent instead.</li>
+</ul>
+
+<h4>Downloading the file</h4>
+<p>Press <b>Download CSV</b> to save the file for the same dates. In Xero, import it from the
+  Sales Invoices page using its import button. Each document arrives as a draft for you to
+  approve.</p>
+<p>Xero's import has no separate credit note upload, so a credit memo is written as an invoice
+  with negative quantities, giving it a negative total. The export does not record what it has
+  written, so take care not to import the same documents twice.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="XeroHome.html">Xero Sync</a></li>
+  <li><a href="01-XeroSettings.html">Xero Sync Settings</a></li>
+</ul>
+
+</body>
+</html>

@@ -25,8 +25,16 @@ define('SECURITY_ID_XERO_SYNC', 230);
 define('TABLE_XERO_SYNC_MAP', DB_PREFIX . 'xero_sync_map');
 
 if (defined('MODULE_XERO_SYNC_STATUS')) {
+  gen_pull_language('xero_sync', 'admin');
+  $mainmenu["customers"]['submenu']["xero_sync"] = array(
+    'order'                  => 90,
+    'text'                   => MODULE_XERO_SYNC_TITLE,
+    'security_id'            => SECURITY_ID_XERO_SYNC,
+    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=xero_sync&amp;page=main', 'SSL'),
+    'show_in_users_settings' => true,
+    'params'                 => '',
+  );
   if (isset($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION]) && $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] > 0) {
-    gen_pull_language('xero_sync', 'admin');
     $mainmenu["company"]['submenu']["configuration"]['submenu']["xero_sync"] = array(
       'order'                  => MODULE_XERO_SYNC_TITLE,
       'text'                   => MODULE_XERO_SYNC_TITLE,

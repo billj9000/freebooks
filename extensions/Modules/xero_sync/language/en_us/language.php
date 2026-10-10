@@ -60,6 +60,36 @@ define('XERO_SYNC_SAVED',                 'The Xero settings were saved.');
 define('XERO_SYNC_ERR_DUE_DAYS',          'Days until due must be a whole number from 0 to 365.');
 define('XERO_SYNC_ERR_TOLERANCE',         'The rounding tolerance must be a number from 0 to 100.');
 
+// Export page
+define('XERO_SYNC_EXPORT_TITLE',          'Xero Sync');
+define('XERO_SYNC_LBL_FROM',              'From');
+define('XERO_SYNC_LBL_TO',                'To');
+define('XERO_SYNC_LBL_CREDIT_MEMOS',      'Include credit memos');
+define('XERO_SYNC_BTN_PREVIEW',           'Preview');
+define('XERO_SYNC_BTN_CSV',               'Download CSV');
+define('XERO_SYNC_COL_TYPE',              'Type');
+define('XERO_SYNC_COL_NUMBER',            'Number');
+define('XERO_SYNC_COL_DATE',              'Date');
+define('XERO_SYNC_COL_CONTACT',           'Contact');
+define('XERO_SYNC_COL_COUNTRY',           'Country');
+define('XERO_SYNC_COL_FB_TOTAL',          'FreeBooks total');
+define('XERO_SYNC_COL_XERO_TOTAL',        'Xero total');
+define('XERO_SYNC_COL_ROUNDING',          'Rounding');
+define('XERO_SYNC_COL_STATUS',            'Status');
+define('XERO_SYNC_TYPE_INVOICE',          'Invoice');
+define('XERO_SYNC_TYPE_CREDIT',           'Credit memo');
+define('XERO_SYNC_DOMESTIC',              '%s (domestic)');
+define('XERO_SYNC_FOREIGN',               '%s (foreign)');
+define('XERO_SYNC_STATUS_OK',             'OK');
+define('XERO_SYNC_STATUS_ACCOUNTS',       'Unmapped accounts: %s');
+define('XERO_SYNC_STATUS_TAX',            'Unmapped tax rates: %s');
+define('XERO_SYNC_STATUS_ROUNDED',        'Rounded %s');
+define('XERO_SYNC_SUMMARY',               '%d documents, %d to check.');
+define('XERO_SYNC_NO_DOCUMENTS',          'No invoices or credit memos are dated in that range.');
+define('XERO_SYNC_ERR_DATES',             'Enter a From and a To date, with From no later than To.');
+define('XERO_SYNC_NOT_SET_UP',            'Xero Sync is not set up yet: choose a default account and a rounding account in its settings.');
+define('XERO_SYNC_SETTINGS_LINK',         'Open the settings');
+
 // Line descriptions written to Xero
 define('XERO_SYNC_LINE_FREIGHT',        'Freight');
 define('XERO_SYNC_LINE_DISCOUNT',       'Discount');
