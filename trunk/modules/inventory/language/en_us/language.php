@@ -281,5 +281,6 @@ define('INV_ENTRY_HS_CODE',             'HS Code');
 define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
 define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
 define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('INV_CUSTOMS_DESCRIPTION_HELP', 'Description of the goods for the customs declaration (e.g. brake pads for motor vehicles). If blank, the line\'s description on the order is used. Keep it brief, as a carrier may shorten it.');
 define('TEXT_INVOICE_NUM',              'Invoice #');
 ?>

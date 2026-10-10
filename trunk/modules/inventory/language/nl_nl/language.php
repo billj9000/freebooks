@@ -249,5 +249,6 @@ define('INV_ENTRY_HS_CODE',             'HS Code');
 define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
 define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
 define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('INV_CUSTOMS_DESCRIPTION_HELP', 'Omschrijving van de goederen voor de douaneaangifte (bijv. remblokken voor motorvoertuigen). Indien leeg wordt de omschrijving van de orderregel gebruikt. Houd het beknopt, want een vervoerder kan deze inkorten.');
 define('INV_TEXT_MARGIN_BY_PERCENT', 'Marge in procenten');
 ?>

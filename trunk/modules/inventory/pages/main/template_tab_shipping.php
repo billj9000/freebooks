@@ -147,6 +147,7 @@ $wt_derived = isset($cInfo->ship_complete) && empty($cInfo->ship_complete);
       <div class="col-md-6">
         <label class="form-label mb-0"><?php echo INV_ENTRY_CUSTOMS_DESCRIPTION; ?></label>
         <?php echo html_input_field('customs_description', $cInfo->customs_description, 'class="form-control form-control-sm" maxlength="255"', false); ?>
+        <small class="text-muted d-block"><?php echo INV_CUSTOMS_DESCRIPTION_HELP; ?></small>
       </div>
       <?php endif; ?>
 
