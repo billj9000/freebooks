@@ -118,7 +118,21 @@ foreach (array_merge($mainmenu, $roles_extra_tabs ?? array()) as $key => $menu_h
 
 <?php
 function create_row($array) {
-  global $odd, $settings;
+  global $odd, $settings, $error;
+  // One row per PERMISSION, not per menu entry. The radios are named
+  // sID_<security_id>, so two entries sharing an id would be one radio group in
+  // the browser drawn as two rows, each clearing the other. Report Editor and
+  // Form Layout share SECURITY_ID_FORMS_AUTHOR on purpose — both are "write a
+  // document" — and any module may do the same. The first VISIBLE entry to claim
+  // an id keeps the row.
+  //
+  // Visibility is tested before the claim. An entry hidden from this page can
+  // never draw a row, so one allowed to claim the id first would erase the
+  // visible entry's row rather than merge with it - and every "xxx_mgr" menu item
+  // is preceded by a hidden "new_xxx" item sharing its security id. A permission
+  // with no row is not merely ungrantable: the levels are saved from the sID_
+  // fields that POST, so saving a role would strip the id it already holds.
+  static $drawn = array();
   if (!empty($array['submenu'])) foreach ($array['submenu'] as $menu_item) {
     create_row($menu_item);
   } else {
@@ -128,10 +142,11 @@ function create_row($array) {
     // entry is labelled Reports, for one - leaving it with no row and no way to
     // grant it.
     if ($array['security_id'] == '') return;
+    if ($array['show_in_users_settings'] === false) return;
+    if (isset($drawn[$array['security_id']])) return;
+    $drawn[$array['security_id']] = true;
     $checked = array();
-    if ($array['show_in_users_settings'] === false) {
-      return;
-    } elseif (isset($settings[$array['security_id']])) {
+    if (isset($settings[$array['security_id']])) {
       $checked[0] = false;
       $checked[$settings[$array['security_id']]] = true;
     } elseif ($error) {

@@ -185,7 +185,7 @@ foreach ($mainmenu as $key => $menu_heading) {
 
 <?php
 function create_row($array) {
-  global $odd, $settings;
+  global $odd, $settings, $error;
   // One row per PERMISSION, not per menu entry. The radios are named
   // sID_<security_id>, so two entries sharing an id would be one radio group in
   // the browser drawn as two rows, each clearing the other. Report Editor and
