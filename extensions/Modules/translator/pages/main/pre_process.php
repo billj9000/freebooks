@@ -38,7 +38,7 @@ $f2 = isset($_POST['action']) ? ($_POST['f2'] ?? '') : ($_GET['f2'] ?? '');
 $f3 = isset($_POST['action']) ? ($_POST['f3'] ?? '') : ($_GET['f3'] ?? '');
 
 /***************   Act on the action request   *************************/
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'import_go': // imports existing language file constants from current install
     $mod  = db_prepare_input($_POST['mod']);
 	$lang = db_prepare_input($_POST['lang']);
@@ -154,7 +154,7 @@ switch ($_REQUEST['action']) {
 	if ($mod <> 'all') $_REQUEST['action'] = 'edit';
 	break;
   case 'edit':
-	$pieces    = explode(':', $_POST['rowSeq']);
+	$pieces    = array_pad(explode(':', (string)($_POST['rowSeq'] ?? '')), 3, '');
     $mod  = $pieces[0];
 	$lang = $pieces[1];
 	$ver  = $pieces[2];
@@ -163,9 +163,10 @@ switch ($_REQUEST['action']) {
 	$f2   = $ver;
 	break;
   case 'save':
-    $mod  = db_prepare_input($_POST['mod']);
-	$lang = db_prepare_input($_POST['lang']);
-	$ver  = db_prepare_input($_POST['ver']);
+	validate_security($security_level, 3);
+    $mod  = db_prepare_input($_POST['mod'] ?? '');
+	$lang = db_prepare_input($_POST['lang'] ?? '');
+	$ver  = db_prepare_input($_POST['ver'] ?? '');
     foreach ($_POST as $key => $trans) {
 	  if (substr($key, 0, 2) <> 't:') continue; // not interested in this value
 	  $temp   = explode(':', $key);
@@ -266,7 +267,7 @@ $include_header   = true;
 $include_footer   = false;
 $include_template = 'template_main.php';
 
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'new':
 	$include_template = 'template_new.php';
 	define('PAGE_TITLE', TEXT_NEW_TRANSLATION);
@@ -290,7 +291,8 @@ switch ($_REQUEST['action']) {
 	);
 	$result      = html_heading_bar(array(), $heading_array);
 	$list_header = $result['html_code'];
-	if ($mod)  $criteria[] = "module = '"   . db_input($mod)  . "'";
+	// The edit list is one module's phrases, so the module is always a condition; without one it lists nothing.
+	$criteria[] = "module = '" . db_input((string)$mod) . "'";
 	if ($lang) $criteria[] = "language = '" . db_input($lang) . "'";
 	if ($ver)  $criteria[] = "version = '"  . db_input($ver)  . "'";
 	if ($f3)   $criteria[] = $f3=='y' ? "translated = '1'" : "translated = '0'";
