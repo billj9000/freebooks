@@ -53,7 +53,15 @@ echo $toolbar->build_toolbar();
       <label class="text-end small text-nowrap"><?php echo SHIPPING_TEXT_SERVICE; ?></label>
       <?php echo html_pull_down_menu('method',     $carrier_methods, $cInfo->method,     'class="form-select form-select-sm" disabled="disabled"'); ?>
       <label class="text-end small text-nowrap"><?php echo SHIPPING_TEXT_TRACKING_NUM; ?></label>
+<?php $track_url = shipping_tracking_url($cInfo->carrier, $cInfo->tracking_id); ?>
+<?php if ($track_url): ?>
+      <div class="input-group input-group-sm">
+        <?php echo html_input_field('tracking_id', $cInfo->tracking_id, 'class="form-control form-control-sm" readonly="readonly"'); ?>
+        <a class="btn btn-primary btn-sm d-inline-flex align-items-center" href="<?php echo htmlspecialchars($track_url); ?>" target="_blank" rel="noopener"><?php echo SHIPPING_TRACK; ?></a>
+      </div>
+<?php else: ?>
       <?php echo html_input_field('tracking_id',   $cInfo->tracking_id,                  'class="form-control form-control-sm" readonly="readonly"'); ?>
+<?php endif; ?>
       <label class="text-end small text-nowrap"><?php echo SHIPPING_TEXT_SHIPMENT_DATE; ?></label>
       <?php echo html_input_field('ship_date',     gen_locale_date($cInfo->ship_date),   'class="form-control form-control-sm" readonly="readonly"'); ?>
       <label class="text-end small text-nowrap"><?php echo SHIPPING_TEXT_EXPECTED_DATE; ?></label>
@@ -82,7 +90,13 @@ echo $toolbar->build_toolbar();
         <tr<?php echo $s['log_id'] === (int)$sID || in_array($cInfo->tracking_id, $s['tracking'], true) ? ' class="table-active"' : ''; ?>>
           <td><a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&amp;page=popup_tracking&amp;sID=' . $s['log_id'], 'SSL'); ?>"><?php echo (int)$shipment_id; ?></a></td>
           <td class="text-nowrap"><?php echo gen_locale_date(substr($s['ship_date'], 0, 10)); ?></td>
-          <td><?php echo htmlspecialchars(implode(', ', $s['tracking'])); ?></td>
+          <td><?php
+  $links = array();
+  foreach ($s['tracking'] as $t) {
+    $url = shipping_tracking_url($s['carrier'], $t);
+    $links[] = $url ? '<a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener">' . htmlspecialchars($t) . '</a>' : htmlspecialchars($t);
+  }
+  echo implode(', ', $links); ?></td>
           <td>
 <?php   if (!$s['items']) echo '<span class="text-muted">&mdash;</span>'; ?>
 <?php   foreach ($s['items'] as $item): ?>

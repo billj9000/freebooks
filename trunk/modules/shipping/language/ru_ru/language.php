@@ -93,6 +93,7 @@ define('SHIPPING_TEXT_DELETE_LABEL','Delete Shipment');
 define('SHIPPING_TEXT_SHIPMENT_ID','Shipment ID');
 define('SHIPPING_TEXT_REFERENCE_ID','Референс ID');
 define('SHIPPING_TEXT_TRACKING_NUM','Трек номер');
+define('SHIPPING_TRACK','Отследить');
 define('SHIPPING_TEXT_EXPECTED_DATE','Ожидаемая дата доставки');
 define('SHIPPING_TEXT_ACTUAL_DATE','Реальная дата доставки');
 define('SHIPPING_TEXT_DOWNLOAD','Download Thermal Label');

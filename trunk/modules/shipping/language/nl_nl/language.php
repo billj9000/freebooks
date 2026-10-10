@@ -93,6 +93,7 @@ define('SHIPPING_TEXT_DELETE_LABEL','Verwijder verzending');
 define('SHIPPING_TEXT_SHIPMENT_ID','Verzendings ID');
 define('SHIPPING_TEXT_REFERENCE_ID','Referentie ID');
 define('SHIPPING_TEXT_TRACKING_NUM','Traceer Nummer');
+define('SHIPPING_TRACK','Volgen');
 define('SHIPPING_TEXT_EXPECTED_DATE','Verwachte Leveringsdatum');
 define('SHIPPING_TEXT_ACTUAL_DATE','Daadwerkelijke Leveringsdatum');
 define('SHIPPING_TEXT_DOWNLOAD','Download Thermisch label');

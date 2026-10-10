@@ -132,6 +132,7 @@ define('SHIPPING_TEXT_DELETE_LABEL','Delete Shipment');
 define('SHIPPING_TEXT_SHIPMENT_ID','Shipment ID');
 define('SHIPPING_TEXT_REFERENCE_ID','Reference ID');
 define('SHIPPING_TEXT_TRACKING_NUM','Tracking Number');
+define('SHIPPING_TRACK','Track');
 define('SHIPPING_TEXT_EXPECTED_DATE','Expected Delivery Date');
 define('SHIPPING_TEXT_ACTUAL_DATE','Actual Delivery Date');
 define('SHIPPING_TEXT_DOWNLOAD','Download Thermal Label');

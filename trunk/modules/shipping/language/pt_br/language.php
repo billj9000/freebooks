@@ -57,6 +57,7 @@ define('SHIPPING_TEXT_DOWNLOAD','Baixar Etiqueta Térmica');
 define('SHIPPING_TEXT_ACTUAL_DATE','Data Efetiva Entrega');
 define('SHIPPING_TEXT_EXPECTED_DATE','Data Estimada Entrega');
 define('SHIPPING_TEXT_TRACKING_NUM','Número Rastreio');
+define('SHIPPING_TRACK','Rastrear');
 define('SHIPPING_TEXT_REFERENCE_ID','ID Referência');
 define('SHIPPING_TEXT_SHIPMENT_ID','ID Entrega');
 define('SHIPPING_TEXT_DELETE_LABEL','Remover Entrega');

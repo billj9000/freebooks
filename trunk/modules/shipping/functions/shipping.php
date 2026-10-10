@@ -30,6 +30,22 @@ function shipping_method_is_valid($name, $installed = true) {
 }
 
 /**
+ * The carrier's tracking page for a tracking number, or '' for a carrier that has
+ * none. A shipping method offers one by defining <method>_TRACKING_URL (or the same
+ * name in capitals), to which the number is appended. Spaces are dropped, as a
+ * number typed by hand often has them and no carrier's page accepts them.
+ */
+function shipping_tracking_url($carrier, $tracking) {
+  $tracking = str_replace(' ', '', trim((string)$tracking));
+  if ($tracking === '' || !shipping_method_is_valid($carrier, false)) return '';
+  foreach (array($carrier . '_TRACKING_URL', strtoupper($carrier) . '_TRACKING_URL') as $name) {
+    if (!defined($name)) load_specific_method('shipping', $carrier);
+    if (defined($name)) return html_entity_decode(constant($name), ENT_QUOTES, 'UTF-8') . rawurlencode($tracking);
+  }
+  return '';
+}
+
+/**
  * Creates the collections and shipment contents tables, and gives the shipping log
  * its package_data and order_id columns, on an installation that lacks them. The
  * tables come from the module's own declarations, the ones the installer uses, so
