@@ -193,7 +193,7 @@ function shipping_label_lines_from_post($order_id) {
       'description' => db_prepare_input($_POST['li_desc_'   . $i] ?? ''),
       'origin'      => db_prepare_input($_POST['li_origin_' . $i] ?? ''),
       'hs_code'     => db_prepare_input($_POST['li_hs_'     . $i] ?? ''),
-      'part_number' => mb_substr(trim(db_prepare_input($_POST['li_mpn_'  . $i] ?? '')), 0, 35) ?: $sku,
+      'part_number' => mb_substr(trim(db_prepare_input($_POST['li_mpn_'  . $i] ?? '')), 0, 35),
       'gtin'        => mb_substr(trim(db_prepare_input($_POST['li_gtin_' . $i] ?? '')), 0, 14),
       'qty'         => $qty,
       'ordered'     => $ordered[$id] ?? $remaining,

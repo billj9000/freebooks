@@ -170,7 +170,7 @@ define('INV_ASSY_HEADING_TITLE','Inventário Montagem/Desmontagem');
 define('INV_ENTRY_INVENTORY_DESC_SALES','Descrição Vendas');
 define('INV_HEADING_UPC_CODE', 'Código de barras (GTIN/EAN/UPC)');
 define('INV_HEADING_MFR_PART_NUMBER', 'Nº de peça do fabricante');
-define('INV_HELP_MFR_PART_NUMBER', 'O número de peça do próprio fabricante, enviado nas declarações aduaneiras. Em branco envia o SKU.');
+define('INV_HELP_MFR_PART_NUMBER', 'O número de peça do fabricante ou do fornecedor, enviado nas declarações aduaneiras. Para um item que você fabrica, informe o seu próprio código.');
 define('INV_SKU_ACTIVITY','Atividade SKU');
 define('JS_INV_TEXT_USAGE_NONE','This SKU is not used in any assemblies.');
 define('JS_INV_TEXT_USAGE','Este SKU é utilizado nas seguintes montagens: ');

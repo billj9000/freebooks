@@ -610,15 +610,13 @@ class dhl_express {
     return $error ? false : $result;
   }
 
-  // A customs line's product identifiers, as the EU asks for them: our SKU (ABW), the
-  // manufacturer's part number (MF; the SKU when the item has none) and, when the item has
-  // one, its barcode (SRV, a standardised identifier such as a GTIN). DHL takes 35 characters.
+  // A customs line's product identifiers, as the EU asks for them: our SKU (ABW) and, when the
+  // item has them, the manufacturer's part number (MF) and its barcode (SRV, a standardised
+  // identifier such as a GTIN). The SKU never stands in for the part number: it is ours, not the
+  // manufacturer's. DHL takes 35 characters.
   private function itemReferences($item) {
-    $sku  = (string)($item['sku'] ?? '');
-    $refs = array(
-      array('typeCode' => 'ABW', 'value' => mb_substr($sku, 0, 35)),
-      array('typeCode' => 'MF',  'value' => mb_substr((string)(($item['part_number'] ?? '') ?: $sku), 0, 35)),
-    );
+    $refs = array(array('typeCode' => 'ABW', 'value' => mb_substr((string)($item['sku'] ?? ''), 0, 35)));
+    if (($item['part_number'] ?? '') !== '') $refs[] = array('typeCode' => 'MF', 'value' => mb_substr((string)$item['part_number'], 0, 35));
     if (($item['gtin'] ?? '') !== '') $refs[] = array('typeCode' => 'SRV', 'value' => mb_substr((string)$item['gtin'], 0, 35));
     return $refs;
   }

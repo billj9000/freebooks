@@ -90,7 +90,7 @@ define('JS_INV_TEXT_USAGE','This SKU is used in the following assemblies: ');
 define('JS_INV_TEXT_USAGE_NONE','This SKU is not used in any assemblies.');
 define('INV_HEADING_UPC_CODE', 'Barcode (GTIN/EAN/UPC)');
 define('INV_HEADING_MFR_PART_NUMBER', 'Manufacturer part no.');
-define('INV_HELP_MFR_PART_NUMBER', 'The manufacturer\'s own part number, sent on customs declarations. Blank sends the SKU.');
+define('INV_HELP_MFR_PART_NUMBER', 'The manufacturer\'s or supplier\'s part number, sent on customs declarations. For an item you make, enter your own code.');
 define('INV_SKU_ACTIVITY','SKU Activity');
 define('INV_ENTRY_INVENTORY_DESC_SALES','Sales Description');
 define('INV_ASSY_HEADING_TITLE', 'Assemble/Disassemble Inventory');

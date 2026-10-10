@@ -97,7 +97,7 @@ define('JS_INV_TEXT_USAGE','This SKU is used in the following assemblies: ');
 define('JS_INV_TEXT_USAGE_NONE','This SKU is not used in any assemblies.');
 define('INV_HEADING_UPC_CODE', 'Штрихкод (GTIN/EAN/UPC)');
 define('INV_HEADING_MFR_PART_NUMBER', 'Номер детали производителя');
-define('INV_HELP_MFR_PART_NUMBER', 'Собственный номер детали производителя для таможенных деклараций. Пустое поле отправляет SKU.');
+define('INV_HELP_MFR_PART_NUMBER', 'Номер детали производителя или поставщика для таможенных деклараций. Для изделия собственного производства укажите свой код.');
 define('INV_SKU_ACTIVITY','АРТ Активность');
 define('INV_ENTRY_INVENTORY_DESC_SALES','Описание (для продажи)');
 define('INV_ASSY_HEADING_TITLE','Сборка/Разборка на складе');

@@ -286,7 +286,7 @@ switch ($_REQUEST['action']) {
             'description' => $f['customs_description'] ?: ($f['description'] ?: ''),
             'origin'      => $f['country_of_origin'] ?: '',
             'hs_code'     => $f['hs_code'] ?: '',
-            'part_number' => $f['mfr_part_number'] ?: $f['sku'], // blank sends the SKU
+            'part_number' => $f['mfr_part_number'] ?: '',
             'gtin'        => $f['upc_code'] ?: '',
             'qty'         => $qty,
             'ordered'     => $qty,

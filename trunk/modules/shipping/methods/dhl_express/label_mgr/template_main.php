@@ -427,7 +427,7 @@ $sel_sm = 'class="form-select form-select-sm"';
                      name="li_hs_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['hs_code']); ?>"
                      maxlength="20" style="width:9em"></td>
           <td class="li-customs"><input type="text" class="form-control form-control-sm"
-                     name="li_mpn_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['part_number'] ?? $item['sku']); ?>"
+                     name="li_mpn_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['part_number'] ?? ''); ?>"
                      maxlength="35" style="width:10em"></td>
           <td class="li-customs"><input type="text" class="form-control form-control-sm"
                      name="li_gtin_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['gtin'] ?? ''); ?>"

@@ -91,7 +91,7 @@ define('JS_INV_TEXT_USAGE','Dit artikel wordt gebruikt in de volgende assemblage
 define('JS_INV_TEXT_USAGE_NONE','Dit Art.nr. wordt niet gebuikt in assemblages.');
 define('INV_HEADING_UPC_CODE', 'Barcode (GTIN/EAN/UPC)');
 define('INV_HEADING_MFR_PART_NUMBER', 'Onderdeelnummer fabrikant');
-define('INV_HELP_MFR_PART_NUMBER', 'Het onderdeelnummer van de fabrikant, vermeld op douaneaangiften. Leeg stuurt de SKU.');
+define('INV_HELP_MFR_PART_NUMBER', 'Het onderdeelnummer van de fabrikant of leverancier, vermeld op douaneaangiften. Voor een artikel dat u zelf maakt, vult u uw eigen code in.');
 define('INV_SKU_ACTIVITY','Art.nr. Activiteiten');
 define('INV_ENTRY_INVENTORY_DESC_SALES','Verkoop Omschrijving');
 define('INV_ASSY_HEADING_TITLE','Assembleer / Demonteer Voorraad');

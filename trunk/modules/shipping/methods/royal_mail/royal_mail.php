@@ -245,7 +245,7 @@ class royal_mail {
         if ((float)($item['qty'] ?? 0) <= 0) continue;
         $originCC = trim($item['origin'] ?? '');
         if ($originCC && strlen($originCC) === 3) $originCC = gen_get_country_iso_2_from_3($originCC);
-        $contents[] = array(
+        $line = array(
           'name'                       => $item['description'] ?: 'Goods',
           'SKU'                        => $item['sku'] ?? '',
           'quantity'                   => max(1, (int)round((float)$item['qty'])),
@@ -255,9 +255,12 @@ class royal_mail {
           'originCountryCode'          => $originCC ?: $fromISO2,
           'customsDescription'         => substr($item['description'] ?: 'Goods', 0, 50),
           'customsDeclarationCategory' => $sInfo->customs_declaration_category ?? 'saleOfGoods',
-          // The manufacturer's reference: the barcode where the item has one, else its part number.
-          'ReferenceId'                => mb_substr(($item['gtin'] ?? '') ?: (($item['part_number'] ?? '') ?: ($item['sku'] ?? '')), 0, 50),
         );
+        // The manufacturer's reference: the barcode where the item has one, else its part number.
+        // The SKU never stands in for the part number: it is ours, not the manufacturer's.
+        $reference = ($item['gtin'] ?? '') ?: ($item['part_number'] ?? '');
+        if ($reference !== '') $line['ReferenceId'] = mb_substr($reference, 0, 50);
+        $contents[] = $line;
       }
     }
 
