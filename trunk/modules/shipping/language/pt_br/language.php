@@ -227,6 +227,8 @@ define('SHIPPING_SHORT_LATER', 'O restante segue depois');
 define('SHIPPING_SHORT_CANCEL', 'O restante não será enviado');
 define('SHIPPING_SHORT_CHOOSE', 'Escolha…');
 define('SHIPPING_ERROR_SHORT_CHOICE', 'O item %s vai incompleto: escolha se o restante segue depois ou não será enviado.');
+define('SHIPPING_TEXT_PART_NUMBER', 'Nº peça fabricante');
+define('SHIPPING_TEXT_BARCODE', 'Código de barras');
 define('SHIPPING_LINE_SHIPPED', '%s já enviado(s)');
 define('SHIPPING_LINE_CANCELLED', '%s não será(ão) enviado(s)');
 define('SHIPPING_LINE_NOTHING_LEFT', 'Nada mais a enviar');

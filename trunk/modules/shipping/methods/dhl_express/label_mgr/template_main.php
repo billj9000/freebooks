@@ -394,6 +394,8 @@ $sel_sm = 'class="form-select form-select-sm"';
           <th class="li-customs"><?php echo DHL_TEXT_DESCRIPTION; ?></th>
           <th class="li-customs"><?php echo DHL_TEXT_ORIGIN_COUNTRY; ?></th>
           <th class="li-customs"><?php echo DHL_TEXT_HS_CODE; ?></th>
+          <th class="li-customs"><?php echo SHIPPING_TEXT_PART_NUMBER; ?></th>
+          <th class="li-customs"><?php echo SHIPPING_TEXT_BARCODE; ?></th>
           <th class="text-end"><?php echo TEXT_QUANTITY; ?></th>
           <th><?php echo DHL_TEXT_UNIT_WEIGHT; ?> (<?php echo htmlspecialchars($sInfo->pkg_weight_unit ?? SHIPPING_DEFAULT_WEIGHT); ?>)</th>
           <th class="li-customs"><?php echo DHL_TEXT_UNIT_VALUE; ?> (<?php echo htmlspecialchars($home_currency); ?>)</th>
@@ -422,6 +424,12 @@ $sel_sm = 'class="form-select form-select-sm"';
           <td class="li-customs"><input type="text" class="form-control form-control-sm"
                      name="li_hs_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['hs_code']); ?>"
                      maxlength="20" style="width:9em"></td>
+          <td class="li-customs"><input type="text" class="form-control form-control-sm"
+                     name="li_mpn_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['part_number'] ?? $item['sku']); ?>"
+                     maxlength="35" style="width:10em"></td>
+          <td class="li-customs"><input type="text" class="form-control form-control-sm"
+                     name="li_gtin_<?php echo $n; ?>" value="<?php echo htmlspecialchars($item['gtin'] ?? ''); ?>"
+                     maxlength="14" style="width:9em" inputmode="numeric"></td>
           <td class="text-end align-middle text-nowrap">
 <?php if ($li_left > 0): ?>
             <input type="number" class="form-control form-control-sm text-end d-inline-block" style="width:5em"

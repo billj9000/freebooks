@@ -113,7 +113,7 @@ $wt_derived = isset($cInfo->ship_complete) && empty($cInfo->ship_complete);
 </div>
 
 <!-- ── Customs / Export ───────────────────────────────────────────── -->
-<?php if (isset($cInfo->country_of_origin) || isset($cInfo->hs_code) || isset($cInfo->customs_description)): ?>
+<?php if (isset($cInfo->country_of_origin) || isset($cInfo->hs_code) || isset($cInfo->customs_description) || isset($cInfo->mfr_part_number)): ?>
 <div class="card mb-2">
   <div class="card-header py-1 fb-widget-header text-center"><?php echo INV_SHIPPING_CUSTOMS; ?></div>
   <div class="card-body py-2">
@@ -132,6 +132,14 @@ $wt_derived = isset($cInfo->ship_complete) && empty($cInfo->ship_complete);
         <label class="form-label mb-0"><?php echo INV_ENTRY_HS_CODE; ?></label>
         <?php echo html_input_field('hs_code', $cInfo->hs_code, 'class="form-control form-control-sm" style="width:160px" maxlength="20"', false); ?>
         <small class="text-muted d-block"><?php echo INV_HS_CODE_HELP; ?></small>
+      </div>
+      <?php endif; ?>
+
+      <?php if (isset($cInfo->mfr_part_number)): ?>
+      <div class="col-auto">
+        <label class="form-label mb-0"><?php echo INV_HEADING_MFR_PART_NUMBER; ?></label>
+        <?php echo html_input_field('mfr_part_number', $cInfo->mfr_part_number, 'class="form-control form-control-sm" style="width:220px" maxlength="35"', false); ?>
+        <small class="text-muted d-block"><?php echo INV_HELP_MFR_PART_NUMBER; ?></small>
       </div>
       <?php endif; ?>
 

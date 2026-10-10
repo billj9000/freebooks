@@ -18,6 +18,43 @@
 //  Path: /modules/inventory/functions/inventory.php
 //
 
+  /**
+   * Gives an installation that predates them the item's manufacturer part number and a
+   * barcode field wide enough for a GTIN-14, and registers the new column with the item
+   * fields so the item page saves it. Both are sent on customs lines: the part number as
+   * typed (the SKU when it is blank), the barcode when there is one.
+   */
+  // Item types that are physical products, and so can carry a manufacturer part number.
+  if (!defined('INV_PART_NUMBER_TYPES')) define('INV_PART_NUMBER_TYPES', 'ia:ma:mb:mi:mp:ms:ns:pb:pc:sa:si:sr');
+
+  function inv_ensure_identifier_columns() {
+	global $db;
+	static $checked = false;
+	if ($checked) return;
+	$checked = true;
+	if (!db_field_exists(TABLE_INVENTORY, 'mfr_part_number')) {
+	  $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " ADD mfr_part_number varchar(35) NOT NULL DEFAULT '' AFTER upc_code");
+	  require_once(DIR_FS_MODULES . 'phreedom/functions/phreedom.php');
+	  xtra_field_sync_list('inventory', TABLE_INVENTORY);
+	}
+	// The item types the field applies to; a field registered without them is hidden for every type.
+	$row = $db->Execute("SELECT id, params, description FROM " . TABLE_EXTRA_FIELDS . " WHERE module_id = 'inventory' AND field_name = 'mfr_part_number'");
+	if (!$row->EOF) {
+	  $params = unserialize((string)$row->fields['params'], ['allowed_classes' => false]) ?: array();
+	  if (empty($params['inventory_type'])) {
+	    $params['inventory_type'] = INV_PART_NUMBER_TYPES;
+	    $db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET params = '" . db_input(serialize($params)) . "' WHERE id = " . (int)$row->fields['id']);
+	  }
+	  if ($row->fields['description'] === 'mfr_part_number') {
+	    $db->Execute("UPDATE " . TABLE_EXTRA_FIELDS . " SET description = 'Manufacturer Part Number' WHERE id = " . (int)$row->fields['id']);
+	  }
+	}
+	$upc = $db->Execute("SHOW COLUMNS FROM " . TABLE_INVENTORY . " LIKE 'upc_code'");
+	if (!$upc->EOF && stripos($upc->fields['Type'], 'varchar(13)') !== false) {
+	  $db->Execute("ALTER TABLE " . TABLE_INVENTORY . " MODIFY upc_code varchar(14) NOT NULL DEFAULT ''");
+	}
+  }
+
   function load_store_stock($sku, $store_id) {
 	global $db;
 	$store_id = (int)$store_id;

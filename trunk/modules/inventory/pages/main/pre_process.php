@@ -24,6 +24,7 @@ require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');
 require_once(DIR_FS_WORKING . 'functions/inventory.php');
 require_once(DIR_FS_WORKING . 'classes/inventory_fields.php');
 /**************   page specific initialization  *************************/
+inv_ensure_identifier_columns();
 if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open; the custom hooks and templates read it too
 gen_pull_language('inventory','filter');
 $error       = false;

@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.04.01.06">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Inventory.Manufacturer Part Number">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Manufacturer Part Number and Barcode">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>Inventory - Manufacturer Part Number and Barcode</title>
+</head>
+
+<body>
+
+<h1 align="center">Inventory - Manufacturer Part Number and Barcode</h1>
+<p>Customs declarations into the EU ask, for each item shipped, for three identifiers: your own SKU,
+the manufacturer's part number, and a standard barcode number (GTIN, EAN or UPC) where the item has
+one. FreeBooks keeps the last two on the item and sends all three on every international DHL Express
+and Royal Mail label.</p>
+<ul>
+  <li><strong>Manufacturer part no.</strong> &mdash; the manufacturer's own number for the part, up to
+      35 characters. When it is blank, the SKU is sent in its place.</li>
+  <li><strong>Barcode (GTIN/EAN/UPC)</strong> &mdash; the item's barcode number, up to 14 digits (a GTIN-14 fits).
+      It is sent only when there is one.</li>
+</ul>
+<ol>
+  <li>From the main menu, select Inventory-&gt;Inventory Manager.</li>
+  <li>Locate the item to edit and click on the edit icon to advance to the data entry screen.</li>
+  <li>On the Shipping tab, in the Customs section beside the HS code, enter the Manufacturer part no.</li>
+  <li>If the item has a barcode number, enter it in Barcode (GTIN/EAN/UPC) on the System tab.</li>
+  <li>Press Save.</li>
+</ol>
+<p>Both fields appear for items that are physical products; service, labour, charge, activity and
+description items do not have them. Copying an item does not copy them, since the copy is a different
+product.</p>
+<p>They can also be checked and changed while printing a label: the contents table of the DHL Express
+and Royal Mail label forms shows them for international shipments, and <strong>Save descriptions to
+inventory</strong> writes any changes back to the items.</p>
+<p>What each carrier receives: DHL Express gets the SKU, the part number and the barcode as separate
+references on each customs line; Royal Mail gets one reference per line, the barcode where there is one,
+otherwise the part number.</p>
+<h3>Related Topics</h3>
+<h4>Inventory</h4>
+<p><a href="02-EditItem.html">Editing inventory items</a><br />
+  <a href="05-VendorSKU.html">Setting a vendor's part number for an item (Vendor SKU)</a></p>
+<h4>Shipping</h4>
+<p><a href="../../../../../../phreedom/language/en_us/manual/ch09-Shipping/01-Modules/dhl_express/DHLExpressHome.html">Shipping Modules - DHL Express</a><br />
+  <a href="../../../../../../phreedom/language/en_us/manual/ch09-Shipping/01-Modules/royal_mail/RoyalMailHome.html">Shipping Modules - Royal Mail</a></p>
+</body>
+</html>

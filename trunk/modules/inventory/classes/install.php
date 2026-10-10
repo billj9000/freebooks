@@ -118,7 +118,8 @@ class inventory_admin {
 		  reorder_quantity DOUBLE NOT NULL DEFAULT '0',
 		  vendor_id int(11) NOT NULL default '0',
 		  lead_time int(3) NOT NULL default '1',
-		  upc_code varchar(13) NOT NULL DEFAULT '',
+		  upc_code varchar(14) NOT NULL DEFAULT '',
+		  mfr_part_number varchar(35) NOT NULL DEFAULT '',
 		  serialize enum('0','1') NOT NULL default '0',
 		  creation_date datetime NULL default NULL,
 		  last_update datetime NULL default NULL,
@@ -271,6 +272,9 @@ class inventory_admin {
 				break;
 			case 'upc_code':
 				$temp['inventory_type'] = 'ia:ma:mi:ns:pb:pc:sa:si:sr';
+				break;
+			case 'mfr_part_number':
+				$temp['inventory_type'] = 'ia:ma:mb:mi:mp:ms:ns:pb:pc:sa:si:sr';
 				break;
 			default:
 				$temp['inventory_type'] = 'ai:ci:ds:ia:lb:ma:mb:mi:mp:ms:ns:pb:pc:sa:sf:si:sr:sv';

@@ -321,6 +321,8 @@ define('SHIPPING_SHORT_LATER', 'Rest follows later');
 define('SHIPPING_SHORT_CANCEL', 'Rest won\'t be shipped');
 define('SHIPPING_SHORT_CHOOSE', 'Choose…');
 define('SHIPPING_ERROR_SHORT_CHOICE', 'Item %s is sent short: choose whether the rest follows later or won\'t be shipped.');
+define('SHIPPING_TEXT_PART_NUMBER', 'Mfr part no.');
+define('SHIPPING_TEXT_BARCODE', 'Barcode');
 define('SHIPPING_LINE_SHIPPED', '%s already shipped');
 define('SHIPPING_LINE_CANCELLED', '%s won\'t be shipped');
 define('SHIPPING_LINE_NOTHING_LEFT', 'Nothing left to ship');

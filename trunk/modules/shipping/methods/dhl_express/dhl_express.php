@@ -453,6 +453,7 @@ class dhl_express {
               'netValue'   => round($this->toKg((float)$item['weight'] * (float)$item['qty'], $sInfo->pkg_weight_unit), 3),
               'grossValue' => round($this->toKg((float)$item['weight'] * (float)$item['qty'], $sInfo->pkg_weight_unit), 3),
             ),
+            'customerReferences' => $this->itemReferences($item),
           );
         }
       }
@@ -607,6 +608,19 @@ class dhl_express {
     $error  = curl_error($ch);
     $this->lastStatus = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     return $error ? false : $result;
+  }
+
+  // A customs line's product identifiers, as the EU asks for them: our SKU (ABW), the
+  // manufacturer's part number (MF; the SKU when the item has none) and, when the item has
+  // one, its barcode (SRV, a standardised identifier such as a GTIN). DHL takes 35 characters.
+  private function itemReferences($item) {
+    $sku  = (string)($item['sku'] ?? '');
+    $refs = array(
+      array('typeCode' => 'ABW', 'value' => mb_substr($sku, 0, 35)),
+      array('typeCode' => 'MF',  'value' => mb_substr((string)(($item['part_number'] ?? '') ?: $sku), 0, 35)),
+    );
+    if (($item['gtin'] ?? '') !== '') $refs[] = array('typeCode' => 'SRV', 'value' => mb_substr((string)$item['gtin'], 0, 35));
+    return $refs;
   }
 
   // DHL's error reply as one line: its title, detail and any additional details.

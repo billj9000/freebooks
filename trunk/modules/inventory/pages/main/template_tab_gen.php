@@ -256,9 +256,10 @@
       <?php if (isset($cInfo->upc_code)): ?>
       <div class="col-auto">
         <label class="form-label mb-0 fw-normal"><?php echo INV_HEADING_UPC_CODE; ?></label>
-        <?php echo html_input_field('upc_code', $cInfo->upc_code, 'class="form-control form-control-sm text-end" style="width:140px" maxlength="13"', false); ?>
+        <?php echo html_input_field('upc_code', $cInfo->upc_code, 'class="form-control form-control-sm text-end" style="width:150px" maxlength="14"', false); ?>
       </div>
       <?php endif; ?>
+
 
       <?php if (!empty($cInfo->posible_cost_methodes)): ?>
       <div class="col-auto">

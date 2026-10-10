@@ -255,6 +255,8 @@ class royal_mail {
           'originCountryCode'          => $originCC ?: $fromISO2,
           'customsDescription'         => substr($item['description'] ?: 'Goods', 0, 50),
           'customsDeclarationCategory' => $sInfo->customs_declaration_category ?? 'saleOfGoods',
+          // The manufacturer's reference: the barcode where the item has one, else its part number.
+          'ReferenceId'                => mb_substr(($item['gtin'] ?? '') ?: (($item['part_number'] ?? '') ?: ($item['sku'] ?? '')), 0, 50),
         );
       }
     }

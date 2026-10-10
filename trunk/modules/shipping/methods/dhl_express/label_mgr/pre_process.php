@@ -22,6 +22,8 @@ load_specific_method('shipping', $shipping_module);
 require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'functions/shipping.php');
 require_once(DIR_FS_WORKING . 'classes/shipping.php');
+require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
+inv_ensure_identifier_columns();
 /**************  page specific initialization  **********************/
 $error      = false;
 $auto_print = false;
@@ -40,6 +42,8 @@ switch ($_REQUEST['action']) {
         customs_description = '" . db_input(db_prepare_input($_POST['li_desc_'   . $i] ?? '')) . "',
         country_of_origin   = '" . db_input(db_prepare_input($_POST['li_origin_' . $i] ?? '')) . "',
         hs_code             = '" . db_input(db_prepare_input($_POST['li_hs_'     . $i] ?? '')) . "',
+        mfr_part_number     = '" . db_input(mb_substr(trim(db_prepare_input($_POST['li_mpn_'  . $i] ?? '')), 0, 35)) . "',
+        upc_code            = '" . db_input(mb_substr(trim(db_prepare_input($_POST['li_gtin_' . $i] ?? '')), 0, 14)) . "',
         item_weight         = "  . (float)($_POST['li_wt_' . $i] ?? 0) . "
         WHERE sku = '" . db_input($sku) . "'");
     }
@@ -269,7 +273,7 @@ switch ($_REQUEST['action']) {
         }
         // Load inventory customs data for each line item
         $li_sql = "SELECT ji.id, ji.sku, ji.qty, ji.description, ji.full_price, ji.debit_amount, ji.credit_amount,
-                     i.customs_description, i.country_of_origin, i.hs_code, i.item_weight
+                     i.customs_description, i.country_of_origin, i.hs_code, i.item_weight, i.mfr_part_number, i.upc_code
                    FROM " . TABLE_JOURNAL_ITEM . " ji
                    LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku
                    WHERE ji.ref_id = " . (int)$oID . "
@@ -293,6 +297,8 @@ switch ($_REQUEST['action']) {
             'description' => $f['customs_description'] ?: ($f['description'] ?: ''),
             'origin'      => $f['country_of_origin'] ?: '',
             'hs_code'     => $f['hs_code'] ?: '',
+            'part_number' => $f['mfr_part_number'] ?: $f['sku'], // blank sends the SKU
+            'gtin'        => $f['upc_code'] ?: '',
             'qty'         => $qty,
             'ordered'     => $qty,
             'weight'      => (float)$f['item_weight'],
