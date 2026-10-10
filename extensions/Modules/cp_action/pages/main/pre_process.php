@@ -23,7 +23,7 @@ require_once(DIR_FS_WORKING . 'defaults.php');
 /**************   page specific initialization  *************************/
 $error         = false;
 $cInfo         = new objectInfo();
-$creation_date = $_POST['creation_date'] ? gen_db_date($_POST['creation_date']) : date('Y-m-d');
+$creation_date = !empty($_POST['creation_date']) ? gen_db_date($_POST['creation_date']) : date('Y-m-d');
 history_filter();
 /***************   hook for custom actions  ***************************/
 $custom_path = DIR_FS_WORKING . 'custom/pages/main/extra_actions.php';
@@ -38,21 +38,23 @@ switch ($_REQUEST['action']) {
 
 	// write the data
 	if (!$error) {
+	  // A blank date is stored as NULL; the person and status fields are user ids and codes, 0 when not chosen.
+	  $capa_date = function ($field) { return !empty($_POST[$field]) ? gen_db_date($_POST[$field]) : null; };
 	  $sql_data_array = array(
-	    'capa_type'           => db_prepare_input($_POST['capa_type']),
-	    'requested_by'        => db_prepare_input($_POST['requested_by']),
-	    'capa_status'         => db_prepare_input($_POST['capa_status']),
-	    'entered_by'          => db_prepare_input($_POST['entered_by']),
+	    'capa_type'           => ($_POST['capa_type'] ?? '') === 'p' ? 'p' : 'c',
+	    'requested_by'        => (int)($_POST['requested_by'] ?? 0),
+	    'capa_status'         => (int)($_POST['capa_status'] ?? 0),
+	    'entered_by'          => (int)($_POST['entered_by'] ?? 0),
 		'creation_date'       => $creation_date,
-	    'analyze_due'         => $_POST['analyze_due']  ? gen_db_date($_POST['analyze_due'])  : '',
-	    'analyze_date'        => $_POST['analyze_date'] ? gen_db_date($_POST['analyze_date']) : '',
-	    'repair_due'          => $_POST['repair_due']   ? gen_db_date($_POST['repair_due'])   : '',
-	    'repair_date'         => $_POST['repair_date']  ? gen_db_date($_POST['repair_date'])  : '',
-	    'audit_due'           => $_POST['audit_due']    ? gen_db_date($_POST['audit_due'])    : '',
-	    'audit_date'          => $_POST['audit_date']   ? gen_db_date($_POST['audit_date'])   : '',
-	    'closed_due'          => $_POST['closed_due']   ? gen_db_date($_POST['closed_due'])   : '',
-	    'closed_date'         => $_POST['closed_date']  ? gen_db_date($_POST['closed_date'])  : '',
-	    'action_date'         => $_POST['action_date']  ? gen_db_date($_POST['action_date'])  : '',
+	    'analyze_due'         => $capa_date('analyze_due'),
+	    'analyze_date'        => $capa_date('analyze_date'),
+	    'repair_due'          => $capa_date('repair_due'),
+	    'repair_date'         => $capa_date('repair_date'),
+	    'audit_due'           => $capa_date('audit_due'),
+	    'audit_date'          => $capa_date('audit_date'),
+	    'closed_due'          => $capa_date('closed_due'),
+	    'closed_date'         => $capa_date('closed_date'),
+	    'action_date'         => $capa_date('action_date'),
 	    'notes_issue'         => db_prepare_input($_POST['notes_issue']),
 	    'customer_name'       => db_prepare_input($_POST['customer_name']),
 	    'customer_id'         => db_prepare_input($_POST['customer_id']),
@@ -60,18 +62,18 @@ switch ($_REQUEST['action']) {
 	    'customer_invoice'    => db_prepare_input($_POST['customer_invoice']),
 	    'customer_email'      => db_prepare_input($_POST['customer_email']),
 	    'notes_customer'      => db_prepare_input($_POST['notes_customer']),
-	    'analyze_due_id'      => db_prepare_input($_POST['analyze_due_id']),
-	    'analyze_close_id'    => db_prepare_input($_POST['analyze_close_id']),
-	    'repair_due_id'       => db_prepare_input($_POST['repair_due_id']),
-	    'repair_close_id'     => db_prepare_input($_POST['repair_close_id']),
-	    'audit_due_id'        => db_prepare_input($_POST['audit_due_id']),
-	    'audit_close_id'      => db_prepare_input($_POST['audit_close_id']),
-	    'closed_due_id'       => db_prepare_input($_POST['closed_due_id']),
-	    'closed_close_id'     => db_prepare_input($_POST['closed_close_id']),
+	    'analyze_due_id'      => (int)($_POST['analyze_due_id'] ?? 0),
+	    'analyze_close_id'    => (int)($_POST['analyze_close_id'] ?? 0),
+	    'repair_due_id'       => (int)($_POST['repair_due_id'] ?? 0),
+	    'repair_close_id'     => (int)($_POST['repair_close_id'] ?? 0),
+	    'audit_due_id'        => (int)($_POST['audit_due_id'] ?? 0),
+	    'audit_close_id'      => (int)($_POST['audit_close_id'] ?? 0),
+	    'closed_due_id'       => (int)($_POST['closed_due_id'] ?? 0),
+	    'closed_close_id'     => (int)($_POST['closed_close_id'] ?? 0),
 	    'notes_investigation' => db_prepare_input($_POST['notes_investigation']),
-	    'agreed_by'           => db_prepare_input($_POST['agreed_by']),
+	    'agreed_by'           => (int)($_POST['agreed_by'] ?? 0),
 	    'notes_action'        => db_prepare_input($_POST['notes_action']),
-	    'capa_closed'         => db_prepare_input($_POST['capa_closed']),
+	    'capa_closed'         => ($_POST['capa_closed'] ?? '') === 'n' ? 'n' : 'y',
 	    'next_capa_num'       => db_prepare_input($_POST['next_capa_num']),
 	    'notes_audit'         => db_prepare_input($_POST['notes_audit']),
 	  );
