@@ -97,7 +97,9 @@ if (JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_REQUEST['action'] == 'ed
   if ($latest) {
     $pay_request_status = '<div class="mb-2">' . payment_request_badge($latest[(int)$oID], payment_request_methods()) . '</div>';
   }
-  if (payment_request_allowed()) {
+  // Offered only while the invoice is open, the same rule as the invoice list.
+  $inv_closed = $db->Execute("SELECT closed FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$oID);
+  if (!$inv_closed->EOF && !$inv_closed->fields['closed'] && payment_request_allowed()) {
     $toolbar->icon_list['request_payment'] = ['show' => true, 'icon' => 'actions/mail-send-receive.png',
       'params' => 'onclick="payRequestOpen(' . (int)$oID . ')"', 'text' => PAY_REQUEST_TITLE, 'order' => 16];
   }
