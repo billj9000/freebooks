@@ -22,8 +22,8 @@
 <h1 align="center">Inventory - Manufacturer Part Number and Barcode</h1>
 <p>Customs declarations into the EU ask, for each item shipped, for three identifiers: your own SKU,
 the manufacturer's part number, and a standard barcode number (GTIN, EAN or UPC) where the item has
-one. FreeBooks keeps the last two on the item and sends all three on every international DHL Express
-and Royal Mail label.</p>
+one. FreeBooks keeps the last two on the item, and shipping modules that print customs declarations
+send them with each line.</p>
 <ul>
   <li><strong>Manufacturer part no.</strong> &mdash; the manufacturer's own number for the part, up to
       35 characters. When it is blank, the SKU is sent in its place.</li>
@@ -40,18 +40,14 @@ and Royal Mail label.</p>
 <p>Both fields appear for items that are physical products; service, labour, charge, activity and
 description items do not have them. Copying an item does not copy them, since the copy is a different
 product.</p>
-<p>They can also be checked and changed while printing a label: the contents table of the DHL Express
-and Royal Mail label forms shows them for international shipments, and <strong>Save descriptions to
-inventory</strong> writes any changes back to the items.</p>
-<p>What each carrier receives: DHL Express gets the SKU, the part number and the barcode as separate
-references on each customs line; Royal Mail gets one reference per line, the barcode where there is one,
-otherwise the part number.</p>
+<p>Where a shipping module's label form lists the shipment's contents, they can also be checked and
+changed while printing a label, and saved back to the items. How each carrier receives them is described in
+that shipping module's own topic.</p>
 <h3>Related Topics</h3>
 <h4>Inventory</h4>
 <p><a href="02-EditItem.html">Editing inventory items</a><br />
   <a href="05-VendorSKU.html">Setting a vendor's part number for an item (Vendor SKU)</a></p>
 <h4>Shipping</h4>
-<p><a href="../../../../../../phreedom/language/en_us/manual/ch09-Shipping/01-Modules/dhl_express/DHLExpressHome.html">Shipping Modules - DHL Express</a><br />
-  <a href="../../../../../../phreedom/language/en_us/manual/ch09-Shipping/01-Modules/royal_mail/RoyalMailHome.html">Shipping Modules - Royal Mail</a></p>
+<p><a href="../../../../../../phreedom/language/en_us/manual/ch09-Shipping/01-Modules/ModulesHome.html">Shipping Modules</a></p>
 </body>
 </html>
