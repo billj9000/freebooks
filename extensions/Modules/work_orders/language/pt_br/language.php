@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Arquivo Tradução Idioma  Phreedom 
 // Generated: 2013-10-22 05:28:46
 // Module/Method: work_orders
@@ -77,7 +93,7 @@ define('WO_TASK_ID_MISSING','Campos ID Tarefa e Descrição são obrigatórios!'
 define('WO_TEXT_PARTS_SHORTAGE','(%s de %s) necessários do sku %s - %s');
 define('WO_AUDIT_LOG_MAIN','OS Principal (%s) - ');
 define('WO_AUDIT_LOG_BUILDER','OS Construtor (%s) - ');
-define('WO_AUDIT_LOG_TASK','OS Tarefa ($s) - ');
+define('WO_AUDIT_LOG_TASK','OS Tarefa (%s) - ');
 define('WO_AUDIT_LOG_STEP_COMPLETE','OS Passo %s - Complete');
 define('WO_AUDIT_LOG_WO_COMPLETE','OS %s - Completo');
 define('WORK_ORDER_MSG_DELETE_WO','Tem certeza de que quer excluir esta entrada?');

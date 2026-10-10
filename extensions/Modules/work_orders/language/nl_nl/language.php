@@ -90,7 +90,7 @@ define('WO_TEXT_PARTS_SHORTAGE','(%s van %s) nodig van artikelnummer %s - %s');
 // Audit log defines
 define('WO_AUDIT_LOG_MAIN','WO hoofd (%s) - ');
 define('WO_AUDIT_LOG_BUILDER','WO bouwer (%s) - ');
-define('WO_AUDIT_LOG_TASK','WO taak ($s) - ');
+define('WO_AUDIT_LOG_TASK','WO taak (%s) - ');
 define('WO_AUDIT_LOG_STEP_COMPLETE','WO stap %s - voltooid');
 define('WO_AUDIT_LOG_WO_COMPLETE','WO %s - voltooid');
 // Javascrpt defines

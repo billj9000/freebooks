@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -90,7 +91,7 @@ define('WO_TEXT_PARTS_SHORTAGE','(%s of %s) needed of sku %s - %s');
 // Audit log defines
 define('WO_AUDIT_LOG_MAIN','WO Main (%s) - ');
 define('WO_AUDIT_LOG_BUILDER','WO Builder (%s) - ');
-define('WO_AUDIT_LOG_TASK','WO Task ($s) - ');
+define('WO_AUDIT_LOG_TASK','WO Task (%s) - ');
 define('WO_AUDIT_LOG_STEP_COMPLETE','WO Step %s - Complete');
 define('WO_AUDIT_LOG_WO_COMPLETE','WO %s - Complete');
 // Javascrpt defines
