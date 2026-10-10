@@ -25,6 +25,7 @@ define('RW_EB_SALES_TAX','Verkoop BTW');
 define('RW_EB_TAX_AUTH','BTW Tarief');
 define('RW_EB_TAX_DETAILS','BTW Details');
 define('RW_EB_INV_SUBTOTAL','Factuur Subtotaal');
+define('RW_EB_INV_SUB_W_TAX', 'Factuur Subtotaal incl. btw');
 define('RW_EB_INV_TOTAL','Factuur bedrag');
 define('RW_EB_CUR_CODE','Valuta code');
 define('RW_EB_CUR_EXC_RATE','Wisselkoers');
@@ -76,6 +77,7 @@ define('RW_EB_PAYMENT_METHOD','Betaal Methode');
 define('RW_EB_PAYMENT_REF','Betaal Referentie');
 define('RW_EB_PAYMENT_DEP_ID','Betaling Storting ID');
 define('RW_EB_BALANCE_DUE','Openstaand Bedrag');
+define('RW_EB_ITEM_CNT', 'item_count');
 define('RW_EB_SO_DESC','order_omschrijving');
 define('RW_EB_SO_QTY','order_aantal');
 define('RW_EB_SO_TOTAL_PRICE','order_prijs');
@@ -94,5 +96,6 @@ define('RW_EB_INV_PRICE_W_TAX','Regel Prijs Inclusief btw');
 define('RW_EB_INV_SKU','Art.nr');
 define('RW_EB_INV_SERIAL_NUM','Serie nr');
 define('RW_EB_INV_LINE_TAX','Regel Belasting');
+define('RW_EB_INV_LINE_TAX_RATE', 'invoice_line_tax_rate');
 
 ?>

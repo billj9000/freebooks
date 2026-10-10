@@ -29,7 +29,7 @@ define('TEXT_TILL','Cupom');
 define('TEXT_OPEN_DRAWER','Abrir Gaveta');
 define('TEXT_PRINT_PREVIOUS','Imprimir Cupom Anterior');
 define('TEXT_AMOUNT_ORIGINAL_CURRENCY','Valor Original');
-define('TEXT_SALES','Vendas');
+if (!defined('TEXT_SALES')) define('TEXT_SALES','Vendas');
 define('PHREEPOS_HANDELING_CASH_DIFFERENCE','Lançada Diferença Caixa ');
 define('POS_HEADING_CLOSING','Fechamento Dia');
 define('NEW_BALANCE','Novo Balanço Caixa');

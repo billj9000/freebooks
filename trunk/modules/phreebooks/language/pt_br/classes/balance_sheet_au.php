@@ -13,7 +13,6 @@ define('RW_FIN_TOTAL_CAPITAL','Total Equity');
 define('RW_FIN_NET_INCOME','Net Income');
 define('RW_FIN_CAPITAL','Equity');
 define('RW_FIN_TOTAL_LIABILITIES','Total Liabilities');
-define('RW_FIN_NET_ASSETS','Net Assets');
 define('RW_FIN_TOTAL_LT_LIABILITIES','Total Non-Current Liabilities');
 define('RW_FIN_LONG_TERM_LIABILITIES','Non-Current Liabilities');
 define('RW_FIN_TOTAL_CUR_LIABILITIES','Total Current Liabilities');

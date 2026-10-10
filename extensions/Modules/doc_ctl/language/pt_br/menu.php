@@ -8,7 +8,6 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/doc_ctl/language/pt_br/menu.php
 
-define('MENU_HEADING_QUALITY','Qualidade');
 define('BOX_DOC_CTL_MODULE','Controle Documento');
 
 ?>

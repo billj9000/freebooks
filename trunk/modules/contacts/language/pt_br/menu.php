@@ -14,8 +14,6 @@ define('BOX_CONTACTS_MAINTAIN_VENDORS','Fornecedores');
 define('BOX_CONTACTS_NEW_VENDOR','Novo Fornecedor');
 define('BOX_CONTACTS_MAINTAIN_PROJECTS','Projetos');
 define('BOX_CONTACTS_NEW_PROJECT','Novo Projeto');
-define('BOX_CONTACTS_MAINTAIN_EMPLOYEES','Funcionários');
-define('BOX_CONTACTS_NEW_EMPLOYEE','Novo Funcionário');
 define('MENU_HEADING_EMPLOYEES','Funcionários');
 define('BOX_CONTACTS_MAINTAIN_CUSTOMERS','Clientes');
 define('BOX_CONTACTS_NEW_CUSTOMER','Novo Cliente');
@@ -26,5 +24,12 @@ define('MENU_HEADING_VENDORS','Fornecedores');
 define('MENU_HEADING_CUSTOMERS','Clientes');
 define('BOX_PROJECTS_PHASES','Fases Projeto');
 define('BOX_PROJECTS_COSTS','Custos Projeto');
+define('BOX_BRANCHES', 'Filial');
+define('TEXT_CUSTOMER', 'Cliente');
+define('TEXT_VENDOR', 'Fornecedor');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE', 'Funcionário');
+define('TEXT_BRANCHES', 'Filial');
+if (!defined('TEXT_PROJECT')) define('TEXT_PROJECT', 'Projeto');
+define('TEXT_PROJECTS', 'Projetos');
 
 ?>

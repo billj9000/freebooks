@@ -23,6 +23,7 @@ define('RW_EB_CUR_CODE','Valuta code');
 define('RW_EB_CUR_EXC_RATE','Wisselkoers');
 define('RW_EB_INV_NUM','Factuur Nummer');
 define('RW_EB_SALES_REP','Verkoop Medew Naam');
+define('RW_EB_SALES_REP_ID', 'Verkoper ID');
 define('RW_EB_SALES_REP_id','Verkoop Medew ID');
 define('RW_EB_AR_ACCT','Debiteur');
 define('RW_EB_BILL_ACCT_ID','Fact. account id');

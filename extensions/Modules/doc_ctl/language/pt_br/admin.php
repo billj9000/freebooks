@@ -10,5 +10,6 @@
 
 define('MODULE_DOC_CTL_TITLE','Módulo Controle Documentos');
 define('MODULE_DOC_CTL_DESCRIPTION','O módulo de controle de documentos fornece um sistema de gerenciamento de documentos para controlar vários tipos de documentos. O módulo inclui funções para baixar/subir documentos, pesquisar para alterações, segurança e gerenciamento estruturado de pastas.');
+define('TEXT_DRIVE', "Unidade");
 
 ?>

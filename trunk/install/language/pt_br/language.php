@@ -17,9 +17,6 @@
 //  Path: /modules/install/language/pt_br/language.php
 //
 
-define('LANGUAGE','PortuguÍs (BR)');
-define('HTML_PARAMS','lang="pt-BR" xml:lang="pt-BR"');
-define('CHARSET', 'UTF-8');
 define('TEXT_CHART_INFO', 'Select the chart of accounts this company keeps its books on. The chart decides both the accounts the company starts with and which of them the receivables and payables settings point at, so it is worth picking the one that matches the country and trading form. It can be replaced later, from Setup, only while the general journal is still empty.');
 define('MSG_CHART_NO_DEMO', 'The demonstration data uses the US Retail account numbers, so it cannot be loaded against the %s. The company has been installed without it.');
 // template_welcome
@@ -50,8 +47,13 @@ define('INSTALL_ERROR_PHP_VERSION','Sua vers„o de php deve ser 8.2 ou posterior,
 define('INSTALL_ERROR_REGISER_GLOBALS','Registro globais deve ser desabilitado.');
 define('INSTALL_ERROR_SAFE_MODE','Sua configuraÁ„o php est· habilitada para operar em modo seguro. Modo seguro deve ser desabilitado para instalar o PhreeBooks.');
 define('INSTALL_ERROR_SESSION_SUPPORT','Sua configuraÁ„o php n„o tem o suporte de sess„o instalao. Suporte de sess„o È necess·rio para executar o PhreeBooks.');
+define('INSTALL_ERROR_PDO_MYSQL', 'Sua configura√ß√£o do php n√£o possui a extens√£o pdo_mysql instalada. Esta extens√£o √© necess√°ria para conectar ao banco de dados.');
 define('INSTALL_ERROR_OPENSSL','Seu servidor deve ter openssl instalado.');
 define('INSTALL_ERROR_CURL','Seu servidor de aplicaÁ„o php foi instalado sem suporte a cURL. Suporte a cURL È necess·rio para comunicaÁ„o segura no envio/recebimento de informaÁ„o para aplicaÁıes remotas.');
+define('INSTALL_ERROR_MBSTRING', 'O php do seu servidor foi instalado sem suporte a mbstring. Alguns m√≥dulos podem n√£o funcionar corretamente sem este recurso.');
+define('INSTALL_ERROR_GD', 'O php do seu servidor foi instalado sem suporte a GD. C√≥digos de barras, etiquetas e alguns relat√≥rios PDF n√£o estar√£o dispon√≠veis sem este recurso.');
+define('INSTALL_ERROR_ZIP', 'O php do seu servidor foi instalado sem suporte a Zip. A c√≥pia de seguran√ßa e a restaura√ß√£o do banco de dados n√£o estar√£o dispon√≠veis sem este recurso.');
+define('INSTALL_ERROR_BZ2', 'O php do seu servidor foi instalado sem suporte a BZip2. As ferramentas de importa√ß√£o/restaura√ß√£o de bancos de dados grandes n√£o estar√£o dispon√≠veis sem este recurso.');
 define('INSTALL_ERROR_UPLOADS','Seu servidor de aplicaÁ„o php foi instalado sem suporte a upload de arquivos. Suporte a upload È necess·rio para importar arquivos para o PhreeBooks.');
 define('INSTALL_ERROR_UPLOAD_DIR','N„o foi possÌvel encontrar uma pasta para upload tempor·rio de arquivos neste servidor.');
 define('INSTALL_ERROR_XML','Seu servidor de aplicaÁ„o php foi instalado sem suporte a XML. Alguns mÛdulos podem n„o operar se este suporte n„o estiver disponÌvel.');
@@ -59,7 +61,6 @@ define('INSTALL_ERROR_FTP','Seu servidor de aplicaÁ„o php foi instalado sem supo
 define('INSTALL_ERROR_INCLUDES_DIR','A pasta /includes n„o est· acessÌvel para escrita. O instalador precisa de acesso a esta pasta para criar o arquivo de configuraÁ„o.');
 define('INSTALL_ERROR_MY_FILES_DIR','A pasta /my_files n„o est· acessÌvel para escrita. O instalador precisa de acesso a esta pasta para armazenar os arquivos de sua empresa.');
 define('TEXT_RECHECK','Re-verificar');
-define('TEXT_INSTALL','Instalar');
 // template_install
 define('TITLE_INSTALL','Instalar - PhreeBooks Contabilidade');
 define('MSG_INSTALL_INTRO','Por favor entre alguma informaÁ„o sobre sua empresa, administrador, servidor web e banco de dados.');

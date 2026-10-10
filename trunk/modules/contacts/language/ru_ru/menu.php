@@ -26,5 +26,12 @@ define('BOX_CONTACTS_NEW_CONTACT','Новый контакт');
 define('BOX_HR_DEPARTMENTS','Департаменты');
 define('BOX_PROJECTS_PHASES','Этапы проекта');
 define('BOX_PROJECTS_COSTS','Затраты на осуществление проекта');
+define('BOX_BRANCHES', 'Филиал');
+define('TEXT_CUSTOMER', 'Клиент');
+define('TEXT_VENDOR', 'Поставщик');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE', 'Сотрудник');
+define('TEXT_BRANCHES', 'Филиал');
+if (!defined('TEXT_PROJECT')) define('TEXT_PROJECT', 'Проект');
+define('TEXT_PROJECTS', 'Проекты');
 
 ?>

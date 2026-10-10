@@ -39,6 +39,7 @@ define('TEXT_DEC_AMT','Afname met bedrag');
 define('TEXT_DEC_PCNT','Afname met procent');
 define('TEXT_INC_AMT','Toename met bedrag');
 define('TEXT_INC_PCNT','Toename met procent');
+define('TEXT_MARK_UP_BY_PERCENT', 'Opslag met Percentage');
 define('TEXT_NEXT_WHOLE','Volgende Euro');
 define('TEXT_NEXT_FRACTION','Constant Centen');
 define('TEXT_NEXT_INCREMENT','Volgend Heel getal');
@@ -112,6 +113,7 @@ define('INV_BOM','Lijst van Onderdelen');
 define('INV_BOM_LOCKED','Lijst van Onderdelen niet opgeslagen: dit artikel is geboekt of heeft voorraad, dus de lijst is vergrendeld.');
 define('INV_ADJ_DELETE_ALERT','Weet u zeker dat u deze voorraad wijziging wilt verwijderen?');
 define('INV_MSG_DELETE_INV_ITEM','Weet u zeker dat u dit Voorraad item wilt verwijderen?');
+define('INV_SERIAL_POPUP_TITLE', 'Selecteer het SKU serienummer uit de lijst hieronder:');
 define('INV_XFER_FROM_STORE','Transporteer van Winkel ID');
 define('INV_XFER_TO_STORE','Naar Winkel ID');
 define('INV_XFER_QTY','Transporteer Aantal');
@@ -133,6 +135,7 @@ define('INV_ENTRY_ACCT_SALES','Verkoop /Inkomsten rekening');
 define('INV_ENTRY_ACCT_INV','Inventaris / salarisrekening');
 define('INV_ENTRY_ACCT_COS','Kostprijs van verkopen Grootboek');
 define('INV_ENTRY_INV_ITEM_COST','Item Kosten');
+define('INV_ENTRY_COST_CURRENCY', 'Valuta');
 define('INV_ENTRY_FULL_PRICE','Volledige Prijs');
 define('INV_ENTRY_FULL_PRICE_WT','Volledige Prijs met btw');
 define('INV_MARGIN','Marge');
@@ -153,6 +156,7 @@ define('TEXT_FROM_BRANCH','Van Vestiging');
 define('TEXT_DEST_BRANCH','Naar Vestiging');
 define('TEXT_TRANSFER_REASON','Reden voor Verplaatsing');
 define('TEXT_TRANSFER_ACCT','Verplaatsing Rekening');
+define('TEXT_AVERAGE_USAGE', 'Gemiddeld Verbruik (exclusief deze maand)');
 define('INV_MSG_COPY_INTRO','Voer een nieuw Art.nr. om de gegevens naar te kopieren:');
 define('INV_MSG_RENAME_INTRO','Voer een nieuw Art.nr. om de Art. te hernoemen:');
 define('INV_ERROR_DUPLICATE_SKU','Het nieuwe voorraad item kan niet gemaakt worden omdat het Art.nr. al in gebruik is.');
@@ -200,7 +204,7 @@ define('TEXT_USE_AS_DEFAULT','Gebruik als Standaard');
 define('TEXT_PRICE_SHEETS','Prijslijsten');
 define('TEXT_SALES_PRICE_SHEETS','Verkoop Prijs Lijsten');
 define('TEXT_SHEET_NAME','Lijst naam');
-define('TEXT_REVISION','Revisie nummer');
+if (!defined('TEXT_REVISION')) define('TEXT_REVISION','Revisie nummer');
 define('TEXT_EFFECTIVE_DATE','Start Datum');
 if (!defined('TEXT_EXPIRATION_DATE')) define('TEXT_EXPIRATION_DATE','Eind Datum'); // also defined in phreebooks/language.php
 define('TEXT_BULK_EDIT','Laad product prijzen');
@@ -211,6 +215,8 @@ define('INV_ERROR_CANNOT_COPY','Dit voorraad type kan niet gecopieerd worden.');
 define('INV_PC_ERROR_CANNOT_DELETE_SEPARATE','Productbundel onderdelen kunnen niet los verwijderd worden!');
 define('INV_MSG_MP_BOM_OVERWRITE','Hiermee wordt de materiaallijst voor alle {n} variant(en) van dit item opnieuw opgebouwd vanuit de sjabloon hierboven. Reeds gemaakte aanpassingen per variant gaan hierbij verloren. Doorgaan?');
 define('INV_ERROR_MP_LINKED_VARIANT_MISSING','Er bestaat geen %s variant van %s - nodig om %s te genereren. Los dit op voordat u opslaat.');
+define('INV_STOCK_LEVEL_ADJ', 'Voorraadniveaus moeten worden aangepast. Nieuwe minimumvoorraad = %s');
+define('INV_STOCK_MEDIAN', 'Controleer het maandelijkse verbruik, de mediaan (%s) valt buiten het bereik van de gemiddelde verkoop (%s).');
 define('TEXT_PACKAGE_QUANTITY','Verpakkings Eenheid');
 define('INV_MSG_DELETE_VENDOR_ROW','Weet u zeker dat u deze leverancier wil verwijderen.');
 define('TEXT_AVERAGE_USE','Gemiddeld Gebruik (deze Maand uitgesloten)');
@@ -229,6 +235,9 @@ define('INV_IMAGE_FILE_TYPE_ERROR','Dat bestand is geen leesbare afbeelding. Con
 define('INV_IMAGE_FILE_WRITE_ERROR','Er was een probleem met het opslaan van het bestand in de directory.');
 define('ITEM_IS_OUT_OF_STOCK', 'voorraad is op');
 define('TEXT_SAVE_AND_COPY_TO_NEW', 'Bewaren en Kopieren naar Nieuw ');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Aangepaste Velden');
+define('TEXT_NO_IMAGE', 'Geen Afbeelding');
+define('TEXT_CUSTOM_TAB', 'Aangepaste Tabbladen');
 define('TEXT_INVOICE_NUM',          'Factuur #');
 
 // Shipping tab - awaiting translation, English text so the tab renders
@@ -251,4 +260,5 @@ define('INV_COUNTRY_OF_ORIGIN_HELP',    'Landcode van 2 letters volgens ISO (bij
 define('INV_HS_CODE_HELP',              'Goederencode volgens het Geharmoniseerd Systeem (GS) voor douaneaangiften');
 define('INV_CUSTOMS_DESCRIPTION_HELP', 'Omschrijving van de goederen voor de douaneaangifte (bijv. remblokken voor motorvoertuigen). Indien leeg wordt de omschrijving van de orderregel gebruikt. Houd het beknopt, want een vervoerder kan deze inkorten.');
 define('INV_TEXT_MARGIN_BY_PERCENT', 'Marge in procenten');
+define('TEXT_TIERED_PRICING', 'Staffelprijzen');
 ?>

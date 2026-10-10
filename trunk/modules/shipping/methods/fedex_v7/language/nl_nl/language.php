@@ -11,6 +11,30 @@
 define('MODULE_SHIPPING_FEDEX_V7_TEXT_TITLE','Federal Express');
 define('MODULE_SHIPPING_FEDEX_V7_TITLE_SHORT','FedEx');
 define('MODULE_SHIPPING_FEDEX_V7_TEXT_DESCRIPTION','Federal Express');
+define('MODULE_SHIPPING_FEDEX_V7_TEXT_INTRODUCTION', '<h3>Stap 1. Ontwikkel en Test een Applicatie met Web Services</h3>
+Deze stap is uitgevoerd door PhreeSoft. De overige stappen moeten worden gevolgd om het aanmaken van labels mogelijk te maken.
+<h3>Stap 2. Registreer voor Overgang naar Productie</h3>
+Start het certificeringsproces door een FedEx Production Meter Number aan te vragen bij het FedEx Developer Resource Center. <a href="http://www.fedex.com/developer">http://www.fedex.com/developer</a>
+<h3>Stap 3. Verkrijg Productiegegevens</h3>
+Verkrijg uw productiegegevens (production meter number, production authentication key en production security key) online tijdens het registratieproces. Uw wachtwoord is via een aparte e-mail verzonden.
+Opmerking: Voor elk van uw locaties is een production meter number vereist. Het is toegestaan om
+dezelfde authentication key voor meerdere locaties te gebruiken. Extra meter numbers kunnen worden verkregen via de Subscribe (Advanced) Web Service.
+<br />Belangrijke Opmerking: Vanwege de gevoeligheid van deze informatie wordt de production authentication key niet vermeld in de bevestigingsmail (Stap 4). Bewaar deze informatie voor uw administratie.
+<h3>Stap 4. Ontvang Bevestigingsmail</h3>
+U ontvangt per e-mail een bevestiging van uw registratie.
+<h3>Stap 5. Neem Contact op met het Regionale Web Integration Solutions (WIS) Support Team</h3>
+Neem contact op met het Web Integration Solutions Team voor uw regio met uw applicatie-informatie en productiegegevens. Vraag om uw applicatie in te schakelen voor advanced Web Services met verzendlabels. (US &amp; Canada - 1.877.339.2774)
+<h3>Stap 6. Regionaal WIS Team Geeft Instructies voor het Indienen van Labels</h3>
+Het supportteam van uw regio stuurt een e-mail met instructies voor het certificeren van labels die door uw applicatie zijn aangemaakt.
+<h3>Stap 7. Maak en Dien Testlabels in</h3>
+Maak testlabels aan met de applicatie en dien deze in bij de FedEx label evaluation teams ter goedkeuring. De voorbeeldgegevens staan in /modules/shipping/methods/fedex_v7/sample_data.php. <a href="index.php?module=shipping&amp;page=fedex_v7_qualify" target="_blank">Download Voorbeeldlabels</a>
+<br />Opmerking: De FedEx label evaluation teams hebben vijf werkdagen nodig voor de beoordeling van labels.
+<h3>Stap 8. Beoordeling van Labels</h3>
+De FedEx label evaluation teams beoordelen de ingediende testlabels en keuren deze goed of af. Het supportteamlid in uw regio neemt contact met u op over de goedkeuring of afkeuring van de ingediende labels. Als de labels zijn goedgekeurd, ga dan door naar de volgende stap. Als de labels zijn afgekeurd, corrigeer de labels volgens de instructies en dien ze opnieuw in ter goedkeuring.
+<h3>Stap 9. Regionaal WIS Team Schakelt de Applicatie in</h3>
+Zodra de testlabels door de label evaluation teams zijn goedgekeurd voor productie, autoriseert het supportteamlid voor uw regio uw profiel om de betreffende verzendlabeltransactie te verzenden en wordt u op de hoogte gesteld van de succesvolle certificering.
+<h3>Stap 10. Vervang URL en Gegevens</h3>
+Vervang de test-URL en testgegevens door de productie-URL en productiegegevens.');
 define('MODULE_SHIPPING_FEDEX_V7_TITLE_DESC','De titel welke gebruikt moet worden in weergaven. ');
 define('MODULE_SHIPPING_FEDEX_V7_ACCOUNT_NUMBER_DESC','Voer het FedEx-klantnummer te gebruiken voor tarief schattingen');
 define('MODULE_SHIPPING_FEDEX_V7_LTL_ACCOUNT_NUMBER_DESC','Voer de FedEx LTL rekeningnummer te gebruiken voor tarief schattingen. Laat dit veld leeg als er geen LTL zal worden gebruikt.');
@@ -28,7 +52,9 @@ define('MODULE_SHIPPING_FEDEX_V7_GDR','Thuis Bezorging');
 define('MODULE_SHIPPING_FEDEX_V7_1DM','Eerste Klas Overnacht');
 define('MODULE_SHIPPING_FEDEX_V7_1DA','Priority Overnacht');
 define('MODULE_SHIPPING_FEDEX_V7_1DP','Standaard Overnacht');
+define('MODULE_SHIPPING_FEDEX_V7_2DA', 'Express 2 Dagen A.M.');
 define('MODULE_SHIPPING_FEDEX_V7_2DP','Express 2 Dagen');
+define('MODULE_SHIPPING_FEDEX_V7_3DA', 'Smart Post');
 define('MODULE_SHIPPING_FEDEX_V7_3DS','Express Goedkoop');
 define('MODULE_SHIPPING_FEDEX_V7_XDM','Int. Eerste Klas');
 define('MODULE_SHIPPING_FEDEX_V7_XPR','Int. Priority');
@@ -85,6 +111,7 @@ define('SHIPPING_FEDEX_RECON_INTRO','Factuur Nummer: %s gedateerd %s');
 define('SHIPPING_FEDEX_RECON_NO_RECORDS','Verzenddatum :%s Referentie %s, traceer # %s - Er zijn geen records gevonden, verzending van %s tot %s');
 define('SHIPPING_FEDEX_RECON_TOO_MANY','Verzenddatum :%s Referentie %s, traceer # %s - Er zijn te veel records gevonden, verzending van %s tot %s');
 define('SHIPPING_FEDEX_RECON_COST_OVER','Verzenddatum :%s Referentie %s, traceer # %s - Gefactureerde kosten: (%s) geoffreerde kosten: (%s)');
+define('SHIPPING_FEDEX_RECON_COST_OVER_INV', 'Verzenddatum: %s Referentie %s, tracking # %s - De gefactureerde kosten: (%s) zijn hoger dan de gefactureerde kosten op de factuur: (%s)');
 define('SHIPPING_FEDEX_RECON_SUMMARY','Totaal aantal records verzoend: %s');
 
 ?>

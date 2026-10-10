@@ -10,6 +10,7 @@
 
 define('MODULE_PAYMENT_MONEYORDER_TEXT_TITLE','Ordem PAgamento/Cheque');
 define('MODULE_PAYMENT_MONEYORDER_TEXT_DESCRIPTION','Pagamentos via cheque, ordem de pagamento e outras formas de pagamento direto.');
+define('MODULE_PAYMENT_MONEYORDER_TEXT_INTRODUCTION', 'Por favor, emita seu cheque ou ordem de pagamento nominal a:<br />' . (defined('MODULE_PAYMENT_MONEYORDER_PAYTO') ? MODULE_PAYMENT_MONEYORDER_PAYTO : '') . '<br />Envie seu pagamento para:<br />' . (defined('COMPANY_NAME') ? nl2br(COMPANY_NAME) : ''));
 define('MODULE_PAYMENT_MONEYORDER_TEXT_REF_NUM','Número Referência');
 define('MODULE_PAYMENT_MONEYORDER_PAYTO_DESC','Fazer Pagamentos para:');
 

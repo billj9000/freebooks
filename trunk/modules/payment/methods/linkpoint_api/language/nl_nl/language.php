@@ -66,6 +66,7 @@ define('MODULE_PAYMENT_LINKPOINT_API_TEXT_NOT_CONFIGURED','<b>&nbsp;(OPMERKING: 
 
 define('ALERT_LINKPOINT_API_TEST_FORCED_SUCCESSFUL','LET OP: Dit was een test transactie ... gedwongen tot een SUCCES reactie te retourneren.');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_DECLINED_GENERAL_MESSAGE','Uw creditcard is geweigerd. Vul nogmaals uw creditcardgegevens, Probeer een andere kaart, of vraag de eigenaar van de winkel voor hulp.');
+define('ALERT_LINKPOINT_API_PREAUTH_TRANS', '***ALLEEN AUTORISATIE -- KOSTEN WORDEN LATER DOOR DE BEHEERDER VERREKEND.***' . "\n");
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_DECLINED_AVS_MESSAGE','Ongeldige factuuradres. Vul nogmaals uw creditcardgegevens, Probeer een andere kaart, of vraag de eigenaar van de winkel voor hulp.');
 
 

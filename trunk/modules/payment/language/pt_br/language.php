@@ -34,6 +34,9 @@ define('MODULE_PAYMENT_CC_TEXT_CATALOG_TITLE','Cartão Crédito');
 define('MODULE_PAYMENT_CC_TEXT_CREDIT_CARD_OWNER','Cartão Crédito Proprietário:');
 define('TEXT_MORE_INFO','Mais Informação');
 define('MODULE_PAYMENT_CC_TEXT_ERROR','Erro Cartão de Crédito!');
+define('OPEN_POS_DRAWER_DESC', 'Permitir que a gaveta do PDV abra quando o pagamento for selecionado.');
+define('POS_GL_ACCT_DESC', 'Conta contábil do tipo de pagamento PDV');
+define('SHOW_IN_POS_DESC', 'Mostrar este pagamento no PhreePOS');
 
 // ─── The Request payment dialog ───────────────────────────────────────────────
 define('PAY_REQUEST_CUSTOMER',       'Customer');

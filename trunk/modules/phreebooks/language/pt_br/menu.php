@@ -9,6 +9,9 @@
 // Path: /modules/phreebooks/language/pt_br/menu.php
 
 define('BOX_STATUS_MGR','%s Gerenciador');
+define('ORD_TEXT_RECEIPTS_TITLE', 'Recebimentos');
+define('ORD_TEXT_PAYMENTS_TITLE', 'Pagamentos');
+define('BOX_TEXT_NEW_TITLE', 'Novo %s');
 define('BOX_PHREEBOOKS_MODULE_ADM','Contabilidade Administração');
 define('BOX_GL_UTILITIES','Utilitários Diário Geral');
 define('BOX_BANKING_VOID_CHECKS','Cheques Cancelados');
@@ -19,6 +22,7 @@ define('ORD_TEXT_20_V_WINDOW_TITLE','Pagar Contas');
 define('BOX_BANKING_SELECT_FOR_PAYMENT','Selecionar para Pagamento');
 define('ORD_TEXT_20_C_WINDOW_TITLE','Cliente Reembolso');
 define('ORD_TEXT_18_V_WINDOW_TITLE','Fornecedor Reembolso');
+define('ORD_TEXT_19_WINDOW_TITLE', 'Vendas PDV');
 define('ORD_TEXT_18_C_WINDOW_TITLE','Clientes Recibos');
 define('ORD_TEXT_20_WINDOW_TITLE','Caixa Distribuições');
 define('ORD_TEXT_18_WINDOW_TITLE','Caixa Recibos');

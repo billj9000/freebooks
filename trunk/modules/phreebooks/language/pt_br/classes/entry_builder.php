@@ -96,5 +96,6 @@ define('RW_EB_RECORD_ID','ID Registro');
 define('RW_EB_PAYMENT_DETAIL','Detalhes Pagamento');
 define('TEXT_SO_POST_DATE','Data Ordem Venda');
 define('RW_EB_INV_LINE_TAX','invoice_line_tax');
+define('RW_EB_INV_LINE_TAX_RATE', 'invoice_line_tax_rate');
 
 ?>

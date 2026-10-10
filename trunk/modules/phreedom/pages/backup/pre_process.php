@@ -23,7 +23,7 @@ $security_level = validate_user(SECURITY_ID_BACKUP);
 gen_pull_language($module, 'admin');
 require_once(DIR_FS_WORKING . 'classes/backup.php');
 require_once(DIR_FS_WORKING . 'functions/phreedom.php');
-require_once(DIR_FS_WORKING . 'includes/bigdump/language/' . $_SESSION['language'] . '/language.php');
+load_method_language(DIR_FS_WORKING . 'includes/', 'bigdump'); // the session's language, else en_us
 /**************   page specific initialization  *************************/
 $error  = false;
 /***************   hook for custom actions  ***************************/

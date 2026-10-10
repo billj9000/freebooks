@@ -26,6 +26,8 @@
 
 // INV_IMAGE_* live in the inventory module's language.php, alongside the code that
 // raises them. Defining them here too collides when both files load.
+define('MENU_HEADING_MY_COMPANY', 'Minha Empresa');
+define('MENU_HEADING_CONFIG', 'Configuração');
 define('GEN_ADM_TOOLS_SEQ_DESC','Alterações na sequência podem ser feitas aqui.<br />ATENÇÃO 1: FreeBooks não permite sequências duplicadas, certifique-se que a nova sequência não conflite com os valores já lançados.<br />ATENÇÃO 2: O próximo número de depósito pe gerado pelo sistema e utiliza a data corrente.<br />ATENÇÃO 3: o próximo número de cheuqe pode ser digitado na tela de pagamento antes de lançar um pagamento e será sequenciado a partir do número lançado.');
 define('INV_CANNOT_DELETE_SYSTEM','Campos da categoria Sistema não podem ser removidos!');
 define('INV_CATEGORY_CANNOT_DELETE','Não é possível remover a categoria. Está em uso pelo campo: ');
@@ -103,6 +105,14 @@ define('SETUP_CO_MGR_DEL_CO','Remover Empresa');
 define('TEXT_DEF_DATA','Dados Básicos');
 define('SETUP_CO_MGR_COPY_CO','Nova/Cópia Empresa');
 define('GEN_BACKUP_DOWNLOAD_EMPTY','O arquivo de download não contém nenhuma informação!');
+define('GEN_RESTORE_PROGRESS', 'Progresso da Importação');
+define('GEN_RESTORE_DB_BUTTON', 'Restaurar Banco de Dados');
+define('GEN_RESTORE_FULL_BUTTON', 'Restauração Completa');
+define('GEN_RESTORE_DONE', 'Importação concluída. Saia e entre novamente para concluir a restauração.');
+define('GEN_RESTORE_ERROR', 'Erro de importação: ');
+define('GEN_RESTORE_EXTRACTING', 'Extraindo arquivo...');
+define('GEN_RESTORE_CONFIRM_FULL', 'Atenção! Isto substituirá todos os arquivos da empresa e o banco de dados. Tem certeza?');
+define('GEN_RESTORE_UPLOAD_LABEL', 'Arquivo de dump');
 define('GEN_BACKUP_FILE_ERROR','O arquivo zip não pode ser criado. Verifique as permissões do diretório: ');
 define('GEN_BACKUP_NO_ZIP_CLASS','A classe zip não foi encontrada. PHP precisa da biblioteca zip instalada para fazer o backup com compressão tipo zip.');
 define('GEN_BACKUP_SAVE_LOCAL',' Salvar uma cópia local no servidor web no diretório(my_files/backups)');
@@ -131,7 +141,6 @@ define('ERROR_WRONG_ENCRYPT_KEY','Você entrou uma chave de criptografia mas ela
 define('GEN_ENCRYPTION_KEY_SET','A chave de criptografia foi estabelecida.');
 define('GEN_ENCRYPTION_GEN_INFO','Serviços de criptografia dependem de uma chave utilizada para critografar informação na base de dados. NÃO PERCA A CHAVE, de outro modo a informação não poderá ser descriptografada!');
 define('GEN_ADM_TOOLS_SET_ENCRYPTION_KEY','Entrar Chave Criptografia');
-define('BOX_HEADING_ENCRYPTION','Serviços Criptografia Informação');
 define('SETUP_LOG_CURRENCY','Moedas - ');
 define('GEN_ADM_TOOLS_BTN_SAVE','Salvar Alterações');
 define('SETUP_WARN_PRIMARY_SERVER_FAILED','Atenção: O servidor primário de taxas de câmbio (%s) falhou por %s (%s) - tentando o servidor secundário.');
@@ -159,6 +168,7 @@ define('SETUP_CURRENCY_CODES','Código');
 define('CD_12_74_DESC','Substituições de moeda para e-mails em texto simples, como pares entidade,símbolo separados por dois-pontos. (Padrão = &amp;pound;,&#163;:&amp;euro;,&#8364;)');
 define('CD_12_75_DESC', 'SMTP encryption method. <strong>None</strong> = plain SMTP, no encryption. <strong>STARTTLS</strong> = upgrades the connection to encrypted after it is established (most providers). <strong>SSL/TLS</strong> = encrypted from the start (Office 365 and many cPanel hosts).');
 define('CD_12_76_DESC', 'Allow self-signed SSL certificates. Enable only for internal or development mail servers — never for public providers such as Gmail or Office 365.');
+define('SETUP_SERVER_ADDRESS', 'Opcional. O PHPMailer usa este valor como o nome de host HELO/EHLO enviado ao servidor de email. Deixe em branco para que o PHPMailer o detecte automaticamente. Defina-o se o seu servidor não conseguir determinar o próprio nome de host e os emails estiverem sendo rejeitados com um erro como "Access denied - Invalid HELO name (See RFC2821 4.1.1.1)".');
 define('SETUP_TITLE_CURRENCIES','Moedas');
 define('CD_12_72_DESC','Entre o nome DNS ou endereço IP do servidor SMTP. ex: mail.mydomain.com ou 55.66.77.88');
 define('CD_12_73_DESC','Enter the IP port number that your SMTP mail server operates on. Common ports: 25 (no encryption), 587 (STARTTLS), 465 (SSL/TLS).');
@@ -198,6 +208,8 @@ define('CD_00_01_DESC','Estabelece o formato de apresentação para entrada e ap
 define('CD_20_99_DESC','Habilita geração de rastreio para propósito de debug. Se selecionado, um menu adicional será adicionado às Ferramentas para baixar a informação que permitirá rastrear problemas de lançamento.');
 define('CD_09_01_DESC','Especifica a preferência de exportação quando exportando relatórios e formulários. Local vai salvá-los no diretório /my_files/reports do sevidor web para uso de todas as empresas. Download vai baixar o arquivo no seu browser para salvar/imprimir na máquina local.');
 define('CD_15_05_DESC','Quando habilitada, esta opção utilizará ajax para atualizar o temporizador de sessão a cada 5 minutos prevenindo a sessão de expirar e desconectar o usuário. Ajuda a prevenir lançamentos descartados quando FreeBooks fica inativo e um lançamento resulta em uma tela de login.');
+define('CD_16_01_DESC', 'Permite que os usuários entrem com uma chave de acesso (impressão digital, rosto, bloqueio de tela ou chave de segurança) em vez de uma senha. Requer que o site esteja sendo executado sobre HTTPS; caso contrário, a opção é ignorada.');
+define('CD_16_02_DESC', 'ID da Relying Party para chaves de acesso - normalmente deixe em branco para usar automaticamente o nome de domínio deste site. Defina somente se o site for executado por trás de um proxy/nome de host que não corresponda à URL do servidor configurada.');
 define('CD_08_10_DESC','Limita o tamanho dos valores históricos mostrados nas contas de cliente/fornecedor para vendas/compras.');
 define('CD_15_01_DESC','Limite Tempo Sessão - Entre o tempo em segundos (padrão = 3600). Exemplo: 3600 = 1 hora<br />Atenção: Poucos segundos podem resultar em problemas ao inserir/editar produtos.');
 define('CD_08_07_DESC','Atualiza as taxas de conversão das moedas carregadas em todo login.<br />Se desabilitado, taxas podem ser alteradas manualmente no menu Setup => Moedas.');
@@ -243,6 +255,9 @@ define('GEN_ERROR_NO_THEME_COLORS','Uma escolha de cor deve ser feita, este tema
 define('GEN_ADMIN_CANNOT_CHANGE_ROLES','Suas permissões não o habilitam a alterar os direitos/segurança do usuário!');
 define('TEXT_THEMES_COLORS_TITLE','Temas e Esquemas de Cor');
 define('TEXT_THEMES_COLORS_DESC','Estabeleça seu tema e esquema de cores prefertido. Pressiona o ícone Salvar para alterar o tema e vê-lo em ação.');
+define('TEXT_MENU_OPEN_BEHAVIOUR', 'Comportamento de Abertura do Menu Bootstrap');
+define('TEXT_MENU_CLICK', 'Clique (padrão)');
+define('TEXT_MENU_HOVER', 'Passar o mouse');
 define('INV_FIELD_RESERVED_WORD','The field name entered is a reserved word. Please choose a new field name.');
 define('GEN_ADM_TOOLS_SEQ_HEADING','Alterar Vários Números Sequenciais');
 define('GENERAL_CONFIG_SAVED','Valores de Configuração foram gravados.');
@@ -265,6 +280,37 @@ define('PB_PF_NULL_POSTED_CURRENCY','Null 0 - Posted Currency');
 define('PB_PF_NULL_DEF_CURRENCY','Null 0 - Moeda Padrão');
 define('PB_PF_DEF_CURRENCY','Moeda Padrão');
 define('TEXT_FORM_PLEASE_WAIT','Por favor aguarde ... Se estiver atualizando pode demorar um pouco.');
+define('TEXT_PASSKEY_LOGIN_BUTTON', 'Entrar com uma chave de acesso');
+define('TEXT_PASSKEYS_TITLE', 'Minhas Chaves de Acesso');
+define('TEXT_PASSKEYS_DESC', 'Uma chave de acesso permite que você entre usando a impressão digital, o rosto, o bloqueio de tela do seu dispositivo ou uma chave de segurança, em vez de digitar sua senha. Você pode registrar mais de uma, por exemplo, um notebook e um celular.');
+define('TEXT_PASSKEY_LABEL', 'Rótulo');
+define('TEXT_PASSKEY_ADDED', 'Adicionada');
+define('TEXT_PASSKEY_LAST_USED', 'Último Uso');
+define('TEXT_PASSKEY_NEVER_USED', 'nunca');
+define('TEXT_PASSKEY_NONE', 'Nenhuma chave de acesso registrada ainda.');
+define('TEXT_PASSKEY_ADD', 'Adicionar uma chave de acesso');
+define('TEXT_PASSKEY_RENAME', 'Renomear');
+define('TEXT_PASSKEY_DELETE', 'Excluir');
+define('TEXT_PASSKEY_REVOKE', 'Revogar');
+define('TEXT_PASSKEY_NAME_PROMPT', 'Dê um nome a esta chave de acesso (ex. "Notebook do trabalho"):');
+define('TEXT_PASSKEY_RENAME_PROMPT', 'Renomear esta chave de acesso:');
+define('TEXT_PASSKEY_CONFIRM_DELETE', 'Excluir esta chave de acesso? Você não poderá mais entrar com ela.');
+define('TEXT_PASSKEY_CONFIRM_REVOKE', 'Revogar esta chave de acesso? O usuário não poderá mais entrar com ela.');
+define('TEXT_PASSKEY_DEFAULT_LABEL', 'Chave de acesso adicionada %s');
+define('TEXT_PASSKEY_MSG_UNSUPPORTED', 'Este navegador não suporta chaves de acesso.');
+define('TEXT_PASSKEY_MSG_WAITING', 'Siga a solicitação do seu dispositivo para continuar...');
+define('TEXT_PASSKEY_MSG_SUCCESS', 'Sucesso.');
+define('TEXT_PASSKEY_MSG_FAILED', 'Não funcionou. Por favor, tente novamente.');
+define('TEXT_PASSKEY_MSG_CANCELLED', 'Cancelado.');
+define('TEXT_COPYRIGHT_NOTICE', 'Este programa é software livre: você pode redistribuí-lo e/ou 
+modificá-lo sob os termos da Licença Pública Geral GNU conforme 
+publicada pela Free Software Foundation, na versão 3 da Licença 
+ou qualquer versão posterior. Este programa é distribuído na 
+esperança de que seja útil, mas SEM QUALQUER GARANTIA; sem mesmo 
+a garantia implícita de COMERCIALIZAÇÃO ou ADEQUAÇÃO A UM 
+DETERMINADO FIM. Consulte a Licença Pública Geral GNU para mais 
+detalhes. A licença que acompanha este pacote está 
+localizada %s.');
 define('TEXT_LOGIN_BUTTON','Login');
 define('TEXT_PASSWORD_FORGOTTEN','Reenviar Senha');
 define('TEXT_LOGIN_MENU','Selecione Localização Menu');
@@ -276,6 +322,8 @@ define('TEXT_LOGIN_PASS','Senha: ');
 define('TEXT_LOGIN_NAME','Usuário: ');
 define('HEADING_TITLE','FreeBooks Login');
 define('TEXT_NEXT_ID','ID Próxima Linha');
+define('TEXT_USE_IN_FILTER', 'Usar no filtro de inventário');
+define('TEXT_SETTINGS', 'Configurações');
 define('TEXT_ENGINE','BD Máquina');
 define('TEXT_NUM_ROWS','Número de Linhas');
 define('TEXT_COLLATION','Collation');
@@ -285,23 +333,33 @@ define('HEADING_MODULE_IMPORT','Módulo Importação/Exportação Dados');
 if (!defined('TEXT_TABS')) define('TEXT_TABS','Abas'); // also defined in assets/language.php
 define('TEXT_REQUIRED','OBRIGATÓRIO');
 define('TEXT_TAB_NAME','Título Aba');
-define('TEXT_DOWNLOAD','Download');
 define('TEXT_LEGEND','Legenda');
 define('TEXT_DEBUG','Debug e Solução Problemas');
 define('TEXT_LOCAL','Local');
-define('TEXT_EXTRA_FIELDS','Campos Customizados');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS','Campos Customizados');
 define('TEXT_EXTRA_TABS','Abas Customizadas');
-define('CHARSET','utf-8');
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Contas Contábeis Padrão'); // also defined in inventory/admin.php, phreebooks/admin.php
-define('HTML_PARAMS','lang=\"pt-BR\" xml:lang=\"pt-BR\"');
-define('TITLE','EDS Brasil ERP');
-define('LANGUAGE','Portugues (BR)');
+define('MENU_HEADING_EMAIL', 'Preferências de Email');
 define('GEN_LOG_LOGIN','User Login -> ');
 define('GEN_LOG_LOGIN_FAILED','Failed User Login - id -> ');
 define('GEN_LOG_LOGOFF','User Logoff -> ');
 define('GEN_LOG_RESEND_PW','Re-sent Password to email -> ');
+define('CD_OAUTH2_PROVIDER_DESC', 'Selecione o provedor OAuth2 que hospeda a caixa de correio de envio.');
+define('CD_OAUTH2_CLIENT_ID_DESC', 'Client ID (Application ID) do OAuth2 obtido no Google Cloud Console ou no Azure App Registration.');
+define('CD_OAUTH2_CLIENT_SECRET_DESC', 'Client Secret do OAuth2 obtido no Google Cloud Console ou no Azure App Registration.');
+define('CD_OAUTH2_TENANT_DESC', 'Somente Microsoft: ID do locatário do Azure AD, ou use <em>common</em> para aplicativos multilocatário e contas pessoais.');
+define('CD_OAUTH2_EMAIL_DESC', 'O endereço de email da conta sendo autorizada. Deve corresponder à conta com a qual você dá o consentimento.');
+define('CD_OAUTH2_REFRESH_TOKEN_DESC', 'Token de atualização armazenado (definido automaticamente ao clicar em Autorizar). Limpe este campo para revogar o acesso.');
+define('CD_OAUTH2_AUTHORIZE', 'Autorizar');
+define('CD_OAUTH2_AUTHORIZE_HINT', 'Salve primeiro as credenciais do cliente e depois clique em Autorizar para abrir a tela de consentimento. O token de atualização será armazenado automaticamente.');
+define('CD_OAUTH2_AUTHORIZED', 'Autorizado — o token de atualização está armazenado.');
+define('CD_OAUTH2_NOT_AUTHORIZED', 'Ainda não autorizado.');
+define('CD_OAUTH2_ERROR_NO_TOKEN', 'Falha ao atualizar o token OAuth2. Autorize novamente em Admin &rsaquo; Email.');
+define('CD_OAUTH2_ERROR_NO_CURL', 'O OAuth2 requer a extensão cURL do PHP.');
 
 // Password reset (token flow)
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
+define('TEXT_DASHBOARDS', 'Painéis');
+define('TEXT_DASHBOARD_PANELS', 'Painéis de links, notas e tarefas da empresa');
 ?>

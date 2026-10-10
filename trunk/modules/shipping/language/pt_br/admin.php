@@ -16,6 +16,10 @@ define('CONTACT_SHIP_FIELD_REQ','Exigir ou não o campo: %s ser digitado para um
 define('NEXT_SHIPMENT_NUM_DESC','Número Próxima Entrega');
 define('TEXT_SHIPPING_PREFS','Propriedades Livro Endereços de Entrega');
 define('CD_10_60_DESC','Serviços de retorno');
+define('CD_10_64_DESC', 'Número EORI do remetente para declarações aduaneiras internacionais (ex. GB123456789000)');
+define('CD_10_65_DESC', 'Número VAT do remetente para envios internacionais (usado quando nenhum VAT de contato da filial estiver definido)');
+define('CD_10_66_DESC', 'Número IOSS do remetente para importações na UE abaixo de €150 (formato: IM + 10 dígitos)');
+define('SHIPPING_TEXT_INTL_COMPLIANCE', 'Conformidade Internacional');
 define('CD_10_56_DESC','Gelo seco');
 define('CD_10_52_DESC','Material perigoso');
 define('CD_10_48_DESC','Entrega Sábado');

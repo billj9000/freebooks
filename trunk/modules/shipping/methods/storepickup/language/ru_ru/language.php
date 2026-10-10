@@ -9,6 +9,7 @@
 // Path: //modules/shipping/methods/storepickup/language/ru_ru/language.php
 
 define('MODULE_SHIPPING_STOREPICKUP_TEXT_TITLE','Самовывоз');
+define('MODULE_SHIPPING_STOREPICKUP_TITLE_SHORT', 'Самовывоз');
 define('MODULE_SHIPPING_STOREPICKUP_TEXT_DESCRIPTION','Customer In Store Pick-up');
 define('MODULE_SHIPPING_STOREPICKUP_STATUS_DESC','Do you want to offer In Store rate shipping?');
 define('MODULE_SHIPPING_STOREPICKUP_TITLE_DESC','Title to use for display purposes on shipping rate estimator');

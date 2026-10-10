@@ -37,6 +37,7 @@ define('CD_05_52_DESC','Determina a taxa padrão de compras para utilizar quando
 define('TEXT_ACT_ITEMS','Atividade');
 define('MODULE_INVENTORY_NOTES_1','PRIORIDADE MÉDIA: Especifique contas padrão para tipos de inventário depois de carregar Plano Contas (Empresa -> Inventário Propriedades Módulo -> Inventário)');
 define('TEXT_CHARGE_ITEMS','Taxar');
+define('TEXT_DESC_ITEMS', 'Descrição');
 define('TEXT_LABOR_ITEMS','Mão Obra');
 define('TEXT_SRV_ITEMS','Serviço');
 define('TEXT_NS_ITEMS','Não Estoque');

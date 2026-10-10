@@ -14,6 +14,7 @@ define('MODULE_PHREEBOOKS_NOTES_1','MEDIUM BELANGRIJK: Voer bedrijfsinformatie i
 define('MODULE_PHREEBOOKS_NOTES_2','MINST BELANGRIJK: Set up mail server instellingen (Bedrijf -> Module Administratie -> Email tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_3','HEEL BELANGRIJK: Verander de standaard grootboekrekeningen of importeer nieuwe (Bedrijf -> Module Administratie -> PhreeBooks Module -> Grootboekrekeningen tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_4','MEDIUM BELANGRIJK: Werk de standaard grootboekrekeningen bij voor klanten en leveranciers, nadat de grootboekrekeningen geladen zijn (Bedrijf -> Module Administratie -> PhreeeBooks Module Eigenschappen -> Klanten/Leveranciers tabblad)');
+define('MODULE_PHREEBOOKS_NOTES_5', 'PRIORITEIT HOOG: Stel verkoop- en inkoopbelastingen in na het laden van de grootboekrekeningen (Bedrijf -> Module Administratie -> PhreeBooks Module Eigenschappen -> tabbladen Belastingen)');
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_PAYMENT_TERMS','Betalingscondities');
 define('TEXT_ACCOUNT_AGING','Account Ouderdom');
@@ -25,6 +26,8 @@ define('TEXT_DOUBLE_MODE','Dubbele Regel Modus');
 define('PB_PF_JOURNAL_DESC','Journaal Omschrijving');
 define('PB_PF_ORDER_QTY','Aantal Besteld');
 define('PB_PF_COA_TYPE_DESC','Rekening Type');
+define('PB_PF_GET_AVG_COST', 'Voorraad Gemiddelde Kostprijs');
+define('PB_PF_GET_AVG_TOTAL', 'Voorraad Gemiddeld Totaal');
 define('COA_00_DESC','Liquide Middelen');
 define('COA_02_DESC','Debiteuren');
 define('COA_04_DESC','Voorraad');
@@ -190,6 +193,7 @@ define('GL_INFO_INSERT_INTRO','Vul de nieuwe Grootboekrekening met de eigenschap
 define('GL_INFO_NEW_ACCOUNT','Nieuw rekening');
 define('GL_INFO_EDIT_ACCOUNT','Bewerk rekening ');
 define('GL_INFO_DELETE_INTRO','Weet u zeker dat u dit rekeningnummer wil verwijderen?\\nHet kan niet verwijderd worden als er boekingen op dit grootboek nummer gedaan zijn.');
+define('GL_DISPLAY_NUMBER_OF_COA', TEXT_DISPLAY_NUMBER . 'rekeningen');
 define('GL_ERROR_CANT_DELETE','Dit rekeningnummer kan niet verwijderd worden omdat er boekingen op dit grootboek nummer gedaan zijn.');
 define('GL_LOG_CHART_OF_ACCOUNTS','Rekeningschema - ');
 define('SETUP_TITLE_TAX_AUTHS_VEND','Inkoop belastingen');
@@ -211,6 +215,7 @@ define('SETUP_TAX_AUTHS_DELETE_ERROR','Kan dit niet verwijderen omdat er boeking
 define('SETUP_INFO_HEADING_NEW_TAX_AUTH','Nieuwe belasting dienst');
 define('SETUP_INFO_HEADING_EDIT_TAX_AUTH','Bewerk belasting dienst');
 define('SETUP_TAX_AUTHS_LOG','Belasting Diensten - ');
+define('SETUP_DISPLAY_NUMBER_OF_TAX_AUTH', TEXT_DISPLAY_NUMBER . 'belastingautoriteiten');
 define('SETUP_TITLE_TAX_RATES','Verkoop Belasting Tarief');
 define('SETUP_TITLE_TAX_RATES_VEND','Inkoop Belasting Tarief');
 define('SETUP_HEADING_TAX_FREIGHT','Vracht Belasting');
@@ -224,6 +229,7 @@ define('SETUP_TAX_INSERT_INTRO','Voer alstublieft het nieuwe belasting tarief in
 define('SETUP_TAX_DELETE_INTRO','Weet u zeker dat u dit belasting tarief wilt verwijderen?');
 define('SETUP_HEADING_NEW_TAX_RATE','Nieuw Belasting tarief');
 define('SETUP_HEADING_EDIT_TAX_RATE','Bewerk Belasting tarief');
+define('SETUP_DISPLAY_NUMBER_OF_TAX_RATES', TEXT_DISPLAY_NUMBER . 'belastingtarieven');
 define('SETUP_TAX_RATES_LOG','Belasting Tarieven - ');
 define('GEN_ADM_TOOLS_INVENTORY_OWED','Voorraad Kosten van de Verkoop');
 define('GEN_ADM_TOOLS_INVENTORY_DESC','Uw inventory_cogs_owed tabel heeft op dit moment %s regels.<br> Deze tool zal alle regels controleren en opnieuw op slaan. <br>De inventory_cogs_owed tabel zou geen regels moeten bevatten tenzij de voorraad niveau\'s negatief zijn. <br>Als de tabel items bevat en de voorraad niveaus zijn nul of groter dan zal deze tool proberen om de tabel te repareren door het her-opslaan van de journaal posten. <br>Er waren problemen met release R3.6 en ouder. U kunt in een rapport be kijken welke items in uw cogs_owed tabel staan.');

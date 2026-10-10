@@ -25,6 +25,18 @@
 // Path: /modules/phreedom/language/nl_nl/admin.php
 
 define('GEN_LOG_RESEND_PW','Herstuur Wachtwoord naar email -> ');
+define('CD_OAUTH2_PROVIDER_DESC', 'Selecteer de OAuth2 provider die de verzendende mailbox host.');
+define('CD_OAUTH2_CLIENT_ID_DESC', 'OAuth2 Client ID (Application ID) uit de Google Cloud Console of Azure App Registration.');
+define('CD_OAUTH2_CLIENT_SECRET_DESC', 'OAuth2 Client Secret uit de Google Cloud Console of Azure App Registration.');
+define('CD_OAUTH2_TENANT_DESC', 'Alleen Microsoft: Azure AD tenant ID, of gebruik <em>common</em> voor multi-tenant apps en persoonlijke accounts.');
+define('CD_OAUTH2_EMAIL_DESC', 'Het e-mailadres van het account dat wordt geautoriseerd. Moet overeenkomen met het account waarmee u toestemming geeft.');
+define('CD_OAUTH2_REFRESH_TOKEN_DESC', 'Opgeslagen refresh token (wordt automatisch ingesteld wanneer u op Autoriseren klikt). Maak dit veld leeg om de toegang in te trekken.');
+define('CD_OAUTH2_AUTHORIZE', 'Autoriseren');
+define('CD_OAUTH2_AUTHORIZE_HINT', 'Sla eerst de clientgegevens op en klik daarna op Autoriseren om het toestemmingsscherm te openen. Het refresh token wordt automatisch opgeslagen.');
+define('CD_OAUTH2_AUTHORIZED', 'Geautoriseerd — refresh token is opgeslagen.');
+define('CD_OAUTH2_NOT_AUTHORIZED', 'Nog niet geautoriseerd.');
+define('CD_OAUTH2_ERROR_NO_TOKEN', 'Vernieuwen van het OAuth2 token mislukt. Autoriseer opnieuw in Admin &rsaquo; Email.');
+define('CD_OAUTH2_ERROR_NO_CURL', 'OAuth2 vereist de PHP cURL extensie.');
 define('GEN_LOG_LOGIN','Inloggen Gebruiker -> ');
 define('GEN_LOG_LOGIN_FAILED','Inloggen van gebruiker mislukt - id -> ');
 define('GEN_LOG_LOGOFF','Gebruikker Uitgelogd -> ');
@@ -107,6 +119,14 @@ define('TEXT_DEF_DATA','Basis Data');
 define('SETUP_CO_MGR_DEL_CO','Verwijder Bedrijf');
 define('SETUP_CO_MGR_COPY_CO','Kopieer Bedrijf');
 define('GEN_BACKUP_DOWNLOAD_EMPTY','Het gedownloade bestand bevat geen data!');
+define('GEN_RESTORE_PROGRESS', 'Voortgang Import');
+define('GEN_RESTORE_DB_BUTTON', 'Database Herstel');
+define('GEN_RESTORE_FULL_BUTTON', 'Volledig Herstel');
+define('GEN_RESTORE_DONE', 'Import voltooid. Log uit en log opnieuw in om het herstel te voltooien.');
+define('GEN_RESTORE_ERROR', 'Importfout: ');
+define('GEN_RESTORE_EXTRACTING', 'Archief uitpakken...');
+define('GEN_RESTORE_CONFIRM_FULL', 'Waarschuwing! Hiermee worden alle bedrijfsbestanden en de database overschreven. Weet u het zeker?');
+define('GEN_RESTORE_UPLOAD_LABEL', 'Dumpbestand');
 define('GEN_BACKUP_FILE_ERROR','Het zip bestand kan niet gemaakt worden. Controleer de rechten voor de directory: ');
 define('GEN_BACKUP_NO_ZIP_CLASS','Kan het bestand niet zippen. PHP heeft een zip Bibliotheek nodig om een back-up te maken met zip compressie.');
 define('GEN_BACKUP_WARNING','Waarschuwing! Deze handeling zal de hele database verwijderen en opnieuw schrijven. Weet u zeker dat u door wil gaan?');
@@ -201,6 +221,8 @@ define('CD_00_01_DESC','Stelt de weergave-indeling voor weergegeven en invoeren 
 define('CD_09_01_DESC','Bepaalt de standaard export voorkeur van rapporten en formulieren. Lokaal zal ze opslaan in de /my_files/reports directory van de webserver, voor gebruik met alle bedrijven. Download het bestand wordt gedownload naar uw browser om op te slaan/afdrukken op uw computer.');
 define('CD_20_99_DESC','Activeert het aanmaken van een trace voor debug doeleinden. Als ingesteld zal er een extra optie worden toegevoegd aan het menu Tools om het trace bestand te downloaden. Deze informatie kan u helpen problemen te debuggen.');
 define('CD_15_05_DESC','Wanneer deze optie is ingeschakeld zal ajax gebruikt worden om de sessie-timer om de 5 minuten te vernieuwen om afmelden van de gebruiker te voorkomen. Deze functie helpt te voorkomen dat het opslaan mislukt. (wanneer het opslaan resulteert in een login scherm).');
+define('CD_16_01_DESC', 'Sta gebruikers toe in te loggen met een passkey (vingerafdruk, gezichtsherkenning, schermvergrendeling of een beveiligingssleutel) in plaats van een wachtwoord. Vereist dat de site via HTTPS draait; anders wordt de optie genegeerd.');
+define('CD_16_02_DESC', 'Relying Party ID voor passkeys - laat normaal leeg om automatisch de domeinnaam van deze site te gebruiken. Stel dit alleen in als de site achter een proxy/hostnaam draait die niet overeenkomt met de geconfigureerde server-URL.');
 define('CD_15_01_DESC','Voer de tijd seconden in. (Standaard = 3600). Voorbeeld: 3600 = 1 uur <br /> LET OP: Te weinig seconden kan resulteren in een time-out problemen bij het toevoegen / bewerken van producten.');
 define('CD_08_10_DESC','Beperkt de geschiedenis in de klant / leverancier accounts van verkopen en inkopen.');
 define('CD_08_07_DESC','Update de wisselkoers van valuta bij elke login. <br /> Indien uitgeschakeld kunnen valuta handmatig worden aangepast in het menu Setup => Valuta.');
@@ -230,6 +252,10 @@ define('GL_BTN_IMP_BEG_BALANCES','Importeer Voorraad, Betaalbare Rekeningen, Te 
 define('GL_HEADING_IMPORT_BEG_BALANCES','Importeer Begin Balans');
 define('GL_HEADING_BEGINNING_BALANCES','Grootboekrekening - Begin Balans');
 define('GEN_ADM_TOOLS_BTN_CLEAN','Reinig Nu!');
+define('GEN_ADM_TOOLS_SECURITY_HEADING', 'Beveiligingswaarden Gegevens Opschonen');
+define('GEN_ADM_TOOLS_SECURITY_DESC', 'Dit hulpmiddel verwijdert alle gegevensbeveiligingswaarden met een vervaldatum vóór een geselecteerde datum. WAARSCHUWING: Deze bewerking kan niet ongedaan worden gemaakt!');
+define('TEXT_CLEAN_BEFORE', 'Verwijder alle waarden met een vervaldatum vóór:');
+define('TEXT_CLEAN_SECURITY_SUCCESS', '%s gegevensbeveiligingsrecords succesvol verwijderd.');
 define('GEN_ADM_TOOLS_BTN_BACKUP','Backup Nu!');
 define('GEN_ADM_TOOLS_BTN_CLEAN_CONFIRM','Weet u zeker dat u deze audit log records wil verwijderen?');
 define('GEN_ADM_TOOLS_CLEAN_LOG_CLEAN','Reinig Audit Log');
@@ -241,6 +267,9 @@ define('ERROR_CANNOT_CREATE_MODULE_DIR','Error Bij maken van directory: %s. Cont
 define('GEN_ERROR_NO_THEME_COLORS','U moet een kleur kiezen. Dit thema blijkt er geen te hebben. Kies een ander thema!');
 define('GEN_ADMIN_CANNOT_CHANGE_ROLES','U rechten staan u niet toe om rollen te wijzigen!');
 define('TEXT_THEMES_COLORS_DESC','Stel uw het kleurschema en thema van uw voorkeur in. Klik op bewaren en zie het in actie.');
+define('TEXT_MENU_OPEN_BEHAVIOUR', 'Openingsgedrag Bootstrap Menu');
+define('TEXT_MENU_CLICK', 'Klikken (standaard)');
+define('TEXT_MENU_HOVER', 'Zweven');
 define('TEXT_THEMES_COLORS_TITLE','Thema en Kleur Schema\'s');
 define('GEN_ADM_TOOLS_SEQ_HEADING','Verander Diverse nummer Reeksen');
 define('GEN_ADM_TOOLS_SEQ_DESC','Wijzigingen in de volgorde kunnen hier gemaakt worden <br /> Opmerking 1:. FreeBooks niet omgaan met dubbele reeksen, Zorg ervoor dat de nieuwe startvolgorde niet in strijd is met eerder geposte waarden <br /> Opmerking 2.: De next_deposit_num wordt gegenereerd door het systeem en maakt gebruik van de huidige datum <br /> Noot 3:. De next_check_num kan worden ingesteld bij de betaling scherm voorafgaand aan het plaatsen van een betaling en blijven van de ingevoerde waarde.');
@@ -263,6 +292,28 @@ define('PB_PF_POSTED_CURRENCY','Opgeslagen Valuta');
 define('PB_PF_NULL_POSTED_CURRENCY','Null 0 - Opgeslagen Valuta');
 define('PB_PF_NULL_DEF_CURRENCY','Null 0 - Standaard Valuta');
 define('TEXT_FORM_PLEASE_WAIT','Een ogenblik ... Het upgraden, kan even duren.');
+define('TEXT_PASSKEY_LOGIN_BUTTON', 'Inloggen met een passkey');
+define('TEXT_PASSKEYS_TITLE', 'Mijn Passkeys');
+define('TEXT_PASSKEYS_DESC', 'Met een passkey logt u in met de vingerafdruk, gezichtsherkenning of schermvergrendeling van uw apparaat, of met een beveiligingssleutel, in plaats van uw wachtwoord te typen. U kunt er meer dan één registreren, bijvoorbeeld voor een laptop en een telefoon.');
+define('TEXT_PASSKEY_LABEL', 'Naam');
+define('TEXT_PASSKEY_ADDED', 'Toegevoegd');
+define('TEXT_PASSKEY_LAST_USED', 'Laatst Gebruikt');
+define('TEXT_PASSKEY_NEVER_USED', 'nooit');
+define('TEXT_PASSKEY_NONE', 'Nog geen passkeys geregistreerd.');
+define('TEXT_PASSKEY_ADD', 'Passkey toevoegen');
+define('TEXT_PASSKEY_RENAME', 'Hernoem');
+define('TEXT_PASSKEY_DELETE', 'Verwijder');
+define('TEXT_PASSKEY_REVOKE', 'Intrekken');
+define('TEXT_PASSKEY_NAME_PROMPT', 'Geef deze passkey een naam (bijv. "Werklaptop"):');
+define('TEXT_PASSKEY_RENAME_PROMPT', 'Hernoem deze passkey:');
+define('TEXT_PASSKEY_CONFIRM_DELETE', 'Deze passkey verwijderen? U kunt er dan niet meer mee inloggen.');
+define('TEXT_PASSKEY_CONFIRM_REVOKE', 'Deze passkey intrekken? De gebruiker kan er dan niet meer mee inloggen.');
+define('TEXT_PASSKEY_DEFAULT_LABEL', 'Passkey toegevoegd %s');
+define('TEXT_PASSKEY_MSG_UNSUPPORTED', 'Deze browser ondersteunt geen passkeys.');
+define('TEXT_PASSKEY_MSG_WAITING', 'Volg de aanwijzingen op uw apparaat om door te gaan...');
+define('TEXT_PASSKEY_MSG_SUCCESS', 'Gelukt.');
+define('TEXT_PASSKEY_MSG_FAILED', 'Dat is niet gelukt. Probeer het opnieuw.');
+define('TEXT_PASSKEY_MSG_CANCELLED', 'Geannuleerd.');
 define('PB_PF_DEF_CURRENCY','Standaard Valuta');
 define('TEXT_LOGIN_BUTTON','Login');
 define('TEXT_LOGIN_COLORS','Selecteer Kleur Schema');
@@ -275,6 +326,8 @@ define('TEXT_LOGIN_COMPANY','Selecteer Bedrijf: ');
 define('TEXT_LOGIN_NAME','Gebruikersnaam: ');
 define('HEADING_TITLE','FreeBooks Login');
 define('TEXT_NEXT_ID','Volgende Regel ID');
+define('TEXT_USE_IN_FILTER', 'Gebruik in voorraadfilter');
+define('TEXT_SETTINGS', 'Instellingen');
 define('TEXT_COLLATION','Collation');
 define('TEXT_NUM_ROWS','Aantal Regels');
 define('TEXT_ENGINE','DB Engine');
@@ -286,7 +339,7 @@ if (!defined('TEXT_TABS')) define('TEXT_TABS','Tabbladen'); // also defined in a
 define('TEXT_LEGEND','Legenda');
 define('TEXT_DEBUG','Debug en Troubleshooting');
 define('TEXT_LOCAL','lokaal');
-define('TEXT_EXTRA_FIELDS','Speciale Velden');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS','Speciale Velden');
 define('TEXT_EXTRA_TABS','Speciale Tabbladen');
 define('MENU_HEADING_EMAIL','Email Voorkeuren');
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen'); // also defined in inventory/admin.php, phreebooks/admin.php
@@ -299,4 +352,6 @@ define('TEXT_COPYRIGHT_NOTICE','Dit programma is gratis software: je kunt het he
 // Password reset (token flow)
 define('GEN_LOG_PW_RESET_REQ', 'Password reset link sent to email -> ');
 define('GEN_LOG_PW_RESET_DONE', 'Password reset completed for email -> ');
+define('TEXT_DASHBOARDS', 'Dashboards');
+define('TEXT_DASHBOARD_PANELS', 'Bedrijfslinks, notities en takenpanelen');
 ?>

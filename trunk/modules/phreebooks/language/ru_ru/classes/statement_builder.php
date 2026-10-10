@@ -8,6 +8,7 @@
 // +-----------------------------------------------------------------+
 // Path: //modules/phreebooks/language/ru_ru/classes/statement_builder.php
 
+define('TEXT_AGE', 'Срок');
 define('RW_SB_RECORD_ID','ID записи');
 define('RW_SB_POST_DATE','Post Date');
 define('RW_SB_JOURNAL_ID','Журнал ID');
@@ -15,6 +16,7 @@ define('RW_SB_CUSTOMER_ID','ID покупателя');
 define('RW_SB_ACCOUNT_NUMBER','Account Number');
 define('RW_SB_SALES_REP','Sales Rep');
 define('RW_SB_TERMS','Условия');
+define('RW_SB_CUSTOMER_RECORD', 'ID записи плательщика');
 define('RW_SB_BILL_PRIMARY_NAME','  	 Bill Primary Name ');
 define('RW_SB_BILL_CONTACT','Коетакты плательщика');
 define('RW_SB_BILL_ADDRESS1','Адрес плательщика 1');

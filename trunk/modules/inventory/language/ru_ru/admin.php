@@ -29,6 +29,7 @@ define('TEXT_SRV_ITEMS','Сервис');
 define('TEXT_LABOR_ITEMS','Оплата труда');
 define('TEXT_ACT_ITEMS','Активность');
 define('TEXT_CHARGE_ITEMS','Расходы');
+define('TEXT_DESC_ITEMS', 'Описание');
 define('MODULE_INVENTORY_NOTES_1','PRIORITY MEDIUM: Set default general ledger accounts for inventory types, after loading GL accounts (Company -> Inventory Module Properties -> Inventory tab)');
 define('CD_05_50_DESC','Determines the default sales tax rate to use when adding inventory items.<br /><br />NOTE: This value is applied to inventory Auto-Add but can be changed in the Inventory => Maintain screen. The tax rates are selected from the table tax_rates and must be setup through Setup => Sales tax Rates.');
 define('CD_05_52_DESC','Determines the default purchase tax rate to use when adding inventory items.<br /><br />NOTE: This value is applied to inventory Auto-Add but can be changed in the Inventory => Maintain screen. The tax rates are selected from the table tax_rates and must be setup through Setup => Purchase tax Rates.');
@@ -37,47 +38,13 @@ define('CD_05_60_DESC','Allows an ajax call to fill in possible choices as data 
 define('CD_05_65_DESC','When enabled, FreeBooks looks for a SKU length in the order form equal to the Bar Code Length value and when the length is reached, attempts to match with an inventory item. This allow fast entry of items when using bar code readers.');
 define('CD_05_70_DESC','Sets the number of characters to expect when reading inventory bar code values. FreeBooks only searches when the number of characters has been reached. Typical values are 12 and 13 characters.');
 define('CD_05_75_DESC','When enabled, FreeBooks will update the item cost in the inventory table with either the PO price or Purchase/Receive price. Usefule for on the fly PO/Purchases and updating prices from the order screen without having to update the inventory tables first.');
-define('INV_HEADING_CATEGORY_NAME','Название категории');
-define('INV_INFO_CATEGORY_DESCRIPTION','Описание категории');
 define('INV_INFO_CATEGORY_NAME','Inventory Category name<br />Name should be short (10) with no special characters or spaces.');
 define('INV_INFO_INSERT_INTRO','Введите новую категорию и ее свойства');
-define('INV_EDIT_INTRO','Пожалуйста, внесите необходимые изменения');
-define('INV_INFO_HEADING_NEW_CATEGORY','Новая категория');
-define('INV_INFO_HEADING_EDIT_CATEGORY','Редактировать категорию');
 define('INV_INFO_DELETE_INTRO','точно хотите удалить категорию?\\nКатегории не могут быть удалены, если есть запись поля в категории.');
 define('INV_INFO_DELETE_ERROR','Категория существует, выбирите другое имя.');
 define('INV_TABS_LOG','Табы товара - ');
-define('INV_CATEGORY_MEMBER','Члены категории:');
-define('INV_FIELD_NAME','Наименование поля: ');
-define('TEXT_SGL_PREC','Single Precision');
-define('TEXT_DBL_PREC','Double Precision');
-define('INV_LABEL_DEFAULT_TEXT_VALUE','Значение по умолчанию: ');
-define('INV_LABEL_MAX_NUM_CHARS','Maximum Number of Characters (Length)');
-define('INV_LABEL_FIXED_255_CHARS','255 знаков максимум.');
-define('INV_LABEL_MAX_255','(for lengths less than 256 Characters)');
-define('INV_LABEL_CHOICES','Enter Selection String');
-define('INV_LABEL_TEXT_FIELD','Текстовое поле');
-define('INV_LABEL_HTML_TEXT_FIELD','HTML Код');
-define('INV_LABEL_HYPERLINK','Ссылка');
-define('INV_LABEL_IMAGE_LINK','Файл изображения');
-define('INV_LABEL_INVENTORY_LINK','Inventory Link (Link pointing to another inventory item (URL))');
-define('INV_LABEL_INTEGER_FIELD','Целое число');
-define('INV_LABEL_INTEGER_RANGE','Диапазон целых чисел');
-define('INV_LABEL_DECIMAL_FIELD','Десятичное число');
-define('INV_LABEL_DECIMAL_RANGE','Диапазон десятичных');
-define('INV_LABEL_DEFAULT_DISPLAY_VALUE','Формат отображения (Max,Decimal)');
-define('INV_LABEL_DROP_DOWN_FIELD','Выпадающий список');
-define('INV_LABEL_RADIO_FIELD','Radio Button Selection<br />Enter choices, separated by commas as:<br />value1:desc1:def1,value2:desc2:def2<br /><u>Key:</u><br />value = The value to place into the database<br />desc = Textual description of the choice<br />def = Default 0 or 1, 1 being the default choice<br />Note: Only 1 default is allowed per list');
-define('INV_LABEL_DATE_TIME_FIELD','Дата и время');
-define('INV_LABEL_CHECK_BOX_FIELD','Чек бокс (Да или Нет)');
-define('INV_LABEL_TIME_STAMP_FIELD','Временной штамп');
-define('INV_LABEL_TIME_STAMP_VALUE','System field to track the last date and time a change to a particular inventory item was made.');
-define('INV_FIELD_NAME_RULES','Fieldnames cannot contain spaces or special<br />characters and must be 64 characters or less');
-define('INV_CATEGORY_CANNOT_DELETE','Не могу удалить категорию. Используется полем: ');
-define('INV_CANNOT_DELETE_SYSTEM','Fields in the System category cannot be deleted!');
 // INV_IMAGE_* live in this module's language.php - the item page raises them and
 // never loads admin.php. Defining them here too collides when both files load.
-define('INV_FIELD_RESERVED_WORD','The field name entered is a reserved word. Please choose a new field name.');
 define('INV_TOOLS_VALIDATE_SO_PO','Инвентаризация: проверка количества товаров в заказах');
 define('INV_TOOLS_VALIDATE_SO_PO_DESC','This operation tests to make sure your inventory quantity on Purchase Order and quantity of Sales Order match with the journal entries. The calculated values from the journal entries override the value in the inventory table.');
 define('INV_TOOLS_REPAIR_SO_PO','Test and Repair Inventory Quantity on Order Values');
@@ -97,7 +64,6 @@ define('INV_TOOLS_OUT_OF_BALANCE','SKU: %s -> stock indicates %s on hand but COG
 define('INV_TOOLS_IN_BALANCE','Баланс склада в норме.');
 define('INV_TOOLS_STOCK_ROUNDING_ERROR','SKU: %s -> Stock indicates %s on hand but is less than your precision. Please repair your inventory balances, the stock on hand will be rounded to %s.');
 define('INV_TOOLS_BALANCE_CORRECTED','АРТ: %s -> Количество на руках изменено на %s.');
-define('INV_MARGIN','Маржа');
-define('INV_ENTRY_FULL_PRICE_WT','Цена с НДС');
+define('NEXT_SKU_NUM_DESC', 'Следующий артикул');
 
 ?>

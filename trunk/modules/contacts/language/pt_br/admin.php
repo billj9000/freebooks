@@ -43,8 +43,8 @@ define('NEXT_VEND_ID_NUM_DESC','Próxima ID Fornecedor');
 define('TEXT_CONTACT_TYPE','Tipo Contato');
 define('NEXT_CUST_ID_NUM_DESC','Próxima ID Cliente');
 if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Funcionário'); // also defined in contacts/language.php
-define('TEXT_VENDOR','Fornecedor');
-define('TEXT_CUSTOMER','Cliente');
+if (!defined('TEXT_VENDOR')) define('TEXT_VENDOR','Fornecedor');
+if (!defined('TEXT_CUSTOMER')) define('TEXT_CUSTOMER','Cliente');
 define('COST_TYPE_OTH','Outros');
 define('COST_TYPE_EQT','Equipamento');
 define('COST_TYPE_CNT','Empreiteiros');

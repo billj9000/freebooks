@@ -13,8 +13,10 @@ define('BOX_INV_NEW','Новая единица');
 define('BOX_INV_ADJUSTMENTS','Корректировки');
 define('BOX_INV_ASSEMBLIES','Assemblies');
 define('BOX_INV_TRANSFER','Движение товаров');
-define('MENU_HEADING_INVENTORY','Карточка товара');
 define('ORD_TEXT_14_WINDOW_TITLE','Сборка');
 define('ORD_TEXT_16_WINDOW_TITLE','Коректировка');
+define('BOX_PRICE_SHEET_MANAGER', 'Управление прайсами');
+define('BOX_SALES_PRICE_SHEETS', 'Прайсы клиентов');
+define('BOX_PURCHASE_PRICE_SHEETS', 'Прайсы поставщиков');
 
 ?>

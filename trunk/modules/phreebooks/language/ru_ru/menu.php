@@ -38,7 +38,6 @@ define('BOX_BANKING_VOID_CHECKS','Void Checks');
 define('BOX_GL_BUDGET','Бюджетирование');
 define('BOX_GL_JOURNAL_ENTRY','Проводки');
 define('BOX_GL_UTILITIES','General Journal Utilities');
-define('BOX_PRICE_SHEET_MANAGER','Управление Прайсами');
 define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks Админка');
 define('ORD_TEXT_0_WINDOW_TITLE','Начальный баланс');
 define('ORD_TEXT_2_WINDOW_TITLE','Главная книга');
@@ -59,6 +58,8 @@ define('ORD_TEXT_20_C_WINDOW_TITLE','Customer Refund');
 define('ORD_TEXT_20_V_WINDOW_TITLE','Платеж поставщику');
 define('BOX_TEXT_NEW_TITLE','Новый %s');
 define('BOX_STATUS_MGR','Список %s');
+define('ORD_TEXT_RECEIPTS_TITLE', 'Поступления');
+define('ORD_TEXT_PAYMENTS_TITLE', 'Платежи');
 define('PO_EXPORT_PROFILES_TITLE','Профили экспорта заказов на закупку');
 
 ?>

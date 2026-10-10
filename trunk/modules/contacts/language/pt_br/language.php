@@ -120,6 +120,10 @@ define('GEN_ADDRESS1','Endereço 1');
 define('GEN_CONTACT','Atenção');
 define('GEN_EMPLOYEE_NAME','Nome Funcionário');
 define('TEXT_NEW_LEAD','Novo Assunto');
+define('TEXT_RETAIL', 'Varejo');
+define('TEXT_DEALER', 'Revendedor');
+define('TEXT_WHOLESALE', 'Atacado');
+define('CONTACT_LEVEL', 'Nível do Cliente');
 if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Nome/Empresa'); // also defined in phreedom/language.php
 define('TEXT_FOLLOW_UP_CALL','Follow Up');
 define('TEXT_RETURN_CALL','Ligação Retornada');
@@ -128,6 +132,7 @@ if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Representante Vendas');
 define('TEXT_COPY_ADDRESS','Endereço Transferência');
 define('TEXT_LINK_TO','Link Para:');
 define('TEXT_NEW_CONTACT','Novo Contato');
+if (!defined('TEXT_SALES')) define('TEXT_SALES', 'Vendas');
 if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Funcionário'); // also defined in contacts/admin.php
 define('TEXT_CONTACTS','Contatos');
 define('ACT_SHORT_NAME','ID Contato');
@@ -160,5 +165,6 @@ define('ACT_NO_KEY_EXISTS','Um pagamento foi espeficicado mas achave de criptogr
 define('ACT_ERROR_DUPLICATE_CONTACT','O ID de contato já existe no sistema, por favor entre um novo ID de contato.');
 define('CRM_ROW_DELETE_ALERT','Você tem certeza de que quer excluir esta anotação de CRM?');
 define('ACT_JS_SHORT_NAME','* A entrada de \\\'ID\\\' não pode estar em branco.');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Campos Personalizados');
 
 ?>

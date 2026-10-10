@@ -7,17 +7,27 @@
 // +-----------------------------------------------------------------+
 // Path: //modules/contacts/language/ru_ru/language.php
 
+define('CONTACTS_CHART_SALES_TITLE', 'Продажи по месяцам');
 define('ACT_POPUP_WINDOW_TITLE','Поиск счета');
 define('ACT_POPUP_TERMS_WINDOW_TITLE','Условия оплаты');
 define('ACT_CATEGORY_I_ADDRESS','Добавить/Редактировать контакт');
-define('TEXT_BUYER','Покупатель');
+if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Покупатель');
 define('ACT_SHORT_NAME','ID контакта');
 define('TEXT_CONTACTS','Контакты');
-define('TEXT_EMPLOYEE','Сотрудник');
+if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Сотрудник');
 define('TEXT_LINK_TO','Ссылка:');
 define('TEXT_NEW_CONTACT','Новый контакт');
-define('TEXT_SALES_REP','Отчет по продажам');
+if (!defined('TEXT_SALES')) define('TEXT_SALES', 'Продажи');
+if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Отчет по продажам');
 define('TEXT_COPY_ADDRESS','Адрес трансфера');
+define('TEXT_NEW_CALL', 'Новый звонок');
+define('TEXT_RETURN_CALL', 'Ответный звонок');
+define('TEXT_FOLLOW_UP_CALL', 'Повторный контакт');
+define('TEXT_NEW_LEAD', 'Новый лид');
+define('TEXT_RETAIL', 'Розница');
+define('TEXT_DEALER', 'Дилер');
+define('TEXT_WHOLESALE', 'Опт');
+define('CONTACT_LEVEL', 'Уровень клиента');
 if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Имя/Компания'); // also defined in phreedom/language.php
 define('GEN_EMPLOYEE_NAME','Имя сотрудника');
 define('GEN_CONTACT','Внимание');
@@ -110,7 +120,6 @@ define('ACT_INV_HIST','История заказа');
 define('ACT_SO_NUMBER','SO Номер');
 define('ACT_PO_NUMBER','PO Номер');
 define('ACT_INV_NUMBER','Номер счета');
-define('ACT_NO_RESULTS','Ничего не найдено');
 define('ACT_PAYMENT_MESSAGE','Введенная платежная информация будет сохранена FreeBooks.');
 define('ACT_CARDHOLDER_NAME','Имя владельца карты');
 define('ACT_PAYMENT_CREDIT_CARD_NUMBER','Номер карты');
@@ -143,6 +152,7 @@ define('ACT_WARN_DELETE_ADDRESS','Точно хотите удалить это�
 define('ACT_WARN_DELETE_ACCOUNT','Точно хотите удалить этот аккаунт?');
 define('ACT_WARN_DELETE_PAYMENT','Точно хотите удалить этот платеж?');
 define('ACT_ERROR_CANNOT_DELETE','Не могу удалить счет, потому что существуют записи в Главной Книге');
+define('ACT_ERROR_CANNOT_DELETE_EMPLOYEE', 'Невозможно удалить этого сотрудника, так как он связан с пользователем.');
 define('ACT_ERROR_DUPLICATE_ACCOUNT','ID счета уже существует в системе, введите другой id.');
 define('ACT_ERROR_ACCOUNT_NOT_FOUND','Искомый счет не найден!');
 define('ACT_BILLING_MESSAGE','Это поле не нужно, если есть платежный адрес.');
@@ -153,6 +163,8 @@ define('ACT_LIST_OPEN_ORDERS','Открытые заказы');
 define('ACT_LIST_OPEN_INVOICES','Открытые счета');
 define('ACT_NO_KEY_EXISTS','Платеж был определен, но ключ шифрования не был введен.Платежный адрес был сохранен, но сведения об оплате не было.');
 define('ACT_ERROR_DUPLICATE_CONTACT','ID контакта уже существует, введите другой ID.');
+define('CRM_ROW_DELETE_ALERT', 'Вы уверены, что хотите удалить эту заметку CRM?');
 define('ACT_JS_SHORT_NAME','* \\\'ID\\\' не может быть пустым.\\n');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Дополнительные поля');
 
 ?>

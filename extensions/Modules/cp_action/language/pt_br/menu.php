@@ -8,7 +8,6 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/cp_action/language/pt_br/menu.php
 
-define('MENU_HEADING_QUALITY','Qualidade');
 define('MENU_HEADING_CAPA','Ação Corretiva/Preventiva');
 define('BOX_CAPA_MODULE','Ação C/P');
 

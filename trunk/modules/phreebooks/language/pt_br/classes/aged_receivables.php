@@ -48,6 +48,7 @@ define('RW_AR_CUR_EXC_RATE','Moeda Exc. Taxa');
 define('RW_AR_SO_NUM','Número Ordem Venda');
 define('RW_AR_CUR_CODE','Código Moeda');
 define('RW_AR_BALANCE_DUE','Saldo Aberto');
+define('RW_AR_BALANCE_FUTRE', 'Futuro');
 define('RW_AR_INV_TOTAL','Valor Fatura');
 define('RW_AR_SALES_TAX','Taxa Vendas');
 define('RW_AR_TAX_AUTH','Autoridades Fiscais');

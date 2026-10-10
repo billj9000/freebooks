@@ -15,5 +15,7 @@ if (!defined('TEXT_PRODUCTION')) define('TEXT_PRODUCTION','Активирова�
 define('TEXT_AUTHORIZE','Авторизация');
 define('TEXT_CAPTURE','Захват');
 define('TEXT_REMOVE_MESSAGE','Точно хотите удалить модуль и все данные связанные с ним?');
+define('OPEN_POS_DRAWER', '0');
+define('SORT_ORDER_DESC', 'Порядок сортировки при отображении. Наименьший отображается первым.');
 
 ?>

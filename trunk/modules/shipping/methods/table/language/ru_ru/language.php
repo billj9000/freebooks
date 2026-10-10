@@ -9,6 +9,7 @@
 // Path: //modules/shipping/methods/table/language/ru_ru/language.php
 
 define('MODULE_SHIPPING_TABLE_TEXT_TITLE','Table Rate');
+define('MODULE_SHIPPING_TABLE_TITLE_SHORT', 'По таблице');
 define('MODULE_SHIPPING_TABLE_TEXT_DESCRIPTION','Table Rate');
 define('MODULE_SHIPPING_TABLE_TITLE_DESC','Title to use for display purposes on shipping rate estimator');
 define('MODULE_SHIPPING_TABLE_COST_DESC','The shipping cost is based on the total cost or weight of items. Example: 25:8.50,50:5.50,etc.. Up to 25 charge 8.50, from there to 50 charge 5.50, etc');

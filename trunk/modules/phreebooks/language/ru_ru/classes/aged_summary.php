@@ -8,6 +8,7 @@
 // +-----------------------------------------------------------------+
 // Path: //modules/phreebooks/language/ru_ru/classes/aged_summary.php
 
+define('TEXT_AGE', 'Срок');
 define('RW_AR_RECORD_ID','Record ID');
 define('RW_AR_JOURNAL_ID','Journal ID');
 define('RW_AR_STORE_ID','Store ID');

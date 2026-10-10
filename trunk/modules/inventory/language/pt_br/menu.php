@@ -16,6 +16,5 @@ define('ORD_TEXT_14_WINDOW_TITLE','Montagens');
 define('BOX_INV_TRANSFER','Transferir Estoque');
 define('BOX_INV_NEW','Novo Estoque');
 define('BOX_INV_MAINTAIN','Estoque');
-define('MENU_HEADING_INVENTORY','Estoque');
 
 ?>

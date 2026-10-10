@@ -26,6 +26,7 @@ define('TEXT_EDIT_OTHER_TRANSACTION','Bewerk Overige Transacties');
 define('PHREEPOS_ENABLE_DIRECT_PRINTING_DESC','Moet direct printen geactiveerd zijn? Door het de deactiveren zullen de pop_ups verdwijnen die vragen om java toe te staan.');
 
 define('SETUP_TILL_DELETE_INTRO','Wil u deze kassa lade verwijderen?');
+define('SETUP_OT_DELETE_INTRO', 'Wilt u deze andere transactie verwijderen?');
 define('PHREEPOS_DISPLAY_WITH_TAX_DESC','Wil u de prijzen op het scherm laten zien met btw<br> (als u nee selecteerd worden de prijzen exclusief btw)');
 define('PHREEPOS_DISCOUNT_OF_DESC','wilt u dat de korting wordt berekend over het totaal<br> ( als u nee selecteerd wordt de korting berekend over het sub totaal) ');
 define('PHREEPOS_ROUNDING_DESC','Hoe wil u dat het eindtotaal wordt afgerond.<br> <b>NEE</b> betekend dat het eindtotaal niet wordt afgerond.<br><b>GEHEEL GETAL</b> betekend:  dat naar de eerste euro omlaag wordt afgerond.<br><b>10 CENTEN</b> Betekend:  dat alles naar de eerste 10cent omlaag wordt afgerond.<br><b>NEUTRAAL</b> Er zal worden afgerond naar de dichts bij zijnde 0, 5 of 10 cent (1,2,6,7 naar beneden 3,4,8,9 naar boven)');

@@ -27,6 +27,7 @@ define('TEXT_LOG_FILE','Log File');
 define('TEXT_LOG_EMAIL','Log and Email');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_DECLINED_AVS_MESSAGE','Invalid Billing Address.  Please re-enter your card information, try another card, or contact the store owner for assistance.');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_DECLINED_GENERAL_MESSAGE','Your card has been declined.  Please re-enter your card information, try another card, or contact the store owner for assistance.');
+define('ALERT_LINKPOINT_API_PREAUTH_TRANS', '***SOMENTE AUTORIZAÇÃO -- AS COBRANÇAS SERÃO LIQUIDADAS POSTERIORMENTE PELO ADMINISTRADOR.***' . "\n");
 define('ALERT_LINKPOINT_API_TEST_FORCED_SUCCESSFUL','NOTE: This was a TEST transaction...forced to return a SUCCESS response.');
 define('ALERT_LINKPOINT_API_TEST_FORCED_DECLINED','NOTE: This was a TEST transaction...forced to return a DECLINED response.');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_NOT_CONFIGURED','<b>&nbsp;(NOTE: Module is not configured yet)</b>');

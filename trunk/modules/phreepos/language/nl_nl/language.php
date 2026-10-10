@@ -29,7 +29,7 @@ define('TEXT_OPEN_DRAWER','open kassala');
 define('TEXT_PRINT_PREVIOUS','Print Vorige Bon');
 define('TEXT_SELECT_CUSTOMER','Selecteer Klant');
 define('TEXT_AMOUNT_ORIGINAL_CURRENCY','Oorspr Bedrag');
-define('TEXT_SALES','Verkopen');
+if (!defined('TEXT_SALES')) define('TEXT_SALES','Verkopen');
 define('PHREEPOS_HANDELING_CASH_DIFFERENCE','Geboekt Kasverschil');
 define('POS_HEADING_CLOSING','Dag Afsluiting');
 

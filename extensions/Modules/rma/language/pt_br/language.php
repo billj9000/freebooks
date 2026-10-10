@@ -51,6 +51,7 @@ define('RMA_STATUS_6','Aguardando por Crédito');
 define('RMA_STATUS_7','Fechado - Substituído');
 define('RMA_STATUS_8','Fechado - Sem Garantia');
 define('RMA_STATUS_9','Reclamação Dano');
+define('RMA_STATUS_10', 'Fechado - Devolvido');
 define('RMA_STATUS_90','Fechado - Não Recebido');
 define('RMA_STATUS_99','Fechado');
 define('RMA_REASON_0','Selecione Motivo ARM ...');

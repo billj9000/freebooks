@@ -7,6 +7,7 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/contacts/language/nl_nl/language.php
 
+define('CONTACTS_CHART_SALES_TITLE', 'Maandelijkse Verkopen');
 define('ACT_POPUP_WINDOW_TITLE','Account Zoeken');
 define('ACT_POPUP_TERMS_WINDOW_TITLE','Betalingsregels');
 define('ACT_CATEGORY_I_ADDRESS','Toevoegen/Bewerk Contact');
@@ -16,12 +17,17 @@ define('TEXT_CONTACTS','Contacten');
 if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Medewerker'); // also defined in contacts/admin.php, contacts/menu.php
 define('TEXT_LINK_TO','Link naar:');
 define('TEXT_NEW_CONTACT','Nieuw Contact');
+if (!defined('TEXT_SALES')) define('TEXT_SALES', 'Verkopen');
 if (!defined('TEXT_SALES_REP')) define('TEXT_SALES_REP','Verkoper'); // also defined in phreebooks/language.php
 define('TEXT_COPY_ADDRESS','Kopieer Adres');
 define('TEXT_NEW_CALL','Nieuw Gesprek');
 define('TEXT_RETURN_CALL','Terug Gebeld');
 define('TEXT_FOLLOW_UP_CALL','Vervolg Gesprek');
 define('TEXT_NEW_LEAD','Nieuwe Aanwijzing');
+define('TEXT_RETAIL', 'Detailhandel');
+define('TEXT_DEALER', 'Dealer');
+define('TEXT_WHOLESALE', 'Groothandel');
+define('CONTACT_LEVEL', 'Klantniveau');
 if (!defined('GEN_PRIMARY_NAME')) define('GEN_PRIMARY_NAME','Naam/Bedrijf'); // also defined in phreedom/language.php
 define('GEN_EMPLOYEE_NAME','Medewerker Naam');
 define('GEN_CONTACT','Attentie');
@@ -159,4 +165,5 @@ define('ACT_NO_KEY_EXISTS','Omdat er geen versleuteling is. is het factuuradres 
 define('ACT_ERROR_DUPLICATE_CONTACT','De Contact-ID bestaat al in het systeem, geef dan een nieuwe Contact-ID.');
 define('CRM_ROW_DELETE_ALERT','Weet u zeker dat u deze CRM notitie wil verwijderen?');
 define('ACT_JS_SHORT_NAME','* Het \'ID\' veld mag niet leeg zijn.');
+if (!defined('TEXT_EXTRA_FIELDS')) define('TEXT_EXTRA_FIELDS', 'Aangepaste Velden');
 ?>

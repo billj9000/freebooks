@@ -9,6 +9,7 @@
 // Path: //modules/shipping/methods/flat/language/ru_ru/language.php
 
 define('MODULE_SHIPPING_FLAT_TEXT_TITLE','Фиксированый тариф');
+define('MODULE_SHIPPING_FLAT_TITLE_SHORT', 'Фиксированная');
 define('MODULE_SHIPPING_FLAT_TEXT_DESCRIPTION','Фиксированый тариф');
 define('MODULE_SHIPPING_FLAT_TITLE_DESC','Title to use for display purposes on shipping rate estimator.');
 define('MODULE_SHIPPING_FLAT_COST_DESC','Стоимость доставки для всех заказов при этом способе.');

@@ -8,6 +8,7 @@
 // +-----------------------------------------------------------------+
 // Path: //modules/phreebooks/language/ru_ru/classes/aged_receivables.php
 
+define('TEXT_AGE', 'Срок');
 define('RW_AR_RECORD_ID','Record ID');
 define('RW_AR_JOURNAL_ID','Journal ID');
 define('RW_AR_STORE_ID','Store ID');
@@ -21,6 +22,7 @@ define('RW_AR_SALES_TAX','Налог на продажу');
 define('RW_AR_TAX_AUTH','Налоговые органы');
 define('RW_AR_INV_TOTAL','Сума Счета');
 define('RW_AR_BALANCE_DUE','Дебетовое сальдо');
+define('RW_AR_BALANCE_FUTRE', 'Будущие');
 define('RW_AR_CUR_CODE','Код валюты');
 define('RW_AR_CUR_EXC_RATE','Курс обмена');
 define('RW_AR_SO_NUM','Номер Заказа');

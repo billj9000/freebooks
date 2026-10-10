@@ -9,6 +9,7 @@
 // Path: //modules/shipping/methods/item/language/ru_ru/language.php
 
 define('MODULE_SHIPPING_ITEM_TEXT_TITLE','Per Item');
+define('MODULE_SHIPPING_ITEM_TITLE_SHORT', 'За единицу товара');
 define('MODULE_SHIPPING_ITEM_TEXT_DESCRIPTION','Per Item');
 define('MODULE_SHIPPING_ITEM_TITLE_DESC','Title to use for display purposes on shipping rate estimator');
 define('MODULE_SHIPPING_ITEM_COST_DESC','The shipping cost will be multiplied by the number of items in an order that uses this shipping method.');
