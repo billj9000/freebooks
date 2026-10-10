@@ -258,7 +258,9 @@ class phreedom_admin {
     global $db, $messageStack, $currencies;
     // load the latest currency exchange rates
     if (web_connected(false) && AUTO_UPDATE_CURRENCY && ENABLE_MULTI_CURRENCY) {
-	  gen_pull_language('phreedom', 'admin');
+	  // At login the login page has already loaded these phrases, in its own language, before
+	  // the user's was chosen; loading the user's file now would only redefine every one of them.
+	  if (!defined('SETUP_INFO_CURRENCY_UPDATED')) gen_pull_language('phreedom', 'admin');
 	  require_once(DIR_FS_MODULES . 'phreedom/classes/currency.php');
 	  $currency = new currency();
 	  $currency->btn_update();
