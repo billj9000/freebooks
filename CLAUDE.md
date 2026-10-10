@@ -81,6 +81,15 @@ User-facing documentation lives in the **phreehelp** manual. When a change affec
 
 The how — file locations, the required `<head>` meta tags, locale fallback, the reindex requirement and context-sensitive help wiring — is in the `help-manual-topic` skill.
 
+### Language Files
+
+FreeBooks loads a module's language file for the user's language if it exists, and the `en_us`
+file only if it does not — per file, not per phrase. A phrase added to an `en_us` file but missing
+from an existing translation of that file is an undefined constant in that language, and the page
+stops. After changing any `en_us` language file, run `php docs/tools/build_en_gb.php --write` (British
+English is generated from `en_us`; edit `docs/tools/en_gb_rules.php`, never the `en_gb` files) and
+`php docs/tools/check_language_files.php`, which must report every language complete.
+
 ## Comments
 
 A comment states **what the code does and why it is shaped that way**, in the present tense. The
