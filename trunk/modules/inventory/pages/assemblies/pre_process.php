@@ -44,7 +44,7 @@ switch ($_REQUEST['action']) {
 	$glEntry->admin_id            = $_SESSION['admin_id'];
 	$glEntry->purchase_invoice_id = db_prepare_input($_POST['purchase_invoice_id']);
 	$sku                          = db_prepare_input($_POST['sku_1']);
-	$qty                          = db_prepare_input($_POST['qty_1']);
+	$qty                          = is_numeric($_POST['qty_1'] ?? '') ? (float)$_POST['qty_1'] : 0; // blank or not a number: refused below as zero
 	$desc                         = db_prepare_input($_POST['desc_1']);
 	$stock                        = db_prepare_input($_POST['stock_1']);
 	$serial                       = db_prepare_input($_POST['serial_1']);
@@ -56,7 +56,7 @@ switch ($_REQUEST['action']) {
 	  from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 	$sku_inv_acct = $result->fields['account_inventory_wage'];
 	if (!$result->RecordCount()) $error = $messageStack->add(INV_ERROR_SKU_INVALID, 'error');
-	if ($qty < 0 && ($result->fields['quantity_on_hand'] + $qty) < 0 ) $error = $messageStack->add(INV_ERROR_NEGATIVE_BALANCE, 'error');
+	if ($qty < 0 && ((float)($result->fields['quantity_on_hand'] ?? 0) + $qty) < 0 ) $error = $messageStack->add(INV_ERROR_NEGATIVE_BALANCE, 'error');
 	if (!$qty) $error = $messageStack->add(JS_ASSY_VALUE_ZERO, 'error');
 	// finished checking errors, reload if any errors found
 	if ($error) {

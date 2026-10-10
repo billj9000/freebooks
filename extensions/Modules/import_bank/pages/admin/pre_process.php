@@ -39,40 +39,12 @@ switch ($_REQUEST['action']) {
   case 'save':
 	validate_security($security_level, 4);
   	// save general tab
-  	// Each extra account runs an ALTER TABLE: a whole number in a small range only.
-  	$_POST['number_of_bank_accounts'] = min(max((int)$_POST['number_of_bank_accounts'], 1), 20);
-  	if($_POST['number_of_bank_accounts'] < NUMBER_OF_BANK_ACCOUNTS){
-  		$messageStack->add(IMPORT_BANK_CAN_NOT_DECREASE_NUMBER_OF_BANK_ACCOUNTS, 'error');
-  		$_POST['number_of_bank_accounts'] = NUMBER_OF_BANK_ACCOUNTS;	
-  	}else if($_POST['number_of_bank_accounts'] > NUMBER_OF_BANK_ACCOUNTS){
-  		for($x=NUMBER_OF_BANK_ACCOUNTS; $x<=$_POST['number_of_bank_accounts']; $x++){
-  			$result = $db->Execute("select id from " . TABLE_EXTRA_TABS . " where module_id='contacts' and tab_name = 'import_banking'");
-			if ( $result->RecordCount() == 0 ){
-				$entry = array(	'module_id'	=> 'contacts',
-				 				'tab_name'	=> 'import_banking',
-								'sort_order'=> '100' );
-				db_perform(TABLE_EXTRA_TABS, $entry, 'insert');
-				$tab_id = $db->insert_ID();
-			}else {	
-				$tab_id = $result->fields['id'];
-			}
-			$entry = array(	'module_id'	  => 'contacts',
-				 			'tab_id'	  => $tab_id,
-							'entry_type'  => 'text',
-							'field_name'  => 'bank_account_'.$x,
-							'description' => 'Bank Account',
-							'params'	  => 'a:4:{s:4:"type";s:4:"text";s:12:"contact_type";s:16:"customer:vendor:";s:6:"length";i:32;s:7:"default";s:0:"";}');
-			db_perform(TABLE_EXTRA_FIELDS, $entry, 'insert');
-			$db->Execute("ALTER TABLE ".TABLE_CONTACTS." ADD bank_account_".$x." varchar(32) default NULL");
-		
-  		}
-  	}
 	foreach ($install->keys as $key => $default) {
 	  $field = strtolower($key);
       if (isset($_POST[$field])) write_configure($key, $_POST[$field]);
     }
-	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
 	$messageStack->add(IMPORT_BANK_CONFIG_SAVED, 'success');
+	gen_redirect(html_href_link(FILENAME_DEFAULT, gen_get_all_get_params(array('action')), 'SSL'));
     break;
   case 'delete':
 	validate_security($security_level, 4); // security check
