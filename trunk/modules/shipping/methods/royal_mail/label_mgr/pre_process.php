@@ -184,7 +184,7 @@ switch ($_REQUEST['action']) {
           ship_email, bill_primary_name, bill_contact, bill_address1, bill_address2,
           bill_city_town, bill_state_province, bill_postal_code, bill_country_code, bill_telephone1, bill_email,
           purchase_invoice_id, purch_order_id, total_amount, ship_packages,
-          currencies_code, currencies_value
+          currencies_code, currencies_value, notes AS order_notes
           from " . TABLE_JOURNAL_MAIN . " where id = " . (int)$oID;
       $result = $db->Execute($sql);
       if (is_array($result->fields)) {

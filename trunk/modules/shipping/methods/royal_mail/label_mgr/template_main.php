@@ -252,6 +252,20 @@ $sel_sm = 'class="form-select form-select-sm"';
                    value="<?php echo htmlspecialchars($sInfo->purch_order_id ?? ''); ?>">
           </div>
         </div>
+        <div class="row g-2 align-items-center mb-1">
+          <label class="col-auto col-form-label col-form-label-sm" for="delivery_instructions"><?php echo RM_TEXT_DELIVERY_INSTRUCTIONS; ?></label>
+          <div class="col">
+            <input type="text" class="form-control form-control-sm" name="delivery_instructions" id="delivery_instructions"
+                   maxlength="90" value="<?php echo htmlspecialchars($sInfo->delivery_instructions ?? ''); ?>">
+          </div>
+        </div>
+<?php if (trim($sInfo->order_notes ?? '') !== '') { // shown for reference only: notes can hold remarks not meant for the courier ?>
+        <div class="small text-muted mb-1">
+          <?php echo RM_TEXT_ORDER_NOTES; ?>
+          <div class="border rounded px-2 py-1" style="white-space: pre-wrap;"><?php echo htmlspecialchars($sInfo->order_notes); ?></div>
+          <input type="hidden" name="order_notes" value="<?php echo htmlspecialchars($sInfo->order_notes); ?>">
+        </div>
+<?php } ?>
         <div class="row g-2 align-items-center">
           <div class="col-auto">
             <div class="form-check">

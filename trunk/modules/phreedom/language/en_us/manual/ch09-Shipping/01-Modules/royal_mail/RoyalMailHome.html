@@ -26,6 +26,7 @@ is obtained from within Click &amp; Drop under <strong>Settings &rarr; API</stro
   <li>Label generation for all supported Royal Mail service levels (domestic and international)</li>
   <li>Package format selection (Letter, Large Letter, Small Parcel, Medium Parcel, Large Parcel, Parcel, Documents)</li>
   <li>Optional returns label printed alongside the outbound label</li>
+  <li>Delivery instructions for the driver</li>
   <li>Automatic customs / export declaration for international destinations</li>
   <li>Line-item customs table with HS code, country of origin, and declared value per SKU</li>
   <li>Save customs descriptions back to inventory records from the label form</li>
@@ -122,6 +123,13 @@ also needs a UKIMS number, the sender's or the recipient's; FreeBooks does not s
       <li><strong>Package Details</strong> &mdash; enter the weight for each package and select
           the package format (Letter, Large Letter, Small Parcel, etc.). Click <strong>Add</strong>
           to include additional packages in the same shipment.</li>
+      <li><strong>Delivery instructions</strong> &mdash; a note for the driver, such as where to
+          leave the parcel, up to 90 characters. It is sent to Click &amp; Drop as the safe place
+          and also appears on the Click &amp; Drop order. It starts empty. If the order has notes
+          (for example comments the customer left at checkout), they are shown below the box for
+          reference only and are not sent &mdash; copy across just what is meant for the driver.
+          Some services may not accept a safe place; Click &amp; Drop then refuses the label and
+          its message is shown.</li>
       <li><strong>Include Returns Label</strong> &mdash; tick to request a returns label be
           included in the same PDF alongside the outbound label.</li>
       <li><strong>Customs / Export Information</strong> &mdash; shown automatically for

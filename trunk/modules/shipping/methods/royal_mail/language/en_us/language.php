@@ -38,6 +38,8 @@ define('RM_TEXT_DECLARED_VALUE',       'Declared Value');
 define('RM_TEXT_HS_CODE',              'HS / Commodity Code');
 define('RM_TEXT_ORIGIN_COUNTRY',       'Country of Origin');
 define('RM_TEXT_RETURNS_LABEL',        'Include Returns Label');
+define('RM_TEXT_DELIVERY_INSTRUCTIONS', 'Delivery instructions');
+define('RM_TEXT_ORDER_NOTES',           'Order notes (for reference, not sent):');
 define('RM_TEXT_DELIVERY_TERMS',       'Delivery Terms');
 define('RM_TERMS_DDU',                 'Duty unpaid (DDU/DAP) - the recipient pays');
 define('RM_TERMS_DDP',                 'Duty paid (DDP) - we pay');

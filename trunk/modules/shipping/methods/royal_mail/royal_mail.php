@@ -323,6 +323,13 @@ class royal_mail {
       if ($dutyPaid > 0) $order['customsDutyCosts'] = $dutyPaid;
     }
     if ($isNI) $order['isRecipientABusiness'] = !empty($sInfo->recipient_is_business);
+    // One box on the form fills both: safePlace reaches the driver, specialInstructions
+    // shows on the Click & Drop order. 90 is safePlace's limit.
+    $instructions = mb_substr(trim(preg_replace('/\s+/u', ' ', (string)($sInfo->delivery_instructions ?? ''))), 0, 90);
+    if ($instructions !== '') {
+      $order['postageDetails']['safePlace'] = $instructions;
+      $order['specialInstructions']         = $instructions;
+    }
 
     if (!$isDomestic && $recipientVat) {
       $order['importer'] = array('vatNumber' => $recipientVat);
