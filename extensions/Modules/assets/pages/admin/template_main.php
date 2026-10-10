@@ -23,11 +23,11 @@ echo html_hidden_field('subject', '') . chr(10);
 echo html_hidden_field('rowSeq',  '') . chr(10);
 $toolbar->icon_list['cancel']['params'] = 'onclick="location.href = \'' . html_href_link(FILENAME_DEFAULT, 'module=phreedom&amp;page=admin', 'SSL') . '\'"';
 $toolbar->icon_list['open']['show']     = false;
-if ($security_level > 1) $toolbar->icon_list['save']['params'] = 'onclick="submitToDo(\'save\')"';
-else                     $toolbar->icon_list['save']['show']   = false;
+// The extra tabs and fields are saved from their own dialogs; the module has no settings of its own.
+$toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
-$toolbar->add_help($assets->help_path);
+$toolbar->add_help('');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>

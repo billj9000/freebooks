@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -31,8 +32,6 @@ $tabs   = new assets_tabs();
 $fields = new assets_fields();
 /***************   Act on the action request   *************************/
 switch ($_REQUEST['action']) {
-  case 'insert':      $subject_module->btn_insert(); break;
-  case 'save':        $subject_module->btn_save();   break;
   case 'delete':
 	if ($security_level < 4) {
 	  $messageStack->add(ERROR_NO_PERMISSION,'error');
@@ -45,7 +44,6 @@ switch ($_REQUEST['action']) {
 	if (!in_array($subject, array('tabs', 'fields'), true) || !$id) break;
     $$subject->btn_delete($id);
 	break;
-  case 'update':      $subject_module->btn_update(); break;
   case 'go_first':    $_REQUEST['list'] = 1;       break;
   case 'go_previous': $_REQUEST['list'] = max($_REQUEST['list']-1, 1); break;
   case 'go_next':     $_REQUEST['list']++;         break;
