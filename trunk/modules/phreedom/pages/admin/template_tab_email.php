@@ -57,7 +57,7 @@
             <span class="hint"><?php echo CD_12_04_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_pull_down_menu('email_use_html', $sel_yes_no, $_POST['email_use_html'] ?: EMAIL_USE_HTML, ''); ?>
+            <?php echo html_pull_down_menu('email_use_html', $sel_yes_no, ($_POST['email_use_html'] ?? '') ?: EMAIL_USE_HTML, ''); ?>
           </td>
         </tr>
 
@@ -67,7 +67,7 @@
             <span class="hint"><?php echo CD_12_10_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('store_owner_email_address', $_POST['store_owner_email_address'] ?: STORE_OWNER_EMAIL_ADDRESS, ''); ?>
+            <?php echo html_input_field('store_owner_email_address', ($_POST['store_owner_email_address'] ?? '') ?: STORE_OWNER_EMAIL_ADDRESS, ''); ?>
           </td>
         </tr>
 
@@ -77,7 +77,7 @@
             <span class="hint"><?php echo CD_12_11_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('email_from', $_POST['email_from'] ?: EMAIL_FROM, ''); ?>
+            <?php echo html_input_field('email_from', ($_POST['email_from'] ?? '') ?: EMAIL_FROM, ''); ?>
           </td>
         </tr>
 
@@ -87,7 +87,7 @@
             <span class="hint"><?php echo CD_12_15_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_pull_down_menu('admin_extra_email_format', $sel_format, $_POST['admin_extra_email_format'] ?: ADMIN_EXTRA_EMAIL_FORMAT, ''); ?>
+            <?php echo html_pull_down_menu('admin_extra_email_format', $sel_format, ($_POST['admin_extra_email_format'] ?? '') ?: ADMIN_EXTRA_EMAIL_FORMAT, ''); ?>
           </td>
         </tr>
 
@@ -99,7 +99,7 @@
             <span class="hint"><?php echo CD_12_70_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('email_smtpauth_mailbox', $_POST['email_smtpauth_mailbox'] ?: EMAIL_SMTPAUTH_MAILBOX, ''); ?>
+            <?php echo html_input_field('email_smtpauth_mailbox', ($_POST['email_smtpauth_mailbox'] ?? '') ?: EMAIL_SMTPAUTH_MAILBOX, ''); ?>
           </td>
         </tr>
 
@@ -109,7 +109,7 @@
             <span class="hint"><?php echo CD_12_71_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('email_smtpauth_password', $_POST['email_smtpauth_password'] ?: EMAIL_SMTPAUTH_PASSWORD, '', false, 'password'); ?>
+            <?php echo html_input_field('email_smtpauth_password', ($_POST['email_smtpauth_password'] ?? '') ?: EMAIL_SMTPAUTH_PASSWORD, '', false, 'password'); ?>
           </td>
         </tr>
 
@@ -119,7 +119,7 @@
             <span class="hint"><?php echo CD_12_72_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('email_smtpauth_mail_server', $_POST['email_smtpauth_mail_server'] ?: EMAIL_SMTPAUTH_MAIL_SERVER, ''); ?>
+            <?php echo html_input_field('email_smtpauth_mail_server', ($_POST['email_smtpauth_mail_server'] ?? '') ?: EMAIL_SMTPAUTH_MAIL_SERVER, ''); ?>
           </td>
         </tr>
 
@@ -129,7 +129,7 @@
             <span class="hint"><?php echo CD_12_73_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('email_smtpauth_mail_server_port', $_POST['email_smtpauth_mail_server_port'] ?: EMAIL_SMTPAUTH_MAIL_SERVER_PORT, 'size="6"'); ?>
+            <?php echo html_input_field('email_smtpauth_mail_server_port', ($_POST['email_smtpauth_mail_server_port'] ?? '') ?: EMAIL_SMTPAUTH_MAIL_SERVER_PORT, 'size="6"'); ?>
           </td>
         </tr>
 
@@ -139,7 +139,7 @@
             <span class="hint"><?php echo CD_12_75_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_pull_down_menu('email_smtpauth_tls', $sel_smtp_encryption, $_POST['email_smtpauth_tls'] ?: EMAIL_SMTPAUTH_TLS, ''); ?>
+            <?php echo html_pull_down_menu('email_smtpauth_tls', $sel_smtp_encryption, ($_POST['email_smtpauth_tls'] ?? '') ?: EMAIL_SMTPAUTH_TLS, ''); ?>
           </td>
         </tr>
 
@@ -149,7 +149,7 @@
             <span class="hint"><?php echo CD_12_76_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_pull_down_menu('email_smtp_allow_self_signed', $sel_yes_no, $_POST['email_smtp_allow_self_signed'] ?: (defined('EMAIL_SMTP_ALLOW_SELF_SIGNED') ? EMAIL_SMTP_ALLOW_SELF_SIGNED : '0'), ''); ?>
+            <?php echo html_pull_down_menu('email_smtp_allow_self_signed', $sel_yes_no, ($_POST['email_smtp_allow_self_signed'] ?? '') ?: (defined('EMAIL_SMTP_ALLOW_SELF_SIGNED') ? EMAIL_SMTP_ALLOW_SELF_SIGNED : '0'), ''); ?>
           </td>
         </tr>
 
@@ -256,7 +256,7 @@
             <span class="hint"><?php echo CD_12_74_DESC; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('currencies_translations', $_POST['currencies_translations'] ?: CURRENCIES_TRANSLATIONS, ''); ?>
+            <?php echo html_input_field('currencies_translations', ($_POST['currencies_translations'] ?? '') ?: CURRENCIES_TRANSLATIONS, ''); ?>
           </td>
         </tr>
 
@@ -266,7 +266,7 @@
             <span class="hint"><?php echo SETUP_SERVER_ADDRESS; ?></span>
           </td>
           <td class="email-field">
-            <?php echo html_input_field('server_address', $_POST['server_address'] ?: SERVER_ADDRESS, ''); ?>
+            <?php echo html_input_field('server_address', ($_POST['server_address'] ?? '') ?: SERVER_ADDRESS, ''); ?>
           </td>
         </tr>
 

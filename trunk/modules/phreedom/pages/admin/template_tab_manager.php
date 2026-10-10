@@ -34,15 +34,15 @@
         </tr>
         <tr>
           <td><?php echo SETUP_CO_MGR_SRVR_NAME; ?></td>
-          <td><?php echo html_input_field('db_server', $db_server ? $db_server : 'localhost', 'size="40"', true); ?></td>
+          <td><?php echo html_input_field('db_server', ($db_server ?? '') ?: 'localhost', 'size="40"', true); ?></td>
         </tr>
         <tr>
           <td><?php echo SETUP_CO_MGR_DB_NAME; ?></td>
-          <td><?php echo html_input_field('db_name', $db_name, '', true); ?></td>
+          <td><?php echo html_input_field('db_name', $db_name ?? '', '', true); ?></td>
         </tr>
         <tr>
           <td><?php echo SETUP_CO_MGR_DB_USER; ?></td>
-          <td><?php echo html_input_field('db_user', $db_user, '', true); ?></td>
+          <td><?php echo html_input_field('db_user', $db_user ?? '', '', true); ?></td>
         </tr>
         <tr>
           <td><?php echo SETUP_CO_MGR_DB_PW; ?></td>
@@ -50,7 +50,7 @@
         </tr>
         <tr>
           <td><?php echo SETUP_CO_MGR_CO_NAME; ?></td>
-          <td><?php echo html_input_field('co_name', $co_name, 'size="50"', true); ?></td>
+          <td><?php echo html_input_field('co_name', $co_name ?? '', 'size="50"', true); ?></td>
         </tr>
 <?php if (function_exists('phreebooks_charts')) { // phreebooks supplies the list; skip the row if it is not installed ?>
         <tr>
@@ -84,8 +84,8 @@
         ?>
         <tr>
           <td><?php echo html_checkbox_field($mod, '1', (!in_array($mod, $core_modules) && $error && !isset($_POST[$mod])) ? false : true, '', in_array($mod, $core_modules) ? 'disabled="disabled"' : '') . '&nbsp;' . TEXT_MODULE . ': ' . $mod; ?></td>
-          <td class="text-center"><?php echo html_radio_field($mod . '_action', 'core', $_POST[$mod.'_action']=='core' ? true : false, '', $parameters = ''); ?></td>
-          <td class="text-center"><?php echo html_radio_field($mod . '_action', 'demo', $_POST[$mod.'_action']=='demo' ? true : false, '', $parameters = ''); ?></td>
+          <td class="text-center"><?php echo html_radio_field($mod . '_action', 'core', ($_POST[$mod.'_action'] ?? '')=='core' ? true : false, '', $parameters = ''); ?></td>
+          <td class="text-center"><?php echo html_radio_field($mod . '_action', 'demo', ($_POST[$mod.'_action'] ?? '')=='demo' ? true : false, '', $parameters = ''); ?></td>
           <td class="text-center"><?php echo html_radio_field($mod . '_action', 'data', (!isset($_POST[$mod.'_action'])||$_POST[$mod.'_action']=='data') ? true : false, '', $parameters = ''); ?></td>
         </tr>
         <?php } ?>

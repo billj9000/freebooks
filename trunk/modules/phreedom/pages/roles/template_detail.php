@@ -145,7 +145,7 @@ function create_row($array) {
     if ($array['show_in_users_settings'] === false) return;
     if (isset($drawn[$array['security_id']])) return;
     $drawn[$array['security_id']] = true;
-    $checked = array();
+    $checked = array_fill(0, 5, false); // levels 0-4, one per radio
     if (isset($settings[$array['security_id']])) {
       $checked[0] = false;
       $checked[$settings[$array['security_id']]] = true;

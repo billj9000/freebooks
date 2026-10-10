@@ -38,6 +38,7 @@ require_once(DIR_FS_WORKING . 'classes/currency.php');
 /**************   page specific initialization  *************************/
 $error  = false; 
 $core_modules = array('phreedom','forms','phreebooks','contacts','inventory','phreehelp','payment'); // forms first: it owns the document catalogue and directory
+if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open
 // see if installing or removing a module
 if (substr($_REQUEST['action'], 0, 8) == 'install_') {
   $method = substr($_REQUEST['action'], 8);
