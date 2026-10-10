@@ -1,0 +1,277 @@
+{
+  "name": "05_foreign_split_accounts_taxed_freight",
+  "notes": "Foreign ship-to country uses the 'foreign' side of split mappings; freight is taxed.",
+  "doc_type": "invoice",
+  "opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  },
+  "record": {
+    "id": 1001,
+    "invoice_number": "INV-1001",
+    "reference": "PO-555",
+    "payment_reference": "",
+    "date": "2026-09-15",
+    "customer_id": 7,
+    "total": 58.0,
+    "tax": 0.0,
+    "freight": 8.0,
+    "freight_taxable": 3,
+    "freight_tax_rate": 0.0,
+    "freight_gl_account": "4300",
+    "discount": 0.0,
+    "discount_gl_account": "4900",
+    "currency": "GBP",
+    "currency_rate": 1.0,
+    "closed": "0",
+    "lines": [
+      {
+        "sku": "WIDGET-A",
+        "description": "Widget A",
+        "qty": 4.0,
+        "unit_price": 12.5,
+        "amount": 50.0,
+        "gl_account": "4010",
+        "taxable": 3,
+        "tax_rate": 0.0
+      }
+    ],
+    "customer_name": "Test Customer",
+    "bill_email": "accounts@test.example",
+    "bill_address1": "1 High Street",
+    "bill_address2": "Unit 2",
+    "bill_city": "Leeds",
+    "bill_state": "West Yorkshire",
+    "bill_postal_code": "LS1 1AA",
+    "bill_country": "GBR",
+    "ship_country": "FRA"
+  },
+  "expected": {
+    "document": {
+      "doc_type": "invoice",
+      "number": "INV-1001",
+      "reference": "PO-555",
+      "date": "2026-09-15",
+      "due_date": "2026-10-15",
+      "contact_name": "Test Customer",
+      "email": "accounts@test.example",
+      "address1": "1 High Street",
+      "address2": "Unit 2",
+      "city": "Leeds",
+      "region": "West Yorkshire",
+      "postal_code": "LS1 1AA",
+      "billing_country": "GBR",
+      "currency": "GBP",
+      "lines": [
+        {
+          "description": "Widget A",
+          "quantity": 4.0,
+          "unit_amount": 12.5,
+          "account_code": "205",
+          "tax_type": "Zero Rated Income",
+          "item_code": "WIDGET-A"
+        },
+        {
+          "description": "Freight",
+          "quantity": 1,
+          "unit_amount": 8.0,
+          "account_code": "215",
+          "tax_type": "Zero Rated Income",
+          "item_code": ""
+        }
+      ],
+      "source_total": 58.0,
+      "computed_total": 58.0,
+      "rounding_applied": 0.0,
+      "unmapped_accounts": [],
+      "unmapped_tax_rates": [],
+      "country": "FRA",
+      "is_domestic": false,
+      "warnings": []
+    },
+    "csv_text": "ContactName,EmailAddress,POAddressLine1,POAddressLine2,POAddressLine3,POAddressLine4,POCity,PORegion,POPostalCode,POCountry,InvoiceNumber,Reference,InvoiceDate,DueDate,Total,InventoryItemCode,Description,Quantity,UnitAmount,Discount,AccountCode,TaxType,TaxAmount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2,Currency,BrandingTheme\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,58.00,WIDGET-A,Widget A,4.0,12.50,,205,Zero Rated Income,,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,58.00,,Freight,1,8.00,,215,Zero Rated Income,,,,,,GBP,\r\n",
+    "csv_rows": [
+      [
+        "ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "InvoiceNumber",
+        "Reference",
+        "InvoiceDate",
+        "DueDate",
+        "Total",
+        "InventoryItemCode",
+        "Description",
+        "Quantity",
+        "UnitAmount",
+        "Discount",
+        "AccountCode",
+        "TaxType",
+        "TaxAmount",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme"
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "58.00",
+        "WIDGET-A",
+        "Widget A",
+        "4.0",
+        "12.50",
+        "",
+        "205",
+        "Zero Rated Income",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "58.00",
+        "",
+        "Freight",
+        "1",
+        "8.00",
+        "",
+        "215",
+        "Zero Rated Income",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ]
+    ],
+    "xero_payload_known_items_only": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Widget A",
+          "Quantity": 4.0,
+          "UnitAmount": 12.5,
+          "AccountCode": "205",
+          "TaxType": "ZERORATEDOUTPUT",
+          "ItemCode": "WIDGET-A"
+        },
+        {
+          "Description": "Freight",
+          "Quantity": 1,
+          "UnitAmount": 8.0,
+          "AccountCode": "215",
+          "TaxType": "ZERORATEDOUTPUT"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "xero_payload_after_item_autocreate": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Widget A",
+          "Quantity": 4.0,
+          "UnitAmount": 12.5,
+          "AccountCode": "205",
+          "TaxType": "ZERORATEDOUTPUT",
+          "ItemCode": "WIDGET-A"
+        },
+        {
+          "Description": "Freight",
+          "Quantity": 1,
+          "UnitAmount": 8.0,
+          "AccountCode": "215",
+          "TaxType": "ZERORATEDOUTPUT"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "items_to_autocreate": []
+  }
+}

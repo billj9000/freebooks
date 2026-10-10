@@ -1,0 +1,467 @@
+{
+  "name": "15_half_cent_tax_2675",
+  "notes": "ROUNDING EDGE: 53.50 at 5% = 2.675 tax. Python round() gives 2.67 (binary float is 2.67499..), PHP round() gives 2.68.",
+  "doc_type": "invoice",
+  "opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  },
+  "record": {
+    "id": 1001,
+    "invoice_number": "INV-1001",
+    "reference": "PO-555",
+    "payment_reference": "",
+    "date": "2026-09-15",
+    "customer_id": 7,
+    "total": 56.18,
+    "tax": 2.68,
+    "freight": 0.0,
+    "freight_taxable": 0,
+    "freight_tax_rate": 0.0,
+    "freight_gl_account": "4300",
+    "discount": 0.0,
+    "discount_gl_account": "4900",
+    "currency": "GBP",
+    "currency_rate": 1.0,
+    "closed": "0",
+    "lines": [
+      {
+        "sku": "FUEL",
+        "description": "Domestic fuel",
+        "qty": 1.0,
+        "unit_price": 53.5,
+        "amount": 53.5,
+        "gl_account": "4000",
+        "taxable": 2,
+        "tax_rate": 5.0
+      }
+    ],
+    "customer_name": "Test Customer",
+    "bill_email": "accounts@test.example",
+    "bill_address1": "1 High Street",
+    "bill_address2": "Unit 2",
+    "bill_city": "Leeds",
+    "bill_state": "West Yorkshire",
+    "bill_postal_code": "LS1 1AA",
+    "bill_country": "GBR",
+    "ship_country": "GBR"
+  },
+  "expected": {
+    "document": {
+      "doc_type": "invoice",
+      "number": "INV-1001",
+      "reference": "PO-555",
+      "date": "2026-09-15",
+      "due_date": "2026-10-15",
+      "contact_name": "Test Customer",
+      "email": "accounts@test.example",
+      "address1": "1 High Street",
+      "address2": "Unit 2",
+      "city": "Leeds",
+      "region": "West Yorkshire",
+      "postal_code": "LS1 1AA",
+      "billing_country": "GBR",
+      "currency": "GBP",
+      "lines": [
+        {
+          "description": "Domestic fuel",
+          "quantity": 1.0,
+          "unit_amount": 53.5,
+          "account_code": "200",
+          "tax_type": "5% (VAT on Income)",
+          "item_code": "FUEL"
+        }
+      ],
+      "source_total": 56.18,
+      "computed_total": 56.18,
+      "rounding_applied": 0.0,
+      "unmapped_accounts": [],
+      "unmapped_tax_rates": [],
+      "country": "GBR",
+      "is_domestic": true,
+      "warnings": []
+    },
+    "csv_text": "ContactName,EmailAddress,POAddressLine1,POAddressLine2,POAddressLine3,POAddressLine4,POCity,PORegion,POPostalCode,POCountry,InvoiceNumber,Reference,InvoiceDate,DueDate,Total,InventoryItemCode,Description,Quantity,UnitAmount,Discount,AccountCode,TaxType,TaxAmount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2,Currency,BrandingTheme\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,56.18,FUEL,Domestic fuel,1.0,53.50,,200,5% (VAT on Income),,,,,,GBP,\r\n",
+    "csv_rows": [
+      [
+        "ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "InvoiceNumber",
+        "Reference",
+        "InvoiceDate",
+        "DueDate",
+        "Total",
+        "InventoryItemCode",
+        "Description",
+        "Quantity",
+        "UnitAmount",
+        "Discount",
+        "AccountCode",
+        "TaxType",
+        "TaxAmount",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme"
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "56.18",
+        "FUEL",
+        "Domestic fuel",
+        "1.0",
+        "53.50",
+        "",
+        "200",
+        "5% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ]
+    ],
+    "xero_payload_known_items_only": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Domestic fuel",
+          "Quantity": 1.0,
+          "UnitAmount": 53.5,
+          "AccountCode": "200",
+          "TaxType": "RROUTPUT"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "xero_payload_after_item_autocreate": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Domestic fuel",
+          "Quantity": 1.0,
+          "UnitAmount": 53.5,
+          "AccountCode": "200",
+          "TaxType": "RROUTPUT",
+          "ItemCode": "FUEL"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "items_to_autocreate": [
+      {
+        "Code": "FUEL",
+        "Name": "Domestic fuel",
+        "Description": "Domestic fuel",
+        "SalesDetails": {
+          "UnitPrice": 53.5,
+          "AccountCode": "200"
+        }
+      }
+    ]
+  },
+  "python_reference": {
+    "document": {
+      "doc_type": "invoice",
+      "number": "INV-1001",
+      "reference": "PO-555",
+      "date": "2026-09-15",
+      "due_date": "2026-10-15",
+      "contact_name": "Test Customer",
+      "email": "accounts@test.example",
+      "address1": "1 High Street",
+      "address2": "Unit 2",
+      "city": "Leeds",
+      "region": "West Yorkshire",
+      "postal_code": "LS1 1AA",
+      "billing_country": "GBR",
+      "currency": "GBP",
+      "lines": [
+        {
+          "description": "Domestic fuel",
+          "quantity": 1.0,
+          "unit_amount": 53.5,
+          "account_code": "200",
+          "tax_type": "5% (VAT on Income)",
+          "item_code": "FUEL"
+        },
+        {
+          "description": "Rounding Adjustment",
+          "quantity": 1,
+          "unit_amount": 0.01,
+          "account_code": "860",
+          "tax_type": "NONE",
+          "item_code": ""
+        }
+      ],
+      "source_total": 56.18,
+      "computed_total": 56.17,
+      "rounding_applied": 0.01,
+      "unmapped_accounts": [],
+      "unmapped_tax_rates": [],
+      "country": "GBR",
+      "is_domestic": true,
+      "warnings": []
+    },
+    "csv_text": "ContactName,EmailAddress,POAddressLine1,POAddressLine2,POAddressLine3,POAddressLine4,POCity,PORegion,POPostalCode,POCountry,InvoiceNumber,Reference,InvoiceDate,DueDate,Total,InventoryItemCode,Description,Quantity,UnitAmount,Discount,AccountCode,TaxType,TaxAmount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2,Currency,BrandingTheme\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,56.18,FUEL,Domestic fuel,1.0,53.50,,200,5% (VAT on Income),,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,56.18,,Rounding Adjustment,1,0.01,,860,No VAT,,,,,,GBP,\r\n",
+    "csv_rows": [
+      [
+        "ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "InvoiceNumber",
+        "Reference",
+        "InvoiceDate",
+        "DueDate",
+        "Total",
+        "InventoryItemCode",
+        "Description",
+        "Quantity",
+        "UnitAmount",
+        "Discount",
+        "AccountCode",
+        "TaxType",
+        "TaxAmount",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme"
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "56.18",
+        "FUEL",
+        "Domestic fuel",
+        "1.0",
+        "53.50",
+        "",
+        "200",
+        "5% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "56.18",
+        "",
+        "Rounding Adjustment",
+        "1",
+        "0.01",
+        "",
+        "860",
+        "No VAT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ]
+    ],
+    "xero_payload_known_items_only": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Domestic fuel",
+          "Quantity": 1.0,
+          "UnitAmount": 53.5,
+          "AccountCode": "200",
+          "TaxType": "RROUTPUT"
+        },
+        {
+          "Description": "Rounding Adjustment",
+          "Quantity": 1,
+          "UnitAmount": 0.01,
+          "AccountCode": "860",
+          "TaxType": "NONE"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "xero_payload_after_item_autocreate": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Domestic fuel",
+          "Quantity": 1.0,
+          "UnitAmount": 53.5,
+          "AccountCode": "200",
+          "TaxType": "RROUTPUT",
+          "ItemCode": "FUEL"
+        },
+        {
+          "Description": "Rounding Adjustment",
+          "Quantity": 1,
+          "UnitAmount": 0.01,
+          "AccountCode": "860",
+          "TaxType": "NONE"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "items_to_autocreate": [
+      {
+        "Code": "FUEL",
+        "Name": "Domestic fuel",
+        "Description": "Domestic fuel",
+        "SalesDetails": {
+          "UnitPrice": 53.5,
+          "AccountCode": "200"
+        }
+      }
+    ]
+  }
+}

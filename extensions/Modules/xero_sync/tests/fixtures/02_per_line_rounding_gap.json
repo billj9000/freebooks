@@ -1,0 +1,432 @@
+{
+  "name": "02_per_line_rounding_gap",
+  "notes": "Three lines whose per-line tax rounding (Xero) differs from FreeBooks' sum-then-round by 1p \u2014 a Rounding Adjustment line closes the gap.",
+  "doc_type": "invoice",
+  "opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  },
+  "record": {
+    "id": 1001,
+    "invoice_number": "INV-1001",
+    "reference": "PO-555",
+    "payment_reference": "",
+    "date": "2026-09-15",
+    "customer_id": 7,
+    "total": 1.19,
+    "tax": 0.2,
+    "freight": 0.0,
+    "freight_taxable": 0,
+    "freight_tax_rate": 0.0,
+    "freight_gl_account": "4300",
+    "discount": 0.0,
+    "discount_gl_account": "4900",
+    "currency": "GBP",
+    "currency_rate": 1.0,
+    "closed": "0",
+    "lines": [
+      {
+        "sku": "P1",
+        "description": "Part 1",
+        "qty": 1.0,
+        "unit_price": 0.33,
+        "amount": 0.33,
+        "gl_account": "4000",
+        "taxable": 1,
+        "tax_rate": 20.0
+      },
+      {
+        "sku": "P2",
+        "description": "Part 2",
+        "qty": 1.0,
+        "unit_price": 0.33,
+        "amount": 0.33,
+        "gl_account": "4000",
+        "taxable": 1,
+        "tax_rate": 20.0
+      },
+      {
+        "sku": "P3",
+        "description": "Part 3",
+        "qty": 1.0,
+        "unit_price": 0.33,
+        "amount": 0.33,
+        "gl_account": "4000",
+        "taxable": 1,
+        "tax_rate": 20.0
+      }
+    ],
+    "customer_name": "Test Customer",
+    "bill_email": "accounts@test.example",
+    "bill_address1": "1 High Street",
+    "bill_address2": "Unit 2",
+    "bill_city": "Leeds",
+    "bill_state": "West Yorkshire",
+    "bill_postal_code": "LS1 1AA",
+    "bill_country": "GBR",
+    "ship_country": "GBR"
+  },
+  "expected": {
+    "document": {
+      "doc_type": "invoice",
+      "number": "INV-1001",
+      "reference": "PO-555",
+      "date": "2026-09-15",
+      "due_date": "2026-10-15",
+      "contact_name": "Test Customer",
+      "email": "accounts@test.example",
+      "address1": "1 High Street",
+      "address2": "Unit 2",
+      "city": "Leeds",
+      "region": "West Yorkshire",
+      "postal_code": "LS1 1AA",
+      "billing_country": "GBR",
+      "currency": "GBP",
+      "lines": [
+        {
+          "description": "Part 1",
+          "quantity": 1.0,
+          "unit_amount": 0.33,
+          "account_code": "200",
+          "tax_type": "20% (VAT on Income)",
+          "item_code": "P1"
+        },
+        {
+          "description": "Part 2",
+          "quantity": 1.0,
+          "unit_amount": 0.33,
+          "account_code": "200",
+          "tax_type": "20% (VAT on Income)",
+          "item_code": "P2"
+        },
+        {
+          "description": "Part 3",
+          "quantity": 1.0,
+          "unit_amount": 0.33,
+          "account_code": "200",
+          "tax_type": "20% (VAT on Income)",
+          "item_code": "P3"
+        },
+        {
+          "description": "Rounding Adjustment",
+          "quantity": 1,
+          "unit_amount": -0.01,
+          "account_code": "860",
+          "tax_type": "NONE",
+          "item_code": ""
+        }
+      ],
+      "source_total": 1.19,
+      "computed_total": 1.2,
+      "rounding_applied": -0.01,
+      "unmapped_accounts": [],
+      "unmapped_tax_rates": [],
+      "country": "GBR",
+      "is_domestic": true,
+      "warnings": []
+    },
+    "csv_text": "ContactName,EmailAddress,POAddressLine1,POAddressLine2,POAddressLine3,POAddressLine4,POCity,PORegion,POPostalCode,POCountry,InvoiceNumber,Reference,InvoiceDate,DueDate,Total,InventoryItemCode,Description,Quantity,UnitAmount,Discount,AccountCode,TaxType,TaxAmount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2,Currency,BrandingTheme\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,1.19,P1,Part 1,1.0,0.33,,200,20% (VAT on Income),,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,1.19,P2,Part 2,1.0,0.33,,200,20% (VAT on Income),,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,1.19,P3,Part 3,1.0,0.33,,200,20% (VAT on Income),,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,1.19,,Rounding Adjustment,1,-0.01,,860,No VAT,,,,,,GBP,\r\n",
+    "csv_rows": [
+      [
+        "ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "InvoiceNumber",
+        "Reference",
+        "InvoiceDate",
+        "DueDate",
+        "Total",
+        "InventoryItemCode",
+        "Description",
+        "Quantity",
+        "UnitAmount",
+        "Discount",
+        "AccountCode",
+        "TaxType",
+        "TaxAmount",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme"
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "1.19",
+        "P1",
+        "Part 1",
+        "1.0",
+        "0.33",
+        "",
+        "200",
+        "20% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "1.19",
+        "P2",
+        "Part 2",
+        "1.0",
+        "0.33",
+        "",
+        "200",
+        "20% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "1.19",
+        "P3",
+        "Part 3",
+        "1.0",
+        "0.33",
+        "",
+        "200",
+        "20% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "1.19",
+        "",
+        "Rounding Adjustment",
+        "1",
+        "-0.01",
+        "",
+        "860",
+        "No VAT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ]
+    ],
+    "xero_payload_known_items_only": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Part 1",
+          "Quantity": 1.0,
+          "UnitAmount": 0.33,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2"
+        },
+        {
+          "Description": "Part 2",
+          "Quantity": 1.0,
+          "UnitAmount": 0.33,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2"
+        },
+        {
+          "Description": "Part 3",
+          "Quantity": 1.0,
+          "UnitAmount": 0.33,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2"
+        },
+        {
+          "Description": "Rounding Adjustment",
+          "Quantity": 1,
+          "UnitAmount": -0.01,
+          "AccountCode": "860",
+          "TaxType": "NONE"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "xero_payload_after_item_autocreate": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Part 1",
+          "Quantity": 1.0,
+          "UnitAmount": 0.33,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2",
+          "ItemCode": "P1"
+        },
+        {
+          "Description": "Part 2",
+          "Quantity": 1.0,
+          "UnitAmount": 0.33,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2",
+          "ItemCode": "P2"
+        },
+        {
+          "Description": "Part 3",
+          "Quantity": 1.0,
+          "UnitAmount": 0.33,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2",
+          "ItemCode": "P3"
+        },
+        {
+          "Description": "Rounding Adjustment",
+          "Quantity": 1,
+          "UnitAmount": -0.01,
+          "AccountCode": "860",
+          "TaxType": "NONE"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "items_to_autocreate": [
+      {
+        "Code": "P1",
+        "Name": "Part 1",
+        "Description": "Part 1",
+        "SalesDetails": {
+          "UnitPrice": 0.33,
+          "AccountCode": "200"
+        }
+      },
+      {
+        "Code": "P2",
+        "Name": "Part 2",
+        "Description": "Part 2",
+        "SalesDetails": {
+          "UnitPrice": 0.33,
+          "AccountCode": "200"
+        }
+      },
+      {
+        "Code": "P3",
+        "Name": "Part 3",
+        "Description": "Part 3",
+        "SalesDetails": {
+          "UnitPrice": 0.33,
+          "AccountCode": "200"
+        }
+      }
+    ]
+  }
+}

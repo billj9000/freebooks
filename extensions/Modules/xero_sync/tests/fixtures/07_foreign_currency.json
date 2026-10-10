@@ -1,0 +1,330 @@
+{
+  "name": "07_foreign_currency",
+  "notes": "Amounts stored in GBP, converted by currency_rate before export.",
+  "doc_type": "invoice",
+  "opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  },
+  "record": {
+    "id": 1001,
+    "invoice_number": "INV-1001",
+    "reference": "PO-555",
+    "payment_reference": "",
+    "date": "2026-09-15",
+    "customer_id": 7,
+    "total": 24.0,
+    "tax": 0.0,
+    "freight": 4.0,
+    "freight_taxable": 0,
+    "freight_tax_rate": 0.0,
+    "freight_gl_account": "4300",
+    "discount": 0.0,
+    "discount_gl_account": "4900",
+    "currency": "USD",
+    "currency_rate": 1.2734,
+    "closed": "0",
+    "lines": [
+      {
+        "sku": "WIDGET-A",
+        "description": "Widget A",
+        "qty": 2.0,
+        "unit_price": 10.0,
+        "amount": 20.0,
+        "gl_account": "4010",
+        "taxable": 0,
+        "tax_rate": 0.0
+      }
+    ],
+    "customer_name": "Test Customer",
+    "bill_email": "accounts@test.example",
+    "bill_address1": "1 High Street",
+    "bill_address2": "Unit 2",
+    "bill_city": "Leeds",
+    "bill_state": "West Yorkshire",
+    "bill_postal_code": "LS1 1AA",
+    "bill_country": "USA",
+    "ship_country": "USA"
+  },
+  "expected": {
+    "document": {
+      "doc_type": "invoice",
+      "number": "INV-1001",
+      "reference": "PO-555",
+      "date": "2026-09-15",
+      "due_date": "2026-10-15",
+      "contact_name": "Test Customer",
+      "email": "accounts@test.example",
+      "address1": "1 High Street",
+      "address2": "Unit 2",
+      "city": "Leeds",
+      "region": "West Yorkshire",
+      "postal_code": "LS1 1AA",
+      "billing_country": "USA",
+      "currency": "USD",
+      "lines": [
+        {
+          "description": "Widget A",
+          "quantity": 2.0,
+          "unit_amount": 12.73,
+          "account_code": "205",
+          "tax_type": "NONE",
+          "item_code": "WIDGET-A"
+        },
+        {
+          "description": "Freight",
+          "quantity": 1,
+          "unit_amount": 5.09,
+          "account_code": "215",
+          "tax_type": "NONE",
+          "item_code": ""
+        },
+        {
+          "description": "Rounding Adjustment",
+          "quantity": 1,
+          "unit_amount": 0.01,
+          "account_code": "860",
+          "tax_type": "NONE",
+          "item_code": ""
+        }
+      ],
+      "source_total": 30.56,
+      "computed_total": 30.55,
+      "rounding_applied": 0.01,
+      "unmapped_accounts": [],
+      "unmapped_tax_rates": [],
+      "country": "USA",
+      "is_domestic": false,
+      "warnings": []
+    },
+    "csv_text": "ContactName,EmailAddress,POAddressLine1,POAddressLine2,POAddressLine3,POAddressLine4,POCity,PORegion,POPostalCode,POCountry,InvoiceNumber,Reference,InvoiceDate,DueDate,Total,InventoryItemCode,Description,Quantity,UnitAmount,Discount,AccountCode,TaxType,TaxAmount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2,Currency,BrandingTheme\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,USA,INV-1001,PO-555,2026-09-15,2026-10-15,30.56,WIDGET-A,Widget A,2.0,12.73,,205,No VAT,,,,,,USD,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,USA,INV-1001,PO-555,2026-09-15,2026-10-15,30.56,,Freight,1,5.09,,215,No VAT,,,,,,USD,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,USA,INV-1001,PO-555,2026-09-15,2026-10-15,30.56,,Rounding Adjustment,1,0.01,,860,No VAT,,,,,,USD,\r\n",
+    "csv_rows": [
+      [
+        "ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "InvoiceNumber",
+        "Reference",
+        "InvoiceDate",
+        "DueDate",
+        "Total",
+        "InventoryItemCode",
+        "Description",
+        "Quantity",
+        "UnitAmount",
+        "Discount",
+        "AccountCode",
+        "TaxType",
+        "TaxAmount",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme"
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "USA",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "30.56",
+        "WIDGET-A",
+        "Widget A",
+        "2.0",
+        "12.73",
+        "",
+        "205",
+        "No VAT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "USD",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "USA",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "30.56",
+        "",
+        "Freight",
+        "1",
+        "5.09",
+        "",
+        "215",
+        "No VAT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "USD",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "USA",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "30.56",
+        "",
+        "Rounding Adjustment",
+        "1",
+        "0.01",
+        "",
+        "860",
+        "No VAT",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "USD",
+        ""
+      ]
+    ],
+    "xero_payload_known_items_only": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "USA"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Widget A",
+          "Quantity": 2.0,
+          "UnitAmount": 12.73,
+          "AccountCode": "205",
+          "TaxType": "NONE",
+          "ItemCode": "WIDGET-A"
+        },
+        {
+          "Description": "Freight",
+          "Quantity": 1,
+          "UnitAmount": 5.09,
+          "AccountCode": "215",
+          "TaxType": "NONE"
+        },
+        {
+          "Description": "Rounding Adjustment",
+          "Quantity": 1,
+          "UnitAmount": 0.01,
+          "AccountCode": "860",
+          "TaxType": "NONE"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "USD",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "xero_payload_after_item_autocreate": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "USA"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Widget A",
+          "Quantity": 2.0,
+          "UnitAmount": 12.73,
+          "AccountCode": "205",
+          "TaxType": "NONE",
+          "ItemCode": "WIDGET-A"
+        },
+        {
+          "Description": "Freight",
+          "Quantity": 1,
+          "UnitAmount": 5.09,
+          "AccountCode": "215",
+          "TaxType": "NONE"
+        },
+        {
+          "Description": "Rounding Adjustment",
+          "Quantity": 1,
+          "UnitAmount": 0.01,
+          "AccountCode": "860",
+          "TaxType": "NONE"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "USD",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "items_to_autocreate": []
+  }
+}

@@ -1,0 +1,351 @@
+{
+  "name": "03_discount_single_rate",
+  "notes": "Discount line inherits the products' single TaxType (AR_TAX_BEFORE_DISCOUNT).",
+  "doc_type": "invoice",
+  "opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  },
+  "record": {
+    "id": 1001,
+    "invoice_number": "INV-1001",
+    "reference": "PO-555",
+    "payment_reference": "",
+    "date": "2026-09-15",
+    "customer_id": 7,
+    "total": 72.0,
+    "tax": 12.0,
+    "freight": 0.0,
+    "freight_taxable": 0,
+    "freight_tax_rate": 0.0,
+    "freight_gl_account": "4300",
+    "discount": 10.0,
+    "discount_gl_account": "4900",
+    "currency": "GBP",
+    "currency_rate": 1.0,
+    "closed": "0",
+    "lines": [
+      {
+        "sku": "WIDGET-A",
+        "description": "Widget A",
+        "qty": 3.0,
+        "unit_price": 15.0,
+        "amount": 45.0,
+        "gl_account": "4000",
+        "taxable": 1,
+        "tax_rate": 20.0
+      },
+      {
+        "sku": "GADGET",
+        "description": "Gadget",
+        "qty": 1.0,
+        "unit_price": 25.0,
+        "amount": 25.0,
+        "gl_account": "4000",
+        "taxable": 1,
+        "tax_rate": 20.0
+      }
+    ],
+    "customer_name": "Test Customer",
+    "bill_email": "accounts@test.example",
+    "bill_address1": "1 High Street",
+    "bill_address2": "Unit 2",
+    "bill_city": "Leeds",
+    "bill_state": "West Yorkshire",
+    "bill_postal_code": "LS1 1AA",
+    "bill_country": "GBR",
+    "ship_country": "GBR"
+  },
+  "expected": {
+    "document": {
+      "doc_type": "invoice",
+      "number": "INV-1001",
+      "reference": "PO-555",
+      "date": "2026-09-15",
+      "due_date": "2026-10-15",
+      "contact_name": "Test Customer",
+      "email": "accounts@test.example",
+      "address1": "1 High Street",
+      "address2": "Unit 2",
+      "city": "Leeds",
+      "region": "West Yorkshire",
+      "postal_code": "LS1 1AA",
+      "billing_country": "GBR",
+      "currency": "GBP",
+      "lines": [
+        {
+          "description": "Widget A",
+          "quantity": 3.0,
+          "unit_amount": 15.0,
+          "account_code": "200",
+          "tax_type": "20% (VAT on Income)",
+          "item_code": "WIDGET-A"
+        },
+        {
+          "description": "Gadget",
+          "quantity": 1.0,
+          "unit_amount": 25.0,
+          "account_code": "200",
+          "tax_type": "20% (VAT on Income)",
+          "item_code": "GADGET"
+        },
+        {
+          "description": "Discount",
+          "quantity": 1,
+          "unit_amount": -10.0,
+          "account_code": "220",
+          "tax_type": "20% (VAT on Income)",
+          "item_code": ""
+        }
+      ],
+      "source_total": 72.0,
+      "computed_total": 72.0,
+      "rounding_applied": 0.0,
+      "unmapped_accounts": [],
+      "unmapped_tax_rates": [],
+      "country": "GBR",
+      "is_domestic": true,
+      "warnings": []
+    },
+    "csv_text": "ContactName,EmailAddress,POAddressLine1,POAddressLine2,POAddressLine3,POAddressLine4,POCity,PORegion,POPostalCode,POCountry,InvoiceNumber,Reference,InvoiceDate,DueDate,Total,InventoryItemCode,Description,Quantity,UnitAmount,Discount,AccountCode,TaxType,TaxAmount,TrackingName1,TrackingOption1,TrackingName2,TrackingOption2,Currency,BrandingTheme\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,72.00,WIDGET-A,Widget A,3.0,15.00,,200,20% (VAT on Income),,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,72.00,GADGET,Gadget,1.0,25.00,,200,20% (VAT on Income),,,,,,GBP,\r\nTest Customer,accounts@test.example,1 High Street,Unit 2,,,Leeds,West Yorkshire,LS1 1AA,GBR,INV-1001,PO-555,2026-09-15,2026-10-15,72.00,,Discount,1,-10.00,,220,20% (VAT on Income),,,,,,GBP,\r\n",
+    "csv_rows": [
+      [
+        "ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "InvoiceNumber",
+        "Reference",
+        "InvoiceDate",
+        "DueDate",
+        "Total",
+        "InventoryItemCode",
+        "Description",
+        "Quantity",
+        "UnitAmount",
+        "Discount",
+        "AccountCode",
+        "TaxType",
+        "TaxAmount",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme"
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "72.00",
+        "WIDGET-A",
+        "Widget A",
+        "3.0",
+        "15.00",
+        "",
+        "200",
+        "20% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "72.00",
+        "GADGET",
+        "Gadget",
+        "1.0",
+        "25.00",
+        "",
+        "200",
+        "20% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ],
+      [
+        "Test Customer",
+        "accounts@test.example",
+        "1 High Street",
+        "Unit 2",
+        "",
+        "",
+        "Leeds",
+        "West Yorkshire",
+        "LS1 1AA",
+        "GBR",
+        "INV-1001",
+        "PO-555",
+        "2026-09-15",
+        "2026-10-15",
+        "72.00",
+        "",
+        "Discount",
+        "1",
+        "-10.00",
+        "",
+        "220",
+        "20% (VAT on Income)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "GBP",
+        ""
+      ]
+    ],
+    "xero_payload_known_items_only": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Widget A",
+          "Quantity": 3.0,
+          "UnitAmount": 15.0,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2",
+          "ItemCode": "WIDGET-A"
+        },
+        {
+          "Description": "Gadget",
+          "Quantity": 1.0,
+          "UnitAmount": 25.0,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2"
+        },
+        {
+          "Description": "Discount",
+          "Quantity": 1,
+          "UnitAmount": -10.0,
+          "AccountCode": "220",
+          "TaxType": "OUTPUT2"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "xero_payload_after_item_autocreate": {
+      "Type": "ACCREC",
+      "Contact": {
+        "Name": "Test Customer",
+        "EmailAddress": "accounts@test.example",
+        "Addresses": [
+          {
+            "AddressType": "STREET",
+            "AddressLine1": "1 High Street",
+            "AddressLine2": "Unit 2",
+            "City": "Leeds",
+            "Region": "West Yorkshire",
+            "PostalCode": "LS1 1AA",
+            "Country": "GBR"
+          }
+        ]
+      },
+      "Date": "2026-09-15",
+      "LineItems": [
+        {
+          "Description": "Widget A",
+          "Quantity": 3.0,
+          "UnitAmount": 15.0,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2",
+          "ItemCode": "WIDGET-A"
+        },
+        {
+          "Description": "Gadget",
+          "Quantity": 1.0,
+          "UnitAmount": 25.0,
+          "AccountCode": "200",
+          "TaxType": "OUTPUT2",
+          "ItemCode": "GADGET"
+        },
+        {
+          "Description": "Discount",
+          "Quantity": 1,
+          "UnitAmount": -10.0,
+          "AccountCode": "220",
+          "TaxType": "OUTPUT2"
+        }
+      ],
+      "LineAmountTypes": "Exclusive",
+      "Reference": "PO-555",
+      "Status": "DRAFT",
+      "CurrencyCode": "GBP",
+      "InvoiceNumber": "INV-1001",
+      "DueDate": "2026-10-15"
+    },
+    "items_to_autocreate": [
+      {
+        "Code": "GADGET",
+        "Name": "Gadget",
+        "Description": "Gadget",
+        "SalesDetails": {
+          "UnitPrice": 25.0,
+          "AccountCode": "200"
+        }
+      }
+    ]
+  }
+}

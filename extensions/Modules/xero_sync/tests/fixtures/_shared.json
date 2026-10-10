@@ -1,0 +1,46 @@
+{
+  "mapping": {
+    "accounts": {
+      "4000": "200",
+      "4010": {
+        "domestic": "200",
+        "foreign": "205"
+      },
+      "4300": {
+        "domestic": "210",
+        "foreign": "215"
+      },
+      "4900": {
+        "domestic": "220",
+        "foreign": "225"
+      }
+    },
+    "default_account": "200",
+    "rounding_account": "860",
+    "contacts": {
+      "ACME LTD": "Acme Limited"
+    },
+    "tax_types": {
+      "1": "20% (VAT on Income)",
+      "2": "5% (VAT on Income)",
+      "3": "Zero Rated Income"
+    },
+    "no_vat_type": "No VAT"
+  },
+  "tax_name_to_code": {
+    "20% (VAT on Income)": "OUTPUT2",
+    "5% (VAT on Income)": "RROUTPUT",
+    "Zero Rated Income": "ZERORATEDOUTPUT",
+    "No VAT": "NONE"
+  },
+  "known_item_codes": [
+    "WIDGET-A"
+  ],
+  "default_opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  }
+}
