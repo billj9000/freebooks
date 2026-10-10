@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:30
 // Module/Method: contacts
@@ -12,7 +28,7 @@ define('MODULE_CONTACTS_TITLE','Contact module');
 define('MODULE_CONTACTS_DESCRIPTION','De contact module beheert alle klanten, leveranciers, medewerkers, brances en projecten in de PhreeSoft Business Toolkit. <b>NOTE: Deze module moet niet verwijderd worden omdat hij tot de kern van het programma behoort!</b>');
 define('BOX_CONTACTS_ADMIN','Contact Administratie');
 define('TEXT_BILLING_PREFS','Factuur Adres Instellingen');
-define('PB_PF_CONTACT_ID','Contact ID');
+define('PB_PF_CONTACT_ID','Contact-ID');
 define('PB_PF_TERMS_TO_LANGUAGE','Voorwaarden naar Taal');
 define('COST_TYPE_LBR','Arbeidt');
 define('COST_TYPE_MAT','Materialen');
@@ -22,7 +38,7 @@ define('COST_TYPE_OTH','Overige');
 if (!defined('TEXT_CUSTOMER')) define('TEXT_CUSTOMER','Klant'); // also defined in this module's menu.php, loaded first
 if (!defined('TEXT_VENDOR')) define('TEXT_VENDOR','Leverancier'); // also defined in this module's menu.php, loaded first
 if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Medewerker'); // also defined in this module's menu.php, loaded first
-define('TEXT_CONTACT_TYPE','Contact Type');
+define('TEXT_CONTACT_TYPE','Contacttype');
 define('NEXT_CUST_ID_NUM_DESC','Volgende Klant ID');
 define('NEXT_VEND_ID_NUM_DESC','Volgende Leverancier ID');
 define('CONTACT_BILL_FIELD_REQ','Of het verplicht is of het veld: %s in gevult moet worden voor een nieuw hoofd/factuur adres(voor Leveranciers, Klanten en Personeel)');
@@ -69,11 +85,11 @@ define('SETUP_INFO_HEADING_NEW_PROJECT_PHASES','Nieuwe Project fase');
 define('SETUP_INFO_HEADING_EDIT_PROJECT_PHASES','Bewerk Project fase');
 define('SETUP_PROJECT_PHASESS_LOG','Project Fasen - ');
 define('SETUP_PROJECT_PHASESS_DELETE_ERROR','Kan de project fase niet verwijderen, het wordt namelijk gebruikt in een journaal.');
-define('TEXT_POSTCODE_LOOKUP',               'Postcode Lookup');
-define('ACT_POSTCODE_LOOKUP_BUTTON',         'Find Address');
-define('ACT_POSTCODE_LOOKUP_STATUS_DESC',    'Enable postcode lookup');
-define('ACT_POSTCODE_LOOKUP_PROVIDER_DESC',  'Postcode lookup provider');
-define('ACT_POSTCODE_LOOKUP_API_KEY_DESC',   'API key');
-define('ACT_POSTCODE_LOOKUP_COUNTRY_DESC',   'Default country code (e.g. GB)');
+define('TEXT_POSTCODE_LOOKUP',               'Postcode opzoeken');
+define('ACT_POSTCODE_LOOKUP_BUTTON',         'Adres zoeken');
+define('ACT_POSTCODE_LOOKUP_STATUS_DESC',    'Postcode opzoeken inschakelen');
+define('ACT_POSTCODE_LOOKUP_PROVIDER_DESC',  'Provider voor postcode opzoeken');
+define('ACT_POSTCODE_LOOKUP_API_KEY_DESC',   'API-sleutel');
+define('ACT_POSTCODE_LOOKUP_COUNTRY_DESC',   'Standaard landcode (bijv. GB)');
 
 ?>

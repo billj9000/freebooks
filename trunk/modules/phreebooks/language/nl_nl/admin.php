@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:34
 // Module/Method: phreebooks
@@ -8,7 +24,7 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/phreebooks/language/nl_nl/admin.php
 
-define('MODULE_PHREEBOOKS_TITLE','PhreeBooks Module');
+define('MODULE_PHREEBOOKS_TITLE','PhreeBooks-module');
 define('MODULE_PHREEBOOKS_DESCRIPTION','De phreebooks module biedt dubbele invoer boekhouden. De functies omvatten Inkooporders, Verkooporders, facturering, Journaalposten en nog veel meer. <b> LET OP: Dit is een core module en dient niet te worden verwijderd </ b>!');
 define('MODULE_PHREEBOOKS_NOTES_1','MEDIUM BELANGRIJK: Voer bedrijfsinformatie in (Bedrijf -> Module Administratie -> Mijn Bedrijf tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_2','MINST BELANGRIJK: Set up mail server instellingen (Bedrijf -> Module Administratie -> Email tabblad)');
@@ -44,7 +60,7 @@ define('COA_34_DESC','Kosten');
 define('COA_40_DESC','Eigen vermogen - gaat niet dicht');
 define('COA_42_DESC','Eigen vermogen - wordt gesloten');
 define('COA_44_DESC','Eigen vermogen - ingehouden winsten');
-define('PB_PF_BANK_CHECK','Bank Checks');
+define('PB_PF_BANK_CHECK','Bankcheques');
 define('PB_PF_BANK_DEP_SLIP','Bank Stortingsbewijs');
 define('PB_PF_COLLECT_LTR','Verzameling Correspondentie');
 define('PB_PF_CUST_CRD_MEMO','Credit Boekingen - Klanten');
@@ -177,8 +193,8 @@ define('GL_CHART_IMPORT_DESC','Of importeer een aangepast rekenschema');
 define('GL_CHART_DELETE_WARNING','Aantekening huidige grootboekrekeningen kunnen hier verwijderd worden als er boekingen op gemaakt zijn.');
 define('GL_JOURNAL_NOT_EMTPY','Het algemene Journaal is niet leeg. Het huidige rekenschema kan niet verwijderd worden');
 define('GL_ACCOUNT_DUPLICATE','De grootboek: %s bestaat reeds!. Het zal daarom niet nog een keer toegevoegd worden.');
-define('GL_CHART_NOT_READ','The chart of accounts %s could not be read. Nothing has been imported.');
-define('GL_CHART_DEFAULTS_SET','The receivables and payables default accounts have been set to the ones named by the %s.');
+define('GL_CHART_NOT_READ','Het rekeningschema %s kon niet worden gelezen. Er is niets geïmporteerd.');
+define('GL_CHART_DEFAULTS_SET','De standaardrekeningen voor debiteuren en crediteuren zijn ingesteld op de rekeningen die worden genoemd in het %s.');
 define('GL_INFO_HEADING_ONLY','Dit rekening is een Groep en kan geen boekingen aanvaarden? ');
 define('GL_INFO_PRIMARY_ACCT_ID','Als dit rekeningnummer een sub-rekening is, selecteer dan de primaire rekening:');
 define('ERROR_ACCT_TYPE_REQ','Het Rekeningnummer type is vereist!');

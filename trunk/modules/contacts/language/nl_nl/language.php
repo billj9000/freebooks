@@ -5,6 +5,16 @@
 // | Copyright(c) 2026 Bill Jones                                    |
 // | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
 // Path: /modules/contacts/language/nl_nl/language.php
 
 define('CONTACTS_CHART_SALES_TITLE', 'Maandelijkse Verkopen');
@@ -12,7 +22,7 @@ define('ACT_POPUP_WINDOW_TITLE','Account Zoeken');
 define('ACT_POPUP_TERMS_WINDOW_TITLE','Betalingsregels');
 define('ACT_CATEGORY_I_ADDRESS','Toevoegen/Bewerk Contact');
 if (!defined('TEXT_BUYER')) define('TEXT_BUYER','Koper'); // also defined in phreebooks/language.php
-define('ACT_SHORT_NAME','Contact ID');
+define('ACT_SHORT_NAME','Contact-ID');
 define('TEXT_CONTACTS','Contacten');
 if (!defined('TEXT_EMPLOYEE')) define('TEXT_EMPLOYEE','Medewerker'); // also defined in contacts/admin.php, contacts/menu.php
 define('TEXT_LINK_TO','Link naar:');
@@ -45,11 +55,11 @@ define('GEN_TELEPHONE1','Telefoon');
 define('GEN_TELEPHONE2','Alt Telefoon');
 define('GEN_FAX','Fax');
 define('GEN_TELEPHONE4','Mobiele nummer');
-define('GEN_ACCOUNT_ID','Account ID');
+define('GEN_ACCOUNT_ID','Account-ID');
 define('GEN_CUSTOMER_ID','Klant ID:');
 define('GEN_VENDOR_ID','Leverancier ID:');
-define('ACT_ACCOUNT_NUMBER','Facebook ID');
-define('ACT_ID_NUMBER','Twitter ID');
+define('ACT_ACCOUNT_NUMBER','Facebook-ID');
+define('ACT_ID_NUMBER','Twitter-ID');
 define('GEN_WEBSITE','Website');
 define('GEN_ACCOUNT_LINK','Koppel aan Medewerker');
 define('ACT_B_TYPE_NAME','Branche');
@@ -84,7 +94,7 @@ define('ACT_I_SHORT_NAME','Contact');
 define('ACT_I_PAGE_TITLE_EDIT','Bewerk Konctact');
 define('ACT_J_TYPE_NAME','Projecten');
 define('ACT_J_HEADING_TITLE','Project');
-define('ACT_J_SHORT_NAME','Project ID');
+define('ACT_J_SHORT_NAME','Project-ID');
 define('ACT_J_ID_NUMBER','Referentie Verkoop Order');
 define('ACT_J_REP_ID','Verkopers ID');
 define('ACT_J_PAGE_TITLE_EDIT','Bewerk Project');
@@ -159,7 +169,7 @@ define('ACT_BILLING_MESSAGE','Deze velden zijn niet nodig tenzij er een factuur 
 define('ACT_SHIPPING_MESSAGE','Deze velden zijn niet nodig tenzij er een verzend adres toegevoegd moet worden.');
 define('ACT_NO_ENCRYPT_KEY_ENTERED','Voorzichtig: er is geen versleuteling daarom krijgt u de credit card informatie niet te zien en worden de hier in gevoerde waarde niet opgeslagen!');
 define('ACT_PAYMENT_REF','Betalingskenmerk');
-define('ACT_LIST_OPEN_ORDERS','Open Orders');
+define('ACT_LIST_OPEN_ORDERS','Openstaande orders');
 define('ACT_LIST_OPEN_INVOICES','Open Facturen');
 define('ACT_NO_KEY_EXISTS','Omdat er geen versleuteling is. is het factuuradres wel opgeslagen maar de rest van de betalingsgegevens niet.');
 define('ACT_ERROR_DUPLICATE_CONTACT','De Contact-ID bestaat al in het systeem, geef dan een nieuwe Contact-ID.');

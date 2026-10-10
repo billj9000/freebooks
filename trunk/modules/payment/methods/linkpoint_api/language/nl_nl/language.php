@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:32
 // Module/Method: payment-linkpoint_api
@@ -47,14 +63,14 @@ define('MODULE_PAYMENT_LINKPOINT_API_TEXT_CC_NUM_REQUIRED_ERROR','Fout: U verzoc
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_INVALID_REFUND_AMOUNT','Fout: U verzocht om een restitutie, maar heeft een ongeldige waarde op gegeven.');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_REFUND_CONFIRM_ERROR','Fout: U vroeg om een terugbetaling te doen, maar liet na de bevestiging vak te selecteren.');
 define('MODULE_PAYMENT_LINKPOINT_API_ENTRY_REFUND_BUTTON_TEXT','Doe Terugbetaling');
-define('MODULE_PAYMENT_LINKPOINT_API_TEXT_ORDERTYPE','Order Type:');
+define('MODULE_PAYMENT_LINKPOINT_API_TEXT_ORDERTYPE','Ordertype:');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_NO_MATCHING_ORDER_FOUND','Fout: Kon transactie details niet vinden voor het opgegeven record.');
 define('MODULE_PAYMENT_LINKPOINT_API_FRAUD_SCORE','Fraude code:');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_TEST_MODE','<b>&nbsp;(OPMERKING: Module is in de testmodus)</b>');
 define('MODULE_PAYMENT_LINKPOINT_API_TRANSACTION_REFERENCE_NUMBER','Referentie Nummer:');
 define('MODULE_PAYMENT_LINKPOINT_API_MESSAGE','Reactie Bericht');
 define('MODULE_PAYMENT_LINKPOINT_API_APPROVAL_CODE','De goedkeuring Code:');
-define('MODULE_PAYMENT_LINKPOINT_API_LINKPOINT_ORDER_ID','Linkpoint Order ID:');
+define('MODULE_PAYMENT_LINKPOINT_API_LINKPOINT_ORDER_ID','Linkpoint order-ID:');
 define('MODULE_PAYMENT_LINKPOINT_API_AVS_RESPONSE','AVS Reactie:');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_GENERAL_ERROR','Het spijt ons. Er was een systeem fout tijdens het verwerken van uw kaart. Uw informatie is veilig. Neem contact op met eigenaar van de winkel voor een alternatieve betaling.');
 define('MODULE_PAYMENT_LINKPOINT_API_TEXT_FAILURE_MESSAGE','Onze excuses voor het ongemak, maar we zijn momenteel niet in staat om de credit card maatschappij contact op voor een vergunning. Neem contact op met eigenaar van de winkel voor een alternatieve betaling.');

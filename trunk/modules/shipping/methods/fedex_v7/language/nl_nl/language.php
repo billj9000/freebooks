@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:37
 // Module/Method: shipping-fedex_v7
@@ -103,8 +119,8 @@ define('EIGHTEEN_DAYS','Achttien dagen onderweg');
 define('NINETEEN_DAYS','Negentien dagen onderweg');
 define('TWENTY_DAYS','Twintig dagen onderweg');
 define('UNKNOWN','Onbekend aantal dage onderweg');
-define('TEXT_PRINT_PDF_DOCUMENTS','Print PDF documents (after label printing is complete)');
-define('TEXT_PRINT_PAPER','Print Paper Documents');
+define('TEXT_PRINT_PDF_DOCUMENTS','PDF-documenten afdrukken (nadat het afdrukken van labels is voltooid)');
+define('TEXT_PRINT_PAPER','Papieren documenten afdrukken');
 define('SHIPPING_FEDEX_ERROR_POSTAL_CODE','Postcode is vereist om de FedEx module te gebruiken');
 define('SHIPPING_FEDEX_RECON_TITLE','FedEx Verzoenings-Rapport gegeneerd: ');
 define('SHIPPING_FEDEX_RECON_INTRO','Factuur Nummer: %s gedateerd %s');

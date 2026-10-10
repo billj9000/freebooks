@@ -46,11 +46,11 @@ define('BNK_TEXT_SAVE_PAYMENT_INFO','Bewaar Betalings Informatie ');
 // works, where a missing constant is a fatal (gen_pull_language() loads ONE
 // locale file, never en_us as well).
 define('BNK_CURRENCY','Currency');
-define('BNK_CURRENCY_NOTE','Taken from the documents being settled. Amounts below are in this currency.');
-define('BNK_JS_ONE_CURRENCY','This entry is in %s. A document raised in %s has to be settled on an entry of its own, because one entry carries one currency and one exchange rate.');
-define('BNK_ERROR_MIXED_CURRENCY','The documents ticked are not all in the same currency (%s). One entry settles one currency, so please tick the ones in a single currency and enter the rest separately.');
-define('BNK_WARN_LEGACY_CURRENCY','This entry is recorded in %s and settles a document raised in %s. It was posted before this page could tell the two apart, so the amounts shown are in %s, as they were stored.');
-define('BNK_ERROR_PAYMENT_CURRENCY','%s cannot take a payment in %s - it sends the amount to the gateway as %s whatever the entry says, which would move the wrong money. Settle this one by another method, or record it without a gateway.');
+define('BNK_CURRENCY_NOTE','Overgenomen uit de documenten die worden afgewikkeld. De onderstaande bedragen zijn in deze valuta.');
+define('BNK_JS_ONE_CURRENCY','Deze boeking is in %s. Een document in %s moet met een eigen boeking worden afgewikkeld, omdat één boeking één valuta en één wisselkoers heeft.');
+define('BNK_ERROR_MIXED_CURRENCY','De aangevinkte documenten zijn niet allemaal in dezelfde valuta (%s). Eén boeking wikkelt één valuta af; vink daarom de documenten in één valuta aan en voer de overige afzonderlijk in.');
+define('BNK_WARN_LEGACY_CURRENCY','Deze boeking is vastgelegd in %s en wikkelt een document in %s af. Ze is geboekt voordat deze pagina de twee kon onderscheiden, dus de getoonde bedragen zijn in %s, zoals ze zijn opgeslagen.');
+define('BNK_ERROR_PAYMENT_CURRENCY','%s kan geen betaling in %s ontvangen - het stuurt het bedrag als %s naar de betaalprovider, ongeacht wat de boeking vermeldt, waardoor het verkeerde bedrag zou worden verwerkt. Wikkel deze af via een andere methode, of leg haar vast zonder betaalprovider.');
 define('ORD_ADD_UPDATE','Toevoegen/Update');
 define('ORD_AP_ACCOUNT','Crediteuren Grootboek');
 define('ORD_AR_ACCOUNT','Debiteuren Grootboek');
@@ -171,9 +171,9 @@ define('TEXT_SAVE_OPEN_NEXT','Bewaar -  Open Volgende Factuur');
 define('ORD_WARN_FORM_MODIFIED','Er lijkt al data in het formulier te staan wil u zoeken naar bestaande contacten? ');
 define('ORD_WARN_FORM_HAS_DATA','Dit het formulier wordt geschoond, maar er zijn items in tabel. Druk op OK om de tabel op te schonen, Annuleren om de lijst met items te het behouden.');
 define('ORD_ERROR_NOT_CUR_PERIOD','Uw machtigingen voorkomen dat u wijzigingen mag doen in een andere periode dan de huidige periode! ');
-define('ORD_ERROR_BAD_JOURNAL_ID','That document type (journal %s) is not one this page handles.');
-define('ORD_ERROR_NOTHING_SELECTED','No document was selected, so there is nothing to convert.');
-define('PB_ERROR_NO_VENDOR_GIVEN','No vendor was given, so there is no low stock to report.');
+define('ORD_ERROR_BAD_JOURNAL_ID','Dat documenttype (dagboek %s) wordt niet door deze pagina verwerkt.');
+define('ORD_ERROR_NOTHING_SELECTED','Er is geen document geselecteerd, dus er is niets om te converteren.');
+define('PB_ERROR_NO_VENDOR_GIVEN','Er is geen leverancier opgegeven, dus er is geen lage voorraad om te rapporteren.');
 define('ORD_ERROR_DEL_NOT_CUR_PERIOD','Uw machtigingen te voorkomen dat u een order mag verwijderen in een andere periode dan de huidige periode! ');
 define('ORD_DISCOUNT_GL_ACCT','Kortings Grootboekrekening');
 define('ORD_FREIGHT_GL_ACCT','Vracht Grootboekrekening');
@@ -202,7 +202,7 @@ define('ORD_RECUR_ENTRIES','Voer het te creeren aantal in');
 define('ORD_RECUR_FREQUENCY','Welke frequentie hebben de boekingen');
 define('ORD_PAST_LAST_PERIOD','De opgeslagen transactie kan voorbij de laatste periode van het systeem liggen!');
 define('ORD_PRICE_SHEET_WARN','Prijslijst kan niet worden gedefineerd tenzij het artikel bestaat!');
-define('GL_BUDGET_HEADING_TITLE','Budget Manager');
+define('GL_BUDGET_HEADING_TITLE','Budgetbeheer');
 define('GL_BUDGET_INTRO_TEXT','Deze tool stelt de budgetten voor grootboek rekeningen in. <br /> OPMERKING: De Bewaar pictogram moet worden ingedrukt na het invoeren van gegevens voordat de rekening of het fiscale jaar is veranderd!');
 define('GL_COPY_ACTUAL_CONFIRM','Weet u zeker dat u aan de begroting bedragen in alle grootboek rekeningen voor het geselecteerde boekjaar wil vervangen met actuele van het voorgaande fiscale jaar? Deze bewerking kan niet ongedaan gemaakt worden!');
 define('GL_BUDGET_COPY_HINT','Kopieer actuele van vorig Fiscaal Jaar');
@@ -337,10 +337,10 @@ define('THERE_IS_SALES_ORDER_FOR_THIS_ITEM', 'er is een verkoop bestelling voor 
 define('ITEM_IS_ON_ORDER', 'artikel staat in bestelling');
 define('ITEM_MUST_BE_ORDERD', 'artikel moet besteld worden');
 if (!defined('TEXT_NULL')) define('TEXT_NULL','is Null'); // phreedom's language.php also defines this, loaded earlier during install
-if (!defined('TEXT_NOT_NULL')) define('TEXT_NOT_NULL','is not Null'); // ditto — note phreedom's nl_nl copy says 'is niet Null' (correctly translated) and already wins; this untranslated copy has never actually been shown
+if (!defined('TEXT_NOT_NULL')) define('TEXT_NOT_NULL','is niet leeg'); // ditto — note phreedom's nl_nl copy says 'is niet Null' (correctly translated) and already wins; this untranslated copy has never actually been shown
 define('ORD_POSTCODE_COUNTRY', 'Land');
 define('ORD_POSTCODE_POSTAL',  'Postcode');
-define('ORD_POSTCODE_FIND',    'Find Address');
+define('ORD_POSTCODE_FIND',    'Adres zoeken');
 define('ORD_VENDOR_SKU',       'Leverancier Artikelnummer');
 define('PO_EXPORT_NO_ORDER',   'De order kon niet worden gevonden - sla de inkooporder op en probeer het opnieuw.');
 define('PO_EXPORT_NO_PROFILE', 'Voor deze leverancier is geen exportprofiel ingesteld. Stel er een in op de leverancierskaart en probeer het opnieuw.');
@@ -365,10 +365,10 @@ define('PO_EXPORT_MSG_DELETE',         'Weet u zeker dat u dit exportprofiel wil
 define('PO_EXPORT_ERROR_NO_NAME',      'Voer een profielnaam in.');
 define('PO_EXPORT_ERROR_IN_USE',       'Dit profiel is aan een of meer leveranciers toegewezen en kan niet worden verwijderd. Wijs deze leveranciers eerst opnieuw toe.');
 define('STATUS_TEXT_PRINTED',            'Printed');
-define('STATUS_SELECT_ALL_UNPRINTED',    'Select All Unprinted');
-define('STATUS_PRINT_SELECTED',          'Print Selected');
-define('STATUS_CLEAR_SELECTION',         'Clear Selection');
-define('STATUS_SELECTION_COUNT_SINGLE',  '1 invoice selected');
-define('STATUS_SELECTION_COUNT_PLURAL',  '%d invoices selected');
-define('STATUS_SELECT_UNPRINTED_ERROR',  'Could not retrieve unprinted invoices. Please try again.');
+define('STATUS_SELECT_ALL_UNPRINTED',    'Alle niet-afgedrukte selecteren');
+define('STATUS_PRINT_SELECTED',          'Selectie afdrukken');
+define('STATUS_CLEAR_SELECTION',         'Selectie wissen');
+define('STATUS_SELECTION_COUNT_SINGLE',  '1 factuur geselecteerd');
+define('STATUS_SELECTION_COUNT_PLURAL',  '%d facturen geselecteerd');
+define('STATUS_SELECT_UNPRINTED_ERROR',  'Niet-afgedrukte facturen konden niet worden opgehaald. Probeer het opnieuw.');
 ?>

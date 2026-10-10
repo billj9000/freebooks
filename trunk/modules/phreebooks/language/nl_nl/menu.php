@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:34
 // Module/Method: phreebooks
@@ -33,7 +49,7 @@ define('BOX_BANKING_ACCOUNT_RECONCILIATION','Grootboek Verrekening');
 define('BOX_BANKING_VOID_CHECKS','Niet geldige Checks');
 define('BOX_GL_BUDGET','Budgeteren');
 define('BOX_GL_UTILITIES','Algemene Journaal Opties');
-define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks Admin');
+define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks-beheer');
 define('BOX_STATUS_MGR','%s Manager');
 define('ORD_TEXT_RECEIPTS_TITLE','Ontvangsten');
 define('ORD_TEXT_PAYMENTS_TITLE','Betalingen');

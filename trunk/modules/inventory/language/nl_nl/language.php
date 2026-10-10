@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:31
 // Module/Method: inventory
@@ -144,13 +160,13 @@ define('INV_ENTRY_ITEM_WEIGHT','Item Gewicht');
 define('INV_ENTRY_ITEM_MINIMUM_STOCK','Minimaal Voorraad Niveau');
 define('INV_ENTRY_ITEM_REORDER_QUANTITY','Order Aantal');
 define('INV_ENTRY_INVENTORY_COST_METHOD','Kosten Methode');
-define('INV_ENTRY_INVENTORY_SERIALIZE','Serialize Item');
+define('INV_ENTRY_INVENTORY_SERIALIZE','Artikel serialiseren');
 define('INV_MASTER_STOCK_ATTRIB_ID','ID (Max 2 karakters)');
 define('TEXT_CUSTOMER_DETAILS','Klant Details');
 define('TEXT_VENDOR_DETAILS','Leverancier Details');
-define('TEXT_ITEM_DETAILS','Item Details');
+define('TEXT_ITEM_DETAILS','Artikeldetails');
 define('TEXT_ADJ_ITEMS','%s Items');
-define('TEXT_MULTIPLE_ENTRIES','Multiple Adjustments');
+define('TEXT_MULTIPLE_ENTRIES','Meerdere correcties');
 define('TEXT_TRANSFERS','Verplaatsingen');
 define('TEXT_FROM_BRANCH','Van Vestiging');
 define('TEXT_DEST_BRANCH','Naar Vestiging');
@@ -242,16 +258,16 @@ define('TEXT_INVOICE_NUM',          'Factuur #');
 
 // Shipping tab - awaiting translation, English text so the tab renders
 define('INV_TAB_SHIPPING',              'Shipping');
-define('INV_SHIPPING_DIMENSIONS',       'Package Dimensions');
-define('INV_SHIPPING_EXT_DIMS_HELP',    'External dimensions of the item as packaged, used for box-packing calculations.');
+define('INV_SHIPPING_DIMENSIONS',       'Verpakkingsafmetingen');
+define('INV_SHIPPING_EXT_DIMS_HELP',    'Buitenafmetingen van het verpakte artikel, gebruikt voor de berekening van het inpakken in dozen.');
 define('INV_ENTRY_ITEM_LENGTH',         'Length');
 define('INV_ENTRY_ITEM_WIDTH',          'Width');
 define('INV_ENTRY_ITEM_HEIGHT',         'Height');
-define('INV_ENTRY_SHIPS_IN_OWN_BOX',    'Ships in its own box');
-define('INV_ENTRY_SHIP_COMPLETE',       'Ships as one item');
-define('INV_SHIP_COMPLETE_HELP',        'Tick if this bundle is packed and shipped as one item. Leave clear and shipping is calculated from its separate components.');
-define('INV_SHIP_COMPLETE_WEIGHT_LOW',  '"Ships as one item" is ticked, but the weight entered (%s) is less than its components add up to (%s). A packed item cannot weigh less than its contents - check the weight, or the Bill of Materials.');
-define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Calculated from the Bill of Materials.');
+define('INV_ENTRY_SHIPS_IN_OWN_BOX',    'Wordt in een eigen doos verzonden');
+define('INV_ENTRY_SHIP_COMPLETE',       'Wordt als één artikel verzonden');
+define('INV_SHIP_COMPLETE_HELP',        'Vink aan als deze bundel als één artikel wordt verpakt en verzonden. Laat leeg om de verzendkosten te berekenen op basis van de afzonderlijke onderdelen.');
+define('INV_SHIP_COMPLETE_WEIGHT_LOW',  '"Wordt als één artikel verzonden" is aangevinkt, maar het ingevoerde gewicht (%s) is lager dan het totaal van de onderdelen (%s). Een verpakt artikel kan niet minder wegen dan de inhoud - controleer het gewicht of de stuklijst.');
+define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Berekend uit de stuklijst.');
 define('INV_SHIPPING_CUSTOMS',          'Douane / Export');
 define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Land van oorsprong');
 define('INV_ENTRY_HS_CODE',             'GS-code');

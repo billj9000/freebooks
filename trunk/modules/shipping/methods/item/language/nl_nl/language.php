@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:37
 // Module/Method: shipping-item
@@ -8,8 +24,8 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/shipping/methods/item/language/nl_nl/language.php
 
-define('MODULE_SHIPPING_ITEM_TEXT_TITLE','Per Item');
-define('MODULE_SHIPPING_ITEM_TITLE_SHORT','Per Item');
+define('MODULE_SHIPPING_ITEM_TEXT_TITLE','Per artikel');
+define('MODULE_SHIPPING_ITEM_TITLE_SHORT','Per artikel');
 define('MODULE_SHIPPING_ITEM_TEXT_DESCRIPTION','Per item Kosten gebaseerd op het aantal verzonden items.');
 define('MODULE_SHIPPING_ITEM_TITLE_DESC','De titel welke gebruikt moet worden in weergaven. ');
 define('MODULE_SHIPPING_ITEM_COST_DESC','De verzendkosten worden vermenigvuldigd met het aantal artikelen in de order. ');

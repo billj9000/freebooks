@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:39
 // Module/Method: translator
@@ -14,7 +30,7 @@ define('TEXT_IMPORT_TRANSLATION','Import Vertaling');
 define('TEXT_EXPORT_TRANSLATION','Export Vertaling');
 define('TEXT_UPLOAD_TRANSLATION','Upload Vertaling');
 define('TEXT_IMPORT_CURRENT_LANGUAGE','Importeer van huidige installatie');
-define('TEXT_EXPORT_CURRENT_LANGUAGE','Export All for a language and version');
+define('TEXT_EXPORT_CURRENT_LANGUAGE','Alles exporteren voor een taal en versie');
 define('TEXT_UPLOAD_LANGUAGE_FILE','Upload van Zip bestand');
 define('TEXT_EDIT_TRANSLATION','Vertaal Module');
 define('TEXT_CHECK_ALL','Check Alle Checkboxen');

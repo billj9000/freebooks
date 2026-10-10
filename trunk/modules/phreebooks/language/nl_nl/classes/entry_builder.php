@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Taal Vertaal Bestand
 // Generated: 2011-12-27 08:06:12
 // Module/Method: phreebooks
@@ -10,7 +26,7 @@
 
 define('TEXT_SO_POST_DATE','Verkoop Order Boekdatum');
 define('RW_EB_PAYMENT_DETAIL','Betaling Details');
-define('RW_EB_RECORD_ID','Record ID');
+define('RW_EB_RECORD_ID','Record-ID');
 define('RW_EB_JOURNAL_ID','Journaal ID');
 define('RW_EB_STORE_ID','Vestiging ID');
 define('RW_EB_JOURNAL_DESC','Journaal Omschrijving');

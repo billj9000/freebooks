@@ -24,5 +24,5 @@
 
 define('MENU_HEADING_PHREEPAY','PhreePay Betaal Module');
 // The Request payment action on invoices, shown by the phreebooks pages.
-define('PAY_REQUEST_TITLE', 'Request payment');
+define('PAY_REQUEST_TITLE', 'Betaling aanvragen');
 ?>

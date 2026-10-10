@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -20,100 +21,100 @@
 define('TEXT_CHART_INFO', 'Select the chart of accounts this company keeps its books on. The chart decides both the accounts the company starts with and which of them the receivables and payables settings point at, so it is worth picking the one that matches the country and trading form. It can be replaced later, from Setup, only while the general journal is still empty.');
 define('MSG_CHART_NO_DEMO', 'The demonstration data uses the US Retail account numbers, so it cannot be loaded against the %s. The company has been installed without it.');
 // template_welcome
-define('LANGUAGE_TEXT','Idiomas DisponÌveis para InstalaÁ„o: ');
+define('LANGUAGE_TEXT','Idiomas Dispon√≠veis para Instala√ß√£o: ');
 define('TITLE_WELCOME','Bemvindo - PhreeBooks Contabilidade');
 define('TEXT_AGREE','Concordo');
 define('TEXT_DISAGREE','Discordo');
 define('INTRO_WELCOME', '<h2>Bemvindo ao PhreeBooks Contabilidade</h2>
-<p>Este script vai auxili·-lo na instalaÁ„o da aplicaÁ„o e verificar se seu sistema atende aos requisitos mÌnimos. VocÍ vai precisar das informaÁıes a seguir para continuar:</p>
+<p>Este script vai auxili√°-lo na instala√ß√£o da aplica√ß√£o e verificar se seu sistema atende aos requisitos m√≠nimos. Voc√™ vai precisar das informa√ß√µes a seguir para continuar:</p>
 <ul>
-  <li>Uma tabela mysql existente com informaÁ„o de acesso</li>
+  <li>Uma tabela mysql existente com informa√ß√£o de acesso</li>
   <li>Direito de escrita no servidor Web (777) para as pastas: /includes e /my_files</li>
-  <li>Um nome de usu·rio, endereÁo de email e senha para o administrador</li>
-  <li>InformaÁ„o de caminho de servidor SSL (isto È recomendado e pode ser modificado se necess·rio)</li>
-  <li>O mÍs e ano fiscal parea inÌcio de armazenamento de lanÁamentos no di·rio</li>
+  <li>Um nome de usu√°rio, endere√ßo de email e senha para o administrador</li>
+  <li>Informa√ß√£o de caminho de servidor SSL (isto √© recomendado e pode ser modificado se necess√°rio)</li>
+  <li>O m√™s e ano fiscal parea in√≠cio de armazenamento de lan√ßamentos no di√°rio</li>
 </ul>
-<p>Por favor, confirme sua aceitaÁ„o dos termos de licenÁa e tecle Continuar.</p>');
-define('DESC_AGREE', 'Eu li e concordo com os termos de LicenÁa como descritos acima.');
-define('DESC_DISAGREE', 'Eu li e n„o concordo com os termos de LicenÁa como descritos acima.');
+<p>Por favor, confirme sua aceita√ß√£o dos termos de licen√ßa e tecle Continuar.</p>');
+define('DESC_AGREE', 'Eu li e concordo com os termos de Licen√ßa como descritos acima.');
+define('DESC_DISAGREE', 'Eu li e n√£o concordo com os termos de Licen√ßa como descritos acima.');
 // template_inspect
 define('TITLE_INSPECT','Verificar - PhreeBooks Contabilidade');
-define('MSG_INSPECT_ERRORS','Os seguintes erros de instalaÁ„o foram encontrados.
+define('MSG_INSPECT_ERRORS','Os seguintes erros de instala√ß√£o foram encontrados.
 <ul>
-  <li>Erros (em vermelho) devem ser corrigidos antes que o script de instalaÁ„o possa continuar.</li>
-  <li>Avisos (em amarelo) n„o impedir„o a instalaÁ„o mas podem impedir a operaÁ„o apropriada de alguns mÛdulos.</li>
+  <li>Erros (em vermelho) devem ser corrigidos antes que o script de instala√ß√£o possa continuar.</li>
+  <li>Avisos (em amarelo) n√£o impedir√£o a instala√ß√£o mas podem impedir a opera√ß√£o apropriada de alguns m√≥dulos.</li>
 </ul>');
-define('INSTALL_ERROR_PHP_VERSION','Sua vers„o de php deve ser 8.2 ou posterior, e inferior a 9.0.');
+define('INSTALL_ERROR_PHP_VERSION','Sua vers√£o de php deve ser 8.2 ou posterior, e inferior a 9.0.');
 define('INSTALL_ERROR_REGISER_GLOBALS','Registro globais deve ser desabilitado.');
-define('INSTALL_ERROR_SAFE_MODE','Sua configuraÁ„o php est· habilitada para operar em modo seguro. Modo seguro deve ser desabilitado para instalar o PhreeBooks.');
-define('INSTALL_ERROR_SESSION_SUPPORT','Sua configuraÁ„o php n„o tem o suporte de sess„o instalao. Suporte de sess„o È necess·rio para executar o PhreeBooks.');
+define('INSTALL_ERROR_SAFE_MODE','Sua configura√ß√£o php est√° habilitada para operar em modo seguro. Modo seguro deve ser desabilitado para instalar o PhreeBooks.');
+define('INSTALL_ERROR_SESSION_SUPPORT','Sua configura√ß√£o php n√£o tem o suporte de sess√£o instalao. Suporte de sess√£o √© necess√°rio para executar o PhreeBooks.');
 define('INSTALL_ERROR_PDO_MYSQL', 'Sua configura√ß√£o do php n√£o possui a extens√£o pdo_mysql instalada. Esta extens√£o √© necess√°ria para conectar ao banco de dados.');
 define('INSTALL_ERROR_OPENSSL','Seu servidor deve ter openssl instalado.');
-define('INSTALL_ERROR_CURL','Seu servidor de aplicaÁ„o php foi instalado sem suporte a cURL. Suporte a cURL È necess·rio para comunicaÁ„o segura no envio/recebimento de informaÁ„o para aplicaÁıes remotas.');
+define('INSTALL_ERROR_CURL','Seu servidor de aplica√ß√£o php foi instalado sem suporte a cURL. Suporte a cURL √© necess√°rio para comunica√ß√£o segura no envio/recebimento de informa√ß√£o para aplica√ß√µes remotas.');
 define('INSTALL_ERROR_MBSTRING', 'O php do seu servidor foi instalado sem suporte a mbstring. Alguns m√≥dulos podem n√£o funcionar corretamente sem este recurso.');
 define('INSTALL_ERROR_GD', 'O php do seu servidor foi instalado sem suporte a GD. C√≥digos de barras, etiquetas e alguns relat√≥rios PDF n√£o estar√£o dispon√≠veis sem este recurso.');
 define('INSTALL_ERROR_ZIP', 'O php do seu servidor foi instalado sem suporte a Zip. A c√≥pia de seguran√ßa e a restaura√ß√£o do banco de dados n√£o estar√£o dispon√≠veis sem este recurso.');
 define('INSTALL_ERROR_BZ2', 'O php do seu servidor foi instalado sem suporte a BZip2. As ferramentas de importa√ß√£o/restaura√ß√£o de bancos de dados grandes n√£o estar√£o dispon√≠veis sem este recurso.');
-define('INSTALL_ERROR_UPLOADS','Seu servidor de aplicaÁ„o php foi instalado sem suporte a upload de arquivos. Suporte a upload È necess·rio para importar arquivos para o PhreeBooks.');
-define('INSTALL_ERROR_UPLOAD_DIR','N„o foi possÌvel encontrar uma pasta para upload tempor·rio de arquivos neste servidor.');
-define('INSTALL_ERROR_XML','Seu servidor de aplicaÁ„o php foi instalado sem suporte a XML. Alguns mÛdulos podem n„o operar se este suporte n„o estiver disponÌvel.');
-define('INSTALL_ERROR_FTP','Seu servidor de aplicaÁ„o php foi instalado sem suporte a FTP. Alguns mÛdulos podem n„o operar se este suporte n„o estiver disponÌvel.');
-define('INSTALL_ERROR_INCLUDES_DIR','A pasta /includes n„o est· acessÌvel para escrita. O instalador precisa de acesso a esta pasta para criar o arquivo de configuraÁ„o.');
-define('INSTALL_ERROR_MY_FILES_DIR','A pasta /my_files n„o est· acessÌvel para escrita. O instalador precisa de acesso a esta pasta para armazenar os arquivos de sua empresa.');
+define('INSTALL_ERROR_UPLOADS','Seu servidor de aplica√ß√£o php foi instalado sem suporte a upload de arquivos. Suporte a upload √© necess√°rio para importar arquivos para o PhreeBooks.');
+define('INSTALL_ERROR_UPLOAD_DIR','N√£o foi poss√≠vel encontrar uma pasta para upload tempor√°rio de arquivos neste servidor.');
+define('INSTALL_ERROR_XML','Seu servidor de aplica√ß√£o php foi instalado sem suporte a XML. Alguns m√≥dulos podem n√£o operar se este suporte n√£o estiver dispon√≠vel.');
+define('INSTALL_ERROR_FTP','Seu servidor de aplica√ß√£o php foi instalado sem suporte a FTP. Alguns m√≥dulos podem n√£o operar se este suporte n√£o estiver dispon√≠vel.');
+define('INSTALL_ERROR_INCLUDES_DIR','A pasta /includes n√£o est√° acess√≠vel para escrita. O instalador precisa de acesso a esta pasta para criar o arquivo de configura√ß√£o.');
+define('INSTALL_ERROR_MY_FILES_DIR','A pasta /my_files n√£o est√° acess√≠vel para escrita. O instalador precisa de acesso a esta pasta para armazenar os arquivos de sua empresa.');
 define('TEXT_RECHECK','Re-verificar');
 // template_install
 define('TITLE_INSTALL','Instalar - PhreeBooks Contabilidade');
-define('MSG_INSTALL_INTRO','Por favor entre alguma informaÁ„o sobre sua empresa, administrador, servidor web e banco de dados.');
-define('TEXT_COMPANY_INFO','InformaÁ„o Empresa');
-define('TEXT_ADMIN_INFO','InformaÁ„o Administrador');
-define('TEXT_SRVR_INFO','InformaÁ„o Servidor');
-define('TEXT_DB_INFO','InformaÁ„o Base de Dados');
-define('TEXT_FISCAL_INFO','InformaÁ„o Fiscal');
-define('TEXT_COMPANY_NAME','Entre um nome curto para sua empresa. Ele ser· mostrado no menu pulldown para acesso ao sistema.');
-define('TEXT_INSTALL_DEMO_DATA','VocÍ quer instalar dados demo para cada mÛdulo se disponpivel? ATEN«√O: Se optar por sim, os arquivos ser„o limpos antes que os dados demo sejam escritos.');
-define('TEXT_USER_NAME','Entre um nome de usu·rio para o administrador');
+define('MSG_INSTALL_INTRO','Por favor entre alguma informa√ß√£o sobre sua empresa, administrador, servidor web e banco de dados.');
+define('TEXT_COMPANY_INFO','Informa√ß√£o Empresa');
+define('TEXT_ADMIN_INFO','Informa√ß√£o Administrador');
+define('TEXT_SRVR_INFO','Informa√ß√£o Servidor');
+define('TEXT_DB_INFO','Informa√ß√£o Base de Dados');
+define('TEXT_FISCAL_INFO','Informa√ß√£o Fiscal');
+define('TEXT_COMPANY_NAME','Entre um nome curto para sua empresa. Ele ser√° mostrado no menu pulldown para acesso ao sistema.');
+define('TEXT_INSTALL_DEMO_DATA','Voc√™ quer instalar dados demo para cada m√≥dulo se disponpivel? ATEN√á√ÉO: Se optar por sim, os arquivos ser√£o limpos antes que os dados demo sejam escritos.');
+define('TEXT_USER_NAME','Entre um nome de usu√°rio para o administrador');
 define('TEXT_USER_PASSWORD','Entre uma senha para o administrador do site');
 define('TEXT_UER_PW_CONFIRM','Digite novamente a senha para o administrador do site');
-define('TEXT_USER_EMAIL','Entre um endereÁo de email para o administrador do site');
-define('TEXT_HTTP_SRVR','Entre a URL http do servidor para a pasta raiz (normalmente o valor padr„o È suficiente)');
-define('TEXT_USE_SSL','Utilizar SSL para acessar sua empresa (AtenÁ„o: um certificado  SSL deve ser instalado no servidor). Isto pode ser modificado posteriormente se SSL n„o for encess·rio neste momento.');
-define('TEXT_HTTPS_SRVR','Entre a URL https do servidor para a pasta raiz para transaÁıes seguras (normalmente o valor padr„o È suficiente)');
+define('TEXT_USER_EMAIL','Entre um endere√ßo de email para o administrador do site');
+define('TEXT_HTTP_SRVR','Entre a URL http do servidor para a pasta raiz (normalmente o valor padr√£o √© suficiente)');
+define('TEXT_USE_SSL','Utilizar SSL para acessar sua empresa (Aten√ß√£o: um certificado  SSL deve ser instalado no servidor). Isto pode ser modificado posteriormente se SSL n√£o for encess√°rio neste momento.');
+define('TEXT_HTTPS_SRVR','Entre a URL https do servidor para a pasta raiz para transa√ß√µes seguras (normalmente o valor padr√£o √© suficiente)');
 define('TEXT_DB_HOST','Entre o nome da base de dados no servidor');
 define('TEXT_DB_NAME','Entre o nome da base de dados (a base de dados deve existir no servidor)');
-define('TEXT_DB_PREFIX','Se esta base de dados È compartilhada com outra aplicaÁ„o, entre um prefixo para utilizar nesta instalaÁ„o (utilize somente caracteres alfabÈticos e underscore):');
-define('TEXT_DB_USER','Entre o nome de usu·rio da base de dados');
+define('TEXT_DB_PREFIX','Se esta base de dados √© compartilhada com outra aplica√ß√£o, entre um prefixo para utilizar nesta instala√ß√£o (utilize somente caracteres alfab√©ticos e underscore):');
+define('TEXT_DB_USER','Entre o nome de usu√°rio da base de dados');
 define('TEXT_DB_PASSWORD','Entre a senha da base de dados');
-define('TEXT_FY_MONTH_INFO', 'Selecione um mÍs de inÌcio para seu primeiro perÌodo cont·bil. PhreeBooks vai inicialmente setar o inÌcio no primeiro dia do mÍs selecionado como perÌodo 1.');
-define('TEXT_FY_YEAR_INFO', 'Selecione o ano de inÌcio para seu primeiro ano fiscal. O mÍs selecionado acima e esta seleÁ„o de ano ser„o a menor data em que lanÁamentos de di·rio poder„o ser feitas.');
+define('TEXT_FY_MONTH_INFO', 'Selecione um m√™s de in√≠cio para seu primeiro per√≠odo cont√°bil. PhreeBooks vai inicialmente setar o in√≠cio no primeiro dia do m√™s selecionado como per√≠odo 1.');
+define('TEXT_FY_YEAR_INFO', 'Selecione o ano de in√≠cio para seu primeiro ano fiscal. O m√™s selecionado acima e esta sele√ß√£o de ano ser√£o a menor data em que lan√ßamentos de di√°rio poder√£o ser feitas.');
 define('TEXT_PRINTING_INFO','Printing Information');
 define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
-define('TEXT_TIMEZONE_INFO', 'Selecione o fuso hor·rio em que a empresa trabalha. As datas dos documentos, as tarefas agendadas e os hor·rios registrados o utilizam, e ele passa a ser o padr„o para empresas adicionadas depois. Pode ser alterado em ConfiguraÁıes da empresa.');
+define('TEXT_TIMEZONE_INFO', 'Selecione o fuso hor√°rio em que a empresa trabalha. As datas dos documentos, as tarefas agendadas e os hor√°rios registrados o utilizam, e ele passa a ser o padr√£o para empresas adicionadas depois. Pode ser alterado em Configura√ß√µes da empresa.');
 
-define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','O nome da empresa est· vazio');
-define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY', 'O nome de usu·rio do administrador n„o pode ser vazio');
-define('ERROR_TEXT_ADMIN_EMAIL_ISEMPTY', 'O endereÁo de email do administrador n„o pode ser vazio');
-define('ERROR_TEXT_LOGIN_PASS_ISEMPTY', 'A senha do administrador n„o pode ser vazia');
-define('ERROR_TEXT_LOGIN_PASS_NOTEQUAL', 'As duas senhas n„o s„o iguais');
-define('ERROR_TEXT_DB_PREFIX_NODOTS','O prefixo de tabelas da base de dados sÛ pode conter os caracteres a-z e _ (underscore)');
-define('ERROR_TEXT_DB_HOST_ISEMPTY', 'O nome do host da base de dados est· vazio');
-define('ERROR_TEXT_DB_NAME_ISEMPTY', 'O nome da base de dados est· vazio');
-define('ERROR_TEXT_DB_USERNAME_ISEMPTY', 'O nome de usu·rio da base de dados est· vazio');
-define('ERROR_TEXT_DB_PASSWORD_ISEMPTY', 'A senha da base de dados n„o pode estar vazia');
-define('MSG_ERROR_MODULE_INSTALL','Houve erros na instalaÁ„o do mÛdulo: %s. Veja as mensagens acima para mais detalhes.');
-define('MSG_ERROR_CANNOT_CONNECT_DB','N„o foi possÌvel conectar com a base de dados, por favor verifique as especificaÁıes. Erro retornado: ');
-define('MSG_ERROR_INNODB_NOT_ENABLED','A m·quina MYSQL InnoDB n„o est· instalada!. PhreeBooks exige a capacidade de transaÁ„o da m·quina MySQL InnoDB para operar apropriadamente.');
-define('MSG_ERROR_CONFIGURE_EXISTS','O arquivo includes/configure.php j· existe, isto pode indicar que o PhreeBooks j· foi instalado ou est· sendo reinstalado. Este arquivo deve ser removido para que a instalaÁ„o seja completada com sucesso!');
+define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','O nome da empresa est√° vazio');
+define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY', 'O nome de usu√°rio do administrador n√£o pode ser vazio');
+define('ERROR_TEXT_ADMIN_EMAIL_ISEMPTY', 'O endere√ßo de email do administrador n√£o pode ser vazio');
+define('ERROR_TEXT_LOGIN_PASS_ISEMPTY', 'A senha do administrador n√£o pode ser vazia');
+define('ERROR_TEXT_LOGIN_PASS_NOTEQUAL', 'As duas senhas n√£o s√£o iguais');
+define('ERROR_TEXT_DB_PREFIX_NODOTS','O prefixo de tabelas da base de dados s√≥ pode conter os caracteres a-z e _ (underscore)');
+define('ERROR_TEXT_DB_HOST_ISEMPTY', 'O nome do host da base de dados est√° vazio');
+define('ERROR_TEXT_DB_NAME_ISEMPTY', 'O nome da base de dados est√° vazio');
+define('ERROR_TEXT_DB_USERNAME_ISEMPTY', 'O nome de usu√°rio da base de dados est√° vazio');
+define('ERROR_TEXT_DB_PASSWORD_ISEMPTY', 'A senha da base de dados n√£o pode estar vazia');
+define('MSG_ERROR_MODULE_INSTALL','Houve erros na instala√ß√£o do m√≥dulo: %s. Veja as mensagens acima para mais detalhes.');
+define('MSG_ERROR_CANNOT_CONNECT_DB','N√£o foi poss√≠vel conectar com a base de dados, por favor verifique as especifica√ß√µes. Erro retornado: ');
+define('MSG_ERROR_INNODB_NOT_ENABLED','A m√°quina MYSQL InnoDB n√£o est√° instalada!. PhreeBooks exige a capacidade de transa√ß√£o da m√°quina MySQL InnoDB para operar apropriadamente.');
+define('MSG_ERROR_CONFIGURE_EXISTS','O arquivo includes/configure.php j√° existe, isto pode indicar que o PhreeBooks j√° foi instalado ou est√° sendo reinstalado. Este arquivo deve ser removido para que a instala√ß√£o seja completada com sucesso!');
 // template_finish
 define('TITLE_FINISH','Fim - PhreeBooks&trade; Contabilidade');
-define('TEXT_GO_TO_COMPANY','V· para sua Empresa');
-define('INTRO_FINISHED','<h2>ParabÈns!</h2>
-<h3>VocÍ instalou com sucesso PhreeBooks&trade; Contabilidade em seu sistema!</h3>
-<h2>PrÛximos Passos</h2>
-<p>Uma lista de Coisas a Fazer foi gerada identificando as aÁıes necess·rias para operar os mÛdulos instalados. Esta lista vai aparecer no painel da p·gina principal do administrador. ConfiguraÁ„o adicional de mpÛdulos, preferÍncias e especificaÁıes podem ser feitas atravÈs do MÛdulo Empresa Menu Admin.</p>
-<p>Por razıes de seguranÁa, vocÍ deve alterar as permissıes para seu arquivo de configuraÁ„o para somente leitura. Este arquivo pode ser encontrado na pasta <strong>/includes/configure.php</strong>. Se vocÍ habilitou acesso total a pasta includes para instalaÁ„o, isto pode ser modificado para a especificaÁ„o anterior. TambÈm È necess·rio que a pasta <strong>/install</strong> seja removida ou renomeada para prevenir a reinstalaÁ„o da aplicaÁ„o.</p>
-<h2>DocumentaÁ„o e suporte</h2>
-<p>PhreeBooks inclui um sistema de auxÌlio sensÌvel a contexto. Como acontece com a maioria das aplicaÁıes de cÛdigo aberto, este È um trabalho em processo contÌnuo mas provÍ uma orientaÁ„o e suporte gerais.</p>
-<p>Existe tambÈm uma  documentaÁ„o online no site PhreeBooks (<a target="_blank" href="http://www.phreebooks.com">www.PhreeBooks.com</a>). O modulo de documentaÁ„o mais atual est· disponpivel bem como outras FAQs e suporte a customizaÁ„o/desenvolvimento.</p>
-<p>Finalmente, o fÛrum de usu·rios localizado no site PhreeBooks provÍ suporte comunit·rio e permite postar d˙vidas, problemas e sugestıes. Se vocÍ estiver travado, sinta-se a vontade para postar uma d˙vida! NÛs temos uma comunidade ativa, amig·vel e com conhecimento que vai recebÍ-lo muito bem.</p>');
+define('TEXT_GO_TO_COMPANY','V√° para sua Empresa');
+define('INTRO_FINISHED','<h2>Parab√©ns!</h2>
+<h3>Voc√™ instalou com sucesso PhreeBooks&trade; Contabilidade em seu sistema!</h3>
+<h2>Pr√≥ximos Passos</h2>
+<p>Uma lista de Coisas a Fazer foi gerada identificando as a√ß√µes necess√°rias para operar os m√≥dulos instalados. Esta lista vai aparecer no painel da p√°gina principal do administrador. Configura√ß√£o adicional de mp√≥dulos, prefer√™ncias e especifica√ß√µes podem ser feitas atrav√©s do M√≥dulo Empresa Menu Admin.</p>
+<p>Por raz√µes de seguran√ßa, voc√™ deve alterar as permiss√µes para seu arquivo de configura√ß√£o para somente leitura. Este arquivo pode ser encontrado na pasta <strong>/includes/configure.php</strong>. Se voc√™ habilitou acesso total a pasta includes para instala√ß√£o, isto pode ser modificado para a especifica√ß√£o anterior. Tamb√©m √© necess√°rio que a pasta <strong>/install</strong> seja removida ou renomeada para prevenir a reinstala√ß√£o da aplica√ß√£o.</p>
+<h2>Documenta√ß√£o e suporte</h2>
+<p>PhreeBooks inclui um sistema de aux√≠lio sens√≠vel a contexto. Como acontece com a maioria das aplica√ß√µes de c√≥digo aberto, este √© um trabalho em processo cont√≠nuo mas prov√™ uma orienta√ß√£o e suporte gerais.</p>
+<p>Existe tamb√©m uma  documenta√ß√£o online no site PhreeBooks (<a target="_blank" href="http://www.phreebooks.com">www.PhreeBooks.com</a>). O modulo de documenta√ß√£o mais atual est√° disponpivel bem como outras FAQs e suporte a customiza√ß√£o/desenvolvimento.</p>
+<p>Finalmente, o f√≥rum de usu√°rios localizado no site PhreeBooks prov√™ suporte comunit√°rio e permite postar d√∫vidas, problemas e sugest√µes. Se voc√™ estiver travado, sinta-se a vontade para postar uma d√∫vida! N√≥s temos uma comunidade ativa, amig√°vel e com conhecimento que vai receb√™-lo muito bem.</p>');
 
 ?>

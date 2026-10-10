@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:34
 // Module/Method: phreebooks
@@ -9,7 +25,7 @@
 // Path: /modules/phreebooks/language/nl_nl/classes/statement_builder.php
 
 define('TEXT_AGE','Leeftijd');
-define('RW_SB_RECORD_ID','Record ID');
+define('RW_SB_RECORD_ID','Record-ID');
 define('RW_SB_POST_DATE','Post Datum');
 define('RW_SB_JOURNAL_ID','Journaal ID');
 define('RW_SB_CUSTOMER_ID','Klant ID');

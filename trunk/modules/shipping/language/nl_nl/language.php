@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:38
 // Module/Method: shipping
@@ -44,10 +60,10 @@ define('SHIPPING_TEXT_DIMENSIONS','Afmetingen: ');
 define('SHIPPING_ADDITIONAL_HANDLING','Aanvullende Handling Geldt ( Oversize )');
 define('SHIPPING_INSURANCE_AMOUNT','Verzekerd Bedrag ');
 define('SHIPPING_SPLIT_LARGE_SHIPMENTS','Splits grote pakket voor de kleine pakket vervoerder');
-define('SHIPPING_TEXT_PER_BOX',' per box');
+define('SHIPPING_TEXT_PER_BOX',' per doos');
 define('SHIPPING_TEXT_DELIVERY_CONFIRM','Leverings bevestiging ');
 define('SHIPPING_SPECIAL_OPTIONS','Speciale opties');
-define('SHIPPING_SERVICE_TYPE','Service Type');
+define('SHIPPING_SERVICE_TYPE','Soort dienst');
 define('SHIPPING_HANDLING_CHARGE','Administratiekosten: Bedrag ');
 define('SHIPPING_COD_AMOUNT','Rembource Bedrag');
 define('SHIPPING_SATURDAY_PICKUP','Zaterdag Ophalen');
@@ -90,7 +106,7 @@ define('SHIPPING_TEXT_FREIGHT_QUOTE','Vracht Offerte');
 define('SHIPPING_TEXT_BOOK_PRICE','Prijs boeken');
 define('SHIPPING_TEXT_COST','Kosten');
 define('SHIPPING_TEXT_NOTES','Aantekeningen');
-define('SHIPPING_TEXT_PRINT_LABEL','Print Label');
+define('SHIPPING_TEXT_PRINT_LABEL','Label afdrukken');
 define('SHIPPING_TEXT_SAVE_PRINT_LABEL','Zending Aanmaken en Label Afdrukken');
 define('SHIPPING_TEXT_CLOSE_DAY','Dagelijks Afsluiten');
 define('SHIPPING_TEXT_DELETE_LABEL','Verwijder verzending');
@@ -235,7 +251,7 @@ define('SHIPPING_10KG','10kg Doos');
 define('SHIPPING_CASH','Contant');
 define('SHIPPING_CHECK','Check');
 define('SHIPPING_CASHIERS','kassiers check');
-define('SHIPPING_MO','Money Order');
+define('SHIPPING_MO','Postwissel');
 define('SHIPPING_ANY','Elk');
 define('SHIPPING_NO_CONF','Geen Leveringsbevestiging');
 define('SHIPPING_NO_SIG_RQD','Geen Handtekening Vereist');

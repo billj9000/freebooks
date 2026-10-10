@@ -1,5 +1,21 @@
 <?php
 // +-----------------------------------------------------------------+
+// |                          FreeBooks ERP                          |
+// +-----------------------------------------------------------------+
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+// +-----------------------------------------------------------------+
+// | This program is free software: you can redistribute it and/or   |
+// | modify it under the terms of the GNU General Public License as  |
+// | published by the Free Software Foundation, either version 3 of  |
+// | the License, or any later version.                              |
+// |                                                                 |
+// | This program is distributed in the hope that it will be useful, |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+// | GNU General Public License for more details.                    |
+// +-----------------------------------------------------------------+
+// +-----------------------------------------------------------------+
 // Phreedom Language Translation File
 // Generated: 2011-11-27 05:02:30
 // Module/Method: install
@@ -64,8 +80,8 @@ define('TEXT_DB_INFO','Database Informatie');
 define('TEXT_FISCAL_INFO','Fiscale Informatie');
 define('TEXT_COMPANY_NAME','Voer een korte naam in voor uw bedrijf. Dit wordt getoond in een keuze menu tijdens het inloggen.');
 define('TEXT_INSTALL_DEMO_DATA','Wil u voor iedere module demo data installeren? Aantekening: Als u Ja selecteert, worden de tabellen geleegd voordat de demodata wordt opgeslagen.');
-define('TEXT_CHART_INFO', 'Select the chart of accounts this company keeps its books on. The chart decides both the accounts the company starts with and which of them the receivables and payables settings point at, so it is worth picking the one that matches the country and trading form. It can be replaced later, from Setup, only while the general journal is still empty.');
-define('MSG_CHART_NO_DEMO', 'The demonstration data uses the US Retail account numbers, so it cannot be loaded against the %s. The company has been installed without it.');
+define('TEXT_CHART_INFO', 'Kies het rekeningschema waarop dit bedrijf zijn boekhouding voert. Het rekeningschema bepaalt zowel de rekeningen waarmee het bedrijf begint als de rekeningen waarnaar de instellingen voor debiteuren en crediteuren verwijzen. Kies daarom het schema dat past bij het land en de rechtsvorm. Het kan later via Instellingen worden vervangen, maar alleen zolang het memoriaal nog leeg is.');
+define('MSG_CHART_NO_DEMO', 'De demonstratiegegevens gebruiken de rekeningnummers van US Retail en kunnen daarom niet worden geladen bij het %s. Het bedrijf is zonder deze gegevens geïnstalleerd.');
 define('TEXT_USER_NAME','Voer de gebruikersnaam in van de adminstrator');
 define('TEXT_USER_PASSWORD','Voer het wachwoord in voor de administrator');
 define('TEXT_UER_PW_CONFIRM','Voer nog maals het wachtwoord in.');
@@ -80,8 +96,8 @@ define('TEXT_DB_USER','Voer de database gebruikersnaam in');
 define('TEXT_DB_PASSWORD','Voer de database wachtwoord in');
 define('TEXT_FY_MONTH_INFO','Selecteer een start maand om in te stellen als uw eerste boekhoud periode. PhreeBooks zal standaard beginnen aan op de eerste dag van de maand.');
 define('TEXT_FY_YEAR_INFO','Selecteer een start jaar om als uw eerste Boek jaar in te stellen. Er kunnen dan geen boekingen gemaakt worden eerder dan de geselecteerde jaar en maand.');
-define('TEXT_PRINTING_INFO','Printing Information');
-define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
+define('TEXT_PRINTING_INFO','Afdrukgegevens');
+define('TEXT_PAPER_SIZE_INFO', 'Kies het papierformaat voor rapporten en formulieren. De rapporten en formulieren die hier worden geïnstalleerd, zijn opgemaakt voor US Letter; bij een ander formaat wordt elk ervan tijdens de installatie aangepast. Dit kan later worden gewijzigd, en bestaande rapporten kunnen opnieuw worden aangepast, onder de instellingen voor Rapporten en formulieren.');
 define('TEXT_TIMEZONE_INFO', 'Kies de tijdzone waarin het bedrijf werkt. Documentdatums, geplande taken en vastgelegde tijden gebruiken deze, en hij wordt de standaard voor later toegevoegde bedrijven. Te wijzigen onder Bedrijfsinstellingen.');
 define('ERROR_TEXT_ADMIN_COMPANY_ISEMPTY','De bedrijfsnaam is leeg');
 define('ERROR_TEXT_ADMIN_USERNAME_ISEMPTY','Admin gebruikersnaam is leeg');
