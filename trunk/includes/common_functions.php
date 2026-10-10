@@ -1349,6 +1349,14 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return addslashes((string)($string ?? ''));
   }
 
+  // A search box's condition: the text appears anywhere in any of the fields (issue #83). % and _
+  // in the text match themselves, not any characters as LIKE would read them. The condition is in
+  // brackets, so a caller can join it to its other conditions with AND.
+  function db_search_criteria($fields, $text) {
+    $like = " LIKE '%" . db_input(addcslashes((string)$text, '\\%_')) . "%'";
+    return '(' . implode($like . ' OR ', $fields) . $like . ')';
+  }
+
   function db_prepare_input($string, $required = false) {
     if (is_string($string)) {
       $temp = trim(stripslashes($string));

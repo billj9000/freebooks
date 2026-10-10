@@ -88,7 +88,7 @@ $criteria = array();
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
 	$search_fields = array('sku', 'description_short', 'description_sales', 'description_purchase');
 	// hook for inserting new search fields to the query criteria.
-	$criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
+	$criteria[] = db_search_criteria($search_fields, $_REQUEST['search_text']);
 }
 // build search filter string
 $search = (!empty($criteria)) ? (' where ' . implode(' and ', $criteria)) : '';

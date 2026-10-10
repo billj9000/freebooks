@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -69,7 +70,7 @@ if ($acct_period == 'all') {
 if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
     $search_fields = array('short_name');
     // hook for inserting new search fields to the query criteria.  
-    $search = ' and (' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
+    $search = ' and ' . db_search_criteria($search_fields, $_REQUEST['search_text']);
 } else {
    $search = '';
 }

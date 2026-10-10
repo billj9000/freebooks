@@ -287,7 +287,7 @@ switch ($_REQUEST['action']) {
       $search_fields = array('m.wo_title', 'i.sku', 'm.description');
 	  // hook for inserting new search fields to the query criteria.
 	  if (!empty($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  	  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
+  	  $criteria[] = db_search_criteria($search_fields, $_REQUEST['search_text']);
 	}
 	if (!$f0) $criteria[] = "m.inactive = '0'"; // inactive flag
 	// build search filter string

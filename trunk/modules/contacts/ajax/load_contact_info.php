@@ -28,7 +28,7 @@ if (!$guess) die;
 
 $search_fields = array('a.primary_name', 'a.contact', 'a.telephone1', 'a.telephone2', 'a.telephone4', 
   'a.city_town', 'a.postal_code', 'c.id', 'c.short_name');
-$search = ' and (' . implode(' like \'%' . db_input($guess) . '%\' or ', $search_fields) . ' like \'%' . db_input($guess) . '%\')';
+$search = ' and ' . db_search_criteria($search_fields, $guess);
 
 $field_list = array('c.id', 'c.short_name', 'a.primary_name');
 

@@ -204,7 +204,7 @@ switch ($_REQUEST['action']) {
 	  $search_fields = array('sheet_name', 'revision');
 	  // hook for inserting new search fields to the query criteria.
 	  if (isset($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-	  $search = ' AND (' . implode(" LIKE '%" . db_input($_REQUEST['search_text']) . "%' OR ", $search_fields) . " LIKE '%" . db_input($_REQUEST['search_text']) . "%')";
+	  $search = ' and ' . db_search_criteria($search_fields, $_REQUEST['search_text']);
 	}
 	$field_list = array('id', 'inactive', 'sheet_name', 'revision', 'effective_date', 'expiration_date', 'default_sheet');
 	// hook to add new fields to the query return results

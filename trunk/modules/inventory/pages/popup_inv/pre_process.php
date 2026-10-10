@@ -87,7 +87,7 @@ if (isset($_REQUEST['search_text']) && $_REQUEST['search_text'] <> '') {
   $search_fields = array('a.sku', 'a.description_short', 'p.description_purchase', 'p.vendor_sku', 'description_sales');
   // hook for inserting new search fields to the query criteria.
   if (isset($extra_search_fields) && is_array($extra_search_fields)) $search_fields = array_merge($search_fields, $extra_search_fields);
-  $criteria[] = '(' . implode(' like \'%' . db_input($_REQUEST['search_text']) . '%\' or ', $search_fields) . ' like \'%' . db_input($_REQUEST['search_text']) . '%\')';
+  $criteria[] = db_search_criteria($search_fields, $_REQUEST['search_text']);
 }
 if (!$f0) $criteria[] = "inactive = '0'"; // inactive flag
 if ($f1) { // sort by inventory type

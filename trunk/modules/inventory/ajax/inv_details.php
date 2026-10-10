@@ -59,7 +59,7 @@ if ($iID) {
   $search = " where sku = '$sku_db'";
 } else { // broad search for a match
   $search_fields = array('sku', 'upc_code', 'description_short', 'description_sales', 'description_purchase');
-  $search = " where " . implode(" like '%$sku_db%' or ", $search_fields) . " like '%$sku_db%'";
+  $search = " where " . db_search_criteria($search_fields, $sku);
 }
 
 if (!$bID) $bID = 0; // assume only one branch or main branch if not specified
@@ -71,7 +71,7 @@ if ($rID) $xml .= xmlEntry("rID", $rID);
 $vendor = in_array($jID, array(3,4,6,7)) ? true : false;
 if ($vendor && !$iID && $strict == false && $UPC == false) { // just search for products from that vendor for purchases
  	$v_search_fields = array('a.sku', 'a.upc_code', 'a.description_short', 'a.description_sales', 'p.description_purchase', 'p.vendor_sku' );
-  	$first_search = " where " . implode(" like '%$sku_db%' or ", $v_search_fields) . " like '%$sku_db%' and p.vendor_id = '$cid_db' and a.inactive = '0'";
+  	$first_search = " where " . db_search_criteria($v_search_fields, $sku) . " and p.vendor_id = '$cid_db' and a.inactive = '0'";
   	$purchase     = $db->Execute("select DISTINCT a.id as id, p.vendor_id as vendor_id, p.vendor_sku as vendor_sku, p.description_purchase as description_purchase, p.purch_package_quantity as purch_package_quantity,
   	p.purch_taxable as purch_taxable, p.item_cost as item_cost, p.price_sheet_v as price_sheet_v from " . TABLE_INVENTORY . " a LEFT JOIN " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku $first_search GROUP BY a.sku");
   	if($purchase->recordCount() == 1){
