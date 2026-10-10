@@ -30,6 +30,34 @@ function shipping_method_is_valid($name, $installed = true) {
 }
 
 /**
+ * The company as the sender of a shipment, as sender_* fields: its name, address and contact
+ * details from the company settings, and its VAT and EORI numbers from the first active branch
+ * contact, else from the shipping settings.
+ */
+function shipping_company_sender() {
+  global $db;
+  $c = function ($name) { return defined($name) ? constant($name) : ''; };
+  $branch = $db->Execute("SELECT vat_number, eori_number FROM " . TABLE_CONTACTS
+    . " WHERE type = 'b' AND inactive = '0' ORDER BY id ASC LIMIT 1");
+  $vat  = $branch->EOF ? '' : (string)($branch->fields['vat_number']  ?? '');
+  $eori = $branch->EOF ? '' : (string)($branch->fields['eori_number'] ?? '');
+  return array(
+    'sender_primary_name'   => $c('COMPANY_NAME'),
+    'sender_contact'        => $c('AR_CONTACT_NAME'),
+    'sender_address1'       => $c('COMPANY_ADDRESS1'),
+    'sender_address2'       => $c('COMPANY_ADDRESS2'),
+    'sender_city_town'      => $c('COMPANY_CITY_TOWN'),
+    'sender_state_province' => $c('COMPANY_ZONE'),
+    'sender_postal_code'    => $c('COMPANY_POSTAL_CODE'),
+    'sender_country_code'   => $c('COMPANY_COUNTRY'),
+    'sender_telephone1'     => $c('COMPANY_TELEPHONE1'),
+    'sender_email'          => $c('COMPANY_EMAIL'),
+    'sender_vat_number'     => $vat  ?: $c('SHIPPING_SHIPPER_VAT'),
+    'sender_eori_number'    => $eori ?: $c('SHIPPING_SHIPPER_EORI'),
+  );
+}
+
+/**
  * The carrier's tracking page for a tracking number, or '' for a carrier that has
  * none. A shipping method offers one by defining <method>_TRACKING_URL (or the same
  * name in capitals), to which the number is appended. Spaces are dropped, as a

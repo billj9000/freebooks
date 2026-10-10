@@ -21,6 +21,7 @@ $shipping_module = 'royal_mail';
 load_specific_method('shipping', $shipping_module);
 require_once(DIR_FS_WORKING . 'defaults.php');
 require_once(DIR_FS_WORKING . 'functions/shipping.php');
+require_once(DIR_FS_WORKING . 'functions/address_tools.php');
 require_once(DIR_FS_WORKING . 'classes/shipping.php');
 require_once(DIR_FS_MODULES . 'inventory/functions/inventory.php');
 inv_ensure_identifier_columns();
@@ -229,25 +230,7 @@ switch ($_REQUEST['action']) {
           if (!($sInfo->ship_email??''))   $sInfo->ship_email         = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
         } else {
           // Sale: company is sender, customer is recipient
-          $sInfo->sender_primary_name   = defined('COMPANY_NAME')        ? COMPANY_NAME        : '';
-          $sInfo->sender_contact        = defined('AR_CONTACT_NAME')     ? AR_CONTACT_NAME     : '';
-          $sInfo->sender_address1       = defined('COMPANY_ADDRESS1')    ? COMPANY_ADDRESS1    : '';
-          $sInfo->sender_address2       = defined('COMPANY_ADDRESS2')    ? COMPANY_ADDRESS2    : '';
-          $sInfo->sender_city_town      = defined('COMPANY_CITY_TOWN')   ? COMPANY_CITY_TOWN   : '';
-          $sInfo->sender_state_province = defined('COMPANY_ZONE')        ? COMPANY_ZONE        : '';
-          $sInfo->sender_postal_code    = defined('COMPANY_POSTAL_CODE') ? COMPANY_POSTAL_CODE : '';
-          $sInfo->sender_country_code   = defined('COMPANY_COUNTRY')     ? COMPANY_COUNTRY     : '';
-          $sInfo->sender_telephone1     = defined('COMPANY_TELEPHONE1')  ? COMPANY_TELEPHONE1  : '';
-          $sInfo->sender_email          = defined('COMPANY_EMAIL')       ? COMPANY_EMAIL       : '';
-          // Company EORI/VAT from branch contact; fall back to admin constants
-          $branchReg = $db->Execute("SELECT vat_number, eori_number FROM " . TABLE_CONTACTS
-              . " WHERE type = 'b' AND inactive = '0' ORDER BY id ASC LIMIT 1");
-          $branch_vat  = (!$branchReg->EOF) ? ($branchReg->fields['vat_number']  ?? '') : '';
-          $branch_eori = (!$branchReg->EOF) ? ($branchReg->fields['eori_number'] ?? '') : '';
-          if (!$branch_eori && defined('SHIPPING_SHIPPER_EORI')) $branch_eori = SHIPPING_SHIPPER_EORI;
-          if (!$branch_vat  && defined('SHIPPING_SHIPPER_VAT'))  $branch_vat  = SHIPPING_SHIPPER_VAT;
-          $sInfo->sender_vat_number     = $branch_vat;
-          $sInfo->sender_eori_number    = $branch_eori;
+          foreach (shipping_company_sender() as $key => $value) $sInfo->$key = $value;
           // Customer EORI/VAT → recipient
           $sInfo->ship_vat_number       = $contact_vat;
           $sInfo->ship_eori_number      = $contact_eori;
@@ -320,6 +303,11 @@ switch ($_REQUEST['action']) {
           $sInfo->total_value = $goods_sum;
         }
       }
+    } else {
+      // Not from an order, as from the Shipping Manager's Ship a Package: the company sends, and
+      // the recipient is most likely in the company's own country.
+      foreach (shipping_company_sender() as $key => $value) $sInfo->$key = $value;
+      $sInfo->ship_country_code = defined('COMPANY_COUNTRY') ? COMPANY_COUNTRY : '';
     }
 }
 

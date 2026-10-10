@@ -39,7 +39,7 @@ $sel_sm = 'class="form-select form-select-sm"';
   <!-- Sender -->
   <div class="col">
         <div class="card h-100">
-          <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_SENDER; ?></div>
+          <div class="card-header py-1 fb-widget-header d-flex justify-content-between align-items-center"><?php echo SHIPPING_SENDER; ?> <?php echo shipping_company_address_button(); ?></div>
           <div class="card-body py-2">
             <div class="row g-1">
               <div class="col-12">
@@ -82,6 +82,7 @@ $sel_sm = 'class="form-select form-select-sm"';
                 <?php echo html_pull_down_menu('sender_country_code', $country_list, $sInfo->sender_country_code ?? '',
                   $sel_sm . ' onchange="toggleCustoms()"'); ?>
               </div>
+              <?php echo shipping_postcode_lookup('sender'); ?>
               <div class="col-6">
                 <label class="form-label"><?php echo GEN_TELEPHONE1; ?></label>
                 <input type="text" class="form-control form-control-sm" name="sender_telephone1" id="sender_telephone1"
@@ -116,7 +117,7 @@ $sel_sm = 'class="form-select form-select-sm"';
   <!-- Recipient -->
   <div class="col">
         <div class="card h-100">
-          <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_RECIPIENT; ?></div>
+          <div class="card-header py-1 fb-widget-header d-flex justify-content-between align-items-center"><?php echo SHIPPING_RECIPIENT; ?> <?php echo shipping_find_contact_button(); ?></div>
           <div class="card-body py-2">
             <div class="row g-1">
               <div class="col-12">
@@ -159,6 +160,7 @@ $sel_sm = 'class="form-select form-select-sm"';
                 <?php echo html_pull_down_menu('ship_country_code', $country_list, $sInfo->ship_country_code ?? '',
                   $sel_sm . ' onchange="toggleCustoms()"'); ?>
               </div>
+              <?php echo shipping_postcode_lookup('ship'); ?>
               <div class="col-6">
                 <label class="form-label"><?php echo GEN_TELEPHONE1; ?></label>
                 <input type="text" class="form-control form-control-sm" name="ship_telephone1" id="ship_telephone1"
@@ -244,7 +246,7 @@ $sel_sm = 'class="form-select form-select-sm"';
         <div class="row g-2 align-items-center mb-1">
           <label class="col-auto col-form-label col-form-label-sm"><?php echo SHIPPING_SERVICE_TYPE; ?></label>
           <div class="col-auto">
-            <?php echo html_pull_down_menu('ship_method', gen_build_pull_down($shipping_methods), $sInfo->ship_method, $sel_sm); ?>
+            <?php echo html_pull_down_menu('ship_method', gen_build_pull_down($shipping_methods), $sInfo->ship_method ?? '', $sel_sm); ?>
           </div>
         </div>
         <div class="row g-2 align-items-center mb-1">
@@ -482,3 +484,4 @@ $sel_sm = 'class="form-select form-select-sm"';
 </div>
 <?php endif; ?>
 </form>
+<?php echo shipping_address_tools(); ?>
