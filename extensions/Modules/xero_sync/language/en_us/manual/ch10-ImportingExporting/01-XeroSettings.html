@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.XERO.01">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.Xero Sync Settings">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Xero Sync Settings">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Xero Sync Settings</title>
+</head>
+
+<body>
+
+<h1 align="center">Xero Sync Settings</h1>
+
+<p>The settings page tells Xero Sync how FreeBooks and your Xero organisation correspond. Open it
+  from <b>Company &rarr; Configuration &rarr; Xero Sync</b>, or from the properties icon beside
+  the module in the module list. You need edit permission on Configuration to change it. Press
+  the <b>Save</b> icon to keep your changes.</p>
+
+<h4>Documents</h4>
+<ul>
+  <li><b>Home country</b> &mdash; a document whose country differs from this one counts as
+    foreign and uses the foreign account codes. Choose <i>None</i> to use the ordinary codes for
+    every document.</li>
+  <li><b>Country taken from</b> &mdash; which address decides the document's country. When that
+    address has no country, the other address is used. When neither has one, the document uses
+    the ordinary codes and is flagged.</li>
+  <li><b>Days until due</b> &mdash; an invoice's due date in Xero is its date plus this many
+    days.</li>
+  <li><b>Rounding tolerance</b> &mdash; any difference between the FreeBooks total and the total
+    Xero will work out is posted to the rounding account. A difference larger than this also
+    flags the document for review, because it usually means a rate or a mapping is wrong rather
+    than a penny of rounding.</li>
+  <li><b>Use the payment reference as an invoice's reference</b> &mdash; sends the reference
+    of the receipt that paid the invoice, such as a card transaction id or a cheque number, as
+    the Xero reference, in place of the customer's PO number. An unpaid invoice sends its PO
+    number and is flagged. Credit memos always send their own reference.</li>
+</ul>
+
+<h4>Xero Defaults</h4>
+<ul>
+  <li><b>Default account code</b> &mdash; the Xero account used for any FreeBooks account not
+    mapped below. A document that needs it is flagged, so you can add the mapping.</li>
+  <li><b>Rounding account code</b> &mdash; the Xero account for Rounding Adjustment lines.</li>
+  <li><b>Tax rate for untaxed lines</b> &mdash; the name of the Xero tax rate put on a line with
+    no tax, such as an untaxed product, the rounding line or an untaxed discount. In a UK
+    organisation, Xero names it <i>No VAT</i>.</li>
+</ul>
+
+<h4>Account Mapping</h4>
+<p>The table lists the accounts your sales invoices and credit memos have posted product,
+  freight and discount lines to, and any account you have already mapped. Tick <b>Show every
+  account</b> to map an account before it has been used.</p>
+<p>For each account, enter the code of the Xero account it posts to. If foreign sales post to a
+  different Xero account, enter that in the foreign column; leave it blank to use the same
+  account for every country. Clear both codes to remove a mapping.</p>
+
+<h4>Tax Rate Mapping</h4>
+<p>For each customer tax rate, enter the matching Xero tax rate's <b>name, exactly as Xero shows
+  it</b> in its tax rate settings, for example <i>20% (VAT on Income)</i>. Use the name, not the
+  short code. Xero charges its own percentage for that rate, not FreeBooks', so keep the two the
+  same or more documents will need a rounding line. A rate left blank is sent untaxed and the
+  document is flagged.</p>
+
+<h4>Contact Names</h4>
+<p>A document is sent under the customer's name as FreeBooks has it. Where the customer has a
+  different name in Xero, enter the FreeBooks name and the Xero name here so that Xero matches
+  the existing contact rather than creating another. Use <b>Add a name</b> for more rows, and
+  clear the Xero name to remove one.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="XeroHome.html">Xero Sync</a></li>
+</ul>
+
+</body>
+</html>

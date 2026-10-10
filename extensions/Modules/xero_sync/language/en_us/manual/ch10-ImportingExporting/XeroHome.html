@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.XERO">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.Xero Sync">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Xero Sync">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Xero Sync</title>
+</head>
+
+<body>
+
+<h1 align="center">Xero Sync</h1>
+
+<p>Xero Sync copies your sales invoices and credit memos into Xero, the online accounting
+  service, so that Xero holds the same sales as FreeBooks. It is part of the optional Xero Sync
+  module, installed from <b>Company &rarr; Configuration &rarr; Modules</b>.</p>
+
+<p>Each document arrives in Xero as a draft, with its lines, accounts and tax rates translated
+  into Xero's own. Before anything is sent, tell the module how your FreeBooks accounts, tax
+  rates and customers correspond to Xero's: see <a href="01-XeroSettings.html">Xero Sync
+  Settings</a>.</p>
+
+<h4>How totals are kept equal</h4>
+<p>Xero works out the tax on each line separately and rounds each one, where FreeBooks totals the
+  tax first and rounds once, so the two can differ by a penny. FreeBooks' total is treated as
+  correct: any difference is added to the Xero document as a <b>Rounding Adjustment</b> line,
+  posted to the rounding account you choose. A real line's amount is never changed.</p>
+
+<p>A document-level discount becomes a <b>Discount</b> line. When every taxed product on the
+  document has the same tax rate, the discount line carries that rate too, so the tax is worked
+  out on the discounted total as FreeBooks does. When the products have different rates, the
+  discount line is left untaxed and the document is flagged for you to check.</p>
+
+<p>FreeBooks stores every amount in your home currency. A document in another currency is
+  converted at the document's own exchange rate before it is sent, so Xero receives the amounts
+  the customer was charged.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="01-XeroSettings.html">Xero Sync Settings</a></li>
+  <li><a href="../../../../../phreedom/language/en_us/manual/ch10-ImportingExporting/ImpExpHome.html">Importing/Exporting</a></li>
+</ul>
+
+</body>
+</html>
