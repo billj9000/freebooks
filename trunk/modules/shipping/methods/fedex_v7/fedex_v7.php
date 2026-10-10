@@ -236,7 +236,8 @@ class fedex_v7 {
 	  $field = strtolower($key['key']);
 	  switch ($key['key']) {
 	    case 'MODULE_SHIPPING_FEDEX_V7_TYPES': // read the checkboxes
-		  write_configure($key['key'], implode(',', $_POST[$field]));
+		  $ticked = is_array($_POST[$field] ?? null) ? array_filter($_POST[$field], 'is_string') : array(); // no box ticked sends no field
+		  write_configure($key['key'], implode(',', $ticked));
 		  break;
 		default:  // just write the value
 		  if (isset($_POST[$field])) write_configure($key['key'], $_POST[$field]);
