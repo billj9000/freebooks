@@ -221,12 +221,12 @@ define('INV_ENTRY_SHIP_COMPLETE',       'Ships as one item');
 define('INV_SHIP_COMPLETE_HELP',        'Tick if this bundle is packed and shipped as one item. Leave clear and shipping is calculated from its separate components.');
 define('INV_SHIP_COMPLETE_WEIGHT_LOW',  '"Ships as one item" is ticked, but the weight entered (%s) is less than its components add up to (%s). A packed item cannot weigh less than its contents - check the weight, or the Bill of Materials.');
 define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Calculated from the Bill of Materials.');
-define('INV_SHIPPING_CUSTOMS',          'Customs / Export');
-define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Country of Origin');
-define('INV_ENTRY_HS_CODE',             'HS Code');
-define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
-define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
-define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('INV_SHIPPING_CUSTOMS',          'Таможня / Экспорт');
+define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Страна происхождения');
+define('INV_ENTRY_HS_CODE',             'Код ГС');
+define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Таможенное описание');
+define('INV_COUNTRY_OF_ORIGIN_HELP',    'Двухбуквенный код страны по ISO (например, GB, US, DE)');
+define('INV_HS_CODE_HELP',              'Код товара по Гармонизированной системе (ГС) для таможенных деклараций');
 define('INV_CUSTOMS_DESCRIPTION_HELP', 'Описание товара для таможенной декларации (например, тормозные колодки для автотранспортных средств). Если поле пустое, используется описание строки заказа. Будьте кратки: перевозчик может сократить описание.');
 define('INV_TEXT_MARGIN_BY_PERCENT', 'Маржа в процентах');
 ?>

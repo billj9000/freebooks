@@ -242,12 +242,12 @@ define('INV_ENTRY_SHIP_COMPLETE',       'Ships as one item');
 define('INV_SHIP_COMPLETE_HELP',        'Tick if this bundle is packed and shipped as one item. Leave clear and shipping is calculated from its separate components.');
 define('INV_SHIP_COMPLETE_WEIGHT_LOW',  '"Ships as one item" is ticked, but the weight entered (%s) is less than its components add up to (%s). A packed item cannot weigh less than its contents - check the weight, or the Bill of Materials.');
 define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Calculated from the Bill of Materials.');
-define('INV_SHIPPING_CUSTOMS',          'Customs / Export');
-define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Country of Origin');
-define('INV_ENTRY_HS_CODE',             'HS Code');
-define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
-define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
-define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('INV_SHIPPING_CUSTOMS',          'Alfândega / Exportação');
+define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'País de origem');
+define('INV_ENTRY_HS_CODE',             'Código SH');
+define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Descrição aduaneira');
+define('INV_COUNTRY_OF_ORIGIN_HELP',    'Código ISO do país, com 2 letras (ex.: GB, US, DE)');
+define('INV_HS_CODE_HELP',              'Código de mercadoria do Sistema Harmonizado (SH) para declarações aduaneiras');
 define('INV_CUSTOMS_DESCRIPTION_HELP', 'Descrição das mercadorias para a declaração aduaneira (ex.: pastilhas de freio para veículos automotores). Se em branco, é usada a descrição da linha do pedido. Seja conciso, pois a transportadora pode encurtá-la.');
 define('INV_TEXT_MARGIN_BY_PERCENT', 'Margem percentual');
 ?>

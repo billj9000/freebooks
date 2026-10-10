@@ -243,12 +243,12 @@ define('INV_ENTRY_SHIP_COMPLETE',       'Ships as one item');
 define('INV_SHIP_COMPLETE_HELP',        'Tick if this bundle is packed and shipped as one item. Leave clear and shipping is calculated from its separate components.');
 define('INV_SHIP_COMPLETE_WEIGHT_LOW',  '"Ships as one item" is ticked, but the weight entered (%s) is less than its components add up to (%s). A packed item cannot weigh less than its contents - check the weight, or the Bill of Materials.');
 define('INV_ITEM_WEIGHT_DERIVED_HELP',  'Calculated from the Bill of Materials.');
-define('INV_SHIPPING_CUSTOMS',          'Customs / Export');
-define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Country of Origin');
-define('INV_ENTRY_HS_CODE',             'HS Code');
-define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Customs Description');
-define('INV_COUNTRY_OF_ORIGIN_HELP',    '2-letter ISO country code (e.g. GB, US, DE)');
-define('INV_HS_CODE_HELP',              'Harmonised System commodity code for customs declarations');
+define('INV_SHIPPING_CUSTOMS',          'Douane / Export');
+define('INV_ENTRY_COUNTRY_OF_ORIGIN',   'Land van oorsprong');
+define('INV_ENTRY_HS_CODE',             'GS-code');
+define('INV_ENTRY_CUSTOMS_DESCRIPTION', 'Douaneomschrijving');
+define('INV_COUNTRY_OF_ORIGIN_HELP',    'Landcode van 2 letters volgens ISO (bijv. GB, US, DE)');
+define('INV_HS_CODE_HELP',              'Goederencode volgens het Geharmoniseerd Systeem (GS) voor douaneaangiften');
 define('INV_CUSTOMS_DESCRIPTION_HELP', 'Omschrijving van de goederen voor de douaneaangifte (bijv. remblokken voor motorvoertuigen). Indien leeg wordt de omschrijving van de orderregel gebruikt. Houd het beknopt, want een vervoerder kan deze inkorten.');
 define('INV_TEXT_MARGIN_BY_PERCENT', 'Marge in procenten');
 ?>
