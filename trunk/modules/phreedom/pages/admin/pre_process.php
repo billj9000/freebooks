@@ -111,9 +111,8 @@ switch ($_REQUEST['action']) {
 	    write_configure('MODULE_' . strtoupper($method) . '_STATUS', constant('MODULE_' . strtoupper($method) . '_VERSION'));
 	    // Load the remaining configuration constants
 	    foreach ($mInstall->keys as $key => $value) write_configure($key, $value);
-	    // method_exists, because these are OPTIONAL on an install class: each
-	    // is called only where the module defines it.
-	    if ($demo && method_exists($mInstall, 'load_demo')) $error = $mInstall->load_demo();
+	    // Demonstration data is loaded only when a company is created with the demo option, never
+	    // into a working company. load_reports is optional on an install class.
 		if (method_exists($mInstall, 'load_reports')) $mInstall->load_reports($method);
 		admin_add_reports($method);
 	  }
