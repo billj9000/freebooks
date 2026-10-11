@@ -156,6 +156,10 @@ Sales invoices (journal_id = 12). The virtual `lines` field returns product line
 | `bill_country`     | string | Billing country code                                      |
 | `bill_email`       | string | Billing email                                             |
 | `bill_telephone`   | string | Billing phone                                             |
+| `ship_name`        | string | Shipping name                                             |
+| `ship_address1/2`  | string | Shipping address                                          |
+| `ship_city/state`  | string | Shipping city / state                                     |
+| `ship_postal_code` | string | Shipping postal code                                      |
 | `ship_country`     | string | Shipping country code (3-letter, e.g. `GBR`); blank if no shipping address recorded |
 | `total`            | float  | Grand total                                               |
 | `tax`              | float  | Total tax                                                 |
