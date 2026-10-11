@@ -24,9 +24,13 @@ define('SECURITY_ID_QUICKBOOKS_SYNC', 240);
 
 define('TABLE_QUICKBOOKS_SYNC_MAP',   DB_PREFIX . 'quickbooks_sync_map');
 define('TABLE_QUICKBOOKS_SYNC_TOKEN', DB_PREFIX . 'quickbooks_sync_token');
+define('TABLE_QUICKBOOKS_SYNC_DOC',   DB_PREFIX . 'quickbooks_sync_doc');
 
 if (defined('MODULE_QUICKBOOKS_SYNC_STATUS')) {
   gen_pull_language('quickbooks_sync', 'admin');
+  // A document sent to QuickBooks cannot be changed in ways QuickBooks holds, or deleted, until it
+  // is released.
+  $document_lock_hooks[] = ['file' => DIR_FS_MODULES . 'quickbooks_sync/functions/quickbooks_lock.php', 'function' => 'quickbooks_sync_document_lock'];
   $mainmenu["customers"]['submenu']["quickbooks_sync"] = array(
     'order'                  => 91,
     'text'                   => MODULE_QUICKBOOKS_SYNC_TITLE,

@@ -59,6 +59,7 @@
             "customer_name": "Acme Limited",
             "email": "accounts@test.example",
             "bill_address": {
+                "name": "",
                 "address1": "1 High Street",
                 "address2": "Unit 2",
                 "city": "Leeds",
@@ -67,6 +68,7 @@
                 "country": "GBR"
             },
             "ship_address": {
+                "name": "",
                 "address1": "",
                 "address2": "",
                 "city": "",
@@ -128,6 +130,26 @@
                 "currency": "GBP"
             }
         ],
+        "customer": {
+            "DisplayName": "Acme Limited",
+            "PrimaryEmailAddr": {
+                "Address": "accounts@test.example"
+            },
+            "BillAddr": {
+                "Line1": "1 High Street",
+                "Line2": "Unit 2",
+                "City": "Leeds",
+                "CountrySubDivisionCode": "West Yorkshire",
+                "PostalCode": "LS1 1AA",
+                "Country": "GBR"
+            },
+            "ShipAddr": {
+                "Country": "GBR"
+            },
+            "CurrencyRef": {
+                "value": "GBP"
+            }
+        },
         "payload": {
             "CustomerRef": {
                 "value": "58"

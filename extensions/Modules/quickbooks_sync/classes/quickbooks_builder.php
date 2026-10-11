@@ -463,7 +463,7 @@ class quickbooks_builder {
       elseif ($i === $rounded)                        $description = sprintf(QUICKBOOKS_SYNC_LINE_ROUNDED, $description);
       $rows[] = [
         'number'      => $doc['number'],
-        'customer'    => $doc['customer_name'],
+        'customer'    => self::customer_name($doc['customer_name']),
         'date'        => self::file_date($doc['date']),
         'due_date'    => self::file_date($doc['due_date']),
         'memo'        => $rows ? '' : $doc['reference'],
@@ -547,6 +547,25 @@ class quickbooks_builder {
     }, $fields)) . "\r\n";
   }
 
+  // The body that creates the document's customer in QuickBooks: its name, email, billing and
+  // shipping addresses, and currency. QuickBooks fixes a customer's currency when it is created, so
+  // the first document sent decides it. A colon in a QuickBooks name marks a sub-customer, and a tab
+  // or line break is refused, so each becomes a space.
+  public function customer_payload(array $doc): array {
+    $customer = ['DisplayName' => self::customer_name($doc['customer_name'])];
+    if ($doc['email'] !== '') $customer['PrimaryEmailAddr'] = ['Address' => $doc['email']];
+    if ($address = self::physical_address($doc['bill_address'])) $customer['BillAddr'] = $address;
+    if ($address = self::physical_address($doc['ship_address'])) $customer['ShipAddr'] = $address;
+    if ($doc['currency'] !== '') $customer['CurrencyRef'] = ['value' => $doc['currency']];
+    return $customer;
+  }
+
+  // The customer's name as QuickBooks holds it: see customer_payload(). QuickBooks caps it at 500
+  // characters.
+  public static function customer_name(string $name): string {
+    return mb_substr(trim(preg_replace('/[:\t\r\n]+/', ' ', $name)), 0, 500);
+  }
+
   // One sales line, recording an unmapped account or tax rate as it goes. The unit amount keeps
   // six decimals, so the line amount QuickBooks checks against quantity times unit price is the
   // amount FreeBooks charged.
@@ -588,21 +607,26 @@ class quickbooks_builder {
     return $text !== '' ? $sku . ' - ' . $text : $sku;
   }
 
+  // One of the record's addresses. Only the shipping address has a name of its own; the billing
+  // address belongs to the customer.
   private static function address(array $record, string $prefix): array {
-    $address = [];
+    $address = ['name' => $prefix === 'ship_' ? trim((string)($record['ship_name'] ?? '')) : ''];
     foreach (['address1', 'address2', 'city', 'state', 'postal_code', 'country'] as $field) {
       $address[$field] = trim((string)($record[$prefix . $field] ?? ''));
     }
     return $address;
   }
 
-  // QuickBooks' PhysicalAddress, or null for an address with nothing in it. The country is written
-  // as FreeBooks holds it, ISO alpha-3, which QuickBooks accepts.
+  // QuickBooks' PhysicalAddress, or null for an address with nothing but a name in it. The name and
+  // street lines fill Line1 onwards in order. The country is written as FreeBooks holds it, ISO
+  // alpha-3, which QuickBooks accepts.
   private static function physical_address(array $address): ?array {
-    if (implode('', $address) === '') return null;
-    return array_filter([
-      'Line1'                  => $address['address1'],
-      'Line2'                  => $address['address2'],
+    if (implode('', array_diff_key($address, ['name' => true])) === '') return null;
+    $physical = [];
+    foreach (array_values(array_filter([$address['name'], $address['address1'], $address['address2']], fn($line) => $line !== '')) as $n => $line) {
+      $physical['Line' . ($n + 1)] = $line;
+    }
+    return $physical + array_filter([
       'City'                   => $address['city'],
       'CountrySubDivisionCode' => $address['state'],
       'PostalCode'             => $address['postal_code'],

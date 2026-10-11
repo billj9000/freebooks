@@ -132,6 +132,38 @@ define('QUICKBOOKS_SYNC_ERR_DATES',             'Enter a From and a To date, wit
 define('QUICKBOOKS_SYNC_NOT_SET_UP',            'QuickBooks Sync is not set up yet: choose a default item and a rounding item in its settings.');
 define('QUICKBOOKS_SYNC_SETTINGS_LINK',         'Open the settings');
 
+// Sending to QuickBooks, on the export page
+define('QUICKBOOKS_SYNC_COL_QB',                'In QuickBooks');
+define('QUICKBOOKS_SYNC_BTN_SEND',              'Send ticked documents to QuickBooks');
+define('QUICKBOOKS_SYNC_SEND_NOT_CONNECTED',    'To send documents to QuickBooks, connect to QuickBooks in the QuickBooks Sync settings.');
+define('QUICKBOOKS_SYNC_SEND_NEEDS_EDIT',       'Sending documents to QuickBooks needs edit permission on QuickBooks Sync.');
+define('QUICKBOOKS_SYNC_SEND_NONE',             'Tick at least one document to send.');
+define('QUICKBOOKS_SYNC_SEND_PROGRESS',         'Sending %d of %d...');
+define('QUICKBOOKS_SYNC_SEND_DONE',             'Finished: %d sent, %d not sent.');
+define('QUICKBOOKS_SYNC_SEND_WAITING',          'QuickBooks allows only so many requests a minute; waiting %d seconds before going on (%d of %d done)...');
+define('QUICKBOOKS_SYNC_X_NOT_SENT',            'Not sent');
+define('QUICKBOOKS_SYNC_X_SENDING',             'Being sent');
+define('QUICKBOOKS_SYNC_X_SENT',                'Sent %s');
+define('QUICKBOOKS_SYNC_X_CHANGED',             'Changed since it was sent');
+define('QUICKBOOKS_SYNC_X_RELEASED',            'Released');
+define('QUICKBOOKS_SYNC_X_FAILED',              'Not sent: %s');
+define('QUICKBOOKS_SYNC_X_HELD',                'QuickBooks holds an earlier copy, which the next send updates.');
+define('QUICKBOOKS_SYNC_BTN_RELEASE',           'Release');
+define('QUICKBOOKS_SYNC_BTN_FORGET',            'Unlink from deleted QuickBooks copy');
+define('QUICKBOOKS_SYNC_CONFIRM_RELEASE',       'Release this document? It can then be changed in FreeBooks, and sending it again updates the copy in QuickBooks.');
+define('QUICKBOOKS_SYNC_CONFIRM_FORGET',        'Use this only after deleting the old copy in QuickBooks yourself: FreeBooks deletes nothing there. QuickBooks refuses a document number already in use, even by a voided document, so the next send makes a new document only once the old one is deleted. Unlink now?');
+define('QUICKBOOKS_SYNC_ACTION_STALE',          'Nothing changed: the document is no longer in a state that allows this.');
+
+// Errors when a document is sent
+define('QUICKBOOKS_SYNC_ERR_NOT_A_DOCUMENT',    'This is not a sales invoice or credit memo.');
+define('QUICKBOOKS_SYNC_ERR_REJECTED',          'QuickBooks refused the document without saying why.');
+define('QUICKBOOKS_SYNC_ERR_PAID',              'QuickBooks has a payment or credit applied to its copy of this document, so it is not changed. Correct the sale with a credit memo, or remove the payment in QuickBooks first.');
+
+// The document lock, on the invoice and credit memo page
+define('QUICKBOOKS_SYNC_BADGE',                 'In QuickBooks');
+define('QUICKBOOKS_SYNC_LOCK_SAVE',             'This document was sent to QuickBooks on %s, and this change would alter what QuickBooks holds or the tax it rests on: the customer, an address, the number, the date, the reference, the currency or the lines. Release it on the QuickBooks Sync page to change it.');
+define('QUICKBOOKS_SYNC_LOCK_DELETE',           'This document was sent to QuickBooks on %s, so it cannot be deleted. Release it on the QuickBooks Sync page first.');
+
 // Line descriptions written to QuickBooks
 define('QUICKBOOKS_SYNC_LINE_FREIGHT',        'Freight');
 define('QUICKBOOKS_SYNC_LINE_ROUNDING',       'Rounding Adjustment');
@@ -151,7 +183,7 @@ define('QUICKBOOKS_SYNC_FILE_NEGATIVE',      'Not in the import file: QuickBooks
 define('QUICKBOOKS_SYNC_FILE_NUMBER_LONG',   'Not in the import file: the document number is longer than QuickBooks allows (%d characters).');
 define('QUICKBOOKS_SYNC_WARN_BAD_DATE',       'The date \'%s\' could not be read, so the due date is the document date.');
 
-// Errors when a document is sent
+// Errors in building a document's API body
 define('QUICKBOOKS_SYNC_ERR_NUMBER_LONG',        'The document number \'%s\' is longer than QuickBooks allows (%d characters).');
 define('QUICKBOOKS_SYNC_ERR_ITEM_NOT_FOUND',     'QuickBooks has no product or service named \'%s\'. Check the item mapping.');
 define('QUICKBOOKS_SYNC_ERR_ACCOUNT_NOT_FOUND',  'QuickBooks has no account named \'%s\'. Check the discount account.');

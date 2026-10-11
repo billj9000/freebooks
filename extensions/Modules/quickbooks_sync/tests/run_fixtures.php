@@ -17,7 +17,7 @@
 //  Path: /modules/quickbooks_sync/tests/run_fixtures.php
 //
 // Runs every fixture in fixtures/ through quickbooks_builder: build the document, then the import
-// file rows and the API body. Needs no database and no FreeBooks bootstrap:
+// file rows, the body that creates its customer, and the API body. Needs no database and no FreeBooks bootstrap:
 //
 //   php tests/run_fixtures.php [case-name-fragment]
 //
@@ -143,6 +143,7 @@ foreach (glob(__DIR__ . '/fixtures/[0-9]*.json') as $file) {
         if (count(str_getcsv($line, ',', '"', '')) !== $columns) $diffs[] = "file_text: line $n does not have $columns columns";
       }
     }
+    $diffs = array_merge($diffs, compare($expected['customer'], $builder->customer_payload($doc), 'customer'));
     $payload = $builder->payload($doc, $shared['refs']);
     $diffs = array_merge($diffs, compare($expected['payload'], $payload, 'payload'));
     $diffs = array_merge($diffs, invariants($case['record'], $doc, $payload));

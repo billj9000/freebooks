@@ -50,6 +50,11 @@ class quickbooks_api {
     $this->connection = $connection ?? new quickbooks_connection();
   }
 
+  // The connected company's QuickBooks id.
+  public function realm_id(): string {
+    return (string)$this->connection->load()['realm_id'];
+  }
+
   // The connected company's name, from its CompanyInfo.
   public function company_name(): string {
     $realm_id = $this->connection->access()['realm_id'];

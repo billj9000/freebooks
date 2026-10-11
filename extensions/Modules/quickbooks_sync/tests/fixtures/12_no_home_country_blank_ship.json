@@ -59,6 +59,7 @@
             "customer_name": "Test Customer",
             "email": "accounts@test.example",
             "bill_address": {
+                "name": "",
                 "address1": "1 High Street",
                 "address2": "Unit 2",
                 "city": "Leeds",
@@ -67,6 +68,7 @@
                 "country": "DEU"
             },
             "ship_address": {
+                "name": "",
                 "address1": "",
                 "address2": "",
                 "city": "",
@@ -126,6 +128,23 @@
                 "currency": "GBP"
             }
         ],
+        "customer": {
+            "DisplayName": "Test Customer",
+            "PrimaryEmailAddr": {
+                "Address": "accounts@test.example"
+            },
+            "BillAddr": {
+                "Line1": "1 High Street",
+                "Line2": "Unit 2",
+                "City": "Leeds",
+                "CountrySubDivisionCode": "West Yorkshire",
+                "PostalCode": "LS1 1AA",
+                "Country": "DEU"
+            },
+            "CurrencyRef": {
+                "value": "GBP"
+            }
+        },
         "payload": {
             "CustomerRef": {
                 "value": "58"

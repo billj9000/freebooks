@@ -18,7 +18,7 @@
 //
 // The export page's preview of the documents in a date range, for htmx.
 //
-validate_ajax_user(SECURITY_ID_QUICKBOOKS_SYNC);
+$security_level = validate_ajax_user(SECURITY_ID_QUICKBOOKS_SYNC);
 gen_pull_language('quickbooks_sync');
 require_once(DIR_FS_MODULES . 'quickbooks_sync/classes/quickbooks_source.php');
 require_once(DIR_FS_MODULES . 'quickbooks_sync/functions/quickbooks_sync.php');
@@ -31,5 +31,5 @@ if (!$range) {
 $source = new quickbooks_source();
 $documents = $source->documents('invoice', $range[0], $range[1]);
 if (isset($_GET['credit_memos'])) $documents = array_merge($documents, $source->documents('credit_memo', $range[0], $range[1]));
-echo quickbooks_sync_preview($documents, $source->builder());
+echo quickbooks_sync_preview($documents, $source->builder(), quickbooks_sync_send_context((int)$security_level));
 die;

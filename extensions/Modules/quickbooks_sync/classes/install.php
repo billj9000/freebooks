@@ -33,6 +33,8 @@ class quickbooks_sync_admin {
   //   tax       a tax_rate_id => the QuickBooks VAT code name
   //   customer  a customer name => the QuickBooks customer name, where they differ
   // The token table holds one row, the connection to QuickBooks; quickbooks_connection describes it.
+  // The doc table holds one row per invoice or credit memo sent, or tried, keyed by its
+  // journal_main id; functions/quickbooks_lock.php describes the two fingerprints.
   public function __construct() {
     $this->keys = [
       'QUICKBOOKS_SYNC_HOME_COUNTRY'       => defined('COMPANY_COUNTRY') ? COMPANY_COUNTRY : '',
@@ -68,6 +70,19 @@ class quickbooks_sync_admin {
         `company_name`    varchar(255) NOT NULL DEFAULT '',
         `connected_at`    datetime         DEFAULT NULL,
         `connected_by`    int(11)      NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+      TABLE_QUICKBOOKS_SYNC_DOC => "CREATE TABLE IF NOT EXISTS " . TABLE_QUICKBOOKS_SYNC_DOC . " (
+        `id`           int(11)      NOT NULL COMMENT 'journal_main id',
+        `journal_id`   tinyint(4)   NOT NULL,
+        `state`        varchar(16)  NOT NULL DEFAULT '' COMMENT 'sending, sent, failed or released',
+        `qb_id`        varchar(32)  NOT NULL DEFAULT '' COMMENT 'QuickBooks Invoice or CreditMemo Id',
+        `sent_at`      datetime         DEFAULT NULL,
+        `sent_by`      int(11)      NOT NULL DEFAULT 0,
+        `claimed_at`   datetime         DEFAULT NULL,
+        `last_error`   text             DEFAULT NULL,
+        `record_hash`  char(64)     NOT NULL DEFAULT '',
+        `doc_hash`     char(64)     NOT NULL DEFAULT '',
         PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     ];

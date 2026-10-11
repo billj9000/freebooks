@@ -37,7 +37,8 @@ class quickbooks_source {
     'customer_name', 'total', 'tax', 'freight', 'freight_taxable', 'freight_tax_rate',
     'freight_gl_account', 'discount', 'currency', 'currency_rate', 'closed',
     'bill_address1', 'bill_address2', 'bill_city', 'bill_state', 'bill_postal_code',
-    'bill_country', 'bill_email', 'ship_country', 'lines',
+    'bill_country', 'bill_email', 'ship_name', 'ship_address1', 'ship_address2', 'ship_city',
+    'ship_state', 'ship_postal_code', 'ship_country', 'lines',
   ];
 
   const CREDIT_MEMO_FIELDS = [
@@ -45,7 +46,8 @@ class quickbooks_source {
     'total', 'tax', 'freight', 'freight_taxable', 'freight_tax_rate', 'freight_gl_account',
     'discount', 'currency', 'currency_rate', 'closed',
     'bill_address1', 'bill_address2', 'bill_city', 'bill_state', 'bill_postal_code',
-    'bill_country', 'bill_email', 'ship_country', 'lines',
+    'bill_country', 'bill_email', 'ship_name', 'ship_address1', 'ship_address2', 'ship_city',
+    'ship_state', 'ship_postal_code', 'ship_country', 'lines',
   ];
 
   private quickbooks_builder $builder;
