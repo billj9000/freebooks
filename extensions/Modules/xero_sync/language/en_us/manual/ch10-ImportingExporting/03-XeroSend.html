@@ -67,9 +67,13 @@
   has in Xero, so an invoice already approved there stays approved.</p>
 <p>The update replaces Xero's copy with FreeBooks' version, so any change made to it in Xero is
   lost. Xero refuses to change a document it has recorded a payment against, or one that has been
-  voided or deleted there. In that case the row shows Xero's reason and offers <b>Forget Xero
-  copy</b>: FreeBooks then forgets the Xero document, and the next send makes a new one. Deal with
-  the old one in Xero first, or correct the sale with a credit memo instead.</p>
+  voided or deleted there, and the row then shows Xero's reason.</p>
+<p>A sale recorded wrongly in a paid or voided Xero document is corrected with a credit memo.
+  Where the Xero document can be deleted instead (Xero deletes drafts and documents awaiting
+  approval), delete it in Xero, then press <b>Unlink from deleted Xero copy</b> and send again: the
+  next send makes a new document. FreeBooks deletes nothing in Xero. Xero matches a send to any
+  document with the same number, so unlinking while the old document is still there either
+  overwrites it, if it is a draft, or is refused, if it is voided or paid.</p>
 
 <h4>Related Topics</h4>
 <ul>

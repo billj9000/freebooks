@@ -87,8 +87,9 @@ class xero_sender {
     return (int)$db->Execute("UPDATE " . TABLE_XERO_SYNC_DOC . " SET state = 'released' WHERE id = " . $id . " AND state = 'sent'")->AffectedRows() === 1;
   }
 
-  // Forgets the copy Xero holds, so the next send makes a new one. Only for a document that is not
-  // locked.
+  // Forgets the Xero id. Xero matches a send without an id to the document carrying the same
+  // number, so the next send makes a new document only once the old one is deleted in Xero.
+  // Only for a document that is not locked.
   public static function forget(int $id): bool {
     global $db;
     return (int)$db->Execute("UPDATE " . TABLE_XERO_SYNC_DOC . " SET xero_id = '', xero_status = '' WHERE id = " . $id . " AND state IN ('released', 'failed')")->AffectedRows() === 1;
