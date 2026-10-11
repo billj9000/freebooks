@@ -22,7 +22,8 @@ define('MODULE_QUICKBOOKS_SYNC_VERSION', '1.0.0');
 // Who can export and send documents to QuickBooks. The settings page uses SECURITY_ID_CONFIGURATION.
 define('SECURITY_ID_QUICKBOOKS_SYNC', 240);
 
-define('TABLE_QUICKBOOKS_SYNC_MAP', DB_PREFIX . 'quickbooks_sync_map');
+define('TABLE_QUICKBOOKS_SYNC_MAP',   DB_PREFIX . 'quickbooks_sync_map');
+define('TABLE_QUICKBOOKS_SYNC_TOKEN', DB_PREFIX . 'quickbooks_sync_token');
 
 if (defined('MODULE_QUICKBOOKS_SYNC_STATUS')) {
   gen_pull_language('quickbooks_sync', 'admin');

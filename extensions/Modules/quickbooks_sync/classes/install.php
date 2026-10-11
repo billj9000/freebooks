@@ -32,6 +32,7 @@ class quickbooks_sync_admin {
   //             foreign sales post elsewhere, the item for foreign documents (qb_foreign)
   //   tax       a tax_rate_id => the QuickBooks VAT code name
   //   customer  a customer name => the QuickBooks customer name, where they differ
+  // The token table holds one row, the connection to QuickBooks; quickbooks_connection describes it.
   public function __construct() {
     $this->keys = [
       'QUICKBOOKS_SYNC_HOME_COUNTRY'       => defined('COMPANY_COUNTRY') ? COMPANY_COUNTRY : '',
@@ -53,6 +54,21 @@ class quickbooks_sync_admin {
         `qb_foreign`  varchar(255)                     NOT NULL DEFAULT '',
         PRIMARY KEY (`id`),
         UNIQUE KEY `map_key` (`map_type`, `fb_key`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+      TABLE_QUICKBOOKS_SYNC_TOKEN => "CREATE TABLE IF NOT EXISTS " . TABLE_QUICKBOOKS_SYNC_TOKEN . " (
+        `id`              tinyint(4)   NOT NULL,
+        `environment`     varchar(16)  NOT NULL DEFAULT 'sandbox' COMMENT 'sandbox or production',
+        `client_id`       varchar(64)  NOT NULL DEFAULT '',
+        `client_secret`   text             DEFAULT NULL COMMENT 'encrypted',
+        `refresh_token`   text             DEFAULT NULL COMMENT 'encrypted',
+        `access_token`    text             DEFAULT NULL COMMENT 'encrypted',
+        `access_expires`  int(11)      NOT NULL DEFAULT 0  COMMENT 'Unix time',
+        `refresh_expires` int(11)      NOT NULL DEFAULT 0  COMMENT 'Unix time',
+        `realm_id`        varchar(32)  NOT NULL DEFAULT '',
+        `company_name`    varchar(255) NOT NULL DEFAULT '',
+        `connected_at`    datetime         DEFAULT NULL,
+        `connected_by`    int(11)      NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     ];
   }

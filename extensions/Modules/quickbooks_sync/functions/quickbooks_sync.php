@@ -29,8 +29,8 @@ function quickbooks_sync_item_rows(array $accounts, bool $can_save): string {
     $id = htmlspecialchars($account['id']);
     $description = $account['description'] !== '' ? $account['description'] : QUICKBOOKS_SYNC_NOT_IN_CHART;
     $html .= '<tr><td>' . $id . ' : ' . htmlspecialchars($description) . '</td>'
-      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" name="item[' . $id . '][d]" value="' . htmlspecialchars($account['qb_value']) . '"' . $disabled . '></td>'
-      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" name="item[' . $id . '][f]" value="' . htmlspecialchars($account['qb_foreign']) . '"' . $disabled . '></td></tr>';
+      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" list="qs-qb-items" name="item[' . $id . '][d]" value="' . htmlspecialchars($account['qb_value']) . '"' . $disabled . '></td>'
+      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" list="qs-qb-items" name="item[' . $id . '][f]" value="' . htmlspecialchars($account['qb_foreign']) . '"' . $disabled . '></td></tr>';
   }
   return $html;
 }

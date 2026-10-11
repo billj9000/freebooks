@@ -62,6 +62,40 @@ define('QUICKBOOKS_SYNC_SAVED',                 'The QuickBooks settings were sa
 define('QUICKBOOKS_SYNC_ERR_DUE_DAYS',          'Days until due must be a whole number from 0 to 365.');
 define('QUICKBOOKS_SYNC_ERR_TOLERANCE',         'The rounding tolerance must be a number from 0 to 100.');
 
+// Connection to QuickBooks, on the settings page
+define('QUICKBOOKS_SYNC_HEAD_CONNECTION',       'QuickBooks Connection');
+define('QUICKBOOKS_SYNC_LBL_ENVIRONMENT',       'Environment');
+define('QUICKBOOKS_SYNC_OPT_SANDBOX',           'Sandbox');
+define('QUICKBOOKS_SYNC_OPT_PRODUCTION',        'Production');
+define('QUICKBOOKS_SYNC_LBL_CLIENT_ID',         'Client id');
+define('QUICKBOOKS_SYNC_LBL_CLIENT_SECRET',     'Client secret');
+define('QUICKBOOKS_SYNC_HELP_CLIENT',           'From the app registered for FreeBooks in Intuit\'s developer portal, under Keys and credentials. Sandbox keys connect only to sandbox companies, and production keys only to real ones.');
+define('QUICKBOOKS_SYNC_SECRET_KEPT',           'Saved; leave blank to keep it');
+define('QUICKBOOKS_SYNC_LBL_CLEAR_SECRET',      'Remove the saved client secret');
+define('QUICKBOOKS_SYNC_LBL_REDIRECT',          'Redirect URI');
+define('QUICKBOOKS_SYNC_HELP_REDIRECT',         'Add this address to the app\'s redirect URIs in Intuit\'s developer portal, exactly as shown.');
+define('QUICKBOOKS_SYNC_CONNECTED',             'Connected to %s (%s) since %s.');
+define('QUICKBOOKS_SYNC_LAPSES',                'If QuickBooks Sync is not used before %s, the connection lapses and must be made again.');
+define('QUICKBOOKS_SYNC_NOT_CONNECTED',         'Not connected.');
+define('QUICKBOOKS_SYNC_BTN_CONNECT',           'Connect to QuickBooks');
+define('QUICKBOOKS_SYNC_BTN_RECONNECT',         'Connect again');
+define('QUICKBOOKS_SYNC_BTN_DISCONNECT',        'Disconnect');
+define('QUICKBOOKS_SYNC_CONFIRM_DISCONNECT',    'Disconnect from QuickBooks? Nothing can be sent until it is connected again.');
+define('QUICKBOOKS_SYNC_DISCONNECTED',          'Disconnected from QuickBooks.');
+define('QUICKBOOKS_SYNC_CONNECTED_TO',          'Connected to the QuickBooks company %s.');
+define('QUICKBOOKS_SYNC_CONNECTED_NO_NAME',     'Connected to QuickBooks, but the company\'s name could not be read: %s');
+define('QUICKBOOKS_SYNC_QB_LISTS_FAILED',       'QuickBooks\' products, accounts and VAT codes could not be read: %s');
+
+// Connection errors
+define('QUICKBOOKS_SYNC_ERR_NO_CLIENT',         'Enter the Intuit app\'s client id and client secret first.');
+define('QUICKBOOKS_SYNC_ERR_STATE',             'The answer from QuickBooks did not match a connection started here, so it was ignored. Press Connect to QuickBooks again.');
+define('QUICKBOOKS_SYNC_ERR_NO_COMPANY',        'The answer from QuickBooks did not name a company.');
+define('QUICKBOOKS_SYNC_ERR_TOKEN',             'Intuit refused the token request (HTTP %d: %s).');
+define('QUICKBOOKS_SYNC_ERR_QB_HTTP',           'QuickBooks answered with HTTP status %d.');
+define('QUICKBOOKS_SYNC_ERR_QB_DENIED',         'QuickBooks did not grant access: %s');
+define('QUICKBOOKS_SYNC_ERR_NOT_CONNECTED',     'QuickBooks Sync is not connected to QuickBooks. Connect it from the QuickBooks Sync settings.');
+define('QUICKBOOKS_SYNC_ERR_EXPIRED',           'The connection to QuickBooks has lapsed or was revoked. Connect again from the QuickBooks Sync settings.');
+
 // Export page
 define('QUICKBOOKS_SYNC_EXPORT_TITLE',          'QuickBooks Sync');
 define('QUICKBOOKS_SYNC_LBL_FROM',              'From');

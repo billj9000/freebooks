@@ -23,6 +23,41 @@
   icon beside the module in the module list. You need edit permission on Configuration to change
   it. Press the <b>Save</b> icon to keep your changes.</p>
 
+<h4>QuickBooks Connection</h4>
+<p>To send documents straight to QuickBooks, FreeBooks needs an app registered in Intuit's
+  developer portal (developer.intuit.com), and a connection made through it. Exporting import files needs neither.</p>
+<p>An Intuit app has two sets of keys: <i>development</i> keys, which connect only to the free
+  sandbox companies Intuit gives every developer account, and <i>production</i> keys, which
+  connect to real QuickBooks companies once Intuit has approved the app for production. Try the
+  module with a sandbox company first.</p>
+<ol>
+  <li>In the Intuit app's settings, add the address shown as <b>Redirect URI</b> to its redirect
+    URIs, for the keys you will use, exactly as shown. Intuit accepts a plain <code>http</code>
+    address on <code>localhost</code> for development keys only; production keys need
+    <code>https</code>.</li>
+  <li>Choose the <b>Environment</b> the keys belong to: <i>Sandbox</i> for development keys,
+    <i>Production</i> for production keys.</li>
+  <li>Copy the app's <b>Client id</b> and <b>Client secret</b> into this page. Once saved, the
+    secret is never shown again: leave the field blank to keep it, or tick <i>Remove the saved
+    client secret</i>.</li>
+  <li>Press <b>Connect to QuickBooks</b>. Intuit asks you to sign in, choose the company to send
+    documents to and allow access, then returns you here.</li>
+</ol>
+<p>The page then shows which company it is connected to. The connection lasts until it is
+  disconnected here, access is removed in QuickBooks, or QuickBooks Sync goes unused for 100
+  days, which is Intuit's limit; the page shows the date it would lapse. After that, press
+  <b>Connect again</b>. Changing the environment or the client id also ends the connection,
+  because the keys belong to another app or environment. <b>Disconnect</b> ends it at Intuit as
+  well as here.</p>
+<p>While connected, the item, account and VAT code fields below suggest QuickBooks' own as you
+  type.</p>
+<p>The client secret and the connection's tokens are stored encrypted. The key is a file,
+  <code>quickbooks_sync.key</code>, made automatically in the company's folder under
+  <code>my_files</code>. Anyone with both that file and the database can use the connection, so
+  look after a backup that holds both as you would the QuickBooks login itself. If the file is
+  lost, FreeBooks cannot read the stored tokens and the page shows <i>Not connected</i>; enter
+  the client secret again and connect again.</p>
+
 <h4>In QuickBooks first</h4>
 <ul>
   <li>VAT must be turned on in the QuickBooks company.</li>
