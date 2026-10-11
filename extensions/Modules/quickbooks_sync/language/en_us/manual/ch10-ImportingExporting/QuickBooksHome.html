@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.QUICKBOOKS">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.QuickBooks Sync">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="QuickBooks Sync">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>QuickBooks Sync</title>
+</head>
+
+<body>
+
+<h1 align="center">QuickBooks Sync</h1>
+
+<p>QuickBooks Sync copies your sales invoices and credit memos into QuickBooks Online, so that
+  QuickBooks holds the same sales as FreeBooks. It is part of the optional QuickBooks Sync
+  module, installed from <b>Company &rarr; Configuration &rarr; Modules</b>. It works with a
+  QuickBooks company that charges VAT, such as a UK company; it does not handle US sales
+  tax.</p>
+
+<p>Before anything is sent, tell the module how your FreeBooks accounts, tax rates and customers
+  correspond to QuickBooks': see <a href="01-QuickBooksSettings.html">QuickBooks Sync
+  Settings</a>.</p>
+
+<h4>Items and accounts</h4>
+<p>Every line of a QuickBooks invoice names a product or service, and that item decides which
+  income account the line posts to. So each FreeBooks sales account is mapped to a QuickBooks
+  item, set up in QuickBooks to post to the matching income account: for example a service
+  called <i>Sales</i> for your sales account and another called <i>Shipping</i> for freight.
+  Each line's SKU and description are written into the line's description.</p>
+
+<h4>How VAT and totals are kept equal</h4>
+<p>Each document states its own VAT: for every VAT code on it, the amount taxed and the VAT
+  charged, which QuickBooks records in place of working the VAT out again. FreeBooks takes a
+  discount off every product line in the same proportion before working out the VAT, and the
+  document is built the same way, so its VAT matches what FreeBooks saved. FreeBooks rounds its
+  VAT once for the whole document where QuickBooks keeps one figure per code; any penny between
+  the two is taken into the largest VAT line.</p>
+<p>If the document's total still differs from FreeBooks', a <b>Rounding Adjustment</b> line,
+  sold as the rounding item, makes up the difference. A real line's amount is never
+  changed.</p>
+
+<p>FreeBooks stores every amount in your home currency. A document in another currency is
+  converted at the document's own exchange rate before it is sent, so QuickBooks receives the
+  amounts the customer was charged.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="01-QuickBooksSettings.html">QuickBooks Sync Settings</a></li>
+  <li><a href="../../../../../phreedom/language/en_us/manual/ch10-ImportingExporting/ImpExpHome.html">Importing/Exporting</a></li>
+</ul>
+
+</body>
+</html>

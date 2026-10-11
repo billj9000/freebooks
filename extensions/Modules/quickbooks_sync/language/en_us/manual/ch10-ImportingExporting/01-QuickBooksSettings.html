@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.QUICKBOOKS.01">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.QuickBooks Sync Settings">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="QuickBooks Sync Settings">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>QuickBooks Sync Settings</title>
+</head>
+
+<body>
+
+<h1 align="center">QuickBooks Sync Settings</h1>
+
+<p>The settings page tells QuickBooks Sync how FreeBooks and your QuickBooks company correspond.
+  Open it from <b>Company &rarr; Configuration &rarr; QuickBooks Sync</b>, or from the properties
+  icon beside the module in the module list. You need edit permission on Configuration to change
+  it. Press the <b>Save</b> icon to keep your changes.</p>
+
+<h4>In QuickBooks first</h4>
+<ul>
+  <li>VAT must be turned on in the QuickBooks company.</li>
+  <li>Create a product or service for each income account your sales post to, of the type
+    <i>Service</i> or <i>Non-inventory</i>, with its income account set. FreeBooks keeps the
+    stock, so the items need not track quantities.</li>
+  <li>To keep FreeBooks' invoice and credit memo numbers, switch on <i>Custom transaction
+    numbers</i> in QuickBooks' sales settings.</li>
+</ul>
+
+<h4>Documents</h4>
+<ul>
+  <li><b>Home country</b> &mdash; a document whose country differs from this one counts as
+    foreign and uses the foreign items. Choose <i>None</i> to use the ordinary items for every
+    document.</li>
+  <li><b>Country taken from</b> &mdash; which address decides the document's country. When that
+    address has no country, the other address is used. When neither has one, the document uses
+    the ordinary items and is flagged.</li>
+  <li><b>Days until due</b> &mdash; an invoice's due date in QuickBooks is its date plus this
+    many days.</li>
+  <li><b>Rounding tolerance</b> &mdash; a penny between the VAT worked out for each VAT code and
+    the VAT FreeBooks saved is taken into the largest VAT line, and a difference in the total is
+    made up with a rounding line. A difference larger than this also flags the document for
+    review, because it usually means a rate or a mapping is wrong rather than a penny of
+    rounding.</li>
+  <li><b>Use the payment reference as an invoice's reference</b> &mdash; sends the reference of
+    the receipt that paid the invoice, such as a card transaction id or a cheque number, in place
+    of the customer's PO number. An unpaid invoice sends its PO number and is flagged. Credit
+    memos always send their own reference. QuickBooks keeps the reference in the invoice's
+    statement memo, which the customer does not see.</li>
+</ul>
+
+<h4>QuickBooks Defaults</h4>
+<ul>
+  <li><b>Default item</b> &mdash; the QuickBooks product or service used for any FreeBooks
+    account not mapped below. A document that needs it is flagged, so you can add the
+    mapping.</li>
+  <li><b>Rounding item</b> &mdash; the product or service for Rounding Adjustment lines. Set it
+    up in QuickBooks to post to the account you keep rounding differences in.</li>
+  <li><b>Discount account</b> &mdash; the QuickBooks account a document's discount is posted to.
+    Leave it blank to use QuickBooks' own discount account.</li>
+  <li><b>VAT code for untaxed lines</b> &mdash; the name of the QuickBooks VAT code put on a
+    line with no VAT, such as an untaxed product or the rounding line. In a UK company,
+    QuickBooks names it <i>No VAT</i>.</li>
+</ul>
+
+<h4>Item Mapping</h4>
+<p>The table lists the accounts your sales invoices and credit memos have posted product and
+  freight lines to, and any account you have already mapped. Tick <b>Show every account</b> to
+  map an account before it has been used.</p>
+<p>For each account, enter the name of the QuickBooks product or service its lines are sold as,
+  exactly as QuickBooks shows it. If foreign sales post to a different account, enter a second
+  item, set up to post there, in the foreign column; leave it blank to use the same item for
+  every country. Clear both names to remove a mapping.</p>
+
+<h4>VAT Code Mapping</h4>
+<p>For each customer tax rate, enter the matching QuickBooks VAT code's <b>name, exactly as
+  QuickBooks shows it</b>, for example <i>20.0% S</i>. The document carries the VAT FreeBooks
+  charged, so keep each code's rate the same as FreeBooks'. A rate left blank is sent as untaxed
+  and the document is flagged.</p>
+
+<h4>Customer Names</h4>
+<p>A document is sent under the customer's name as FreeBooks has it. Where the customer has a
+  different name in QuickBooks, enter the FreeBooks name and the QuickBooks name here so that the
+  document goes to the existing customer rather than a new one. Use <b>Add a name</b> for more
+  rows, and clear the QuickBooks name to remove one.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="QuickBooksHome.html">QuickBooks Sync</a></li>
+</ul>
+
+</body>
+</html>
