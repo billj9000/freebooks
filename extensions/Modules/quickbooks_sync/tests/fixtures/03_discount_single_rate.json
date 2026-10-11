@@ -1,0 +1,221 @@
+{
+    "name": "03_discount_single_rate",
+    "notes": "A discount on products at one rate: the discount line follows the products, and the tax line's net is the discounted amount.",
+    "doc_type": "invoice",
+    "opts": {
+        "due_days": 30,
+        "rounding_tolerance": 0.01,
+        "home_country": "GBR",
+        "country_source": "shipping",
+        "use_payment_reference": false
+    },
+    "record": {
+        "id": 1001,
+        "invoice_number": "INV-1001",
+        "reference": "PO-555",
+        "payment_reference": "",
+        "date": "2026-09-15",
+        "customer_id": 7,
+        "total": 72.0,
+        "tax": 12.0,
+        "freight": 0.0,
+        "freight_taxable": 0,
+        "freight_tax_rate": 0.0,
+        "freight_gl_account": "4300",
+        "discount": 10.0,
+        "discount_gl_account": "4900",
+        "currency": "GBP",
+        "currency_rate": 1.0,
+        "closed": "0",
+        "lines": [
+            {
+                "sku": "WIDGET-A",
+                "description": "Widget A",
+                "qty": 3.0,
+                "unit_price": 15.0,
+                "amount": 45.0,
+                "gl_account": "4000",
+                "taxable": 1,
+                "tax_rate": 20.0
+            },
+            {
+                "sku": "GADGET",
+                "description": "Gadget",
+                "qty": 1.0,
+                "unit_price": 25.0,
+                "amount": 25.0,
+                "gl_account": "4000",
+                "taxable": 1,
+                "tax_rate": 20.0
+            }
+        ],
+        "customer_name": "Test Customer",
+        "bill_email": "accounts@test.example",
+        "bill_address1": "1 High Street",
+        "bill_address2": "Unit 2",
+        "bill_city": "Leeds",
+        "bill_state": "West Yorkshire",
+        "bill_postal_code": "LS1 1AA",
+        "bill_country": "GBR",
+        "ship_country": "GBR"
+    },
+    "expected": {
+        "document": {
+            "doc_type": "invoice",
+            "number": "INV-1001",
+            "reference": "PO-555",
+            "date": "2026-09-15",
+            "due_date": "2026-10-15",
+            "customer_name": "Test Customer",
+            "email": "accounts@test.example",
+            "bill_address": {
+                "address1": "1 High Street",
+                "address2": "Unit 2",
+                "city": "Leeds",
+                "state": "West Yorkshire",
+                "postal_code": "LS1 1AA",
+                "country": "GBR"
+            },
+            "ship_address": {
+                "address1": "",
+                "address2": "",
+                "city": "",
+                "state": "",
+                "postal_code": "",
+                "country": "GBR"
+            },
+            "currency": "GBP",
+            "exchange_rate": 1.0,
+            "lines": [
+                {
+                    "kind": "product",
+                    "description": "WIDGET-A - Widget A",
+                    "quantity": 3.0,
+                    "unit_amount": 15.0,
+                    "amount": 45.0,
+                    "item": "Sales",
+                    "tax_code": "20.0% S",
+                    "tax_percent": 20.0
+                },
+                {
+                    "kind": "product",
+                    "description": "GADGET - Gadget",
+                    "quantity": 1.0,
+                    "unit_amount": 25.0,
+                    "amount": 25.0,
+                    "item": "Sales",
+                    "tax_code": "20.0% S",
+                    "tax_percent": 20.0
+                }
+            ],
+            "discount": {
+                "amount": 10.0,
+                "account": "Discounts given"
+            },
+            "tax_lines": [
+                {
+                    "tax_code": "20.0% S",
+                    "percent": 20.0,
+                    "net": 60.0,
+                    "amount": 12.0
+                }
+            ],
+            "total_tax": 12.0,
+            "source_total": 72.0,
+            "computed_total": 72.0,
+            "rounding_applied": 0.0,
+            "unmapped_accounts": [],
+            "unmapped_tax_rates": [],
+            "country": "GBR",
+            "is_domestic": true,
+            "warnings": []
+        },
+        "payload": {
+            "CustomerRef": {
+                "value": "58"
+            },
+            "DocNumber": "INV-1001",
+            "TxnDate": "2026-09-15",
+            "Line": [
+                {
+                    "Description": "WIDGET-A - Widget A",
+                    "Amount": 45.0,
+                    "DetailType": "SalesItemLineDetail",
+                    "SalesItemLineDetail": {
+                        "ItemRef": {
+                            "value": "1"
+                        },
+                        "Qty": 3.0,
+                        "UnitPrice": 15.0,
+                        "TaxCodeRef": {
+                            "value": "3"
+                        }
+                    }
+                },
+                {
+                    "Description": "GADGET - Gadget",
+                    "Amount": 25.0,
+                    "DetailType": "SalesItemLineDetail",
+                    "SalesItemLineDetail": {
+                        "ItemRef": {
+                            "value": "1"
+                        },
+                        "Qty": 1.0,
+                        "UnitPrice": 25.0,
+                        "TaxCodeRef": {
+                            "value": "3"
+                        }
+                    }
+                },
+                {
+                    "Amount": 10.0,
+                    "DetailType": "DiscountLineDetail",
+                    "DiscountLineDetail": {
+                        "PercentBased": false,
+                        "DiscountAccountRef": {
+                            "value": "86"
+                        }
+                    }
+                }
+            ],
+            "GlobalTaxCalculation": "TaxExcluded",
+            "TxnTaxDetail": {
+                "TotalTax": 12.0,
+                "TaxLine": [
+                    {
+                        "Amount": 12.0,
+                        "DetailType": "TaxLineDetail",
+                        "TaxLineDetail": {
+                            "TaxRateRef": {
+                                "value": "4"
+                            },
+                            "PercentBased": true,
+                            "TaxPercent": 20.0,
+                            "NetAmountTaxable": 60.0
+                        }
+                    }
+                ]
+            },
+            "ApplyTaxAfterDiscount": true,
+            "DueDate": "2026-10-15",
+            "PrivateNote": "PO-555",
+            "BillEmail": {
+                "Address": "accounts@test.example"
+            },
+            "BillAddr": {
+                "Line1": "1 High Street",
+                "Line2": "Unit 2",
+                "City": "Leeds",
+                "CountrySubDivisionCode": "West Yorkshire",
+                "PostalCode": "LS1 1AA",
+                "Country": "GBR"
+            },
+            "ShipAddr": {
+                "Country": "GBR"
+            },
+            "CurrencyRef": {
+                "value": "GBP"
+            }
+        }
+    }
+}

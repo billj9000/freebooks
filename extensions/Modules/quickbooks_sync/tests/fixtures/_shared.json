@@ -1,0 +1,55 @@
+{
+  "mapping": {
+    "items": {
+      "4000": "Sales",
+      "4010": {
+        "domestic": "Sales",
+        "foreign": "Sales - Export"
+      },
+      "4300": {
+        "domestic": "Shipping",
+        "foreign": "Shipping - Export"
+      }
+    },
+    "default_item": "Sales",
+    "rounding_item": "Rounding",
+    "discount_account": "Discounts given",
+    "customers": {
+      "ACME LTD": "Acme Limited"
+    },
+    "tax_codes": {
+      "1": "20.0% S",
+      "2": "5.0% R",
+      "3": "0.0% Z",
+      "4": "Combined 15%"
+    },
+    "no_vat_code": "No VAT"
+  },
+  "refs": {
+    "customer_id": "58",
+    "items": {
+      "Sales": "1",
+      "Sales - Export": "2",
+      "Shipping": "3",
+      "Shipping - Export": "4",
+      "Rounding": "5"
+    },
+    "accounts": {
+      "Discounts given": "86"
+    },
+    "tax_codes": {
+      "20.0% S": {"id": "3", "rates": [{"id": "4", "percent": 20}]},
+      "5.0% R": {"id": "5", "rates": [{"id": "6", "percent": 5}]},
+      "0.0% Z": {"id": "7", "rates": [{"id": "8", "percent": 0}]},
+      "Combined 15%": {"id": "11", "rates": [{"id": "12", "percent": 10}, {"id": "13", "percent": 5}]},
+      "No VAT": {"id": "9", "rates": []}
+    }
+  },
+  "default_opts": {
+    "due_days": 30,
+    "rounding_tolerance": 0.01,
+    "home_country": "GBR",
+    "country_source": "shipping",
+    "use_payment_reference": false
+  }
+}

@@ -1,0 +1,178 @@
+{
+    "name": "07_foreign_currency",
+    "notes": "Amounts stored in GBP and converted by currency_rate; ExchangeRate is its inverse, home units per unit of the document currency.",
+    "doc_type": "invoice",
+    "opts": {
+        "due_days": 30,
+        "rounding_tolerance": 0.01,
+        "home_country": "GBR",
+        "country_source": "shipping",
+        "use_payment_reference": false
+    },
+    "record": {
+        "id": 1001,
+        "invoice_number": "INV-1001",
+        "reference": "PO-555",
+        "payment_reference": "",
+        "date": "2026-09-15",
+        "customer_id": 7,
+        "total": 24.0,
+        "tax": 0.0,
+        "freight": 4.0,
+        "freight_taxable": 0,
+        "freight_tax_rate": 0.0,
+        "freight_gl_account": "4300",
+        "discount": 0.0,
+        "discount_gl_account": "4900",
+        "currency": "USD",
+        "currency_rate": 1.2734,
+        "closed": "0",
+        "lines": [
+            {
+                "sku": "WIDGET-A",
+                "description": "Widget A",
+                "qty": 2.0,
+                "unit_price": 10.0,
+                "amount": 20.0,
+                "gl_account": "4010",
+                "taxable": 0,
+                "tax_rate": 0.0
+            }
+        ],
+        "customer_name": "Test Customer",
+        "bill_email": "accounts@test.example",
+        "bill_address1": "1 High Street",
+        "bill_address2": "Unit 2",
+        "bill_city": "Leeds",
+        "bill_state": "West Yorkshire",
+        "bill_postal_code": "LS1 1AA",
+        "bill_country": "USA",
+        "ship_country": "USA"
+    },
+    "expected": {
+        "document": {
+            "doc_type": "invoice",
+            "number": "INV-1001",
+            "reference": "PO-555",
+            "date": "2026-09-15",
+            "due_date": "2026-10-15",
+            "customer_name": "Test Customer",
+            "email": "accounts@test.example",
+            "bill_address": {
+                "address1": "1 High Street",
+                "address2": "Unit 2",
+                "city": "Leeds",
+                "state": "West Yorkshire",
+                "postal_code": "LS1 1AA",
+                "country": "USA"
+            },
+            "ship_address": {
+                "address1": "",
+                "address2": "",
+                "city": "",
+                "state": "",
+                "postal_code": "",
+                "country": "USA"
+            },
+            "currency": "USD",
+            "exchange_rate": 0.785299,
+            "lines": [
+                {
+                    "kind": "product",
+                    "description": "WIDGET-A - Widget A",
+                    "quantity": 2.0,
+                    "unit_amount": 12.734,
+                    "amount": 25.47,
+                    "item": "Sales - Export",
+                    "tax_code": "NONE",
+                    "tax_percent": 0.0
+                },
+                {
+                    "kind": "freight",
+                    "description": "Freight",
+                    "quantity": 1.0,
+                    "unit_amount": 5.0936,
+                    "amount": 5.09,
+                    "item": "Shipping - Export",
+                    "tax_code": "NONE",
+                    "tax_percent": 0.0
+                }
+            ],
+            "discount": null,
+            "tax_lines": [],
+            "total_tax": 0.0,
+            "source_total": 30.56,
+            "computed_total": 30.56,
+            "rounding_applied": 0.0,
+            "unmapped_accounts": [],
+            "unmapped_tax_rates": [],
+            "country": "USA",
+            "is_domestic": false,
+            "warnings": []
+        },
+        "payload": {
+            "CustomerRef": {
+                "value": "58"
+            },
+            "DocNumber": "INV-1001",
+            "TxnDate": "2026-09-15",
+            "Line": [
+                {
+                    "Description": "WIDGET-A - Widget A",
+                    "Amount": 25.47,
+                    "DetailType": "SalesItemLineDetail",
+                    "SalesItemLineDetail": {
+                        "ItemRef": {
+                            "value": "2"
+                        },
+                        "Qty": 2.0,
+                        "UnitPrice": 12.734,
+                        "TaxCodeRef": {
+                            "value": "9"
+                        }
+                    }
+                },
+                {
+                    "Description": "Freight",
+                    "Amount": 5.09,
+                    "DetailType": "SalesItemLineDetail",
+                    "SalesItemLineDetail": {
+                        "ItemRef": {
+                            "value": "4"
+                        },
+                        "Qty": 1.0,
+                        "UnitPrice": 5.0936,
+                        "TaxCodeRef": {
+                            "value": "9"
+                        }
+                    }
+                }
+            ],
+            "GlobalTaxCalculation": "TaxExcluded",
+            "TxnTaxDetail": {
+                "TotalTax": 0.0,
+                "TaxLine": []
+            },
+            "DueDate": "2026-10-15",
+            "PrivateNote": "PO-555",
+            "BillEmail": {
+                "Address": "accounts@test.example"
+            },
+            "BillAddr": {
+                "Line1": "1 High Street",
+                "Line2": "Unit 2",
+                "City": "Leeds",
+                "CountrySubDivisionCode": "West Yorkshire",
+                "PostalCode": "LS1 1AA",
+                "Country": "USA"
+            },
+            "ShipAddr": {
+                "Country": "USA"
+            },
+            "CurrencyRef": {
+                "value": "USD"
+            },
+            "ExchangeRate": 0.785299
+        }
+    }
+}
