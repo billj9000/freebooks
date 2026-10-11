@@ -17,8 +17,9 @@
 //  Path: /modules/quickbooks_sync/classes/quickbooks_builder.php
 //
 // Turns a sales invoice or credit memo, in the shape the api module's invoices and credit_memos
-// resources return, into a QuickBooks Online document, then into a body for the Invoice or
-// CreditMemo API of a company that charges VAT (the non-US tax model). It reads no database and
+// resources return, into a QuickBooks Online document, then into rows for QuickBooks' invoice or
+// credit note import file, or a body for its Invoice or CreditMemo API, for a company that charges
+// VAT (the non-US tax model). It reads no database and
 // makes no calls, so tests/run_fixtures.php can check it against the fixtures alone.
 //
 // The mapping array holds:
@@ -48,6 +49,34 @@ class quickbooks_builder {
 
   // QuickBooks' limit on DocNumber.
   const NUMBER_MAX = 21;
+
+  // QuickBooks' import columns, as its UK sample files have them, in file order: each heading
+  // with the field of file_rows() it carries, or null for a column left blank. The invoice and
+  // credit memo imports are separate. The credit memo file's service date heading starts with a
+  // space in the sample, and is kept so that QuickBooks matches it.
+  const FILE_HEADERS = [
+    'invoice' => [
+      '*InvoiceNo' => 'number', '*Customer' => 'customer', '*InvoiceDate' => 'date', '*DueDate' => 'due_date',
+      'Terms' => null, 'Location' => null, 'Memo' => 'memo', 'Item(Product/Service)' => 'item',
+      'ItemDescription' => 'description', 'ItemQuantity' => 'quantity', 'ItemRate' => 'rate',
+      '*ItemAmount' => 'amount', '*ItemTaxCode' => 'tax_code', 'ItemTaxAmount' => 'tax_amount',
+      'Currency' => 'currency', 'Service Date' => null, 'Note to customer' => null,
+    ],
+    'credit_memo' => [
+      '*CreditMemoNo' => 'number', '*Customer' => 'customer', '*CreditMemoDate' => 'date',
+      'Location' => null, 'Memo' => 'memo', 'Item(Product/Service)' => 'item',
+      'ItemDescription' => 'description', 'ItemQuantity' => 'quantity', 'ItemRate' => 'rate',
+      '*ItemAmount' => 'amount', '*ItemTaxCode' => 'tax_code', 'ItemTaxAmount' => 'tax_amount',
+      'Currency' => 'currency', ' ServiceDate' => null,
+    ],
+  ];
+
+  // The date format the import files are written in.
+  const FILE_DATE_FORMAT = 'd/m/Y';
+
+  // QuickBooks' limits on one import file.
+  const FILE_MAX_DOCUMENTS = 100;
+  const FILE_MAX_ROWS      = 1000;
 
   private array $mapping;
 
@@ -257,6 +286,7 @@ class quickbooks_builder {
       'source_total'       => $source_total,
       'computed_total'     => $computed_total,
       'rounding_applied'   => $rounding_applied,
+      'rounding_in_tolerance' => abs($rounding_applied) <= $tolerance,
       'unmapped_accounts'  => $unmapped_accounts,
       'unmapped_tax_rates' => $unmapped_tax_rates,
       'country'            => $country,
@@ -367,6 +397,154 @@ class quickbooks_builder {
       if ($doc['exchange_rate'] != 1) $payload['ExchangeRate'] = $doc['exchange_rate'];
     }
     return $payload;
+  }
+
+  // Why the document cannot go in an import file, or null when it can. QuickBooks' imports take
+  // no negative amount. A rounding line that takes off no more than the rounding tolerance is taken
+  // off the largest line instead (see file_rows()); a negative product line, or a larger negative
+  // rounding, which needs checking anyway, keeps the document out.
+  public function file_refusal(array $doc): ?string {
+    if (mb_strlen($doc['number']) > self::NUMBER_MAX) return sprintf(QUICKBOOKS_SYNC_FILE_NUMBER_LONG, self::NUMBER_MAX);
+    foreach ($doc['lines'] as $line) {
+      if ($line['amount'] >= 0) continue;
+      if ($line['kind'] !== 'rounding' || !$doc['rounding_in_tolerance']) return QUICKBOOKS_SYNC_FILE_NEGATIVE;
+    }
+    return null;
+  }
+
+  /**
+   * The rows of the import file for one document, one per line, each keyed by the fields
+   * FILE_HEADERS names. Only for a document file_refusal() accepts. Every row repeats the number,
+   * customer and dates, which tie it to its document; the memo and currency, which belong to the
+   * document, are on its first row only, as in QuickBooks' sample.
+   *
+   * The imports take no discount, so a discount is taken off the product lines in proportion to
+   * their amounts, as FreeBooks takes it off for VAT: each line then carries its net amount and
+   * says so in its description. Nor do they take a negative line, so a rounding line that takes
+   * money off is taken off the largest line, which says so too. Each tax code's VAT is divided
+   * between its lines in proportion to their nets. The divisions give any leftover penny to the
+   * largest line, so the lines add up to the document's VAT and total exactly.
+   */
+  public function file_rows(array $doc): array {
+    $lines = $doc['lines'];
+    $discount = $doc['discount']['amount'] ?? 0.0;
+    $products = array_keys(array_filter($lines, fn($line) => $line['kind'] === 'product'));
+    $nets = array_column($lines, 'amount');
+    $discounted = [];
+    if ($discount && $products) {
+      $weights = array_map(fn($i) => $lines[$i]['amount'], $products);
+      foreach (self::share($discount, $weights) as $n => $part) {
+        $nets[$products[$n]] = round($nets[$products[$n]] - $part, 2);
+        if ($part) $discounted[$products[$n]] = true;
+      }
+    }
+    $rounded = null;
+    foreach ($lines as $i => $line) {
+      if ($line['kind'] !== 'rounding' || $line['amount'] >= 0) continue;
+      $others = array_diff_key($nets, [$i => true]);
+      $rounded = array_search(max($others), $others);
+      $nets[$rounded] = round($nets[$rounded] + $line['amount'], 2);
+      unset($lines[$i], $nets[$i]);
+    }
+
+    $tax = array_fill_keys(array_keys($lines), 0.0);
+    foreach ($doc['tax_lines'] as $tax_line) {
+      $members = array_keys(array_filter($lines, fn($line) => $line['tax_code'] === $tax_line['tax_code']));
+      $weights = array_map(fn($i) => $nets[$i], $members);
+      foreach (self::share($tax_line['amount'], $weights) as $n => $part) $tax[$members[$n]] = $part;
+    }
+
+    $rows = [];
+    foreach ($lines as $i => $line) {
+      $reduced = $nets[$i] != $line['amount'];
+      $description = $line['description'];
+      if (isset($discounted[$i]) && $i === $rounded) $description = sprintf(QUICKBOOKS_SYNC_LINE_DISCOUNT_ROUNDED, $description);
+      elseif (isset($discounted[$i]))                 $description = sprintf(QUICKBOOKS_SYNC_LINE_AFTER_DISCOUNT, $description);
+      elseif ($i === $rounded)                        $description = sprintf(QUICKBOOKS_SYNC_LINE_ROUNDED, $description);
+      $rows[] = [
+        'number'      => $doc['number'],
+        'customer'    => $doc['customer_name'],
+        'date'        => self::file_date($doc['date']),
+        'due_date'    => self::file_date($doc['due_date']),
+        'memo'        => $rows ? '' : $doc['reference'],
+        'item'        => $line['item'],
+        'description' => $description,
+        'quantity'    => self::format_number($line['quantity']),
+        'rate'        => self::format_number($reduced ? round($nets[$i] / $line['quantity'], 6) : $line['unit_amount']),
+        'amount'      => sprintf('%.2f', $nets[$i]),
+        'tax_code'    => $line['tax_code'] === self::NO_TAX ? $this->no_vat_code() : $line['tax_code'],
+        'tax_amount'  => sprintf('%.2f', $tax[$i]),
+        'currency'    => $rows ? '' : $doc['currency'],
+      ];
+    }
+    return $rows;
+  }
+
+  // The import file for documents of one type, headers first. RFC 4180: CRLF line ends, and a
+  // field is quoted only when it holds a comma, a quote or a line break.
+  public function file_text(string $doc_type, array $documents): string {
+    $headers = self::FILE_HEADERS[$doc_type];
+    $out = self::csv_line(array_keys($headers));
+    foreach ($documents as $doc) {
+      foreach ($this->file_rows($doc) as $row) {
+        $out .= self::csv_line(array_map(fn($field) => $field === null ? '' : $row[$field], array_values($headers)));
+      }
+    }
+    return $out;
+  }
+
+  // Documents divided into files QuickBooks will import: at most FILE_MAX_DOCUMENTS each, and at
+  // most FILE_MAX_ROWS rows besides the headers. A document is never split between files.
+  public function file_parts(array $documents): array {
+    $parts = [];
+    $part = [];
+    $rows = 0;
+    foreach ($documents as $doc) {
+      $count = count($doc['lines']);
+      if ($part && (count($part) >= self::FILE_MAX_DOCUMENTS || $rows + $count > self::FILE_MAX_ROWS)) {
+        $parts[] = $part;
+        $part = [];
+        $rows = 0;
+      }
+      $part[] = $doc;
+      $rows += $count;
+    }
+    if ($part) $parts[] = $part;
+    return $parts;
+  }
+
+  // $total divided in proportion to $weights, rounded to the penny, with what rounding leaves over
+  // added to the largest weight, so the parts add up to $total exactly. Equal weights share alike
+  // when every weight is zero.
+  private static function share(float $total, array $weights): array {
+    if (!$weights) return [];
+    $sum = array_sum($weights);
+    $parts = [];
+    foreach ($weights as $n => $weight) {
+      $parts[$n] = round($sum ? $total * $weight / $sum : $total / count($weights), 2);
+    }
+    $largest = array_search(max(array_map('abs', $weights)), array_map('abs', $weights));
+    $parts[$largest] = round($parts[$largest] + $total - array_sum($parts), 2);
+    return $parts;
+  }
+
+  private static function file_date(string $date): string {
+    $parsed = self::parse_date($date);
+    return $parsed ? $parsed->format(self::FILE_DATE_FORMAT) : $date;
+  }
+
+  // A number without trailing zeros: a whole quantity without decimals, a unit price with as many
+  // as it has.
+  private static function format_number($value): string {
+    $text = rtrim(rtrim(sprintf('%.6F', (float)$value), '0'), '.');
+    return $text === '-0' ? '0' : $text;
+  }
+
+  private static function csv_line(array $fields): string {
+    return implode(',', array_map(function ($field) {
+      $field = (string)$field;
+      return strpbrk($field, ",\"\r\n") === false ? $field : '"' . str_replace('"', '""', $field) . '"';
+    }, $fields)) . "\r\n";
   }
 
   // One sales line, recording an unmapped account or tax rate as it goes. The unit amount keeps

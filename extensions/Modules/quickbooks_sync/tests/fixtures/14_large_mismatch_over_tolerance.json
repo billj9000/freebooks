@@ -111,6 +111,7 @@
             "source_total": 12.5,
             "computed_total": 12.0,
             "rounding_applied": 0.5,
+            "rounding_in_tolerance": false,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
@@ -119,6 +120,39 @@
                 "The total differs from the FreeBooks total by +0.50, more than the tolerance of 0.01. A rounding line is added; check this document."
             ]
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "WIDGET-A - Widget A",
+                "quantity": "1",
+                "rate": "10",
+                "amount": "10.00",
+                "tax_code": "20.0% S",
+                "tax_amount": "2.00",
+                "currency": "GBP"
+            },
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Rounding",
+                "description": "Rounding Adjustment",
+                "quantity": "1",
+                "rate": "0.5",
+                "amount": "0.50",
+                "tax_code": "No VAT",
+                "tax_amount": "0.00",
+                "currency": ""
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

@@ -94,12 +94,31 @@
             "source_total": 2.01,
             "computed_total": 2.01,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
             "is_domestic": true,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "WIDGET-A - Widget A",
+                "quantity": "2",
+                "rate": "1.005",
+                "amount": "2.01",
+                "tax_code": "No VAT",
+                "tax_amount": "0.00",
+                "currency": "GBP"
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

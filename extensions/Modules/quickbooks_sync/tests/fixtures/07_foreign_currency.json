@@ -104,12 +104,46 @@
             "source_total": 30.56,
             "computed_total": 30.56,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "USA",
             "is_domestic": false,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales - Export",
+                "description": "WIDGET-A - Widget A",
+                "quantity": "2",
+                "rate": "12.734",
+                "amount": "25.47",
+                "tax_code": "No VAT",
+                "tax_amount": "0.00",
+                "currency": "USD"
+            },
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Shipping - Export",
+                "description": "Freight",
+                "quantity": "1",
+                "rate": "5.0936",
+                "amount": "5.09",
+                "tax_code": "No VAT",
+                "tax_amount": "0.00",
+                "currency": ""
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

@@ -25,8 +25,16 @@ define('SECURITY_ID_QUICKBOOKS_SYNC', 240);
 define('TABLE_QUICKBOOKS_SYNC_MAP', DB_PREFIX . 'quickbooks_sync_map');
 
 if (defined('MODULE_QUICKBOOKS_SYNC_STATUS')) {
+  gen_pull_language('quickbooks_sync', 'admin');
+  $mainmenu["customers"]['submenu']["quickbooks_sync"] = array(
+    'order'                  => 91,
+    'text'                   => MODULE_QUICKBOOKS_SYNC_TITLE,
+    'security_id'            => SECURITY_ID_QUICKBOOKS_SYNC,
+    'link'                   => html_href_link(FILENAME_DEFAULT, 'module=quickbooks_sync&amp;page=main', 'SSL'),
+    'show_in_users_settings' => true,
+    'params'                 => '',
+  );
   if (isset($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION]) && $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] > 0) {
-    gen_pull_language('quickbooks_sync', 'admin');
     $mainmenu["company"]['submenu']["configuration"]['submenu']["quickbooks_sync"] = array(
       'order'                  => MODULE_QUICKBOOKS_SYNC_TITLE,
       'text'                   => MODULE_QUICKBOOKS_SYNC_TITLE,

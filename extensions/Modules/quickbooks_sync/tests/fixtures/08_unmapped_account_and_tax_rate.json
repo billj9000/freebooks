@@ -131,6 +131,7 @@
             "source_total": 59.0,
             "computed_total": 58.0,
             "rounding_applied": 1.0,
+            "rounding_in_tolerance": false,
             "unmapped_accounts": [
                 "4999"
             ],
@@ -144,6 +145,54 @@
                 "The total differs from the FreeBooks total by +1.00, more than the tolerance of 0.01. A rounding line is added; check this document."
             ]
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "MISC - Misc",
+                "quantity": "1",
+                "rate": "40",
+                "amount": "40.00",
+                "tax_code": "20.0% S",
+                "tax_amount": "8.00",
+                "currency": "GBP"
+            },
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Sales",
+                "description": "ODD - Odd tax",
+                "quantity": "1",
+                "rate": "10",
+                "amount": "10.00",
+                "tax_code": "No VAT",
+                "tax_amount": "0.00",
+                "currency": ""
+            },
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Rounding",
+                "description": "Rounding Adjustment",
+                "quantity": "1",
+                "rate": "1",
+                "amount": "1.00",
+                "tax_code": "No VAT",
+                "tax_amount": "0.00",
+                "currency": ""
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

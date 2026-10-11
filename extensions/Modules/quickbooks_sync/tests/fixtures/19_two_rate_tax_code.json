@@ -101,12 +101,31 @@
             "source_total": 23.02,
             "computed_total": 23.02,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
             "is_domestic": true,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "WIDGET-A - Widget A",
+                "quantity": "2",
+                "rate": "10.01",
+                "amount": "20.02",
+                "tax_code": "Combined 15%",
+                "tax_amount": "3.00",
+                "currency": "GBP"
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

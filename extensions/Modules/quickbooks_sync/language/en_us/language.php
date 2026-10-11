@@ -62,10 +62,49 @@ define('QUICKBOOKS_SYNC_SAVED',                 'The QuickBooks settings were sa
 define('QUICKBOOKS_SYNC_ERR_DUE_DAYS',          'Days until due must be a whole number from 0 to 365.');
 define('QUICKBOOKS_SYNC_ERR_TOLERANCE',         'The rounding tolerance must be a number from 0 to 100.');
 
+// Export page
+define('QUICKBOOKS_SYNC_EXPORT_TITLE',          'QuickBooks Sync');
+define('QUICKBOOKS_SYNC_LBL_FROM',              'From');
+define('QUICKBOOKS_SYNC_LBL_TO',                'To');
+define('QUICKBOOKS_SYNC_LBL_CREDIT_MEMOS',      'Include credit memos');
+define('QUICKBOOKS_SYNC_BTN_PREVIEW',           'Preview');
+define('QUICKBOOKS_SYNC_BTN_INVOICES',          'Download invoices');
+define('QUICKBOOKS_SYNC_BTN_CREDITS',           'Download credit memos');
+define('QUICKBOOKS_SYNC_COL_TYPE',              'Type');
+define('QUICKBOOKS_SYNC_COL_NUMBER',            'Number');
+define('QUICKBOOKS_SYNC_COL_DATE',              'Date');
+define('QUICKBOOKS_SYNC_COL_DOC_CUSTOMER',     'Customer');
+define('QUICKBOOKS_SYNC_COL_COUNTRY',           'Country');
+define('QUICKBOOKS_SYNC_COL_FB_TOTAL',          'FreeBooks total');
+define('QUICKBOOKS_SYNC_COL_VAT',               'VAT');
+define('QUICKBOOKS_SYNC_COL_QB_TOTAL',          'QuickBooks total');
+define('QUICKBOOKS_SYNC_COL_ROUNDING',          'Rounding');
+define('QUICKBOOKS_SYNC_COL_STATUS',            'Status');
+define('QUICKBOOKS_SYNC_TYPE_INVOICE',          'Invoice');
+define('QUICKBOOKS_SYNC_TYPE_CREDIT',           'Credit memo');
+define('QUICKBOOKS_SYNC_DOMESTIC',              '%s (domestic)');
+define('QUICKBOOKS_SYNC_FOREIGN',               '%s (foreign)');
+define('QUICKBOOKS_SYNC_STATUS_OK',             'OK');
+define('QUICKBOOKS_SYNC_STATUS_ACCOUNTS',       'Unmapped accounts: %s');
+define('QUICKBOOKS_SYNC_STATUS_TAX',            'Unmapped tax rates: %s');
+define('QUICKBOOKS_SYNC_STATUS_ROUNDED',        'Rounded %s');
+define('QUICKBOOKS_SYNC_SUMMARY',               '%d documents, %d to check.');
+define('QUICKBOOKS_SYNC_PARTS_INVOICES',        'The invoices download as %d files in a ZIP, because QuickBooks imports at most 100 documents at a time.');
+define('QUICKBOOKS_SYNC_PARTS_CREDITS',         'The credit memos download as %d files in a ZIP, because QuickBooks imports at most 100 documents at a time.');
+define('QUICKBOOKS_SYNC_NO_DOCUMENTS',          'No invoices or credit memos are dated in that range.');
+define('QUICKBOOKS_SYNC_NO_INVOICES',           'No invoices that can be imported are dated in that range.');
+define('QUICKBOOKS_SYNC_NO_CREDITS',            'No credit memos that can be imported are dated in that range.');
+define('QUICKBOOKS_SYNC_ERR_DATES',             'Enter a From and a To date, with From no later than To.');
+define('QUICKBOOKS_SYNC_NOT_SET_UP',            'QuickBooks Sync is not set up yet: choose a default item and a rounding item in its settings.');
+define('QUICKBOOKS_SYNC_SETTINGS_LINK',         'Open the settings');
+
 // Line descriptions written to QuickBooks
 define('QUICKBOOKS_SYNC_LINE_FREIGHT',        'Freight');
 define('QUICKBOOKS_SYNC_LINE_ROUNDING',       'Rounding Adjustment');
 define('QUICKBOOKS_SYNC_LINE_NO_DESCRIPTION', '(no description)');
+define('QUICKBOOKS_SYNC_LINE_AFTER_DISCOUNT', '%s (after discount)');
+define('QUICKBOOKS_SYNC_LINE_ROUNDED',        '%s (rounded)');
+define('QUICKBOOKS_SYNC_LINE_DISCOUNT_ROUNDED', '%s (after discount, rounded)');
 
 // Warnings shown against a document before it is exported or sent
 define('QUICKBOOKS_SYNC_WARN_NO_COUNTRY',     'Neither address has a country, so the domestic items are used.');
@@ -74,6 +113,8 @@ define('QUICKBOOKS_SYNC_WARN_TAX_MISMATCH',   'The VAT worked out from the lines
 define('QUICKBOOKS_SYNC_WARN_TOTAL_MISMATCH', 'The total differs from the FreeBooks total by %s, more than the tolerance of %s. A rounding line is added; check this document.');
 define('QUICKBOOKS_SYNC_WARN_NO_PAYMENT_REF', 'No payment reference has been recorded for this invoice yet, so its PO number is sent instead.');
 define('QUICKBOOKS_SYNC_WARN_NUMBER_LONG',    'The document number is longer than QuickBooks allows (%d characters).');
+define('QUICKBOOKS_SYNC_FILE_NEGATIVE',      'Not in the import file: QuickBooks imports take no negative amounts. Send it through the connection instead.');
+define('QUICKBOOKS_SYNC_FILE_NUMBER_LONG',   'Not in the import file: the document number is longer than QuickBooks allows (%d characters).');
 define('QUICKBOOKS_SYNC_WARN_BAD_DATE',       'The date \'%s\' could not be read, so the due date is the document date.');
 
 // Errors when a document is sent

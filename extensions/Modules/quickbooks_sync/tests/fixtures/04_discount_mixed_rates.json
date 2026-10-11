@@ -130,12 +130,46 @@
             "source_total": 155.25,
             "computed_total": 155.25,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
             "is_domestic": true,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "WIDGET-A - Widget A (after discount)",
+                "quantity": "1",
+                "rate": "90",
+                "amount": "90.00",
+                "tax_code": "20.0% S",
+                "tax_amount": "18.00",
+                "currency": "GBP"
+            },
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Sales",
+                "description": "FUEL - Domestic fuel (after discount)",
+                "quantity": "1",
+                "rate": "45",
+                "amount": "45.00",
+                "tax_code": "5.0% R",
+                "tax_amount": "2.25",
+                "currency": ""
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

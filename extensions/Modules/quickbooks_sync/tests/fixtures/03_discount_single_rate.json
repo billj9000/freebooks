@@ -124,12 +124,46 @@
             "source_total": 72.0,
             "computed_total": 72.0,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
             "is_domestic": true,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "WIDGET-A - Widget A (after discount)",
+                "quantity": "3",
+                "rate": "12.856667",
+                "amount": "38.57",
+                "tax_code": "20.0% S",
+                "tax_amount": "7.71",
+                "currency": "GBP"
+            },
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Sales",
+                "description": "GADGET - Gadget (after discount)",
+                "quantity": "1",
+                "rate": "21.43",
+                "amount": "21.43",
+                "tax_code": "20.0% S",
+                "tax_amount": "4.29",
+                "currency": ""
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

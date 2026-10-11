@@ -110,12 +110,46 @@
             "source_total": 18.0,
             "computed_total": 18.0,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
             "is_domestic": true,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "CM-2001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "WIDGET-A - Widget A (returned)",
+                "quantity": "1",
+                "rate": "10",
+                "amount": "10.00",
+                "tax_code": "20.0% S",
+                "tax_amount": "2.00",
+                "currency": "GBP"
+            },
+            {
+                "number": "CM-2001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "",
+                "item": "Shipping",
+                "description": "Freight",
+                "quantity": "1",
+                "rate": "5",
+                "amount": "5.00",
+                "tax_code": "20.0% S",
+                "tax_amount": "1.00",
+                "currency": ""
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

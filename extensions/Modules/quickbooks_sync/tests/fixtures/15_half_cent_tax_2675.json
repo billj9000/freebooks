@@ -101,12 +101,31 @@
             "source_total": 56.18,
             "computed_total": 56.18,
             "rounding_applied": 0.0,
+            "rounding_in_tolerance": true,
             "unmapped_accounts": [],
             "unmapped_tax_rates": [],
             "country": "GBR",
             "is_domestic": true,
             "warnings": []
         },
+        "file_refusal": null,
+        "file_rows": [
+            {
+                "number": "INV-1001",
+                "customer": "Test Customer",
+                "date": "15/09/2026",
+                "due_date": "15/10/2026",
+                "memo": "PO-555",
+                "item": "Sales",
+                "description": "FUEL - Domestic fuel",
+                "quantity": "1",
+                "rate": "53.5",
+                "amount": "53.50",
+                "tax_code": "5.0% R",
+                "tax_amount": "2.68",
+                "currency": "GBP"
+            }
+        ],
         "payload": {
             "CustomerRef": {
                 "value": "58"

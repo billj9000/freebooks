@@ -16,8 +16,8 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/quickbooks_sync/tests/run_fixtures.php
 //
-// Runs every fixture in fixtures/ through quickbooks_builder: build the document, then the API
-// body. Needs no database and no FreeBooks bootstrap:
+// Runs every fixture in fixtures/ through quickbooks_builder: build the document, then the import
+// file rows and the API body. Needs no database and no FreeBooks bootstrap:
 //
 //   php tests/run_fixtures.php [case-name-fragment]
 //
@@ -27,7 +27,9 @@
 //   - each sales line's amount is its quantity times its unit price, to the penny;
 //   - the body's lines, less the discount, plus its stated tax come to the FreeBooks total;
 //   - TotalTax is the sum of the tax lines;
-//   - a document with no warnings carries exactly the VAT FreeBooks saved.
+//   - a document with no warnings carries exactly the VAT FreeBooks saved;
+//   - the file rows have no negative amount, each row's amount is its quantity times its rate, the
+//     amounts and VAT add up to the document's total and VAT, and each code's VAT to its tax line.
 // Exits 1 when any case fails.
 //
 if (PHP_SAPI !== 'cli') exit;
@@ -80,6 +82,31 @@ function invariants(array $record, array $doc, array $payload): array {
   return $diffs;
 }
 
+// The rules in the header that hold for every document's import file rows.
+function file_invariants(array $doc, array $rows): array {
+  $diffs = [];
+  $by_code = [];
+  foreach ($rows as $i => $row) {
+    if ((float)$row['amount'] < 0 || (float)$row['tax_amount'] < 0) $diffs[] = "file invariant: row $i has a negative amount";
+    if (round((float)$row['quantity'] * (float)$row['rate'], 2) != round((float)$row['amount'], 2)) {
+      $diffs[] = "file invariant: row $i amount {$row['amount']} is not {$row['quantity']} x {$row['rate']}";
+    }
+    $by_code[$row['tax_code']] = ($by_code[$row['tax_code']] ?? 0) + (float)$row['tax_amount'];
+  }
+  $amounts = array_sum(array_map('floatval', array_column($rows, 'amount')));
+  $tax     = array_sum(array_map('floatval', array_column($rows, 'tax_amount')));
+  if (round($amounts + $tax, 2) != round($doc['source_total'], 2)) {
+    $diffs[] = 'file invariant: rows come to ' . round($amounts + $tax, 2) . ", not {$doc['source_total']}";
+  }
+  if (round($tax, 2) != round($doc['total_tax'], 2)) $diffs[] = "file invariant: row VAT $tax is not {$doc['total_tax']}";
+  foreach ($doc['tax_lines'] as $tax_line) {
+    if (round($by_code[$tax_line['tax_code']] ?? 0, 2) != round($tax_line['amount'], 2)) {
+      $diffs[] = "file invariant: rows for {$tax_line['tax_code']} do not carry its VAT {$tax_line['amount']}";
+    }
+  }
+  return $diffs;
+}
+
 $shared  = json_decode(file_get_contents(__DIR__ . '/fixtures/_shared.json'), true);
 $builder = new quickbooks_builder($shared['mapping']);
 $filter  = $argv[1] ?? '';
@@ -102,6 +129,20 @@ foreach (glob(__DIR__ . '/fixtures/[0-9]*.json') as $file) {
   try {
     $doc = $builder->build_document($case['record'], $case['doc_type'], $opts);
     $diffs = array_merge($diffs, compare($expected['document'], $doc, 'document'));
+    $refusal = $builder->file_refusal($doc);
+    $diffs = array_merge($diffs, compare($expected['file_refusal'], $refusal, 'file_refusal'));
+    if ($refusal === null) {
+      $rows = $builder->file_rows($doc);
+      $diffs = array_merge($diffs, compare($expected['file_rows'], $rows, 'file_rows'));
+      $diffs = array_merge($diffs, file_invariants($doc, $rows));
+      $text = $builder->file_text($case['doc_type'], [$doc]);
+      if (substr($text, -2) !== "\r\n") $diffs[] = 'file_text: lines do not end in CRLF';
+      if (substr_count($text, "\r\n") !== count($rows) + 1) $diffs[] = 'file_text: not one line per row plus the headers';
+      $columns = count(quickbooks_builder::FILE_HEADERS[$case['doc_type']]);
+      foreach (explode("\r\n", rtrim($text, "\r\n")) as $n => $line) {
+        if (count(str_getcsv($line, ',', '"', '')) !== $columns) $diffs[] = "file_text: line $n does not have $columns columns";
+      }
+    }
     $payload = $builder->payload($doc, $shared['refs']);
     $diffs = array_merge($diffs, compare($expected['payload'], $payload, 'payload'));
     $diffs = array_merge($diffs, invariants($case['record'], $doc, $payload));

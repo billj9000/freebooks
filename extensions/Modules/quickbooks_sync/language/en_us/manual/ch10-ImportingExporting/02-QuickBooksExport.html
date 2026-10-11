@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.QUICKBOOKS.02">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.Exporting to QuickBooks">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Exporting to QuickBooks">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Exporting to QuickBooks</title>
+</head>
+
+<body>
+
+<h1 align="center">Exporting to QuickBooks</h1>
+
+<p>The export page writes your sales invoices and credit memos into files that QuickBooks
+  Online's own import reads. Open it from <b>Customers &rarr; QuickBooks Sync</b>. You need
+  permission on QuickBooks Sync, set for each user in the usual way.</p>
+
+<h4>Choosing the documents</h4>
+<p>Enter a <b>From</b> and a <b>To</b> date. Every invoice dated in that range, both dates
+  included, is exported, and every credit memo too when <b>Include credit memos</b> is
+  ticked.</p>
+
+<h4>Preview</h4>
+<p>Press <b>Preview</b> to check the documents before you download them. The preview lists each
+  document, newest first, with its FreeBooks total, its VAT, the total QuickBooks will hold and
+  any rounding line. The <b>Status</b> column says why a document needs checking: an account or
+  tax rate with no mapping, a VAT or total difference larger than the rounding tolerance, a
+  missing payment reference, or a reason it cannot go in an import file. Documents to check are
+  highlighted. Fix the mapping in <a href="01-QuickBooksSettings.html">QuickBooks Sync
+  Settings</a> and preview again.</p>
+
+<h4>Downloading</h4>
+<p>QuickBooks imports invoices and credit notes separately, so the page has a button for each:
+  <b>Download invoices</b> and <b>Download credit memos</b>. Each file lists the documents in
+  date order, one row per line.</p>
+<ul>
+  <li><b>Discounts.</b> QuickBooks' imports take no discount, so a document's discount is taken
+    off its product lines in proportion to their amounts, as FreeBooks takes it off before
+    working out the VAT. Each such line says <i>(after discount)</i> and carries its net price.
+    The VAT and the total are the same as in FreeBooks; QuickBooks shows the sale net of the
+    discount rather than a separate discount.</li>
+  <li><b>VAT.</b> Each line carries its VAT amount as well as its VAT code, so QuickBooks records
+    the VAT FreeBooks charged.</li>
+  <li><b>Documents left out.</b> QuickBooks' imports take no negative amounts, so a document whose
+    rounding line takes money off, or with a negative line of its own, is left out of the file
+    and shown in the preview; it can be sent through the connection instead. So is a document
+    whose number is longer than QuickBooks allows.</li>
+  <li><b>Large ranges.</b> QuickBooks imports at most 100 documents, or 1,000 rows, at a time.
+    When a range holds more, the download is a ZIP of numbered files; import them one after
+    another.</li>
+</ul>
+
+<h4>Importing into QuickBooks</h4>
+<ol>
+  <li>In QuickBooks, choose the <b>Settings</b> (gear) icon, then <b>Import data</b>, then
+    <b>Invoices</b> or <b>Credit notes</b>.</li>
+  <li>Upload the file. QuickBooks matches each column to its own field; check the matches before
+    you go on.</li>
+  <li>QuickBooks then asks you to match the VAT codes in the file to its own. The file uses the
+    names from the VAT code mapping, so each should match the QuickBooks code of the same
+    name.</li>
+  <li>Check the documents QuickBooks lists, then import them.</li>
+</ol>
+<p>Each customer and each product or service should already exist in QuickBooks under the name
+  the file gives it: the customer's name as the preview shows it, and the items from the
+  settings page. To keep FreeBooks' document numbers, <i>Custom transaction numbers</i> must be
+  switched on in QuickBooks.</p>
+<p>Import each file once only, and do not also send the same documents through the connection.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="QuickBooksHome.html">QuickBooks Sync</a></li>
+  <li><a href="01-QuickBooksSettings.html">QuickBooks Sync Settings</a></li>
+</ul>
+
+</body>
+</html>
