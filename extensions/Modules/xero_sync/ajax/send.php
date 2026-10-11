@@ -50,23 +50,34 @@ switch ($_POST['step'] ?? '') {
                                          : ['total' => (int)($_POST['total'] ?? 0), 'sent' => (int)($_POST['sent'] ?? 0), 'failed' => (int)($_POST['failed'] ?? 0)];
     if (!$queue && $_POST['step'] === 'start') $fail(XERO_SYNC_SEND_NONE);
     $out = '';
+    $wait = 0;
     if ($_POST['step'] === 'one' && $queue) {
       $id = array_shift($queue);
       try {
         $row = (new xero_sender())->send($id);
+        if (($row['state'] ?? '') === 'sent') $counts['sent']++; else $counts['failed']++;
+        $out .= $cells($id, $row, $row['doc_hash'] ?? null);
+      } catch (xero_rate_limit $e) {
+        // Xero's limit is per organisation: wait as long as it asks, then send the same document.
+        if ($e->problem === 'day') {
+          echo htmlspecialchars(sprintf(XERO_SYNC_SEND_DAY_LIMIT, $counts['sent'], $counts['failed'], count($queue) + 1));
+          die;
+        }
+        array_unshift($queue, $id);
+        $wait = $e->retry_after;
       } catch (xero_sync_error $e) {
-        $row = null;
+        $counts['failed']++;
+        $out .= $cells($id, null, null);
       }
-      if (($row['state'] ?? '') === 'sent') $counts['sent']++; else $counts['failed']++;
-      $out .= $cells($id, $row, $row['doc_hash'] ?? null);
     }
     if ($queue) {
       $vals = ['step' => 'one', 'queue' => implode(',', $queue)] + $counts;
       $done = $counts['sent'] + $counts['failed'];
       $out .= '<span class="spinner-border spinner-border-sm me-1" role="status"></span>'
-        . htmlspecialchars(sprintf(XERO_SYNC_SEND_PROGRESS, $done + 1, $counts['total']))
-        . '<span hx-post="' . xero_sync_send_url() . '" hx-trigger="load" hx-target="#xs-progress" hx-swap="innerHTML"'
-        . ' hx-vals="' . htmlspecialchars(json_encode($vals)) . '"></span>';
+        . htmlspecialchars($wait ? sprintf(XERO_SYNC_SEND_WAITING, $wait, $done, $counts['total'])
+                                 : sprintf(XERO_SYNC_SEND_PROGRESS, $done + 1, $counts['total']))
+        . '<span hx-post="' . xero_sync_send_url() . '" hx-trigger="load' . ($wait ? ' delay:' . $wait . 's' : '') . '"'
+        . ' hx-target="#xs-progress" hx-swap="innerHTML" hx-vals="' . htmlspecialchars(json_encode($vals)) . '"></span>';
     } else {
       $out .= htmlspecialchars(sprintf(XERO_SYNC_SEND_DONE, $counts['sent'], $counts['failed']));
     }

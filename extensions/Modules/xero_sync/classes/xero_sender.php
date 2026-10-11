@@ -41,11 +41,13 @@ class xero_sender {
   }
 
   // Sends document $id. Returns its tracking row as it then stands; a refusal from FreeBooks or
-  // Xero is recorded in it as state 'failed' with last_error, not thrown.
+  // Xero is recorded in it as state 'failed' with last_error, not thrown. Xero's rate limit is
+  // thrown as xero_rate_limit, with the document left as it was, to be sent again after the wait.
   public function send(int $id): array {
     global $db;
     $journal_id = (int)$db->Execute("SELECT journal_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . $id)->fields['journal_id'];
     if (!isset(self::DOC_TYPES[$journal_id])) throw new xero_sync_error(XERO_SYNC_ERR_NOT_A_DOCUMENT);
+    $before = xero_sync_doc_row($id);
     if (!$this->claim($id, $journal_id)) return xero_sync_doc_row($id);
     $row = xero_sync_doc_row($id);
     try {
@@ -57,10 +59,11 @@ class xero_sender {
       }
       $record_hash = xero_sync_record_hash($id);
       $saved = $this->post($doc, $row['xero_id']);
-      $is_credit = $doc['doc_type'] === 'credit_note';
+      $xero_id = (string)($saved[$doc['doc_type'] === 'credit_note' ? 'CreditNoteID' : 'InvoiceID'] ?? '');
+      if ($xero_id === '') throw new xero_api_error(XERO_SYNC_ERR_REJECTED);
       $this->record($id, [
         'state'       => 'sent',
-        'xero_id'     => (string)($saved[$is_credit ? 'CreditNoteID' : 'InvoiceID'] ?? $row['xero_id']),
+        'xero_id'     => $xero_id,
         'xero_status' => (string)($saved['Status'] ?? ''),
         'sent_at'     => date('Y-m-d H:i:s'),
         'sent_by'     => (int)($_SESSION['admin_id'] ?? 0),
@@ -68,6 +71,9 @@ class xero_sender {
         'record_hash' => $record_hash,
         'doc_hash'    => xero_sync_doc_hash($doc),
       ]);
+    } catch (xero_rate_limit $e) {
+      $this->record($id, ['state' => $before['state'] ?? '', 'claimed_at' => 'null']);
+      throw $e;
     } catch (Throwable $e) {
       $this->record($id, ['state' => 'failed', 'last_error' => mb_substr($e->getMessage(), 0, 2000)]);
     }
@@ -109,11 +115,13 @@ class xero_sender {
       try {
         $this->api->post('Items', ['Items' => [$item]], 'Items');
         $lists['items'][] = $item['Code'];
+        $this->remember_items($lists['items']);
+      } catch (xero_rate_limit $e) {
+        throw $e;
       } catch (xero_api_error $e) {
         // A line whose item cannot be made is still sent, without its item code.
       }
     }
-    $this->remember_items($lists['items']);
     $payload = $this->source->builder()->payload($doc, $lists['tax'], $lists['items']);
     $is_credit = $doc['doc_type'] === 'credit_note';
     if ($xero_id !== '') {
@@ -136,6 +144,8 @@ class xero_sender {
     }
     try {
       $items = array_values(array_filter(array_map(fn($item) => (string)($item['Code'] ?? ''), $this->api->get('Items')['Items'] ?? [])));
+    } catch (xero_rate_limit $e) {
+      throw $e;
     } catch (xero_api_error $e) {
       $items = []; // without the list, lines are sent without item codes
     }

@@ -24,6 +24,14 @@ require_once(DIR_FS_MODULES . 'xero_sync/classes/xero_connection.php');
 
 class xero_api_error extends RuntimeException {}
 
+// Xero's rate limit was reached (HTTP 429). $retry_after is how many seconds Xero asks for before
+// the next call, and $problem which limit it was: 'minute', 'day' or 'concurrent'.
+class xero_rate_limit extends xero_api_error {
+  public function __construct(string $message, public int $retry_after, public string $problem) {
+    parent::__construct($message);
+  }
+}
+
 class xero_api {
 
   const BASE_URL = 'https://api.xero.com/api.xro/2.0/';
@@ -72,9 +80,15 @@ class xero_api {
       'Accept: application/json',
     ];
     if ($body !== null) $headers[] = 'Content-Type: application/json';
-    [$status, $answer] = $this->request($method, self::BASE_URL . $endpoint, $headers,
-                                        $body === null ? null : json_encode($body, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+    $result = $this->request($method, self::BASE_URL . $endpoint, $headers,
+                             $body === null ? null : json_encode($body, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+    [$status, $answer] = $result;
     if ($status >= 200 && $status < 300 && is_array($answer)) return $answer;
+    if ($status === 429) {
+      $answer_headers = $result[2] ?? [];
+      $problem = strtolower((string)($answer_headers['x-rate-limit-problem'] ?? 'minute'));
+      throw new xero_rate_limit(sprintf(XERO_SYNC_ERR_XERO_HTTP, $status), max(1, (int)($answer_headers['retry-after'] ?? 60)), $problem);
+    }
     $message = is_array($answer) ? self::messages($answer) : '';
     throw new xero_api_error($message !== '' ? $message : sprintf(XERO_SYNC_ERR_XERO_HTTP, $status));
   }
@@ -91,17 +105,24 @@ class xero_api {
     return implode('; ', $messages);
   }
 
-  // Returns [HTTP status, decoded JSON body or null]. Status 0 means no answer.
+  // Returns [HTTP status, decoded JSON body or null, answer headers keyed in lower case]. Status 0
+  // means no answer.
   protected function request(string $method, string $url, array $headers, ?string $body): array {
+    $answer_headers = [];
     $ch = curl_init($url);
     curl_setopt_array($ch, [
       CURLOPT_CUSTOMREQUEST  => $method,
       CURLOPT_HTTPHEADER     => $headers,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_TIMEOUT        => 30,
+      CURLOPT_HEADERFUNCTION => function ($ch, string $line) use (&$answer_headers) {
+        $parts = explode(':', $line, 2);
+        if (count($parts) === 2) $answer_headers[strtolower(trim($parts[0]))] = trim($parts[1]);
+        return strlen($line);
+      },
     ]);
     if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     $raw = curl_exec($ch);
-    return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE), is_string($raw) ? json_decode($raw, true) : null];
+    return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE), is_string($raw) ? json_decode($raw, true) : null, $answer_headers];
   }
 }

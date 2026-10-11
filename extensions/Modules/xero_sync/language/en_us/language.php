@@ -128,6 +128,8 @@ define('XERO_SYNC_SEND_NEEDS_EDIT',       'Sending documents to Xero needs edit 
 define('XERO_SYNC_SEND_NONE',             'Tick at least one document to send.');
 define('XERO_SYNC_SEND_PROGRESS',         'Sending %d of %d...');
 define('XERO_SYNC_SEND_DONE',             'Finished: %d sent, %d not sent.');
+define('XERO_SYNC_SEND_WAITING',          'Xero allows only so many requests a minute; waiting %d seconds before going on (%d of %d done)...');
+define('XERO_SYNC_SEND_DAY_LIMIT',        'Stopped: Xero\'s daily limit for this organisation is reached. %d sent, %d not sent, %d still to send; send them again tomorrow.');
 define('XERO_SYNC_X_NOT_SENT',            'Not sent');
 define('XERO_SYNC_X_SENDING',             'Being sent');
 define('XERO_SYNC_X_SENT',                'Sent %s');
