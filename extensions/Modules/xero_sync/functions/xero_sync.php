@@ -29,8 +29,8 @@ function xero_sync_account_rows(array $accounts, bool $can_save): string {
     $id = htmlspecialchars($account['id']);
     $description = $account['description'] !== '' ? $account['description'] : XERO_SYNC_NOT_IN_CHART;
     $html .= '<tr><td>' . $id . ' : ' . htmlspecialchars($description) . '</td>'
-      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" name="account[' . $id . '][d]" value="' . htmlspecialchars($account['xero_value']) . '"' . $disabled . '></td>'
-      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" name="account[' . $id . '][f]" value="' . htmlspecialchars($account['xero_foreign']) . '"' . $disabled . '></td></tr>';
+      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" list="xs-xero-accounts" name="account[' . $id . '][d]" value="' . htmlspecialchars($account['xero_value']) . '"' . $disabled . '></td>'
+      . '<td><input type="text" class="form-control form-control-sm" maxlength="255" list="xs-xero-accounts" name="account[' . $id . '][f]" value="' . htmlspecialchars($account['xero_foreign']) . '"' . $disabled . '></td></tr>';
   }
   return $html;
 }

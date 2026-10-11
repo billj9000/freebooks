@@ -60,6 +60,36 @@ define('XERO_SYNC_SAVED',                 'The Xero settings were saved.');
 define('XERO_SYNC_ERR_DUE_DAYS',          'Days until due must be a whole number from 0 to 365.');
 define('XERO_SYNC_ERR_TOLERANCE',         'The rounding tolerance must be a number from 0 to 100.');
 
+// Connection to Xero
+define('XERO_SYNC_HEAD_CONNECTION',       'Xero Connection');
+define('XERO_SYNC_LBL_CLIENT_ID',         'Client id');
+define('XERO_SYNC_LBL_CLIENT_SECRET',     'Client secret');
+define('XERO_SYNC_HELP_CLIENT',           'From the app registered for FreeBooks in Xero\'s developer portal. A PKCE app has no client secret; leave it blank.');
+define('XERO_SYNC_SECRET_KEPT',           'Saved; leave blank to keep it');
+define('XERO_SYNC_LBL_CLEAR_SECRET',      'Remove the saved client secret');
+define('XERO_SYNC_LBL_REDIRECT',          'Redirect URI');
+define('XERO_SYNC_HELP_REDIRECT',         'Add this address to the app\'s redirect URIs in Xero, exactly as shown.');
+define('XERO_SYNC_CONNECTED',             'Connected to %s since %s.');
+define('XERO_SYNC_NOT_CONNECTED',         'Not connected.');
+define('XERO_SYNC_BTN_CONNECT',           'Connect to Xero');
+define('XERO_SYNC_BTN_RECONNECT',         'Connect again');
+define('XERO_SYNC_BTN_DISCONNECT',        'Disconnect');
+define('XERO_SYNC_CONFIRM_DISCONNECT',    'Disconnect from Xero? Nothing can be sent until it is connected again.');
+define('XERO_SYNC_DISCONNECTED',          'Disconnected from Xero.');
+define('XERO_SYNC_CONNECTED_TO',          'Connected to the Xero organisation %s.');
+define('XERO_SYNC_XERO_LISTS_FAILED',     'Xero\'s accounts and tax rates could not be read: %s');
+define('XERO_SYNC_PICK_TENANT',           'Choose the Xero organisation to send documents to.');
+define('XERO_SYNC_BTN_USE_TENANT',        'Use this organisation');
+define('XERO_SYNC_ERR_NO_CLIENT',         'Enter the Xero app\'s client id first.');
+define('XERO_SYNC_ERR_STATE',             'The answer from Xero did not match a connection started here, so it was ignored. Press Connect to Xero again.');
+define('XERO_SYNC_ERR_TOKEN',             'Xero refused the token request (HTTP %d: %s).');
+define('XERO_SYNC_ERR_XERO_HTTP',         'Xero answered with HTTP status %d.');
+define('XERO_SYNC_ERR_XERO_DENIED',       'Xero did not grant access: %s');
+define('XERO_SYNC_ERR_NO_TENANT',         'The connection does not reach any Xero organisation.');
+define('XERO_SYNC_ERR_NOT_CONNECTED',     'Xero Sync is not connected to Xero. Connect it from the Xero Sync settings.');
+define('XERO_SYNC_ERR_EXPIRED',           'The connection to Xero has lapsed or was revoked. Connect again from the Xero Sync settings.');
+define('XERO_SYNC_ERR_REJECTED',          'Xero refused the document without saying why.');
+
 // Export page
 define('XERO_SYNC_EXPORT_TITLE',          'Xero Sync');
 define('XERO_SYNC_LBL_FROM',              'From');

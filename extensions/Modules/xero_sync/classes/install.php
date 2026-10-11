@@ -32,6 +32,7 @@ class xero_sync_admin {
   //            elsewhere, the foreign account code (xero_foreign)
   //   tax      a tax_rate_id => the Xero tax rate name
   //   contact  a customer name => the Xero contact name, where they differ
+  // The token table holds one row, the connection to Xero; xero_connection describes it.
   public function __construct() {
     $this->keys = [
       'XERO_SYNC_HOME_COUNTRY'       => defined('COMPANY_COUNTRY') ? COMPANY_COUNTRY : '',
@@ -52,6 +53,19 @@ class xero_sync_admin {
         `xero_foreign` varchar(255)                     NOT NULL DEFAULT '',
         PRIMARY KEY (`id`),
         UNIQUE KEY `map_key` (`map_type`, `fb_key`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+      TABLE_XERO_SYNC_TOKEN => "CREATE TABLE IF NOT EXISTS " . TABLE_XERO_SYNC_TOKEN . " (
+        `id`             tinyint(4)   NOT NULL,
+        `client_id`      varchar(64)  NOT NULL DEFAULT '',
+        `client_secret`  text             DEFAULT NULL COMMENT 'encrypted',
+        `refresh_token`  text             DEFAULT NULL COMMENT 'encrypted',
+        `access_token`   text             DEFAULT NULL COMMENT 'encrypted',
+        `access_expires` int(11)      NOT NULL DEFAULT 0  COMMENT 'Unix time',
+        `tenant_id`      varchar(64)  NOT NULL DEFAULT '',
+        `tenant_name`    varchar(255) NOT NULL DEFAULT '',
+        `connected_at`   datetime         DEFAULT NULL,
+        `connected_by`   int(11)      NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     ];
   }

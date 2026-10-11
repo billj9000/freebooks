@@ -22,7 +22,8 @@ define('MODULE_XERO_SYNC_VERSION', '1.0.0');
 // Who can export and upload documents to Xero. The settings page uses SECURITY_ID_CONFIGURATION.
 define('SECURITY_ID_XERO_SYNC', 230);
 
-define('TABLE_XERO_SYNC_MAP', DB_PREFIX . 'xero_sync_map');
+define('TABLE_XERO_SYNC_MAP',   DB_PREFIX . 'xero_sync_map');
+define('TABLE_XERO_SYNC_TOKEN', DB_PREFIX . 'xero_sync_token');
 
 if (defined('MODULE_XERO_SYNC_STATUS')) {
   gen_pull_language('xero_sync', 'admin');

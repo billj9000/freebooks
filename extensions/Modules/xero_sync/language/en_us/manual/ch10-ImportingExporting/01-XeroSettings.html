@@ -23,6 +23,37 @@
   the module in the module list. You need edit permission on Configuration to change it. Press
   the <b>Save</b> icon to keep your changes.</p>
 
+<h4>Xero Connection</h4>
+<p>To send documents straight to Xero, FreeBooks needs an app registered in Xero's developer
+  portal (developer.xero.com, under <i>My Apps</i>), and a connection made through it. Exporting
+  a CSV file needs neither.</p>
+<p>The redirect address is <code>oauth_return.php</code> in FreeBooks' own folder, which comes
+  with FreeBooks itself, so Xero Sync needs a FreeBooks release that includes that file.</p>
+<ol>
+  <li>In the Xero app's settings, add the address shown as <b>Redirect URI</b> to its redirect
+    URIs, exactly as shown. An app can list several, so one used by another tool can keep its
+    own.</li>
+  <li>Copy the app's <b>Client id</b> into this page, and its <b>Client secret</b> if it has one.
+    A PKCE app has no secret; leave the field blank. Once saved, the secret is never shown again:
+    leave the field blank to keep it, or tick <i>Remove the saved client secret</i>.</li>
+  <li>Press <b>Connect to Xero</b>. Xero asks you to log in and to allow access, then returns you
+    here. If your Xero login reaches more than one organisation, choose the one to send documents
+    to.</li>
+</ol>
+<p>The page then shows which organisation it is connected to. The connection lasts until it is
+  disconnected here, access is removed in Xero, or it goes unused for 60 days, which is Xero's
+  limit; after that, press <b>Connect again</b>. Changing the client id also ends the
+  connection, because it belongs to the old app. <b>Disconnect</b> ends it in Xero as well as
+  here.</p>
+<p>While connected, the account code and tax rate fields below suggest Xero's own accounts and tax
+  rates as you type.</p>
+<p>The client secret and the connection's tokens are stored encrypted. The key is a file,
+  <code>xero_sync.key</code>, made automatically in the company's folder under
+  <code>my_files</code>. Anyone with both that file and the database can use the connection, so
+  look after a backup that holds both as you would the Xero login itself. If the file is lost,
+  FreeBooks cannot read the stored tokens and the page shows <i>Not connected</i>; connect again,
+  and enter the client secret again if the app has one.</p>
+
 <h4>Documents</h4>
 <ul>
   <li><b>Home country</b> &mdash; a document whose country differs from this one counts as

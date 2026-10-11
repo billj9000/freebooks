@@ -31,10 +31,62 @@ echo $toolbar->build_toolbar();
 
 $rows_url = html_href_link(FILENAME_DEFAULT, 'module=xero_sync&amp;page=ajax&amp;op=rows', 'SSL');
 $disabled = $can_save ? '' : ' disabled';
-$text     = fn($name, $value, $max = 255) => '<input type="text" class="form-control form-control-sm" id="' . $name . '" name="' . $name . '" maxlength="' . $max . '" value="' . htmlspecialchars((string)$value) . '"' . $disabled . '>';
+$text     = fn($name, $value, $max = 255, $list = '') => '<input type="text" class="form-control form-control-sm" id="' . $name . '" name="' . $name . '" maxlength="' . $max . '" value="' . htmlspecialchars((string)$value) . '"' . ($list ? ' list="' . $list . '"' : '') . $disabled . '>';
 $hint     = fn($phrase) => '<div class="form-text">' . htmlspecialchars($phrase) . '</div>';
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
+
+<datalist id="xs-xero-accounts">
+<?php foreach ($xero_lists['accounts'] as $item) echo '  <option value="' . htmlspecialchars($item['value']) . '" label="' . htmlspecialchars($item['label']) . '"></option>' . chr(10); ?>
+</datalist>
+<datalist id="xs-xero-tax">
+<?php foreach ($xero_lists['tax_rates'] as $item) echo '  <option value="' . htmlspecialchars($item['value']) . '"></option>' . chr(10); ?>
+</datalist>
+
+<div class="card fb-card mb-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo XERO_SYNC_HEAD_CONNECTION; ?></div>
+  <div class="card-body">
+    <p class="mb-2">
+      <?php echo $connected
+        ? htmlspecialchars(sprintf(XERO_SYNC_CONNECTED, $link['tenant_name'], gen_locale_date(substr((string)$link['connected_at'], 0, 10))))
+        : htmlspecialchars(XERO_SYNC_NOT_CONNECTED); ?>
+    </p>
+    <?php if ($lists_error !== ''): ?>
+    <div class="alert alert-warning py-2"><?php echo htmlspecialchars($lists_error); ?></div>
+    <?php endif; ?>
+    <div class="row g-2 mb-2">
+      <div class="col-md-4">
+        <label class="form-label" for="client_id"><?php echo XERO_SYNC_LBL_CLIENT_ID; ?></label>
+        <?php echo $text('client_id', $link['client_id'], 64); ?>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="client_secret"><?php echo XERO_SYNC_LBL_CLIENT_SECRET; ?></label>
+        <input type="password" class="form-control form-control-sm" id="client_secret" name="client_secret" autocomplete="new-password"
+          placeholder="<?php echo $link['client_secret'] !== '' ? htmlspecialchars(XERO_SYNC_SECRET_KEPT) : ''; ?>"<?php echo $disabled; ?>>
+        <?php if ($link['client_secret'] !== ''): ?>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="clear_secret" name="clear_secret" value="1"<?php echo $disabled; ?>>
+          <label class="form-check-label" for="clear_secret"><?php echo XERO_SYNC_LBL_CLEAR_SECRET; ?></label>
+        </div>
+        <?php endif; ?>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="xs_redirect"><?php echo XERO_SYNC_LBL_REDIRECT; ?></label>
+        <input type="text" class="form-control form-control-sm" id="xs_redirect" readonly value="<?php echo htmlspecialchars(xero_oauth::redirect_uri()); ?>">
+        <?php echo $hint(XERO_SYNC_HELP_REDIRECT); ?>
+      </div>
+    </div>
+    <?php echo $hint(XERO_SYNC_HELP_CLIENT); ?>
+    <?php if ($can_save): ?>
+    <div class="mt-2">
+      <button type="button" class="btn btn-primary btn-sm" onclick="submitToDo('connect')"><?php echo $connected ? XERO_SYNC_BTN_RECONNECT : XERO_SYNC_BTN_CONNECT; ?></button>
+      <?php if ($connected || $link['refresh_token'] !== ''): ?>
+      <button type="button" class="btn btn-danger btn-sm" onclick="if (confirm('<?php echo addslashes(XERO_SYNC_CONFIRM_DISCONNECT); ?>')) submitToDo('disconnect')"><?php echo XERO_SYNC_BTN_DISCONNECT; ?></button>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
+  </div>
+</div>
 
 <div class="row g-3 mb-3">
   <div class="col-lg-6">
@@ -80,16 +132,16 @@ $hint     = fn($phrase) => '<div class="form-text">' . htmlspecialchars($phrase)
       <div class="card-body">
         <div class="mb-2">
           <label class="form-label" for="default_account"><?php echo XERO_SYNC_LBL_DEFAULT_ACCOUNT; ?></label>
-          <?php echo $text('default_account', $mapping['default_account'], 32); ?>
+          <?php echo $text('default_account', $mapping['default_account'], 32, 'xs-xero-accounts'); ?>
           <?php echo $hint(XERO_SYNC_HELP_DEFAULT_ACCOUNT); ?>
         </div>
         <div class="mb-2">
           <label class="form-label" for="rounding_account"><?php echo XERO_SYNC_LBL_ROUNDING_ACCOUNT; ?></label>
-          <?php echo $text('rounding_account', $mapping['rounding_account'], 32); ?>
+          <?php echo $text('rounding_account', $mapping['rounding_account'], 32, 'xs-xero-accounts'); ?>
         </div>
         <div class="mb-2">
           <label class="form-label" for="no_vat_type"><?php echo XERO_SYNC_LBL_NO_VAT_TYPE; ?></label>
-          <?php echo $text('no_vat_type', $mapping['no_vat_type']); ?>
+          <?php echo $text('no_vat_type', $mapping['no_vat_type'], 255, 'xs-xero-tax'); ?>
           <?php echo $hint(XERO_SYNC_HELP_NO_VAT_TYPE); ?>
         </div>
       </div>
@@ -136,7 +188,7 @@ $hint     = fn($phrase) => '<div class="form-text">' . htmlspecialchars($phrase)
               <td><?php echo $rate['rate'] === null
                     ? htmlspecialchars($rate['id'] . ' ' . XERO_SYNC_NOT_A_RATE)
                     : htmlspecialchars($rate['description']) . ' (' . htmlspecialchars(rtrim(rtrim(number_format($rate['rate'], 4, '.', ''), '0'), '.')) . '%)'; ?></td>
-              <td><input type="text" class="form-control form-control-sm" maxlength="255" name="tax[<?php echo htmlspecialchars($rate['id']); ?>]"
+              <td><input type="text" class="form-control form-control-sm" maxlength="255" list="xs-xero-tax" name="tax[<?php echo htmlspecialchars($rate['id']); ?>]"
                 value="<?php echo htmlspecialchars($rate['xero_value']); ?>"<?php echo $disabled; ?>></td>
             </tr>
           <?php endforeach; ?>
