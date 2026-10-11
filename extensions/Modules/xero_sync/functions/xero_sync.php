@@ -59,6 +59,8 @@ function xero_sync_problems(array $doc): array {
 // tick it for sending and the Release and Forget actions.
 function xero_sync_preview(array $documents, ?array $send = null): string {
   if (!$documents) return '<div class="alert alert-info py-2 mb-0">' . htmlspecialchars(XERO_SYNC_NO_DOCUMENTS) . '</div>';
+  // Newest first, invoices and credit memos together; the CSV file keeps its own order.
+  usort($documents, fn($a, $b) => [$b['doc']['date'], $b['id']] <=> [$a['doc']['date'], $a['id']]);
   $tracking = $send ? xero_sync_tracking(array_column($documents, 'id')) : [];
   $to_check = 0;
   $rows = '';
