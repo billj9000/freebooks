@@ -288,7 +288,7 @@ define('ITEM_IS_ON_ORDER', 'item is on order');
 define('ITEM_MUST_BE_ORDERD', 'item must be orderd');
 // Low Stock messages
 define('LOW_STOCK_BUTTON','Fill order with items with low stock');
-define('LOW_STOCK_PROCESSED','Procesed');
+define('LOW_STOCK_PROCESSED','Processed');
 define('LOW_STOCK_NO_PRODUCTS','There are no products that need to be orderd for this vendor.');
 define('LOW_STOCK_NO_VENDOR','No vendor found');
 define('LOW_STOCK_ALREADY_EXECUTED','This action was executed before and is now blocked to prevent double entry. Reload the form to try again!');
