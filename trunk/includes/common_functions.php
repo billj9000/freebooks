@@ -516,6 +516,37 @@
 	db_perform(TABLE_AUDIT_LOG, $fields, 'insert');
   }
 
+  // Document locks (issue #88). A module that copies posted documents to another system can lock
+  // them there, so that a change which would leave the copy out of step is refused. It registers
+  // from its config.php:
+  //   $document_lock_hooks[] = ['file' => <path to the file defining the function>, 'function' => <name>];
+  // and the function is called as function(string $event, int $id, int $journal_id): string, with
+  //   'badge'   the document is opening: a short label to show beside its number, or ''
+  //   'save'    an edit is written but not committed: why it is refused, or '' to commit it
+  //   'delete'  the document is about to be deleted: why it is refused, or ''
+  // The 'save' call runs inside the posting transaction, so the function reads the document as
+  // the edit leaves it. Answers are plain text.
+  function gen_document_lock_answers(string $event, int $id, int $journal_id): array {
+	global $document_lock_hooks;
+	$answers = [];
+	foreach ((array)($document_lock_hooks ?? []) as $hook) {
+	  require_once($hook['file']);
+	  $answer = (string)call_user_func($hook['function'], $event, $id, $journal_id);
+	  if ($answer !== '') $answers[] = $answer;
+	}
+	return $answers;
+  }
+
+  // The labels to show beside an opening document's number, HTML-escaped.
+  function gen_document_badges(int $id, int $journal_id): array {
+	return array_map('htmlspecialchars', gen_document_lock_answers('badge', $id, $journal_id));
+  }
+
+  // Why saving or deleting the document is refused, HTML-escaped, or '' when it is allowed.
+  function gen_document_refusal(string $event, int $id, int $journal_id): string {
+	return htmlspecialchars(implode(' ', gen_document_lock_answers($event, $id, $journal_id)));
+  }
+
   function gen_get_all_get_params($exclude_array = '') {
     global $_GET;
     if ($exclude_array == '') $exclude_array = array();

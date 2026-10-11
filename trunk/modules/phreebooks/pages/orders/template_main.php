@@ -104,6 +104,13 @@ if (JOURNAL_ID == 12 && isset($_REQUEST['action']) && $_REQUEST['action'] == 'ed
       'params' => 'onclick="payRequestOpen(' . (int)$oID . ')"', 'text' => PAY_REQUEST_TITLE, 'order' => 16];
   }
 }
+// Labels from modules that hold a copy of this document elsewhere (gen_document_lock_answers).
+$document_badges = '';
+if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $oID) {
+  foreach (gen_document_badges((int)$oID, JOURNAL_ID) as $badge) {
+    $document_badges .= ' <span class="badge text-bg-secondary align-middle">' . $badge . '</span>';
+  }
+}
 if ($security_level > 1 && (JOURNAL_ID == 6 || JOURNAL_ID == 12 || JOURNAL_ID == 13)) {
   $toolbar->add_icon('payment', 'onclick="submitToDo(\'payment\')"', 15);
 }
@@ -212,7 +219,7 @@ $tip = (in_array(JOURNAL_ID, array(6,7))) ? ORD_JS_WAITING_FOR_PAYMENT : ORD_TT_
 ?>
             <tr>
               <td class="text-end"><?php echo constant('ORD_HEADING_NUMBER_' . JOURNAL_ID); ?></td>
-              <td><?php echo html_input_field('purchase_invoice_id', $order->purchase_invoice_id, 'onmouseover="Tip(\'' . $tip . '\')"'); ?></td>
+              <td><?php echo html_input_field('purchase_invoice_id', $order->purchase_invoice_id, 'onmouseover="Tip(\'' . $tip . '\')"') . $document_badges; ?></td>
             </tr>
 <?php if (isset($template_options['waiting'])) { ?>
             <tr>

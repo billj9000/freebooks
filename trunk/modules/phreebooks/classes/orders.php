@@ -152,6 +152,7 @@ class orders extends journal {
 	if (!$this->journal_main_array['ship_address_id']) $this->journal_main_array['ship_address_id'] = $this->journal_main_array['bill_address_id'];
 
 	// ************* POST journal entry *************
+	$edited_ids = [];
 	if ($this->recur_id > 0) { // if new record, will contain count, if edit will contain recur_id
 	  $first_id                  = $this->id;
 	  $first_post_date           = $this->post_date;
@@ -179,6 +180,7 @@ class orders extends journal {
 		  $this->journal_main_array['terminal_date'] = $this->column_empty($this->terminal_date, 'null');
 		  if (!$this->validate_purchase_invoice_id()) return false;
 		  $messageStack->debug("\n\n  re-posting recur id = " . $this->id);
+		  $edited_ids[] = $this->id;
 		  if (!$this->Post('edit')) return false;
 		  // test for single post versus rolling into future posts, terminate loop if single post
 		  if (!$this->recur_frequency) break;
@@ -234,6 +236,7 @@ class orders extends journal {
 	  $this->journal_main_array['terminal_date']       = $this->column_empty($first_terminal_date, 'null');
 	} else {
 	  if (!$this->validate_purchase_invoice_id()) return false;
+	  if ($this->id) $edited_ids[] = $this->id;
 	  if (!$this->Post($this->id ? 'edit' : 'insert')) return false;
 	}
 	// ************* post-POST processing *************
@@ -252,6 +255,11 @@ class orders extends journal {
 	  case  6: // Purchase Journal
 	  default:
 		break;
+	}
+	// A module may refuse an edit to a document it has copied elsewhere (gen_document_lock_answers).
+	foreach ($edited_ids as $edited_id) {
+	  $refusal = gen_document_refusal('save', (int)$edited_id, (int)$this->journal_id);
+	  if ($refusal !== '') return $this->fail_message($refusal);
 	}
 	$messageStack->debug("\n  committed order post purchase_invoice_id = " . $this->purchase_invoice_id . " and id = " . $this->id);
 	$db->transCommit();	// finished successfully
@@ -295,11 +303,15 @@ class orders extends journal {
 	  for ($i = 0; $i < count($affected_ids); $i++) {
 		$this->id = $affected_ids[$i]['id'];
 		$this->journal($this->id); // load the posted record based on the id submitted
+		$refusal = gen_document_refusal('delete', (int)$this->id, (int)$this->journal_id);
+		if ($refusal !== '') return $this->fail_message($refusal);
 		if (!$this->unPost('delete')) return false;
 		// test for single post versus rolling into future posts, terminate loop if single post
 		if (!$recur_frequency) break;
 	  }
 	} else {
+	  $refusal = gen_document_refusal('delete', (int)$this->id, (int)$this->journal_id);
+	  if ($refusal !== '') return $this->fail_message($refusal);
 	  if (!$this->unPost('delete')) return false;
 	}
 	$db->transCommit();
