@@ -18,7 +18,7 @@
 //
 // The export page's preview of the documents in a date range, for htmx.
 //
-validate_ajax_user(SECURITY_ID_XERO_SYNC);
+$security_level = validate_ajax_user(SECURITY_ID_XERO_SYNC);
 gen_pull_language('xero_sync');
 require_once(DIR_FS_MODULES . 'xero_sync/classes/xero_source.php');
 require_once(DIR_FS_MODULES . 'xero_sync/functions/xero_sync.php');
@@ -29,5 +29,5 @@ if (!$range) {
   die;
 }
 $source = new xero_source();
-echo xero_sync_preview($source->documents($range[0], $range[1], isset($_GET['credit_memos'])));
+echo xero_sync_preview($source->documents($range[0], $range[1], isset($_GET['credit_memos'])), xero_sync_send_context((int)$security_level));
 die;

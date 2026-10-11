@@ -34,6 +34,11 @@ class xero_api {
     $this->connection = $connection ?? new xero_connection();
   }
 
+  // The connected organisation's Xero id.
+  public function tenant_id(): string {
+    return (string)$this->connection->load()['tenant_id'];
+  }
+
   // The organisation's tax rates, as Xero returns them (Name, TaxType, Status, ...).
   public function tax_rates(): array {
     return $this->get('TaxRates')['TaxRates'] ?? [];

@@ -33,6 +33,8 @@ class xero_sync_admin {
   //   tax      a tax_rate_id => the Xero tax rate name
   //   contact  a customer name => the Xero contact name, where they differ
   // The token table holds one row, the connection to Xero; xero_connection describes it.
+  // The doc table holds one row per invoice or credit memo sent, or tried, keyed by its
+  // journal_main id; functions/xero_lock.php describes the two fingerprints.
   public function __construct() {
     $this->keys = [
       'XERO_SYNC_HOME_COUNTRY'       => defined('COMPANY_COUNTRY') ? COMPANY_COUNTRY : '',
@@ -65,6 +67,20 @@ class xero_sync_admin {
         `tenant_name`    varchar(255) NOT NULL DEFAULT '',
         `connected_at`   datetime         DEFAULT NULL,
         `connected_by`   int(11)      NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+      TABLE_XERO_SYNC_DOC => "CREATE TABLE IF NOT EXISTS " . TABLE_XERO_SYNC_DOC . " (
+        `id`           int(11)      NOT NULL COMMENT 'journal_main id',
+        `journal_id`   tinyint(4)   NOT NULL,
+        `state`        varchar(16)  NOT NULL DEFAULT '' COMMENT 'sending, sent, failed or released',
+        `xero_id`      varchar(64)  NOT NULL DEFAULT '' COMMENT 'Xero InvoiceID or CreditNoteID',
+        `xero_status`  varchar(32)  NOT NULL DEFAULT '',
+        `sent_at`      datetime         DEFAULT NULL,
+        `sent_by`      int(11)      NOT NULL DEFAULT 0,
+        `claimed_at`   datetime         DEFAULT NULL,
+        `last_error`   text             DEFAULT NULL,
+        `record_hash`  char(64)     NOT NULL DEFAULT '',
+        `doc_hash`     char(64)     NOT NULL DEFAULT '',
         PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     ];

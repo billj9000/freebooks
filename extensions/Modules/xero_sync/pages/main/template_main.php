@@ -21,7 +21,7 @@ $toolbar->icon_list['open']['show']   = false;
 $toolbar->icon_list['save']['show']   = false;
 $toolbar->icon_list['delete']['show'] = false;
 $toolbar->icon_list['print']['show']  = false;
-$toolbar->add_help('10.XERO.02');
+$toolbar->add_help('10.XERO.03');
 echo $toolbar->build_toolbar();
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
@@ -57,7 +57,7 @@ echo $toolbar->build_toolbar();
       <div class="col-auto">
         <button type="button" class="btn btn-primary btn-sm"
           hx-get="<?php echo html_href_link(FILENAME_DEFAULT, 'module=xero_sync&amp;page=ajax&amp;op=preview', 'SSL'); ?>"
-          hx-include="#xs-range" hx-target="#xs-preview" hx-swap="innerHTML" hx-indicator="#xs-busy"><?php echo XERO_SYNC_BTN_PREVIEW; ?></button>
+          hx-include="#date_from, #date_to, #credit_memos" hx-target="#xs-preview" hx-swap="innerHTML" hx-indicator="#xs-busy"><?php echo XERO_SYNC_BTN_PREVIEW; ?></button>
         <button type="submit" class="btn btn-primary btn-sm" name="action" value="csv"><?php echo XERO_SYNC_BTN_CSV; ?></button>
         <span id="xs-busy" class="htmx-indicator spinner-border spinner-border-sm ms-2" role="status"></span>
       </div>

@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="10.XERO.03">
+<!-- index position, Group.Label. Only doc_index_1 is read by the scanner -->
+<meta name="doc_index_1" content="Exporting.Xero Sending">
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Sending Documents to Xero">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<title>Sending Documents to Xero</title>
+</head>
+
+<body>
+
+<h1 align="center">Sending Documents to Xero</h1>
+
+<p>Once FreeBooks is connected to Xero (see <a href="01-XeroSettings.html">Xero Sync
+  Settings</a>), the export page can send invoices and credit memos straight to Xero instead of
+  through a file. FreeBooks then remembers what it has sent, so nothing goes twice, and protects
+  a sent document from changes that would leave Xero's copy out of step.</p>
+
+<h4>Sending</h4>
+<ol>
+  <li>Open <b>Customers &rarr; Xero Sync</b>, choose the dates and press <b>Preview</b>, as for
+    the CSV file (see <a href="02-XeroExport.html">Exporting to Xero</a>).</li>
+  <li>Every document that can be sent is ticked. Untick any you want to leave out.</li>
+  <li>Press <b>Send ticked documents to Xero</b>. The documents go one at a time, and each row's
+    <b>In Xero</b> column shows the result as it arrives. A document Xero refuses does not stop
+    the rest.</li>
+</ol>
+<p>Each document arrives in Xero as a draft, an invoice in Xero's invoices and a credit memo in
+  its credit notes. A product that Xero has no item for yet is added to Xero's items, so the line
+  can name it.</p>
+<p>A document with an unmapped account or tax rate cannot be ticked: Xero would book it to the
+  wrong place. Add the mapping, preview again, and send it then. Sending needs edit permission
+  on Xero Sync.</p>
+
+<h4>The In Xero column</h4>
+<ul>
+  <li><b>Not sent</b> &mdash; FreeBooks has not sent the document.</li>
+  <li><b>Sent</b>, with the date &mdash; Xero holds the document. It cannot be ticked again.</li>
+  <li><b>Changed since it was sent</b> &mdash; the document as it would be sent now differs from
+    what Xero holds, usually because the account or tax rate mapping has changed since. To send
+    it again, release it first.</li>
+  <li><b>Not sent:</b> with Xero's reason &mdash; Xero refused the document. Correct the cause and
+    send it again.</li>
+  <li><b>Released</b> &mdash; see below.</li>
+</ul>
+
+<h4>Sent documents are locked</h4>
+<p>An invoice or credit memo that has been sent shows an <b>In Xero</b> badge beside its number.
+  It can still be opened, printed, emailed and used to raise a credit memo, and changes that do
+  not affect Xero or the tax &mdash; the shipping method, for instance &mdash; save as usual.
+  FreeBooks refuses to save a change to anything Xero holds or the tax rests on: the customer,
+  the billing or shipping address, the billing email, the number, the date, the reference, the
+  currency or any line. A sent document cannot be deleted either.</p>
+<p>To correct a sent document, release it, or raise a credit memo instead.</p>
+
+<h4>Releasing a document</h4>
+<p>Press <b>Release</b> beside a sent document to unlock it. This needs full permission on Xero
+  Sync. The document can then be changed in FreeBooks, and sending it again <i>updates</i> the copy
+  Xero already holds rather than making a second one. The update keeps the status the document
+  has in Xero, so an invoice already approved there stays approved.</p>
+<p>The update replaces Xero's copy with FreeBooks' version, so any change made to it in Xero is
+  lost. Xero refuses to change a document it has recorded a payment against, or one that has been
+  voided or deleted there. In that case the row shows Xero's reason and offers <b>Forget Xero
+  copy</b>: FreeBooks then forgets the Xero document, and the next send makes a new one. Deal with
+  the old one in Xero first, or correct the sale with a credit memo instead.</p>
+
+<h4>Related Topics</h4>
+<ul>
+  <li><a href="XeroHome.html">Xero Sync</a></li>
+  <li><a href="01-XeroSettings.html">Xero Sync Settings</a></li>
+  <li><a href="02-XeroExport.html">Exporting to Xero</a></li>
+</ul>
+
+</body>
+</html>

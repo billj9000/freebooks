@@ -106,6 +106,7 @@ define('XERO_SYNC_COL_FB_TOTAL',          'FreeBooks total');
 define('XERO_SYNC_COL_XERO_TOTAL',        'Xero total');
 define('XERO_SYNC_COL_ROUNDING',          'Rounding');
 define('XERO_SYNC_COL_STATUS',            'Status');
+define('XERO_SYNC_COL_XERO',              'In Xero');
 define('XERO_SYNC_TYPE_INVOICE',          'Invoice');
 define('XERO_SYNC_TYPE_CREDIT',           'Credit memo');
 define('XERO_SYNC_DOMESTIC',              '%s (domestic)');
@@ -119,6 +120,30 @@ define('XERO_SYNC_NO_DOCUMENTS',          'No invoices or credit memos are dated
 define('XERO_SYNC_ERR_DATES',             'Enter a From and a To date, with From no later than To.');
 define('XERO_SYNC_NOT_SET_UP',            'Xero Sync is not set up yet: choose a default account and a rounding account in its settings.');
 define('XERO_SYNC_SETTINGS_LINK',         'Open the settings');
+
+// Sending to Xero
+define('XERO_SYNC_BTN_SEND',              'Send ticked documents to Xero');
+define('XERO_SYNC_SEND_NOT_CONNECTED',    'To send documents to Xero, connect to Xero in the Xero Sync settings.');
+define('XERO_SYNC_SEND_NEEDS_EDIT',       'Sending documents to Xero needs edit permission on Xero Sync.');
+define('XERO_SYNC_SEND_NONE',             'Tick at least one document to send.');
+define('XERO_SYNC_SEND_PROGRESS',         'Sending %d of %d...');
+define('XERO_SYNC_SEND_DONE',             'Finished: %d sent, %d not sent.');
+define('XERO_SYNC_X_NOT_SENT',            'Not sent');
+define('XERO_SYNC_X_SENDING',             'Being sent');
+define('XERO_SYNC_X_SENT',                'Sent %s');
+define('XERO_SYNC_X_CHANGED',             'Changed since it was sent');
+define('XERO_SYNC_X_RELEASED',            'Released');
+define('XERO_SYNC_X_FAILED',              'Not sent: %s');
+define('XERO_SYNC_X_HELD',                'Xero holds an earlier copy, which the next send updates.');
+define('XERO_SYNC_BTN_RELEASE',           'Release');
+define('XERO_SYNC_BTN_FORGET',            'Forget Xero copy');
+define('XERO_SYNC_CONFIRM_RELEASE',       'Release this document? It can then be changed in FreeBooks, and sending it again updates the copy in Xero.');
+define('XERO_SYNC_CONFIRM_FORGET',        'Forget the copy Xero holds? The next send makes a new document in Xero, so delete or void the old one there first.');
+define('XERO_SYNC_ACTION_STALE',          'Nothing changed: the document is no longer in a state that allows this.');
+define('XERO_SYNC_ERR_NOT_A_DOCUMENT',    'This is not a sales invoice or credit memo.');
+define('XERO_SYNC_BADGE',                 'In Xero');
+define('XERO_SYNC_LOCK_SAVE',             'This document was sent to Xero on %s, and this change would alter what Xero holds or the tax it rests on: the customer, an address, the number, the date, the reference, the currency or the lines. Release it on the Xero Sync page to change it.');
+define('XERO_SYNC_LOCK_DELETE',           'This document was sent to Xero on %s, so it cannot be deleted. Release it on the Xero Sync page first.');
 
 // Line descriptions written to Xero
 define('XERO_SYNC_LINE_FREIGHT',        'Freight');

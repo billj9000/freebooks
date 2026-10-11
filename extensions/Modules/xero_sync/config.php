@@ -24,9 +24,12 @@ define('SECURITY_ID_XERO_SYNC', 230);
 
 define('TABLE_XERO_SYNC_MAP',   DB_PREFIX . 'xero_sync_map');
 define('TABLE_XERO_SYNC_TOKEN', DB_PREFIX . 'xero_sync_token');
+define('TABLE_XERO_SYNC_DOC',   DB_PREFIX . 'xero_sync_doc');
 
 if (defined('MODULE_XERO_SYNC_STATUS')) {
   gen_pull_language('xero_sync', 'admin');
+  // A document sent to Xero cannot be changed in ways Xero holds, or deleted, until it is released.
+  $document_lock_hooks[] = ['file' => DIR_FS_MODULES . 'xero_sync/functions/xero_lock.php', 'function' => 'xero_sync_document_lock'];
   $mainmenu["customers"]['submenu']["xero_sync"] = array(
     'order'                  => 90,
     'text'                   => MODULE_XERO_SYNC_TITLE,
