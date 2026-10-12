@@ -851,7 +851,14 @@ function removeInvRow(index) {
 	document.getElementById('disc_'+i).value              		= document.getElementById('disc_'+(i+1)).value;
 	if (document.getElementById('purch_package_quantity_'+i))
 		document.getElementById('purch_package_quantity_'+i).value=document.getElementById('purch_package_quantity_'+(i+1)).value;
+	document.getElementById('date_1_'+i).value            		= document.getElementById('date_1_'+(i+1)).value;
 // End hidden fields
+	if (document.getElementById('vsku_'+i))
+		document.getElementById('vsku_'+i).value          		= document.getElementById('vsku_'+(i+1)).value;
+	if (document.getElementById('restock_'+i)) {
+		document.getElementById('restock_'+i).checked     		= document.getElementById('restock_'+(i+1)).checked;
+		document.getElementById('restock_'+i).style.display		= document.getElementById('restock_'+(i+1)).style.display;
+	}
 	document.getElementById('total_'+i).value             		= document.getElementById('total_'+(i+1)).value;
 	document.getElementById('sku_'+i).style.color = (document.getElementById('sku_'+i).value == text_search) ? inactive_text_color : document.getElementById('sku_'+(i+1)).style.color;
   }
