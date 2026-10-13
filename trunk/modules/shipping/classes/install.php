@@ -174,6 +174,15 @@ class shipping_admin {
 		  PRIMARY KEY (id),
 		  KEY lookup (effective_from, carrier, service, price_channel, format)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+	  // The Royal Mail and Parcelforce zone of each country, named as in the price list.
+	  TABLE_SHIPPING_RM_ZONES => "CREATE TABLE " . TABLE_SHIPPING_RM_ZONES . " (
+		  iso2 char(2) NOT NULL,
+		  rm_zone varchar(32) NOT NULL default '',
+		  pf_zone varchar(32) NOT NULL default '',
+		  needs_confirmation enum('0','1') NOT NULL default '0',
+		  notes varchar(255) NOT NULL default '',
+		  PRIMARY KEY (iso2)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 	  TABLE_SHIPPING_PICKUPS => "CREATE TABLE " . TABLE_SHIPPING_PICKUPS . " (
 		  id int(11) NOT NULL auto_increment,
 		  carrier varchar(16) NOT NULL default '',

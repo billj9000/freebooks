@@ -74,10 +74,10 @@ function shipping_tracking_url($carrier, $tracking) {
 }
 
 /**
- * Creates the collections, shipment contents and Royal Mail rates tables, and gives
- * the shipping log its package_data and order_id columns, on an installation that
- * lacks them. The tables come from the module's own declarations, the ones the
- * installer uses, so there is a single definition.
+ * Creates the collections, shipment contents and Royal Mail rates and zones tables,
+ * and gives the shipping log its package_data and order_id columns, on an
+ * installation that lacks them. The tables come from the module's own
+ * declarations, the ones the installer uses, so there is a single definition.
  */
 function shipping_ensure_schema() {
   global $db;
@@ -91,7 +91,7 @@ function shipping_ensure_schema() {
     $db->Execute("ALTER TABLE " . TABLE_SHIPPING_LOG . " ADD order_id int(11) NOT NULL default '0' AFTER package_data, ADD KEY order_id (order_id)");
   }
   $install = null;
-  foreach (array(TABLE_SHIPPING_PICKUPS, TABLE_SHIPPING_LOG_ITEMS, TABLE_SHIPPING_RM_RATES) as $table) {
+  foreach (array(TABLE_SHIPPING_PICKUPS, TABLE_SHIPPING_LOG_ITEMS, TABLE_SHIPPING_RM_RATES, TABLE_SHIPPING_RM_ZONES) as $table) {
     if (db_table_exists($table)) continue;
     if (!$install) {
       require_once(DIR_FS_MODULES . 'shipping/classes/install.php');

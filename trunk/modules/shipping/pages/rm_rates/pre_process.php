@@ -18,12 +18,14 @@
 //
 // The Royal Mail price list: import a rate file, see what each stored set holds,
 // and delete a set. An uploaded file is checked and summarised first, and kept
-// as the pending file until it is imported or discarded.
+// as the pending file until it is imported or discarded. The page also holds the
+// country zones the price list is read through.
 $security_level = validate_user(SECURITY_ID_CONFIGURATION);
 gen_pull_language($module, 'admin');
 load_method_language(DIR_FS_MODULES . 'shipping/methods/', 'royal_mail');
 require_once(DIR_FS_WORKING . 'functions/shipping.php');
 require_once(DIR_FS_WORKING . 'methods/royal_mail/rm_rates.php');
+require_once(DIR_FS_WORKING . 'methods/royal_mail/rm_zones.php');
 
 $pending_dir  = DIR_FS_MY_FILES . $_SESSION['company'] . '/shipping/';
 $pending_file = $pending_dir . 'rm_rates_pending.csv';
@@ -31,10 +33,13 @@ $pending      = false; // the checked pending file: effective_from, rows, summar
 $check_errors = array();
 $error_count  = 0;
 $reader       = new rm_rates();
+$zone_errors  = array();
+$zone_count   = 0;
 
 if (!isset($_REQUEST['action'])) $_REQUEST['action'] = '';
-// Every action changes stored data, so each comes from the posted (CSRF-checked) form.
-if ($_REQUEST['action'] !== '' && $_SERVER['REQUEST_METHOD'] !== 'POST') $_REQUEST['action'] = '';
+// Every action but the zone download changes stored data, so each comes from the
+// posted (CSRF-checked) form.
+if (!in_array($_REQUEST['action'], array('', 'zones_export'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') $_REQUEST['action'] = '';
 
 switch ($_REQUEST['action']) {
   case 'check':
@@ -78,6 +83,35 @@ switch ($_REQUEST['action']) {
     }
     gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=shipping&page=rm_rates', 'SSL'));
     break;
+  case 'zones_export':
+    rm_zones::export();
+    exit;
+  case 'zones_import':
+    validate_security($security_level, 3);
+    if (!validate_upload('zone_file', 'text', 'csv')) break;
+    $zone_reader = new rm_zones();
+    $rows = $zone_reader->read_file($_FILES['zone_file']['tmp_name']);
+    if ($rows === false) {
+      $zone_errors = $zone_reader->errors;
+      $zone_count  = $zone_reader->error_count;
+      break;
+    }
+    rm_zones::replace_all($rows);
+    gen_add_audit_log(RM_ZONES_AUDIT_IMPORT, '', count($rows));
+    $messageStack->add(sprintf(RM_ZONES_IMPORTED, count($rows)), 'success');
+    gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=shipping&page=rm_rates', 'SSL'));
+    break;
+  case 'zones_reset':
+    validate_security($security_level, 3);
+    $zone_reader = new rm_zones();
+    $rows = $zone_reader->read_file(rm_zones::shipped_file());
+    if ($rows !== false) {
+      rm_zones::replace_all($rows);
+      gen_add_audit_log(RM_ZONES_AUDIT_RESET, '', count($rows));
+      $messageStack->add(sprintf(RM_ZONES_IMPORTED, count($rows)), 'success');
+    }
+    gen_redirect(html_href_link(FILENAME_DEFAULT, 'module=shipping&page=rm_rates', 'SSL'));
+    break;
 }
 
 // A pending file is shown, checked, on every visit until it is imported or discarded.
@@ -95,6 +129,8 @@ if (is_file($pending_file)) {
     );
   }
 }
+$zones       = rm_zones::all();
+$zones_check = array_filter($zones, function ($z) { return $z['needs_confirmation'] === '1'; });
 $versions = rm_rates::versions();
 $current  = rm_rates::current_version();
 if ($pending) foreach ($versions as $v) {

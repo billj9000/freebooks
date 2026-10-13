@@ -149,4 +149,57 @@ $today = date('Y-m-d');
     </div>
   </div>
 
+  <div class="card mt-3">
+    <div class="card-header py-2 fb-widget-header"><?php echo RM_ZONES_HEADING; ?></div>
+    <div class="card-body">
+      <p><?php echo sprintf(RM_ZONES_DESC, count($zones), count($zones_check)); ?></p>
+      <?php if ($zone_count): ?>
+        <div class="alert alert-danger">
+          <strong><?php echo sprintf(RM_ZONES_CHECK_FAILED, $zone_count); ?></strong>
+          <ul class="mb-0">
+            <?php foreach ($zone_errors as $err): ?><li><?php echo htmlspecialchars($err); ?></li><?php endforeach; ?>
+          </ul>
+          <?php if ($zone_count > count($zone_errors)) echo sprintf(RM_RATES_MORE_ERRORS, $zone_count - count($zone_errors)); ?>
+        </div>
+      <?php endif; ?>
+      <?php if ($zones_check): ?>
+        <table class="table table-sm table-borderless table-hover mb-3">
+          <thead class="table-dark">
+            <tr>
+              <th><?php echo RM_ZONES_TEXT_COUNTRY; ?></th>
+              <th><?php echo RM_ZONES_TEXT_RM; ?></th>
+              <th><?php echo RM_ZONES_TEXT_PF; ?></th>
+              <th><?php echo RM_ZONES_TEXT_NOTES; ?></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($zones_check as $z): ?>
+            <tr>
+              <td><?php echo htmlspecialchars($z['country']) . ' (' . $z['iso2'] . ')'; ?></td>
+              <td><?php echo htmlspecialchars($z['rm_zone']); ?></td>
+              <td><?php echo htmlspecialchars($z['pf_zone']); ?></td>
+              <td><?php echo htmlspecialchars($z['notes']); ?></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php endif; ?>
+      <p><?php echo RM_ZONES_EDIT_DESC; ?></p>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a class="btn btn-primary btn-sm" href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&page=rm_rates&action=zones_export', 'SSL'); ?>"><?php echo RM_ZONES_DOWNLOAD; ?></a>
+        <?php if ($security_level > 2): ?>
+        <?php echo html_form('rm_zones_import', FILENAME_DEFAULT, 'module=shipping&page=rm_rates', 'post', 'enctype="multipart/form-data" class="d-flex gap-2 align-items-center"'); ?>
+          <input type="hidden" name="action" value="zones_import">
+          <input type="file" name="zone_file" accept=".csv" class="form-control form-control-sm" style="max-width:300px" required>
+          <button type="submit" class="btn btn-primary btn-sm"><?php echo RM_ZONES_IMPORT; ?></button>
+        </form>
+        <?php echo html_form('rm_zones_reset', FILENAME_DEFAULT, 'module=shipping&page=rm_rates', 'post', 'class="d-inline" onsubmit="return confirm(\'' . addslashes(RM_ZONES_RESET_CONFIRM) . '\')"'); ?>
+          <input type="hidden" name="action" value="zones_reset">
+          <button type="submit" class="btn btn-primary btn-sm"><?php echo RM_ZONES_RESET; ?></button>
+        </form>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
 </div>

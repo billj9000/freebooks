@@ -126,4 +126,26 @@ define('RM_RATES_ERR_PRICE',       'Line %d: the price must be more than 0.');
 define('RM_RATES_ERR_INCREMENT',   'Line %d: an increment row needs increment_g.');
 define('RM_RATES_ERR_VAT',         'Line %d: %s is %s, but the price and VAT treatment give %s.');
 define('RM_RATES_ERR_OVERLAP',     'Overlapping bands for %s (%s, %s, %s): %d-%d g and %d-%d g.');
+// Price list page - country zones
+define('RM_ZONES_HEADING',       'Country Zones');
+define('RM_ZONES_DESC',          'Prices are set by zone, so each destination is priced through its Royal Mail and Parcelforce zone. %d countries have zones; %d are not settled by the published zone lists and should be checked against royalmail.com and parcelforce.com.');
+define('RM_ZONES_EDIT_DESC',     'To correct a zone, download the list, change it in a spreadsheet and import it again. Importing replaces the whole list.');
+define('RM_ZONES_DOWNLOAD',      'Download Zones');
+define('RM_ZONES_IMPORT',        'Import Zones');
+define('RM_ZONES_RESET',         'Restore Supplied Zones');
+define('RM_ZONES_RESET_CONFIRM', 'Replace the zones held with the list supplied with FreeBooks?');
+define('RM_ZONES_IMPORTED',      'Zones stored for %d countries.');
+define('RM_ZONES_CHECK_FAILED',  'The zone file was not imported: %d problems');
+define('RM_ZONES_AUDIT_IMPORT',  'Royal Mail zones - import');
+define('RM_ZONES_AUDIT_RESET',   'Royal Mail zones - restore');
+define('RM_ZONES_TEXT_COUNTRY',  'Country');
+define('RM_ZONES_TEXT_RM',       'Royal Mail Zone');
+define('RM_ZONES_TEXT_PF',       'Parcelforce Zone');
+define('RM_ZONES_TEXT_NOTES',    'Notes');
+define('RM_ZONES_ERR_READ',      'The zone file could not be read.');
+define('RM_ZONES_ERR_EMPTY',     'The zone file holds no countries.');
+define('RM_ZONES_ERR_COLUMNS',   'The zone file is missing these columns: %s.');
+define('RM_ZONES_ERR_COUNTRY',   'Line %d: "%s" is not a country code FreeBooks knows.');
+define('RM_ZONES_ERR_DUPLICATE', 'Line %d: %s appears more than once.');
+define('RM_ZONES_ERR_ZONE',      'Line %d: %s cannot be "%s".');
 ?>

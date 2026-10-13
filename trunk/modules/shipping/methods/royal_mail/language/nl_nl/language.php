@@ -126,4 +126,26 @@ define('RM_RATES_ERR_PRICE',       'Regel %d: de prijs moet hoger zijn dan 0.');
 define('RM_RATES_ERR_INCREMENT',   'Regel %d: een increment-regel heeft increment_g nodig.');
 define('RM_RATES_ERR_VAT',         'Regel %d: %s is %s, maar de prijs en de btw-behandeling geven %s.');
 define('RM_RATES_ERR_OVERLAP',     'Overlappende schijven voor %s (%s, %s, %s): %d-%d g en %d-%d g.');
+// Prijslijstpagina - landzones
+define('RM_ZONES_HEADING',       'Landzones');
+define('RM_ZONES_DESC',          'Prijzen gelden per zone, dus elke bestemming wordt geprijsd via haar Royal Mail- en Parcelforce-zone. %d landen hebben zones; %d worden door de gepubliceerde zonelijsten niet vastgelegd en moeten worden gecontroleerd op royalmail.com en parcelforce.com.');
+define('RM_ZONES_EDIT_DESC',     'Om een zone te corrigeren: download de lijst, wijzig hem in een spreadsheet en importeer hem opnieuw. Importeren vervangt de hele lijst.');
+define('RM_ZONES_DOWNLOAD',      'Zones downloaden');
+define('RM_ZONES_IMPORT',        'Zones importeren');
+define('RM_ZONES_RESET',         'Meegeleverde zones herstellen');
+define('RM_ZONES_RESET_CONFIRM', 'De opgeslagen zones vervangen door de lijst die met FreeBooks wordt meegeleverd?');
+define('RM_ZONES_IMPORTED',      'Zones opgeslagen voor %d landen.');
+define('RM_ZONES_CHECK_FAILED',  'Het zonebestand is niet geïmporteerd: %d problemen');
+define('RM_ZONES_AUDIT_IMPORT',  'Royal Mail-zones - import');
+define('RM_ZONES_AUDIT_RESET',   'Royal Mail-zones - herstellen');
+define('RM_ZONES_TEXT_COUNTRY',  'Land');
+define('RM_ZONES_TEXT_RM',       'Royal Mail-zone');
+define('RM_ZONES_TEXT_PF',       'Parcelforce-zone');
+define('RM_ZONES_TEXT_NOTES',    'Opmerkingen');
+define('RM_ZONES_ERR_READ',      'Het zonebestand kon niet worden gelezen.');
+define('RM_ZONES_ERR_EMPTY',     'Het zonebestand bevat geen landen.');
+define('RM_ZONES_ERR_COLUMNS',   'In het zonebestand ontbreken deze kolommen: %s.');
+define('RM_ZONES_ERR_COUNTRY',   'Regel %d: "%s" is geen landcode die FreeBooks kent.');
+define('RM_ZONES_ERR_DUPLICATE', 'Regel %d: %s komt meer dan eens voor.');
+define('RM_ZONES_ERR_ZONE',      'Regel %d: %s kan niet "%s" zijn.');
 ?>
