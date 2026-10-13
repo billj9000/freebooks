@@ -23,6 +23,10 @@ define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_SHORT',      'Royal Mail');
 // Admin field descriptions
 define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_DESC',      'Title shown for this carrier.');
 define('MODULE_SHIPPING_ROYAL_MAIL_API_KEY_DESC',    'Click & Drop API key. Obtain from your Click & Drop account under Settings &rarr; API.');
+define('MODULE_SHIPPING_ROYAL_MAIL_HANDLING_DESC',      'Handling charge added to each Royal Mail and Parcelforce quote, in the default currency.');
+define('MODULE_SHIPPING_ROYAL_MAIL_SURCHARGE_DESC',     'Surcharge (%) on Royal Mail account prices, such as the fuel and energy surcharge, plus any peak surcharge. Online prices already include it.');
+define('MODULE_SHIPPING_ROYAL_MAIL_INTL_SURCHARGE_DESC','Further surcharge (%) on Royal Mail international account prices: the international surcharge.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PF_SURCHARGE_DESC',  'Surcharge (%) on Parcelforce account and contract prices, such as the fuel and energy surcharge, plus any peak surcharge.');
 define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER_DESC', 'Sort order of display. Lowest is displayed first.');
 // Error messages
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL',  'Royal Mail: Label creation failed - ');
@@ -148,4 +152,9 @@ define('RM_ZONES_ERR_COLUMNS',   'The zone file is missing these columns: %s.');
 define('RM_ZONES_ERR_COUNTRY',   'Line %d: "%s" is not a country code FreeBooks knows.');
 define('RM_ZONES_ERR_DUPLICATE', 'Line %d: %s appears more than once.');
 define('RM_ZONES_ERR_ZONE',      'Line %d: %s cannot be "%s".');
+// Shipping estimator
+define('RM_QUOTE_NO_PRICE_LIST', 'Royal Mail: no price list is in effect, so no Royal Mail or Parcelforce prices can be given. Import one from the Royal Mail properties (Price List).');
+define('RM_QUOTE_NO_ZONE',       'Royal Mail: the destination country (%s) has no Royal Mail zone, so no prices can be given.');
+define('RM_QUOTE_NO_GBP',        'Royal Mail: the price list is in GBP, and GBP is not set up as a currency, so no prices can be given.');
+define('RM_QUOTE_TO_CONFIRM',    'price to confirm');
 ?>

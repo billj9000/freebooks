@@ -23,6 +23,10 @@ define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_SHORT',      'Royal Mail');
 // Admin field descriptions
 define('MODULE_SHIPPING_ROYAL_MAIL_TITLE_DESC',      'Titel die voor deze vervoerder wordt getoond.');
 define('MODULE_SHIPPING_ROYAL_MAIL_API_KEY_DESC',    'Click & Drop API-sleutel. Verkrijgbaar in uw Click & Drop-account onder Settings &rarr; API.');
+define('MODULE_SHIPPING_ROYAL_MAIL_HANDLING_DESC',      'Behandelingskosten die bij elke offerte van Royal Mail en Parcelforce worden opgeteld, in de standaardvaluta.');
+define('MODULE_SHIPPING_ROYAL_MAIL_SURCHARGE_DESC',     'Toeslag (%) op de accountprijzen van Royal Mail, zoals de brandstof- en energietoeslag, plus een eventuele piektoeslag. Onlineprijzen bevatten die al.');
+define('MODULE_SHIPPING_ROYAL_MAIL_INTL_SURCHARGE_DESC','Extra toeslag (%) op de internationale accountprijzen van Royal Mail: de internationale toeslag.');
+define('MODULE_SHIPPING_ROYAL_MAIL_PF_SURCHARGE_DESC',  'Toeslag (%) op de account- en contractprijzen van Parcelforce, zoals de brandstof- en energietoeslag, plus een eventuele piektoeslag.');
 define('MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER_DESC', 'Volgorde van tonen. De laagste wordt als eerste getoond.');
 // Error messages
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL',  'Royal Mail: aanmaken van label mislukt - ');
@@ -148,4 +152,9 @@ define('RM_ZONES_ERR_COLUMNS',   'In het zonebestand ontbreken deze kolommen: %s
 define('RM_ZONES_ERR_COUNTRY',   'Regel %d: "%s" is geen landcode die FreeBooks kent.');
 define('RM_ZONES_ERR_DUPLICATE', 'Regel %d: %s komt meer dan eens voor.');
 define('RM_ZONES_ERR_ZONE',      'Regel %d: %s kan niet "%s" zijn.');
+// Verzendcalculator
+define('RM_QUOTE_NO_PRICE_LIST', 'Royal Mail: er is geen prijslijst van kracht, dus er kunnen geen prijzen van Royal Mail of Parcelforce worden gegeven. Importeer er een via de eigenschappen van Royal Mail (Prijslijst).');
+define('RM_QUOTE_NO_ZONE',       'Royal Mail: het land van bestemming (%s) heeft geen Royal Mail-zone, dus er kunnen geen prijzen worden gegeven.');
+define('RM_QUOTE_NO_GBP',        'Royal Mail: de prijslijst is in GBP en GBP is niet als valuta ingesteld, dus er kunnen geen prijzen worden gegeven.');
+define('RM_QUOTE_TO_CONFIRM',    'prijs te bevestigen');
 ?>

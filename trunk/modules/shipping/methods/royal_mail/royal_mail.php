@@ -128,12 +128,19 @@ class royal_mail {
     return array(
       array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_TITLE',      'default' => 'Royal Mail'),
       array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_API_KEY',    'default' => ''),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_HANDLING',   'default' => '0.00'),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_SURCHARGE',      'default' => '0'),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_INTL_SURCHARGE', 'default' => '0'),
+      array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_PF_SURCHARGE',   'default' => '0'),
       array('key' => 'MODULE_SHIPPING_ROYAL_MAIL_SORT_ORDER', 'default' => '40'),
     );
   }
 
   function configure($key) {
-    return html_input_field(strtolower($key), constant($key), '');
+    // A setting the installation has never saved is not defined yet; the form offers its default.
+    $value = defined($key) ? constant($key) : '';
+    if (!defined($key)) foreach ($this->keys() as $k) if ($k['key'] === $key) $value = $k['default'];
+    return html_input_field(strtolower($key), $value, '');
   }
 
   function configure_links() {
@@ -150,16 +157,93 @@ class royal_mail {
   }
 
   // ---------------------------------------------------------------
-  //  Shipping estimator — RM has no live rates API; return service list with blank pricing
+  //  Shipping estimator - priced from the imported price list (rm_quote.php)
   // ---------------------------------------------------------------
   function quote($pkg = '') {
-    $rates = array();
-    foreach (array_keys($this->CDServiceMap) as $code) {
-      if (defined('royal_mail_' . $code)) {
-        $rates[$this->code][$code] = array('quote' => 0, 'book' => '', 'cost' => '');
+    global $messageStack, $currencies;
+    require_once(DIR_FS_MODULES . 'shipping/functions/shipping.php');
+    require_once(DIR_FS_MODULES . 'shipping/classes/box_packer.php');
+    require_once(__DIR__ . '/rm_rates.php');
+    require_once(__DIR__ . '/rm_zones.php');
+    require_once(__DIR__ . '/rm_quote.php');
+
+    list($parcels, $rate_packages) = $this->quote_parcels($pkg);
+    if (!$parcels) {
+      $messageStack->add(SHIPPING_ERROR_WEIGHT_ZERO, 'error');
+      return false;
+    }
+    $toISO2 = $pkg->ship_to_country_iso2 ?? '';
+    if ($toISO2 === '' && !empty($pkg->ship_to_country_code)) $toISO2 = gen_get_country_iso_2_from_3($pkg->ship_to_country_code);
+    $pricer = new rm_quote();
+    $prices = $pricer->price_all($parcels, $toISO2);
+    foreach ($pricer->notices as $notice) $messageStack->add($notice, 'caution');
+
+    // The price list is in GBP; a company keeping its books in another currency
+    // is quoted at its exchange rate for GBP.
+    $rate = 1;
+    if (DEFAULT_CURRENCY !== 'GBP' && $prices) {
+      $rate = (float)($currencies->currencies['GBP']['value'] ?? 0);
+      if ($rate <= 0) {
+        $messageStack->add(RM_QUOTE_NO_GBP, 'caution');
+        return array('result' => 'success', 'rates' => array());
       }
     }
+    $handling = (defined('MODULE_SHIPPING_ROYAL_MAIL_HANDLING') && is_numeric(MODULE_SHIPPING_ROYAL_MAIL_HANDLING))
+      ? (float)MODULE_SHIPPING_ROYAL_MAIL_HANDLING : 0;
+    $rates = array();
+    foreach ($prices as $code => $p) {
+      if (!defined('royal_mail_' . $code)) continue;
+      $rates[$this->code][$code] = array(
+        'book'     => round($p['cost_inc_vat'] / $rate, 2),
+        'cost'     => round($p['cost'] / $rate, 2),
+        'quote'    => round($p['cost'] / $rate + $handling, 2),
+        'note'     => $p['note'],
+        'packages' => $rate_packages,
+      );
+    }
     return array('result' => 'success', 'rates' => $rates);
+  }
+
+  /**
+   * The parcels to price: the order's items packed into the cartons set up for
+   * Royal Mail, or else one parcel of the weight and size entered on the form.
+   * Returns array(parcels for rm_quote, packages for the estimator).
+   */
+  private function quote_parcels($pkg) {
+    global $messageStack;
+    $parcels  = array();
+    $packages = array();
+    if (!empty($pkg->items)) {
+      $packed = BoxPackingService::pack($pkg->items, $this->code);
+      $boxes  = BoxPackingService::summarise($packed['packed']);
+      foreach ($boxes as $bi => $b) {
+        // Items without a size are weighed but not packed; their weight goes in the first carton.
+        $weight_g   = $b['weight_g'] + ($bi === 0 ? $packed['weight_only_g'] : 0);
+        $parcels[]  = array('weight_g' => $weight_g, 'dims_mm' => array($b['length_mm'], $b['width_mm'], $b['depth_mm']));
+        $packages[] = array(
+          'box_code' => $b['box_code'],
+          'box_name' => $b['box_name'],
+          'qty'      => 1,
+          'weight'   => BoxPackingService::fromGrams($weight_g),
+          'length'   => BoxPackingService::fromMm($b['length_mm']),
+          'width'    => BoxPackingService::fromMm($b['width_mm']),
+          'height'   => BoxPackingService::fromMm($b['depth_mm']),
+          'items'    => $b['items'],
+        );
+      }
+      if (!empty($packed['weight_only_skus'])) {
+        $messageStack->add(SHIPPING_BOX_PACKER_NO_DIMS . implode(', ', $packed['weight_only_skus']), 'caution');
+      }
+      $unpacked = array_unique(array_column($packed['unpacked'], 'sku'));
+      if ($unpacked) $messageStack->add(SHIPPING_BOX_PACKER_NOT_FOUND . implode(', ', $unpacked), 'caution');
+      if ($parcels) return array($parcels, $packages);
+    }
+    $weight_g = $this->toGrams($pkg->get_total_weight(), $pkg->pkg_weight_unit ?? 'KGS');
+    if ($weight_g <= 0) return array(array(), array());
+    $mm   = (strtoupper(trim($pkg->pkg_dimension_unit ?? 'IN')) === 'CM') ? 10 : 25.4;
+    $dims = array((float)($pkg->pkg_length ?? 0) * $mm, (float)($pkg->pkg_width ?? 0) * $mm, (float)($pkg->pkg_height ?? 0) * $mm);
+    if (min($dims) <= 0) $dims = null;
+    return array(array(array('weight_g' => $weight_g, 'dims_mm' => $dims)), array());
   }
 
   // ---------------------------------------------------------------
