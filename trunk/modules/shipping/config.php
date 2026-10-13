@@ -36,6 +36,7 @@ define('TABLE_SHIPPING_LOG',      DB_PREFIX . 'shipping_log');
 define('TABLE_SHIPPING_PACKAGES', DB_PREFIX . 'shipping_packages');
 define('TABLE_SHIPPING_PICKUPS',  DB_PREFIX . 'shipping_pickups');
 define('TABLE_SHIPPING_LOG_ITEMS', DB_PREFIX . 'shipping_log_items');
+define('TABLE_SHIPPING_RM_RATES', DB_PREFIX . 'shipping_rm_rates');
 // Set the title menu
 // Set the menus
 if (defined('MODULE_SHIPPING_STATUS')) {

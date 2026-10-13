@@ -73,6 +73,8 @@
         else { echo html_input_field(strtolower($value['key']), constant($value['key']), $value['properties'] ?? ''); }
         echo '</td></tr>';
       }
+      // A method can add its own buttons below its settings, e.g. to a page of its own.
+      if (method_exists($properties, 'configure_links')) echo '<tr><td colspan="3">' . $properties->configure_links() . '</td></tr>';
       echo '<tr><td colspan="3"><hr /></td></tr>';
       echo '  </table></td></tr>' . chr(10);
     }

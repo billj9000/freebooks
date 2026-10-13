@@ -136,6 +136,11 @@ class royal_mail {
     return html_input_field(strtolower($key), constant($key), '');
   }
 
+  function configure_links() {
+    return '<a class="btn btn-primary btn-sm" href="' . html_href_link(FILENAME_DEFAULT, 'module=shipping&page=rm_rates', 'SSL') . '">'
+      . RM_RATES_OPEN_BTN . '</a>';
+  }
+
   function update() {
     foreach ($this->keys() as $key) {
       if (isset($_POST[strtolower($key['key'])])) {
