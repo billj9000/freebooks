@@ -584,7 +584,8 @@ class currencies {
     $temp  = str_replace($c['thousands_point'], '', trim((string)$number));
     $value = str_replace($c['decimal_point'], '.', $temp);
     $value = preg_replace("/[^-0-9.]+/","",$value);
-    if( $value == null || $value == '') $value = 0;
+    // What is left of text that holds no number, such as '.' or '-', is stored as 0.
+    if (!is_numeric($value)) $value = 0;
     return $value;
   }
 

@@ -187,9 +187,12 @@ function update_full_price_incl_tax(margin, inclTax, fullprice) {
       var v = costToCompany(parseFloat(cleanCurrency(costEls[i].value)), curr);
       if (v > highest) highest = v;
     }
-    var sell = cleanCurrency(document.getElementById('full_price').value);
-    document.getElementById('product_margin').value = formatCurrency(((sell - highest) / sell) * 100);
-    document.getElementById('product_markup').value = formatCurrency(cleanCurrency(document.getElementById('full_price_with_tax').value) / highest);
+    var sell = parseFloat(cleanCurrency(document.getElementById('full_price').value)) || 0;
+    var sellTax = parseFloat(cleanCurrency(document.getElementById('full_price_with_tax').value)) || 0;
+    // A zero sell price or zero cost has no margin or markup; dividing by it would put
+    // Infinity or NaN in the field, which the item save then refuses.
+    document.getElementById('product_margin').value = formatCurrency(sell ? ((sell - highest) / sell) * 100 : 0);
+    document.getElementById('product_markup').value = formatCurrency(highest ? sellTax / highest : 0);
   }
   if (inclTax) {
     var fp = document.getElementById('full_price'), tax_sel = document.getElementById('item_taxable');
