@@ -21,7 +21,7 @@ $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
 $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
-$toolbar->add_help('09.01.10');
+$toolbar->add_help('09.01.10.01');
 echo $toolbar->build_toolbar();
 $today = date('Y-m-d');
 ?>

@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="doc_pos" content="09.01.10.01">
+<meta name="doc_index_1" content="Royal Mail Click &amp; Drop.Pricing">
+<meta name="doc_index_2" content="Shipping Estimator.Royal Mail and Parcelforce prices">
+<meta name="doc_glossary_1" content="Price channel:How Royal Mail or Parcelforce postage is bought - contract, account, online, franking or stamps - which decides its price.">
+<meta name="doc_title" content="Royal Mail Pricing">
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+<title>Royal Mail Pricing</title>
+</head>
+<body>
+
+<h1 align="center">Royal Mail Pricing</h1>
+
+<p>Click &amp; Drop does not give prices, so FreeBooks prices Royal Mail and Parcelforce services
+from a price list you import. The Shipping Estimator then shows a price for each service that can
+carry the shipment. Each company has its own price list and its own country zones.</p>
+
+<p>Open them from <strong>Company &rarr; Configuration &rarr; Shipping Module</strong>: click the
+properties icon on the <em>Royal Mail Click &amp; Drop</em> row, then <strong>Price List</strong>.</p>
+
+<h4>The Price List</h4>
+<p>A price list is a CSV file with a header row and one row per price band, prices in GBP. Columns
+are matched by name, so their order does not matter. Each row gives the carrier, service, price
+channel, format, destination and zone, the band's weights in grams, the price and how VAT applies
+to it, and the date the prices take effect.</p>
+<ul>
+  <li><strong>Price channel</strong> is how the postage is bought: <em>contract</em> (prices
+      negotiated with the carrier), <em>account</em> (business account prices), <em>online</em>
+      (Click &amp; Drop prices), <em>mailmark_franking</em> or <em>stamp</em>.</li>
+  <li><strong>Format</strong> is Letter, Large Letter, Small Parcel, Medium Parcel, Parcel, Printed
+      Papers or Any.</li>
+  <li>A band covers weights <em>above</em> its from-weight up to and <em>including</em> its
+      to-weight, so 0&ndash;100 g and 100&ndash;250 g do not overlap.</li>
+  <li><strong>VAT treatment</strong> is one of <em>exempt</em>, <em>plus_vat_20</em> (the price is
+      before VAT), <em>inc_vat_20</em> (the price includes VAT) or <em>zero_rated</em>.</li>
+  <li>A row can be marked <em>needs_confirmation</em> where the price rests on an assumption; the
+      estimator then notes <em>price to confirm</em> beside it.</li>
+</ul>
+<p>Because a price list can hold your contract prices, FreeBooks does not supply one.</p>
+
+<h4>Importing a Price List</h4>
+<ol>
+  <li>On the Price List page, choose the file under <strong>Import a Rate File</strong> and click
+      <strong>Check File</strong>.</li>
+  <li>FreeBooks checks the file and saves nothing yet. If there are problems they are listed by line
+      number; correct the file, click <strong>Discard</strong> and choose it again.</li>
+  <li>A file that passes is summarised: how many bands it holds for each carrier, service and price
+      channel, and how many are marked to confirm. Click <strong>Import</strong> to store it, or
+      <strong>Discard</strong>.</li>
+</ol>
+<p>The checks are: the required columns are there; the file has one effective date; each band's
+from-weight is below its to-weight; bands for the same service, channel, format, destination and
+cover do not overlap; every price is above 0; channels, rate types and VAT treatments are ones
+FreeBooks knows; and, where the file has ex-VAT and inc-VAT columns, they agree with the price.</p>
+
+<h4>Price Changes</h4>
+<p>Price lists are kept by effective date. Royal Mail changes its prices several times a year, so
+import each new list when it is published, with its own effective date. The <em>Stored Price
+Lists</em> table shows the list <strong>In use</strong> (the newest whose date has arrived), any
+that are <strong>Not yet in effect</strong>, and older ones as <strong>Superseded</strong>. A list
+imported in advance takes over on its effective date by itself.</p>
+<p>Importing a file for a date already stored replaces that date's list, which is how a mistake
+is corrected. A list can be deleted with its <strong>Delete</strong> button.</p>
+
+<h4>Country Zones</h4>
+<p>Prices are set by zone rather than by country, so each country has a Royal Mail zone (UK,
+Europe Zones 1&ndash;3, World Zones 1&ndash;3) and a Parcelforce zone (UK, Zones 4&ndash;13).
+FreeBooks supplies these from Royal Mail's and Parcelforce's published zone lists, and a company
+starts with them.</p>
+<ul>
+  <li>The <em>Country Zones</em> section lists the countries the published lists do not settle,
+      with a note on each, so they can be checked on royalmail.com and parcelforce.com.</li>
+  <li>To change a zone, click <strong>Download Zones</strong>, correct the file in a spreadsheet and
+      import it with <strong>Import Zones</strong>. Importing replaces the whole list; a country
+      code or zone name FreeBooks does not know is refused.</li>
+  <li><strong>Restore Supplied Zones</strong> puts back the list FreeBooks supplies.</li>
+</ul>
+
+<h4>Settings</h4>
+<p>Four settings in the Royal Mail properties affect prices:</p>
+<ul>
+  <li><strong>Handling charge</strong> &mdash; added to each quote, in the company's currency.</li>
+  <li><strong>Royal Mail surcharge (%)</strong> &mdash; for example the fuel and energy surcharge.</li>
+  <li><strong>Royal Mail international surcharge (%)</strong> &mdash; added to the Royal Mail
+      surcharge on international services.</li>
+  <li><strong>Parcelforce surcharge (%)</strong> &mdash; the Parcelforce fuel and energy surcharge.</li>
+</ul>
+<p>Surcharges apply to contract and account prices only; online prices already include them.
+Royal Mail can change a surcharge at short notice, and adds a peak surcharge for part of the year:
+add the peak percentage to the surcharge while it applies, and take it off afterwards.</p>
+
+<h4>How a Price Is Worked Out</h4>
+<ol>
+  <li><strong>Parcels.</strong> When the estimator is opened from an order, the items are packed
+      into the cartons set up in <a href="../../00-Packages/PackagesHome.html">Packages</a> for
+      Royal Mail or for any carrier. Otherwise the weight and size entered on the estimator make
+      one parcel. Each parcel is priced on its own, and the shipment's price is their total.</li>
+  <li><strong>Format.</strong> A parcel goes as the smallest format its size fits that has a price
+      for its weight. A light parcel too big for a Small Parcel is priced as a Medium Parcel. A
+      parcel whose size is not known is priced as a parcel, never as a letter.</li>
+  <li><strong>Destination.</strong> A price for the destination country itself is used before the
+      price for its zone. Jersey, Guernsey and the Isle of Man are UK for Royal Mail; for
+      Parcelforce the Channel Islands are Zone 4.</li>
+  <li><strong>Band.</strong> The band that holds the parcel's weight is used. Where several bands
+      fit &mdash; such as Special Delivery's levels of cover &mdash; the cheapest is taken.</li>
+  <li><strong>Channel.</strong> Each Click &amp; Drop service is priced from your contract prices
+      where the price list has them, then account prices, then online prices. Royal Mail Tracked 24
+      and Tracked 48 always use online prices.</li>
+  <li><strong>Not available.</strong> A service with no price for one of the parcels &mdash; too
+      heavy, too big, or not offered to that country &mdash; is not shown. A price is never
+      estimated beyond the price list.</li>
+</ol>
+<p>The estimator shows three figures for each service:</p>
+<ul>
+  <li><strong>Cost</strong> &mdash; the price before VAT, with the surcharges.</li>
+  <li><strong>Freight Quote</strong> &mdash; the cost plus the handling charge. This is the amount
+      put on the order when the service is chosen.</li>
+  <li><strong>Book Price</strong> &mdash; the cost with VAT, as charged by the carrier.</li>
+</ul>
+<p>The <em>Notes</em> column gives the format and price channel used, the surcharge added, and
+<em>price to confirm</em> where the price list marks the price. Prices are in GBP; a company keeping
+its books in another currency is quoted at its exchange rate for GBP, which must be set up under
+currencies.</p>
+
+<h4>When No Prices Appear</h4>
+<ul>
+  <li><em>No price list is in effect</em> &mdash; none has been imported, or the only one has an
+      effective date still to come.</li>
+  <li><em>The destination country has no Royal Mail zone</em> &mdash; add the country to the zones
+      file and import it.</li>
+  <li>A single service is missing &mdash; the price list has no price for that parcel to that
+      country: check its weight, size and the service's limits.</li>
+  <li>An item has no size in its inventory record &mdash; its weight is counted but it is not packed,
+      and the estimator says so. Add its dimensions for an accurate format.</li>
+</ul>
+
+<h4>Related Topics</h4>
+<p>
+  <a href="RoyalMailHome.html">Shipping Modules - Royal Mail Click &amp; Drop</a><br>
+  <a href="../../00-Packages/PackagesHome.html">Packages</a><br>
+  <a href="../ModulesHome.html">Shipping Modules Overview</a>
+</p>
+
+</body>
+</html>

@@ -33,11 +33,12 @@ is obtained from within Click &amp; Drop under <strong>Settings &rarr; API</stro
   <li>Shipment cancellation from the Shipment Details popup</li>
   <li>End-of-day manifest (Click &amp; Drop collection closure)</li>
   <li>Tracking links via the Royal Mail website</li>
+  <li>Royal Mail and Parcelforce prices in the Shipping Estimator, from a price list you import</li>
 </ul>
 
 <p><strong>Note:</strong> Royal Mail Click &amp; Drop does not provide a live rates API. The
-Shipping Estimator lists all available service levels with no price; enter the freight cost
-manually on the order.</p>
+Shipping Estimator prices Royal Mail and Parcelforce services from a price list imported into
+FreeBooks; see <a href="RoyalMailPricing.html">Royal Mail Pricing</a>.</p>
 
 <h4>Supported Services</h4>
 <p><em>Domestic (UK to UK)</em></p>
@@ -103,10 +104,14 @@ also needs a UKIMS number, the sender's or the recipient's; FreeBooks does not s
   <li>Open a sales invoice or order.</li>
   <li>Click the <strong>Shipping Estimator</strong> button next to the freight method field.</li>
   <li>Verify or update the destination address, then click <strong>Next</strong>.</li>
-  <li>The available Royal Mail service levels are listed with no price. Click the desired service
-      to populate the carrier and service on the order.</li>
-  <li>Enter the freight cost manually in the freight amount field on the order.</li>
+  <li>The Royal Mail and Parcelforce services that can carry the shipment are listed with their
+      price. Click the desired service to put the carrier, service and freight quote on the
+      order.</li>
 </ol>
+<p>Prices come from the price list imported on the Royal Mail properties' <strong>Price
+List</strong> page. Until one is imported no Royal Mail prices are shown. How a price is worked out,
+and the handling charge and surcharge settings, are described in
+<a href="RoyalMailPricing.html">Royal Mail Pricing</a>.</p>
 
 <h4>Printing a Label</h4>
 <ol>
@@ -254,6 +259,7 @@ been printed. Once manifested, orders cannot be cancelled.</p>
 
 <h4>Related Topics</h4>
 <p>
+  <a href="RoyalMailPricing.html">Royal Mail Pricing</a><br>
   <a href="../../ShippingHome.html">Shipping Manager</a><br>
   <a href="../ModulesHome.html">Shipping Modules Overview</a><br>
   <a href="../../../../../../../contacts/language/en_us/manual/03-Customers/05-Invoices/04-InvoiceManager.html">Invoice Manager</a>
