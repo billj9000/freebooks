@@ -143,9 +143,11 @@ class inventory {
 		if(in_array('quantity_on_hand', $this->not_used_fields)) return;
 		$sql = " select id, short_name, primary_name from " . TABLE_CONTACTS . " c join " . TABLE_ADDRESS_BOOK . " a on c.id = a.ref_id where c.type = 'b' order by short_name ";
 	  	$result = $db->Execute($sql);
+	  	// quantity_on_hand keeps the stored total, the figure the item list, product bundles and the
+	  	// web store use. The per-branch figures can only come from the cost layers, so they are
+	  	// shown alongside it, not summed into it.
 	  	$qty = load_store_stock($this->sku, 0);
 	  	$this->qty_per_store[0] = $qty;
-	  	$this->quantity_on_hand = $qty;
 	  	if(ENABLE_MULTI_BRANCH){
 	  		$this->qty_table ='<table class="table table-borderless table-hover table-sm" style="width:100%">'. chr(10);
 			$this->qty_table .='  <thead class="table-dark">'. chr(10);
@@ -162,7 +164,6 @@ class inventory {
 		    while (!$result->EOF) {
 		    	$qty = load_store_stock($this->sku, $result->fields['id']);
 		  		$this->qty_per_store[$result->fields['id']] = $qty;
-		  		$this->quantity_on_hand += $qty;
 		  		$this->qty_table .= '<tr>';
 			  	$this->qty_table .= '  <td>' .$result->fields['primary_name'] . '</td>';
 			  	$this->qty_table .= '  <td align="center">' . $qty. '</td>';
