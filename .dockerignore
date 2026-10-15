@@ -1,0 +1,17 @@
+# The image is trunk/ plus docker/ and docs/tools/ - see docker/Dockerfile.
+# Everything else stays out of the build context.
+*
+!trunk/
+!docker/
+!docs/tools/
+
+# Local runtime state and working-tree leftovers that are not part of a commit.
+trunk/includes/configure.php
+trunk/my_files/*
+!trunk/my_files/.htaccess
+!trunk/my_files/index.html
+trunk/modules/inventory/custom
+trunk/modules/shipping/methods/ups
+trunk/modules/shipping/methods/yrc
+trunk/modules/payment/methods/paymentech
+**/*.swp

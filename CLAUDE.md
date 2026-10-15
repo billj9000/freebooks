@@ -8,6 +8,8 @@ FreeBooks is a PHP/MySQL web application with no build step. It can be deployed 
 
 In either case, the `trunk/` directory is deployed as the web root. The other top-level directories are optional — `extensions/` contains optional components (additional modules, payment methods, shipping methods, language packs, etc.) that may be selectively copied into the installation.
 
+The container image is built from this repository by `docker/Dockerfile` (build context: the repository root; `.dockerignore` limits it to `trunk/`, `docker/` and `docs/tools/`). It holds the committed `trunk/` only — no extensions — plus `docs/tools/` at `/opt/freebooks/tools`, outside the web root. `.github/workflows/image.yml` publishes it to `ghcr.io/billj9000/freebooks`: a `vX.Y.Z` tag (which must equal `MODULE_PHREEDOM_VERSION`) publishes `X.Y.Z`, `X.Y` and `latest`, and every push to `master` publishes `edge`. The **freebooks-docker** repository holds only the Compose and Fly configuration that runs it.
+
 After deploying `trunk/`, visit `/install/` in a browser to run the web-based installer, which creates `trunk/includes/configure.php` and seeds the database.
 
 There is no `package.json`, Makefile, or automated test runner. Manual test procedures are in `TestProcedures/` as ODS spreadsheets.
