@@ -91,6 +91,11 @@ class journal {
 		$this->repost_ids = $glEntry->check_for_re_post();
 		$glEntry->remove_cogs_rows(); // they will be regenerated during the post
 		$messageStack->debug("\n  journal_main array = " . arr2string($glEntry->journal_main_array));
+		// A NEW entry has no id yet; callers send it as '' or 0. journal_main.id is
+		// `int NOT NULL AUTO_INCREMENT`, so a strict server refuses '' and the entry
+		// is not saved. Omitting the column asks AUTO_INCREMENT for the next value,
+		// which db_insert_id() reads back below.
+		if (empty($glEntry->journal_main_array['id'])) unset($glEntry->journal_main_array['id']);
 		db_perform(TABLE_JOURNAL_MAIN, $glEntry->journal_main_array, 'insert');
 		if (!$glEntry->id) $this->id = $glEntry->id = db_insert_id();
 		// post journal rows
