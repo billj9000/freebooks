@@ -71,7 +71,7 @@ class phreebooks_admin {
 	  'AP_DEFAULT_PURCHASE_ACCOUNT'    => '2000',
 	  'AP_PURCHASE_INVOICE_ACCOUNT'    => '1020',
 	  'AP_DEF_FREIGHT_ACCT'            => '6800',
-	  'AP_DISCOUNT_PURCHASE_ACCOUNT'   => '2000',
+	  'AP_DISCOUNT_PURCHASE_ACCOUNT'   => '6900',
 	  'AP_DEF_DEPOSIT_ACCT'            => '1020',
 	  'AP_DEF_DEP_LIAB_ACCT'           => '2400',
 	  'AP_USE_CREDIT_LIMIT'            => '1',

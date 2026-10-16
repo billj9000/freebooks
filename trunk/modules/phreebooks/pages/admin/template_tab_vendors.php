@@ -42,7 +42,7 @@
           </tr>
           <tr>
             <td><?php echo CD_03_05_DESC; ?></td>
-            <td><?php echo html_pull_down_menu('ap_discount_purchase_account', $ap_chart, $_POST['ap_discount_purchase_account'] ? $_POST['ap_discount_purchase_account'] : AP_DISCOUNT_PURCHASE_ACCOUNT, ''); ?></td>
+            <td><?php echo html_pull_down_menu('ap_discount_purchase_account', $ap_disc_chart, $_POST['ap_discount_purchase_account'] ? $_POST['ap_discount_purchase_account'] : AP_DISCOUNT_PURCHASE_ACCOUNT, ''); ?></td>
           </tr>
           <tr>
             <td><?php echo CD_03_06_DESC; ?></td>

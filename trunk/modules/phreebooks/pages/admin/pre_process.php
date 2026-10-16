@@ -172,6 +172,14 @@ $sel_chart = array_merge(array(array('id' => '0', 'text' => TEXT_SELECT)), gen_b
 $cash_chart = gen_coa_pull_down(2, false, true, false, $restrict_types = array(0));    // cash types only
 $ar_chart   = gen_coa_pull_down(2, false, true, false, $restrict_types = array(2));    // ar types only
 $ap_chart   = gen_coa_pull_down(2, false, true, false, $restrict_types = array(20));   // ap types only
+// A discount taken when paying a vendor is income, or a reduction in cost of
+// sales or in expenses - never payables, where it would leave a paid bill still
+// owing the discount (issue #98). The company's own setting stays in the list
+// whatever its type, so the page shows it and saving the page does not replace it.
+$ap_disc_chart = gen_coa_pull_down(2, false, true, false, $restrict_types = array(30, 32, 34));
+if (!in_array(AP_DISCOUNT_PURCHASE_ACCOUNT, array_column($ap_disc_chart, 'id'))) {
+  foreach (gen_coa_pull_down(2, false, true, false) as $acct) if ($acct['id'] == AP_DISCOUNT_PURCHASE_ACCOUNT) $ap_disc_chart[] = $acct;
+}
 $ocl_chart  = gen_coa_pull_down(2, false, true, false, $restrict_types = array(22));   // other current liability types only
 $inc_chart  = gen_coa_pull_down(2, false, true, false, $restrict_types = array(30));   // income types only
 $inv_chart  = gen_coa_pull_down(2, false, true, false, $restrict_types = array(4,34)); // inv, expenses types only

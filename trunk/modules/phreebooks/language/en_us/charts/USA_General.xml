@@ -16,7 +16,7 @@
 	<AP_DEFAULT_PURCHASE_ACCOUNT>2100</AP_DEFAULT_PURCHASE_ACCOUNT>
 	<AP_PURCHASE_INVOICE_ACCOUNT>1060</AP_PURCHASE_INVOICE_ACCOUNT>
 	<AP_DEF_FREIGHT_ACCT>5100</AP_DEF_FREIGHT_ACCT>
-	<AP_DISCOUNT_PURCHASE_ACCOUNT>2100</AP_DISCOUNT_PURCHASE_ACCOUNT>
+	<AP_DISCOUNT_PURCHASE_ACCOUNT>5020</AP_DISCOUNT_PURCHASE_ACCOUNT>
 	<AP_DEF_DEPOSIT_ACCT>1060</AP_DEF_DEPOSIT_ACCT>
 	<AP_DEF_DEP_LIAB_ACCT>2400</AP_DEF_DEP_LIAB_ACCT>
   </defaults>
@@ -303,6 +303,13 @@
   <account>
     <id>5010</id>
 	<description>Cost of Goods Sold</description>
+	<heading>0</heading>
+	<primary></primary>
+	<type>32</type>
+  </account>
+  <account>
+    <id>5020</id>
+	<description>Purchase Discounts</description>
 	<heading>0</heading>
 	<primary></primary>
 	<type>32</type>
