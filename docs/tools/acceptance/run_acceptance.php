@@ -29,14 +29,15 @@
  * LEDGER - the same tables Purge Journal empties - so that every figure it
  * checks comes from the scenario alone.
  *
- * WHAT A STEP DOES. Purchases, quotes, sales and credit memos go through
- * orders::post_ordr(), edits through post_ordr() on an existing id, deletes
- * through orders::delete_ordr(); receipts and refunds through
- * banking::post_ordr() and their deletion through banking::delete_payment();
- * a quote becomes a sales order as popup_convert makes it; the general journal
- * entry goes through journal::Post(). These are the calls the pages make, fed
- * the fields those pages would send. The one departure is the conversion's
- * date, which the page always sets to today.
+ * WHAT A STEP DOES. Requests for quote, purchases, quotes, sales and both
+ * kinds of credit memo go through orders::post_ordr(), edits through post_ordr()
+ * on an existing id, deletes through orders::delete_ordr(); receipts, payments
+ * and refunds through banking::post_ordr(), Bulk Pay through
+ * banking::bulk_pay(), and their deletion through banking::delete_payment(); a
+ * request for quote or a quote becomes an order as popup_convert makes it; the
+ * general journal entry goes through journal::Post(). These are the calls the
+ * pages make, fed the fields those pages would send. The one departure is the
+ * conversion's date, which the page always sets to today.
  *
  * WHAT IS CHECKED after every step: the scenario's expected figures, and every
  * check in invariants.php. A step whose post fails stops the run, since the
@@ -97,12 +98,18 @@ function acc_describe(array $s): string
         case 'delete': return 'delete ' . $s['target'];
         case 'quote':  return sprintf('quote %s @ %s', $s['qty'], $s['price']);
         case 'order':  return sprintf('sales order %s @ %s', $s['qty'], $s['price']);
-        case 'convert': return 'convert ' . $s['target'] . ' to a sales order';
+        case 'convert': return 'convert ' . $s['target'] . ' to an order';
         case 'ship':   return sprintf('invoice %s against %s', $s['qty'], $s['order']);
         case 'credit': return sprintf('credit memo: %s returned on %s', $s['qty'], $s['invoice']);
         case 'receive': return sprintf('receive %s on %s', $s['amount'], $s['invoice']) . (!empty($s['discount']) ? " + {$s['discount']} discount" : '');
         case 'refund': return sprintf('refund %s on %s', $s['amount'], $s['credit']);
-        case 'delete_payment': return 'delete receipt ' . $s['target'];
+        case 'delete_payment': return 'delete payment ' . $s['target'];
+        case 'rfq':    return sprintf('request for quote %s @ %s', $s['qty'], $s['price']);
+        case 'receive_po': return sprintf('receive %s against %s', $s['qty'], $s['order']) . (isset($s['price']) ? " @ {$s['price']}" : '');
+        case 'vendor_credit': return sprintf('vendor credit memo: %s returned on %s', $s['qty'], $s['bill']);
+        case 'pay':    return sprintf('pay %s on %s', $s['amount'], $s['bill']) . (!empty($s['discount']) ? " + {$s['discount']} discount" : '');
+        case 'bulk_pay': return 'bulk pay ' . implode(', ', array_map(function ($b) { return "{$b[1]} on {$b[0]}"; }, $s['bills']));
+        case 'vendor_refund': return sprintf('vendor refunds %s on %s', $s['amount'], $s['credit']);
     }
     return $s['do'];
 }
@@ -257,14 +264,18 @@ function acc_reset(array $scenario): array
         else         db_perform(TABLE_CONFIGURATION, array('configuration_value' => $value), 'update', "configuration_key = '" . db_input($key) . "'");
     }
 
+    // The settings were defined as constants before this reset wrote the
+    // scenario's own, so a role takes the scenario's value where it has one.
+    $setting = function (string $key) use ($scenario) { return (string)($scenario['settings'][$key] ?? constant($key)); };
     $roles = array(
-        'ap'        => AP_DEFAULT_PURCHASE_ACCOUNT,
-        'ar'        => AR_DEFAULT_GL_ACCT,
-        'inventory' => INV_STOCK_DEFAULT_INVENTORY,
-        'cogs'      => INV_STOCK_DEFAULT_COS,
-        'sales'     => INV_STOCK_DEFAULT_SALES,
-        'bank'      => AR_SALES_RECEIPTS_ACCOUNT,
-        'discount'  => AR_DISCOUNT_SALES_ACCOUNT,
+        'ap'                => $setting('AP_DEFAULT_PURCHASE_ACCOUNT'),
+        'ar'                => $setting('AR_DEFAULT_GL_ACCT'),
+        'inventory'         => $setting('INV_STOCK_DEFAULT_INVENTORY'),
+        'cogs'              => $setting('INV_STOCK_DEFAULT_COS'),
+        'sales'             => $setting('INV_STOCK_DEFAULT_SALES'),
+        'bank'              => $setting('AR_SALES_RECEIPTS_ACCOUNT'),
+        'discount'          => $setting('AR_DISCOUNT_SALES_ACCOUNT'),
+        'purchase_discount' => $setting('AP_DISCOUNT_PURCHASE_ACCOUNT'),
     );
     $first = function (string $types) {
         $r = acc_rows("SELECT id FROM " . TABLE_CHART_OF_ACCOUNTS . " WHERE account_type IN ($types) ORDER BY account_type, id LIMIT 1");
@@ -347,9 +358,10 @@ function acc_date(array $state, int $day): string
 function acc_define_journal(int $jid, array $state): void
 {
     define('JOURNAL_ID', $jid);
-    $gl_type = array(6 => 'por', 9 => 'soo', 10 => 'soo', 12 => 'sos', 13 => 'sos', 18 => 'pmt', 20 => 'chk');
+    $gl_type = array(3 => 'poo', 4 => 'poo', 6 => 'por', 7 => 'por', 9 => 'soo', 10 => 'soo', 12 => 'sos', 13 => 'sos',
+                     18 => 'pmt', 20 => 'chk');
     if (isset($gl_type[$jid])) define('GL_TYPE', $gl_type[$jid]);
-    if ($jid === 6) {
+    if (in_array($jid, array(3, 4, 6, 7))) {
         define('DEF_INV_GL_ACCT', AP_DEFAULT_INVENTORY_ACCOUNT);
         define('DEF_GL_ACCT', $state['roles']['ap']);
     } elseif (in_array($jid, array(9, 10, 12, 13))) {
@@ -391,8 +403,14 @@ function acc_post(array $step, array $state, string $state_file): int
             case 'ship':    $id = acc_post_order($step, $state, 12, 0, acc_id($state, $step['order'])); break;
             case 'credit':  $id = acc_post_order($step, $state, 13, 0, acc_id($state, $step['invoice'])); break;
             case 'convert': $id = acc_convert_quote($step, $state); break;
-            case 'receive': $id = acc_post_banking($step, $state, 18); break;
-            case 'refund':  $id = acc_post_banking($step, $state, 20); break;
+            case 'receive': $id = acc_post_banking($step, $state, 18, $step['invoice']); break;
+            case 'refund':  $id = acc_post_banking($step, $state, 20, $step['credit']); break;
+            case 'rfq':     $id = acc_post_order($step, $state, 3, 0); break;
+            case 'receive_po':    $id = acc_post_order($step, $state, 6, 0, acc_id($state, $step['order'])); break;
+            case 'vendor_credit': $id = acc_post_order($step, $state, 7, 0, acc_id($state, $step['bill'])); break;
+            case 'pay':           $id = acc_post_banking($step, $state, 20, $step['bill']); break;
+            case 'vendor_refund': $id = acc_post_banking($step, $state, 18, $step['credit']); break;
+            case 'bulk_pay':      $id = acc_bulk_pay($step, $state); break;
             case 'edit':
                 $id = acc_post_order($step, $state, acc_journal_of($state, $step['target']), acc_id($state, $step['target']));
                 break;
@@ -484,18 +502,19 @@ function acc_post_gl(array $step, array $state): int
 function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $from = 0): int
 {
     acc_define_journal($jid, $state);
-    $buy  = ($jid === 6);
+    $buy  = in_array($jid, array(3, 4, 6, 7));
     $who  = $state['contacts'][$buy ? 'v' : 'c'];
 
     $from_line = null;
     if ($from) {
-        $from_type = $jid === 13 ? 'sos' : 'soo';
-        $from_line = acc_rows("SELECT id, sku, qty, credit_amount FROM " . TABLE_JOURNAL_ITEM . "
+        $from_type = array(6 => 'poo', 7 => 'por', 12 => 'soo', 13 => 'sos')[$jid];
+        $from_line = acc_rows("SELECT id, sku, qty, debit_amount, credit_amount FROM " . TABLE_JOURNAL_ITEM . "
                                WHERE ref_id = $from AND gl_type = '$from_type' AND sku <> '' LIMIT 1")[0] ?? null;
         if (!$from_line) throw new RuntimeException("entry $from has no item line to raise this against");
     }
     $sku   = $from_line['sku'] ?? ($step['sku'] ?? acc_sku_of($edit_id));
-    $price = $from_line ? $from_line['credit_amount'] / $from_line['qty'] : $step['price'];
+    // The page fills the line from the document it is raised against; the price can then be changed.
+    $price = $step['price'] ?? ($from_line['debit_amount'] + $from_line['credit_amount']) / $from_line['qty'];
     $item  = acc_rows("SELECT * FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($sku) . "'")[0];
 
     $order = new orders();
@@ -512,7 +531,7 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
     $order->ship_address_id     = $who['address_id'];
     $order->gl_acct_id          = DEF_GL_ACCT;
     $order->purchase_invoice_id = $edit_id ? acc_rows("SELECT purchase_invoice_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = $edit_id")[0]['purchase_invoice_id']
-                                           : ($buy ? 'ACC-' . $step['label'] : '');
+                                           : ($jid === 6 ? 'ACC-' . $step['label'] : '');   // a receipt carries the vendor's invoice number; the rest are numbered
     $order->purch_order_id      = '';
     $order->so_po_ref_id        = $from ?: '';
     $order->store_id            = 0;
@@ -533,7 +552,7 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
     $line_id = $edit_id ? (acc_rows("SELECT id FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = $edit_id AND gl_type = '" . GL_TYPE . "' LIMIT 1")[0]['id'] ?? '') : '';
     $order->item_rows = array(array(
         'id'                     => $line_id,
-        'so_po_item_ref_id'      => ($jid === 12 && $from_line) ? $from_line['id'] : '',
+        'so_po_item_ref_id'      => (in_array($jid, array(6, 12)) && $from_line) ? $from_line['id'] : '',
         'item_cnt'               => 1,
         'gl_type'                => GL_TYPE,
         'qty'                    => $step['qty'],
@@ -550,6 +569,7 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
         'restock'                => isset($step['restock']) ? ($step['restock'] ? '1' : '0') : '1',
         'total'                  => $step['qty'] * $price,
         'serial'                 => '',
+        'lead_time'              => 0,
     ));
     return $order->post_ordr($edit_id ? 'edit' : 'insert') ? (int)$order->id : 0;
 }
@@ -562,8 +582,9 @@ function acc_convert_quote(array $step, array $state): int
 {
     global $db;
     $quote_id = acc_id($state, $step['target']);
-    define('JOURNAL_ID', 10);
-    define('GL_TYPE', 'soo');
+    $from_jid = acc_journal_of($state, $step['target']);
+    define('JOURNAL_ID', $from_jid === 3 ? 4 : 10);   // a request for quote becomes a purchase order, a quote a sales order
+    define('GL_TYPE', $from_jid === 3 ? 'poo' : 'soo');
     $order = new journal($quote_id);
     $order->id            = '';
     $order->journal_id    = JOURNAL_ID;
@@ -592,15 +613,17 @@ function acc_convert_quote(array $step, array $state): int
 }
 
 /**
- * A customer receipt (18) settling an invoice, or a customer refund (20)
- * settling a credit memo, as phreebooks/pages/bills builds one: one line naming
- * the document, the amount paid and any discount taken.
+ * A receipt (18) or a payment (20) settling one document, as
+ * phreebooks/pages/bills builds one: one line naming the document, the amount
+ * paid and any discount taken. A customer pays an invoice and is refunded a
+ * credit memo; a vendor is paid a bill and refunds a credit memo.
  */
-function acc_post_banking(array $step, array $state, int $jid): int
+function acc_post_banking(array $step, array $state, int $jid, string $doc_label): int
 {
     acc_define_journal($jid, $state);
-    $doc_id = acc_id($state, $step[$jid === 18 ? 'invoice' : 'credit']);
+    $doc_id = acc_id($state, $doc_label);
     $doc = acc_rows("SELECT * FROM " . TABLE_JOURNAL_MAIN . " WHERE id = $doc_id")[0];
+    $party = in_array((int)$doc['journal_id'], array(6, 7)) ? 'v' : 'c';
     $discount = $step['discount'] ?? 0;
 
     $pay = new banking();
@@ -614,14 +637,14 @@ function acc_post_banking(array $step, array $state, int $jid): int
     $pay->bill_acct_id        = $doc['bill_acct_id'];
     $pay->bill_address_id     = $doc['bill_address_id'];
     $pay->bill_primary_name   = $doc['bill_primary_name'];
-    $pay->shipper_code        = $step['method'];
+    $pay->shipper_code        = $step['method'] ?? '';   // a vendor payment is made without a payment method
     $pay->purch_order_id      = '';
-    $pay->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . $jid . '_C_WINDOW_TITLE'));
+    $pay->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . $jid . '_' . strtoupper($party) . '_WINDOW_TITLE'));
     $pay->currencies_code     = DEFAULT_CURRENCY;
     $pay->currencies_value    = 1;
     $pay->total_amount        = $step['amount'];
     $pay->gl_acct_id          = $state['roles']['bank'];
-    $pay->gl_disc_acct_id     = $state['roles']['discount'];
+    $pay->gl_disc_acct_id     = $state['roles'][$party === 'v' ? 'purchase_discount' : 'discount'];
     $pay->payment_id          = '';
     $pay->save_payment        = false;
     $pay->refund_payment_id   = '';
@@ -642,6 +665,48 @@ function acc_post_banking(array $step, array $state, int $jid): int
     return $pay->post_ordr('save') ? (int)$pay->id : 0;
 }
 
+/**
+ * Bills paid through Bulk Pay, as phreebooks/pages/bulk_bills does it: one
+ * payment for the vendor, through banking::bulk_pay(). $step['bills'] lists
+ * array(label, amount paid, discount).
+ */
+function acc_bulk_pay(array $step, array $state): int
+{
+    global $db;
+    acc_define_journal(20, $state);
+    $vendor = $state['contacts']['v'];
+    $pay = new banking();
+    $pay->id                  = '';
+    $pay->journal_id          = 20;
+    $pay->post_date           = acc_date($state, (int)$step['day']);
+    $pay->period              = gen_calculate_period($pay->post_date, true);
+    $pay->admin_id            = 1;
+    $pay->purchase_invoice_id = acc_rows("SELECT next_check_num FROM " . TABLE_CURRENT_STATUS)[0]['next_check_num'];
+    $pay->shipper_code        = '';
+    $pay->purch_order_id      = '';
+    $pay->description         = constant('GEN_ADM_TOOLS_J20');
+    $pay->gl_acct_id          = $state['roles']['bank'];
+    $pay->gl_disc_acct_id     = $state['roles']['purchase_discount'];
+    $pay->bill_acct_id        = $vendor['id'];
+    $pay->bill_address_id     = $vendor['address_id'];
+    $pay->bill_primary_name   = $vendor['name'];
+    $pay->item_rows = array();
+    $total = 0;
+    foreach ($step['bills'] as $b) {
+        list($label, $amount, $discount) = array_pad($b, 3, 0);
+        $doc = acc_rows("SELECT * FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . acc_id($state, $label))[0];
+        $pay->item_rows[] = array('id' => $doc['id'], 'amt' => $amount + $discount, 'gl_type' => GL_TYPE,
+            'desc' => $doc['purchase_invoice_id'], 'acct' => $doc['gl_acct_id'], 'inv' => $doc['purchase_invoice_id'],
+            'dscnt' => $discount, 'total' => $amount);
+        $total += $amount;
+    }
+    $pay->total_amount = $total;
+    $db->transStart();
+    if (!$pay->bulk_pay()) { $db->transRollback(); return 0; }
+    $db->transCommit();
+    return (int)$pay->id;
+}
+
 function acc_sku_of(int $id): string
 {
     return (string)(acc_rows("SELECT sku FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = $id AND sku <> '' LIMIT 1")[0]['sku'] ?? '');
@@ -658,14 +723,16 @@ function acc_net_income(int $period): float
 
 /**
  * The scenario's figures for one step. Every key of 'expect' is a figure:
- *   qty, on_so        the first item's stock on hand and on sales order
+ *   qty, on_so, on_order  the first item's stock on hand, on sales order and on order
+ *   item_cost         the first item's cost as the item record holds it
  *   net_income        for the scenario's period
- *   customer_balance  what the receipts page shows the customer owing,
- *                     from the page's own fill_paid_invoice_array()
+ *   customer_balance  what the receipts page shows the customer owing, and
+ *   vendor_balance    what the payments page shows owed to the vendor, both
+ *                     from the pages' own fill_paid_invoice_array()
  *   <role>            that account's balance, debit positive
  *   open              the labels among the scenario's 'track_open' still open
  *   terms             array(label, discount, early_day): the discount and
- *                     early-payment date the receipts page offers on it
+ *                     early-payment date the receipts or payments page offers on it
  * and every entry of the scenario's 'balances' must net to zero.
  */
 function acc_check(array $step, array $scenario, array $state): int
@@ -673,15 +740,20 @@ function acc_check(array $step, array $scenario, array $state): int
     $tol = acc_tolerance();
     $roles = $state['roles'];
     $sku = $scenario['items'][0]['sku'];
-    $item = acc_rows("SELECT quantity_on_hand, quantity_on_sales_order FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($sku) . "'")[0] ?? array();
+    $item = acc_rows("SELECT quantity_on_hand, quantity_on_order, quantity_on_sales_order, item_cost FROM " . TABLE_INVENTORY . "
+                      WHERE sku = '" . db_input($sku) . "'")[0] ?? array();
     $ok = true; $parts = array();
-    $customer_list = null;
-    $customer = function () use (&$customer_list, $state) {
-        if ($customer_list === null) {
-            define('JOURNAL_ID', 18); // fill_paid_invoice_array() reads which page is asking
-            $customer_list = fill_paid_invoice_array(0, $state['contacts']['c']['id'], 'c');
+    $lists = array();
+    // What the receipts (customer) or payments (vendor) page lists for the party.
+    $party = function (string $type) use (&$lists, $state) {
+        if (!isset($lists[$type])) {
+            if (!defined('JOURNAL_ID')) define('JOURNAL_ID', $type === 'c' ? 18 : 20);
+            $list = fill_paid_invoice_array(0, $state['contacts'][$type]['id'], $type);
+            // fill_paid_invoice_array() turns the balance round when the page asking is the other party's
+            if ((JOURNAL_ID == 20 && $type == 'c') || (JOURNAL_ID == 18 && $type == 'v')) $list['balance'] = -$list['balance'];
+            $lists[$type] = $list;
         }
-        return $customer_list;
+        return $lists[$type];
     };
     foreach ($step['expect'] as $k => $want) {
         if ($k === 'open') {
@@ -695,8 +767,9 @@ function acc_check(array $step, array $scenario, array $state): int
             $parts[] = 'open ' . ($open ? implode(',', $open) : '-') . ($good ? '' : ' WANTED ' . ($want ? implode(',', $want) : '-'));
         } elseif ($k === 'terms') {
             list($label, $discount, $early_day) = $want;
+            $doc_jid = (int)(acc_rows("SELECT journal_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)($state['ids'][$label] ?? 0))[0]['journal_id'] ?? 0);
             $row = null;
-            foreach ($customer()['invoices'] as $inv) if ((int)$inv['id'] === (int)($state['ids'][$label] ?? 0)) $row = $inv;
+            foreach ($party(in_array($doc_jid, array(6, 7)) ? 'v' : 'c')['invoices'] as $inv) if ((int)$inv['id'] === (int)($state['ids'][$label] ?? 0)) $row = $inv;
             $early = acc_date($state, $early_day);
             $good = $row && abs($row['percent'] - $discount) < 1e-9 && $row['early_date'] === $early;
             $parts[] = $row ? sprintf('%s terms %s%% to %s', $label, $row['percent'] * 100, $row['early_date'])
@@ -706,13 +779,16 @@ function acc_check(array $step, array $scenario, array $state): int
             switch ($k) {
                 case 'qty':              $got = (float)($item['quantity_on_hand'] ?? 0); break;
                 case 'on_so':            $got = (float)($item['quantity_on_sales_order'] ?? 0); break;
+                case 'on_order':         $got = (float)($item['quantity_on_order'] ?? 0); break;
+                case 'item_cost':        $got = (float)($item['item_cost'] ?? 0); break;
                 case 'net_income':       $got = acc_net_income($state['period']); break;
-                case 'customer_balance': $got = (float)$customer()['balance']; break;
+                case 'customer_balance': $got = (float)$party('c')['balance']; break;
+                case 'vendor_balance':   $got = (float)$party('v')['balance']; break;
                 default:
                     if (!isset($roles[$k])) throw new RuntimeException("expectation '$k' names no figure or account role");
                     $got = acc_account_balance($roles[$k]);
             }
-            $qty = in_array($k, array('qty', 'on_so'));
+            $qty = in_array($k, array('qty', 'on_so', 'on_order'));
             $good = abs($got - $want) <= ($qty ? ACC_QTY_TOLERANCE : $tol);
             $fmt = $qty ? '%s' : '%.4f';
             $parts[] = sprintf("%s $fmt%s", str_replace('_', ' ', $k), $qty ? $got + 0 : $got,
