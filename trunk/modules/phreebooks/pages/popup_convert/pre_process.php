@@ -72,7 +72,7 @@ switch ($_REQUEST['action']) {
 	$order->journal_main_array['description'] = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TITLE'));
 	for ($i = 0; $i < count(is_array($order->journal_rows) ? $order->journal_rows : []); $i++) {
 	  $order->journal_rows[$i]['id']                = '';
-	  $order->journal_rows[$i]['so_po_item_ref_id'] = '';
+	  $order->journal_rows[$i]['so_po_item_ref_id'] = 0; // an integer column: 0 is a line linked to nothing
 	  $order->journal_rows[$i]['post_date']         = $order->post_date;
 	  if ($order->journal_rows[$i]['gl_type'] == $search_gl_type) $order->journal_rows[$i]['gl_type'] = GL_TYPE;
 	}
