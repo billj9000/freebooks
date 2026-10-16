@@ -33,6 +33,8 @@
  *       what is owed, and no layer, owed row or usage row is negative or orphaned
  *   I5  an inventory account holds the value of its stock layers, wherever that
  *       is decidable (see acc_check_i5)
+ *   I6  each receivables and payables account equals what its open documents
+ *       are owed, as the receipts and payments pages work it out (see acc_check_i6)
  *
  * Exits 0 when every check holds, 1 when any does not.
  */
@@ -302,6 +304,59 @@ function acc_check_i5(): array
     return array('I5', 'inventory accounts hold the value of their stock layers', $note, $bad);
 }
 
+/**
+ * I6: each receivables and payables account equals the balance of its open
+ * documents, worked out the way the receipts and payments pages work it out
+ * (fill_paid_invoice_array, phreebooks/functions/phreebooks.php): a document is
+ * open while its closed flag is 0, and owes its total - negated for a credit
+ * memo - less fetch_partially_paid().
+ *
+ * Whatever reaches the account other than through a document - a general
+ * journal opening balance, a receipt applied to nothing, a point-of-sale entry -
+ * is added as it stands and counted in the report, so the comparison is between
+ * the ledger and the pages' own reckoning of who owes what. A closed document
+ * that is not settled, or an open one whose payments the pages miscount, shows
+ * as a difference.
+ */
+function acc_check_i6(): array
+{
+    $tol = acc_tolerance();
+    $bad = array();
+    $docs = acc_rows("SELECT id, journal_id, gl_acct_id, total_amount, closed FROM " . TABLE_JOURNAL_MAIN . "
+                      WHERE journal_id IN (6, 7, 12, 13)");
+    $expected = array(); $open_count = array(); $doc_ids = array();
+    foreach ($docs as $d) {
+        $doc_ids[(int)$d['id']] = true;
+        $acct = (string)$d['gl_acct_id'];
+        $expected[$acct] = $expected[$acct] ?? 0;
+        if ($d['closed'] != '0') continue;
+        $owed = (in_array((int)$d['journal_id'], array(7, 13)) ? -1 : 1) * $d['total_amount'] - fetch_partially_paid((int)$d['id']);
+        // What a customer owes is a debit on receivables; what is owed a vendor, a credit on payables.
+        $expected[$acct] += in_array((int)$d['journal_id'], array(12, 13)) ? $owed : -$owed;
+        $open_count[$acct] = ($open_count[$acct] ?? 0) + 1;
+    }
+    $other_count = 0;
+    foreach (array_keys($expected) as $acct) {
+        $rows = acc_rows("SELECT m.id, m.journal_id, i.gl_type, i.so_po_item_ref_id, i.debit_amount, i.credit_amount
+            FROM " . TABLE_JOURNAL_MAIN . " m JOIN " . TABLE_JOURNAL_ITEM . " i ON i.ref_id = m.id
+            WHERE i.gl_account = '" . db_input($acct) . "' AND m.journal_id IN (" . ACC_POSTING_JOURNALS . ")");
+        foreach ($rows as $r) {
+            if (isset($doc_ids[(int)$r['id']])) continue;                                   // the document itself
+            if (in_array($r['gl_type'], array('pmt', 'chk')) && isset($doc_ids[(int)$r['so_po_item_ref_id']])) continue; // settling one
+            $expected[$acct] += $r['debit_amount'] - $r['credit_amount'];
+            $other_count++;
+        }
+        $balance = acc_account_balance($acct);
+        if (abs($balance - $expected[$acct]) > $tol) {
+            $bad[] = sprintf('account %s: balance %.4f, open documents and other lines come to %.4f (%d open documents)',
+                             $acct, $balance, $expected[$acct], $open_count[$acct] ?? 0);
+        }
+    }
+    $extent = count($expected) . ' accounts, ' . array_sum($open_count) . ' open documents'
+            . ($other_count ? ", $other_count lines outside any document" : '');
+    return array('I6', 'receivables and payables equal their open documents', $extent, $bad);
+}
+
 /** An account's balance as of the last period it has history for. */
 function acc_account_balance(string $acct, ?int $period = null): float
 {
@@ -314,7 +369,7 @@ function acc_account_balance(string $acct, ?int $period = null): float
 /** @return array<int,array{0:string,1:string,2:string,3:array<int,string>}> id, title, extent, failures */
 function acc_invariants(): array
 {
-    return array(acc_check_i1(), acc_check_i2(), acc_check_i3(), acc_check_i4(), acc_check_i5());
+    return array(acc_check_i1(), acc_check_i2(), acc_check_i3(), acc_check_i4(), acc_check_i5(), acc_check_i6());
 }
 
 /** Prints the results; answers true when every check held. */
@@ -335,5 +390,6 @@ if (PHP_SAPI === 'cli' && realpath($argv[0] ?? '') === realpath(__FILE__)) {
     if ($company === '') { fwrite(STDERR, "usage: invariants.php <company>\n"); exit(2); }
     require_once(dirname(__DIR__) . '/bootstrap_freebooks.php');
     fb_bootstrap($company, false);
+    require_once(DIR_FS_MODULES . 'phreebooks/functions/phreebooks.php');   // fetch_partially_paid(), for I6
     exit(acc_report_invariants(acc_invariants()) ? 0 : 1);
 }

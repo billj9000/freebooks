@@ -34,9 +34,8 @@
  *
  * Expected after each step, cumulatively: the item's quantity on hand, the
  * inventory account's balance, and net income (income less cost of goods). The
- * runner also checks that the payables account equals inventory plus cost of
- * goods - every purchase is on account and nothing is paid, so nothing else can
- * hold the money.
+ * payables account must also equal inventory plus cost of goods - every purchase
+ * is on account and nothing is paid, so nothing else can hold the money.
  *
  * Day N is day N of the first period of the company's current fiscal year.
  * Accounts are named by role and resolved from the company's own settings.
@@ -56,7 +55,9 @@ return array(
         array('type' => 'v', 'short_name' => 'ACC-VENDOR',   'name' => 'Acceptance Vendor'),
         array('type' => 'c', 'short_name' => 'ACC-CUSTOMER', 'name' => 'Acceptance Customer'),
     ),
-    'conservation' => true,
+    'balances' => array(
+        'payables = inventory + cost of goods' => array('ap' => 1, 'inventory' => 1, 'cogs' => 1),
+    ),
     'steps' => array(
         array('seq' => 1,  'day' => 1,  'do' => 'gl', 'label' => 'G1', 'note' => 'cash 1,000 from equity',
               'rows' => array(array('cash', 1000, 0), array('equity', 0, 1000)),
