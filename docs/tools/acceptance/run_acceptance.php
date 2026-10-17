@@ -35,7 +35,8 @@
  * and refunds through banking::post_ordr(), Bulk Pay through
  * banking::bulk_pay(), and their deletion through banking::delete_payment(); a
  * request for quote or a quote becomes an order as popup_convert makes it; the
- * general journal entry goes through journal::Post(). These are the calls the
+ * general journal entry, and an assembly's build or unbuild as
+ * inventory/pages/assemblies posts it, go through journal::Post(). These are the calls the
  * pages make, fed the fields those pages would send. The one departure is the
  * conversion's date, which the page always sets to today.
  *
@@ -110,6 +111,8 @@ function acc_describe(array $s): string
         case 'pay':    return sprintf('pay %s on %s', $s['amount'], $s['bill']) . (!empty($s['discount']) ? " + {$s['discount']} discount" : '');
         case 'bulk_pay': return 'bulk pay ' . implode(', ', array_map(function ($b) { return "{$b[1]} on {$b[0]}"; }, $s['bills']));
         case 'vendor_refund': return sprintf('vendor refunds %s on %s', $s['amount'], $s['credit']);
+        case 'build':  return sprintf('build %s %s', $s['qty'], $s['sku']);
+        case 'unbuild': return sprintf('unbuild %s %s', $s['qty'], $s['sku']);
     }
     return $s['do'];
 }
@@ -179,9 +182,11 @@ foreach ($want_modes as $mode) {
             $failed++;
             break;
         }
+        $posted = $out;
         list($rc, $out) = $run("check:$i");
         $verdict = $out ? end($out) : '';
         echo $verdict === 'CHECK-PASS' ? "ok\n" : "FAIL\n";
+        if (isset($s['refused'])) foreach (array_slice($posted, 0, -1) as $l) echo "      $l\n";
         foreach (array_slice($out, 0, -1) as $l) echo "      $l\n";
         if ($verdict !== 'CHECK-PASS') {
             if (!$out) printf("      the check died with no output (exit %d)\n", $rc);
@@ -292,11 +297,12 @@ function acc_reset(array $scenario): array
 
     foreach ($scenario['items'] as $it) {
         $sku = db_input($it['sku']);
+        $db->Execute("DELETE FROM " . TABLE_INVENTORY_ASSY_LIST . " WHERE ref_id IN (SELECT id FROM " . TABLE_INVENTORY . " WHERE sku = '$sku')");
         $db->Execute("DELETE FROM " . TABLE_INVENTORY . " WHERE sku = '$sku'");
         $db->Execute("DELETE FROM " . TABLE_INVENTORY_PURCHASE . " WHERE sku = '$sku'");
         db_perform(TABLE_INVENTORY, array(
             'sku'                    => $it['sku'],
-            'inventory_type'         => 'si',
+            'inventory_type'         => $it['type'] ?? 'si',
             'description_short'      => $it['description'],
             'description_purchase'   => $it['description'],
             'description_sales'      => $it['description'],
@@ -307,6 +313,14 @@ function acc_reset(array $scenario): array
             'item_cost'              => $it['item_cost'],
             'creation_date'          => date('Y-m-d H:i:s'),
         ), 'insert');
+    }
+    // An assembly's or a bundle's bill of materials names items the loop above made.
+    foreach ($scenario['items'] as $it) {
+        if (empty($it['bom'])) continue;
+        $ref_id = (int)acc_rows("SELECT id FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($it['sku']) . "'")[0]['id'];
+        foreach ($it['bom'] as $part => $qty) {
+            db_perform(TABLE_INVENTORY_ASSY_LIST, array('ref_id' => $ref_id, 'sku' => $part, 'description' => $part, 'qty' => $qty), 'insert');
+        }
     }
 
     $contacts = array();
@@ -370,13 +384,20 @@ function acc_define_journal(int $jid, array $state): void
     }
 }
 
+/** A message as the user reads it: no markup or entities, spaces collapsed. */
+function acc_plain(string $html): string
+{
+    $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return trim(preg_replace('/[\s\x{a0}]+/u', ' ', $text));
+}
+
 /** Errors the ledger raised, read off the stack the application uses. */
 function acc_stack_errors(): array
 {
     $out = array();
     foreach ($_SESSION['messageToStack'] ?? array() as $m) {
         if (($m['type'] ?? '') !== 'error') continue;
-        $out[] = trim(preg_replace('/\s+/', ' ', strip_tags($m['text'])));
+        $out[] = acc_plain($m['text']);
     }
     return $out;
 }
@@ -411,11 +432,21 @@ function acc_post(array $step, array $state, string $state_file): int
             case 'pay':           $id = acc_post_banking($step, $state, 20, $step['bill']); break;
             case 'vendor_refund': $id = acc_post_banking($step, $state, 18, $step['credit']); break;
             case 'bulk_pay':      $id = acc_bulk_pay($step, $state); break;
+            case 'build':         $id = acc_post_assembly($step, $state, (float)$step['qty']); break;
+            case 'unbuild':       $id = acc_post_assembly($step, $state, -(float)$step['qty']); break;
             case 'edit':
                 $id = acc_post_order($step, $state, acc_journal_of($state, $step['target']), acc_id($state, $step['target']));
                 break;
             case 'delete':
                 $target = acc_id($state, $step['target']);
+                if (acc_journal_of($state, $step['target']) === 14) { // as inventory/pages/assemblies does it
+                    define('JOURNAL_ID', 14);
+                    global $db;
+                    $assy = new journal($target);
+                    $db->transStart();
+                    if ($assy->unPost('delete')) { $db->transCommit(); $id = $target; }
+                    break;
+                }
                 acc_define_journal(acc_journal_of($state, $step['target']), $state);
                 $order = new orders();
                 $order->journal($target);
@@ -440,6 +471,17 @@ function acc_post(array $step, array $state, string $state_file): int
         foreach (explode("\n", trim(file_get_contents($sql_log, false, null, $log_size))) as $l) $why[] = 'REFUSED ' . substr(trim($l), 0, 200);
     }
     if (!$id && !$why) $why[] = 'the post answered false and said nothing';
+    // A step expected to be refused passes its post when the ledger refuses it
+    // with that message; its checks then show that nothing changed.
+    if (isset($step['refused'])) {
+        list($const, $suffix) = $step['refused'];
+        $text = acc_plain(constant($const) . $suffix);
+        if ($id) { echo "posted $id, but the ledger should have refused it: $text\n"; return 1; }
+        if (!in_array('ledger: ' . $text, $why, true)) { foreach ($why as $w) echo "$w\n"; echo "the refusal wanted was: $text\n"; return 1; }
+        echo "refused as expected: $text\n";
+        echo "POSTED nothing\n";
+        return 0;
+    }
     if ($why) { foreach ($why as $w) echo "$w\n"; return 1; }
     if (isset($step['label'])) $state['ids'][$step['label']] = $id;
     file_put_contents($state_file, json_encode($state));
@@ -707,6 +749,41 @@ function acc_bulk_pay(array $step, array $state): int
     return (int)$pay->id;
 }
 
+/**
+ * A build (positive $qty) or an unbuild (negative) of an assembly, as
+ * inventory/pages/assemblies does it: one line naming the assembly and the
+ * quantity, which the ledger costs from the parts.
+ */
+function acc_post_assembly(array $step, array $state, float $qty): int
+{
+    global $db;
+    define('JOURNAL_ID', 14);
+    define('GL_TYPE', '');
+    $entry = new journal();
+    $entry->id                  = '';
+    $entry->journal_id          = 14;
+    $entry->store_id            = 0;
+    $entry->post_date           = acc_date($state, (int)$step['day']);
+    $entry->period              = gen_calculate_period($entry->post_date, true);
+    $entry->admin_id            = 1;
+    $entry->purchase_invoice_id = 'ACC-' . ($step['label'] ?? $step['seq']);
+    $entry->closed              = '1';
+    $entry->journal_main_array  = $entry->build_journal_main_array();
+    $item = acc_rows("SELECT account_inventory_wage, description_short FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($step['sku']) . "'")[0];
+    $entry->journal_rows[] = array(
+        'gl_type'          => 'asy',
+        'sku'              => $step['sku'],
+        'qty'              => $qty,
+        'serialize_number' => '',
+        'gl_account'       => $item['account_inventory_wage'],
+        'description'      => $item['description_short'],
+    );
+    $db->transStart();
+    if (!$entry->Post('insert')) return 0;   // the ledger has rolled back
+    $db->transCommit();
+    return (int)$entry->id;
+}
+
 function acc_sku_of(int $id): string
 {
     return (string)(acc_rows("SELECT sku FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = $id AND sku <> '' LIMIT 1")[0]['sku'] ?? '');
@@ -733,8 +810,10 @@ function acc_net_income(int $period): float
  *   open              the labels among the scenario's 'track_open' still open
  *   terms             array(label, discount, early_day): the discount and
  *                     early-payment date the receipts or payments page offers on it
- *   layers            array(label => qty): what remains of the cost layer that
- *                     labelled receipt or restock added, for the first item
+ *   stock, item_costs array(sku => figure): an item's stock on hand, or its cost
+ *                     as the item record holds it
+ *   layers            array(label => qty): what remains of the cost layers that
+ *                     labelled document added; 'label SKU' counts one item's only
  *   doc_cogs          array(label => amount): the cost of goods that labelled
  *                     document books, debit positive
  * and every entry of the scenario's 'balances' must net to zero.
@@ -779,14 +858,27 @@ function acc_check(array $step, array $scenario, array $state): int
             $parts[] = $row ? sprintf('%s terms %s%% to %s', $label, $row['percent'] * 100, $row['early_date'])
                             . ($good ? '' : sprintf(' WANTED %s%% to %s', $discount * 100, $early))
                             : "$label not offered for payment";
+        } elseif ($k === 'stock' || $k === 'item_costs') {
+            $good = true; $shown = array();
+            foreach ($want as $s => $w) {
+                $r = acc_rows("SELECT quantity_on_hand, item_cost FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($s) . "'");
+                if (!$r) throw new RuntimeException("expectation '$k' names $s, which is not an item");
+                $g = (float)$r[0][$k === 'stock' ? 'quantity_on_hand' : 'item_cost'];
+                $hit = abs($g - $w) <= ($k === 'stock' ? ACC_QTY_TOLERANCE : $tol);
+                $shown[] = sprintf('%s %s', $s, $g + 0) . ($hit ? '' : sprintf(' WANTED %s', $w + 0));
+                $good = $good && $hit;
+            }
+            $parts[] = ($k === 'stock' ? 'stock ' : 'item cost ') . implode(', ', $shown);
         } elseif ($k === 'layers' || $k === 'doc_cogs') {
             $good = true; $shown = array();
-            foreach ($want as $label => $w) {
+            foreach ($want as $key => $w) {
+                list($label, $of) = array_pad(explode(' ', $key, 2), 2, null);
                 if (empty($state['ids'][$label])) throw new RuntimeException("expectation '$k' names $label, which no step labels");
                 $id = (int)$state['ids'][$label];
+                $label = $key;
                 if ($k === 'layers') {
                     $g = (float)(acc_rows("SELECT SUM(remaining) AS q FROM " . TABLE_INVENTORY_HISTORY . "
-                                           WHERE ref_id = $id AND sku = '" . db_input($sku) . "'")[0]['q'] ?? 0);
+                                           WHERE ref_id = $id" . ($of !== null ? " AND sku = '" . db_input($of) . "'" : ''))[0]['q'] ?? 0);
                     $hit = abs($g - $w) <= ACC_QTY_TOLERANCE;
                     $shown[] = sprintf('%s %s', $label, $g + 0) . ($hit ? '' : sprintf(' WANTED %s', $w + 0));
                 } else {
@@ -832,8 +924,9 @@ function acc_check(array $step, array $scenario, array $state): int
             printf("%s does not hold: %s nets to %.4f\n", $name, implode(', ', $shown), $sum);
         }
     }
-    $owed = acc_rows("SELECT SUM(qty) AS q FROM " . TABLE_INVENTORY_COGS_OWED . " WHERE sku = '" . db_input($sku) . "'")[0]['q'] ?? 0;
-    if ($owed) printf("(owed %s)\n", $owed + 0);
+    foreach (acc_rows("SELECT sku, SUM(qty) AS q FROM " . TABLE_INVENTORY_COGS_OWED . " GROUP BY sku") as $o) {
+        printf("(owed %s%s)\n", $o['q'] + 0, count($scenario['items']) > 1 ? ' ' . $o['sku'] : '');
+    }
     ob_start();
     $inv_ok = acc_report_invariants(acc_invariants(), '');
     $report = ob_get_clean();
