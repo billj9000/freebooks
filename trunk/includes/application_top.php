@@ -70,8 +70,8 @@ if (empty($_SESSION['csrf_token'])) $_SESSION['csrf_token'] = bin2hex(random_byt
 // Which page of a list is being looked at. Pages compute their SQL offset as
 // MAX_DISPLAY_SEARCH_RESULTS * ($_REQUEST['list'] - 1) before splitPageResults
 // applies its own max(1, ...) guard, so without this an absent parameter asks
-// for LIMIT -20,20 - a syntax error. Nothing distinguishes an absent list from
-// page 1: no page tests isset($_REQUEST['list']).
+// for LIMIT -20,20 - a syntax error. A list page that remembers its page
+// (history_filter) reads $_GET and $_POST to tell an absent list from page 1.
 $_REQUEST['list'] = max(1, (int)($_REQUEST['list'] ?? 1));
 // set the language
 if   (isset($_GET['language'])) { $_SESSION['language'] = $_GET['language']; } 

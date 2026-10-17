@@ -1657,7 +1657,9 @@ function gen_db_date($raw_date = '', $separator = '/') {
   	if (!$key) $key = $_GET['module'];
   	if (!isset($_REQUEST['sf']))   $_REQUEST['sf']   = isset($_SESSION[$key]['sf'])   ? $_SESSION[$key]['sf']   : ($defaults['sf'] ?? '');
   	if (!isset($_REQUEST['so']))   $_REQUEST['so']   = isset($_SESSION[$key]['so'])   ? $_SESSION[$key]['so']   : ($defaults['so'] ?? '');
-  	if (!isset($_REQUEST['list'])) $_REQUEST['list'] = isset($_SESSION[$key]['list']) ? $_SESSION[$key]['list'] : 1;
+  	// application_top always sets $_REQUEST['list'], so whether the request named
+  	// a page is read from the URL or the form; with none, the remembered page is used.
+  	if (!isset($_GET['list']) && !isset($_POST['list'])) $_REQUEST['list'] = isset($_SESSION[$key]['list']) ? $_SESSION[$key]['list'] : 1;
   	$_REQUEST['list'] = max(1, $_REQUEST['list']);
   	if (!isset($_REQUEST['search_text'])) $_REQUEST['search_text'] = isset($_SESSION[$key]['search']) ? $_SESSION[$key]['search'] : '';
   	if ( $_REQUEST['search_text'] == TEXT_SEARCH) $_REQUEST['search_text'] = '';
