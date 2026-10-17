@@ -195,7 +195,9 @@ class phreepos extends journal {
 			'serialize_number'        => $this->item_rows[$i]['serial'],
 			'project_id'              => $this->item_rows[$i]['proj'],
 			'post_date'               => $this->post_date,
-			'date_1'                  => '',
+			// date_1 is a nullable DATETIME: a line with no date is NULL, which a strict server
+			// accepts and '' it refuses (issue #110). db_perform() writes 'null' as NULL.
+			'date_1'                  => 'null',
 		  );
 		  $total += $this->item_rows[$i]['total'];
 		}
