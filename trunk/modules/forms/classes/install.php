@@ -134,7 +134,7 @@ class forms_admin {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     );
     $this->notes = array(
-      'Forms runs the existing report catalog; PhreeForm is unaffected and stays available.',
+      'Run reports from Tools -> Reports; lay out forms under Tools -> Form Layout, and print one from its document\'s Print button.',
       'Defining datasets is a separate privilege from running or writing reports.',
     );
   }
