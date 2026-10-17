@@ -225,7 +225,7 @@ define('WARNING_ENTRY_RECONCILED','This entry has been reconciled, re-posting th
 define('GL_ERROR_JOURNAL_BAD_ACCT','General Ledger account number cannot be found!');
 define('GL_ERROR_OUT_OF_BALANCE','The entry cannot be posted because the debits and credits do not balance!');
 define('GL_ERROR_BAD_ACCOUNT','One or more of the GL account numbers are invalid. Please correct and re-submit.');
-define('GL_ERROR_NO_REFERENCE','For recurring transactions, a starting reference number needs to be entered. PhreeBooks will increment it for each recurring entry.');
+define('GL_ERROR_NO_REFERENCE','For recurring transactions, a starting reference number needs to be entered. FreeBooks will increment it for each recurring entry.');
 define('GL_ERROR_RECUR_ROLL_REQD','This is a recurring entry. Do you want to update future entries as well? (Press Cancel to update only this entry)');
 define('GL_ERROR_RECUR_DEL_ROLL_REQD','This is a recurring entry. Do you want to delete future entries as well? (Press Cancel to delete only this entry)');
 define('GL_ERROR_NO_ITEMS','There were no items posted, In order for an item to be registered, the quantity must be non-blank.');
@@ -260,13 +260,13 @@ define('GL_ERROR_POSTING_NEG_INVENTORY','Error posting cost of good sold for a v
 define('GL_ERROR_SERIALIZE_QUANTITY','Error calculating COGS for a serialised item, the quantity was not equal to 1 per line item submitted.');
 define('GL_ERROR_SERIALIZE_EMPTY','Error calculating COGS for a serialised item, the serial number entered was blank.');
 define('GL_ERROR_SERIALIZE_COGS','COGS Error. Either did not find serial number or more than one item with matching serial numbers were found.');
-define('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT','Zero or more than one retained earnings accounts found. There needs to be one and only one retained earnings account in PhreeBooks to operate properly!');
+define('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT','Zero or more than one retained earnings accounts found. There needs to be one and only one retained earnings account in FreeBooks to operate properly!');
 define('PB_ERROR_NO_PREFERRED_VENDOR','No valid vendor could be found, make sure at least one sku has a prefered vendor setup for the inventory item.');
 define('GL_ERROR_2','The %s you entered is a duplicate, please enter a new unique value!');
 define('GL_ERROR_5','There was an error incrementing the %s!');
 define('GL_ERROR_REFUND_NOT_SUPPORTED', 'The selected payment method does not support automatic refunds. Re-select the original payment method to process the refund automatically, or process the refund manually through the payment provider before saving with a different method.');
 // Javascript Messages
-define('ORD_JS_RECUR_NO_INVOICE','For a recurring transaction, a starting invoice number needs to be entered. PhreeBooks will increment it for each recurring entry.');
+define('ORD_JS_RECUR_NO_INVOICE','For a recurring transaction, a starting invoice number needs to be entered. FreeBooks will increment it for each recurring entry.');
 define('ORD_JS_RECUR_ROLL_REQD','This is a recurring entry. Do you want to update future entries as well? (Press Cancel to update only this entry)');
 define('ORD_JS_RECUR_DEL_ROLL_REQD','This is a recurring entry. Do you want to delete future entries as well? (Press Cancel to delete only this entry)');
 define('ORD_JS_WAITING_FOR_PAYMENT','Either Waiting for Invoice needs to be checked or an invoice number needs to be entered.');
@@ -299,7 +299,7 @@ define('GL_LOG_FY_UPDATE','General Journal Fiscal Year - ');
 define('GL_LOG_PURGE_DB','General Journal - Purge Database');
 define('GL_LOG_BUDGET_UPDATE','General Ledger - Budget Update');
 // Tooltip messages
-define('ORD_TT_PURCH_INV_NUM','If you leave this field blank, Phreebooks will automatically assign a number.');
+define('ORD_TT_PURCH_INV_NUM','If you leave this field blank, FreeBooks will automatically assign a number.');
 // Journals
 define('GEN_ADM_TOOLS_J02','General Journal (2)');
 define('GEN_ADM_TOOLS_J03','Purchase Quote Journal (3)');

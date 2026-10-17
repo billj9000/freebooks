@@ -20,7 +20,7 @@
 
 // Module information
 define('MODULE_ZENCART_TITLE','ZenCart Module');
-define('MODULE_ZENCART_DESCRIPTION','The ZenCart module interfaces PhreeBooks with a ZenCart e-store. Functons include upload products, download orders and synchronising product databases.');
+define('MODULE_ZENCART_DESCRIPTION','The ZenCart module interfaces FreeBooks with a ZenCart e-store. Functons include upload products, download orders and synchronising product databases.');
 define('ZENCART_ADMIN_URL','ZenCart store URL (no trailing slash, e.g. https://shop.example.com)');
 define('ZENCART_ADMIN_API_KEY','API key (must match FREEBOOKS_API_KEY in ZenCart configuration table)');
 define('MODULE_ZENCART_CONFIG_INFO','Please set the configuration values to your ZenCart e-store.');

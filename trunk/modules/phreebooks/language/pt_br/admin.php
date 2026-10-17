@@ -119,7 +119,7 @@ define('CD_02_04_DESC','Conta padrão para utilizar para descontos quando client
 define('CD_02_05_DESC','Conta padrão para utilizar para tarifas de frete. Tipicamente uma conta do tipo Receitas.');
 define('CD_02_01_DESC','Conta padrão para utilizar para Contas a Receber. Tipicamente uma conta do tipo Contas a Receber.');
 define('CD_02_02_DESC','Conta padrão para utilizar para transações de vendas. Tipicamente uma conta do tipo Receitas.');
-define('ALLOW_NEGATIVE_INVENTORY_DESC','Permitir vendas de itens de inventário resultarem saldo negativo? PhreeBooks permite isto e o lançamento no diário que resultou em estoque negativo é reenviado quando o inventário é recebido para calcular os custos adequadamente.');
+define('ALLOW_NEGATIVE_INVENTORY_DESC','Permitir vendas de itens de inventário resultarem saldo negativo? FreeBooks permite isto e o lançamento no diário que resultou em estoque negativo é reenviado quando o inventário é recebido para calcular os custos adequadamente.');
 define('CD_01_55_DESC','Se verdadeiro, esta opção permitirá entrada nas ordens via USB e leitores de código de barras suportados.');
 define('CD_01_75_DESC','Se verdadeiro, esta opção utiliza uma tela de ordem de linha simples sem mostrar campos para preço cheio e desconto. A tela de linha simples utiliza números de contas da CG ao invés de permitir números / descrições em duas linhas.');
 define('CD_01_50_DESC','Esta função insere dois campos adicionais nas telas de ordens para entrar um nível de desconto por ordem ou percentual. Se desabilitado, os campos não serão mostrados nas telas de ordens.');
@@ -239,7 +239,7 @@ define('TEXT_ACCOUNT_AGING','Atraso Contas');
 define('TEXT_PAYMENT_TERMS','Termos Pagamento');
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Plano Contas Padrão'); // also defined in inventory/admin.php, phreedom/admin.php
 define('MODULE_PHREEBOOKS_NOTES_4','PRIORIDADE MÉDIA: Atualizar as contas padrão para cliente e fornecedor, depois de carregar Plano de Contas (aba Empresa -> Módulo Administração -> Propriedades Módulo Contabilidade -> Clientes/fornecedores)');
-define('MODULE_PHREEBOOKS_NOTES_5', 'PRIORIDADE ALTA: Configure os impostos de vendas e compras, após carregar as contas contábeis (Empresa -> Administração de Módulos -> Propriedades do Módulo PhreeBooks -> abas Impostos)');
+define('MODULE_PHREEBOOKS_NOTES_5', 'PRIORIDADE ALTA: Configure os impostos de vendas e compras, após carregar as contas contábeis (Empresa -> Administração de Módulos -> Propriedades do Módulo Phreebooks -> abas Impostos)');
 define('MODULE_PHREEBOOKS_NOTES_3','PRIORIDADE ALTA: Alterar ou importar plano de contas das especificações padrão (aba Empresa -> Módulo Administração -> Propriedades Módulo Contabilidade -> Plano de Contas)');
 define('MODULE_PHREEBOOKS_NOTES_2','PRIORIDADE BAIXA: Complete as especificações de servidor de email (aba Empresa -> Módulo Administração -> Email)');
 define('MODULE_PHREEBOOKS_NOTES_1','PRIORIDADE MÉDIA: Entre informação da Empresas (aba Empresa -> Módulo Administração -> Minha Empresa)');

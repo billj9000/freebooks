@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,7 +20,7 @@
 
 // Module information
 define('MODULE_AMAZON_TITLE','Amazon Module');
-define('MODULE_AMAZON_DESCRIPTION','The Amazon module adds the ability to create inventory feeds, import orders, confirms shipments and reconcile payments from Amazon.com. NOTE: This module requires knowledge of both PhreeBooks php and Amazon Feed templates to properly set it up and make the interface work properly. There is limited Forum supoprt from PhreeSoft. Paid support for this module is available through PhreeSoft.');
+define('MODULE_AMAZON_DESCRIPTION','The Amazon module adds the ability to create inventory feeds, import orders, confirms shipments and reconcile payments from Amazon.com. NOTE: This module requires knowledge of both FreeBooks php and Amazon Feed templates to properly set it up and make the interface work properly.');
 
 // Headings
 

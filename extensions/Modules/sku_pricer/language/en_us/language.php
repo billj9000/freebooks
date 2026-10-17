@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -28,7 +29,7 @@ define('SKU_PRICER_DIRECTIONS','After a file has been selected, press the Save i
 		field1,field2,field2,field4,...<br>
 		data1,data2,data3,data4, ...<br />
 		Where field is the inventory field name, data is the db formatted value.<br />
-		Most fields are importable unless they are controlled by the PhreeBooks module.<br />
+		Most fields are importable unless they are controlled by the Phreebooks module.<br />
 		The file must contain either the SKU or UPC code to properly update the correct record.');
 define('SKU_PRICER_ERROR_VENDOR','Vendor \'%s\' was not found, so the row for \'%s\' was left unchanged. Use the vendor\'s short name as it appears in the vendor list, or its numeric id.');
 // Error Messages

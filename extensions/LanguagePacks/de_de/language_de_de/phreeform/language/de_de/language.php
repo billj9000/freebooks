@@ -1,9 +1,9 @@
 ﻿<?php 
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreeform/language/en_us/language.php
 // 
@@ -55,7 +51,7 @@ define ('TEXT_EMAIL_MSG_DETAIL', 'E-Mail-Body Text Message');
 define ('TEXT_FILENAME_SOURCE', 'Download Dateiname Quelle');
 define ('TEXT_DUPLICATE', 'Duplizieren');
 define ('TEXT_EMPTY_FOLDER', 'Der Ordner enthält keine Dokumente.');
-define ('TEXT_ENTER_NEW_PATH', 'Geben Neuer Pfad für die Suche nach Berichten (aus PhreeBooks Wurzel):'); 
+define ('TEXT_ENTER_NEW_PATH', 'Geben Neuer Pfad für die Suche nach Berichten (aus FreeBooks Wurzel):'); 
 define ('TEXT_FIELD_LIST', 'field list');
 define ('TEXT_FIELD_SETUP', 'Field Setup');
 define ('TEXT_FIELDNAME', 'Feldname');

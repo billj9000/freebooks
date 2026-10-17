@@ -19,15 +19,15 @@
 //
 
 // Module information
-define('MODULE_PHREEBOOKS_TITLE','PhreeBooks Module');
+define('MODULE_PHREEBOOKS_TITLE','Phreebooks Module');
 define('MODULE_PHREEBOOKS_DESCRIPTION','The phreebooks module provides double entry accounting. Functions include Purchase Orders, Sales Orders, Invoicing, Journal Entries and more. <b>NOTE: This is a core module and should not be removed!</b>');
 // Headings
 // Installation
 define('MODULE_PHREEBOOKS_NOTES_1','PRIORITY MEDIUM: Enter company information (Company -> Module Administration -> My Company tab)');
 define('MODULE_PHREEBOOKS_NOTES_2','PRIORITY LOW: Set up mail server settings (Company -> Module Administration -> Email tab)');
-define('MODULE_PHREEBOOKS_NOTES_3','PRIORITY HIGH: Change or import chart of accounts from default settings (Company -> Module Administration -> PhreeBooks Module Properties -> Chart of Accounts tab)');
-define('MODULE_PHREEBOOKS_NOTES_4','PRIORITY MEDIUM: Update default general ledger accounts for customer and vendors, after loading GL accounts (Company -> Module Administration -> PhreeBooks Module Properties -> Customers/Vendors tab)');
-define('MODULE_PHREEBOOKS_NOTES_5','PRIORITY HIGH: Set up sales and puchase taxes, after loading GL accounts (Company -> Module Administration -> PhreeBooks Module Properties -> Taxes tabs)');
+define('MODULE_PHREEBOOKS_NOTES_3','PRIORITY HIGH: Change or import chart of accounts from default settings (Company -> Module Administration -> Phreebooks Module Properties -> Chart of Accounts tab)');
+define('MODULE_PHREEBOOKS_NOTES_4','PRIORITY MEDIUM: Update default general ledger accounts for customer and vendors, after loading GL accounts (Company -> Module Administration -> Phreebooks Module Properties -> Customers/Vendors tab)');
+define('MODULE_PHREEBOOKS_NOTES_5','PRIORITY HIGH: Set up sales and puchase taxes, after loading GL accounts (Company -> Module Administration -> Phreebooks Module Properties -> Taxes tabs)');
 // General Defines
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Default GL Accounts'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_PAYMENT_TERMS','Payment Terms');
@@ -155,7 +155,7 @@ define('CD_13_05_DESC', 'Determines how to display the general ledger accounts i
 define('CD_01_50_DESC', 'This feature adds two additional fields to the order screens to enter an order level discount value or percent. If disabled, the fields will not be displayed on the order screens.');
 define('CD_01_55_DESC', 'If set to Yes, this option will enable data entry on order forms for USB and supported bar code readers.');
 define('CD_01_75_DESC', 'If set to Yes, this option uses a single line order screen without displayed fields for full price and discount. The single line screen uses GL account numbers versus allowing full GL account numbers/descriptions in two line mode.');
-define('ALLOW_NEGATIVE_INVENTORY_DESC','Allow sales of inventory items resulting in negative stock levels? PhreeBooks allows this and the journal entry resulting in inventory going negative is re-posted when inventory is received to accurately calculate costs.');
+define('ALLOW_NEGATIVE_INVENTORY_DESC','Allow sales of inventory items resulting in negative stock levels? FreeBooks allows this and the journal entry resulting in inventory going negative is re-posted when inventory is received to accurately calculate costs.');
 /************************** (Customer Defaults) ***********************************************/
 define('CD_02_01_DESC', 'Default Accounts Receivables account. Typically an Accounts Receivable type account.');
 define('CD_02_02_DESC', 'Default account to use for sales transactions. Typically an Income type account.');
@@ -186,7 +186,7 @@ define('CD_02_24_DESC', 'Determines whether or not to calculate finance charges 
 define('CD_02_30_DESC', 'If enabled, shipping charges will be added to the calculation of sales tax. If not enabled, shipping will not be taxed.');
 define('CD_02_35_DESC', 'If set to Yes, this option will automatically assign an ID to new customer/vendor when they are created.');
 define('CD_02_40_DESC', 'This feature displays a customer status popup on the order screens when a customer is selected from the contact search popup. It displays balances, account aging as well as the active status of the account.');
-define('CD_02_50_DESC', 'If order level discounts are enabled (in PhreeBooks Module > General), this switch determines whether the sales tax is calculated before, Yes, (or after, No) the discount is applied to Sales Orders, Sales/Invoices, and Customer Quotes. (Default is NO)');
+define('CD_02_50_DESC', 'If order level discounts are enabled (in Phreebooks Module > General), this switch determines whether the sales tax is calculated before, Yes, (or after, No) the discount is applied to Sales Orders, Sales/Invoices, and Customer Quotes. (Default is NO)');
 /************************** (Vendor Defaults) ***********************************************/
 define('CD_03_01_DESC', 'Default account to use for received items. This account can be over written through the individual item record. Typically an Inventory or Expense type account.');
 define('CD_03_02_DESC', 'Default account to use for all purchases unless specified in the individual vendor record. Typically a Accounts Payable type account.');

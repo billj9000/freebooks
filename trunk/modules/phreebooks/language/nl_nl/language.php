@@ -223,7 +223,7 @@ define('WARNING_ENTRY_RECONCILED','Dit bericht is verzoend opnieuw-bewaren van d
 define('GL_ERROR_JOURNAL_BAD_ACCT','Het grootboek rekeningnummer kon niet gevonden worden!');
 define('GL_ERROR_OUT_OF_BALANCE','De boeking kan niet worden opgeslagen omdat debet en credit niet in balans zijn!');
 define('GL_ERROR_BAD_ACCOUNT','een of meer grootboekrekening nummers is niet correct. Corrigeer en probeer opnieuw.');
-define('GL_ERROR_NO_REFERENCE','Voor terugkerende transacties, een beginnend referentienummer moet worden ingevoerd. PhreeBooks zal deze te verhogen voor elke terugkerende item.');
+define('GL_ERROR_NO_REFERENCE','Voor terugkerende transacties, een beginnend referentienummer moet worden ingevoerd. FreeBooks zal deze te verhogen voor elke terugkerende item.');
 define('GL_ERROR_RECUR_ROLL_REQD','Dit is een terugkerend item. Wilt u toekomstige boekingen ook bijwerken? (Druk op Annuleren om alleen dit item updaten)');
 define('GL_ERROR_RECUR_DEL_ROLL_REQD','Dit is een terugkerend item. Wilt u toekomstige boekingen ook verwijderen? (Druk op Annuleren om alleen dit bericht te wissen)');
 define('GL_ERROR_NO_ITEMS','Er zijn geen items geboekt, Om een item te boeken moet het aantal / hoeveelheid niet leeg zijn.');
@@ -258,12 +258,12 @@ define('GL_ERROR_POSTING_NEG_INVENTORY','Error bij opslaan van kostprijs voor he
 define('GL_ERROR_SERIALIZE_QUANTITY','Error Berekenen van Kostprijs voor een serie item, De aantallen waren niet gelijk aan 1 per regel item.');
 define('GL_ERROR_SERIALIZE_EMPTY','Error bij de berekening van de kostprijs voor een serieel item, het serienummer is leeg.');
 define('GL_ERROR_SERIALIZE_COGS','Kostprijs Error. Kon het serienummer niet vinden of meer dan een item met bijpassende serienummers zijn gevonden.');
-define('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT','Nul of meer dan een ingehouden winsten rekeningen gevonden. Er moet een en slechts een ingehouden winsten rekening in PhreeBooks naar behoren functioneert!');
+define('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT','Nul of meer dan een ingehouden winsten rekeningen gevonden. Er moet een en slechts een ingehouden winsten rekening in FreeBooks naar behoren functioneert!');
 define('PB_ERROR_NO_PREFERRED_VENDOR','Geen geldige leverancier kon worden gevonden, zorg er dan tenminste een Art.nr. een voorkeur leverancier heeft ingesteld.');
 define('GL_ERROR_2','De %s die u hebt ingevoerd is een duplicaat, voert u een nieuwe unieke waarde aub!');
 define('GL_ERROR_5','Er is een fout opgetreden het verhogen van de %s!');
 define('GL_ERROR_REFUND_NOT_SUPPORTED', 'De geselecteerde betaalmethode ondersteunt geen automatische terugbetalingen. Selecteer de oorspronkelijke betaalmethode opnieuw om de terugbetaling automatisch te verwerken, of verwerk de terugbetaling handmatig via de betaalprovider voordat u met een andere methode opslaat.');
-define('ORD_JS_RECUR_NO_INVOICE','Voor een eenmalige transactie, een beginnend factuurnummer moet worden ingevoerd. PhreeBooks zal deze te verhogen voor elke terugkerende item.');
+define('ORD_JS_RECUR_NO_INVOICE','Voor een eenmalige transactie, een beginnend factuurnummer moet worden ingevoerd. FreeBooks zal deze te verhogen voor elke terugkerende item.');
 define('ORD_JS_RECUR_ROLL_REQD','Dit is een terugkerend item. Wilt u toekomstige boekingen ook bijwerken? (Druk op Annuleren om alleen dit item updaten)');
 define('ORD_JS_RECUR_DEL_ROLL_REQD','Dit is een terugkerend item. Wilt u toekomstige boekingen verwijderen? (Druk op Annuleren om alleen dit bericht te wissen)');
 define('ORD_JS_WAITING_FOR_PAYMENT','Of Wachten op factuur moet worden aangevinkt of een factuur nummer moet worden ingevoerd.');

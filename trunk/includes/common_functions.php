@@ -2303,7 +2303,7 @@ function xml_to_object($xml = '') {
 	  }
 	  // TBD, the attr array is set but how to add to output?
 	  if (!$selfclose && strpos($xml, $end_tag) === false) {
-	    $messageStack->add('PhreeBooks XML parse error looking for end tag: ' . $tag . ' but could not find it!','error');
+	    $messageStack->add('FreeBooks XML parse error looking for end tag: ' . $tag . ' but could not find it!','error');
 	    return false;
 	  }
 	  while(true) {

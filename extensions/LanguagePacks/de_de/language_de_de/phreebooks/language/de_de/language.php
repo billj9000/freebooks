@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/language/en_us/language.php
 //
@@ -108,7 +104,7 @@ define ('BNK_BAD_CASH_ACCOUNT', 'Sie haben einen Eintrag in ein Cash-Konto, das 
 define ('BNK_NO_GL_ENTRIES', 'Keine offenen Posten in diesem FIBU gefunden!');
 
 // Javascript-Nachrichten
-define ('ORD_JS_RECUR_NO_INVOICE', 'Für eine wiederkehrende Transaktion muss ein Start Rechnungsnummer eingegeben werden PhreeBooks erhöht sich diese für jede wiederkehrende Eintrag..');
+define ('ORD_JS_RECUR_NO_INVOICE', 'Für eine wiederkehrende Transaktion muss ein Start Rechnungsnummer eingegeben werden FreeBooks erhöht sich diese für jede wiederkehrende Eintrag..');
 define ('ORD_JS_RECUR_ROLL_REQD', 'Dies ist ein immer wiederkehrendes Eintrag Wollen Sie künftig Einträge sowie (Drücken Sie auf Abbrechen aktualisieren, um nur diesen Eintrag aktualisieren).?');
 define ('ORD_JS_RECUR_DEL_ROLL_REQD', 'Dies ist ein immer wiederkehrendes Eintrag Wollen Sie künftig Einträge sowie (Drücken Sie auf Abbrechen löschen, um nur diesen Eintrag zu löschen).?');
 define ('ORD_JS_WAITING_FOR_PAYMENT', 'Waiting for Invoice Entweder muss überprüft werden oder eine Rechnungsnummer muss eingegeben werden.');
@@ -125,7 +121,7 @@ define ('ORD_JS_CANNOT_CONVERT_SO', 'Ein un-Umsatz Auftrag nicht zu einer Bestel
 define ('ORD_DELIVERY_DATES', 'PO / SO Liefertermine -');
 
 // Tooltip Nachrichten
-define ('ORD_TT_PURCH_INV_NUM', 'Wenn Sie dieses Feld leer lassen, wird automatisch Phreebooks mit einer Nummer versehen.');
+define ('ORD_TT_PURCH_INV_NUM', 'Wenn Sie dieses Feld leer lassen, wird automatisch FreeBooks mit einer Nummer versehen.');
 
 // Zeitschriften
 define ('GEN_ADM_TOOLS_J02', 'General Journal (2)');
@@ -265,7 +261,7 @@ define ('GL_BTN_UPDATE_FY', 'Update Geschäftsjahr Änderungen');
 define ('GL_ERROR_JOURNAL_BAD_ACCT', 'General Ledger Kontonummer kann nicht gefunden werden!');
 define ('GL_ERROR_OUT_OF_BALANCE', 'Der Eintrag kann nicht gebucht, weil die Be-und Entlastungen nicht ausgeglichen sein!');
 define ('GL_ERROR_BAD_ACCOUNT', 'Eine oder mehrere der GL Kontonummern sind ungültig Bitte korrigieren und erneut einzureichen..');
-define ('GL_ERROR_NO_REFERENCE', '. Für wiederkehrende Transaktionen, ein Start-Referenzperiode Zahl eingegeben werden muss PhreeBooks erhöht sich diese für jede wiederkehrende Eintrag.');
+define ('GL_ERROR_NO_REFERENCE', '. Für wiederkehrende Transaktionen, ein Start-Referenzperiode Zahl eingegeben werden muss FreeBooks erhöht sich diese für jede wiederkehrende Eintrag.');
 define ('GL_ERROR_RECUR_ROLL_REQD', 'Dies ist ein immer wiederkehrendes Eintrag Wollen Sie künftig Einträge sowie (Drücken Sie auf Abbrechen aktualisieren, um nur diesen Eintrag aktualisieren).?');
 define ('GL_ERROR_RECUR_DEL_ROLL_REQD', 'Dies ist ein immer wiederkehrendes Eintrag Wollen Sie künftig Einträge sowie (Drücken Sie auf Abbrechen löschen, um nur diesen Eintrag zu löschen).?');
 define ('GL_ERROR_NO_ITEMS', 'Es wurden keine Artikel geschrieben, um für ein Element registriert zu sein, die Menge muss nicht leer sein.');
@@ -296,7 +292,7 @@ define ('GL_ERROR_POSTING_NEG_INVENTORY', 'Fehler Entsendung Kosten der gut für
 define ('GL_ERROR_SERIALIZE_QUANTITY', 'Fehler bei der Berechnung Herstellungskosten für eine serialisierte Punkt war die Menge nicht gleich 1 pro Posten abgegeben.');
 define ('GL_ERROR_SERIALIZE_EMPTY', 'Fehler bei der Berechnung Herstellungskosten für eine serialisierte Punkt trat die Seriennummer war leer.');
 define ('GL_ERROR_SERIALIZE_COGS', '. COGS Fehler entweder nicht gefunden Seriennummer oder mehr als einen Artikel mit passenden Seriennummern gefunden wurden.');
-define ('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT', 'Zero oder mehr als ein Bilanzgewinn Konten gefunden Es muss eine und nur eine Rechnung in die Gewinnrücklagen PhreeBooks ordnungsgemäß funktionieren werden.');
+define ('GL_ERROR_NO_RETAINED_EARNINGS_ACCOUNT', 'Zero oder mehr als ein Bilanzgewinn Konten gefunden Es muss eine und nur eine Rechnung in die Gewinnrücklagen FreeBooks ordnungsgemäß funktionieren werden.');
 define ('GL_DISPLAY_NUMBER_OF_ENTRIES', TEXT_DISPLAY_NUMBER . 'GL Einträge');
 
 // Bulk Rechnungen bezahlen

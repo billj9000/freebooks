@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/translator/language/en_us/language.php
 //
@@ -61,7 +57,7 @@ define ('TEXT_CONSTANT', 'definierte Konstante');
 define ('TEXT_DEFAULT_TRANSLATION', 'Aktuelle Übersetzung');
 define ('TEXT_STATS_VALUES', '% s von% s übersetzt (% s Prozent)');
 define ('TEXT_TRANSLATIONS_SAVED', 'Übersetzung Datensätze gespeichert.');
-define ('TRANSLATION_HEADER', 'Phreedom Language Translation Datei');
+define ('TRANSLATION_HEADER', 'FreeBooks Language Translation Datei');
 // Fehlermeldungen
 define ('TRANS_ERROR_NO_SOURCE', 'Keine verfügbaren Versionen der Ausgangssprache gefunden Importieren Sie die Ausgangssprache!.');
 define ('TRANS_ERROR_DUPLICATE', 'Fehler beim Importieren Modul:% s, Sprache:% s, Version:% s, die Sprache Datei bereits vorhanden Import übersprungen.');

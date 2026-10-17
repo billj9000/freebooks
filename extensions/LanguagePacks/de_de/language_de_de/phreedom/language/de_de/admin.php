@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/language/en_us/admin.php
 //
@@ -35,7 +31,7 @@ define ('TEXT_REQUIRED', 'required');
 define ('HEADING_MODULE_IMPORT', 'Modul Data Import / Export');
 define ('IE_HEADING_TITLE', 'Import / Export und Anfang Balances');
 // Definiert für Login-Bildschirm
-define ('HEADING_TITLE', 'PhreeBooks Login');
+define ('HEADING_TITLE', 'FreeBooks Login');
 define ('TEXT_LOGIN_NAME', 'Benutzername:');
 define ('TEXT_LOGIN_PASS', 'Passwort');
 define ('TEXT_LOGIN_COMPANY', 'Select Company:');
@@ -63,15 +59,15 @@ define ('GEN_DEF_AP_ACCT', 'Default Verbindlichkeiten Konto');
 define ('GEN_RESTRICT_PERIOD', 'einschränken Beiträge des aktuellen Berichtszeitraums?');
 define ('GEN_AUDIT_DB_DATA_BACKUP', 'Audit-Log-Datenbank Tabelle Backed Up');
 define ('GEN_AUDIT_DB_DATA_CLEAN', 'Audit-Log-Datenbank Tabelle Gereinigt');
-define ('HEADING_TITLE_CRASH_TITLE', 'PhreeBooks SQL-Fehler Trace Information');
-define ('HEADING_TITLE_CRASH_INFORMATION', 'PhreeBooks hat ein unerwarteter Fehler aufgetreten Klicken Sie auf den untenstehenden Button zum Download der Debug-Trace-Datei Informationen an die PhreeBooks Development Team für Unterstützung bei der Fehlerbehebung zu senden..');
+define ('HEADING_TITLE_CRASH_TITLE', 'FreeBooks SQL-Fehler Trace Information');
+define ('HEADING_TITLE_CRASH_INFORMATION', 'FreeBooks hat ein unerwarteter Fehler aufgetreten Klicken Sie auf den untenstehenden Button zum Download der Debug-Trace-Datei Informationen an die FreeBooks Development Team für Unterstützung bei der Fehlerbehebung zu senden..');
 define ('HEADING_TITLE_CRASH_BUTTON', 'Download Debug-Informationen');
 define ('GENERAL_CONFIG_SAVED', 'haben Configuration Werte gespeichert.');
 
 define ('ERROR_CANNOT_CREATE_MODULE_DIR', 'Fehler beim Erstellen des Verzeichnis: %s  Überprüfen Sie Ihre Berechtigungen');
 define ('ERROR_CANNOT_REMOVE_MODULE_DIR', 'Fehler beim Entfernen Verzeichnis: %s . Das Verzeichnis ist nicht vorhanden oder kann nicht leer sein Es muss von Hand entfernt werden!.');
 define ('GEN_ADM_TOOLS_CLEAN_LOG', 'Backup / Clean Audit Logs');
-define ('GEN_ADM_TOOLS_CLEAN_LOG_DESC', 'Dieser Vorgang erstellt eine Sicherungskopie Ihrer heruntergeladen Audit-Log-Datenbank-Datei. Dies wird dazu beitragen, dass die Größe der Datenbank ab und reduzieren Unternehmen Backup-Dateien. Sichern Sie dieses Protokoll ist vor der Reinigung aus, um Geschichte zu bewahren PhreeBooks Transaktion empfohlen. <br /> INFORMATIONEN: Reinigen Sie die Audit-Log werden die aktuellen Zeiten Daten in der Datenbank Tisch verlassen und entfernen Sie alle anderen Aufzeichnungen ');
+define ('GEN_ADM_TOOLS_CLEAN_LOG_DESC', 'Dieser Vorgang erstellt eine Sicherungskopie Ihrer heruntergeladen Audit-Log-Datenbank-Datei. Dies wird dazu beitragen, dass die Größe der Datenbank ab und reduzieren Unternehmen Backup-Dateien. Sichern Sie dieses Protokoll ist vor der Reinigung aus, um Geschichte zu bewahren FreeBooks Transaktion empfohlen. <br /> INFORMATIONEN: Reinigen Sie die Audit-Log werden die aktuellen Zeiten Daten in der Datenbank Tisch verlassen und entfernen Sie alle anderen Aufzeichnungen ');
 define ('GEN_ADM_TOOLS_CLEAN_LOG_BACKUP', 'Backup-Audit-Log');
 define ('GEN_ADM_TOOLS_CLEAN_LOG_CLEAN', 'Clean Out-Audit-Log');
 define ('GEN_ADM_TOOLS_BTN_CLEAN_CONFIRM', 'Sind Sie sicher, dass Sie diese Log-Einträge löschen?');
@@ -101,12 +97,12 @@ define ('GEN_TABLES_AVAILABLE', 'Tabellen zur Verfügung, um:');
 /************************** (General) ******************** ***************************/
 define ('CD_07_17_DESC', 'Minimum Länge des Passwort');
 define ('CD_08_01_DESC', 'Maximale Anzahl der Suchergebnisse pro Seite zurück');
-define ('CD_08_03_DESC', 'Automatisch nach Aktualisierungen suchen Programm bei der Anmeldung zu PhreeBooks.');
+define ('CD_08_03_DESC', 'Automatisch nach Aktualisierungen suchen Programm bei der Anmeldung zu FreeBooks.');
 define ('CD_08_05_DESC', 'Versteckt Meldungen über erfolgreiche Operationen Nur Vorsicht und Fehlermeldungen angezeigt werden..');
 define ('CD_08_07_DESC', '. Updates der Wechselkurs geladen Währungen bei jedem Login <br /> Wenn deaktiviert, kann Währungen manuell in das Setup => Währungen Menü aktualisiert werden.');
 define ('CD_08_10_DESC', 'Begrenzt die Länge der Geschichte Werte in Debitor / Kreditor Konten für Käufe / Verkäufe gezeigt.');
 define ('CD_15_01_DESC', 'Session-Timeout - Geben Sie die Zeit in Sekunden (default = 3600) Beispiel: 3600 = 1 Stunde <br /> Hinweis:.. Zu wenige Sekunden Timeout Probleme ergeben können beim Hinzufügen / Bearbeiten von Produkten');
-define ('CD_15_05_DESC', 'Wenn aktiviert, wird diese Option verwenden Ajax aktualisieren Sie die Session Timer alle 5 Minuten Verhinderung der Sitzung vor dem Verfall und dem Abmelden des Benutzers. Diese Funktion verhindert, dass sank Beiträge, wenn PhreeBooks inaktiv war und eine post-Ergebnisse in einen Login-Bildschirm');
+define ('CD_15_05_DESC', 'Wenn aktiviert, wird diese Option verwenden Ajax aktualisieren Sie die Session Timer alle 5 Minuten Verhinderung der Sitzung vor dem Verfall und dem Abmelden des Benutzers. Diese Funktion verhindert, dass sank Beiträge, wenn FreeBooks inaktiv war und eine post-Ergebnisse in einen Login-Bildschirm');
 define ('CD_20_99_DESC', 'Enable Trace Generation für Debugging-Zwecke verwendet Wenn Ja ausgewählt ist, einem zusätzlichen Menü auf "Extras"-Menü hinzugefügt werden zum Download der Trace-Informationen zum Debuggen Entsendung Probleme..');
 define ('CD_09_01_DESC', 'Gibt den Export bevorzugt beim Exportieren von Berichten und Formularen. Local wird sie in der / my_files / reports Verzeichnis des Webservers speichern zur Verwendung mit allen Unternehmen. Download wird die Datei herunterladen, Ihren Browser zu speichern / drucken auf Ihrem lokalen Rechner. ');
 define ('CD_00_01_DESC', 'Legt das Anzeigeformat für angezeigt und eingegeben Daten (Standard m / d / Y), m - Monat, d - Tag, Y - vierstellige Jahreszahl finden Sie in der php.net Funktion <b> Datum. </ b> für Format Anforderungen ').

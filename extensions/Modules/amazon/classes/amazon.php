@@ -94,7 +94,7 @@ class amazon {
 			$main['description']    = "Amazon Order # ".$data['order-id'];
 			$main['shipper_code']   = MODULE_AMAZON_DEFAULT_SHIPPING_CARRIER;
 			if (strlen($data['recipient-name']) > 32 || strlen($data['ship-address-1']) > 32 || strlen($data['ship-address-2']) > 32) {
-				$messageStack->add(sprintf("Order # %s has a name or address that is too long for the PhreeBooks db and has been truncated: %s", $data['order-id'], $data['recipient-name']), 'caution');
+				$messageStack->add(sprintf("Order # %s has a name or address that is too long for the FreeBooks database and has been truncated: %s", $data['order-id'], $data['recipient-name']), 'caution');
 			}
 			$main['ship_primary_name']  = $data['recipient-name'];
 			$main['ship_address1']      = $data['ship-address-1'];
@@ -411,7 +411,7 @@ class amazon {
 
 		// check for truncation of addresses
 		if (strlen($psOrd->ship_primary_name) > 32 || strlen($psOrd->ship_address1) > 32) {
-			$messageStack->add('Either the Primary Name or Address has been truncated to fit in the PhreeBooks database field sizes. Customer:' . $psOrd->ship_primary_name, 'caution');
+			$messageStack->add('Either the Primary Name or Address has been truncated to fit in the FreeBooks database field sizes. Customer:' . $psOrd->ship_primary_name, 'caution');
 		}
 
 		// load the item rows

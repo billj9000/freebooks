@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/contacts/language/en_us/language.php
 //
@@ -144,7 +140,7 @@ define ('ACT_SO_NUMBER', 'SO Anzahl');
 define ('ACT_PO_NUMBER', 'Bestellnummer');
 define ('ACT_INV_NUMBER', 'Invoice Number');
 define ('ACT_NO_RESULTS', 'Keine Ergebnisse gefunden');
-define ('ACT_PAYMENT_MESSAGE', 'Geben Sie die Zahlungsinformationen in PhreeBooks gespeichert werden.');
+define ('ACT_PAYMENT_MESSAGE', 'Geben Sie die Zahlungsinformationen in FreeBooks gespeichert werden.');
 define ('ACT_CARDHOLDER_NAME', 'Name des Karteninhabers');
 define ('ACT_PAYMENT_CREDIT_CARD_NUMBER', 'Kreditkarten-Nummer');
 define ('ACT_PAYMENT_CREDIT_CARD_EXPIRES', 'Ablaufdatum der Kreditkarte');

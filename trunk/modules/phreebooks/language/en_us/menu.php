@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -44,7 +45,7 @@ define('BOX_BANKING_ACCOUNT_RECONCILIATION', 'Account Reconciliation');
 define('BOX_BANKING_VOID_CHECKS', 'Void Checks');
 define('BOX_GL_BUDGET', 'Budgeting');
 define('BOX_GL_UTILITIES', 'General Journal Utilities');
-define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks Admin');
+define('BOX_PHREEBOOKS_MODULE_ADM','Phreebooks Admin');
 define('BOX_STATUS_MGR','%s Manager');
 define('ORD_TEXT_RECEIPTS_TITLE','Receipts');
 define('ORD_TEXT_PAYMENTS_TITLE','Payments');

@@ -24,13 +24,13 @@
 // +-----------------------------------------------------------------+
 // Path: //modules/phreebooks/language/ru_ru/admin.php
 
-define('MODULE_PHREEBOOKS_TITLE','Модуль PhreeBooks');
+define('MODULE_PHREEBOOKS_TITLE','Модуль Phreebooks');
 define('MODULE_PHREEBOOKS_DESCRIPTION','The phreebooks module provides double entry accounting. Functions include Purchase Orders, Sales Orders, Invoicing, Journal Entries and more. <b>NOTE: This is a core module and should not be removed!</b>');
 define('MODULE_PHREEBOOKS_NOTES_1','PRIORITY MEDIUM: Enter company information (Company -> Module Admin -> My Company tab)');
 define('MODULE_PHREEBOOKS_NOTES_2','PRIORITY LOW: Set up mail server settings (Company -> Module Admin -> Email tab)');
-define('MODULE_PHREEBOOKS_NOTES_3','PRIORITY HIGH: Enter or import chart of accounts (Company -> Module Admin -> PhreeBooks Module -> Chart of Accounts tab)');
+define('MODULE_PHREEBOOKS_NOTES_3','PRIORITY HIGH: Enter or import chart of accounts (Company -> Module Admin -> Phreebooks Module -> Chart of Accounts tab)');
 define('MODULE_PHREEBOOKS_NOTES_4','PRIORITY MEDIUM: Set default general ledger accounts for customer and vendors, after loading GL accounts (Company -> PhreeeBooks Module Properties -> Customers/Vendors tab)');
-define('MODULE_PHREEBOOKS_NOTES_5', 'ВЫСОКИЙ ПРИОРИТЕТ: после загрузки счетов ГК настройте налоги на продажи и закупки (Компания -> Администрирование модулей -> Свойства модуля PhreeBooks -> вкладки Налоги)');
+define('MODULE_PHREEBOOKS_NOTES_5', 'ВЫСОКИЙ ПРИОРИТЕТ: после загрузки счетов ГК настройте налоги на продажи и закупки (Компания -> Администрирование модулей -> Свойства модуля Phreebooks -> вкладки Налоги)');
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Счет GL по умолчанию'); // also defined in inventory/admin.php, phreedom/admin.php
 define('TEXT_PAYMENT_TERMS','Условия оплаты');
 define('TEXT_ACCOUNT_AGING','Счет износа');
@@ -163,7 +163,7 @@ define('CD_13_05_DESC','Determines how to display the general ledger accounts in
 define('CD_01_50_DESC','This feature adds two additional fields to the order screens to enter an order level discount value or percent. If disabled, the fields will not be displayed on the order screens.');
 define('CD_01_55_DESC','If set to true, this option will enable data entry on order forms for USB and supported bar code readers.');
 define('CD_01_75_DESC','If set to true, this option uses a single line order screen without displayed fields for full price and discount. The single line screen uses GL account numbers versus allowing full GL account numbers/descriptions in two line mode.');
-define('ALLOW_NEGATIVE_INVENTORY_DESC', 'Разрешить продажу товаров, приводящую к отрицательным складским остаткам? PhreeBooks это допускает: проводка, из-за которой остаток стал отрицательным, перепроводится при поступлении запасов для точного расчёта себестоимости.');
+define('ALLOW_NEGATIVE_INVENTORY_DESC', 'Разрешить продажу товаров, приводящую к отрицательным складским остаткам? FreeBooks это допускает: проводка, из-за которой остаток стал отрицательным, перепроводится при поступлении запасов для точного расчёта себестоимости.');
 define('CD_02_01_DESC','Default Accounts Receivable Account');
 define('CD_02_02_DESC','Default general ledger account for sales transactions');
 define('CD_02_03_DESC','General ledger account to apply receipts to when customers pay invoices.');

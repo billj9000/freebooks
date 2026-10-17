@@ -18,7 +18,7 @@
 
 // Module information
 define('MODULE_ZENCART_TITLE','ZenCart-module');
-define('MODULE_ZENCART_DESCRIPTION','De ZenCart-module koppelt PhreeBooks aan een ZenCart-webwinkel. Functies zijn onder meer producten uploaden, orders downloaden en productdatabases synchroniseren.');
+define('MODULE_ZENCART_DESCRIPTION','De ZenCart-module koppelt FreeBooks aan een ZenCart-webwinkel. Functies zijn onder meer producten uploaden, orders downloaden en productdatabases synchroniseren.');
 define('ZENCART_ADMIN_URL','URL van de ZenCart-winkel (zonder slash aan het eind, bijv. https://shop.example.com)');
 define('ZENCART_ADMIN_API_KEY','API-sleutel (moet overeenkomen met FREEBOOKS_API_KEY in de ZenCart-configuratietabel)');
 define('MODULE_ZENCART_CONFIG_INFO','Stel de configuratiewaarden in voor uw ZenCart-webwinkel.');

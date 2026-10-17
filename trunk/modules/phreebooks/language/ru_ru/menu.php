@@ -54,7 +54,7 @@ define('BOX_BANKING_VOID_CHECKS','Void Checks');
 define('BOX_GL_BUDGET','Бюджетирование');
 define('BOX_GL_JOURNAL_ENTRY','Проводки');
 define('BOX_GL_UTILITIES','General Journal Utilities');
-define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks Админка');
+define('BOX_PHREEBOOKS_MODULE_ADM','Phreebooks Админка');
 define('ORD_TEXT_0_WINDOW_TITLE','Начальный баланс');
 define('ORD_TEXT_2_WINDOW_TITLE','Главная книга');
 define('ORD_TEXT_3_WINDOW_TITLE','Запрос товара');

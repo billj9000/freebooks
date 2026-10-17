@@ -362,7 +362,7 @@ class linkpoint_api extends payment {
 		*/
 		
 		// MISC
-		$myorder["comments"] = "Phreebooks Sales Order";
+		$myorder["comments"] = "FreeBooks Sales Order";
 
 		// itemized contents
 		for ($i = 0, $n = count(is_array($order->item_rows) ? $order->item_rows : []); $i < $n; $i++) {

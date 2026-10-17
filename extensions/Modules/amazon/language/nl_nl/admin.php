@@ -19,7 +19,7 @@
 
 // Module information
 define('MODULE_AMAZON_TITLE','Amazon-module');
-define('MODULE_AMAZON_DESCRIPTION','De Amazon-module biedt de mogelijkheid om voorraadfeeds aan te maken, orders te importeren, verzendingen te bevestigen en betalingen van Amazon.com af te stemmen. LET OP: voor deze module is kennis van zowel de PhreeBooks-php als de Amazon Feed-sjablonen nodig om deze correct in te stellen en de koppeling goed te laten werken. Er is beperkte forumondersteuning van PhreeSoft. Betaalde ondersteuning voor deze module is verkrijgbaar via PhreeSoft.');
+define('MODULE_AMAZON_DESCRIPTION','De Amazon-module biedt de mogelijkheid om voorraadfeeds aan te maken, orders te importeren, verzendingen te bevestigen en betalingen van Amazon.com af te stemmen. LET OP: voor deze module is kennis van zowel de FreeBooks-php als de Amazon Feed-sjablonen nodig om deze correct in te stellen en de koppeling goed te laten werken.');
 
 // Headings
 

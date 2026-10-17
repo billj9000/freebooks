@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft, LLC (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -19,6 +20,6 @@
 
 // Module information
 define('MODULE_IMPORT_ORDER_TITLE','Order Import Tool (csv)');
-define('MODULE_IMPORT_ORDER_DESCRIPTION','This module will import orders from a csv file into the PhreeBooks ledger.');
+define('MODULE_IMPORT_ORDER_DESCRIPTION','This module will import orders from a csv file into the FreeBooks ledger.');
 
 ?>

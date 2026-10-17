@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -27,10 +28,10 @@
 // define('LANGUAGE','English (US)');
 // template_welcome
 define('LANGUAGE_TEXT','Available Installation Languages: ');
-define('TITLE_WELCOME','Welcome - PhreeBooks Accounting');
+define('TITLE_WELCOME','Welcome - FreeBooks');
 define('TEXT_AGREE','Agree');
 define('TEXT_DISAGREE','Disagree');
-define('INTRO_WELCOME', '<h2>Welcome to PhreeBooks Accounting</h2>
+define('INTRO_WELCOME', '<h2>Welcome to FreeBooks</h2>
 <p>This script will assist in the installation of the application and verify your system meets the minimum requirements. You will need to following information to continue:</p>
 <ul>
   <li>An existing mysql database table with access information</li>
@@ -43,7 +44,7 @@ define('INTRO_WELCOME', '<h2>Welcome to PhreeBooks Accounting</h2>
 define('DESC_AGREE', 'I have read and agree to the License terms as stated above.');
 define('DESC_DISAGREE', 'I have read and do not agree to the License terms as stated above.');
 // template_inspect
-define('TITLE_INSPECT','Inspect - PhreeBooks Accounting');
+define('TITLE_INSPECT','Inspect - FreeBooks');
 define('MSG_INSPECT_ERRORS','The following installation errors have been found.
 <ul>
   <li>Errors (in red) must be fixed before the installation script can proceed.</li>
@@ -68,7 +69,7 @@ define('TEXT_RECHECK','Re-check');
 // TEXT_INSTALL intentionally not defined here — see note near the top of this
 // file; modules/phreedom/language/en_us/language.php also defines it.
 // template_install
-define('TITLE_INSTALL','Install - PhreeBooks Accounting');
+define('TITLE_INSTALL','Install - FreeBooks');
 define('MSG_INSTALL_INTRO','Please enter some information about your company, adminstrator, web server and database.');
 define('TEXT_COMPANY_INFO','Company Information');
 define('TEXT_ADMIN_INFO','Administrator Information');
@@ -91,7 +92,7 @@ define('TEXT_DB_NAME','Enter the database name (the database must exist on the s
 define('TEXT_DB_PREFIX','If this database is shared with another application, enter a prefix to use for this installation (use only alphabet characters and underscore):');
 define('TEXT_DB_USER','Enter the database username');
 define('TEXT_DB_PASSWORD','Enter the database password');
-define('TEXT_FY_MONTH_INFO', 'Select a starting month to set as your first accounting period. PhreeBooks will initially set the start at the first day of the selected month as period 1.');
+define('TEXT_FY_MONTH_INFO', 'Select a starting month to set as your first accounting period. FreeBooks will initially set the start at the first day of the selected month as period 1.');
 define('TEXT_FY_YEAR_INFO', 'Select a starting year to set as your first fiscal year. The month selected above and this year selection will be the earliest date that journal entries can be made.');
 define('TEXT_PRINTING_INFO','Printing Information');
 define('TEXT_PAPER_SIZE_INFO', 'Select the paper size for reports and forms. The reports and forms installed here are drawn for US Letter; choosing another size re-targets every one of them as it is installed. This can be changed later, and existing reports re-stamped, under Reports and Forms settings.');
@@ -109,19 +110,18 @@ define('ERROR_TEXT_DB_USERNAME_ISEMPTY', 'The database user name cannot empty');
 define('ERROR_TEXT_DB_PASSWORD_ISEMPTY', 'The database password cannot be empty');
 define('MSG_ERROR_MODULE_INSTALL','There were errors installing module: %s. See above messages for more details.');
 define('MSG_ERROR_CANNOT_CONNECT_DB','I cannot connect to the database, please check your settings. error returned: ');
-define('MSG_ERROR_INNODB_NOT_ENABLED','MYSQL InnoDB engine is not installed!. PhreeBooks requires the transaction capability of MySQL\'s InnoDB engine to operate properly.');
-define('MSG_ERROR_CONFIGURE_EXISTS','The file includes/configure.php exists, this may indicate that PhreeBooks has already been installed or is being re-installed. This file must be removed for the installation to complete successfully!');
+define('MSG_ERROR_INNODB_NOT_ENABLED','MYSQL InnoDB engine is not installed!. FreeBooks requires the transaction capability of MySQL\'s InnoDB engine to operate properly.');
+define('MSG_ERROR_CONFIGURE_EXISTS','The file includes/configure.php exists, this may indicate that FreeBooks has already been installed or is being re-installed. This file must be removed for the installation to complete successfully!');
 // template_finish
-define('TITLE_FINISH','Finish - PhreeBooks&trade; Accounting');
+define('TITLE_FINISH','Finish - FreeBooks');
 define('TEXT_GO_TO_COMPANY','Go To Your Company');
 define('INTRO_FINISHED','<h2>Congratulations!</h2>
-<h3>You have successfully installed PhreeBooks&trade; Accounting on your system!</h3>
+<h3>You have successfully installed FreeBooks on your system!</h3>
 <h2>Next Steps</h2>
 <p>A ToDo list has been generated identifying the key actions necessary to operated the installed modules. This list will appear on the homepage dashboard of the administrator. Additional module configuration, preferences and settings can be made through the Company -&gt; Module Admin menu.</p>
 <p>For security reasons, you should change your configuration settings file to read-only. This file can be found at <strong>/includes/configure.php</strong>. If you enabled full access the the includes folder for installation, it can be changed back to the previous settings. It is also required that the folder <strong>/install</strong> be removed or renamed to prevent re-installation of the application.</p>
 <h2>Documentation and Support</h2>
-<p>PhreeBooks includes a built in context sensitive help file system. As with most open source applications, this is a continual work in process but provides general guidance and support.</p>
-<p>There is also online documentation available on the PhreeBooks website (<a target="_blank" href="http://www.phreebooks.com">www.PhreeBooks.com</a>). The most current module documentation is available as well as other FAQs and customization/developer support.</p>
-<p>Finally, the user forum located on the PhreeBooks website provides community support and allows posting questions, bugs, and suggestions. If you are stumped, feel free to post a question! We have a helpful, friendly, knowledgeable community who welcomes you.</p>');
+<p>FreeBooks has a built-in manual covering setup, daily use and administration; the Help button on a page opens the topic for it.</p>
+<p>Questions, bug reports and suggestions are welcome as issues on GitHub (<a target="_blank" href="https://github.com/billj9000/freebooks/issues">github.com/billj9000/freebooks</a>).</p>');
 
 ?>

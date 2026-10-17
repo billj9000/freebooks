@@ -62,7 +62,7 @@ define('TEXT_CONSTANT','Defineer Constante');
 define('TEXT_DEFAULT_TRANSLATION','Huidige Vertaling');
 define('TEXT_STATS_VALUES','%s van %s vertaald (%s procent)');
 define('TEXT_TRANSLATIONS_SAVED','Vertaalde records bewaard');
-define('TRANSLATION_HEADER','Phreedom Taal Vertaal Bestand');
+define('TRANSLATION_HEADER','FreeBooks Taal Vertaal Bestand');
 define('TRANS_ERROR_NO_SOURCE','Geen van de beschikbare versies van de brontaal gevonden! Gelieve de invoer van de brontaal.');
 
 ?>

@@ -49,7 +49,7 @@ define('BOX_BANKING_ACCOUNT_RECONCILIATION','Grootboek Verrekening');
 define('BOX_BANKING_VOID_CHECKS','Niet geldige Checks');
 define('BOX_GL_BUDGET','Budgeteren');
 define('BOX_GL_UTILITIES','Algemene Journaal Opties');
-define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks-beheer');
+define('BOX_PHREEBOOKS_MODULE_ADM','Phreebooks-beheer');
 define('BOX_STATUS_MGR','%s Manager');
 define('ORD_TEXT_RECEIPTS_TITLE','Ontvangsten');
 define('ORD_TEXT_PAYMENTS_TITLE','Betalingen');

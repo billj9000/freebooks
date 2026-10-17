@@ -19,6 +19,6 @@
 
 // Module information
 define('MODULE_IMPORT_ORDER_TITLE','Orderimporttool (csv)');
-define('MODULE_IMPORT_ORDER_DESCRIPTION','Deze module importeert orders uit een csv-bestand in het PhreeBooks-grootboek.');
+define('MODULE_IMPORT_ORDER_DESCRIPTION','Deze module importeert orders uit een csv-bestand in het FreeBooks-grootboek.');
 
 ?>

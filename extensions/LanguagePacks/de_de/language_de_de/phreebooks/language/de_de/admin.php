@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,16 +14,12 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreebooks/language/en_us/admin.php
 //
 
 // Modul-Informationen
-define ('MODULE_PHREEBOOKS_TITLE', 'PhreeBooks Modul');
+define ('MODULE_PHREEBOOKS_TITLE', 'Phreebooks Modul');
 define ('MODULE_PHREEBOOKS_DESCRIPTION', 'Das Modul bietet phreebooks Doppelte Buchhaltung Funktionen umfassen Bestellungen, Kundenaufträge, Fakturierung, Journaleinträge und mehr <b> Hinweis:.. Dies ist ein Kernmodul und sollte nicht entfernt werden </ b>! ');
 
 // Überschriften
@@ -31,7 +27,7 @@ define ('MODULE_PHREEBOOKS_DESCRIPTION', 'Das Modul bietet phreebooks Doppelte B
 // Installation
 define ('MODULE_PHREEBOOKS_NOTES_1', 'PRIORITÄT: Geben Sie Unternehmensdaten (Firma -> Modul Admin -> Meine Firma Reiter)');
 define ('MODULE_PHREEBOOKS_NOTES_2', 'LOW PRIORITY: Einrichten Mailserver-Einstellungen (Unternehmen -> Modul Admin -> Registerkarte E-Mail)');
-define ('MODULE_PHREEBOOKS_NOTES_3', 'PRIORITY HIGH: eingeben oder importieren Kontenplan (Unternehmen -> Modul Admin -> PhreeBooks Modul -> Kontenplan tab)');
+define ('MODULE_PHREEBOOKS_NOTES_3', 'PRIORITY HIGH: eingeben oder importieren Kontenplan (Unternehmen -> Modul Admin -> Phreebooks Modul -> Kontenplan tab)');
 define ('MODULE_PHREEBOOKS_NOTES_4', 'PRIORITÄT: Set Default Sachkonten für Kunden und Lieferanten, nach dem Laden FIBU-Konten (Unternehmen -> PhreeeBooks Module Properties -> Debitoren / Kreditoren tab)');
 
 // Allgemeine Definiert
@@ -137,7 +133,7 @@ define ('GEN_ADM_TOOLS_POST_SEQ_SUCCESS', 'erfolgreich gebucht den aktuellen Bes
 define ('GEN_ADM_TOOLS_AUDIT_LOG_SEQ', 'Aktuelle Bestell-Status - Update');
 define ('GEN_ADM_TOOLS_TITLE', 'Administrative Tools und Utilities');
 define ('GEN_ADM_TOOLS_SEQ_HEADING', 'Change Verschiedene Sequence Numbers');
-define ('GEN_ADM_TOOLS_SEQ_DESC', 'Änderungen an der Sequenzierung können hier vorgenommen werden <br /> Hinweis 1:. PhreeBooks nicht erlaubt doppelte Sequenzen sicher, dass die neue Startreihenfolge wird keine Konflikte mit derzeit gebuchten Werte <br /> Hinweis. 2: Die next_deposit_num wird vom System generiert und verwendet das aktuelle Datum <br /> Anmerkung 3: Die next_check_num bei der Zahlung Bildschirm können vor der Buchung einer Zahlung und wird aus den eingegebenen Wert weiter ');
+define ('GEN_ADM_TOOLS_SEQ_DESC', 'Änderungen an der Sequenzierung können hier vorgenommen werden <br /> Hinweis 1:. FreeBooks nicht erlaubt doppelte Sequenzen sicher, dass die neue Startreihenfolge wird keine Konflikte mit derzeit gebuchten Werte <br /> Hinweis. 2: Die next_deposit_num wird vom System generiert und verwendet das aktuelle Datum <br /> Anmerkung 3: Die next_check_num bei der Zahlung Bildschirm können vor der Buchung einer Zahlung und wird aus den eingegebenen Wert weiter ');
 define ('GEN_ADM_TOOLS_BNK', 'Banking');
 define ('GEN_ADM_TOOLS_OTHER', 'Andere');
 define ('GEN_ADM_TOOLS_BTN_SAVE', 'Save Changes');

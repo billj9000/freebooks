@@ -16,7 +16,7 @@
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
 // +-----------------------------------------------------------------+
-// Phreedom Language Translation File
+// FreeBooks Language Translation File
 // Generated: 2011-11-27 05:02:30
 // Module/Method: install
 // ISO Language: nl_nl
@@ -32,10 +32,10 @@
 // (not a paraphrase) must stay present. Do not remove or reword this line.
 // define('LANGUAGE','Nederlands (NL)');
 define('LANGUAGE_TEXT','Beschikbare Talen: ');
-define('TITLE_WELCOME','Welkom - Phreedom Klein Bedrijf oplossingen');
+define('TITLE_WELCOME','Welkom - FreeBooks');
 define('TEXT_AGREE','Akkoord');
 define('TEXT_DISAGREE','Niet Akkoord');
-define('INTRO_WELCOME', '<h2>Welkom bij PhreeBooks Accounting</h2>
+define('INTRO_WELCOME', '<h2>Welkom bij FreeBooks</h2>
 <p>Dit script helpt bij de installatie van de applicatie en controleert of uw systeem aan de minimale vereisten voldoet. U heeft de volgende informatie nodig om door te gaan:</p>
 <ul>
   <li>Een bestaande mysql database met toegangsgegevens</li>
@@ -47,14 +47,14 @@ define('INTRO_WELCOME', '<h2>Welkom bij PhreeBooks Accounting</h2>
 <p>Bevestig dat u de licentievoorwaarden accepteert en klik op Doorgaan om verder te gaan.</p>');
 define('DESC_AGREE','Ik heb de licentie door gelezen en ga akkoord met de voorwaarden');
 define('DESC_DISAGREE','Ik heb de Licentie door gelezen en ga niet akkoord met de voorwaarden.');
-define('TITLE_INSPECT','Controleer - Phreedom Klein Bedrijf Oplossingen');
+define('TITLE_INSPECT','Controleer - FreeBooks');
 define('MSG_INSPECT_ERRORS', 'De volgende installatiefouten zijn gevonden.
 <ul>
   <li>Fouten (in rood) moeten worden opgelost voordat het installatiescript verder kan gaan.</li>
   <li>Waarschuwingen (in geel) verhinderen de installatie niet, maar kunnen ervoor zorgen dat modules niet goed werken.</li>
 </ul>');
 define('INSTALL_ERROR_PHP_VERSION','Uw php versie moet 8.2 of hoger zijn, en lager dan 9.0');
-define('INSTALL_ERROR_SESSION_SUPPORT','Uw php configuratie is geïnstalleerd  zonder session support. Dit is vereist om met Phreedom te werken.');
+define('INSTALL_ERROR_SESSION_SUPPORT','Uw php configuratie is geïnstalleerd  zonder session support. Dit is vereist om met FreeBooks te werken.');
 define('INSTALL_ERROR_PDO_MYSQL', 'Uw php configuratie heeft de pdo_mysql extensie niet geïnstalleerd. Deze extensie is nodig om verbinding te maken met de database.');
 define('INSTALL_ERROR_OPENSSL','Uw server moet openssl geinstalleerd hebben.');
 define('INSTALL_ERROR_CURL','Uw servers php applicatie is geïnstalleerd  zonder cURL support. cURL support is voor beveiligde communicatie tussen applications van derden.');
@@ -62,7 +62,7 @@ define('INSTALL_ERROR_MBSTRING', 'De php applicatie van uw server is geïnstalle
 define('INSTALL_ERROR_GD', 'De php applicatie van uw server is geïnstalleerd zonder GD ondersteuning. Barcodes, labels en sommige PDF rapporten zijn zonder deze functie niet beschikbaar.');
 define('INSTALL_ERROR_ZIP', 'De php applicatie van uw server is geïnstalleerd zonder Zip ondersteuning. Database backup en herstel zijn zonder deze functie niet beschikbaar.');
 define('INSTALL_ERROR_BZ2', 'De php applicatie van uw server is geïnstalleerd zonder BZip2 ondersteuning. Hulpmiddelen voor het importeren/herstellen van grote databases zijn zonder deze functie niet beschikbaar.');
-define('INSTALL_ERROR_UPLOADS','Uw servers php applicatie is geïnstalleerd  zonder file upload support. Upload support is vereist om bestanden te kunnen importeren in Phreedom.');
+define('INSTALL_ERROR_UPLOADS','Uw servers php applicatie is geïnstalleerd  zonder file upload support. Upload support is vereist om bestanden te kunnen importeren in FreeBooks.');
 define('INSTALL_ERROR_UPLOAD_DIR','Ik kan geen tijdelijke upload directory vinden op deze server.');
 define('INSTALL_ERROR_XML','Uw servers php applicatie is geïnstalleerd  zonder XML support. Sommige modules kunnen niet werken zonder deze optie.');
 define('INSTALL_ERROR_FTP','Uw server php applicatie is geïnstalleerd zonder FTP support. Sommige modules kunnen niet werken zonder deze optie.');
@@ -71,7 +71,7 @@ define('INSTALL_ERROR_MY_FILES_DIR','De directory /my_files is niet beschrijfbaa
 define('TEXT_RECHECK','Her-Controleer');
 // TEXT_INSTALL intentionally not defined here — see note near the top of this
 // file; modules/phreedom/language/nl_nl/language.php also defines it.
-define('TITLE_INSTALL','Installeer - Phreedom Klein Bedrijf Oplossingen');
+define('TITLE_INSTALL','Installeer - FreeBooks');
 define('MSG_INSTALL_INTRO','Vul alstublieft wat informatie over uw bedrijf, administrator, web server en database.');
 define('TEXT_COMPANY_INFO','Bedrijf Informatie');
 define('TEXT_ADMIN_INFO','Administrator Informatie');
@@ -94,7 +94,7 @@ define('TEXT_DB_NAME','Voer de database naam in (De database moet bestaan op de 
 define('TEXT_DB_PREFIX','Als de database gedeeld wordt met een andere applicatie, gebruik dan een voorvoegsel voor de installatie (gebruik alleen alfabetische karakters en underscore):');
 define('TEXT_DB_USER','Voer de database gebruikersnaam in');
 define('TEXT_DB_PASSWORD','Voer de database wachtwoord in');
-define('TEXT_FY_MONTH_INFO','Selecteer een start maand om in te stellen als uw eerste boekhoud periode. PhreeBooks zal standaard beginnen aan op de eerste dag van de maand.');
+define('TEXT_FY_MONTH_INFO','Selecteer een start maand om in te stellen als uw eerste boekhoud periode. FreeBooks zal standaard beginnen aan op de eerste dag van de maand.');
 define('TEXT_FY_YEAR_INFO','Selecteer een start jaar om als uw eerste Boek jaar in te stellen. Er kunnen dan geen boekingen gemaakt worden eerder dan de geselecteerde jaar en maand.');
 define('TEXT_PRINTING_INFO','Afdrukgegevens');
 define('TEXT_PAPER_SIZE_INFO', 'Kies het papierformaat voor rapporten en formulieren. De rapporten en formulieren die hier worden geïnstalleerd, zijn opgemaakt voor US Letter; bij een ander formaat wordt elk ervan tijdens de installatie aangepast. Dit kan later worden gewijzigd, en bestaande rapporten kunnen opnieuw worden aangepast, onder de instellingen voor Rapporten en formulieren.');
@@ -111,18 +111,17 @@ define('ERROR_TEXT_DB_USERNAME_ISEMPTY','DB Gebruikersnaam is leeg');
 define('ERROR_TEXT_DB_PASSWORD_ISEMPTY','De database wachtwoord kan niet leeg zijn.');
 define('MSG_ERROR_MODULE_INSTALL','Er hebben zich fouten voorgedaan bij het installeren van module: %s. Zie de bovenstaande melding voor meer details.');
 define('MSG_ERROR_CANNOT_CONNECT_DB','Ik kon geen verbinding maken met de database, controleer alstublieft uw instellingen. de ontvangen fout: ');
-define('MSG_ERROR_INNODB_NOT_ENABLED', 'MYSQL InnoDB engine is niet geïnstalleerd!. PhreeBooks heeft de transactiemogelijkheden van de InnoDB engine van MySQL nodig om correct te werken.');
-define('MSG_ERROR_CONFIGURE_EXISTS','Het bestand includes/configure.php bestaat al, dit kan duiden op dat Phreedom al geïnstalleerd is. Dit bestand moet verwijderd worden om de installatie succes vol te kunnen afronden!');
-define('TITLE_FINISH','Afronden - Phreedom Klein Bedrijf Oplossingen');
+define('MSG_ERROR_INNODB_NOT_ENABLED', 'MYSQL InnoDB engine is niet geïnstalleerd!. FreeBooks heeft de transactiemogelijkheden van de InnoDB engine van MySQL nodig om correct te werken.');
+define('MSG_ERROR_CONFIGURE_EXISTS','Het bestand includes/configure.php bestaat al, dit kan duiden op dat FreeBooks al geïnstalleerd is. Dit bestand moet verwijderd worden om de installatie succes vol te kunnen afronden!');
+define('TITLE_FINISH','Afronden - FreeBooks');
 define('TEXT_GO_TO_COMPANY','Ga Naar Uw Bedrijf');
 define('INTRO_FINISHED', '<h2>Gefeliciteerd!</h2>
-<h3>U heeft PhreeBooks&trade; Accounting succesvol op uw systeem geïnstalleerd!</h3>
+<h3>U heeft FreeBooks succesvol op uw systeem geïnstalleerd!</h3>
 <h2>Volgende Stappen</h2>
 <p>Er is een takenlijst aangemaakt met de belangrijkste acties die nodig zijn om de geïnstalleerde modules te gebruiken. Deze lijst verschijnt op het startpagina-dashboard van de beheerder. Aanvullende moduleconfiguratie, voorkeuren en instellingen kunnen worden aangepast via het menu Bedrijf -&gt; Module Administratie.</p>
 <p>Om veiligheidsredenen moet u het configuratiebestand alleen-lezen maken. Dit bestand bevindt zich in <strong>/includes/configure.php</strong>. Als u voor de installatie volledige toegang tot de map includes heeft gegeven, kunt u deze terugzetten naar de vorige instellingen. Ook moet de map <strong>/install</strong> worden verwijderd of hernoemd om herinstallatie van de applicatie te voorkomen.</p>
 <h2>Documentatie en Ondersteuning</h2>
-<p>PhreeBooks bevat een ingebouwd contextgevoelig helpsysteem. Zoals bij de meeste open source applicaties is dit altijd in ontwikkeling, maar het biedt algemene begeleiding en ondersteuning.</p>
-<p>Er is ook online documentatie beschikbaar op de PhreeBooks website (<a target="_blank" href="http://www.phreebooks.com">www.PhreeBooks.com</a>). Daar vindt u de meest actuele moduledocumentatie, veelgestelde vragen en ondersteuning voor aanpassingen en ontwikkelaars.</p>
-<p>Tot slot biedt het gebruikersforum op de PhreeBooks website ondersteuning door de gemeenschap, waar u vragen, fouten en suggesties kunt plaatsen. Komt u er niet uit, stel dan gerust een vraag! Wij hebben een behulpzame, vriendelijke en deskundige gemeenschap die u graag verwelkomt.</p>');
+<p>FreeBooks heeft een ingebouwde handleiding over installatie, dagelijks gebruik en beheer; de Help-knop op een pagina opent het onderwerp dat erbij hoort.</p>
+<p>Vragen, foutmeldingen en suggesties zijn welkom als issue op GitHub (<a target="_blank" href="https://github.com/billj9000/freebooks/issues">github.com/billj9000/freebooks</a>).</p>');
 
 ?>

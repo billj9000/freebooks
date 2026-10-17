@@ -28,7 +28,7 @@ if (!defined('DIR_FS_ADMIN')) {
   if (file_exists('../includes/configure.php')) {
 	require_once('../includes/configure.php');
   } else {
-	die('ERROR: includes/configure.php file not found on PhreeBooks Server.');
+	die('ERROR: includes/configure.php file not found on the FreeBooks server.');
   }
 }
 

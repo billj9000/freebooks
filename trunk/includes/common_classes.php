@@ -504,7 +504,7 @@ class currencies {
       $currencies->MoveNext();
     }
 	if (DEFAULT_CURRENCY == '') { // do not put this in the translation file, it is loaded before the language file is loaded.
-	  $messageStack->add('You do not have a default currency set, PhreeBooks requires a default currency to operate properly! Please set the default currency in Setup -> Currencies.', 'error');
+	  $messageStack->add('You do not have a default currency set, FreeBooks requires a default currency to operate properly! Please set the default currency in Setup -> Currencies.', 'error');
 	}
   }
 

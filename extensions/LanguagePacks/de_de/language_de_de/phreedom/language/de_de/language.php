@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/phreedom/language/en_us/language.php
 //
@@ -327,8 +323,8 @@ define ('TEXT_SAT', 'S');
 define ('DB_ERROR_NOT_CONNECTED', 'Datenbank-Fehler: Konnte keine Verbindung zur Datenbank verbinden! ');
 define('GEN_MODULE_UPDATE_SUCCESS','Successfully upgraded module %s to release %s');
 define('GEN_CALENDAR_FORMAT_ERROR', "A submitted date format was in error, please check all your dates! Received: %s. (Date Format: " . DATE_FORMAT . ") Please check your SEPARATOR is consistent for SpiffyCal also: " . DATE_FORMAT_CALENDAR);
-define ('LOAD_CONFIG_ERROR', 'Es wurde ein Fehler zurückgegeben beim Abrufen der Konfigurationsdaten. <br /> PhreeBooks konnte die Verbindung zur Datenbank konnte aber nicht finden die Konfiguration Tisch. Sieht aus wie die Tabelle fehlt! Optionen zum Löschen / includes / configure.php und neu zu installieren (für neue Anlagen) oder die Wiederherstellung der Datenbank-Tabellen (Datenbank Absturz ).');
-define ('SAFE_MODE_ERROR', 'Betriebssystem im abgesicherten Modus. PhreeBooks wird nicht richtig funktionieren, wenn PHP Safe Mode gesetzt ist !)'); 
+define ('LOAD_CONFIG_ERROR', 'Es wurde ein Fehler zurückgegeben beim Abrufen der Konfigurationsdaten. <br /> FreeBooks konnte die Verbindung zur Datenbank konnte aber nicht finden die Konfiguration Tisch. Sieht aus wie die Tabelle fehlt! Optionen zum Löschen / includes / configure.php und neu zu installieren (für neue Anlagen) oder die Wiederherstellung der Datenbank-Tabellen (Datenbank Absturz ).');
+define ('SAFE_MODE_ERROR', 'Betriebssystem im abgesicherten Modus. FreeBooks wird nicht richtig funktionieren, wenn PHP Safe Mode gesetzt ist !)'); 
 define ('GEN_ERRMSG_NO_DATA', 'Ein erforderliches Feld ausgefüllt worden Feld:.');
 define ('ERROR_MSG_ACCT_PERIOD_CHANGE', 'Der Abrechnungszeitraum wurde automatisch geändert: %s ');
 define ('ERROR_MSG_BAD_POST_DATE', 'Achtung: Die Post Datum fällt außerhalb der aktuellen Abrechnungsperiode!');
@@ -348,7 +344,7 @@ define ('EMAIL_SEND_FAILED', 'Die E-Mail wurde nicht gesendet.');
 define ('EMAIL_SEND_SUCCESS', 'E-Mail wurde erfolgreich gesendet.');
 define ('GEN_PRICE_SHEET_CURRENCY_NOTE', 'Hinweis: Alle Werte sind in: %s ');
 define ('DEBUG_TRACE_MISSING', 'Fehler\'  die Trace-Datei finden Vergewissern Sie erfassen eine bevor Sie versuchen, die Datei herunterzuladen Spur ');
-define ('TEXT_VERSION_CHECK_NEW_VER', 'Es gibt eine neue Version verfügbar PhreeBooks Installierte Version: <b> %s </b> zur Verfügung version = <b> %s  </b>.');
+define ('TEXT_VERSION_CHECK_NEW_VER', 'Es gibt eine neue Version verfügbar FreeBooks Installierte Version: <b> %s </b> zur Verfügung version = <b> %s  </b>.');
 define ('ENTRY_PASSWORD_NEW_ERROR_NOT_MATCHING', 'Die Passwort-Bestätigung muss Ihr neues Passwort übereinstimmen.');
 define ('ENTRY_PASSWORD_NEW_ERROR', 'Ihr neues Passwort muss mindestens' . ENTRY_PASSWORD_MIN_LENGTH . "Zeichen");
 define ('ENTRY_DUP_USER_NEW_ERROR', 'Der Benutzername ausgewählt ist bereits im Einsatz im Unternehmen, wählen Sie bitte einen anderen Benutzernamen.');
@@ -368,13 +364,13 @@ define ('TEXT_INSTALL_DIR_PRESENT', 'Das Verzeichnis / install vorhanden ist die
 define ('MSG_ERROR_CANNOT_WRITE', 'Kann Datei nicht öffnen ( %s ) zum Lesen / Schreiben überprüfen Sie Ihre Berechtigungen.');
 define ('MSG_ERROR_CREATE_MY_FILES', 'Fehler beim Erstellen des Verzeichnisses: %s . Wahrscheinlich ein Berechtigungsproblem, überprüfen Sie die Web-Server Dateiverzeichnispfad und setzen damit den Webserver in das Verzeichnis zu erstellen.');
 define ('TEXT_IMP_ERMSG1', 'Die Dateigröße überschreitet die upload_max_filesize in der php.ini Sie Einstellungen.');
-define ('TEXT_IMP_ERMSG2', 'Die Dateigröße überschreitet die MAX_FLE_SIZE Direktive in der PhreeBooks bilden.');
+define ('TEXT_IMP_ERMSG2', 'Die Dateigröße überschreitet die MAX_FLE_SIZE Direktive in der FreeBooks bilden.');
 define ('TEXT_IMP_ERMSG3', 'Die Datei wurde nicht vollständig hochgeladen Bitte versuchen Sie es..');
 define ('TEXT_IMP_ERMSG4', 'Keine Datei ausgewählt wurde zum Hochladen.');
 define ('TEXT_IMP_ERMSG5', 'Unbekannt php Upload Fehler, php mit Fehler #');
 define ('TEXT_IMP_ERMSG6', 'Dieser Dateityp kann hier nicht hochgeladen werden. Zulassige Dateitypen sind: %s.');
 define ('TEXT_IMP_ERMSG7', 'Die hochgeladene Datei enthält keine Daten!');
-define ('TEXT_IMP_ERMSG8', 'PhreeBooks nicht finden konnten, eine gültige Bericht in der hochgeladenen Datei importieren');
+define ('TEXT_IMP_ERMSG8', 'FreeBooks nicht finden konnten, eine gültige Bericht in der hochgeladenen Datei importieren');
 define ('TEXT_IMP_ERMSG9', 'wurde erfolgreich importiert!');
 define ('TEXT_IMP_ERMSG10', 'Es war ein unerwarteter Fehler beim Hochladen der Datei!');
 define ('TEXT_IMP_ERMSG11', 'Die Datei wurde erfolgreich importiert!');

@@ -62,7 +62,7 @@ define('TEXT_CONSTANT','Defined Constant');
 define('TEXT_DEFAULT_TRANSLATION','Current Translation');
 define('TEXT_STATS_VALUES','%s of %s translated (%s percent)');
 define('TEXT_TRANSLATIONS_SAVED','Translation records saved.');
-define('TRANSLATION_HEADER','Phreedom Language Translation File');
+define('TRANSLATION_HEADER','FreeBooks Language Translation File');
 define('TRANS_ERROR_NO_SOURCE','No available versions of the source language were found! Please import the source language.');
 define('TRANS_ERROR_DUPLICATE','Error importing module: %s, language: %s, version: %s, the language file already exists. Import skipped!');
 

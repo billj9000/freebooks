@@ -45,7 +45,7 @@ define('BOX_BANKING_ACCOUNT_RECONCILIATION', 'Account Reconciliation');
 define('BOX_BANKING_VOID_CHECKS', 'Void Cheques');
 define('BOX_GL_BUDGET', 'Budgeting');
 define('BOX_GL_UTILITIES', 'General Journal Utilities');
-define('BOX_PHREEBOOKS_MODULE_ADM','PhreeBooks Admin');
+define('BOX_PHREEBOOKS_MODULE_ADM','Phreebooks Admin');
 define('BOX_STATUS_MGR','%s Manager');
 define('ORD_TEXT_RECEIPTS_TITLE','Receipts');
 define('ORD_TEXT_PAYMENTS_TITLE','Payments');

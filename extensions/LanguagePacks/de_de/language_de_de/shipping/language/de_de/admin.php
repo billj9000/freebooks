@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/shipping/language/en_us/admin.php
 //
@@ -50,5 +46,5 @@ define ('SHIPPING_METHOD', 'Select "-Methode:');
 define ('SHIPPING_MONTH', 'Wählen Sie Monat:');
 define ('SHIPPING_YEAR', 'Wählen Jahr:');
 define ('SHIPPING_TOOLS_TITLE', 'Versandkosten Label File Maintenance');
-define ('SHIPPING_TOOLS_CLEAN_LOG_DESC', 'Dieser Vorgang erstellt eine Sicherungskopie Ihrer heruntergeladen Versandetikett Dateien. Dies wird helfen, die Server-Speicher Größe herunter und reduzieren Unternehmen Backup-Dateien. Sichern dieser Dateien ist vor der Reinigung aus alten Akten zu PhreeBooks Transaktion erhalten empfohlen Geschichte <br /> INFORMATIONEN: Reinigen Sie die Versandetiketten werden die aktuellen Datensätze in der Datenbank Versand Manager verlassen und logs ');
+define ('SHIPPING_TOOLS_CLEAN_LOG_DESC', 'Dieser Vorgang erstellt eine Sicherungskopie Ihrer heruntergeladen Versandetikett Dateien. Dies wird helfen, die Server-Speicher Größe herunter und reduzieren Unternehmen Backup-Dateien. Sichern dieser Dateien ist vor der Reinigung aus alten Akten zu FreeBooks Transaktion erhalten empfohlen Geschichte <br /> INFORMATIONEN: Reinigen Sie die Versandetiketten werden die aktuellen Datensätze in der Datenbank Versand Manager verlassen und logs ');
 ?>

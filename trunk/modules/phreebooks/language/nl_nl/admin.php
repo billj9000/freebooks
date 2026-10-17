@@ -24,13 +24,13 @@
 // +-----------------------------------------------------------------+
 // Path: /modules/phreebooks/language/nl_nl/admin.php
 
-define('MODULE_PHREEBOOKS_TITLE','PhreeBooks-module');
+define('MODULE_PHREEBOOKS_TITLE','Phreebooks-module');
 define('MODULE_PHREEBOOKS_DESCRIPTION','De phreebooks module biedt dubbele invoer boekhouden. De functies omvatten Inkooporders, Verkooporders, facturering, Journaalposten en nog veel meer. <b> LET OP: Dit is een core module en dient niet te worden verwijderd </ b>!');
 define('MODULE_PHREEBOOKS_NOTES_1','MEDIUM BELANGRIJK: Voer bedrijfsinformatie in (Bedrijf -> Module Administratie -> Mijn Bedrijf tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_2','MINST BELANGRIJK: Set up mail server instellingen (Bedrijf -> Module Administratie -> Email tabblad)');
-define('MODULE_PHREEBOOKS_NOTES_3','HEEL BELANGRIJK: Verander de standaard grootboekrekeningen of importeer nieuwe (Bedrijf -> Module Administratie -> PhreeBooks Module -> Grootboekrekeningen tabblad)');
+define('MODULE_PHREEBOOKS_NOTES_3','HEEL BELANGRIJK: Verander de standaard grootboekrekeningen of importeer nieuwe (Bedrijf -> Module Administratie -> Phreebooks Module -> Grootboekrekeningen tabblad)');
 define('MODULE_PHREEBOOKS_NOTES_4','MEDIUM BELANGRIJK: Werk de standaard grootboekrekeningen bij voor klanten en leveranciers, nadat de grootboekrekeningen geladen zijn (Bedrijf -> Module Administratie -> PhreeeBooks Module Eigenschappen -> Klanten/Leveranciers tabblad)');
-define('MODULE_PHREEBOOKS_NOTES_5', 'PRIORITEIT HOOG: Stel verkoop- en inkoopbelastingen in na het laden van de grootboekrekeningen (Bedrijf -> Module Administratie -> PhreeBooks Module Eigenschappen -> tabbladen Belastingen)');
+define('MODULE_PHREEBOOKS_NOTES_5', 'PRIORITEIT HOOG: Stel verkoop- en inkoopbelastingen in na het laden van de grootboekrekeningen (Bedrijf -> Module Administratie -> Phreebooks Module Eigenschappen -> tabbladen Belastingen)');
 if (!defined('TEXT_DEFAULT_GL_ACCOUNTS')) define('TEXT_DEFAULT_GL_ACCOUNTS','Standaard Grookboek rekeningen'); // phreedom's admin.php also defines this, loaded earlier during install
 define('TEXT_PAYMENT_TERMS','Betalingscondities');
 define('TEXT_ACCOUNT_AGING','Account Ouderdom');
@@ -145,7 +145,7 @@ define('CD_13_05_DESC','Bepaalt hoe het grootboek rekeningen in pull-down menu\'
 define('CD_01_50_DESC','Deze functie voegt twee extra velden toe aan de order schermen om een korting te geven als een waarde of procent. Als deze optie uitgeschakeld, zullen de velden niet worden weergegeven in de order schermen.');
 define('CD_01_55_DESC','Als ingesteld op Ja, kunnen USB en ondersteunde barcode-lezers gegevens invoeren in de order vensters.');
 define('CD_01_75_DESC','Als ingesteld op Ja, deze optie maakt gebruik van een enkele regel in het order scherm zonder zichtbare velden voor de volle prijs en de korting. Het enkele regel scherm maakt gebruik van Grootboekrekeningnummers versus het toestaan van volledige rekeningnummers Grootboek/omschrijvingen in twee regel-modus.');
-define('ALLOW_NEGATIVE_INVENTORY_DESC','Wil u verkopen toe staan die zullen resulteren in negative voorraden? PhreeBooks zal bij het toestaan de journaal post opnieuw boeken wanneer de voorraad wordt aangevuld om de juiste kosten te berekenen.');
+define('ALLOW_NEGATIVE_INVENTORY_DESC','Wil u verkopen toe staan die zullen resulteren in negative voorraden? FreeBooks zal bij het toestaan de journaal post opnieuw boeken wanneer de voorraad wordt aangevuld om de juiste kosten te berekenen.');
 define('CD_02_01_DESC','Standaard Debiteuren Grootboek. Doorgaans een type Debiteuren rekening.');
 define('CD_02_02_DESC','Standaard grootboekrekening voor verkopen. Doorgaans een type Ontvangsten rekening.');
 define('CD_02_03_DESC','Standaard grootboekrekening voor ontvangen gelden. Doorgaans een type liquide middelen rekening.');

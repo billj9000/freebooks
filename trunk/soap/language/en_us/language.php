@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -22,7 +23,7 @@ define('SOAP_USER_NOT_FOUND','The username submitted is not valid.');
 define('SOAP_PASSWORD_NOT_FOUND','The password submitted is not valid.');
 define('SOAP_UNEXPECTED_ERROR','An unexpected error code was returned by the processing server.');
 define('SOAP_XML_SUBMITTED_SO','XML submitted Sales Order');
-define('SOAP_ACCOUNT_PROBLEM','Could not find main address for an existing customer. Major problem with the PhreeBooks address database.');
+define('SOAP_ACCOUNT_PROBLEM','Could not find main address for an existing customer. Major problem with the FreeBooks address database.');
 define('SOAP_MISSING_FIELDS','Order # %s is missing the following required fields: %s');
 // particular to order type
 define('AUDIT_LOG_SOAP_10_ADDED','SOAP Sales Orders - Add');

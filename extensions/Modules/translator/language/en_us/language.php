@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -56,7 +57,7 @@ define('TEXT_CONSTANT','Defined Constant');
 define('TEXT_DEFAULT_TRANSLATION','Current Translation');
 define('TEXT_STATS_VALUES','%s of %s translated (%s percent)');
 define('TEXT_TRANSLATIONS_SAVED','Translation records saved.');
-define('TRANSLATION_HEADER','Phreedom Language Translation File');
+define('TRANSLATION_HEADER','FreeBooks Language Translation File');
 // Error Messages
 define('TRANS_ERROR_NO_SOURCE','No available versions of the source language were found! Please import the source language.');
 // Javascrpt defines

@@ -1,9 +1,9 @@
 ﻿<?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright (c) 2008, 2009, 2010 PhreeSoft, LLC                   |
-// | http://www.PhreeSoft.com                                        |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -14,10 +14,6 @@
 // | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
-// |                                                                 |
-// | The license that is bundled with this package is located in the |
-// | file: /doc/manual/ch01-Introduction/license.html.               |
-// | If not, see http://www.gnu.org/licenses/                        |
 // +-----------------------------------------------------------------+
 //  Path: /modules/inventory/language/en_us/admin.php
 //
@@ -51,11 +47,11 @@ define ('MODULE_INVENTORY_NOTES_1', 'PRIORITÄT: Set Default Sachkonten für Inv
 /************************** (Inventar Defaults) ******************* ****************************/
 define ('CD_05_50_DESC', 'Bestimmt die Standard-Mehrwertsteuersatz bei jeder Zugabe von Bestandsdaten an. HINWEIS: Dieser Wert zu inventarisieren Auto angewendet wird-Add kann aber im Inventar => Pflegen Bildschirm verändert werden Die Steuersätze werden von den ausgewählten. Tabelle tax_rates und muss durch Setup Setup => Umsatzsteuer Tarife werden ');
 define ('CD_05_52_DESC', 'Bestimmt die Standard-Kauf Steuersatz zu verwenden, wenn du Inventargegenstände. HINWEIS: Dieser Wert wird angewendet Inventar Auto-Add kann aber im Inventar => Pflegen Bildschirm verändert werden Die Steuersätze werden von den ausgewählten. Tabelle tax_rates und muss durch Setup Setup => Kauf Steuersätze werden ');
-define ('CD_05_55_DESC', 'Erlaubt die automatische Erstellung von Inventar Elemente in der Reihenfolge Bildschirme. SKUs sind nicht in PhreeBooks für Nicht-verfolgbaren Inventar Arten erforderlich. Diese Funktion ermöglicht die automatische Erstellung von SKUs in der Inventar-Datenbank-Tabelle. Das Inventar Art . verwendet werden Lagerbestände werden die FIBU-Konten verwendet wird die Standard-Konten und Kalkulation Methode für Lagerware werden ');
+define ('CD_05_55_DESC', 'Erlaubt die automatische Erstellung von Inventar Elemente in der Reihenfolge Bildschirme. SKUs sind nicht in FreeBooks für Nicht-verfolgbaren Inventar Arten erforderlich. Diese Funktion ermöglicht die automatische Erstellung von SKUs in der Inventar-Datenbank-Tabelle. Das Inventar Art . verwendet werden Lagerbestände werden die FIBU-Konten verwendet wird die Standard-Konten und Kalkulation Methode für Lagerware werden ');
 define ('CD_05_60_DESC', 'Erlaubt ein Ajax-Aufruf in Wahlmöglichkeiten wie Daten zu füllen ist in die SKU-Feld eingegeben. Diese Funktion ist hilfreich, wenn die SKUs sind bekannt und beschleunigt, um Formulare auszufüllen. Mai verlangsamen SKU Einträge als Barcode-Scanner verwendet werden. ');
-define ('CD_05_65_DESC', 'Wenn aktiviert, sucht PhreeBooks für eine SKU Länge im Bestellformular gleich dem Bar-Code-Wert und Dauer, wenn die Länge erreicht ist, versucht, mit einem Gegenstand im Inventar übereinstimmen. Diese ermöglichen eine schnelle Eingabe der Begriffe bei der Verwendung von Barcode-Leser ');
-define ('CD_05_70_DESC', '.. Legt die Anzahl der Zeichen zu erwarten, wenn das Lesen Inventar Barcode Werte PhreeBooks sucht nur, wenn die Anzahl der Zeichen erreicht wurde Typische Werte sind 12 und 13 Zeichen lang sein.');
-define ('CD_05_75_DESC', 'Wenn aktiviert, wird das Element PhreeBooks Kosten im Inventar Tabelle entweder mit dem PO Preis oder Kauf Update / Empfangen Preis. Usefule für "on the fly PO / Einkauf und Aktualisierung Preise aus dem Auftrag Bildschirm ohne Update das Inventar Tabellen erste ');
+define ('CD_05_65_DESC', 'Wenn aktiviert, sucht FreeBooks für eine SKU Länge im Bestellformular gleich dem Bar-Code-Wert und Dauer, wenn die Länge erreicht ist, versucht, mit einem Gegenstand im Inventar übereinstimmen. Diese ermöglichen eine schnelle Eingabe der Begriffe bei der Verwendung von Barcode-Leser ');
+define ('CD_05_70_DESC', '.. Legt die Anzahl der Zeichen zu erwarten, wenn das Lesen Inventar Barcode Werte FreeBooks sucht nur, wenn die Anzahl der Zeichen erreicht wurde Typische Werte sind 12 und 13 Zeichen lang sein.');
+define ('CD_05_75_DESC', 'Wenn aktiviert, wird das Element FreeBooks Kosten im Inventar Tabelle entweder mit dem PO Preis oder Kauf Update / Empfangen Preis. Usefule für "on the fly PO / Einkauf und Aktualisierung Preise aus dem Auftrag Bildschirm ohne Update das Inventar Tabellen erste ');
 
 /************************** (Inventar Tabs / Fields) ***************** ******************************/
 define ('INV_HEADING_CATEGORY_NAME', 'Tab Name');
@@ -112,10 +108,10 @@ define ('INV_TOOLS_SO_ERROR', 'Artikel-Nr: %s hatte eine Menge auf Kundenauftrag
 define ('INV_TOOLS_SO_PO_RESULT', '. Fertige Verarbeitung Inventory Bestellmengen Die Gesamtzahl der verarbeiteten Artikel wurde%s. Die Anzahl der Datensätze mit Fehlern war%s.');
 define ('INV_TOOLS_AUTDIT_LOG_SO_PO', 'Inv Tools - Repair SO / PO Menge (%s)');
 define ('INV_TOOLS_VALIDATE_INVENTORY', 'Validate Inventar angezeigt Stock');
-define ('INV_TOOLS_VALIDATE_INV_DESC', 'Diese Operation durchführen, um sicherzustellen eurem Inventar Mengen in der Inventar-Datenbank aufgelistet und in der Inventar-Bildschirmen sind die gleichen wie die Mengen im Inventar-Datenbank als Geschichte von PhreeBooks berechnet, wenn Lagerbewegungen auftreten. Der einzige Artikel getestet sind diejenigen, die in den Kosten der verkauften Waren Berechnung Reparieren Inventar Salden der Lagerbestand korrekt und lassen Sie das Inventar historischer Daten allein verfolgt werden ');
+define ('INV_TOOLS_VALIDATE_INV_DESC', 'Diese Operation durchführen, um sicherzustellen eurem Inventar Mengen in der Inventar-Datenbank aufgelistet und in der Inventar-Bildschirmen sind die gleichen wie die Mengen im Inventar-Datenbank als Geschichte von FreeBooks berechnet, wenn Lagerbewegungen auftreten. Der einzige Artikel getestet sind diejenigen, die in den Kosten der verkauften Waren Berechnung Reparieren Inventar Salden der Lagerbestand korrekt und lassen Sie das Inventar historischer Daten allein verfolgt werden ');
 define ('INV_TOOLS_REPAIR_TEST', 'Test Inventory Guthaben bei COGS Geschichte');
 define ('INV_TOOLS_REPAIR_FIX', 'Repair Inventory Guthaben bei COGS Geschichte');
-define ('INV_TOOLS_REPAIR_CONFIRM', 'Sind Sie sicher, dass Sie das Inventar Lagerbestand Reparatur der PhreeBooks COGS Geschichte berechneten Werten überein?');
+define ('INV_TOOLS_REPAIR_CONFIRM', 'Sind Sie sicher, dass Sie das Inventar Lagerbestand Reparatur der FreeBooks COGS Geschichte berechneten Werten überein?');
 define ('INV_TOOLS_BTN_TEST', 'Überprüfen Bestandsaufnahme');
 define ('INV_TOOLS_BTN_REPAIR', 'Sync Menge auf Lager');
 define ('INV_TOOLS_OUT_OF_BALANCE', 'Artikel-Nr: %s -> stock gibt%s auf der Hand, aber COGS History-Liste%s verfügbar');
