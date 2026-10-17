@@ -26,7 +26,7 @@
  * The ledger works the tax out itself from each line's rate
  * (orders::add_tax_journal_rows): per authority, summed over the document's
  * lines and its freight, then rounded to the currency's places once per
- * authority (ROUND_TAX_BY_AUTH). A line's tax after an order discount is on the
+ * authority (issue #105). A line's tax after an order discount is on the
  * discounted amount (AR_TAX_BEFORE_DISCOUNT off). A document's freight is taxed
  * at the rate the document names for it.
  *
@@ -47,7 +47,6 @@ return array(
         'ENABLE_ORDER_DISCOUNT'        => '1',
         'AR_TAX_BEFORE_DISCOUNT'       => '0',
         'AR_ADD_SALES_TAX_TO_SHIPPING' => '0',
-        'ROUND_TAX_BY_AUTH'            => '1',
     ),
     'payment_methods' => array('cod'),
     'tax_auths' => array(          // rate %, payable account

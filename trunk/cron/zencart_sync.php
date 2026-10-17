@@ -750,9 +750,7 @@ foreach ($zc_orders as $zc) {
     $_dec = $currencies->currencies[$zc_currency]['decimal_places'] ?? $currencies->currencies[DEFAULT_CURRENCY]['decimal_places'];
     $_fb_tax = 0.0;
     foreach ($_auth_totals as $_a => $_t) {
-        $_fb_tax += defined('ROUND_TAX_BY_AUTH') && ROUND_TAX_BY_AUTH
-            ? (float)number_format($_t, $_dec, '.', '')
-            : $_t;
+        $_fb_tax += round($_t, $_dec);   // as the ledger rounds each authority's tax
     }
     $_fb_total = round(
         array_sum(array_column($item_rows, 'total')) + $ship_ex_vat + $_fb_tax - $discount,

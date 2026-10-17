@@ -36,7 +36,6 @@ class phreebooks_admin {
     $this->keys = array(
 	  'AUTO_UPDATE_PERIOD'             => '1',
 	  'SHOW_FULL_GL_NAMES'             => '2',
-	  'ROUND_TAX_BY_AUTH'              => '0',
 	  'ENABLE_BAR_CODE_READERS'        => '0',
 	  'SINGLE_LINE_ORDER_SCREEN'       => '1',
 	  'ENABLE_ORDER_DISCOUNT'          => '0',

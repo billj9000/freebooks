@@ -225,11 +225,7 @@ class phreepos extends journal {
 			    if (ENABLE_ORDER_DISCOUNT && $tax_discount == '0') {
 				  $line_total = $line_total * (1 - $this->disc_percent);
 			    }
-			    if (ROUND_TAX_BY_AUTH) {
-				  $auth_array[$auth] += round((($tax_auths[$auth]['tax_rate'] / 100) * $line_total), $currencies->currencies[DEFAULT_CURRENCY]['decimal_places']);
-			    } else {
-				  $auth_array[$auth] += ($tax_auths[$auth]['tax_rate'] / 100) * $line_total;
-			    }
+			    $auth_array[$auth] = ($auth_array[$auth] ?? 0) + ($tax_auths[$auth]['tax_rate'] / 100) * $line_total;
 			  }
 		    }
 		  }
@@ -237,6 +233,9 @@ class phreepos extends journal {
 	  }
 	  // calculate each tax total by authority and put into journal row array
 	  foreach ($auth_array as $auth => $auth_tax_collected) {
+	    // Each authority's tax is rounded to the currency's places once per document, so that its
+	    // account holds the tax the documents show and a document's total is what is owed on it (issue #105).
+	    $auth_tax_collected = round($auth_tax_collected, $currencies->currencies[DEFAULT_CURRENCY]['decimal_places']);
 	    $this->journal_rows[] = array( // record for specific tax authority
 		  'qty'                     => '1',
 		  'gl_type'                 => 'tax',		// code for tax entry

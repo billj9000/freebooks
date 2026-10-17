@@ -33,10 +33,6 @@
             <div style="display:table-cell; padding-bottom:4px; vertical-align:middle; white-space:nowrap"><?php echo html_pull_down_menu('show_full_gl_names', $sel_gl_desc, $_POST['show_full_gl_names'] ? $_POST['show_full_gl_names'] : SHOW_FULL_GL_NAMES, ''); ?></div>
           </div>
           <div style="display:table-row">
-            <div style="display:table-cell; padding-right:16px; padding-bottom:4px; width:100%; vertical-align:middle"><?php echo CD_01_52_DESC; ?></div>
-            <div style="display:table-cell; padding-bottom:4px; vertical-align:middle; white-space:nowrap"><?php echo html_pull_down_menu('round_tax_by_auth', $sel_yes_no, $_POST['round_tax_by_auth'] ? $_POST['round_tax_by_auth'] : ROUND_TAX_BY_AUTH, ''); ?></div>
-          </div>
-          <div style="display:table-row">
             <div style="display:table-cell; padding-right:16px; padding-bottom:4px; width:100%; vertical-align:middle"><?php echo CD_01_55_DESC; ?></div>
             <div style="display:table-cell; padding-bottom:4px; vertical-align:middle; white-space:nowrap"><?php echo html_pull_down_menu('enable_bar_code_readers', $sel_yes_no, $_POST['enable_bar_code_readers'] ? $_POST['enable_bar_code_readers'] : ENABLE_BAR_CODE_READERS, ''); ?></div>
           </div>
