@@ -45,7 +45,7 @@ COMPANY="${1:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 # Tools that are not checks: they write, or they need arguments.
-SKIP="verify_forms_report"          # needs <report_id> <dataset>
+SKIP=""
 
 # Tools whose first argument is NOT a company. Passing one to these is not a
 # harmless extra — verify_report_page_widths reads argv[1] as a paper name and

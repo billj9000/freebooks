@@ -25,8 +25,8 @@
  * This is a faithful transcription of the legacy domain logic, not a redesign:
  * line tax, backorder reconciliation, discounts, payment masking and carrier
  * resolution all produce financial figures on customer-facing documents, so
- * behaviour is held constant and verified by diffing against a PhreeForm
- * baseline (docs/tools/diff_forms_provider.php).
+ * behaviour is held constant: field for field and line for line, what the
+ * legacy engine printed (design §8.1, §12.1).
  *
  * What DOES change is the shape of the output:
  *

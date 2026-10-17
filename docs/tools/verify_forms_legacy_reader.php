@@ -53,7 +53,7 @@
  * whole report directory is copied aside, some kept `.pre-forms` originals are
  * put back as `pf_<id>` so both readers can see them, and the directory is
  * restored from a shutdown function so it happens on a fatal as well as on
- * success. Same machinery, and the same reason, as verify_forms_migration.php.
+ * success. Same machinery, and the same reason, as verify_forms_admin_tools.php.
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');

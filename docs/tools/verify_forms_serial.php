@@ -254,7 +254,7 @@ function legacyFromXml(string $xml): ?object
 //
 // Per company and outside version control (my_files/<company>/forms-baselines/),
 // because a receipt baseline is a RENDERED SALE — customer, SKUs, prices — and
-// everything in this repository is public. See capture_forms_receipts.php.
+// everything in this repository is public (design §13.57).
 // Both, not just BuildForm(): the engine is spread over two files, and half of
 // it loaded is worse than none — BuildForm() exists, runs, and dies inside
 // AddSep(). Found by simulating the deletion with the wrong half present.
@@ -265,7 +265,7 @@ $snapshot   = is_file($snapPath)
 $printed    = is_array($snapshot['printed'] ?? null) ? $snapshot['printed'] : [];
 $layouts    = is_array($snapshot['layouts'] ?? null) ? $snapshot['layouts'] : [];
 
-/** The marker capture_forms_receipts.php puts on bytes that are not UTF-8. */
+/** The marker the baseline puts on bytes that are not UTF-8. */
 const SNAP_B64 = '~b64~';
 function snapshotBytes(?string $stored): ?string
 {
@@ -278,7 +278,7 @@ function snapshotBytes(?string $stored): ?string
 if (!$haveLegacy && $snapshot === null) {
     echo "  [--] PhreeForm is gone and this company has no captured baseline, so there\n"
        . "       is nothing left to hold the receipt renderer to. It could only have\n"
-       . "       been captured before the deletion; see capture_forms_receipts.php.\n";
+       . "       been captured before the deletion (design §13.57).\n";
 }
 $rotted = 0;
 

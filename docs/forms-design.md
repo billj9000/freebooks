@@ -316,6 +316,8 @@ Derived by parsing every shipped definition under
 > docs/tools/analyse_phreeform_defs.py            # report to stdout
 > docs/tools/analyse_phreeform_defs.py --json inventory.json
 > ```
+>
+> The script is retired (§13.57); the figures stand as measured.
 
 ### 6.1 Join graph → candidate datasets
 
@@ -461,6 +463,8 @@ The tools, all under `docs/tools/` and all run inside the container with `-d dis
 | `verify_forms_report.php` | Run one report through both engines and compare |
 | `make_forms_proving_templates.php` | Create/remove the scratch multi-page + `Ttl` templates (§8.3) |
 | `analyse_phreeform_defs.py` | Regenerate the §6 catalog inventory |
+
+The tools in this list that ran or compared against PhreeForm are retired (§13.57).
 
 ### 8.2 Conversion utility
 
@@ -960,6 +964,9 @@ Every figure below was **measured on 2026-08-12**, and §12.3 on 2026-08-13, not
 change to the seam, catalog or renderers; these numbers are the regression baseline.
 
 ### 12.1 Verification suite
+
+`verify_forms_report.php` and `diff_forms_provider.php` are retired (§13.57); their rows record
+what they measured.
 
 | Tool | Proves | Needs DB | Result |
 |---|---|---|---|
@@ -6511,3 +6518,17 @@ and dropping three names fails the other way.
 That is the same shape as §13.54's guard against a copied `switch`: harvest from
 the part of the application that actually owns the fact, never from a second copy
 of it.
+
+### 13.57 Retired tools
+
+Tools whose job ended with PhreeForm, or with a migration that every company has
+completed, are removed from `docs/tools/` (issue #101). Each remains in the
+repository history, and the sections above that cite one still describe what it
+measured at the time.
+
+| Removed | Why it has no further use |
+|---|---|
+| `capture_phreeform_baseline.php`, `diff_forms_provider.php`, `render_forms_document.php`, `render_forms_report.php`, `verify_forms_report.php`, `make_forms_proving_templates.php`, `analyse_phreeform_defs.py` | They ran the PhreeForm engine or its definitions, or compared Forms against it |
+| `capture_forms_baseline.php`, `capture_forms_receipts.php` | They captured PhreeForm's answers; the baselines they wrote are kept and still read by `verify_forms_formatter` and `verify_forms_serial` |
+| `verify_forms_standalone.php` | It counted what Forms borrowed from PhreeForm; with PhreeForm deleted there is nothing left to borrow |
+| `migrate_forms_definitions.php`, `verify_forms_migration.php`, `repair_forms_printed_field.php` | The bulk migration (§13.32), its check, and the printed-counter repair (§13.45); a legacy definition is still read as it stands |

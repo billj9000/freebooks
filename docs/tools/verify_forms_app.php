@@ -20,7 +20,7 @@
  * definition Forms claims it can serve is one it actually can.
  *
  * The claim being tested is narrow and worth stating: not that the numbers are
- * right (verify_forms_report.php compares those against PhreeForm), but that
+ * right (that was settled against PhreeForm, design §12.1), but that
  * the wiring holds for all of them at once. A route that throws, a renderer
  * that refuses the document it was handed, or an empty file are all failures
  * here; a definition Forms honestly declines is not.

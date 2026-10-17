@@ -22,7 +22,7 @@
  * tool asserts it.
  *
  * EXPECTED below is the ground truth: every entry is a mapping confirmed by a
- * passing row-set comparison in verify_forms_report.php, not by inspection. A
+ * passing row-set comparison against PhreeForm (design §12.1), not by inspection. A
  * report absent from EXPECTED is reported as unverified rather than assumed.
  *
  *   docker exec <c> php -d display_errors=1 \

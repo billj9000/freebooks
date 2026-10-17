@@ -20,9 +20,8 @@
  * THIS WRITES TO THE DATABASE. Save every form the application offers, three
  * ways, and say what the database refused.
  *
- * The static sweep (sweep_writes.php) can only say a value "cannot be proven
- * non-blank". This settles those candidates by making the writes actually
- * happen. Forty-one pages carry a save action; each is rendered, its inputs and
+ * Reading the source can only say a value "cannot be proven non-blank". This
+ * settles those candidates by making the writes actually happen. Forty-one pages carry a save action; each is rendered, its inputs and
  * csrf token harvested, and posted back:
  *
  *   as-rendered  the values the page itself supplied - a save that changes
@@ -315,7 +314,7 @@ if ($no_form) {
 }
 if ($coerced) {
     printf("\nblanks the coercion caught on their way into a column that cannot hold one (%d)\n", count($coerced));
-    printf("each is a sweep_writes candidate settled by a real post\n%s\n", str_repeat('-', 74));
+    printf("each is a blank settled by a real post\n%s\n", str_repeat('-', 74));
     ksort($coerced);
     foreach ($coerced as $col => $by) {
         $parts = array();

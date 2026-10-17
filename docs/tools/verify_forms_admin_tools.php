@@ -35,7 +35,7 @@
  * The whole report directory and the catalogue table are copied aside first,
  * and put back from a shutdown function so it happens on a fatal as well as on
  * success — the same machinery, for the same reason, as
- * verify_forms_migration.php.
+ * verify_forms_legacy_reader.php.
  *
  * The action itself runs in a CHILD process. It ends in gen_redirect(), which
  * exits; in-process that would take this tool with it, and a check that cannot

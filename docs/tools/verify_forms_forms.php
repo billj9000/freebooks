@@ -20,8 +20,8 @@
  * half, and this is what holds them to the same standard.
  *
  * The claim is narrow and worth stating: not that the figures are right —
- * diff_forms_provider.php proves those against a PhreeForm baseline, per
- * provider — but that a stored form definition plus the four URL parameters a
+ * those were proven against a PhreeForm baseline, per provider (design
+ * §12.1) — but that a stored form definition plus the four URL parameters a
  * Print button sends produce a PDF, for every form in the catalog at once.
  *
  * Records are found rather than hard-coded, because a fixture id that no longer

@@ -52,8 +52,8 @@
  *
  * Exit code 0 = parity holds. 1 = an unexpected divergence; the run prints it.
  *
- * Requires a baseline. If there is none, run capture_forms_baseline.php WHILE
- * PHREEFORM IS STILL INSTALLED — afterwards there is nothing to capture from.
+ * Requires the committed baseline, docs/tools/baselines/formatter.json. It was
+ * captured from PhreeForm and cannot be captured again (design §13.35, §13.57).
  */
 
 require_once(__DIR__ . '/bootstrap_freebooks.php');
@@ -102,7 +102,7 @@ function ok(string $what, bool $cond, string $detail = ''): void {
 //
 // Forms was built by comparison against PhreeForm, and step 6 deletes the thing
 // it was compared with. So the answers were captured first — into
-// docs/tools/baselines/formatter.json, by capture_forms_baseline.php — and this
+// docs/tools/baselines/formatter.json (§13.57) — and this
 // section holds Forms to the FILE. "Forms agrees with PhreeForm" becomes "Forms
 // produces what PhreeForm produced", which is the same guarantee without the
 // dependency (§13.35).
@@ -123,7 +123,7 @@ $baselinePath = __DIR__ . '/baselines/formatter.json';
 $baseline     = is_file($baselinePath)
               ? json_decode((string)file_get_contents($baselinePath), true) : null;
 
-/** The marker capture_forms_baseline.php puts on a value that is not UTF-8. */
+/** The marker the baseline puts on a value that is not UTF-8. */
 const BASE64_MARKER = '~b64~';
 function baselineValue(?string $stored): ?string
 {
@@ -137,9 +137,8 @@ echo "\n=== every value, against the captured baseline ===\n";
 
 if (!is_array($baseline) || !isset($baseline['free'])) {
     $failures++;
-    echo "  [FAIL] no baseline at $baselinePath — capture_forms_baseline.php has\n"
-       . "         to be run while PhreeForm is still installed, and it is the only\n"
-       . "         record there will be once it is not.\n";
+    echo "  [FAIL] no baseline at $baselinePath — it is committed to the repository\n"
+       . "         and cannot be captured again; restore it from git.\n";
 } else {
     // The environment-bound half is only comparable where the environment
     // matches: `def_cur` on a GBP company is not `def_cur` on a USD one, and a

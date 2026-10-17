@@ -26,8 +26,8 @@
  * which is what PhreeForm passed as the form break value. Everything else is a
  * faithful transcription — aging buckets, the prior-balance carry-forward, the
  * credit-memo and discount sign flips and the vendor inversion all put money on
- * a customer-facing document, so behaviour is held constant and proven by
- * diffing against a PhreeForm baseline (docs/tools/diff_forms_provider.php).
+ * a customer-facing document, so behaviour is held constant: field for field
+ * and line for line, what the legacy engine printed (design §8.1, §12.1).
  *
  * Two things change shape:
  *
