@@ -23,6 +23,10 @@
  *   docker exec <c> php -d display_errors=1 /opt/repo/docs/tools/acceptance/run_acceptance.php \
  *       <company> --scenario=a1 [--mode=stock|mysql8|both] [--go]
  *
+ * A scenario that reconciles the bank (A8) saves it through the reconciliation
+ * page over HTTP, so it needs a throwaway user of the throwaway company: pass
+ * -e FREEBOOKS_ACC_LOGIN=<user>:<password> to docker exec.
+ *
  * Without --go it lists the steps and changes nothing. With --go it refuses any
  * company whose database is not on the throwaway server (make one with
  * docs/tools/test_company.sh), because it begins by EMPTYING THE COMPANY'S
@@ -112,6 +116,8 @@ function acc_describe(array $s): string
         case 'bulk_pay': return 'bulk pay ' . implode(', ', array_map(function ($b) { return "{$b[1]} on {$b[0]}"; }, $s['bills']));
         case 'vendor_refund': return sprintf('vendor refunds %s on %s', $s['amount'], $s['credit']);
         case 'build':  return sprintf('build %s %s', $s['qty'], $s['sku']);
+        case 'reconcile': return sprintf('reconcile to day %s: %s', $s['period_day'], $s['tick'] ? implode(', ', $s['tick']) : 'none ticked');
+        case 'repost': return 're-post every journal';
         case 'unbuild': return sprintf('unbuild %s %s', $s['qty'], $s['sku']);
     }
     return $s['do'];
@@ -289,6 +295,8 @@ function acc_reset(array $scenario): array
     $roles['cash']   = $first('0');
     $roles['equity'] = $first('40, 42');
     $roles['freight'] = $setting('AR_DEF_FREIGHT_ACCT');
+    $roles['re']      = $first('44');   // retained earnings: the one account the year end closes into
+    $roles['expense'] = $first('34');
 
     // The scenario's tax authorities and rates replace any an earlier run left.
     // Each authority's account is a role, 'tax_' and its key in lower case.
@@ -367,13 +375,20 @@ function acc_reset(array $scenario): array
                                       'terms' => $c['terms'] ?? '0');
     }
 
-    // Day 1 is the first day of the current fiscal year's first period.
-    $fy = acc_rows("SELECT fiscal_year FROM " . TABLE_ACCOUNTING_PERIODS . " WHERE period = " . (int)CURRENT_ACCOUNTING_PERIOD);
+    // Day 1 is the first day of the current fiscal year's first period, or of the
+    // year before for a scenario that crosses a year end ('start' => 'previous year').
+    // A scenario stays in its first period unless it crosses into the next year.
+    $two_years = ($scenario['start'] ?? '') === 'previous year';
+    $fy = (int)acc_rows("SELECT fiscal_year FROM " . TABLE_ACCOUNTING_PERIODS . " WHERE period = " . (int)CURRENT_ACCOUNTING_PERIOD)[0]['fiscal_year'];
+    if ($two_years) $fy--;
     $p  = acc_rows("SELECT period, start_date, end_date FROM " . TABLE_ACCOUNTING_PERIODS . "
-                    WHERE fiscal_year = " . (int)$fy[0]['fiscal_year'] . " ORDER BY period LIMIT 1");
+                    WHERE fiscal_year = $fy ORDER BY period LIMIT 1");
+    if (!$p) { echo "the company has no fiscal year $fy\n"; exit(1); }
+    $last_day = $two_years ? acc_rows("SELECT MAX(end_date) AS e FROM " . TABLE_ACCOUNTING_PERIODS . " WHERE fiscal_year = " . ($fy + 1))[0]['e']
+                           : $p[0]['end_date'];
     $max_day = max(array_column($scenario['steps'], 'day'));
-    if (strtotime($p[0]['start_date'] . " +" . ($max_day - 1) . " days") > strtotime($p[0]['end_date'])) {
-        echo "the scenario runs to day $max_day, past the end of period {$p[0]['period']}\n";
+    if (!$last_day || strtotime($p[0]['start_date'] . " +" . ($max_day - 1) . " days") > strtotime($last_day)) {
+        echo "the scenario runs to day $max_day, past " . ($two_years ? "the end of fiscal year " . ($fy + 1) : "the end of period {$p[0]['period']}") . "\n";
         exit(1);
     }
     printf("ledger emptied; period %d from %s; accounts: %s\n", $p[0]['period'], $p[0]['start_date'],
@@ -457,6 +472,11 @@ function acc_post(array $step, array $state, string $state_file): int
             case 'bulk_pay':      $id = acc_bulk_pay($step, $state); break;
             case 'build':         $id = acc_post_assembly($step, $state, (float)$step['qty']); break;
             case 'unbuild':       $id = acc_post_assembly($step, $state, -(float)$step['qty']); break;
+            case 'reconcile':     $id = acc_reconcile($step, $state); break;
+            case 'repost':        // as phreebooks/pages/admin_tools does it, every journal it offers
+                $id = (int)repost_journals(array(2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 14, 16, 18, 19, 20, 21, 22),
+                                           acc_date($state, 1), acc_date($state, (int)$step['to_day']));
+                break;
             case 'edit':
                 $id = acc_post_order($step, $state, acc_journal_of($state, $step['target']), acc_id($state, $step['target']));
                 break;
@@ -839,6 +859,65 @@ function acc_post_assembly(array $step, array $state, float $qty): int
     return (int)$entry->id;
 }
 
+/**
+ * Save the bank reconciliation for the period holding $step['period_day'],
+ * through the reconciliation page itself: log in, open the page for the bank
+ * account and period, and post it back with the lines of the entries labelled
+ * in $step['tick'] ticked and the statement balance given. The page's own
+ * listing decides which lines are offered. The login comes from
+ * FREEBOOKS_ACC_LOGIN (user:password), a throwaway user of the throwaway company.
+ */
+function acc_reconcile(array $step, array $state): int
+{
+    global $db;
+    list($user, $pass) = array_pad(explode(':', (string)getenv('FREEBOOKS_ACC_LOGIN'), 2), 2, '');
+    if ($user === '' || $pass === '') throw new RuntimeException('reconciling goes through the page: set FREEBOOKS_ACC_LOGIN=user:password');
+    $base = getenv('FREEBOOKS_URL') ?: 'http://localhost';
+    $jar  = tempnam(sys_get_temp_dir(), 'acc');
+    $http = function (string $url, ?array $post = null) use ($base, $jar) {
+        $ch = curl_init($base . $url);
+        curl_setopt_array($ch, array(CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIEJAR => $jar, CURLOPT_COOKIEFILE => $jar,
+                                     CURLOPT_FOLLOWLOCATION => false, CURLOPT_TIMEOUT => 60));
+        if ($post !== null) { curl_setopt($ch, CURLOPT_POST, true); curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post)); }
+        $body = (string)curl_exec($ch);
+        curl_close($ch);
+        return $body;
+    };
+    // The login wants the csrf token off its page and the company as its index in the selector.
+    $login = $http('/index.php?module=phreedom&page=main');
+    if (!preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $login, $m)) throw new RuntimeException('no csrf token on the login page');
+    $company = $_SESSION['company'];
+    if (!preg_match('/<option value="(\d+)">[^<]*\(' . preg_quote($company, '/') . '\)/', $login, $c)
+        && !preg_match('/<option value="(\d+)">' . preg_quote($company, '/') . '/i', $login, $c)) throw new RuntimeException("company $company is not offered at login");
+    $http('/index.php?module=phreedom&page=main&action=validate',
+          array('csrf_token' => $m[1], 'admin_name' => $user, 'admin_pass' => $pass, 'company' => $c[1], 'language' => 'en_us'));
+
+    $period = gen_calculate_period(acc_date($state, (int)$step['period_day']), true);
+    $url    = '/index.php?module=phreebooks&page=reconciliation&search_period=' . $period;
+    // Opened with a GET: index.php refuses a POST without the token this page
+    // carries. The page opens on AR_SALES_RECEIPTS_ACCOUNT, the bank role.
+    $page   = $http($url);
+    if (strpos($page, 'admin_pass') !== false) throw new RuntimeException("the login as $user failed");
+    if (!preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $page, $t)) throw new RuntimeException('no csrf token on the reconciliation page');
+    preg_match_all('/name="id\[(\d+)\]"[^>]*? value="(\d+)"/', $page, $rows, PREG_SET_ORDER);
+    if (!$rows) throw new RuntimeException('the reconciliation page offered no lines');
+
+    $tick_ids = array_map(function ($label) use ($state) { return acc_id($state, $label); }, $step['tick']);
+    $post = array('csrf_token' => $t[1], 'action' => 'save', 'gl_account' => $state['roles']['bank'],
+                  'start_balance' => $step['statement'], 'id' => array(), 'chk' => array());
+    foreach ($rows as list(, $i, $line_id)) {
+        $post['id'][$i] = $line_id;
+        $ref = (int)(acc_rows("SELECT ref_id FROM " . TABLE_JOURNAL_ITEM . " WHERE id = " . (int)$line_id)[0]['ref_id'] ?? 0);
+        if (in_array($ref, $tick_ids, true)) $post['chk'][$i] = '1';
+    }
+    $after = $http($url, $post);
+    @unlink($jar);
+    if (strpos($after, 'admin_pass') !== false) throw new RuntimeException('the save was answered with the login page');
+    $saved = acc_rows("SELECT id FROM " . TABLE_RECONCILIATION . " WHERE period = $period AND gl_account = '" . db_input($state['roles']['bank']) . "'");
+    if (!$saved) throw new RuntimeException('the page saved no reconciliation for period ' . $period);
+    return (int)$saved[0]['id'];
+}
+
 function acc_sku_of(int $id): string
 {
     return (string)(acc_rows("SELECT sku FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = $id AND sku <> '' LIMIT 1")[0]['sku'] ?? '');
@@ -871,6 +950,11 @@ function acc_net_income(int $period): float
  *                     labelled document added; 'label SKU' counts one item's only
  *   doc_cogs          array(label => amount): the cost of goods that labelled
  *                     document books, debit positive
+ *   at                array(day => array(role => balance)): balances at the end
+ *                     of the period holding that day
+ *   closed            array(label => bool): whether that entry is closed
+ *   reconciled        array(label => day): the day whose period that entry's bank
+ *                     lines are reconciled to, 0 for not reconciled
  * and every entry of the scenario's 'balances' must net to zero. Amounts must
  * match to the currency's smallest unit, or to the scenario's 'tolerance'.
  */
@@ -914,6 +998,42 @@ function acc_check(array $step, array $scenario, array $state): int
             $parts[] = $row ? sprintf('%s terms %s%% to %s', $label, $row['percent'] * 100, $row['early_date'])
                             . ($good ? '' : sprintf(' WANTED %s%% to %s', $discount * 100, $early))
                             : "$label not offered for payment";
+        } elseif ($k === 'at') {
+            // Balances at the end of the period holding each given day.
+            $good = true; $shown = array();
+            foreach ($want as $day => $figures) {
+                $period = gen_calculate_period(acc_date($state, (int)$day), true);
+                $one = array();
+                foreach ($figures as $role => $w) {
+                    if (!isset($roles[$role])) throw new RuntimeException("expectation 'at' names $role, which is no account role");
+                    $g = acc_account_balance($roles[$role], $period);
+                    $hit = abs($g - $w) <= $tol;
+                    $one[] = sprintf('%s %.2f', $role, $g) . ($hit ? '' : sprintf(' WANTED %.2f', $w));
+                    $good = $good && $hit;
+                }
+                $shown[] = "period $period: " . implode(' ', $one);
+            }
+            $parts[] = implode("\n      ", $shown);
+        } elseif ($k === 'closed' || $k === 'reconciled') {
+            // closed: whether each labelled entry is closed. reconciled: the day
+            // whose period each labelled entry's bank lines are reconciled to, or 0.
+            $good = true; $shown = array();
+            foreach ($want as $label => $w) {
+                $id = acc_id($state, $label);
+                if ($k === 'closed') {
+                    $g = (acc_rows("SELECT closed FROM " . TABLE_JOURNAL_MAIN . " WHERE id = $id")[0]['closed'] ?? '') === '1';
+                    $hit = $g === $w;
+                    $shown[] = $label . ($g ? ' closed' : ' open') . ($hit ? '' : ' WANTED ' . ($w ? 'closed' : 'open'));
+                } else {
+                    $want_period = $w ? (int)gen_calculate_period(acc_date($state, (int)$w), true) : 0;
+                    $g = array_map('intval', array_column(acc_rows("SELECT reconciled FROM " . TABLE_JOURNAL_ITEM . "
+                            WHERE ref_id = $id AND gl_account = '" . db_input($roles['bank']) . "'"), 'reconciled'));
+                    $hit = $g && count(array_unique($g)) === 1 && $g[0] === $want_period;
+                    $shown[] = sprintf('%s %s', $label, implode('/', $g)) . ($hit ? '' : " WANTED $want_period");
+                }
+                $good = $good && $hit;
+            }
+            $parts[] = $k . ' ' . implode(', ', $shown);
         } elseif ($k === 'stock' || $k === 'item_costs') {
             $good = true; $shown = array();
             foreach ($want as $s => $w) {
