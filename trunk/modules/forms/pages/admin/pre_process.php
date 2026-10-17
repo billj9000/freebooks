@@ -169,7 +169,10 @@ switch ($_REQUEST['action'] ?? '') {
             . ($type == 'frm' ? 'misc:misc' : 'misc') . "' and doc_type = '0'");
       }
       db_perform(TABLE_PHREEFORM, array(
-        'parent_id'   => $folder->fields['id'],
+        // The top level when even Miscellaneous is missing, as seeding does: a
+        // blank id is refused by a strict server, and this runs after the list
+        // has been emptied.
+        'parent_id'   => $folder->RecordCount() ? (int)$folder->fields['id'] : 0,
         'doc_type'    => 's',
         'doc_title'   => $title,
         'doc_group'   => $group,

@@ -112,7 +112,9 @@ $iterator  = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root)
 foreach ($iterator as $file) {
     if (!$file->isFile() || !in_array($file->getExtension(), array('php', 'js'), true)) continue;
     $path = str_replace($root . '/', '', $file->getPathname());
-    if (str_starts_with($path, 'vendor/') || str_starts_with($path, 'ext/')) continue;
+    // docs/ ships in the container's web root but is development tooling, and
+    // this tool's own source names the URL it is looking for.
+    if (str_starts_with($path, 'vendor/') || str_starts_with($path, 'ext/') || str_starts_with($path, 'docs/')) continue;
 
     // The engines' own pages are allowed to know their own names; so is the
     // helper, which is the whole point of it. They are skipped for the group

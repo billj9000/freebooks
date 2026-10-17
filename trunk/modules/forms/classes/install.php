@@ -179,6 +179,17 @@ class forms_admin {
     return false;
   }
 
-  function load_reports($module) { return false; }
+  /**
+   * The Miscellaneous heading and its two folders, where a document whose group
+   * has no folder of its own is filed. Forms owns them because the document
+   * list is Forms'; the list rebuild calls this after emptying the table.
+   */
+  function load_reports($module) {
+    $error = false;
+    $id = admin_add_report_heading(TEXT_MISC, 'misc');
+    if (admin_add_report_folder($id, TEXT_REPORTS, 'misc',      'fr')) $error = true;
+    if (admin_add_report_folder($id, TEXT_FORMS,   'misc:misc', 'ff')) $error = true;
+    return $error;
+  }
   function load_demo()           { return false; }
 }

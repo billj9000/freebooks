@@ -107,6 +107,8 @@ function runAction(string $action, string $company): array
         fb_bootstrap(getenv('FB_COMPANY'));
         $_SESSION['admin_security'] = array_fill(0, 1000, 4);
         $_SESSION['admin_id']       = 1;
+        // The page refuses its actions unless they arrive as a POST.
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_REQUEST['action'] = $_POST['action'] = getenv('FB_ACTION');
         $_REQUEST['module'] = 'forms';  $_REQUEST['page'] = 'admin';
         define('DIR_FS_WORKING', DIR_FS_MODULES . 'forms/');
@@ -119,7 +121,11 @@ CHILD;
              . ' ' . escapeshellarg(PHP_BINARY) . ' -d display_errors=1 -r ' . escapeshellarg($script);
     $lines = []; $status = 0;
     exec($command . ' 2>&1', $lines, $status);
-    return [implode("\n", $lines), $status];
+    $out = implode("\n", $lines);
+    // A refused action dies with a message and exit status 0, so the status
+    // alone would report it as having run.
+    if (str_contains($out, 'must be submitted from its page')) $status = 1;
+    return [$out, $status];
 }
 
 /** The page size a native definition carries. */
