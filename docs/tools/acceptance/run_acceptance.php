@@ -116,6 +116,7 @@ function acc_describe(array $s): string
         case 'bulk_pay': return 'bulk pay ' . implode(', ', array_map(function ($b) { return "{$b[1]} on {$b[0]}"; }, $s['bills']));
         case 'vendor_refund': return sprintf('vendor refunds %s on %s', $s['amount'], $s['credit']);
         case 'build':  return sprintf('build %s %s', $s['qty'], $s['sku']);
+        case 'adjust': return sprintf('adjust %s by %s', $s['sku'], $s['qty']) . (isset($s['price']) ? " @ {$s['price']}" : '');
         case 'reconcile': return sprintf('reconcile to day %s: %s', $s['period_day'], $s['tick'] ? implode(', ', $s['tick']) : 'none ticked');
         case 'repost': return 're-post every journal';
         case 'pos_sale': return 'POS sale ' . implode(' + ', array_map(function ($l) { return "{$l[0]} @ {$l[1]}"; }, $s['lines']));
@@ -474,6 +475,7 @@ function acc_post(array $step, array $state, string $state_file): int
             case 'vendor_refund': $id = acc_post_banking($step, $state, 18, $step['credit']); break;
             case 'bulk_pay':      $id = acc_bulk_pay($step, $state); break;
             case 'build':         $id = acc_post_assembly($step, $state, (float)$step['qty']); break;
+            case 'adjust':        $id = acc_post_adjustment($step, $state); break;
             case 'unbuild':       $id = acc_post_assembly($step, $state, -(float)$step['qty']); break;
             case 'reconcile':     $id = acc_reconcile($step, $state); break;
             case 'pos_sale':      $id = acc_pos_sale($step, $state); break;
@@ -997,6 +999,48 @@ function acc_pos_sale(array $step, array $state): int
     $sale->rounding_amt        = $step['rounding'] ?? 0;
     $sale->rounding_gl_acct_id = $state['roles']['rounding'];
     return $sale->post_ordr('save') ? (int)$sale->id : 0;
+}
+
+/**
+ * An inventory adjustment of one item, as inventory/pages/adjustments posts it:
+ * a line at the item's inventory account, debited at qty x price when stock is
+ * added, and a total line to the 'adjust' role's account, which also takes the
+ * cost of stock taken out.
+ */
+function acc_post_adjustment(array $step, array $state): int
+{
+    global $db;
+    define('JOURNAL_ID', 16);
+    define('GL_TYPE', '');
+    $item  = acc_rows("SELECT account_inventory_wage, description_short FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($step['sku']) . "'")[0];
+    $qty   = (float)$step['qty'];
+    $price = (float)($step['price'] ?? 0);
+    $total = $qty > 0 ? $qty * $price : 0;
+    $entry = new journal();
+    $entry->id                  = '';
+    $entry->journal_id          = 16;
+    $entry->store_id            = 0;
+    $entry->post_date           = acc_date($state, (int)$step['day']);
+    $entry->period              = gen_calculate_period($entry->post_date, true);
+    $entry->purchase_invoice_id = 'ACC-' . ($step['label'] ?? $step['seq']);
+    $entry->admin_id            = 1;
+    $entry->closed              = '1';
+    $entry->closed_date         = $entry->post_date;
+    $entry->currencies_code     = DEFAULT_CURRENCY;
+    $entry->currencies_value    = 1;
+    $entry->journal_main_array  = $entry->build_journal_main_array();
+    $entry->journal_main_array['total_amount'] = $total;
+    $entry->journal_rows = array(
+        array('sku' => $step['sku'], 'qty' => $qty, 'gl_type' => 'adj', 'serialize_number' => '', 'gl_account' => $item['account_inventory_wage'],
+              'description' => $item['description_short'], 'credit_amount' => 0, 'debit_amount' => $total, 'post_date' => $entry->post_date),
+        array('sku' => '', 'qty' => 0, 'gl_type' => 'ttl', 'gl_account' => $state['roles']['adjust'], 'description' => 'acceptance',
+              'debit_amount' => 0, 'credit_amount' => $total, 'post_date' => $entry->post_date),
+    );
+    $entry->override_cogs_acct = $state['roles']['adjust'];
+    $db->transStart();
+    if (!$entry->Post('insert')) return 0;   // the ledger has rolled back
+    $db->transCommit();
+    return (int)$entry->id;
 }
 
 function acc_sku_of(int $id): string
