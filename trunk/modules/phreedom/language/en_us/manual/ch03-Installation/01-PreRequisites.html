@@ -24,12 +24,13 @@
 <h3>System Requirements </h3>
 <p>During the setup script, FreeBooks will inspect your system and let you know of any missing or downlevel pre-requisites. The setup script will not continue until these pre-requisites are met.</p>
 <ol>
-  <li>PHP Version: 8.0 or higher (PHP 8.5 is used in the published container image, <code>ghcr.io/billj9000/freebooks</code>, and is recommended)</li>
-  <li>MySQL 5.7 or higher, or MariaDB 10.3 or higher (the reference Docker setup uses MariaDB 11.4)</li>
+  <li>PHP Version: 8.2 or higher, within PHP 8 (PHP 8.5 is used in the published container image, <code>ghcr.io/billj9000/freebooks</code>, and is recommended)</li>
+  <li>MySQL 8.0 or higher (tested on 8.4), or MariaDB 10.6 or higher (tested on 11.4, which the reference Docker setup uses)</li>
   <li>Required PHP extensions: <code>pdo_mysql</code>, <code>gd</code>, <code>zip</code>, <code>bz2</code>, <code>openssl</code>, <code>curl</code>, <code>mbstring</code>, and session support</li>
+  <li>Web server: Apache 2.4 with <code>mod_rewrite</code> and <code>AllowOverride All</code>. FreeBooks keeps its configuration, company files and logs out of reach of the web with <code>.htaccess</code> files, which other web servers ignore</li>
   <li>HTTPS is recommended, and is required if you plan to enable passkey (WebAuthn) sign-in &mdash; see <a href="../ch06-UsersSecurity/03-Passkeys.html">Passkeys (Passwordless Sign-In)</a></li>
 </ol>
 <h3>Chart of Accounts</h3>
-<p>The installer automatically loads one of four built-in example charts of accounts; there is currently no setup-time option to supply your own. See the <a href="02-01-ChartOfAccounts.html">chart of accounts help file</a> for details.</p>
+<p>The installer asks which of eight built-in example charts of accounts to load (US, UK or Ireland); a chart of your own can be imported afterwards. See the <a href="02-01-ChartOfAccounts.html">chart of accounts help file</a> for details.</p>
 </body>
 </html>
