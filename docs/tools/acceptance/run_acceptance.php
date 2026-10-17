@@ -288,6 +288,29 @@ function acc_reset(array $scenario): array
     };
     $roles['cash']   = $first('0');
     $roles['equity'] = $first('40, 42');
+    $roles['freight'] = $setting('AR_DEF_FREIGHT_ACCT');
+
+    // The scenario's tax authorities and rates replace any an earlier run left.
+    // Each authority's account is a role, 'tax_' and its key in lower case.
+    $db->Execute("DELETE FROM " . TABLE_TAX_RATES . " WHERE description_short LIKE 'ACC-%'");
+    $db->Execute("DELETE FROM " . TABLE_TAX_AUTH . " WHERE description_short LIKE 'ACC-%'");
+    $auth_ids = array(); $taxes = array();
+    foreach ($scenario['tax_auths'] ?? array() as $key => list($rate, $acct)) {
+        if (!acc_rows("SELECT id FROM " . TABLE_CHART_OF_ACCOUNTS . " WHERE id = '" . db_input($acct) . "'")) {
+            echo "the chart has no account $acct for tax authority $key\n";
+            exit(1);
+        }
+        db_perform(TABLE_TAX_AUTH, array('type' => 'c', 'description_short' => "ACC-$key", 'description_long' => "Acceptance $key",
+                                         'account_id' => $acct, 'vendor_id' => 0, 'tax_rate' => $rate), 'insert');
+        $auth_ids[$key] = (int)db_insert_id();
+        $roles['tax_' . strtolower($key)] = (string)$acct;
+    }
+    foreach ($scenario['tax_rates'] ?? array() as $key => list($type, $auths)) {
+        db_perform(TABLE_TAX_RATES, array('type' => $type, 'description_short' => "ACC-$key", 'description_long' => "Acceptance $key",
+            'rate_accounts' => implode(':', array_map(function ($a) use ($auth_ids) { return $auth_ids[$a]; }, $auths)),
+            'freight_taxable' => '0'), 'insert');
+        $taxes[$key] = (int)db_insert_id();
+    }
     foreach ($roles as $role => $acct) {
         if ($acct === '' || !acc_rows("SELECT id FROM " . TABLE_CHART_OF_ACCOUNTS . " WHERE id = '" . db_input($acct) . "'")) {
             echo "the chart has no account for '$role' ($acct)\n";
@@ -356,7 +379,7 @@ function acc_reset(array $scenario): array
     printf("ledger emptied; period %d from %s; accounts: %s\n", $p[0]['period'], $p[0]['start_date'],
            implode(', ', array_map(function ($k, $v) { return "$k $v"; }, array_keys($roles), $roles)));
     return array('roles' => $roles, 'contacts' => $contacts, 'period' => (int)$p[0]['period'],
-                 'start' => $p[0]['start_date'], 'ids' => array());
+                 'start' => $p[0]['start_date'], 'ids' => array(), 'taxes' => $taxes);
 }
 
 function acc_date(array $state, int $day): string
@@ -550,7 +573,7 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
     $from_line = null;
     if ($from) {
         $from_type = array(6 => 'poo', 7 => 'por', 12 => 'soo', 13 => 'sos')[$jid];
-        $from_line = acc_rows("SELECT id, sku, qty, debit_amount, credit_amount FROM " . TABLE_JOURNAL_ITEM . "
+        $from_line = acc_rows("SELECT id, sku, qty, debit_amount, credit_amount, taxable FROM " . TABLE_JOURNAL_ITEM . "
                                WHERE ref_id = $from AND gl_type = '$from_type' AND sku <> '' LIMIT 1")[0] ?? null;
         if (!$from_line) throw new RuntimeException("entry $from has no item line to raise this against");
     }
@@ -558,6 +581,15 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
     // The page fills the line from the document it is raised against; the price can then be changed.
     $price = $step['price'] ?? ($from_line['debit_amount'] + $from_line['credit_amount']) / $from_line['qty'];
     $item  = acc_rows("SELECT * FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($sku) . "'")[0];
+    // A line's tax rate names one of the scenario's; a line raised against
+    // another document takes that document's rate, as the page fills it.
+    $tax_id = function ($key) use ($state) {
+        if (!isset($state['taxes'][$key])) throw new RuntimeException("no tax rate '$key' in the scenario");
+        return $state['taxes'][$key];
+    };
+    $line_tax = isset($step['tax']) ? $tax_id($step['tax']) : (int)($from_line['taxable'] ?? 0);
+    $subtotal = $step['qty'] * $price;
+    $order_discount = $step['order_discount'] ?? 0;
 
     $order = new orders();
     $order->id                  = $edit_id ?: '';
@@ -585,10 +617,15 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
     $order->waiting             = 0;
     $order->closed              = 0;
     $order->terminal_date       = '';
-    $order->freight             = 0;
-    $order->discount            = 0;
-    $order->disc_percent        = 0;
-    $order->sales_tax           = 0;
+    // Freight, the order discount and the accounts they post to, as the page sends them.
+    $order->freight             = $step['freight'] ?? 0;
+    $order->freight_tax_id      = isset($step['freight_tax']) ? $tax_id($step['freight_tax']) : 0;
+    $order->ship_gl_acct_id     = $buy ? AP_DEF_FREIGHT_ACCT : AR_DEF_FREIGHT_ACCT;
+    $order->subtotal            = $subtotal;
+    $order->discount            = $order_discount;
+    $order->disc_percent        = $subtotal ? (1 - (($subtotal - $order_discount) / $subtotal)) : 0;
+    $order->disc_gl_acct_id     = $state['roles'][$buy ? 'purchase_discount' : 'discount'];
+    $order->sales_tax           = 0;   // the ledger works the tax out from the lines' rates
     $order->notes               = '';
     $order->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . $jid . '_WINDOW_TITLE'));
     $line_id = $edit_id ? (acc_rows("SELECT id FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = $edit_id AND gl_type = '" . GL_TYPE . "' LIMIT 1")[0]['id'] ?? '') : '';
@@ -607,9 +644,9 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
         'price'                  => $price,
         'full'                   => $buy ? 0 : $price,
         'acct'                   => $buy ? $item['account_inventory_wage'] : $item['account_sales_income'],
-        'tax'                    => 0,
+        'tax'                    => $line_tax,
         'restock'                => isset($step['restock']) ? ($step['restock'] ? '1' : '0') : '1',
-        'total'                  => $step['qty'] * $price,
+        'total'                  => $subtotal,
         'serial'                 => '',
         'lead_time'              => 0,
     ));
