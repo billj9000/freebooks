@@ -137,7 +137,9 @@ if (file_exists($custom_path)) { include($custom_path); }
 	// Post() answers true when it succeeded and rolls back itself on its own failures.
 	$db->transStart();
 	$tills->adjust_balance($transaction->type == 'cash_in' ? $amount : -$amount);
-	if ($order->Post('insert', true)) {
+	// Balances are carried forward to later periods and the next fiscal year, as
+	// every other page posts (issue #108).
+	if ($order->Post('insert')) {
 	  $db->transCommit();
 	} else {
 	  $db->transRollback();

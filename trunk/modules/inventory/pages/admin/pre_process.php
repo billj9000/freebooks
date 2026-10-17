@@ -114,6 +114,11 @@ switch ($_REQUEST['action']) {
 	  	if (!empty($journal_repost)) {
 	  		foreach ($journal_repost as $key => $value) {
 	  			$result = $db->Execute("SELECT m.id FROM journal_main m join journal_item i ON m.id = i.ref_id WHERE i.sku = '{$value}' ORDER BY m.post_date, m.id");
+	  			// Each re-post skips carrying balances forward; it is done once, from the
+	  			// earliest period any of them touched, after the last (issue #108).
+	  			$carry = new journal();
+	  			$first_period = null;
+	  			$failed = false;
 	  			$db->transStart();
 	  			while (!$result->EOF) {
 	  				$gl_entry = new journal($result->fields['id']);
@@ -121,10 +126,14 @@ switch ($_REQUEST['action']) {
 	  				if (!$gl_entry->Post('edit', true)) {
 	  					$db->transRollback();
 	  					$messageStack->add('<br /><br />Failed Re-posting the journals, try a smaller range. The record that failed was # '.$gl_entry->id,'error');
+	  					$failed = true;
 	  					break;
 	  				}
+	  				$carry->affected_accounts = gen_array_key_merge($carry->affected_accounts, $gl_entry->affected_accounts);
+	  				$first_period = min($first_period ?? $gl_entry->first_period, $gl_entry->first_period);
 	  				$result->MoveNext();
 	  			}
+	  			if (!$failed && $first_period !== null) $carry->update_chart_history_periods($first_period);
 	  			$db->transCommit();
 	  		}
 	  	}

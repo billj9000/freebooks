@@ -136,7 +136,9 @@ switch ($_REQUEST['action']) {
 		'store_id'            => $glEntry->store_id,
 	);
 	$db->transStart();
-	if (!$glEntry->Post($glEntry->id ? 'edit' : 'insert', true)) $error = true;
+	// Balances are carried forward to later periods and the next fiscal year, as
+	// every other page posts (issue #108).
+	if (!$glEntry->Post($glEntry->id ? 'edit' : 'insert')) $error = true;
 	if ($error) {
 		$db->transRollback();
 		if (DEBUG) $messageStack->write_debug();

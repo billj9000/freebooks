@@ -156,6 +156,10 @@ switch ($_REQUEST['action']) {
 		$error = false;
 		$result = $db->Execute("SELECT journal_main_id FROM ".TABLE_INVENTORY_COGS_OWED);
 		$cnt = 0;
+		// Each re-post skips carrying balances forward; it is done once, from the
+		// earliest period any of them touched, after the last (issue #108).
+		$carry = new journal();
+		$first_period = null;
 		$db->transStart();
 		while (!$result->EOF) {
 		    $gl_entry = new journal($result->fields['journal_main_id']);
@@ -166,9 +170,12 @@ switch ($_REQUEST['action']) {
 			  $error = true;
 			  break;
 		    }
+			$carry->affected_accounts = gen_array_key_merge($carry->affected_accounts, $gl_entry->affected_accounts);
+			$first_period = min($first_period ?? $gl_entry->first_period, $gl_entry->first_period);
 			$cnt++;
 		    $result->MoveNext();
 		}
+		if (!$error && $first_period !== null && !$carry->update_chart_history_periods($first_period)) $error = true;
 	    $db->transCommit();
 		if ($error) {
 			$messageStack->add(GEN_ADM_TOOLS_RE_POST_FAILED,'caution');

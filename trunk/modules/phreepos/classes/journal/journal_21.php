@@ -98,7 +98,9 @@ class journal_21 extends journal {
 			$db->transRollback();
 			return false;
 		}
-		if (!$this->Post($this->id ? 'edit' : 'insert',true)){
+		// Balances are carried forward to later periods and the next fiscal year, as
+		// every other page posts (issue #108).
+		if (!$this->Post($this->id ? 'edit' : 'insert')){
 			$messageStack->add('it was not posible to post the sale', 'error');
 			$db->transRollback();
 			return false;

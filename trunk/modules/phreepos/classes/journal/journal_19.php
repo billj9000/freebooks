@@ -106,7 +106,9 @@ class journal_19 extends journal {
 			$this->fail_message('invoice number is being used in a other post');
 			return false;
 		}
-		if (!$this->Post($this->id ? 'edit' : 'insert',true)){
+		// Balances are carried forward to later periods and the next fiscal year, as
+		// every other page posts (issue #108).
+		if (!$this->Post($this->id ? 'edit' : 'insert')){
 			$this->fail_message('it was not posible to post the sale');
 			return false;
 		}

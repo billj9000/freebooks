@@ -351,7 +351,7 @@ class impbanking extends journal {
 		);
 		$this->journal_main_array = $this->build_journal_main_array();
 		$this->validate_purchase_invoice_id();
-		$this->Post('insert', true);
+		$this->Post('insert');
 		$this->increment_purchase_invoice_id();	
 		if ($good == false){ // make credit inv
 			$messageStack->debug("\n Making credit invoice. ");
@@ -380,7 +380,7 @@ class impbanking extends journal {
 			);
 			$this->journal_main_array = $this->build_journal_main_array();
 			$this->validate_purchase_invoice_id();
-			$this->Post('insert',true);
+			$this->Post('insert');
 			$this->increment_purchase_invoice_id();
 		}	
 		$this->_succes = true;
@@ -417,7 +417,7 @@ class impbanking extends journal {
 		  	'description'    		=> $this->_description,	
 		);
 		$this->journal_main_array = $this->build_journal_main_array();
-		if(!$this->Post('insert', true)){
+		if(!$this->Post('insert')){
 			$messageStack->debug("\n unable to post the journal e error was returned by the class journal");
 			return false;
 			exit;	
@@ -458,7 +458,7 @@ class impbanking extends journal {
 		  	'description'    		=> $this->_description,	
 		);
 		$this->journal_main_array = $this->build_journal_main_array();
-		if(!$this->Post('insert',true)){
+		if(!$this->Post('insert')){
 			$this->journal_rows = null;
 			return false;
 		}

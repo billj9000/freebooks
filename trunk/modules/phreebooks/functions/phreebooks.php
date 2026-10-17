@@ -635,6 +635,10 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
 		AND post_date>= '$start_date' AND post_date<'".gen_specific_date($end_date, 1)."' ORDER BY post_date, id";
 	  $result = $db->Execute($sql);
 	  $cnt = 0;
+	  // Each re-post skips carrying balances forward; it is done once, from the
+	  // earliest period any of them touched, after the last (issue #108).
+	  $carry = new journal();
+	  $first_period = null;
 	  $db->transStart();
 	  while (!$result->EOF) {
 	    $gl_entry = new journal($result->fields['id']);
@@ -644,9 +648,12 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
 		  $messageStack->add('<br /><br />Failed Re-posting the journals, try a smaller range. The record that failed was # '.$gl_entry->id,'error');
 		  return false;
 	    }
+		$carry->affected_accounts = gen_array_key_merge($carry->affected_accounts, $gl_entry->affected_accounts);
+		$first_period = min($first_period ?? $gl_entry->first_period, $gl_entry->first_period);
 		$cnt++;
 	    $result->MoveNext();
 	  }
+	  if ($first_period !== null && !$carry->update_chart_history_periods($first_period)) return false;
       $db->transCommit();
 	  return $cnt;
 	}
