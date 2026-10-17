@@ -62,4 +62,8 @@ define('TEXT_CASH_OUT','Geld Uit');
 define('TEXT_EXPENSES','Uitgave');
 define('TEXT_TYPE_OF_TRANSACTION','Type transactie');
 define('ERROR_NO_PAYMENT_METHODES','Kan kassa niet openen omdat er geen betaal methodes zijn. ga naar Bedrijf > module administratie > betaal module en stel methodes in om zichtbaar te worden in de kassa en voeg groot boekrekeningen toe.');
+// Used on the POS screen and its sales, which every POS user opens (issue #111).
+define('TEXT_ROUNDING_OF','Afronden');
+define('TEXT_TAX','standaard btw');
+define('TEXT_OTHER_TRANS','Overige Transacties');
 ?>

@@ -29,7 +29,6 @@ define('TEXT_RESTRICT_CURRENCY','Restringir caixa a esta moeda');
 define('TEXT_DRAWER_CODES','abrir códigos gaveta');
 define('TEXT_DIF_GL_ACCOUNT','Conta CG para diferenças final dia:');
 define('TEXT_GL_ACCOUNT_ROUNDING','Conta CG para arredondamento:');
-define('TEXT_ROUNDING_OF','Arredondamento de');
 define('TEXT_NEUTRAL','Neutro');
 define('TEXT_10_CENTS','10 Centavos');
 define('TEXT_INTEGER','Inteiro');
@@ -55,7 +54,5 @@ define('MODULE_PHREEPOS_DESCRIPTION','O Módulo PhreePOS fornece uma interface d
 define('MODULE_PHREEPOS_TITLE','Módulo PhreePOS ');
 define('TEXT_PHREEPOS_TRANSACTION_TYPE','Selecione o tipo de transação');
 define('TEXT_USE_TAX','Não pode ser utilizado imposto');
-define('TEXT_TAX','imposto padrão');
-define('TEXT_OTHER_TRANS','Outras Transações');
 
 ?>

@@ -67,4 +67,8 @@ define('TEXT_CASH_OUT','Cash Out');
 define('TEXT_EXPENSES','Expenses');
 define('TEXT_TYPE_OF_TRANSACTION','Type transaction');
 define('ERROR_NO_PAYMENT_METHODES','Cannot open POS because there are no payment methods defined. To set - Company -> Module Administration -> Payment Module Properties and set payments to show in POS and add gl accounts to payments.');
+// Used on the POS screen and its sales, which every POS user opens (issue #111).
+define('TEXT_ROUNDING_OF','Rounded of');
+define('TEXT_TAX','default tax');
+define('TEXT_OTHER_TRANS','Other Transactions');
 ?>

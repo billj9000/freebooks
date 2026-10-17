@@ -60,5 +60,8 @@ define('TEXT_CASH_OUT','Saídas');
 define('TEXT_EXPENSES','Despesas');
 define('TEXT_TYPE_OF_TRANSACTION','Tipo transação');
 define('ERROR_NO_PAYMENT_METHODES','Não é  possível abrir PDV porque não há formas de pagamento. Vá para empresa > módulo administração > módulo pagamento e especifique formas de pagamento a serem mostradas no PDV e insira contas CG para pagamentos');
-
+// Used on the POS screen and its sales, which every POS user opens (issue #111).
+define('TEXT_ROUNDING_OF','Arredondamento de');
+define('TEXT_TAX','imposto padrão');
+define('TEXT_OTHER_TRANS','Outras Transações');
 ?>
