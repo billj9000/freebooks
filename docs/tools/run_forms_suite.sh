@@ -49,7 +49,7 @@ SKIP=""
 
 # Tools whose first argument is NOT a company. Passing one to these is not a
 # harmless extra — verify_report_page_widths reads argv[1] as a paper name and
-# refuses "demo" — so they are run bare. They still check something; they just
+# refuses a company name — so they are run bare. They still check something; they just
 # check it for the whole shipped set rather than for one company.
 # verify_page_javascript opens no database at all: it checks source, not data.
 NO_COMPANY="verify_report_page_widths verify_page_javascript"

@@ -4930,7 +4930,7 @@ learned by getting it wrong:
 - **Not every tool is a check.** The directory also holds tools that WRITE — the
   migration, the captures, the generators — and tools that take arguments.
   `verify_report_page_widths` reads `argv[1]` as a **paper name** and refuses
-  "demo", so it is run bare.
+  a company name, so it is run bare.
 - **`verify_forms_*` is the wrong glob**, and that is the finding.
 
 #### What the glob was hiding

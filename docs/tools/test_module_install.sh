@@ -41,7 +41,7 @@ COMPANY="${1:-}"; USER="${2:-}"; PASS="${3:-}"
   echo "usage: test_module_install.sh <company> <user> <password> [module ...]" >&2; exit 2; }
 shift 3
 
-APP=freebooks-docker-php-app-1
+APP=${FREEBOOKS_APP_CONTAINER:-freebooks-docker-php-app-1}
 BASE=${FREEBOOKS_URL:-http://localhost}
 TEST_DB_HOST=${FREEBOOKS_TEST_DB_HOST:-fb-testdb}
 LOG=/var/www/html/my_files/sql_errors.log
@@ -83,7 +83,7 @@ act() {
     | sed 's/^[[:space:]]*//' | grep -v '^$' | head -3
 }
 
-modules=${*:-$(ls /home/billj/git/freebooks/extensions/Modules)}
+modules=${*:-$(ls "$(dirname "$0")/../../extensions/Modules")}
 pass=0; fail=0
 for m in $modules; do
   docker exec "$APP" sh -c ": > $LOG"

@@ -18,7 +18,7 @@
 # are copied in from extensions/ to activate them. They are counted, not judged.
 set -uo pipefail
 
-APP=freebooks-docker-php-app-1
+APP=${FREEBOOKS_APP_CONTAINER:-freebooks-docker-php-app-1}
 WEBROOT=/var/www/html
 TRUNK="$(cd "$(dirname "$0")/../../trunk" && pwd)"
 quiet=false; [ "${1:-}" = "--quiet" ] && quiet=true

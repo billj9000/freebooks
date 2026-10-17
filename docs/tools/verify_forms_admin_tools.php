@@ -65,7 +65,6 @@ while ($result && !$result->EOF) { $rows[] = $result->fields; $result->MoveNext(
 // The paper setting too. This tool CHANGES it, to give the re-stamp something
 // to do, and a company enabled before that key existed has no row at all — so
 // putting it back means deleting the row, not writing the old value into it.
-// Found by leaving demo on Letter after a green run.
 $paperRow = null;
 $existing = $db->Execute("select configuration_value from " . TABLE_CONFIGURATION
     . " where configuration_key = 'FORMS_DEFAULT_PAPER'");

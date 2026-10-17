@@ -27,8 +27,9 @@
 # in this script, and it is reported rather than hidden.
 set -uo pipefail
 
-APP=freebooks-docker-php-app-1
-SRC_DB=freebooks-docker-db-1
+# The freebooks-docker Compose defaults; set these to match another setup.
+APP=${FREEBOOKS_APP_CONTAINER:-freebooks-docker-php-app-1}
+SRC_DB=${FREEBOOKS_DB_CONTAINER:-freebooks-docker-db-1}
 MY_FILES=/var/www/html/my_files
 
 from=demo; server=fb-testdb
@@ -153,10 +154,12 @@ PHPCONF
 
   drop)
     [ -n "$name" ] || { echo "usage: test_company.sh drop <name>" >&2; exit 2; }
-    case "$name" in
-      demo|production|production_archive|test)
-        echo "refusing to drop '$name' - that is not a disposable company." >&2; exit 1 ;;
-    esac
+    # Only a company this script made: make writes this line into its config.php,
+    # so a real company, or a folder such as backups/, is refused without naming it.
+    if docker exec "$APP" test -e "$MY_FILES/$name" \
+       && ! docker exec "$APP" grep -qs "created by docs/tools/test_company.sh" "$MY_FILES/$name/config.php"; then
+      echo "refusing to drop '$name' - test_company.sh did not make it." >&2; exit 1
+    fi
     echo "==> dropping database '$name' on $server"
     target -e "DROP DATABASE IF EXISTS \`$name\`;"
     echo "==> removing $MY_FILES/$name"
