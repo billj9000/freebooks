@@ -925,9 +925,6 @@ class journal {
 	  // if insert, enter SYSTEM ENTRY COGS cost only if inv on hand is negative
 	  // update will never happen because the entries are removed during the unpost operation.
 	  switch ($this->journal_id) {
-	  	case  6: 
-		  if ($defaults['cost_method'] == 'a') $item['avg_cost'] = $this->calculate_avg_cost($item['sku'], $item['price'], $item['qty']);
-	  	  break;
 		case 12: // for negative sales/invoices and customer credit memos the price needs to be the last unit_cost, 
 		case 13: // not the invoice price (customers price)
 		  $item['price'] = $this->calculateCost($item['sku'], 1, $item['serialize_number']);
@@ -938,6 +935,10 @@ class journal {
 		  break;
 		default: // for all other journals, use the cost as entered to calculate added inventory
 	  }
+	  // Every layer of an average-cost item records the item's average after it, which the
+	  // next sale is costed at (fetch_avg_cost), whatever entry adds the stock: a purchase,
+	  // a restocked return, an assembly or an adjustment (issue #113).
+	  if ($defaults['cost_method'] == 'a') $item['avg_cost'] = $this->calculate_avg_cost($item['sku'], $item['price'], $item['qty']);
 	  // adjust remaining quantities for inventory history since stock was negative
 	  $history_array = array(
 		'ref_id'     => $this->id,
