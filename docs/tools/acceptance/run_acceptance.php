@@ -733,6 +733,10 @@ function acc_net_income(int $period): float
  *   open              the labels among the scenario's 'track_open' still open
  *   terms             array(label, discount, early_day): the discount and
  *                     early-payment date the receipts or payments page offers on it
+ *   layers            array(label => qty): what remains of the cost layer that
+ *                     labelled receipt or restock added, for the first item
+ *   doc_cogs          array(label => amount): the cost of goods that labelled
+ *                     document books, debit positive
  * and every entry of the scenario's 'balances' must net to zero.
  */
 function acc_check(array $step, array $scenario, array $state): int
@@ -775,6 +779,25 @@ function acc_check(array $step, array $scenario, array $state): int
             $parts[] = $row ? sprintf('%s terms %s%% to %s', $label, $row['percent'] * 100, $row['early_date'])
                             . ($good ? '' : sprintf(' WANTED %s%% to %s', $discount * 100, $early))
                             : "$label not offered for payment";
+        } elseif ($k === 'layers' || $k === 'doc_cogs') {
+            $good = true; $shown = array();
+            foreach ($want as $label => $w) {
+                if (empty($state['ids'][$label])) throw new RuntimeException("expectation '$k' names $label, which no step labels");
+                $id = (int)$state['ids'][$label];
+                if ($k === 'layers') {
+                    $g = (float)(acc_rows("SELECT SUM(remaining) AS q FROM " . TABLE_INVENTORY_HISTORY . "
+                                           WHERE ref_id = $id AND sku = '" . db_input($sku) . "'")[0]['q'] ?? 0);
+                    $hit = abs($g - $w) <= ACC_QTY_TOLERANCE;
+                    $shown[] = sprintf('%s %s', $label, $g + 0) . ($hit ? '' : sprintf(' WANTED %s', $w + 0));
+                } else {
+                    $g = (float)(acc_rows("SELECT SUM(debit_amount - credit_amount) AS c FROM " . TABLE_JOURNAL_ITEM . "
+                                           WHERE ref_id = $id AND gl_type = 'cog' AND gl_account = '" . db_input($roles['cogs']) . "'")[0]['c'] ?? 0);
+                    $hit = abs($g - $w) <= $tol;
+                    $shown[] = sprintf('%s %.4f', $label, $g) . ($hit ? '' : sprintf(' WANTED %.4f', $w));
+                }
+                $good = $good && $hit;
+            }
+            $parts[] = ($k === 'layers' ? 'layers ' : 'cogs on ') . implode(', ', $shown);
         } else {
             switch ($k) {
                 case 'qty':              $got = (float)($item['quantity_on_hand'] ?? 0); break;
