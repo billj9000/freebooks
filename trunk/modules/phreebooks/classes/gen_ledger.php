@@ -1258,7 +1258,10 @@ class journal {
 	  if (strpos(COG_ITEM_TYPES, $result->fields['inventory_type']) === false) {
 	    $item_cost = -$result->fields['qty'] * $result->fields['price'];
 	  } else {
-	    if ($qty > 0) $result->fields['price'] = 0; // remove unit_price for builds, leave for unbuilds (to calc delta COGS)
+	    // A build takes its parts out at their layers' cost. An unbuild puts them back at their
+	    // current cost, which is what calculate_COGS posts for them, so that their new layers
+	    // hold what the inventory account does (issue #103).
+	    $result->fields['price'] = $qty > 0 ? 0 : $this->calculateCost($result->fields['sku'], 1);
 	    $item_cost = $this->calculate_COGS($result->fields, true);
 	  }
 	  if ($item_cost === false) return false; // error in cogs calculation
