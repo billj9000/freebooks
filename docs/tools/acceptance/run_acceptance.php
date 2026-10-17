@@ -118,6 +118,8 @@ function acc_describe(array $s): string
         case 'build':  return sprintf('build %s %s', $s['qty'], $s['sku']);
         case 'reconcile': return sprintf('reconcile to day %s: %s', $s['period_day'], $s['tick'] ? implode(', ', $s['tick']) : 'none ticked');
         case 'repost': return 're-post every journal';
+        case 'pos_sale': return 'POS sale ' . implode(' + ', array_map(function ($l) { return "{$l[0]} @ {$l[1]}"; }, $s['lines']));
+        case 'pos_delete': return 'delete POS sale ' . $s['target'];
         case 'unbuild': return sprintf('unbuild %s %s', $s['qty'], $s['sku']);
     }
     return $s['do'];
@@ -319,6 +321,7 @@ function acc_reset(array $scenario): array
             'freight_taxable' => '0'), 'insert');
         $taxes[$key] = (int)db_insert_id();
     }
+    foreach ($scenario['roles'] ?? array() as $role => $acct) $roles[$role] = (string)$acct;   // accounts a scenario names itself
     foreach ($roles as $role => $acct) {
         if ($acct === '' || !acc_rows("SELECT id FROM " . TABLE_CHART_OF_ACCOUNTS . " WHERE id = '" . db_input($acct) . "'")) {
             echo "the chart has no account for '$role' ($acct)\n";
@@ -473,6 +476,15 @@ function acc_post(array $step, array $state, string $state_file): int
             case 'build':         $id = acc_post_assembly($step, $state, (float)$step['qty']); break;
             case 'unbuild':       $id = acc_post_assembly($step, $state, -(float)$step['qty']); break;
             case 'reconcile':     $id = acc_reconcile($step, $state); break;
+            case 'pos_sale':      $id = acc_pos_sale($step, $state); break;
+            case 'pos_delete':    // as phreepos/pages/pos_mgr does it
+                acc_pos_load();
+                $target = acc_id($state, $step['target']);
+                $sale = new journal_19($target);
+                $db_ = $GLOBALS['db'];
+                $db_->transStart();
+                if ($sale->unPost('delete')) { $db_->transCommit(); $id = $target; }
+                break;
             case 'repost':        // as phreebooks/pages/admin_tools does it, every journal it offers
                 $id = (int)repost_journals(array(2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 14, 16, 18, 19, 20, 21, 22),
                                            acc_date($state, 1), acc_date($state, (int)$step['to_day']));
@@ -916,6 +928,75 @@ function acc_reconcile(array $step, array $state): int
     $saved = acc_rows("SELECT id FROM " . TABLE_RECONCILIATION . " WHERE period = $period AND gl_account = '" . db_input($state['roles']['bank']) . "'");
     if (!$saved) throw new RuntimeException('the page saved no reconciliation for period ' . $period);
     return (int)$saved[0]['id'];
+}
+
+/** The point of sale's classes and language, as phreepos/ajax/save_main.php loads them. */
+function acc_pos_load(): void
+{
+    if (!defined('JOURNAL_ID')) define('JOURNAL_ID', 19);
+    if (!defined('GL_TYPE'))    define('GL_TYPE', 'sos');
+    if (!defined('DEF_INV_GL_ACCT')) define('DEF_INV_GL_ACCT', AR_DEF_GL_SALES_ACCT);
+    if (!defined('DEF_GL_ACCT'))     define('DEF_GL_ACCT', AR_DEFAULT_GL_ACCT);
+    gen_pull_language('phreepos');
+    require_once(DIR_FS_MODULES . 'phreepos/classes/journal/journal_19.php');
+    $GLOBALS['payment_modules'] = load_all_methods('payment');
+}
+
+/**
+ * A POS sale as phreepos/ajax/save_main.php fills one for journal_19::post_ordr:
+ * lines array(qty, price ex tax, tax rate key), payments array(method, amount
+ * tendered) - more than the total is change - and the page's total and cash
+ * rounding. The till's account and rounding account are the 'till' and
+ * 'rounding' roles; each method posts to its own POS account.
+ */
+function acc_pos_sale(array $step, array $state): int
+{
+    acc_pos_load();
+    $item = acc_rows("SELECT * FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($step['sku']) . "'")[0];
+    $sale = new journal_19();
+    $sale->id                  = '';
+    $sale->journal_id          = 19;
+    $sale->post_date           = acc_date($state, (int)$step['day']);
+    $sale->period              = gen_calculate_period($sale->post_date, true);
+    $sale->purchase_invoice_id = '';
+    $sale->store_id            = 0;
+    $sale->description         = MENU_HEADING_PHREEPOS;
+    $sale->admin_id            = 1;
+    $sale->rep_id              = 0;
+    $sale->account_type        = 'c';
+    $sale->bill_add_update     = 0;
+    $sale->bill_acct_id        = 0;   // a walk-in customer
+    $sale->bill_address_id     = 0;
+    $sale->gl_acct_id          = $state['roles']['till'];
+    $sale->currencies_code     = DEFAULT_CURRENCY;
+    $sale->currencies_value    = 1;
+    $sale->disc_gl_acct_id     = $state['roles']['discount'];
+    $sale->discount            = 0;
+    $sale->printed             = false;
+    $sale->item_rows = array();
+    $subtotal = 0;
+    foreach ($step['lines'] as list($qty, $price, $tax)) {
+        $sale->item_rows[] = array('id' => '', 'sku' => $item['sku'], 'pstd' => $qty, 'desc' => $item['description_short'],
+            'total' => $qty * $price, 'full' => $price, 'acct' => $item['account_sales_income'],
+            'tax' => $tax ? $state['taxes'][$tax] : 0, 'serial' => '', 'proj' => '');
+        $subtotal += $qty * $price;
+    }
+    $sale->subtotal     = $subtotal;
+    $sale->total_amount = $step['total'];
+    $sale->sales_tax    = $step['total'] - $subtotal - ($step['rounding'] ?? 0);
+    $sale->pmt_rows = array();
+    $tendered = 0;
+    foreach ($step['payments'] as list($method, $amount)) {
+        $sale->pmt_rows[] = array('meth' => $method, 'pmt' => $amount, 'f0' => '', 'f1' => '', 'f2' => '', 'f3' => '',
+                                  'f4' => '', 'f5' => '', 'f6' => '');
+        $tendered += $amount;
+        $sale->shipper_code = $method;   // the page keeps the last method
+    }
+    $sale->pmt_recvd           = $tendered;
+    $sale->bal_due             = 0;      // the page refuses a sale not paid in full
+    $sale->rounding_amt        = $step['rounding'] ?? 0;
+    $sale->rounding_gl_acct_id = $state['roles']['rounding'];
+    return $sale->post_ordr('save') ? (int)$sale->id : 0;
 }
 
 function acc_sku_of(int $id): string
