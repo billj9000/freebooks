@@ -93,8 +93,8 @@ function acc_describe(array $s): string
 {
     switch ($s['do']) {
         case 'gl':     return 'general journal';
-        case 'buy':    return sprintf('buy %s @ %s', $s['qty'], $s['price']);
-        case 'sell':   return sprintf('sell %s @ %s', $s['qty'], $s['price']);
+        case 'buy':    return sprintf('buy %s @ %s', $s['qty'], $s['price']) . (isset($s['currency']) ? ' ' . $s['currency'][0] : '');
+        case 'sell':   return sprintf('sell %s @ %s', $s['qty'], $s['price']) . (isset($s['currency']) ? ' ' . $s['currency'][0] : '');
         case 'edit':   return sprintf('edit %s to %s @ %s', $s['target'], $s['qty'], $s['price']);
         case 'delete': return 'delete ' . $s['target'];
         case 'quote':  return sprintf('quote %s @ %s', $s['qty'], $s['price']);
@@ -578,8 +578,17 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
         if (!$from_line) throw new RuntimeException("entry $from has no item line to raise this against");
     }
     $sku   = $from_line['sku'] ?? ($step['sku'] ?? acc_sku_of($edit_id));
+    // The document's currency and rate: the step's own, else those of the
+    // document it is raised against or is, else the home currency. Amounts are
+    // typed in that currency and stored in the home currency, divided by the
+    // rate, as the page does (orders/pre_process.php).
+    $source = $from ?: $edit_id;
+    $source_cur = $source ? acc_rows("SELECT currencies_code, currencies_value FROM " . TABLE_JOURNAL_MAIN . " WHERE id = $source")[0] : array();
+    list($cur_code, $cur_rate) = $step['currency']
+        ?? array($source_cur['currencies_code'] ?? DEFAULT_CURRENCY, (float)($source_cur['currencies_value'] ?? 1) ?: 1);
     // The page fills the line from the document it is raised against; the price can then be changed.
-    $price = $step['price'] ?? ($from_line['debit_amount'] + $from_line['credit_amount']) / $from_line['qty'];
+    $price = isset($step['price']) ? $step['price'] / $cur_rate
+                                   : ($from_line['debit_amount'] + $from_line['credit_amount']) / $from_line['qty'];
     $item  = acc_rows("SELECT * FROM " . TABLE_INVENTORY . " WHERE sku = '" . db_input($sku) . "'")[0];
     // A line's tax rate names one of the scenario's; a line raised against
     // another document takes that document's rate, as the page fills it.
@@ -588,7 +597,9 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
         return $state['taxes'][$key];
     };
     $line_tax = isset($step['tax']) ? $tax_id($step['tax']) : (int)($from_line['taxable'] ?? 0);
-    $subtotal = $step['qty'] * $price;
+    // A line's total is shown in the document's currency to its places, and that
+    // figure is what the page sends back.
+    $subtotal = $cur_code === DEFAULT_CURRENCY ? $step['qty'] * $price : round($step['qty'] * $price * $cur_rate, 2) / $cur_rate;
     $order_discount = $step['order_discount'] ?? 0;
 
     $order = new orders();
@@ -626,6 +637,8 @@ function acc_post_order(array $step, array $state, int $jid, int $edit_id, int $
     $order->disc_percent        = $subtotal ? (1 - (($subtotal - $order_discount) / $subtotal)) : 0;
     $order->disc_gl_acct_id     = $state['roles'][$buy ? 'purchase_discount' : 'discount'];
     $order->sales_tax           = 0;   // the ledger works the tax out from the lines' rates
+    $order->currencies_code     = $cur_code;
+    $order->currencies_value    = $cur_rate;
     $order->notes               = '';
     $order->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . $jid . '_WINDOW_TITLE'));
     $line_id = $edit_id ? (acc_rows("SELECT id FROM " . TABLE_JOURNAL_ITEM . " WHERE ref_id = $edit_id AND gl_type = '" . GL_TYPE . "' LIMIT 1")[0]['id'] ?? '') : '';
@@ -703,7 +716,12 @@ function acc_post_banking(array $step, array $state, int $jid, string $doc_label
     $doc_id = acc_id($state, $doc_label);
     $doc = acc_rows("SELECT * FROM " . TABLE_JOURNAL_MAIN . " WHERE id = $doc_id")[0];
     $party = in_array((int)$doc['journal_id'], array(6, 7)) ? 'v' : 'c';
-    $discount = $step['discount'] ?? 0;
+    // The entry settles in the document's currency at the document's rate; the
+    // figures are typed in that currency and stored divided by the rate (bills/pre_process.php).
+    $cur_code = $doc['currencies_code'] ?: DEFAULT_CURRENCY;
+    $cur_rate = (float)$doc['currencies_value'] ?: 1;
+    $discount = ($step['discount'] ?? 0) / $cur_rate;
+    $amount   = $step['amount'] / $cur_rate;
 
     $pay = new banking();
     $pay->id                  = '';
@@ -719,9 +737,9 @@ function acc_post_banking(array $step, array $state, int $jid, string $doc_label
     $pay->shipper_code        = $step['method'] ?? '';   // a vendor payment is made without a payment method
     $pay->purch_order_id      = '';
     $pay->description         = sprintf(TEXT_JID_ENTRY, constant('ORD_TEXT_' . $jid . '_' . strtoupper($party) . '_WINDOW_TITLE'));
-    $pay->currencies_code     = DEFAULT_CURRENCY;
-    $pay->currencies_value    = 1;
-    $pay->total_amount        = $step['amount'];
+    $pay->currencies_code     = $cur_code;
+    $pay->currencies_value    = $cur_rate;
+    $pay->total_amount        = $amount;
     $pay->gl_acct_id          = $state['roles']['bank'];
     $pay->gl_disc_acct_id     = $state['roles'][$party === 'v' ? 'purchase_discount' : 'discount'];
     $pay->payment_id          = '';
@@ -730,10 +748,10 @@ function acc_post_banking(array $step, array $state, int $jid, string $doc_label
     $pay->item_rows = array(array(
         'id'      => $doc_id,
         'gl_type' => GL_TYPE,
-        'amt'     => $step['amount'] + $discount,
+        'amt'     => $amount + $discount,
         'desc'    => $doc['purchase_invoice_id'],
         'dscnt'   => $discount,
-        'total'   => $step['amount'],
+        'total'   => $amount,
         'inv'     => $doc['purchase_invoice_id'],
         'prcnt'   => '',
         'early'   => '',
@@ -853,11 +871,12 @@ function acc_net_income(int $period): float
  *                     labelled document added; 'label SKU' counts one item's only
  *   doc_cogs          array(label => amount): the cost of goods that labelled
  *                     document books, debit positive
- * and every entry of the scenario's 'balances' must net to zero.
+ * and every entry of the scenario's 'balances' must net to zero. Amounts must
+ * match to the currency's smallest unit, or to the scenario's 'tolerance'.
  */
 function acc_check(array $step, array $scenario, array $state): int
 {
-    $tol = acc_tolerance();
+    $tol = $scenario['tolerance'] ?? acc_tolerance();
     $roles = $state['roles'];
     $sku = $scenario['items'][0]['sku'];
     $item = acc_rows("SELECT quantity_on_hand, quantity_on_order, quantity_on_sales_order, item_cost FROM " . TABLE_INVENTORY . "
