@@ -205,11 +205,12 @@ your own image (see [Optional modules](#optional-modules)):
 COPY my-tasks /etc/cron.d/freebooks-extra
 ```
 
-using the same format as the image's own `/etc/cron.d/freebooks`: a user name before the command,
-and output sent to `/proc/1/fd/1` so that it appears in `docker logs`:
+with a user name before the command, PHP named by its full path, and output sent to `/proc/1/fd/1`
+so that it appears in `docker logs`. Cron's own search path does not include PHP, and the `PATH` set
+in the image's `/etc/cron.d/freebooks` applies to that file only:
 
 ```
-*/15 * * * * root php /var/www/html/cron/zencart_sync.php >> /proc/1/fd/1 2>&1
+*/15 * * * * root /usr/local/bin/php /var/www/html/cron/zencart_sync.php >> /proc/1/fd/1 2>&1
 ```
 
 ## Backups
