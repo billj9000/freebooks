@@ -3,7 +3,8 @@
 **Accounting and business management you own.**
 
 FreeBooks is a complete, open-source accounting and ERP system for small businesses: double-entry
-books, invoicing, purchasing, inventory and point of sale in one web application. You run it on your
+books, invoicing, purchasing, inventory, light manufacturing and point of sale in one web
+application. You run it on your
 own server, a small cloud machine or your desktop. There is no subscription, no per-user fee, and
 nobody else holding your records.
 
@@ -22,8 +23,13 @@ container image that runs anywhere Docker does.
   customers can pay online.
 - **Buy.** Purchase quotes and orders, receiving, supplier invoices in the supplier's own currency,
   and payments.
-- **Inventory that adds up.** Stock, serialised and non-stock items, assemblies and product bundles,
-  with FIFO, LIFO or average costing kept in step with the ledger.
+- **Inventory that adds up.** Stock, serialised and non-stock items and product bundles, with
+  FIFO, LIFO or average costing kept in step with the ledger.
+- **Make what you sell.** Bills of materials for assembled and serialised products, with builds
+  (and unbuilds) that move component stock and cost into the finished item through the ledger, and
+  shortages shown before you build. The optional Work Orders module adds step-by-step build
+  procedures with task times, reference drawings, recorded test values and manufacturing and QA
+  sign-off, and can reserve components while a job is open.
 - **Ship from the order.** Partial shipments, packing lists and carrier labels, with built-in
   DHL Express and Royal Mail support and further carriers available.
 - **Your documents, your way.** A visual designer for invoices, statements, labels, receipts and
