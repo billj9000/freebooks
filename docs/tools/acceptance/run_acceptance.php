@@ -119,7 +119,8 @@ function acc_describe(array $s): string
         case 'adjust': return sprintf('adjust %s by %s', $s['sku'], $s['qty']) . (isset($s['price']) ? " @ {$s['price']}" : '');
         case 'reconcile': return sprintf('reconcile to day %s: %s', $s['period_day'], $s['tick'] ? implode(', ', $s['tick']) : 'none ticked');
         case 'repost': return 're-post every journal';
-        case 'pos_sale': return 'POS sale ' . implode(' + ', array_map(function ($l) { return "{$l[0]} @ {$l[1]}"; }, $s['lines']));
+        case 'pos_sale': return 'POS sale ' . implode(' + ', array_map(function ($l) { return "{$l[0]} @ {$l[1]}"; }, $s['lines']))
+                              . (!empty($s['discount']) ? " - {$s['discount']} discount" : '');
         case 'pos_delete': return 'delete POS sale ' . $s['target'];
         case 'unbuild': return sprintf('unbuild %s %s', $s['qty'], $s['sku']);
     }
@@ -973,7 +974,7 @@ function acc_pos_sale(array $step, array $state): int
     $sale->currencies_code     = DEFAULT_CURRENCY;
     $sale->currencies_value    = 1;
     $sale->disc_gl_acct_id     = $state['roles']['discount'];
-    $sale->discount            = 0;
+    $sale->discount            = $step['discount'] ?? 0;
     $sale->printed             = false;
     $sale->item_rows = array();
     $subtotal = 0;
@@ -985,7 +986,7 @@ function acc_pos_sale(array $step, array $state): int
     }
     $sale->subtotal     = $subtotal;
     $sale->total_amount = $step['total'];
-    $sale->sales_tax    = $step['total'] - $subtotal - ($step['rounding'] ?? 0);
+    $sale->sales_tax    = $step['total'] - $subtotal + $sale->discount - ($step['rounding'] ?? 0);
     $sale->pmt_rows = array();
     $tendered = 0;
     foreach ($step['payments'] as list($method, $amount)) {

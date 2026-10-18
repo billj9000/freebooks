@@ -313,6 +313,30 @@ foreach ($a6['steps'] as $step) {
     }
     if ($doc) $tax_docs['documents'][] = $doc + array('label' => 'A6 ' . $step['label'], 'tax' => round($tax, 2));
 }
+// A9's point-of-sale sales, read the same way. A sale whose total is cash
+// rounding is left out: the screen's rounding is a till setting, not tax.
+$a9 = require __DIR__ . '/acceptance/scenarios/a9_pos.php';
+foreach ($a9['tax_rates'] as $name => [$type, $auth_names]) {
+    $auths = array();
+    foreach ($auth_names as $auth) $auths[] = array('id' => $auth, 'rate' => $a9['tax_auths'][$auth][0]);
+    $tax_docs['rates'][$name] = array('rate' => array_sum(array_column($auths, 'rate')), 'auths' => $auths);
+}
+$held = array();
+foreach ($a9['steps'] as $step) {
+    $moved = array();
+    foreach ($step['expect'] as $acct => $value) {
+        if (!is_numeric($value)) continue;
+        $moved[$acct] = $value - ($held[$acct] ?? 0);
+        $held[$acct]  = $value;
+    }
+    if ($step['do'] !== 'pos_sale' || !empty($step['rounding'])) continue;
+    $tax = 0;
+    foreach ($moved as $acct => $delta) if (str_starts_with($acct, 'tax_')) $tax += abs($delta);
+    $lines = array();
+    foreach ($step['lines'] as [$qty, $price, $rate]) $lines[] = array('amount' => $qty * $price, 'rate' => $rate);
+    $tax_docs['documents'][] = array('label' => 'A9 ' . $step['label'], 'screen' => 'pos', 'lines' => $lines,
+        'discount' => $step['discount'] ?? 0, 'tax' => round($tax, 2), 'total' => $step['total']);
+}
 $tax_suite = __DIR__ . '/js/verify_document_tax.js';
 if ($node === null) {
     skip('document tax', 'no node');

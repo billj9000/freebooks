@@ -729,28 +729,34 @@ function updateTotalPrices() {
 		tax_index = 0;
 		document.getElementById('tax_'+i).value = tax_index;
 	  }
-	  if (tax_before_discount == '0') { // tax after discount
-        taxed.push({rate: tax_rates[tax_index], amount: lineTotal * (1-(discountPercent/100))});
-	  } else { 
-        taxed.push({rate: tax_rates[tax_index], amount: lineTotal});
-	  }
+	  taxed.push({rate: tax_rates[tax_index], amount: lineTotal});
 	}
 	subtotal += lineTotal;
   }
-  var taxable_subtotal = documentTax(taxed);
-  // recalculate discount
-  if (discount_from_total){
-	discount = (discountPercent/100) * (subtotal + taxable_subtotal) ;
-  } else  {
-    discount = subtotal * (discountPercent/100);
-  }
-  var strDiscount = new String(discount);
-  document.getElementById('discount').value = formatCurrency(strDiscount);
-  var nst         = new String(taxable_subtotal);
-  document.getElementById('sales_tax').value = formatCurrency(nst);
   var st          = new String(subtotal);
   document.getElementById('subtotal').value = formatCurrency(st);
-  var new_total   = calculateRoundingOf(subtotal - discount + taxable_subtotal);
+  var postedSubtotal = parseFloat(cleanCurrency(document.getElementById('subtotal').value));
+  var taxable_subtotal;
+  if (tax_before_discount == '0') { // tax after discount
+    // Taxing what is left after the discount takes the same share off the tax, so a percentage
+    // off the total is that percentage off the subtotal: the discount is always the subtotal's.
+    // Each line is then taxed less discount / subtotal, from the figures posted, as the
+    // ledger taxes it (journal_19::add_tax_journal_rows, issue #121).
+    discount = subtotal * (discountPercent/100);
+    document.getElementById('discount').value = formatCurrency(new String(discount));
+    var postedDiscount = parseFloat(cleanCurrency(document.getElementById('discount').value));
+    var discFraction   = postedSubtotal ? postedDiscount / postedSubtotal : 0;
+    for (var t = 0; t < taxed.length; t++) taxed[t].amount = taxed[t].amount * (1 - discFraction);
+    taxable_subtotal = documentTax(taxed);
+  } else {
+    taxable_subtotal = documentTax(taxed);
+    discount = (discountPercent/100) * (discount_from_total ? subtotal + taxable_subtotal : subtotal);
+    document.getElementById('discount').value = formatCurrency(new String(discount));
+  }
+  discount = parseFloat(cleanCurrency(document.getElementById('discount').value));
+  var nst         = new String(taxable_subtotal);
+  document.getElementById('sales_tax').value = formatCurrency(nst);
+  var new_total   = calculateRoundingOf(postedSubtotal - discount + taxable_subtotal);
   var tot         = new String(new_total);
   document.getElementById('total').value = formatCurrency(tot);
   var numRows     = document.getElementById('payment_table_body').rows.length;

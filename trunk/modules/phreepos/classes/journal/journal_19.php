@@ -246,6 +246,9 @@ class journal_19 extends journal {
 		$tax_rates    = ord_calculate_tax_drop_down('b');
 		$tax_auths    = gen_build_tax_auth_array();
 		$tax_discount = $this->account_type == 'v' ? AP_TAX_BEFORE_DISCOUNT : AR_TAX_BEFORE_DISCOUNT;
+		// With tax after the discount, each line is taxed less the share of the discount it carries:
+		// discount / subtotal, from the sale's own figures, as an order is (issue #121).
+		$this->disc_percent = $this->subtotal ? $this->discount / $this->subtotal : 0;
 		// calculate each tax value by authority per line item
 		foreach ($this->journal_rows as $idx => $line_item) {
 		    if ($line_item['taxable'] > 0 && ($line_item['gl_type'] == $this->gl_type || $line_item['gl_type'] == 'frt')) {

@@ -19,7 +19,8 @@
 /**
  * A9: the point of sale (issue #109). POS sales posted as the POS page saves
  * them (journal_19::post_ordr): change given, a split tender, and cash rounding;
- * then a sale deleted as the POS manager does it.
+ * then a sale deleted as the POS manager does it, and a sale with an order
+ * discount, taxed after the discount (issue #121).
  *
  * A sale's lines credit sales and the ledger's own VAT (rounded per authority,
  * issue #105); a cash rounding line goes to the till's rounding account. Each
@@ -40,6 +41,8 @@ return array(
         'ALLOW_NEGATIVE_INVENTORY'              => '1',
         'ENABLE_AUTO_ITEM_COST'                 => '0',
         'ENABLE_MULTI_BRANCH'                   => '0',
+        'ENABLE_ORDER_DISCOUNT'                 => '1',
+        'AR_TAX_BEFORE_DISCOUNT'                => '0',
         'MODULE_PAYMENT_COD_POS_GL_ACCT'        => '1025',
         'MODULE_PAYMENT_MONEYORDER_POS_GL_ACCT' => '1234',
     ),
@@ -56,7 +59,7 @@ return array(
     ),
     'balances' => array(
         'the steps net to zero' => array('till' => 1, 'pos_cod' => 1, 'pos_mo' => 1, 'rounding' => 1, 'sales' => 1,
-                                         'tax_vat' => 1, 'inventory' => 1, 'cogs' => 1, 'ap' => 1),
+                                         'discount' => 1, 'tax_vat' => 1, 'inventory' => 1, 'cogs' => 1, 'ap' => 1),
     ),
     'steps' => array(
         array('seq' => 1, 'day' => 1, 'do' => 'buy', 'label' => 'P1', 'sku' => 'ACC-A9', 'qty' => 20, 'price' => 5,
@@ -80,5 +83,10 @@ return array(
         array('seq' => 5, 'day' => 5, 'do' => 'pos_delete', 'target' => 'S3',
               'expect' => array('sales' => -33.99, 'tax_vat' => -6.80, 'rounding' => -0.01, 'pos_cod' => 40.80, 'pos_mo' => 0,
                                 'till' => 0, 'cogs' => 15, 'inventory' => 85)),
+        array('seq' => 6, 'day' => 6, 'do' => 'pos_sale', 'label' => 'S6', 'sku' => 'ACC-A9',
+              'lines' => array(array(1, 100, 'VAT-S')), 'discount' => 10, 'total' => 108.00, 'payments' => array(array('cod', 108)),
+              'note' => '10 off 100, VAT on the 90 left: 18.00, so 108.00 and no rounding line',
+              'expect' => array('sales' => -133.99, 'discount' => 10, 'tax_vat' => -24.80, 'rounding' => -0.01, 'pos_cod' => 148.80,
+                                'pos_mo' => 0, 'till' => 0, 'cogs' => 20, 'inventory' => 80)),
     ),
 );

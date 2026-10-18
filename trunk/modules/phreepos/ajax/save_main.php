@@ -95,7 +95,6 @@ if (file_exists($custom_path)) { include($custom_path); }
 	$order->subtotal            = $currencies->clean_value(db_prepare_input($_POST['subtotal']),  $order->currencies_code) / $order->currencies_value; // don't need unless for verification
 	$order->disc_gl_acct_id     = db_prepare_input($_POST['disc_gl_acct_id']);
 	$order->discount            = $currencies->clean_value(db_prepare_input($_POST['discount']),  $order->currencies_code) / $order->currencies_value;
-	//$order->disc_percent        = ($order->subtotal) ? (1-(($order->subtotal-$order->discount)/$order->subtotal)) : 0;
 	$order->sales_tax           = $currencies->clean_value(db_prepare_input($_POST['sales_tax']), $order->currencies_code) / $order->currencies_value;
 	$order->total_amount        = $currencies->clean_value(db_prepare_input($_POST['total']),     $order->currencies_code) / $order->currencies_value;
 	$order->pmt_recvd           = $currencies->clean_value(db_prepare_input($_POST['pmt_recvd']), $order->currencies_code) / $order->currencies_value;

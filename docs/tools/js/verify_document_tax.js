@@ -111,20 +111,25 @@ function liftFunction(source, name) {
   throw new Error(name + ' is not closed');
 }
 
-/** The point of sale: its own updateTotalPrices() in phreepos/pages/main/js_include.php. */
-function posScreen(doc) {
+/**
+ * The point of sale: its own updateTotalPrices() in phreepos/pages/main/js_include.php.
+ * fromTotal is the till's PHREEPOS_DISCOUNT_OF: with tax after the discount, a
+ * percentage off the total must come to the same sale as one off the subtotal.
+ */
+function posScreen(doc, fromTotal) {
   const names = Object.keys(DOCS.rates);
   const rates = rateTable(names);
   const byId = {
     item_table_body: { rows: { length: doc.lines.length } }, payment_table_body: { rows: { length: 0 } },
-    discount: field('0.00'), disc_percent: field('0'),
+    discount: field('0.00'),
+    disc_percent: field(doc.discount ? (doc.discount / doc.lines.reduce((s, l) => s + l.amount, 0)) * 100 : 0),
     sales_tax: field(), subtotal: field(), total: field(), pmt_recvd: field(), bal_due: field(), rounded_of: field(),
   };
   doc.lines.forEach((l, i) => {
     byId['total_' + (i + 1)] = field(money(l.amount));
     byId['tax_' + (i + 1)]   = field(l.rate ? names.indexOf(l.rate) + 1 : 0);
   });
-  const box = context(byId, { tax_rates: rates, tax_before_discount: '0', discount_from_total: 0, rounding_of: 0, popupStatus: 0 });
+  const box = context(byId, { tax_rates: rates, tax_before_discount: '0', discount_from_total: fromTotal ? 1 : 0, rounding_of: 0, popupStatus: 0 });
   const source = fs.readFileSync(path.join(REPO, 'trunk/modules/phreepos/pages/main/js_include.php'), 'utf8');
   vm.runInContext(liftFunction(source, 'calculateRoundingOf') + '\n' + liftFunction(source, 'updateTotalPrices'), box, { filename: 'phreepos js_include.php' });
   box.updateTotalPrices();
@@ -132,16 +137,21 @@ function posScreen(doc) {
 }
 
 console.log('Order screens (orders.js)');
-DOCS.documents.forEach((doc) => {
+DOCS.documents.filter((d) => d.screen !== 'pos').forEach((doc) => {
   const shown = orderScreen(doc);
   check(`${doc.label}: tax shown ${money(doc.tax)} and total ${money(doc.total)}`, shown, { tax: money(doc.tax), total: money(doc.total) });
 });
 
-// The point of sale sells, with neither freight nor an order discount on these documents.
+// The point of sale: A9's sales, which it posts, and A6's invoices that a till
+// could ring up - no freight, no order discount. A discounted sale is run with
+// the discount taken from the subtotal and from the total (issue #121).
 console.log('\nPoint of sale (phreepos js_include.php)');
-DOCS.documents.filter((d) => d.account === 'c' && d.journal === '12' && !d.freight && !d.discount).forEach((doc) => {
-  const shown = posScreen(doc);
-  check(`${doc.label}: tax shown ${money(doc.tax)} and total ${money(doc.total)}`, shown, { tax: money(doc.tax), total: money(doc.total) });
+DOCS.documents.filter((d) => d.screen === 'pos' || (d.account === 'c' && d.journal === '12' && !d.freight && !d.discount)).forEach((doc) => {
+  (doc.discount ? [false, true] : [false]).forEach((fromTotal) => {
+    const shown = posScreen(doc, fromTotal);
+    const mode  = doc.discount ? (fromTotal ? ', discount off the total' : ', discount off the subtotal') : '';
+    check(`${doc.label}${mode}: tax shown ${money(doc.tax)} and total ${money(doc.total)}`, shown, { tax: money(doc.tax), total: money(doc.total) });
+  });
 });
 
 report();
