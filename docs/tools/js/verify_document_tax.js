@@ -154,4 +154,24 @@ DOCS.documents.filter((d) => d.screen === 'pos' || (d.account === 'c' && d.journ
   });
 });
 
+// An expense paid out of the till: updateOt() shows the tax in the amount, as
+// other_transactions::expense_tax() posts it (issue #122). Its drop down's values
+// are rate ids, so its rates are keyed by id.
+function expenseScreen(exp) {
+  const names = Object.keys(DOCS.rates);
+  const rates = {};
+  rateTable(names).forEach((r) => { rates[r.id] = r; });
+  const byId = { ot_amount: field(money(exp.amount)), ot_rate: field(names.indexOf(exp.rate) + 1), ot_tax: field() };
+  const box = context(byId, { ot_tax_rates: rates });
+  const source = fs.readFileSync(path.join(REPO, 'trunk/modules/phreepos/pages/main/js_include.php'), 'utf8');
+  vm.runInContext(liftFunction(source, 'updateOt'), box, { filename: 'phreepos js_include.php' });
+  box.updateOt();
+  return byId.ot_tax.value.replace(/,/g, '');
+}
+
+console.log('\nPoint of sale expenses (phreepos js_include.php)');
+DOCS.expenses.forEach((exp) => {
+  check(`${exp.label}: tax shown in ${money(exp.amount)} is ${money(exp.tax)}`, expenseScreen(exp), money(exp.tax));
+});
+
 report();

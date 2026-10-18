@@ -279,7 +279,7 @@ echo "\nThe tax a document screen shows is the tax the ledger posts (issue #118)
 // the tax accounts moved on it, and its total how far the customer's or vendor's
 // account did, so the screens are held to the ledger's own figures.
 $a6 = require __DIR__ . '/acceptance/scenarios/a6_tax.php';
-$tax_docs = array('rates' => array(), 'documents' => array());
+$tax_docs = array('rates' => array(), 'documents' => array(), 'expenses' => array());
 foreach ($a6['tax_rates'] as $name => [$type, $auth_names]) {
     $auths = array();
     foreach ($auth_names as $auth) $auths[] = array('id' => $auth, 'rate' => $a6['tax_auths'][$auth][0]);
@@ -329,9 +329,14 @@ foreach ($a9['steps'] as $step) {
         $moved[$acct] = $value - ($held[$acct] ?? 0);
         $held[$acct]  = $value;
     }
-    if ($step['do'] !== 'pos_sale' || !empty($step['rounding'])) continue;
     $tax = 0;
     foreach ($moved as $acct => $delta) if (str_starts_with($acct, 'tax_')) $tax += abs($delta);
+    // An expense paid out of the till: the screen shows the tax in it (issue #122).
+    if ($step['do'] === 'pos_expense' && !empty($step['tax']) && ($step['use_tax'] ?? true)) {
+        $tax_docs['expenses'][] = array('label' => 'A9 ' . $step['label'], 'amount' => $step['amount'],
+                                        'rate' => $step['tax'], 'tax' => round($tax, 2));
+    }
+    if ($step['do'] !== 'pos_sale' || !empty($step['rounding'])) continue;
     $lines = array();
     foreach ($step['lines'] as [$qty, $price, $rate]) $lines[] = array('amount' => $qty * $price, 'rate' => $rate);
     $tax_docs['documents'][] = array('label' => 'A9 ' . $step['label'], 'screen' => 'pos', 'lines' => $lines,

@@ -59,92 +59,12 @@ if (file_exists($custom_path)) { include($custom_path); }
 	  $error .= POS_ERROR_OTHER_TRANS_INCOMPLETE;
 	}
 	if (!$error) {
-	// Post() reads these from the entry itself - the balance update chooses its work by journal_id -
-	// so they are set here as well as in the main record.
-	$order->journal_id = JOURNAL_ID;
-	$order->post_date  = date('Y-m-d');
-	$order->period     = CURRENT_ACCOUNTING_PERIOD;
-	$order->admin_id   = $_SESSION['admin_id'];
-	$order->store_id   = $tills->store_id;
-	// load journal main data	
-	$order->journal_main_array = array(
-		'period'              => CURRENT_ACCOUNTING_PERIOD,
-		'journal_id'          => JOURNAL_ID,
-		'post_date'           => date('Y-m-d'),
-		'description'         => GL_ENTRY_TITLE,
-		'bill_primary_name'   => $transaction->description,
-		'purchase_invoice_id' => '',
-		'admin_id'            => $_SESSION['admin_id'],
-		'store_id'            => $tills->store_id,
-		'total_amount'		  => $amount,
-	);
-	// The side a transaction does not use is zero: the amount columns are numbers.
-	switch($transaction->type){
-		case 'cash_in':
-			$credit_amount = 0;
-			$debit_amount  = $amount;
-			break;
-		default:
-			$debit_amount  = 0;
-			$credit_amount = $amount;
-	}
-	$ot_desc = db_prepare_input($_POST['ot_desc'] ?? '');
-	$order->journal_rows[] = array(
-			'id'            => '',
-			'qty'           => '1',
-			'gl_type'		=> 'ttl',
-			'gl_account'    => $tills->gl_acct_id,
-			'description'   => ($ot_desc == '') ? $transaction->description : $ot_desc,
-			'debit_amount'  => $debit_amount,
-			'credit_amount' => $credit_amount,
-			'post_date'     => date('Y-m-d'));
-	
-	if($transaction->type == 'expenses'){
-		$tax = (float)$currencies->clean_value(db_prepare_input($_POST['ot_tax'] ?? ''), $order->currencies_code) / $order->currencies_value;
-		$tax_auths      = gen_build_tax_auth_array();
-		$order->journal_rows[] = array(
-			'id'            => '',
-			'qty'           => '1',
-		    'gl_type'		=> 'tax',
-			'gl_account'    => $tax_auths[$_POST['ot_rate']]['account_id'],
-			'description'   => $transaction->description,
-			'taxable'       => db_prepare_input($_POST['ot_rate']),
-			'debit_amount'  => $tax,
-			'credit_amount' => $debit_amount,
-			'post_date'     => date('Y-m-d'));
-		$order->journal_rows[] = array(
-			'id'            => '',
-			'qty'           => '1',
-			'gl_type'		=> 'sos',
-			'gl_account'    => $transaction->gl_acct_id,
-			'description'   => $transaction->description,
-			'debit_amount'  => $credit_amount - $tax,
-			'credit_amount' => $debit_amount,
-			'post_date'     => date('Y-m-d'));
-	}else{
-		$order->journal_rows[] = array(
-			'id'            => '',
-			'qty'           => '1',
-			'gl_type'		=> 'sos',
-			'gl_account'    => $transaction->gl_acct_id,
-			'description'   => $transaction->description,
-			'debit_amount'  => $credit_amount,
-			'credit_amount' => $debit_amount,
-			'post_date'     => date('Y-m-d'));
-	}
-	
-	// The till balance and the journal entry are one change: both are kept or neither is.
-	// Post() answers true when it succeeded and rolls back itself on its own failures.
-	$db->transStart();
-	$tills->adjust_balance($transaction->type == 'cash_in' ? $amount : -$amount);
-	// Balances are carried forward to later periods and the next fiscal year, as
-	// every other page posts (issue #108).
-	if ($order->Post('insert')) {
-	  $db->transCommit();
-	} else {
-	  $db->transRollback();
-	  $error .= POS_ERROR_POSTING;
-	}
+	  // The tax in an expense is worked out by the ledger from the amount and the rate (issue #122);
+	  // the screen shows the same figure and posts none of its own.
+	  if (!$transaction->post($tills, $amount, (int)($_POST['ot_rate'] ?? 0), db_prepare_input($_POST['ot_desc'] ?? ''),
+	                          date('Y-m-d'), CURRENT_ACCOUNTING_PERIOD)) {
+	    $error .= POS_ERROR_POSTING;
+	  }
 	}
 	if ( DEBUG )           $messageStack->write_debug();
 $xml = '';

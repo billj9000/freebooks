@@ -280,7 +280,7 @@ echo $thirdToolbar->build_toolbar();
         <td class="ot_desc"><?php echo html_input_field('ot_desc', '', 'size="64" maxlength="64" style="font-size: 1.5em"'); ?></td>
         <td class="ot_amount"><?php echo html_input_field('ot_amount', $currencies->format(0), 'size="15" maxlength="20" style="text-align:right; font-size: 1.5em" onchange="updateOt()"'); ?></td>
         <td class="ot_rate"><?php echo html_pull_down_menu('ot_rate', $ot_tax_rates, '', 'onchange="updateOt()" style="font-size: 1.5em"'); ?></td>
-        <td class="ot_tax"><?php echo html_input_field('ot_tax', $currencies->format(0), 'size="15" maxlength="20" style="text-align:right; font-size: 1.5em"'); ?></td>
+        <td class="ot_tax"><?php echo html_input_field('ot_tax', $currencies->format(0), 'size="15" maxlength="20" readonly style="text-align:right; font-size: 1.5em"'); ?></td>
       </tr>
     </tbody>
   </table>

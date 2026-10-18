@@ -215,6 +215,107 @@ class other_transactions {
         return true;
   	}
   	
+	/**
+	 * The tax in an amount paid out that includes it, by authority (issue #122). The amount
+	 * less tax is amount / (1 + the rate's combined percentage); each authority's tax is that
+	 * times its own rate, rounded to the currency's places once, as the ledger rounds tax
+	 * everywhere else. Returns authority id => tax: empty for no rate, or one with no authority.
+	 * expenseTax() in includes/common.js works the same figures out for the screen.
+	 */
+	static function expense_tax($amount, $rate_id) {
+		global $currencies;
+		$taxes = array();
+		if (!$rate_id) return $taxes;
+		$auths = gen_build_tax_auth_array() ?: array();
+		foreach (ord_calculate_tax_drop_down('v') as $rate) {
+			if ((string)$rate['id'] !== (string)$rate_id) continue;
+			$ids      = array_filter(explode(':', (string)$rate['auths']), function ($id) use ($auths) { return isset($auths[$id]); });
+			$combined = 0;
+			foreach ($ids as $id) $combined += (float)$auths[$id]['tax_rate'];
+			$net = $amount / (1 + $combined / 100);
+			foreach ($ids as $id) $taxes[$id] = ($taxes[$id] ?? 0) + $net * $auths[$id]['tax_rate'] / 100;
+			foreach ($taxes as $id => $tax) $taxes[$id] = round($tax, $currencies->currencies[DEFAULT_CURRENCY]['decimal_places']);
+		}
+		return $taxes;
+	}
+
+	/**
+	 * Posts an amount of this type through a till as a general journal entry (journal 2), and
+	 * moves the till's balance by it: both are kept or neither is. Cash in debits the till and
+	 * anything else credits it. An expense of a type that uses tax splits the amount, which
+	 * includes the tax: each authority's tax (expense_tax) to that authority's account, the rest
+	 * to this type's account. A type that does not use tax posts no tax, whatever $rate_id says.
+	 * $amount is in the home currency. Returns true, or false with nothing posted.
+	 */
+	function post($tills, $amount, $rate_id, $description, $post_date, $period) {
+		global $db;
+		$order = new journal();
+		// Post() reads these from the entry itself - the balance update chooses its work by
+		// journal_id - so they are set here as well as in the main record.
+		$order->journal_id = 2;
+		$order->post_date  = $post_date;
+		$order->period     = $period;
+		$order->admin_id   = $_SESSION['admin_id'];
+		$order->store_id   = $tills->store_id;
+		$order->journal_main_array = array(
+			'period'              => $period,
+			'journal_id'          => 2,
+			'post_date'           => $post_date,
+			'description'         => GL_ENTRY_TITLE,
+			'bill_primary_name'   => $this->description,
+			'purchase_invoice_id' => '',
+			'admin_id'            => $_SESSION['admin_id'],
+			'store_id'            => $tills->store_id,
+			'total_amount'        => $amount,
+		);
+		$cash_in = $this->type == 'cash_in';
+		// The side a row does not use is zero: the amount columns are numbers.
+		$order->journal_rows[] = array(
+			'id'            => '',
+			'qty'           => '1',
+			'gl_type'       => 'ttl',
+			'gl_account'    => $tills->gl_acct_id,
+			'description'   => ($description == '') ? $this->description : $description,
+			'debit_amount'  => $cash_in ? $amount : 0,
+			'credit_amount' => $cash_in ? 0 : $amount,
+			'post_date'     => $post_date);
+		$taxes = ($this->type == 'expenses' && $this->use_tax) ? self::expense_tax($amount, $rate_id) : array();
+		$auths = $taxes ? gen_build_tax_auth_array() : array();
+		foreach ($taxes as $auth => $tax) {
+			if ($tax == 0) continue;
+			$order->journal_rows[] = array(
+				'id'            => '',
+				'qty'           => '1',
+				'gl_type'       => 'tax',
+				'gl_account'    => $auths[$auth]['account_id'],
+				'description'   => $this->description,
+				'taxable'       => (int)$rate_id,
+				'debit_amount'  => $tax,
+				'credit_amount' => 0,
+				'post_date'     => $post_date);
+		}
+		$rest = $amount - array_sum($taxes);
+		$order->journal_rows[] = array(
+			'id'            => '',
+			'qty'           => '1',
+			'gl_type'       => 'sos',
+			'gl_account'    => $this->gl_acct_id,
+			'description'   => $this->description,
+			'debit_amount'  => $cash_in ? 0 : $rest,
+			'credit_amount' => $cash_in ? $rest : 0,
+			'post_date'     => $post_date);
+		$db->transStart();
+		$tills->adjust_balance($cash_in ? $amount : -$amount);
+		// Balances are carried forward to later periods and the next fiscal year, as
+		// every other page posts (issue #108).
+		if ($order->Post('insert')) {
+			$db->transCommit();
+			return true;
+		}
+		$db->transRollback();
+		return false;
+	}
+
   	function __destruct(){
   		//print_r($this);
   	}

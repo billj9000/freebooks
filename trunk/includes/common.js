@@ -254,6 +254,21 @@ function documentTax(taxed) {
   return roundCurrency(total, decimal_places);
 }
 
+// The tax in an amount paid out that includes it, as other_transactions::expense_tax() posts it
+// (issue #122): the amount less tax is amount / (1 + the rate's combined percentage), and each
+// authority's tax is that times its own rate, rounded once. rate is a tax_rates entry, or none.
+function expenseTax(amount, rate) {
+  var auths = (rate && rate.auths) || [];
+  var combined = 0;
+  for (var i = 0; i < auths.length; i++) combined += parseFloat(auths[i].rate);
+  var net = amount / (1 + combined / 100);
+  var byAuth = {};
+  for (var j = 0; j < auths.length; j++) byAuth[auths[j].id] = (byAuth[auths[j].id] || 0) + net * auths[j].rate / 100;
+  var total = 0;
+  for (var id in byAuth) total += roundCurrency(byAuth[id], decimal_places);
+  return roundCurrency(total, decimal_places);
+}
+
 function AlertError(MethodName,e)  {
   if (e.description == null) { alert(MethodName + " Exception: " + e.message); }
   else {  alert(MethodName + " Exception: " + e.description); }

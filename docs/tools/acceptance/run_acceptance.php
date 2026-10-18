@@ -122,6 +122,8 @@ function acc_describe(array $s): string
         case 'pos_sale': return 'POS sale ' . implode(' + ', array_map(function ($l) { return "{$l[0]} @ {$l[1]}"; }, $s['lines']))
                               . (!empty($s['discount']) ? " - {$s['discount']} discount" : '');
         case 'pos_delete': return 'delete POS sale ' . $s['target'];
+        case 'pos_expense': return 'POS expense ' . $s['amount'] . (!empty($s['tax']) ? " with {$s['tax']}" : '')
+                                 . ((isset($s['use_tax']) && !$s['use_tax']) ? ', type without tax' : '');
         case 'unbuild': return sprintf('unbuild %s %s', $s['qty'], $s['sku']);
     }
     return $s['do'];
@@ -480,6 +482,7 @@ function acc_post(array $step, array $state, string $state_file): int
             case 'unbuild':       $id = acc_post_assembly($step, $state, -(float)$step['qty']); break;
             case 'reconcile':     $id = acc_reconcile($step, $state); break;
             case 'pos_sale':      $id = acc_pos_sale($step, $state); break;
+            case 'pos_expense':   $id = acc_pos_expense($step, $state); break;
             case 'pos_delete':    // as phreepos/pages/pos_mgr does it
                 acc_pos_load();
                 $target = acc_id($state, $step['target']);
@@ -1000,6 +1003,34 @@ function acc_pos_sale(array $step, array $state): int
     $sale->rounding_amt        = $step['rounding'] ?? 0;
     $sale->rounding_gl_acct_id = $state['roles']['rounding'];
     return $sale->post_ordr('save') ? (int)$sale->id : 0;
+}
+
+/**
+ * An expense paid out of a till, as phreepos/ajax/other_transactions.php posts one through
+ * other_transactions::post: the amount includes the tax of the purchase rate named by 'tax', if
+ * any, unless 'use_tax' says the expense type does not use tax. The till's account is the 'till' role and the expense type's account the 'expense' role.
+ * The till's own balance is not a ledger figure and is left alone. Returns the entry's id.
+ */
+function acc_pos_expense(array $step, array $state): int
+{
+    acc_pos_load();
+    require_once(DIR_FS_MODULES . 'phreebooks/classes/gen_ledger.php');
+    require_once(DIR_FS_MODULES . 'phreepos/classes/tills.php');
+    require_once(DIR_FS_MODULES . 'phreepos/classes/other_transactions.php');
+    $tills = new tills();
+    $tills->till_id    = 0;
+    $tills->store_id   = 0;
+    $tills->balance    = 0;
+    $tills->gl_acct_id = $state['roles']['till'];
+    $type = new other_transactions();
+    $type->type        = 'expenses';
+    $type->use_tax     = (int)($step['use_tax'] ?? !empty($step['tax']));
+    $type->gl_acct_id  = $state['roles']['expense'];
+    $type->description = 'Acceptance expense';
+    $date = acc_date($state, (int)$step['day']);
+    if (!$type->post($tills, $step['amount'], empty($step['tax']) ? 0 : $state['taxes'][$step['tax']], '', $date,
+                     gen_calculate_period($date, true))) return 0;
+    return (int)acc_rows("SELECT MAX(id) AS id FROM " . TABLE_JOURNAL_MAIN . " WHERE journal_id = 2")[0]['id'];
 }
 
 /**

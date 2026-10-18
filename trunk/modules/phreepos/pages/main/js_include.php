@@ -134,12 +134,6 @@ function salesTaxes(id, text, rate, auths) {
   this.auths = auths || []; // each authority's {id, rate}, for documentTax()
 }
 
-function purTaxes(id, text, rate) {
-	  this.id   = id;
-	  this.text = text;
-	  this.rate = rate;
-}
-
 function currencyType(id, text, value, decimal_point, thousands_point, decimal_places, decimal_precise) {
 	  this.id  			   = id;
 	  this.text			   = text;
@@ -1258,8 +1252,8 @@ function set_ot_options() {
 function updateOt(){
 	var amount		= cleanCurrency(document.getElementById('ot_amount').value);
 	var tax_index   = document.getElementById('ot_rate').value;
-	var tax_amount  = amount - ( amount / (1 +(ot_tax_rates[tax_index].rate / 100)));
-	document.getElementById('ot_tax').value       = formatPrecise(tax_amount);
+	var tax_amount  = expenseTax(parseFloat(amount) || 0, ot_tax_rates[tax_index]);
+	document.getElementById('ot_tax').value       = formatCurrency(tax_amount);
 }
 
 function SaveOt() {

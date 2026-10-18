@@ -62,10 +62,7 @@ $tax_rates = ord_calculate_tax_drop_down($account_type);
 $js_tax_rates = ord_js_tax_rates($tax_rates);
 
 $ot_tax_rates = ord_calculate_tax_drop_down('v');
-$js_ot_tax_rates = 'var ot_tax_rates = new Array();' . chr(10);
-for ($i = 0; $i < count($ot_tax_rates); $i++) {
-  $js_ot_tax_rates .= 'ot_tax_rates[' . $ot_tax_rates[$i]['id'] . '] = new purTaxes("' . $ot_tax_rates[$i]['id'] . '", "' . $ot_tax_rates[$i]['text'] . '", "' . $ot_tax_rates[$i]['rate'] . '");' . chr(10);
-}
+$js_ot_tax_rates = ord_js_tax_rates($ot_tax_rates, 'ot_tax_rates', true);
 //payment modules
 // generate payment choice arrays for receipt of payments
 $js_pmt_types = 'var pmt_types = new Array();' . chr(10);

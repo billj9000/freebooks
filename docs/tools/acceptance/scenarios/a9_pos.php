@@ -19,8 +19,9 @@
 /**
  * A9: the point of sale (issue #109). POS sales posted as the POS page saves
  * them (journal_19::post_ordr): change given, a split tender, and cash rounding;
- * then a sale deleted as the POS manager does it, and a sale with an order
- * discount, taxed after the discount (issue #121).
+ * then a sale deleted as the POS manager does it, a sale with an order
+ * discount, taxed after the discount (issue #121), and an expense paid out of the
+ * till at a rate of two authorities, its tax worked out by the ledger (issue #122).
  *
  * A sale's lines credit sales and the ledger's own VAT (rounded per authority,
  * issue #105); a cash rounding line goes to the till's rounding account. Each
@@ -48,8 +49,8 @@ return array(
     ),
     'payment_methods' => array('cod', 'moneyorder'),
     'roles' => array('till' => '1000', 'rounding' => '4100', 'pos_cod' => '1025', 'pos_mo' => '1234'),
-    'tax_auths' => array('VAT' => array(20, '2310')),
-    'tax_rates' => array('VAT-S' => array('c', array('VAT'))),
+    'tax_auths' => array('VAT' => array(20, '2310'), 'LEVY' => array(2.5, '2312')),
+    'tax_rates' => array('VAT-S' => array('c', array('VAT')), 'EXP-P' => array('v', array('VAT', 'LEVY'))),
     'items' => array(
         array('sku' => 'ACC-A9', 'description' => 'Acceptance item A9', 'cost_method' => 'f', 'item_cost' => 5),
     ),
@@ -59,7 +60,7 @@ return array(
     ),
     'balances' => array(
         'the steps net to zero' => array('till' => 1, 'pos_cod' => 1, 'pos_mo' => 1, 'rounding' => 1, 'sales' => 1,
-                                         'discount' => 1, 'tax_vat' => 1, 'inventory' => 1, 'cogs' => 1, 'ap' => 1),
+                                         'discount' => 1, 'tax_vat' => 1, 'tax_levy' => 1, 'expense' => 1, 'inventory' => 1, 'cogs' => 1, 'ap' => 1),
     ),
     'steps' => array(
         array('seq' => 1, 'day' => 1, 'do' => 'buy', 'label' => 'P1', 'sku' => 'ACC-A9', 'qty' => 20, 'price' => 5,
@@ -88,5 +89,11 @@ return array(
               'note' => '10 off 100, VAT on the 90 left: 18.00, so 108.00 and no rounding line',
               'expect' => array('sales' => -133.99, 'discount' => 10, 'tax_vat' => -24.80, 'rounding' => -0.01, 'pos_cod' => 148.80,
                                 'pos_mo' => 0, 'till' => 0, 'cogs' => 20, 'inventory' => 80)),
+        array('seq' => 7, 'day' => 7, 'do' => 'pos_expense', 'label' => 'E7', 'amount' => 50, 'tax' => 'EXP-P',
+              'note' => '50 includes 22.5%: 40.816... before tax, so VAT 8.16 and levy 1.02, each rounded, and 40.82 of expense',
+              'expect' => array('till' => -50, 'tax_vat' => -16.64, 'tax_levy' => 1.02, 'expense' => 40.82)),
+        array('seq' => 8, 'day' => 8, 'do' => 'pos_expense', 'label' => 'E8', 'amount' => 20, 'tax' => 'EXP-P', 'use_tax' => false,
+              'note' => 'a type that does not use tax posts none, whatever rate comes with it',
+              'expect' => array('till' => -70, 'tax_vat' => -16.64, 'tax_levy' => 1.02, 'expense' => 60.82)),
     ),
 );
