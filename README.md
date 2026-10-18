@@ -259,4 +259,6 @@ FreeBooks is free software, released under the GNU General Public License versio
 [LICENSE](LICENSE).
 
 FreeBooks began as PhreeBooks 3.7.1 by PhreeSoft, whose work remains the foundation of this one.
+PhreeSoft has since developed PhreeBooks into [Bizuno](https://github.com/phreesoft/bizuno), its
+current product.
 Bundled third-party libraries keep their own licences.
