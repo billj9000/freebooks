@@ -538,6 +538,28 @@ function load_cash_acct_balance($post_date, $gl_acct_id, $period) {
 	return $tax_rate_drop_down;
   }
 
+  /**
+   * The javascript tax_rates array for a page that totals tax in the browser, one entry per
+   * row of $tax_rates (from ord_calculate_tax_drop_down), in the same order as its drop down.
+   * Each entry carries its authorities' own rates as well as the combined one, so that the page
+   * totals tax as the ledger posts it - per authority, rounded once per document - rather than
+   * rounding the combined tax (issue #118). See documentTax() in includes/common.js.
+   */
+  function ord_js_tax_rates($tax_rates) {
+	$tax_auth_array = gen_build_tax_auth_array();
+	$js = 'var tax_rates = new Array(' . count($tax_rates) . ');' . chr(10);
+	foreach (array_values($tax_rates) as $i => $rate) {
+	  $auths = array();
+	  foreach (explode(':', (string)$rate['auths']) as $auth) {
+		if ($auth === '') continue;
+		$auths[] = array('id' => $auth, 'rate' => isset($tax_auth_array[$auth]) ? (float)$tax_auth_array[$auth]['tax_rate'] : 0);
+	  }
+	  $js .= 'tax_rates[' . $i . '] = new salesTaxes(' . json_encode((string)$rate['id']) . ', ' . json_encode((string)$rate['text'])
+		  . ', ' . json_encode((string)$rate['rate']) . ', ' . json_encode($auths) . ');' . chr(10);
+	}
+	return $js;
+  }
+
   function ord_get_so_po_num($id = '') {
 	global $db;
 	$result = $db->Execute("select purchase_invoice_id from " . TABLE_JOURNAL_MAIN . " where id = " . $id);

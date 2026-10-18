@@ -58,11 +58,8 @@ if (file_exists($custom_path)) { include($custom_path); }
 $js_arrays = gen_build_company_arrays();
 // load the tax rates
 $tax_rates = ord_calculate_tax_drop_down($account_type);
-// generate a rate array parallel to the drop down for the javascript total calculator
-$js_tax_rates = 'var tax_rates = new Array();' . chr(10);
-for ($i = 0; $i < count($tax_rates); $i++) {
-  $js_tax_rates .= 'tax_rates[' . $i . '] = new salesTaxes("' . $tax_rates[$i]['id'] . '", "' . $tax_rates[$i]['text'] . '", "' . $tax_rates[$i]['rate'] . '");' . chr(10);
-}
+// a rate array parallel to the drop down for the javascript total calculator
+$js_tax_rates = ord_js_tax_rates($tax_rates);
 
 $ot_tax_rates = ord_calculate_tax_drop_down('v');
 $js_ot_tax_rates = 'var ot_tax_rates = new Array();' . chr(10);

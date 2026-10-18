@@ -276,10 +276,11 @@ function checkEnterEvent(event, row){
 }
 
 // Insert other page specific functions here.
-function salesTaxes(id, text, rate) {
-  this.id   = id;
-  this.text = text;
-  this.rate = rate;
+function salesTaxes(id, text, rate, auths) {
+  this.id    = id;
+  this.text  = text;
+  this.rate  = rate;
+  this.auths = auths || []; // each authority's {id, rate}, for documentTax()
 }
 
 <?php if (ORD_ENABLE_LINE_ITEM_BAR_CODE) { ?>

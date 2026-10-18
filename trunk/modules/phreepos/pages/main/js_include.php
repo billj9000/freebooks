@@ -127,10 +127,11 @@ function refreshOrderClock() {
   resClockID = setTimeout("refreshOrderClock()", 250);
 }
 
-function salesTaxes(id, text, rate) {
-  this.id   = id;
-  this.text = text;
-  this.rate = rate;
+function salesTaxes(id, text, rate, auths) {
+  this.id    = id;
+  this.text  = text;
+  this.rate  = rate;
+  this.auths = auths || []; // each authority's {id, rate}, for documentTax()
 }
 
 function purTaxes(id, text, rate) {
@@ -717,7 +718,7 @@ function updateTotalPrices() {
   var discountPercent = parseFloat(cleanCurrency(document.getElementById('disc_percent').value));
   if (isNaN(discountPercent)) discountPercent = 0;
   var subtotal         = 0;
-  var taxable_subtotal = 0;
+  var taxed            = []; // each taxed line: its rate and amount, for documentTax()
   var lineTotal        = '';
   var numRows          = document.getElementById('item_table_body').rows.length;
   for (var i=1; i<=numRows; i++) {
@@ -729,13 +730,14 @@ function updateTotalPrices() {
 		document.getElementById('tax_'+i).value = tax_index;
 	  }
 	  if (tax_before_discount == '0') { // tax after discount
-        taxable_subtotal += lineTotal * (1-(discountPercent/100)) * (tax_rates[tax_index].rate / 100);
+        taxed.push({rate: tax_rates[tax_index], amount: lineTotal * (1-(discountPercent/100))});
 	  } else { 
-        taxable_subtotal += lineTotal * (tax_rates[tax_index].rate / 100);
+        taxed.push({rate: tax_rates[tax_index], amount: lineTotal});
 	  }
 	}
 	subtotal += lineTotal;
   }
+  var taxable_subtotal = documentTax(taxed);
   // recalculate discount
   if (discount_from_total){
 	discount = (discountPercent/100) * (subtotal + taxable_subtotal) ;

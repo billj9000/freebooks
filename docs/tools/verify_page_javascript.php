@@ -272,6 +272,62 @@ if ($node === null) {
 }
 foreach (glob($wo_stem . '.*') as $stale) @unlink($stale);
 
+// ---------------------------------------------------------------------------
+echo "\nThe tax a document screen shows is the tax the ledger posts (issue #118)\n";
+// Acceptance scenario A6 posts these documents through the ledger and states,
+// after each one, what every account it moved holds. A document's tax is how far
+// the tax accounts moved on it, and its total how far the customer's or vendor's
+// account did, so the screens are held to the ledger's own figures.
+$a6 = require __DIR__ . '/acceptance/scenarios/a6_tax.php';
+$tax_docs = array('rates' => array(), 'documents' => array());
+foreach ($a6['tax_rates'] as $name => [$type, $auth_names]) {
+    $auths = array();
+    foreach ($auth_names as $auth) $auths[] = array('id' => $auth, 'rate' => $a6['tax_auths'][$auth][0]);
+    $tax_docs['rates'][$name] = array('rate' => array_sum(array_column($auths, 'rate')), 'auths' => $auths);
+}
+$held = array();   // each account as the step before left it
+$sold = array();   // invoice label => its line, for a credit memo against it
+foreach ($a6['steps'] as $step) {
+    $moved = array();
+    foreach ($step['expect'] as $acct => $value) {
+        if (!is_numeric($value) || $acct === 'customer_balance') continue;
+        $moved[$acct] = $value - ($held[$acct] ?? 0);
+        $held[$acct]  = $value;
+    }
+    $tax = 0;
+    foreach ($moved as $acct => $delta) if (str_starts_with($acct, 'tax_')) $tax += abs($delta);
+    $doc = null;
+    if ($step['do'] === 'sell') {
+        $line = array('amount' => $step['qty'] * $step['price'], 'rate' => $step['tax'] ?? null);
+        $sold[$step['label']] = array('price' => $step['price'], 'rate' => $line['rate']);
+        $doc = array('journal' => '12', 'account' => 'c', 'lines' => array($line),
+                     'freight' => $step['freight'] ?? 0, 'freight_rate' => $step['freight_tax'] ?? null,
+                     'discount' => $step['order_discount'] ?? 0, 'total' => abs($moved['ar'] ?? 0));
+    } elseif ($step['do'] === 'credit') {
+        $inv = $sold[$step['invoice']];
+        $doc = array('journal' => '13', 'account' => 'c', 'total' => abs($moved['ar'] ?? 0),
+                     'lines' => array(array('amount' => $step['qty'] * $inv['price'], 'rate' => $inv['rate'])));
+    } elseif ($step['do'] === 'buy') {
+        $doc = array('journal' => '6', 'account' => 'v', 'total' => abs($moved['ap'] ?? 0),
+                     'lines' => array(array('amount' => $step['qty'] * $step['price'], 'rate' => $step['tax'] ?? null)));
+    }
+    if ($doc) $tax_docs['documents'][] = $doc + array('label' => 'A6 ' . $step['label'], 'tax' => round($tax, 2));
+}
+$tax_suite = __DIR__ . '/js/verify_document_tax.js';
+if ($node === null) {
+    skip('document tax', 'no node');
+} else {
+    $tax_json = sys_get_temp_dir() . '/fb_doc_tax_' . getmypid() . '.json';
+    file_put_contents($tax_json, json_encode($tax_docs));
+    $out = []; exec(escapeshellarg($node) . ' ' . escapeshellarg($tax_suite) . ' ' . escapeshellarg($tax_json) . ' 2>&1', $out, $status);
+    foreach ($out as $line) {
+        if (preg_match('/^(PASS|FAIL) - /', $line)) continue;
+        echo ($line === '' ? '' : '  ') . $line . "\n";
+    }
+    if ($status !== 0) $failures++;
+    @unlink($tax_json);
+}
+
 if ($skipped > 0) {
     printf("\n%d check(s) skipped. Install node to run them; a skipped check has not passed.\n", $skipped);
 }

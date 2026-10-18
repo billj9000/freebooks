@@ -223,6 +223,37 @@ function formatPrecise(amount) { // convert to expected currency format with the
   }
 }
 
+// Rounds as the server's round() does: half away from zero, judged on the shortest decimal that
+// reproduces the number, which is what toString() prints. Rounding the binary value instead would
+// take 0.285 (stored as 0.28499999999999998) down where the server takes it up.
+function roundCurrency(amount, places) {
+  var s = Math.abs(amount).toString();
+  if (s.indexOf('e') >= 0) return Math.abs(amount) < 1 ? 0 : amount;
+  var dot   = s.indexOf('.');
+  var whole = dot < 0 ? s : s.substring(0, dot);
+  var frac  = dot < 0 ? '' : s.substring(dot + 1);
+  if (frac.length <= places) return amount;
+  var units = Number(whole + frac.substring(0, places)) + (frac.charAt(places) >= '5' ? 1 : 0);
+  var rounded = units / Math.pow(10, places);
+  return amount < 0 ? -rounded : rounded;
+}
+
+// The tax on a document as the ledger posts it (orders::add_tax_journal_rows): each authority's
+// share of every taxed amount is summed over the document, then rounded once per authority
+// (issue #118). taxed is a list of {rate: a tax_rates entry, amount: the amount it taxes}.
+function documentTax(taxed) {
+  var byAuth = {};
+  for (var i = 0; i < taxed.length; i++) {
+    var auths = taxed[i].rate.auths || [];
+    for (var j = 0; j < auths.length; j++) {
+      byAuth[auths[j].id] = (byAuth[auths[j].id] || 0) + (auths[j].rate / 100) * taxed[i].amount;
+    }
+  }
+  var total = 0;
+  for (var id in byAuth) total += roundCurrency(byAuth[id], decimal_places);
+  return roundCurrency(total, decimal_places);
+}
+
 function AlertError(MethodName,e)  {
   if (e.description == null) { alert(MethodName + " Exception: " + e.message); }
   else {  alert(MethodName + " Exception: " + e.description); }

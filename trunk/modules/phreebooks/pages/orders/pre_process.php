@@ -485,11 +485,8 @@ for ($i = 0; $i < count($gl_array_list); $i++) {
 }
 // load the tax rates
 $tax_rates = ord_calculate_tax_drop_down($account_type);
-// generate a rate array parallel to the drop down for the javascript total calculator
-$js_tax_rates = 'var tax_rates = new Array(' . count($tax_rates) . ');' . chr(10);
-for ($i = 0; $i < count($tax_rates); $i++) {
-  $js_tax_rates .= 'tax_rates[' . $i . '] = new salesTaxes("' . $tax_rates[$i]['id'] . '", "' . $tax_rates[$i]['text'] . '", "' . $tax_rates[$i]['rate'] . '");' . chr(10);
-}
+// a rate array parallel to the drop down for the javascript total calculator
+$js_tax_rates = ord_js_tax_rates($tax_rates);
 // load projects
 $proj_list = ord_get_projects();
 // generate a project list array parallel to the drop down for the javascript add line item function

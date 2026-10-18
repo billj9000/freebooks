@@ -977,7 +977,7 @@ function updateTotalPrices() {
   var item_count       = 0;
   var shipment_weight  = 0;
   var subtotal         = 0;
-  var taxable_subtotal = 0;
+  var taxed            = []; // each taxed line: its rate and amount, for documentTax()
   var freight_def_tax = default_sales_tax;
   var lineTotal        = '';
   if (single_line_list == '1') {
@@ -1014,11 +1014,7 @@ function updateTotalPrices() {
 		tax_index = 0;
 		document.getElementById('tax_'+i).value = tax_index;
 	  }
-	  if (tax_before_discount == '0') { // tax after discount
-        taxable_subtotal += lineTotal * (1-(discountPercent/100)) * (tax_rates[tax_index].rate / 100);
-	  } else {
-        taxable_subtotal += lineTotal * (tax_rates[tax_index].rate / 100);
-	  }
+	  taxed.push({rate: tax_rates[tax_index], amount: lineTotal});
 	  freight_def_tax = tax_index;
 	}
 	subtotal += lineTotal;
@@ -1028,25 +1024,36 @@ function updateTotalPrices() {
   discount = subtotal * (discountPercent/100);
   var strDiscount = new String(discount);
   document.getElementById('discount').value = formatCurrency(strDiscount);
+  var st = new String(subtotal);
+  document.getElementById('subtotal').value = formatCurrency(st);
+  // The ledger works from the subtotal, discount and freight as posted - these fields, rounded
+  // to the currency's places - and taxes a line after the discount at discount / subtotal.
+  var postedSubtotal = parseFloat(cleanCurrency(document.getElementById('subtotal').value));
+  var postedDiscount = parseFloat(cleanCurrency(document.getElementById('discount').value));
+  if (isNaN(postedDiscount)) postedDiscount = 0;
+  if (tax_before_discount == '0' && postedSubtotal) {
+    var discFraction = 1 - ((postedSubtotal - postedDiscount) / postedSubtotal);
+    for (var t = 0; t < taxed.length; t++) taxed[t].amount = taxed[t].amount * (1 - discFraction);
+  }
   // freight
   var strFreight = cleanCurrency(document.getElementById('freight').value);
   var freight = parseFloat(strFreight);
   if (isNaN(freight)) freight = 0;
   strFreight = new String(freight);
   document.getElementById('freight').value = formatCurrency(strFreight);
+  freight = parseFloat(cleanCurrency(document.getElementById('freight').value));
   var frtEl = document.getElementById('freight_tax_id');
   var cur_freight_tax = frtEl ? frtEl.value : tax_freight;
   if (cur_freight_tax != 0) for (var frtIdx = 0; frtIdx < tax_rates.length; frtIdx++) {
-    if (tax_rates[frtIdx].id == cur_freight_tax) { taxable_subtotal += parseFloat(freight) * tax_rates[frtIdx].rate / 100; break; }
+    if (tax_rates[frtIdx].id == cur_freight_tax) { taxed.push({rate: tax_rates[frtIdx], amount: freight}); break; }
   }
 
-  var nst = new String(taxable_subtotal);
+  var salesTax = documentTax(taxed);
+  var nst = new String(salesTax);
   document.getElementById('sales_tax').value = formatCurrency(nst);
   document.getElementById('item_count').value = item_count;
   document.getElementById('weight').value = shipment_weight;
-  var st = new String(subtotal);
-  document.getElementById('subtotal').value = formatCurrency(st);
-  var new_total = subtotal - discount + freight + taxable_subtotal;
+  var new_total = postedSubtotal - postedDiscount + freight + salesTax;
   var tot = new String(new_total);
   document.getElementById('total').value = formatCurrency(tot);
   if (journalID == '12' && applyCreditLimit == '1') {
