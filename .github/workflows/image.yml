@@ -1,7 +1,10 @@
 # Builds the FreeBooks container image and publishes it to GitHub Container Registry.
 #
 #   tag vX.Y.Z   -> ghcr.io/<owner>/freebooks:X.Y.Z, X.Y and latest
-#   push master  -> ghcr.io/<owner>/freebooks:edge
+#   push master  -> ghcr.io/<owner>/freebooks:edge and sha-<full commit hash>
+#
+# The sha- tag never moves, so a deployment can pin to an exact build, and the
+# same hash names the commit its extensions/ come from.
 #
 # A release tag must match MODULE_PHREEDOM_VERSION, the version the application
 # reports about itself.
@@ -48,6 +51,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=edge,enable={{is_default_branch}}
+            type=sha,format=long,enable={{is_default_branch}}
 
       - uses: docker/build-push-action@v6
         with:
