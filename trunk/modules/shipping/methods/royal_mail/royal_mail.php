@@ -85,6 +85,9 @@ class royal_mail {
   );
 
   var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE', 'RMIPT', 'ER1', 'ECA');
+  // Parcelforce international travels with a printed commercial invoice; Royal Mail's
+  // international services go with the CN22/CN23 alone.
+  var $invoiceServices = array('ER1', 'ECA');
 
   // Click & Drop rejects packageFormatIdentifier values that don't match the service's
   // mail class (e.g. "Package size 'Parcel' is not valid for the service 'MTK'") — this
@@ -494,10 +497,29 @@ class royal_mail {
 
     $file_path = SHIPPING_DEFAULT_LABEL_DIR . $this->code . '/' . str_replace('-', '/', $sInfo->ship_date) . '/';
     validate_path($file_path);
-    $labelFile = ($trackingNumber ?: $orderIdentifier) . '.pdf';
-    if (!file_put_contents($file_path . $labelFile, $labelResponse)) {
+    $labelName = $trackingNumber ?: $orderIdentifier;
+    if (!file_put_contents($file_path . $labelName . '.pdf', $labelResponse)) {
       $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Cannot write label file.', 'error');
       return false;
+    }
+
+    // Click & Drop's commercial invoice is fetched as a PDF of its own so that it prints on A4:
+    // includeCommercialInvoice would add it to the label PDF, which goes to the label printer.
+    // The label is already booked by now, so a missing invoice only warns.
+    $invoiceName = '';
+    if (!$isDomestic && in_array($internalCode, $this->invoiceServices)) {
+      $invoiceResponse = $this->curlRequest('GET',
+        RM_CD_BASE . '/orders/' . urlencode($orderIdentifier) . '/label?documentType=commercialInvoice',
+        $labelHeaders);
+      if ($invoiceResponse !== false && substr($invoiceResponse, 0, 4) === '%PDF'
+          && file_put_contents($file_path . $labelName . '-invoice.pdf', $invoiceResponse)) {
+        $invoiceName = $labelName . '-invoice';
+      } else {
+        $errData = json_decode((string)$invoiceResponse, true);
+        if (!is_array($errData)) $errData = array();
+        $messageStack->add(sprintf(MODULE_SHIPPING_ROYAL_MAIL_WARN_INVOICE,
+          $errData['message'] ?? ($errData[0]['message'] ?? $this->last_http_code)), 'caution');
+      }
     }
 
     return array(array(
@@ -514,6 +536,7 @@ class royal_mail {
       // than '', which a server at its defaults refuses outright - and which is
       // what every read of the column already tests against.
       'delivery_date' => 'null',
+      'invoice_tracking' => $invoiceName,
     ));
   }
 

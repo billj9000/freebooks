@@ -35,6 +35,7 @@ define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_CANCEL', 'Royal Mail: Click & Drop did 
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_ORDER', 'Royal Mail: this shipment has no Click & Drop order number saved, so it cannot be cancelled from here. Cancel it in Click & Drop.');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_BAD_FORMAT', 'Royal Mail: Package format \'%s\' is not valid for service \'%s\'. Valid formats: %s.');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_DUTY', 'Royal Mail: the prepaid duty must be an amount from 0 to 99,999.99.');
+define('MODULE_SHIPPING_ROYAL_MAIL_WARN_INVOICE', 'Royal Mail: the label is booked, but Click & Drop did not supply a commercial invoice (%s). Print it from the order on the Click & Drop website.');
 // Label form — customs section
 define('RM_CUSTOMS_SECTION',           'Customs / Export Information');
 define('RM_TEXT_DECLARATION_CATEGORY', 'Declaration Category');

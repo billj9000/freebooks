@@ -35,6 +35,7 @@ define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_CANCEL', 'Royal Mail: Click & Drop heef
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_ORDER', 'Royal Mail: voor deze zending is geen Click & Drop-ordernummer opgeslagen, dus kan deze hier niet worden geannuleerd. Annuleer hem in Click & Drop.');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_BAD_FORMAT', 'Royal Mail: pakketformaat \'%s\' is niet geldig voor dienst \'%s\'. Geldige formaten: %s.');
 define('MODULE_SHIPPING_ROYAL_MAIL_ERROR_DUTY', 'Royal Mail: de vooruitbetaalde invoerrechten moeten een bedrag zijn van 0 tot 99,999.99.');
+define('MODULE_SHIPPING_ROYAL_MAIL_WARN_INVOICE', 'Royal Mail: het label is geboekt, maar Click & Drop leverde geen handelsfactuur (%s). Druk deze af vanuit de order op de website van Click & Drop.');
 // Label form — customs section
 define('RM_CUSTOMS_SECTION',           'Douane- / exportgegevens');
 define('RM_TEXT_DECLARATION_CATEGORY', 'Aangiftecategorie');

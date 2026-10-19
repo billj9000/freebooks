@@ -106,6 +106,7 @@ switch ($_REQUEST['action']) {
         );
         db_perform(TABLE_SHIPPING_LOG, $sql_array, 'insert');
         $labels_array[] = $pkg_result['tracking'];
+        if (!empty($pkg_result['invoice_tracking'])) $labels_array[] = $pkg_result['invoice_tracking'];
       }
       shipping_record_contents($shipment_num, $shipping_module, (int)($_GET['oID'] ?? 0), $sInfo->line_items);
       $db->Execute("update " . TABLE_CURRENT_STATUS . " set next_shipment_num = next_shipment_num + 1");
@@ -146,8 +147,10 @@ switch ($_REQUEST['action']) {
       } elseif ($shipment->cancelShipment($order_id)) {
         $tracking  = preg_replace('/[^A-Za-z0-9_\-]/', '', $shipments->fields['tracking_id']);
         $file_path = SHIPPING_DEFAULT_LABEL_DIR . $shipping_module . '/' . str_replace('-', '/', substr($shipments->fields['ship_date'], 0, 10)) . '/';
-        foreach (array($tracking, $order_id) as $name) {
-          if ($name !== '' && is_file($file_path . $name . '.pdf')) @unlink($file_path . $name . '.pdf');
+        foreach (array_filter(array($tracking, $order_id), 'strlen') as $name) {
+          foreach (array($name, $name . '-invoice') as $file) {
+            if (is_file($file_path . $file . '.pdf')) @unlink($file_path . $file . '.pdf');
+          }
         }
         $db->Execute("delete from " . TABLE_SHIPPING_LOG . " where id = " . (int)$shipments->fields['id']);
       } else {
