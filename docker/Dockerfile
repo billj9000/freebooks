@@ -12,7 +12,7 @@
 # (company data). A platform with a single volume mounts it at fly_data/
 # instead - see entrypoint.sh.
 
-FROM php:8.5.10-apache-bookworm
+FROM php:8.5.12-apache-bookworm
 
 RUN apt-get update && apt-get install -y libbz2-dev libzip-dev libpng-dev libjpeg-dev cron && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-configure gd --with-jpeg && docker-php-ext-install pdo pdo_mysql zip bz2 gd
@@ -39,6 +39,8 @@ RUN echo "upload_tmp_dir = /tmp" > /usr/local/etc/php/conf.d/uploads.ini
 RUN printf "upload_max_filesize = 1024M\npost_max_size = 1088M\nmemory_limit = 256M\n" > /usr/local/etc/php/conf.d/restore_uploads.ini
 # The Forms designer submits large forms.
 RUN echo "max_input_vars = 5000" > /usr/local/etc/php/conf.d/input_vars.ini
+# FreeBooks uses neither; both are paths to CVE-2026-109619 (issue #125).
+RUN printf "session.upload_progress.enabled = 0\nfatal_error_backtraces = 0\n" > /usr/local/etc/php/conf.d/hardening.ini
 RUN printf "display_errors = Off\nerror_reporting = E_ALL & ~E_NOTICE\nlog_errors = On\nerror_log = /var/log/apache2/php_errors.log\n" > /usr/local/etc/php/conf.d/errors.ini
 
 COPY trunk/ ./
