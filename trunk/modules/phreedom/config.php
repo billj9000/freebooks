@@ -29,7 +29,7 @@
 // 3.7.1 => 2014-08-14 - added php_info to the admin panel
 // 3.8 => 2026-08-06 - added WebAuthn/passkey authentication
 // Module software version information
-define('MODULE_PHREEDOM_VERSION',  '1.0.0');
+define('MODULE_PHREEDOM_VERSION',  '1.0.1');
 // Menu Sort Positions
 define('MENU_HEADING_INVENTORY_ORDER',  30);
 define('MENU_HEADING_BANKING_ORDER',    40);
