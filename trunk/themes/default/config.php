@@ -29,7 +29,8 @@ if (!function_exists('js_calendar_init')) {
 if (!function_exists('html_calendar_field')) {
   function html_calendar_field($properties = NULL) {
     $val = gen_db_date($properties['default'] ?? '');
-    return html_input_field($properties['fieldname'], $val, '', false, 'date');
+    $onchange = $properties['params']['onchange'] ?? '';
+    return html_input_field($properties['fieldname'], $val, $onchange ? 'onchange="' . $onchange . '"' : '', false, 'date');
   }
 }
   

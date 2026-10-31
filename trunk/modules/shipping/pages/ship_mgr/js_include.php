@@ -49,8 +49,14 @@ function submitShipSequence(module_id, rowSeq, todo) {
   submitSeq(rowSeq, todo);
 }
 
+// A date typed at the keyboard fires change on every digit, so the reload waits for typing to stop.
+var calendarTimer = null;
 function calendarPage() {
-  location.href = 'index.php?module=shipping&page=ship_mgr&search_date=' + document.ship_mgr.search_date.value;
+  clearTimeout(calendarTimer);
+  calendarTimer = setTimeout(function() {
+    var searchDate = document.ship_mgr.search_date.value;
+    if (searchDate) location.href = 'index.php?module=shipping&page=ship_mgr&search_date=' + searchDate;
+  }, 800);
 }
 
 function getDialog(method, template) {
