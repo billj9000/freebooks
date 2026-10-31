@@ -22,7 +22,9 @@ $security_level = validate_user(SECURITY_ID_SHIPPING_MANAGER);
 require_once(DIR_FS_WORKING . 'defaults.php');
 /**************   page specific initialization  *************************/
 $date        = !empty($_GET['search_date']) ? gen_db_date($_GET['search_date']) : date('Y-m-d');
-if (($_REQUEST['search_text'] ?? '') == TEXT_SEARCH) $_REQUEST['search_text'] = '';
+$search_text = is_string($_REQUEST['search_text'] ?? '') ? trim($_REQUEST['search_text'] ?? '') : '';
+if ($search_text == TEXT_SEARCH) $search_text = '';
+$_REQUEST['search_text'] = $search_text;
 $module_id   = isset($_POST['module_id']) ? $_POST['module_id'] : '';
 $row_seq     = isset($_POST['rowSeq'])    ? $_POST['rowSeq']    : '';
 $action		 = $_REQUEST['action'] = $_REQUEST['action'] ?? '';
@@ -60,6 +62,20 @@ if ($module_id) {
   }
 }
 /*****************   prepare to display templates  *************************/
+// A tracking number is matched across every carrier and date, ignoring spaces because
+// carriers often show a number in spaced groups.
+$tracking_matches = array();
+$tracking_search  = str_replace(' ', '', $search_text);
+if ($tracking_search !== '') {
+  require_once(DIR_FS_WORKING . 'functions/shipping.php');
+  $rows = $db->Execute("select id, carrier, shipment_id, ref_id, ship_date, tracking_id, recipient_name from " . TABLE_SHIPPING_LOG
+    . " where " . db_search_criteria(array("replace(tracking_id, ' ', '')"), $tracking_search)
+    . " order by ship_date desc limit 100");
+  while (!$rows->EOF) {
+    $tracking_matches[] = $rows->fields;
+    $rows->MoveNext();
+  }
+}
 $cal_ship = array(
   'name'      => 'cal',
   'form'      => 'ship_mgr',

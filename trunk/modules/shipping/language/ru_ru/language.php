@@ -145,6 +145,8 @@ define('SHIPPING_TEXT_WEIGHT_FALLBACK', 'Используется, когда р
 define('SHIPPING_DELETE_CONFIRM','Are you sure you want to delete this shipment?');
 define('SHIPPING_CANCEL_CONFIRM','This will cancel the shipment at the carrier and delete the record. Are you sure?');
 define('SHIPPING_NO_SHIPMENTS','There are no shipments from this carrier today!');
+define('SHIPPING_TRACKING_SEARCH_RESULTS', 'Отправления с номером отслеживания %s');
+define('SHIPPING_TRACKING_NO_MATCH', 'Нет отправлений с таким номером отслеживания.');
 define('SHIPPING_ERROR_CONFIGURATION','<strong>Shipping Configuration errors!</strong>');
 define('SHIPPING_BAD_QUOTE_DATE', 'Дата отправления для расчёта стоимости не может быть раньше сегодняшней. Для расчёта дата отправления изменена на сегодня.');
 define('SHIPPING_LOG_LABEL_PRINTED', 'Этикетка создана');

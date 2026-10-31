@@ -105,6 +105,8 @@ define('SHIPPING_LOG_LABEL_PRINTED','Etiqueta Gerada');
 define('SHIPPING_BAD_QUOTE_DATE','A data da Entrega não pode ser anterior a hoje para uma cotação. A data entrega foi mudada para hoje para propósito de cotação.');
 define('SHIPPING_ERROR_CONFIGURATION','<strong>Erros Configuração Entrega!</strong>');
 define('SHIPPING_NO_SHIPMENTS','Não há entregas desta transportadora hoje!');
+define('SHIPPING_TRACKING_SEARCH_RESULTS', 'Remessas com o número de rastreamento %s');
+define('SHIPPING_TRACKING_NO_MATCH', 'Nenhuma remessa tem um número de rastreamento correspondente.');
 define('SHIPPING_DELETE_CONFIRM','Tem certeza de que quer remover esta remessa?');
 define('SHIPPING_CANCEL_CONFIRM','Isso cancelará a remessa na transportadora e excluirá o registro. Tem certeza?');
 define('SHIPPING_ERROR_WEIGHT_ZERO','Peso entrega nãopdoe ser zero.');

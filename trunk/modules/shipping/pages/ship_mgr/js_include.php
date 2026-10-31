@@ -28,6 +28,7 @@ var _modalMethod   = '';
 function init() {
   var firstPane = document.querySelector('#shippingtabsContent .tab-pane');
   if (firstPane) firstPane.classList.add('show', 'active');
+  document.getElementById('search_text').placeholder = <?php echo json_encode(SHIPPING_TEXT_TRACKING_NUM); ?>;
 }
 
 function check_form() {

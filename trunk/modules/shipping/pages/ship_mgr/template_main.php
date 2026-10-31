@@ -28,9 +28,51 @@ $toolbar->icon_list['delete']['show']   = false;
 $toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('09');
-echo $toolbar->build_toolbar(false, false, $cal_ship);
+echo $toolbar->build_toolbar(true, false, $cal_ship);
 ?>
 <h1><?php echo BOX_SHIPPING_MANAGER; ?></h1>
+
+<?php if ($tracking_search !== ''): ?>
+<table class="table table-sm table-hover table-borderless mb-2 w-100" id="tracking_search_results">
+  <thead class="table-dark">
+    <tr>
+      <th colspan="7"><?php echo sprintf(SHIPPING_TRACKING_SEARCH_RESULTS, htmlspecialchars($search_text)); ?></th>
+    </tr>
+    <tr>
+      <th><?php echo SHIPPING_TEXT_CARRIER;       ?></th>
+      <th><?php echo SHIPPING_TEXT_SHIPMENT_DATE; ?></th>
+      <th><?php echo SHIPPING_TEXT_SHIPMENT_ID;   ?></th>
+      <th><?php echo SHIPPING_TEXT_REFERENCE_ID;  ?></th>
+      <th><?php echo SHIPPING_TEXT_TRACKING_NUM;  ?></th>
+      <th><?php echo SHIPPING_RECIPIENT;          ?></th>
+      <th><?php echo TEXT_ACTION;                 ?></th>
+    </tr>
+  </thead>
+  <tbody>
+<?php
+$carrier_names = array_column($installed_modules, 'text', 'id');
+foreach ($tracking_matches as $match):
+  $match_date = substr((string)$match['ship_date'], 0, 10);
+  $track_url  = shipping_tracking_url($match['carrier'], $match['tracking_id']);
+?>
+    <tr>
+      <td><?php echo htmlspecialchars($carrier_names[$match['carrier']] ?? $match['carrier']); ?></td>
+      <td><a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&amp;page=ship_mgr&amp;search_date=' . $match_date, 'SSL'); ?>"><?php echo gen_locale_date($match_date); ?></a></td>
+      <td><?php echo (int)$match['shipment_id']; ?></td>
+      <td><?php echo htmlspecialchars($match['ref_id']); ?></td>
+      <td><?php echo $track_url
+        ? '<a target="_blank" rel="noopener" href="' . htmlspecialchars($track_url) . '">' . htmlspecialchars($match['tracking_id']) . '</a>'
+        : htmlspecialchars($match['tracking_id']); ?></td>
+      <td><?php echo htmlspecialchars($match['recipient_name']); ?></td>
+      <td><?php echo html_icon('phreebooks/stock_id.png', TEXT_VIEW_SHIP_LOG, 'small', 'onclick="loadPopUp(' . htmlspecialchars(json_encode($match['carrier']), ENT_QUOTES) . ', \'edit\', ' . (int)$match['id'] . ')"'); ?></td>
+    </tr>
+<?php endforeach; ?>
+<?php if (!$tracking_matches): ?>
+    <tr><td class="text-center" colspan="7"><?php echo SHIPPING_TRACKING_NO_MATCH; ?></td></tr>
+<?php endif; ?>
+  </tbody>
+</table>
+<?php endif; ?>
 
 <!-- Tab nav -->
 <nav>

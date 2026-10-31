@@ -145,6 +145,8 @@ define('SHIPPING_TEXT_WEIGHT_FALLBACK', 'Gebruikt wanneer artikelafmetingen niet
 define('SHIPPING_DELETE_CONFIRM','Weet u zeker dat u deze verzending wil verwijderen?');
 define('SHIPPING_CANCEL_CONFIRM','Dit annuleert de verzending bij de vervoerder en verwijdert het record. Weet u het zeker?');
 define('SHIPPING_NO_SHIPMENTS','Er zijn geen verzendingen van deze koerier vandaag!');
+define('SHIPPING_TRACKING_SEARCH_RESULTS', 'Zendingen met trackingnummer %s');
+define('SHIPPING_TRACKING_NO_MATCH', 'Geen enkele zending heeft een overeenkomend trackingnummer.');
 define('SHIPPING_ERROR_CONFIGURATION','<strong>Verzending Configuratie errors!</strong>');
 define('SHIPPING_BAD_QUOTE_DATE','De datum van verzending kan niet voor vandaag zijn voor een offerte. Het te verzenden datum is veranderd naar vandaag voor offerte doeleinden.');
 define('SHIPPING_LOG_LABEL_PRINTED','Label Gegenereerd');

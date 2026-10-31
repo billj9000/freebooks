@@ -165,6 +165,8 @@ define('SHIPPING_TEXT_WEIGHT_FALLBACK','Used when item dimensions are unavailabl
 define('SHIPPING_DELETE_CONFIRM', 'Are you sure you want to delete this shipment?');
 define('SHIPPING_CANCEL_CONFIRM', 'This will cancel the shipment at the carrier and delete the record. Are you sure?');
 define('SHIPPING_NO_SHIPMENTS', 'There are no shipments from this carrier today!');
+define('SHIPPING_TRACKING_SEARCH_RESULTS', 'Shipments matching tracking number %s');
+define('SHIPPING_TRACKING_NO_MATCH', 'No shipment has a matching tracking number.');
 define('SHIPPING_ERROR_CONFIGURATION', '<strong>Shipping Configuration errors!</strong>');
 define('SHIPPING_BAD_QUOTE_DATE','The Shipment date cannot be before today for a quote. The ship date has been changed to today for quoting purposes.');
 // Audit log messages
