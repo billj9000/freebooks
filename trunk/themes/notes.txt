@@ -20,7 +20,22 @@ colours differently from the rest of its group. An image token is a whole backgr
 give "none" or a path from the web root, because browsers differ on which stylesheet a relative
 url() inside a variable is resolved against.
 
-To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit both files.
+A scheme can also replace how parts of every page are drawn, by carrying its own copy of any of
+these files; theme_file() uses the scheme's copy if there is one and the theme's otherwise:
+
+layout.php      Everything inside <body>: the menu, the page and the footer.
+menu.php        The main menu (a navbar across the top in the default).
+footer.php      The logo, company and version line under every page.
+toolbar.php     The buttons of a page toolbar (icons in the default; icon and label in refresh).
+
+Each default file in themes/default/ states in its header what it is given and what pages and
+their scripts rely on it keeping - for the toolbar, the button ids and the div they sit in. The
+menu's sorting and permission checks are shared functions in includes/common_functions.php
+(fbmenu_sort, fbmenu_permitted, fbmenu_item_permitted), so a replacement menu draws only markup.
+The pop-up windows that draw a whole page themselves (Help, the shipping label viewers, the
+packing list) do not use these files.
+
+To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit its files.
 Fonts and images go under ext/ or inside the scheme directory and are referenced by relative URL;
 nothing is fetched from a CDN.
 
