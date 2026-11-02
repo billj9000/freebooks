@@ -250,6 +250,52 @@ input[readonly], .form-control[readonly] { background-color: var(--fb-readonly-b
 }
 .fb-toolbar-section > img.imgIcon:hover { background-color: var(--fb-hover-bg); }
 
+/* Labelled buttons, drawn by this scheme's toolbar.php. The bare-icon rules above
+   still serve the few toolbars a page writes by hand. */
+.fb-toolbar-labelled {
+  display:     flex;
+  flex-wrap:   wrap;
+  align-items: center;
+  gap:         4px;
+  padding:     4px;
+}
+.fb-tb-btn {
+  display:          inline-flex;
+  align-items:      center;
+  gap:              6px;
+  font-family:      var(--fb-font);
+  font-size:        13px;
+  font-weight:      500;
+  line-height:      1.3;
+  white-space:      nowrap;
+  color:            var(--fb-secondary-ink);
+  background-color: var(--fb-secondary-bg);
+  border:           1px solid var(--fb-secondary-border);
+  border-radius:    var(--fb-radius);
+  padding:          4px 10px;
+  cursor:           pointer;
+}
+.fb-tb-btn img { width: 16px !important; height: 16px !important; max-width: none; }
+.fb-tb-btn:hover,
+.fb-tb-btn:focus-visible {
+  background-color: #f2f7fb;
+  border-color:     #93a9bd;
+  color:            var(--fb-ink);
+  outline:          none;
+}
+.fb-tb-btn.fb-tb-primary {
+  background-color: var(--fb-primary);
+  border-color:     var(--fb-primary);
+  color:            var(--fb-primary-ink);
+}
+.fb-tb-btn.fb-tb-primary:hover,
+.fb-tb-btn.fb-tb-primary:focus-visible {
+  background-color: #08557f;
+  border-color:     #08557f;
+  color:            var(--fb-primary-ink);
+}
+.fb-tb-btn.fb-tb-end { margin-left: auto; }
+
 /* ── Panels ─────────────────────────────────────────────────────── */
 .fb-card { border-radius: 6px; overflow: hidden; }
 .fb-card > .card-body { padding: 10px 12px; }
