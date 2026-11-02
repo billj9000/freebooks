@@ -1467,6 +1467,14 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return $image;
   }
 
+  // A colour scheme may carry a theme.css that overrides Bootstrap and freebooks.css, so it is
+  // linked after them. A scheme without one adds nothing.
+  function html_theme_stylesheet() {
+    if (!defined('DIR_WS_THEMES') || !defined('MY_COLORS')) return '';
+    $path = DIR_WS_THEMES . 'css/' . MY_COLORS . '/theme.css';
+    return is_file(DIR_FS_ADMIN . $path) ? '<link rel="stylesheet" href="' . $path . '">' . "\n" : '';
+  }
+
   function html_icon($image, $alt = '', $size = 'small', $params = NULL, $width = NULL, $height = NULL, $id = NULL) {
   	switch ($size) {
 		default:

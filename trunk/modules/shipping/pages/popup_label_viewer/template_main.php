@@ -32,6 +32,7 @@ $post_url = html_href_link(FILENAME_DEFAULT,
   <title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+  <?php echo html_theme_stylesheet(); ?>
   <link rel="stylesheet" href="jodit/jodit.min.css">
   <style>
     body { margin: 0; }

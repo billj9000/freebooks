@@ -1,12 +1,20 @@
-What needs to be done to make a themeroller theme work.
+Colour schemes
 
-THEMENAME: Main theme directory
-THEMEROLLERNAME: Name of themeroller theme downloaded
+A theme is a directory under themes/ (FreeBooks ships one, default). Each colour scheme is a
+directory under themes/THEME/css/, and every directory there appears in the Select Color Scheme
+list on Company > My Profile. The default scheme is start (DEFAULT_COLORS).
 
-1. Build themeroller theme and download to local computer (the UI options don't matter as they are not used)
-2. Unzip file and copy contents of folder /css/ to /themes/THEMENAME/css/ directory.
-3. Rename /themes/THEMENAME/css/THEMEROLLERNAME/jquery-ui-1.8.16.custom.css to jquery-ui.css.
-4. Copy /themes/THEMENAME/css/stylesheet.css to /themes/THEMENAME/css/THEMEROLLERNAME/ directory.
-5. Copy /themes/THEMENAME/css/ddsmoothmenu.css to /themes/THEMENAME/css/THEMEROLLERNAME/ directory. (or whatever menu css file is in use)
-6. Copy /themes/THEMENAME/css/jquery_datatables.css to /themes/THEMENAME/css/THEMEROLLERNAME/ directory.
-5. Edit copied stylesheet.css, ddsmoothmenu.css and jquery_datatables.css file to go with new theme.
+A scheme directory holds:
+
+stylesheet.css  Required. Linked first on every page, before Bootstrap and
+                ext/bootstrap5/freebooks.css, so it can set only the base page: background, text
+                colour and font, fieldsets, labels.
+theme.css       Optional. Linked after Bootstrap and freebooks.css (html_theme_stylesheet()), so it
+                can override the menu bar, toolbar, cards, tables, tabs, modals and buttons. A
+                scheme without one looks like start apart from its stylesheet.css.
+
+To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit both files.
+Fonts and images go under ext/ or inside the scheme directory and are referenced by relative URL;
+nothing is fetched from a CDN.
+
+A user whose saved scheme is no longer installed is shown start.

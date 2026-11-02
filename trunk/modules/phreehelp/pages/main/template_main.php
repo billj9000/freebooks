@@ -27,6 +27,7 @@
   <link rel="shortcut icon" type="image/ico" href="favicon.ico">
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+  <?php echo html_theme_stylesheet(); ?>
   <script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
   <script>
     var icon_path = '<?php echo DIR_WS_ICONS; ?>';

@@ -1,0 +1,469 @@
+/* +-----------------------------------------------------------------+
+ * |                          FreeBooks ERP                          |
+ * +-----------------------------------------------------------------+
+ * | Copyright(c) 2026 Bill Jones                                    |
+ * +-----------------------------------------------------------------+
+ * | This program is free software: you can redistribute it and/or   |
+ * | modify it under the terms of the GNU General Public License as  |
+ * | published by the Free Software Foundation, either version 3 of  |
+ * | the License, or any later version.                              |
+ * |                                                                 |
+ * | This program is distributed in the hope that it will be useful, |
+ * | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+ * | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+ * | GNU General Public License for more details.                    |
+ * +-----------------------------------------------------------------+
+ * Path: /themes/default/css/refresh/theme.css
+ *
+ * The Refresh colour scheme: flat FreeBooks blue, IBM Plex Sans at 13px, light
+ * grey table and panel headings, rounded controls. It is linked after
+ * bootstrap.min.css, freebooks.css and pkg-base.css, and only overrides them,
+ * so every class those files define keeps working and a page needs no change
+ * to take this look. The font is served from ext/fonts, never from a CDN: an
+ * installation may have no internet access, and a page should not tell a third
+ * party who is using it.
+ */
+
+/* ── Font ───────────────────────────────────────────────────────── */
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-latin-400-normal.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-latin-500-normal.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-latin-600-normal.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-latin-ext-400-normal.woff2) format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-latin-ext-500-normal.woff2) format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-latin-ext-600-normal.woff2) format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-cyrillic-400-normal.woff2) format('woff2'); unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-cyrillic-500-normal.woff2) format('woff2'); unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-cyrillic-600-normal.woff2) format('woff2'); unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-cyrillic-ext-400-normal.woff2) format('woff2'); unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-cyrillic-ext-500-normal.woff2) format('woff2'); unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-cyrillic-ext-600-normal.woff2) format('woff2'); unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-greek-400-normal.woff2) format('woff2'); unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-greek-500-normal.woff2) format('woff2'); unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-greek-600-normal.woff2) format('woff2'); unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-vietnamese-400-normal.woff2) format('woff2'); unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-vietnamese-500-normal.woff2) format('woff2'); unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url(../../../../ext/fonts/ibm-plex-sans/ibm-plex-sans-vietnamese-600-normal.woff2) format('woff2'); unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB; }
+
+/* ── Tokens ─────────────────────────────────────────────────────── */
+:root {
+  --fb-font:        'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --fb-blue:        #0a6ea8;
+  --fb-blue-dark:   #08557f;
+  --fb-blue-soft:   #e3f1fa;
+  --fb-ink:         #1d2b38;
+  --fb-ink-head:    #12324a;
+  --fb-muted:       #4d6478;
+  --fb-page:        #f6f8fa;
+  --fb-surface:     #ffffff;
+  --fb-line:        #d5e0ea;
+  --fb-line-soft:   #e6edf3;
+  --fb-head-bg:     #eef3f7;
+  --fb-head-ink:    #3b5368;
+  --fb-stripe:      #f8fafc;
+  --fb-hover:       #e3f1fa;
+  --fb-radius:      4px;
+  --fb-radius-lg:   6px;
+
+  --bs-primary:            var(--fb-blue);
+  --bs-primary-rgb:        10, 110, 168;
+  --bs-body-font-family:   var(--fb-font);
+  --bs-body-font-size:     13px;
+  --bs-body-font-size-sm:  12px;
+  --bs-body-color:         var(--fb-ink);
+  --bs-body-bg:            var(--fb-page);
+  --bs-border-color:       var(--fb-line);
+  --bs-border-radius:      var(--fb-radius);
+  --bs-border-radius-sm:   var(--fb-radius);
+  --bs-border-radius-lg:   var(--fb-radius-lg);
+  --bs-link-color:         var(--fb-blue);
+  --bs-link-color-rgb:     10, 110, 168;
+  --bs-link-hover-color:   var(--fb-blue-dark);
+  --bs-link-hover-color-rgb: 8, 85, 127;
+  --bs-table-border-color: var(--fb-line-soft);
+}
+
+/* ── Base text ──────────────────────────────────────────────────── */
+html, body { font-family: var(--fb-font); font-size: 13px; color: var(--fb-ink); background-color: var(--fb-page); }
+body { line-height: 1.45; }
+a { color: var(--fb-blue); }
+a:hover { color: var(--fb-blue-dark); }
+input, select, textarea, button { font-family: var(--fb-font); font-size: 12px; }
+
+h1 {
+  color:          var(--fb-ink-head);
+  font-size:      20px;
+  font-variant:   normal;
+  font-weight:    600;
+  padding:        6px 4px;
+}
+h2 { color: var(--fb-ink-head); font-size: 17px; font-weight: 600; }
+
+/* ── Form controls ──────────────────────────────────────────────── */
+/* Bare inputs are styled too: most legacy pages print <input> and <select>
+   without Bootstrap classes. Their text is a size smaller than the page's and
+   their padding tight, because most of them are sized in characters and laid
+   out in fixed rows - the order entry item row among them - that must still fit
+   the width they had in Verdana. */
+input[type=text], input[type=search], input[type=password], input[type=email],
+input[type=number], input[type=date], input[type=tel], input[type=url],
+input:not([type]), select, textarea,
+.form-control, .form-control-sm, .form-select, .form-select-sm {
+  font-family:      var(--fb-font);
+  font-size:        12px;
+  color:            var(--fb-ink);
+  background-color: var(--fb-surface);
+  border:           1px solid #b9c8d6;
+  border-radius:    var(--fb-radius);
+  padding:          2px 5px;
+  line-height:      1.4;
+  min-height:       0;
+}
+select, .form-select, .form-select-sm {
+  padding-right:       22px;
+  background-color:    var(--fb-surface);
+}
+.form-select:hover, .form-select-sm:hover { background-color: var(--fb-surface); border-color: #93a9bd; }
+input:focus, select:focus, textarea:focus,
+.form-control:focus, .form-select:focus {
+  outline:      none;
+  border-color: var(--fb-blue);
+  box-shadow:   0 0 0 3px rgba(10, 110, 168, .18);
+}
+input[readonly], .form-control[readonly] { background-color: #f1f4f7; }
+.input-group-text {
+  font-size:        13px;
+  padding:          3px 8px;
+  background-color: var(--fb-head-bg);
+  border-color:     #b9c8d6;
+}
+.form-check-input:checked { background-color: var(--fb-blue); border-color: var(--fb-blue); }
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+.btn {
+  font-family:   var(--fb-font);
+  font-size:     13px;
+  font-weight:   500;
+  border-radius: var(--fb-radius);
+  line-height:   1.4;
+  padding:       5px 12px;
+}
+.btn-sm { font-size: 12px; padding: 2px 9px !important; border-radius: var(--fb-radius) !important; line-height: 1.4; }
+
+.btn-primary,
+.btn-primary:active,
+.btn-primary.active {
+  background-image: none;
+  background-color: var(--fb-blue);
+  border-color:     var(--fb-blue);
+  color:            #ffffff;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-image: none;
+  background-color: var(--fb-blue-dark);
+  border-color:     var(--fb-blue-dark);
+  color:            #ffffff;
+  box-shadow:       none;
+}
+.btn-secondary,
+.btn-outline-secondary {
+  background-image: none;
+  background-color: var(--fb-surface);
+  border-color:     #b9c8d6;
+  color:            #22384d;
+}
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-image: none;
+  background-color: #f2f7fb;
+  border-color:     #93a9bd;
+  color:            var(--fb-ink);
+  box-shadow:       none;
+}
+.btn-outline-primary {
+  border-color:  var(--fb-blue);
+  color:         var(--fb-blue);
+  border-radius: var(--fb-radius);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-image: none;
+  background-color: var(--fb-blue-soft);
+  border-color:     var(--fb-blue);
+  color:            var(--fb-blue-dark);
+  box-shadow:       none;
+}
+
+/* ── Main menu ──────────────────────────────────────────────────── */
+.fb-navbar {
+  background-color: var(--fb-blue);
+  background-image: none;
+  border-bottom:    0;
+  font-family:      var(--fb-font);
+  font-size:        13px;
+  font-weight:      500;
+}
+.fb-navbar .navbar-brand { color: #ffffff; font-weight: 600; font-size: 15px; }
+.fb-navbar .nav-link {
+  color:         #e9f4fb;
+  padding:       10px 12px 7px !important;
+  border-bottom: 3px solid transparent;
+}
+.fb-navbar .nav-link:hover,
+.fb-navbar .nav-link:focus {
+  background-color: rgba(255, 255, 255, .1);
+  color:            #ffffff;
+}
+.fb-navbar .nav-link.show,
+.fb-navbar .nav-item.show > .nav-link {
+  background-color:    rgba(255, 255, 255, .1);
+  border-bottom-color: #ffffff;
+  color:               #ffffff;
+}
+.fb-navbar .dropdown-menu {
+  border:        1px solid var(--fb-line);
+  border-radius: var(--fb-radius-lg);
+  box-shadow:    0 6px 18px rgba(18, 50, 74, .14);
+  padding:       4px;
+  min-width:     200px;
+  font-size:     13px;
+}
+.fb-navbar .dropdown-item {
+  font-family:   var(--fb-font);
+  font-size:     13px;
+  color:         var(--fb-ink);
+  padding:       6px 10px;
+  border-bottom: 0;
+  border-radius: var(--fb-radius);
+}
+.fb-navbar .dropdown-item:hover,
+.fb-navbar .dropdown-item:focus {
+  background-color: var(--fb-hover);
+  color:            var(--fb-blue-dark);
+}
+.fb-navbar .dropdown-submenu > .dropdown-menu { margin-top: -5px; }
+
+/* ── Page toolbar ───────────────────────────────────────────────── */
+.fb-toolbar-section {
+  border:        1px solid var(--fb-line);
+  border-radius: var(--fb-radius-lg);
+  background:    var(--fb-surface);
+  color:         var(--fb-muted);
+  padding:       3px 4px;
+  margin:        4px 2px;
+}
+.fb-toolbar-section > img.imgIcon {
+  width:         28px !important;
+  height:        28px !important;
+  padding:       3px;
+  margin:        0 1px;
+  border-radius: var(--fb-radius);
+  vertical-align: middle;
+}
+.fb-toolbar-section > img.imgIcon:hover { background-color: var(--fb-hover); }
+
+/* ── Panels ─────────────────────────────────────────────────────── */
+.fb-card {
+  border:        1px solid var(--fb-line) !important;
+  border-radius: var(--fb-radius-lg);
+  background:    var(--fb-surface);
+  overflow:      hidden;
+}
+.fb-card > .card-body { background: var(--fb-surface); padding: 10px 12px; }
+.fb-card > .card-header,
+.fb-widget-header {
+  background-color: var(--fb-head-bg);
+  background-image: none;
+  border-color:     var(--fb-line);
+  color:            var(--fb-ink-head);
+  font-weight:      600;
+  font-size:        14px;
+}
+.fb-card > .card-header { padding: 8px 12px; border-bottom: 1px solid var(--fb-line); }
+
+.fb-fieldset {
+  border:        1px solid var(--fb-line);
+  border-radius: var(--fb-radius-lg);
+  background:    var(--fb-surface);
+  padding:       16px 12px 10px;
+  font-size:     13px;
+}
+.fb-fieldset-legend {
+  top:         -10px;
+  background:  var(--fb-surface);
+  color:       var(--fb-ink-head);
+  font-size:   13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+/* ── Tables ─────────────────────────────────────────────────────── */
+.table { --bs-table-bg: var(--fb-surface); --bs-table-color: var(--fb-ink); }
+.table-dark {
+  --bs-table-color:        var(--fb-head-ink);
+  --bs-table-bg:           var(--fb-head-bg);
+  --bs-table-border-color: var(--fb-line);
+  background-image:        none;
+  background-color:        var(--fb-head-bg);
+}
+.table-dark th, .table-dark td { font-weight: 600; color: var(--fb-head-ink); border-bottom: 1px solid var(--fb-line); }
+
+table.ui-widget, .pkg-table { font-family: var(--fb-font); font-size: 13px; color: var(--fb-ink); }
+table.ui-widget th, table.ui-widget td { border-color: var(--fb-line-soft); padding: 4px 8px; }
+table.ui-widget thead.ui-widget-header th,
+table.ui-widget tfoot.ui-widget-header th,
+table.ui-widget tfoot.ui-widget-header td {
+  background-color: var(--fb-head-bg) !important;
+  background-image: none !important;
+  color:            var(--fb-head-ink) !important;
+  font-weight:      600;
+}
+table.ui-widget tbody.ui-widget-content tr:hover td { background-color: var(--fb-hover); }
+
+.pkg-table { border: 1px solid var(--fb-line); background: var(--fb-surface); }
+.pkg-table > thead > tr { background-color: var(--fb-head-bg); background-image: none; }
+.pkg-table > thead > tr > th {
+  color:         var(--fb-head-ink);
+  border-bottom: 1px solid var(--fb-line);
+  font-weight:   600;
+  font-size:     12px;
+  padding:       6px 8px;
+}
+.pkg-table > tbody > tr > td {
+  font-size:     13px;
+  padding:       5px 8px;
+  border-bottom: 1px solid var(--fb-line-soft);
+}
+
+tr.odd  > td, tr.odd  > th { background-color: var(--fb-surface); }
+tr.even > td, tr.even > th { background-color: var(--fb-stripe); }
+.pkg-table > tbody > tr.odd > td  { background-color: var(--fb-surface); }
+.pkg-table > tbody > tr.even > td { background-color: var(--fb-stripe); }
+.pkg-table > tbody > tr:hover > td {
+  background-color: var(--fb-hover) !important;
+  color:            var(--fb-ink) !important;
+}
+.pkg-table > tbody > tr.row-hold > td {
+  background-color: #fde3d9;
+  border-top:       1px solid #e8784d;
+  border-bottom:    1px solid #e8784d;
+  color:            #7a2508;
+}
+.pkg-table > tbody > tr.fb-inactive-row > td { color: #7c8a97; }
+
+.pkg-table > tfoot {
+  background-color: var(--fb-head-bg);
+  background-image: none;
+  border-top:       2px solid var(--fb-line);
+}
+.pkg-table > tfoot > tr > td,
+.pkg-table > tfoot > tr > th { color: var(--fb-ink-head); font-size: 13px; font-weight: 600; padding: 5px 8px; }
+.pkg-table > tfoot > tr.tfoot-entry > td { background-color: #e2eaf1; border-bottom: 1px solid var(--fb-line); }
+.pkg-table > tfoot.tfoot-plain { background: var(--fb-surface); border-top: 1px solid var(--fb-line-soft); }
+
+tr.fb-forms-folder > td {
+  background-color: var(--fb-head-bg);
+  border-top:       1px solid var(--fb-line);
+  border-bottom:    1px solid var(--fb-line);
+}
+tr.fb-forms-folder:hover > td { background-color: #e2eaf1; }
+.fb-folder-toggle { color: var(--fb-ink-head); font-size: 12px; font-weight: 600; }
+.fb-folder-toggle:hover, .fb-folder-toggle:focus { color: var(--fb-blue); }
+.fb-folder-caret { color: var(--fb-muted); }
+
+/* ── Tabs ───────────────────────────────────────────────────────── */
+.fb-tabs {
+  background-color: transparent;
+  background-image: none;
+  border:           0;
+  border-bottom:    1px solid var(--fb-line);
+  padding:          0;
+  gap:              2px;
+}
+.fb-tabs .nav-link,
+.fb-tabs .nav-link:hover,
+.fb-tabs .nav-link:focus,
+.fb-tabs .nav-link.active {
+  background-image: none !important;
+  font-family:      var(--fb-font);
+  font-size:        13px;
+  padding:          7px 14px;
+  margin:           0 0 -1px;
+  border-radius:    var(--fb-radius) var(--fb-radius) 0 0 !important;
+}
+.fb-tabs .nav-link {
+  background-color: transparent;
+  border:           1px solid transparent !important;
+  color:            var(--fb-muted) !important;
+  font-weight:      500;
+}
+.fb-tabs .nav-link:hover,
+.fb-tabs .nav-link:focus {
+  background-color: var(--fb-head-bg) !important;
+  border-color:     transparent !important;
+  color:            var(--fb-ink) !important;
+}
+.fb-tabs .nav-link.active {
+  background-color:    var(--fb-surface) !important;
+  border-color:        var(--fb-line) !important;
+  border-bottom-color: var(--fb-surface) !important;
+  color:               var(--fb-blue) !important;
+  font-weight:         600;
+  box-shadow:          inset 0 2px 0 var(--fb-blue);
+}
+.fb-tab-content {
+  border:           1px solid var(--fb-line);
+  border-top:       none;
+  border-radius:    0 0 var(--fb-radius-lg) var(--fb-radius-lg);
+  background-color: var(--fb-surface);
+  padding:          12px;
+}
+
+/* ── Modals ─────────────────────────────────────────────────────── */
+.pkg-modal .modal-content {
+  border:        1px solid var(--fb-line);
+  border-radius: var(--fb-radius-lg);
+  font-family:   var(--fb-font);
+  font-size:     13px;
+  overflow:      hidden;
+}
+.pkg-modal .modal-header {
+  background-color: var(--fb-surface);
+  background-image: none;
+  color:            var(--fb-ink-head);
+  border-bottom:    1px solid var(--fb-line);
+  border-radius:    0;
+  padding:          10px 16px;
+}
+.pkg-modal .modal-title { font-size: 15px; font-weight: 600; color: var(--fb-ink-head); }
+.pkg-modal .btn-close   { filter: none; }
+.pkg-modal .modal-body  { background-color: var(--fb-surface); padding: 14px 16px; }
+.pkg-modal .modal-footer { background-color: var(--fb-page); border-top: 1px solid var(--fb-line); padding: 8px 16px; }
+.pkg-modal .form-label  { font-family: var(--fb-font); font-size: 13px; font-weight: 500; color: var(--fb-ink); margin-bottom: 3px; }
+.pkg-modal .form-control,
+.pkg-modal .form-select { font-family: var(--fb-font); font-size: 13px; border-color: #b9c8d6; border-radius: var(--fb-radius); padding: 3px 7px; }
+.pkg-modal .form-control:focus,
+.pkg-modal .form-select:focus { border-color: var(--fb-blue); box-shadow: 0 0 0 3px rgba(10, 110, 168, .18); }
+.pkg-modal .form-control.bg-light { background-color: #f1f4f7 !important; color: var(--fb-muted); }
+.pkg-modal .form-check-input:checked { background-color: var(--fb-blue); border-color: var(--fb-blue); }
+
+/* ── Filter bar and label viewer ────────────────────────────────── */
+.pkg-theme-bar { font-family: var(--fb-font); font-size: 13px; color: var(--fb-muted); }
+.pkg-theme-bar select { font-size: 13px; border-color: #b9c8d6; }
+
+.fb-viewer-toolbar {
+  background-color: var(--fb-head-bg);
+  background-image: none;
+  border-bottom:    1px solid var(--fb-line);
+  padding:          6px 8px;
+}
+.fb-viewer-panel { background-color: var(--fb-surface); border-bottom: 1px solid var(--fb-line); font-family: var(--fb-font); font-size: 13px; color: var(--fb-ink); }
+.fb-viewer-panel .form-label { font-family: var(--fb-font); font-size: 13px; font-weight: 500; color: var(--fb-ink); }
+.fb-viewer-panel .form-control { font-family: var(--fb-font); font-size: 13px; border-color: #b9c8d6; border-radius: var(--fb-radius); padding: 3px 7px; }
+.fb-viewer-panel .form-control:focus { border-color: var(--fb-blue); box-shadow: 0 0 0 3px rgba(10, 110, 168, .18); }
+.fb-viewer-panel .alert { font-family: var(--fb-font); font-size: 13px; border-radius: var(--fb-radius); }
+
+/* ── Messages ───────────────────────────────────────────────────── */
+.alert { border-radius: var(--fb-radius-lg); font-size: 13px; }

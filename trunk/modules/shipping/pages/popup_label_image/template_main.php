@@ -26,6 +26,7 @@
   <title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+  <?php echo html_theme_stylesheet(); ?>
 </head>
 <body class="p-3">
   <div class="d-flex justify-content-center">
