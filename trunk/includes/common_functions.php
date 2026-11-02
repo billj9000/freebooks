@@ -1487,6 +1487,38 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return DIR_FS_ADMIN . $theme . $name;
   }
 
+  // Menu items in their 'order'. An item without one sorts last rather than failing the comparison.
+  function fbmenu_sort($a, $b) {
+    $a_order = $a['order'] ?? PHP_INT_MAX;
+    $b_order = $b['order'] ?? PHP_INT_MAX;
+    if (is_integer($a_order) && is_integer($b_order)) return $a_order <=> $b_order;
+    return strcmp((string)$a_order, (string)$b_order);
+  }
+
+  // Whether the user may open anything under a menu item, so that a menu drawing it can leave
+  // out a heading with nothing permitted beneath it.
+  function fbmenu_permitted(array $items) {
+    if ($_SESSION['admin_id'] == 1) return true;
+    foreach ($items as $item) {
+      if (isset($item['submenu']) && is_array($item['submenu'])) {
+        if (fbmenu_permitted($item['submenu'])) return true;
+      } else {
+        if (isset($item['security_id']) && $item['security_id'] != ''
+            && array_key_exists($item['security_id'], $_SESSION['admin_security'])
+            && $_SESSION['admin_security'][$item['security_id']] > 0) return true;
+      }
+    }
+    return false;
+  }
+
+  // Whether the user may open this one item; an item with no security id is open to all.
+  function fbmenu_item_permitted(array $item) {
+    if (($_SESSION['admin_id'] ?? 0) == 1) return true;
+    if (!isset($item['security_id']) || $item['security_id'] == '') return true;
+    return array_key_exists($item['security_id'], $_SESSION['admin_security'])
+        && $_SESSION['admin_security'][$item['security_id']] >= 1;
+  }
+
   function html_icon($image, $alt = '', $size = 'small', $params = NULL, $width = NULL, $height = NULL, $id = NULL) {
   	switch ($size) {
 		default:

@@ -14,8 +14,13 @@
 // | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
 // | GNU General Public License for more details.                    |
 // +-----------------------------------------------------------------+
-//  Path: /themes/default/menu_bs.php
+//  Path: /themes/default/menu.php
 //
+// The main menu, as a Bootstrap navbar across the top of the page. layout.php
+// includes it once per page, in global scope, where $mainmenu holds the items the
+// modules registered. Sorting and permission checks are shared with any other
+// menu a scheme draws: fbmenu_sort(), fbmenu_permitted() and
+// fbmenu_item_permitted() in includes/common_functions.php.
 usort($mainmenu, 'fbmenu_sort');
 ?>
 <nav class="navbar navbar-expand-lg fb-navbar py-0<?php echo defined('MY_MENU_HOVER') && MY_MENU_HOVER ? ' fb-navbar-hover' : ''; ?>">
@@ -40,39 +45,10 @@ usort($mainmenu, 'fbmenu_sort');
     </div>
   </div>
 </nav>
-<div id="content-wrap">
 <?php
 
-// An item without an order sorts last rather than failing the comparison.
-function fbmenu_sort($a, $b) {
-  $a_order = $a['order'] ?? PHP_INT_MAX;
-  $b_order = $b['order'] ?? PHP_INT_MAX;
-  if (is_integer($a_order) && is_integer($b_order)) return $a_order <=> $b_order;
-  return strcmp((string)$a_order, (string)$b_order);
-}
-
-function fbmenu_permitted(array $items) {
-  if ($_SESSION['admin_id'] == 1) return true;
-  foreach ($items as $item) {
-    if (isset($item['submenu']) && is_array($item['submenu'])) {
-      if (fbmenu_permitted($item['submenu'])) return true;
-    } else {
-      if (isset($item['security_id']) && $item['security_id'] != ''
-          && array_key_exists($item['security_id'], $_SESSION['admin_security'])
-          && $_SESSION['admin_security'][$item['security_id']] > 0) return true;
-    }
-  }
-  return false;
-}
-
 function fbmenu_render(array $item, int $depth) {
-  // Security check for this item
-  if (($_SESSION['admin_id'] ?? 0) != 1) {
-    if (isset($item['security_id']) && $item['security_id'] != '') {
-      if (!array_key_exists($item['security_id'], $_SESSION['admin_security'])
-          || $_SESSION['admin_security'][$item['security_id']] < 1) return;
-    }
-  }
+  if (!fbmenu_item_permitted($item)) return;
 
   $text  = isset($item['icon']) ? $item['icon'] . ' ' . $item['text'] : $item['text'];
   $href  = $item['link'] ?? '';

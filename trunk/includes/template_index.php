@@ -91,32 +91,9 @@ if (defined('SESSION_AUTO_REFRESH') && SESSION_AUTO_REFRESH == '1') echo '  <scr
   <script type="text/javascript">addLoadEvent(init);addLoadEvent(initJoditEditors);</script>
  </head>
  <body>
-  <script type="text/javascript" src="modules/phreedom/includes/wz_tooltip/wz_tooltip.js"></script>
-  <script type="text/javascript" src="modules/phreedom/includes/wz_tooltip/tip_balloon.js"></script>  
-  <div id="please_wait"><p><?php echo html_icon('phreebooks/please_wait.gif', TEXT_PLEASE_WAIT, 'large'); ?></p></div>
-  <!-- Menu -->
-  <?php if ($include_header) {
-    require_once(DIR_FS_ADMIN . DIR_WS_THEMES . '/menu_bs.php');
-  } else echo "<div id=\"content-wrap\">\n"; ?>
-  <!-- Template -->
-  <?php if (is_file($template_path)) { require($template_path); } else throw new RuntimeException('No template file: ' . $template_path); ?>
-  </div>
-  <!-- Footer -->
-  <?php if ($include_footer) { // Hook for custom logo
-  $image_path = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/phreedom/images/freebooks_logo.png');
-  ?>
-  <div style="clear:both;text-align:center;padding-bottom:1.5em">
-  <img src="<?php echo $image_path; ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
-  <?php
-  $footer_info  = COMPANY_NAME.' | '.TEXT_ACCOUNTING_PERIOD.': '.CURRENT_ACCOUNTING_PERIOD.' | FreeBooks ('.MODULE_PHREEDOM_VERSION.') ';
-  if ($module <> 'phreedom') $footer_info .= '(' . $module . ' ' . constant('MODULE_' . strtoupper($module) . '_STATUS') . ') ';
-  $footer_info .= '<br />' . TEXT_COPYRIGHT . ' &copy;' . date('Y') . ' Bill Jones';
-  $footer_info .= ' (' . (int)(1000 * (microtime(true) - PAGE_EXECUTION_START_TIME)) . ' ms) ' . $db->count_queries . ' SQLs (' . (int)($db->total_query_time * 1000).' ms)';
-  $footer_info .= '<br />Portions Copyright &copy;2008-2014 PhreeSoft';
-  echo '<span style="font-size:9px">' . $footer_info . '</span>';
-  ?>
-  </div>
-  <?php } // end if include_footer ?>
+<?php // The body - menu, page and footer - is drawn by the theme, in this scope so the
+      // page template sees its variables. ?>
+<?php require(theme_file('layout.php')); ?>
 </body>
 </html>
 <?php } // end else if (custom_html) ?>

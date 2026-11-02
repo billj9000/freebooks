@@ -98,9 +98,10 @@ set_exception_handler('PhreebooksExceptionHandler');
 $custom_path = DIR_FS_MODULES . $module . '/custom/pages/' . $page . '/extra_defines.php';
 if (file_exists($custom_path)) { include($custom_path); }
 gen_pull_language($module);
-// The theme names a directory template_index.php require_once()s config.php and
-// menu_bs.php from, and the colour names one a stylesheet is linked from. Both
-// arrive from the user's own profile form, so both are checked against what is
+// The theme and the colour scheme both name directories that PHP files are
+// included from (config.php, and through theme_file() the layout, menu, footer
+// and toolbar) and stylesheets linked from. Both arrive from the user's own
+// profile form, so both are checked against what is
 // installed rather than trusted, and fall back to the default. Checked here as
 // well as on save, because a row saved by an earlier release is still read.
 $_theme = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_SESSION['admin_prefs']['theme'] ?? ''));

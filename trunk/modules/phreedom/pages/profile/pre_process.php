@@ -33,9 +33,8 @@ if (file_exists($custom_path)) { include($custom_path); }
 switch ($_REQUEST['action']) {
   case 'save':
     validate_security($security_level, 4);
-    // Both name directories: the theme one that template_index.php require_once()s
-    // config.php and menu_bs.php from, the colour one a stylesheet is linked
-    // from. Only an installed pair is stored.
+    // Both name directories that PHP files are included from and stylesheets
+    // linked from (see application_top.php). Only an installed pair is stored.
     $prefs['theme']      = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['theme'] ?? ''));
     $prefs['colors']     = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['colors'] ?? ''));
     $prefs['menu_hover'] = (($_POST['menu_hover'] ?? '') === '1') ? 1 : 0;
