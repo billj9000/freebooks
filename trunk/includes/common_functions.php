@@ -1475,6 +1475,18 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return is_file(DIR_FS_ADMIN . $path) ? '<link rel="stylesheet" href="' . $path . '">' . "\n" : '';
   }
 
+  // The path of a file that draws part of every page - layout.php, menu.php, footer.php,
+  // toolbar.php. The colour scheme's own copy is used if it has one, otherwise the theme's,
+  // so a scheme replaces only the parts it changes. Both directory names were checked against
+  // what is installed when MY_COLORS and DIR_WS_THEMES were defined.
+  function theme_file($name) {
+    $theme = defined('DIR_WS_THEMES') ? DIR_WS_THEMES : 'themes/' . DEFAULT_THEME . '/';
+    if (defined('MY_COLORS') && is_file(DIR_FS_ADMIN . $theme . 'css/' . MY_COLORS . '/' . $name)) {
+      return DIR_FS_ADMIN . $theme . 'css/' . MY_COLORS . '/' . $name;
+    }
+    return DIR_FS_ADMIN . $theme . $name;
+  }
+
   function html_icon($image, $alt = '', $size = 'small', $params = NULL, $width = NULL, $height = NULL, $id = NULL) {
   	switch ($size) {
 		default:

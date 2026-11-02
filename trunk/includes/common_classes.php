@@ -91,18 +91,28 @@ class toolbar {
 	if ($add_search) $output .= $this->add_search();
 	if ($add_period) $output .= $this->add_period();
 	if ($cal_props)  $output .= $this->add_date($cal_props);
-	$output .= '<div id="tb_main_' . $this->id . '" class="fb-toolbar-section">' . "\n";
 	// Sort the icons by designated order
 	$sort_arr = array();
     foreach($this->icon_list as $uniqid => $row) foreach($row as $key => $value) $sort_arr[$key][$uniqid] = $value;
 	array_multisort($sort_arr['order'], SORT_ASC, $this->icon_list);
-	foreach ($this->icon_list as $id => $icon) {
-	  if ($icon['show']) $output .= html_icon($icon['icon'], $icon['text'], $this->icon_size, 'id ="tb_icon_' . $id . '" style="cursor:pointer;" ' . $icon['params']) . "\n";
-	}
-	$output .= '</div>' . "\n"; // end of the right justified icons
+	$output .= $this->render_buttons();
 	// display alerts/error messages, if any
     $output .= $messageStack->output();
     return $output;
+  }
+
+  // The buttons are drawn by the theme's toolbar.php (see theme_file()), which a colour scheme
+  // may replace; its header lists what it is given and what page scripts need from it.
+  function render_buttons() {
+	$toolbar_id    = $this->id;
+	$toolbar_size  = $this->icon_size;
+	$toolbar_icons = array();
+	foreach ($this->icon_list as $name => $icon) {
+	  if (!empty($icon['show'])) $toolbar_icons[$name] = $icon + array('text' => '', 'params' => '');
+	}
+	ob_start();
+	include(theme_file('toolbar.php'));
+	return ob_get_clean();
   }
 
   function add_search() {
