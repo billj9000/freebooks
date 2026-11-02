@@ -9,9 +9,16 @@ A scheme directory holds:
 stylesheet.css  Required. Linked first on every page, before Bootstrap and
                 ext/bootstrap5/freebooks.css, so it can set only the base page: background, text
                 colour and font, fieldsets, labels.
-theme.css       Optional. Linked after Bootstrap and freebooks.css (html_theme_stylesheet()), so it
-                can override the menu bar, toolbar, cards, tables, tabs, modals and buttons. A
+theme.css       Optional. Linked after Bootstrap and freebooks.css (html_theme_stylesheet()). A
                 scheme without one looks like start apart from its stylesheet.css.
+
+Every colour, background image, font, text size and corner radius in ext/bootstrap5/freebooks.css
+is read from a --fb-* token, and the list of tokens, with start's values, is at the top of that
+file. A theme.css changes the look mainly by redefining those tokens on :root; it needs rules of
+its own only for what a token does not cover - spacing, weights, a border's shape, or a part it
+colours differently from the rest of its group. An image token is a whole background-image value:
+give "none" or a path from the web root, because browsers differ on which stylesheet a relative
+url() inside a variable is resolved against.
 
 To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit both files.
 Fonts and images go under ext/ or inside the scheme directory and are referenced by relative URL;

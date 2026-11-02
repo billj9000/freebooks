@@ -14,67 +14,161 @@
  * | GNU General Public License for more details.                    |
  * +-----------------------------------------------------------------+ */
 /*
- * Bootstrap 5 CSS variable overrides to match FreeBooks "start" / jQuery UI theme.
- * Load AFTER bootstrap.min.css.
+ * The FreeBooks look on top of Bootstrap 5. Load AFTER bootstrap.min.css.
  *
- * Colour reference (from themes/default/css/start/jquery-ui.css):
- *   header bg      #2191c0  border #4297d7  text #eaf5f7
- *   content bg     #fcfdfd  border #a6c9e2  text #222222
- *   hover bg       #79c9ec  border #448dae  text #026890
- *   highlight bg   #f8da4e  border #fcd113  text #915608
- *   primary btn bg #0078ae
+ * Every colour, background image, font and corner radius below is read from a
+ * --fb-* token defined on :root at the top of this file, and the values given
+ * there are the default "start" scheme (Cool Blue). A colour scheme restyles
+ * FreeBooks by redefining tokens on :root in its own theme.css, which
+ * html_theme_stylesheet() links after this file; it needs a rule of its own
+ * only to change something other than a token - spacing, size, weight or
+ * a border's shape.
  */
+
+/* ── Theme tokens ───────────────────────────────────────────────── */
+/* An image token is a full background-image value. A scheme that redefines one
+   gives "none" or a path from the web root: browsers do not agree on which
+   stylesheet a relative url() inside a variable is resolved against. */
+:root {
+  /* Type and shape */
+  --fb-font:               Verdana, Arial, sans-serif;
+  --fb-font-size:          11px;
+  --fb-menu-font-size:     12px;
+  --fb-radius:             0;      /* buttons, menus, modals */
+  --fb-radius-control:     6px;    /* small buttons, select boxes */
+  --fb-radius-panel:       4px;    /* fieldsets */
+
+  /* Text */
+  --fb-ink:                #222222;
+  --fb-ink-heading:        #003080;
+  --fb-ink-muted:          #555;
+  --fb-ink-inactive:       #808080;
+
+  /* Surfaces and lines */
+  --fb-surface:            #ffffff;
+  --fb-content-bg:         #fcfdfd;  /* cards, fieldsets, modal bodies */
+  --fb-footer-bg:          #f0f6fb;  /* modal footers */
+  --fb-readonly-bg:        #eef4f8;
+  --fb-line:               #a6c9e2;
+  --fb-line-menu:          #dddddd;  /* between menu items */
+  --fb-line-grid:          #c0c0c0;  /* table.ui-widget cells */
+  --fb-line-rule:          #dee2e6;  /* plain table footers */
+
+  /* Header band: navbar, card and table headings, tab strip, viewer toolbar */
+  --fb-head-bg:            #2191c0;
+  --fb-head-image:         url(../../themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  --fb-head-border:        #4297d7;
+  --fb-head-ink:           #eaf5f7;
+
+  /* Main menu */
+  --fb-nav-ink:            #ffffff;
+  --fb-nav-hover-bg:       #026890;
+  --fb-nav-hover-ink:      #ffffff;
+
+  /* Primary: primary buttons, inactive tabs, links, checked boxes */
+  --fb-primary:            #0078ae;
+  --fb-primary-rgb:        0, 120, 174;
+  --fb-primary-image:      url(../../themes/default/css/start/images/ui-bg_glass_45_0078ae_1x400.png);
+  --fb-primary-border:     #77d5f7;
+  --fb-primary-ink:        #ffffff;
+
+  /* Secondary buttons */
+  --fb-secondary-bg:       #aaaaaa;
+  --fb-secondary-image:    url(../../themes/default/css/start/images/ui-bg_flat_75_aaaaaa_40x100.png);
+  --fb-secondary-border:   #bbbbbb;
+  --fb-secondary-ink:      #ffffff;
+
+  /* Hover: buttons and tabs under the pointer, and the toolbar band */
+  --fb-hover-bg:           #79c9ec;
+  --fb-hover-image:        url(../../themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  --fb-hover-border:       #448dae;
+  --fb-hover-ink:          #026890;
+
+  /* Active: the pressed button, the selected tab */
+  --fb-active-bg:          #6eac2c;
+  --fb-active-image:       url(../../themes/default/css/start/images/ui-bg_gloss-wave_50_6eac2c_500x100.png);
+  --fb-active-border:      #acdd4a;
+  --fb-active-ink:         #ffffff;
+
+  /* Form controls */
+  --fb-input-border:       #767676;
+  --fb-select-bg:          #e8e8e8;
+  --fb-select-hover-bg:    #d4d4d4;
+  --fb-focus-border:       #4297d7;
+  --fb-focus-ring:         rgba(33, 145, 192, 0.25);
+
+  /* Table rows */
+  --fb-row-odd-bg:         #E2E4FF;
+  --fb-row-even-bg:        #ffffff;
+  --fb-row-hover-bg:       #b8e2f5;
+  --fb-row-hover-ink:      #026890;
+  --fb-row-hover-soft-bg:  #e8f4fb;  /* table.ui-widget rows */
+  --fb-row-danger-bg:      #f8d7da;
+  --fb-row-info-bg:        #cff4fc;
+  --fb-row-hold-bg:        #e8784d;
+  --fb-row-hold-border:    #cd0a0a;
+  --fb-row-hold-ink:       #ffffff;
+  --fb-tfoot-entry-bg:     rgba(0, 0, 0, 0.18);
+
+  /* Folder bands in the Reports list */
+  --fb-band-bg:            #c9e0f0;
+  --fb-band-hover-bg:      #b8d8ec;
+  --fb-band-border:        #4297d7;
+  --fb-band-ink:           #0d4d69;
+  --fb-band-hover-ink:     #026890;
+}
 
 /* ── Bootstrap CSS variable overrides ───────────────────────────── */
 :root {
-  --bs-primary:           #0078ae;
-  --bs-primary-rgb:       0, 120, 174;
-  --bs-body-font-family:  Verdana, Arial, sans-serif;
-  --bs-body-font-size:    11px;
-  --bs-body-color:        #222222;
-  --bs-border-color:      #a6c9e2;
-  --bs-border-radius:     0;
-  --bs-border-radius-sm:  0;
-  --bs-border-radius-lg:  0;
-  --bs-link-color:        #0078ae;
-  --bs-link-color-rgb:    0, 120, 174;
-  --bs-table-border-color: #a6c9e2;
+  --bs-primary:           var(--fb-primary);
+  --bs-primary-rgb:       var(--fb-primary-rgb);
+  --bs-body-font-family:  var(--fb-font);
+  --bs-body-font-size:    var(--fb-font-size);
+  --bs-body-color:        var(--fb-ink);
+  --bs-border-color:      var(--fb-line);
+  --bs-border-radius:     var(--fb-radius);
+  --bs-border-radius-sm:  var(--fb-radius);
+  --bs-border-radius-lg:  var(--fb-radius);
+  --bs-link-color:        var(--fb-primary);
+  --bs-link-color-rgb:    var(--fb-primary-rgb);
+  --bs-table-border-color: var(--fb-line);
   /* form controls: match FreeBooks compact input style */
-  --bs-body-font-size-sm: 11px;
+  --bs-body-font-size-sm: var(--fb-font-size);
 }
 
 /* ── Bootstrap form controls: compact to match FreeBooks inputs ──────── */
 .form-control, .form-control-sm,
 .form-select, .form-select-sm {
-  font-size:     11px;
+  font-size:     var(--fb-font-size);
   padding:       1px 3px;
   height:        auto;
   min-height:    0;
   line-height:   1.4;
-  border-color:  #767676;
+  border-color:  var(--fb-input-border);
 }
 .form-select, .form-select-sm {
-  border-radius:       6px;
+  border-radius:       var(--fb-radius-control);
   padding-top:         0;
   padding-bottom:      0;
   padding-right:       20px;
-  background-color:    #e8e8e8;
+  background-color:    var(--fb-select-bg);
   background-position: right 4px center;
 }
 .form-select:hover, .form-select-sm:hover {
-  background-color: #d4d4d4;
+  background-color: var(--fb-select-hover-bg);
 }
 .input-group-text {
-  font-size:  11px;
+  font-size:  var(--fb-font-size);
   padding:    1px 4px;
 }
 
-/* ── table-dark: use FreeBooks gloss-wave gradient instead of Bootstrap black ── */
+/* ── table-dark: the header band instead of Bootstrap black ───────── */
 .table-dark {
-  --bs-table-color:        #eaf5f7;
-  --bs-table-bg:           #2191c0;
-  --bs-table-border-color: #4297d7;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  --bs-table-color:        var(--fb-head-ink);
+  --bs-table-bg:           var(--fb-head-bg);
+  --bs-table-border-color: var(--fb-head-border);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
 }
@@ -87,51 +181,51 @@
 /* ── fb-card: Bootstrap card styled to look like a jQuery UI widget ─────── */
 /* Apply to <div class="card fb-card"> to get the classic FreeBooks panel look */
 .fb-card {
-  border:     1px solid #a6c9e2 !important;
-  background: #fcfdfd;
+  border:     1px solid var(--fb-line) !important;
+  background: var(--fb-content-bg);
 }
 .fb-card > .card-body {
-  background: #fcfdfd;
+  background: var(--fb-content-bg);
   padding:    6px 8px;
 }
 .fb-card > .card-header {
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-bottom:       1px solid #4297d7;
-  color:               #eaf5f7;
+  border-bottom:       1px solid var(--fb-head-border);
+  color:               var(--fb-head-ink);
   font-weight:         bold;
-  font-size:           11px;
+  font-size:           var(--fb-font-size);
   padding:             4px 8px;
 }
 
-/* ── Shared glosswave header — mirrors .ui-widget-header ────────────────── */
+/* ── Shared header band — mirrors .ui-widget-header ─────────────────────── */
 .fb-widget-header {
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border:              1px solid #4297d7;
-  color:               #eaf5f7;
+  border:              1px solid var(--fb-head-border);
+  color:               var(--fb-head-ink);
   font-weight:         bold;
-  font-size:           11px;
+  font-size:           var(--fb-font-size);
 }
 
 /* ── fb-fieldset: div-based fieldset emulation ───────────────────────────── */
 .fb-fieldset {
   position:   relative;
-  border:     1px solid #a6c9e2;
-  border-radius: 4px;
+  border:     1px solid var(--fb-line);
+  border-radius: var(--fb-radius-panel);
   padding:    14px 8px 8px;
-  background: #fcfdfd;
-  font-size:  11px;
+  background: var(--fb-content-bg);
+  font-size:  var(--fb-font-size);
 }
 .fb-fieldset-legend {
   position:    absolute;
   top:         -8px;
   left:        8px;
-  background:  #fcfdfd;
+  background:  var(--fb-content-bg);
   padding:     0 4px;
   font-size:   13px;
   font-weight: bold;
@@ -145,22 +239,22 @@
    past it. So the heading is a band — its own ground, ruled off above and
    below, with a small uppercase label in a colour no row uses. */
 tr.fb-forms-folder > td {
-  background-color: #c9e0f0;
-  border-top:       2px solid #4297d7;
-  border-bottom:    1px solid #4297d7;
+  background-color: var(--fb-band-bg);
+  border-top:       2px solid var(--fb-band-border);
+  border-bottom:    1px solid var(--fb-band-border);
   padding:          5px 8px 4px !important;
 }
 /* No rule above the first one: it would sit directly under the table head,
    which is ruled already. */
 tr.fb-forms-folder:first-child > td { border-top: 0; }
-tr.fb-forms-folder:hover > td       { background-color: #b8d8ec; }
+tr.fb-forms-folder:hover > td       { background-color: var(--fb-band-hover-bg); }
 
 /* The label is a button so it can be operated from the keyboard; none of that
    should show. Styled here rather than with utility classes in the markup,
    because .text-muted and friends carry !important and cannot then be
    overridden by a colour of our own. */
 .fb-folder-toggle {
-  color:           #0d4d69;
+  color:           var(--fb-band-ink);
   font-size:       12px;
   font-weight:     bold;
   letter-spacing:  .06em;
@@ -171,11 +265,11 @@ tr.fb-forms-folder:hover > td       { background-color: #b8d8ec; }
   background:      none;
 }
 .fb-folder-toggle:hover,
-.fb-folder-toggle:focus { color: #026890; text-decoration: none; }
+.fb-folder-toggle:focus { color: var(--fb-band-hover-ink); text-decoration: none; }
 .fb-folder-caret {
   display:      inline-block;
   width:        .9em;
-  color:        #4297d7;
+  color:        var(--fb-band-border);
   font-size:    10px;
   /* Not stretched by the label's letter-spacing. */
   letter-spacing: normal;
@@ -185,42 +279,42 @@ tr.fb-forms-folder:hover > td       { background-color: #b8d8ec; }
 table.ui-widget {
   width:            100%;
   border-collapse:  collapse;
-  font-size:        11px;
-  font-family:      Verdana, Arial, sans-serif;
+  font-size:        var(--fb-font-size);
+  font-family:      var(--fb-font);
 }
 table.ui-widget th,
 table.ui-widget td {
   padding:  2px 6px;
-  border:   1px solid #c0c0c0;
+  border:   1px solid var(--fb-line-grid);
 }
 table.ui-widget thead.ui-widget-header th,
 table.ui-widget tfoot.ui-widget-header th,
 table.ui-widget tfoot.ui-widget-header td {
-  background-color:    #2191c0 !important;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png) !important;
+  background-color:    var(--fb-head-bg) !important;
+  background-image:    var(--fb-head-image) !important;
   background-repeat:   repeat-x !important;
   background-position: 50% 50% !important;
-  color:               #eaf5f7 !important;
+  color:               var(--fb-head-ink) !important;
   font-weight:         bold;
 }
 table.ui-widget tbody.ui-widget-content tr:hover td {
-  background-color: #e8f4fb;
+  background-color: var(--fb-row-hover-soft-bg);
 }
 
 /* ── pkg-table: match .ui-widget / .ui-widget-header / .ui-widget-content ── */
 .pkg-table {
-  font-family:     Verdana, Arial, sans-serif;
-  font-size:       11px;
-  color:           #222222;
+  font-family:     var(--fb-font);
+  font-size:       var(--fb-font-size);
+  color:           var(--fb-ink);
   border-collapse: collapse;
-  border:          1px solid #a6c9e2;
+  border:          1px solid var(--fb-line);
   width:           100%;
 }
 
 /* Header row: single background spanning full width, matching .ui-widget-header */
 .pkg-table > thead > tr {
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
 }
@@ -228,11 +322,11 @@ table.ui-widget tbody.ui-widget-content tr:hover td {
 /* Cells transparent so the row background shows through uninterrupted */
 .pkg-table > thead > tr > th {
   background:      transparent;
-  color:           #eaf5f7;
+  color:           var(--fb-head-ink);
   border:          none;
-  border-bottom:   1px solid #4297d7;
+  border-bottom:   1px solid var(--fb-head-border);
   font-weight:     bold;
-  font-size:       11px;
+  font-size:       var(--fb-font-size);
   padding:         4px 6px;
   white-space:     nowrap;
   vertical-align:  middle;
@@ -242,68 +336,68 @@ table.ui-widget tbody.ui-widget-content tr:hover td {
 .pkg-table > tbody > tr > td {
   border:          none;
   padding:         3px 6px;
-  font-size:       11px;
+  font-size:       var(--fb-font-size);
   vertical-align:  middle;
 }
 
 /* Odd/even row colouring — used by legacy module tables and DataTables */
-tr.odd  > td, tr.odd  > th { background-color: #E2E4FF; }
-tr.even > td, tr.even > th { background-color: #ffffff; }
-.pkg-table > tbody > tr.odd > td  { background-color: #E2E4FF; }
-.pkg-table > tbody > tr.even > td { background-color: #ffffff; }
+tr.odd  > td, tr.odd  > th { background-color: var(--fb-row-odd-bg); }
+tr.even > td, tr.even > th { background-color: var(--fb-row-even-bg); }
+.pkg-table > tbody > tr.odd > td  { background-color: var(--fb-row-odd-bg); }
+.pkg-table > tbody > tr.even > td { background-color: var(--fb-row-even-bg); }
 
 /* DataTables row highlights (work without a parent .table class) */
-tr.row-danger > td { background-color: #f8d7da !important; }
-tr.row-info    > td { background-color: #cff4fc !important; }
+tr.row-danger > td { background-color: var(--fb-row-danger-bg) !important; }
+tr.row-info    > td { background-color: var(--fb-row-info-bg) !important; }
 
-/* Hover — lighter than .ui-state-hover #79c9ec */
+/* Hover — lighter than the hover state used on buttons and tabs */
 .pkg-table > tbody > tr:hover > td {
-  background-color: #b8e2f5 !important;
-  color:            #026890 !important;
+  background-color: var(--fb-row-hover-bg) !important;
+  color:            var(--fb-row-hover-ink) !important;
 }
 
 /* Payment-hold rows (vendor waiting flag) */
 .pkg-table > tbody > tr.row-hold > td {
-  background-color: #e8784d;
-  border-top:       1px solid #cd0a0a;
-  border-bottom:    1px solid #cd0a0a;
-  color:            #ffffff;
+  background-color: var(--fb-row-hold-bg);
+  border-top:       1px solid var(--fb-row-hold-border);
+  border-bottom:    1px solid var(--fb-row-hold-border);
+  color:            var(--fb-row-hold-ink);
 }
 
 /* Inactive items — Bootstrap's own .table sets a per-td color that beats an
    inherited color from the row, .text-muted included, so this greys the td
    directly the same way row-hold above colours it directly. */
-.pkg-table > tbody > tr.fb-inactive-row > td { color: #808080; }
+.pkg-table > tbody > tr.fb-inactive-row > td { color: var(--fb-ink-inactive); }
 
-/* ── pkg-table tfoot: gloss-wave section background ────────────── */
-/* Matches original <tfoot class="ui-widget-header"> — gradient spans all rows */
+/* ── pkg-table tfoot: header band background ───────────────────── */
+/* Matches original <tfoot class="ui-widget-header"> — the band spans all rows */
 .pkg-table > tfoot {
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-top:          2px solid #4297d7;
+  border-top:          2px solid var(--fb-head-border);
 }
 .pkg-table > tfoot > tr > td,
 .pkg-table > tfoot > tr > th {
   background:          transparent;
-  color:               #eaf5f7;
+  color:               var(--fb-head-ink);
   font-weight:         bold;
-  font-size:           11px;
+  font-size:           var(--fb-font-size);
   padding:             3px 6px;
   vertical-align:      middle;
 }
-/* Statement-entry row: solid blue overlay to distinguish from the computed rows below */
+/* Statement-entry row: a darker overlay to distinguish it from the computed rows below */
 .pkg-table > tfoot > tr.tfoot-entry > td {
-  background-color:    rgba(0, 0, 0, 0.18);
-  border-bottom:       1px solid #4297d7;
+  background-color:    var(--fb-tfoot-entry-bg);
+  border-bottom:       1px solid var(--fb-head-border);
 }
 
-/* Plain white tfoot for utility rows (filter add/search, vendor add, etc.) */
+/* Plain tfoot for utility rows (filter add/search, vendor add, etc.) */
 .pkg-table > tfoot.tfoot-plain {
-  background:       #ffffff;
+  background:       var(--fb-surface);
   background-image: none;
-  border-top:       1px solid #dee2e6;
+  border-top:       1px solid var(--fb-line-rule);
 }
 .pkg-table > tfoot.tfoot-plain > tr > td {
   color:       inherit;
@@ -312,27 +406,27 @@ tr.row-info    > td { background-color: #cff4fc !important; }
 
 /* ── Modal: match widget-header / widget-content look ──────────── */
 .pkg-modal .modal-content {
-  border:        1px solid #a6c9e2;
-  border-radius: 0;
-  font-family:   Verdana, Arial, sans-serif;
-  font-size:     11px;
+  border:        1px solid var(--fb-line);
+  border-radius: var(--fb-radius);
+  font-family:   var(--fb-font);
+  font-size:     var(--fb-font-size);
 }
 
 .pkg-modal .modal-header {
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  color:               #eaf5f7;
-  border-bottom:       1px solid #4297d7;
+  color:               var(--fb-head-ink);
+  border-bottom:       1px solid var(--fb-head-border);
   padding:             6px 12px;
-  border-radius:       0;
+  border-radius:       var(--fb-radius);
 }
 
 .pkg-modal .modal-title {
   font-size:   13px;
   font-weight: bold;
-  color:       #eaf5f7;
+  color:       var(--fb-head-ink);
 }
 
 .pkg-modal .btn-close {
@@ -340,120 +434,120 @@ tr.row-info    > td { background-color: #cff4fc !important; }
 }
 
 .pkg-modal .modal-body {
-  background-color: #fcfdfd;
+  background-color: var(--fb-content-bg);
   padding:          10px 14px;
 }
 
 .pkg-modal .modal-footer {
-  background-color: #f0f6fb;
-  border-top:       1px solid #a6c9e2;
+  background-color: var(--fb-footer-bg);
+  border-top:       1px solid var(--fb-line);
   padding:          6px 12px;
 }
 
 /* ── Modal form controls ─────────────────────────────────────────── */
 .pkg-modal .form-label {
-  font-family:   Verdana, Arial, sans-serif;
-  font-size:     11px;
+  font-family:   var(--fb-font);
+  font-size:     var(--fb-font-size);
   font-weight:   bold;
   margin-bottom: 2px;
-  color:         #222222;
+  color:         var(--fb-ink);
 }
 
 .pkg-modal .form-control,
 .pkg-modal .form-select {
-  font-family:  Verdana, Arial, sans-serif;
-  font-size:    11px;
-  border-color: #a6c9e2;
-  border-radius: 0;
+  font-family:  var(--fb-font);
+  font-size:    var(--fb-font-size);
+  border-color: var(--fb-line);
+  border-radius: var(--fb-radius);
   padding:      2px 4px;
   height:       auto;
 }
 
 .pkg-modal .form-control:focus,
 .pkg-modal .form-select:focus {
-  border-color: #4297d7;
-  box-shadow:   0 0 0 2px rgba(33, 145, 192, 0.25);
+  border-color: var(--fb-focus-border);
+  box-shadow:   0 0 0 2px var(--fb-focus-ring);
 }
 
 .pkg-modal .form-control.bg-light {
-  background-color: #eef4f8 !important;
-  color: #555;
+  background-color: var(--fb-readonly-bg) !important;
+  color: var(--fb-ink-muted);
 }
 
 .pkg-modal .form-check-input:checked {
-  background-color: #0078ae;
-  border-color:     #0078ae;
+  background-color: var(--fb-primary);
+  border-color:     var(--fb-primary);
 }
 
-/* ── Buttons: jQuery UI "start" glass theme applied globally ─────── */
+/* ── Buttons ─────────────────────────────────────────────────────── */
 .btn {
-  font-family:   Verdana, Arial, sans-serif;
-  font-size:     11px;
-  border-radius: 0;
+  font-family:   var(--fb-font);
+  font-size:     var(--fb-font-size);
+  border-radius: var(--fb-radius);
   line-height:   1.4;
 }
-.btn-sm { font-size: 11px; padding: 0px 5px !important; border-radius: 6px !important; line-height: 1.2; }
+.btn-sm { font-size: var(--fb-font-size); padding: 0px 5px !important; border-radius: var(--fb-radius-control) !important; line-height: 1.2; }
 
 .btn-primary {
-  background-color:    #0078ae;
-  background-image:    url(/themes/default/css/start/images/ui-bg_glass_45_0078ae_1x400.png);
+  background-color:    var(--fb-primary);
+  background-image:    var(--fb-primary-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #77d5f7;
-  color:               #ffffff;
+  border-color:        var(--fb-primary-border);
+  color:               var(--fb-primary-ink);
 }
 .btn-primary:hover,
 .btn-primary:focus {
-  background-color:    #79c9ec;
-  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  background-color:    var(--fb-hover-bg);
+  background-image:    var(--fb-hover-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #448dae;
-  color:               #026890;
+  border-color:        var(--fb-hover-border);
+  color:               var(--fb-hover-ink);
   box-shadow:          none;
 }
 .btn-primary:active,
 .btn-primary.active {
-  background-color:    #6eac2c;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_50_6eac2c_500x100.png);
+  background-color:    var(--fb-active-bg);
+  background-image:    var(--fb-active-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #acdd4a;
-  color:               #ffffff;
+  border-color:        var(--fb-active-border);
+  color:               var(--fb-active-ink);
 }
 
 .btn-secondary {
-  background-color:    #aaaaaa;
-  background-image:    url(/themes/default/css/start/images/ui-bg_flat_75_aaaaaa_40x100.png);
+  background-color:    var(--fb-secondary-bg);
+  background-image:    var(--fb-secondary-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #bbbbbb;
-  color:               #ffffff;
+  border-color:        var(--fb-secondary-border);
+  color:               var(--fb-secondary-ink);
 }
 .btn-secondary:hover,
 .btn-secondary:focus {
-  background-color:    #79c9ec;
-  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  background-color:    var(--fb-hover-bg);
+  background-image:    var(--fb-hover-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #448dae;
-  color:               #026890;
+  border-color:        var(--fb-hover-border);
+  color:               var(--fb-hover-ink);
   box-shadow:          none;
 }
 
 .btn-outline-primary {
-  border-color:  #0078ae;
-  color:         #0078ae;
-  border-radius: 0;
+  border-color:  var(--fb-primary);
+  color:         var(--fb-primary);
+  border-radius: var(--fb-radius);
 }
 .btn-outline-primary:hover,
 .btn-outline-primary:focus {
-  background-color:    #79c9ec;
-  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
+  background-color:    var(--fb-hover-bg);
+  background-image:    var(--fb-hover-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #448dae;
-  color:               #026890;
+  border-color:        var(--fb-hover-border);
+  color:               var(--fb-hover-ink);
   box-shadow:          none;
 }
 
@@ -461,7 +555,7 @@ tr.row-info    > td { background-color: #cff4fc !important; }
 h1 {
   width:            auto;
   clear:            both;
-  color:            #003080;
+  color:            var(--fb-ink-heading);
   font-size:        16px;
   font-variant:     small-caps;
   font-weight:      bold;
@@ -471,13 +565,13 @@ h1 {
 
 /* ── Theme / filter bar ──────────────────────────────────────────── */
 .pkg-theme-bar {
-  font-family: Verdana, Arial, sans-serif;
-  font-size:   11px;
-  color:       #555;
+  font-family: var(--fb-font);
+  font-size:   var(--fb-font-size);
+  color:       var(--fb-ink-muted);
 }
 .pkg-theme-bar select {
-  font-size:    11px;
-  border-color: #a6c9e2;
+  font-size:    var(--fb-font-size);
+  border-color: var(--fb-line);
 }
 
 /* ── Protect FreeBooks toolbar/nav from Bootstrap Reboot ─────────── */
@@ -492,33 +586,33 @@ h1 {
 .htmx-request .htmx-indicator { opacity: 1; }
 .htmx-request.htmx-indicator  { opacity: 1; }
 
-/* ── FreeBooks detail tabs — match jQuery UI "start" theme ───────────
+/* ── FreeBooks detail tabs ───────────────────────────────────────────
    Use .fb-tabs on <ul class="nav nav-tabs"> and
        .fb-tab-content on <div class="tab-content"> */
 
-/* Nav bar: blue gloss-wave header (same as .ui-widget-header) */
+/* Tab strip: the header band */
 .fb-tabs {
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border:              1px solid #4297d7;
-  border-bottom:       1px solid #a6c9e2;
+  border:              1px solid var(--fb-head-border);
+  border-bottom:       1px solid var(--fb-line);
   padding:             3px 3px 0;
   flex-wrap:           wrap;
 }
 
-/* Inactive tab: blue glass (.ui-state-default) */
+/* Inactive tab: primary */
 .fb-tabs .nav-link {
-  background-color:    #0078ae;
-  background-image:    url(/themes/default/css/start/images/ui-bg_glass_45_0078ae_1x400.png);
+  background-color:    var(--fb-primary);
+  background-image:    var(--fb-primary-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border:              1px solid #77d5f7 !important;
+  border:              1px solid var(--fb-primary-border) !important;
   border-radius:       5px 5px 0 0 !important;
-  color:               #ffffff !important;
-  font-size:           11px;
-  font-family:         Verdana, Arial, sans-serif;
+  color:               var(--fb-primary-ink) !important;
+  font-size:           var(--fb-font-size);
+  font-family:         var(--fb-font);
   font-weight:         normal;
   padding:             4px 10px;
   margin-right:        2px;
@@ -527,81 +621,81 @@ h1 {
   white-space:         nowrap;
 }
 
-/* Hover: light-blue glass (.ui-state-hover) */
+/* Hover */
 .fb-tabs .nav-link:hover,
 .fb-tabs .nav-link:focus {
-  background-color:    #79c9ec !important;
-  background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png) !important;
-  border-color:        #448dae !important;
-  color:               #026890 !important;
+  background-color:    var(--fb-hover-bg) !important;
+  background-image:    var(--fb-hover-image) !important;
+  border-color:        var(--fb-hover-border) !important;
+  color:               var(--fb-hover-ink) !important;
 }
 
-/* Active tab: green gloss-wave (.ui-state-active) */
+/* Selected tab: active */
 .fb-tabs .nav-link.active {
-  background-color:    #6eac2c !important;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_50_6eac2c_500x100.png) !important;
+  background-color:    var(--fb-active-bg) !important;
+  background-image:    var(--fb-active-image) !important;
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-color:        #acdd4a !important;
-  border-bottom-color: #ffffff !important; /* merges tab with content area */
-  color:               #ffffff !important;
+  border-color:        var(--fb-active-border) !important;
+  border-bottom-color: var(--fb-surface) !important; /* merges tab with content area */
+  color:               var(--fb-active-ink) !important;
 }
 
-/* Content area: white with blue border (.ui-widget-content) */
+/* Content area */
 .fb-tab-content {
-  border:           1px solid #a6c9e2;
+  border:           1px solid var(--fb-line);
   border-top:       none;
-  background-color: #ffffff;
+  background-color: var(--fb-surface);
   padding:          8px;
 }
 
 /* ── Bootstrap navbar ────────────────────────────────────────────── */
 .fb-navbar {
-  background-color: #2191c0;
-  background-image: url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color: var(--fb-head-bg);
+  background-image: var(--fb-head-image);
   background-repeat: repeat-x;
   background-position: 50% 50%;
-  border-bottom: 1px solid #4297d7;
-  font-family: Verdana, Arial, sans-serif;
-  font-size: 12px;
+  border-bottom: 1px solid var(--fb-head-border);
+  font-family: var(--fb-font);
+  font-size: var(--fb-menu-font-size);
   font-weight: bold;
 }
 .fb-navbar .navbar-brand,
-.fb-navbar .nav-link { color: #ffffff; }
+.fb-navbar .nav-link { color: var(--fb-nav-ink); }
 .fb-navbar .nav-link:hover,
 .fb-navbar .nav-link:focus {
-  background-color: #026890;
-  color: #ffffff;
+  background-color: var(--fb-nav-hover-bg);
+  color: var(--fb-nav-hover-ink);
 }
 .fb-navbar .nav-link.show,
 .fb-navbar .nav-item.show > .nav-link {
-  background-color: #026890;
-  color: #ffffff;
+  background-color: var(--fb-nav-hover-bg);
+  color: var(--fb-nav-hover-ink);
 }
 .fb-navbar .navbar-toggler-icon { filter: invert(1); }
 
 /* Dropdown panel */
 .fb-navbar .dropdown-menu {
-  background-color: #ffffff;
-  border: 1px solid #a6c9e2;
-  border-radius: 0;
+  background-color: var(--fb-surface);
+  border: 1px solid var(--fb-line);
+  border-radius: var(--fb-radius);
   padding: 2px 0;
   min-width: 170px;
-  font-size: 12px;
+  font-size: var(--fb-menu-font-size);
   font-weight: normal;
 }
 .fb-navbar .dropdown-item {
-  font-family: Verdana, Arial, sans-serif;
-  font-size: 12px;
-  color: #222222;
+  font-family: var(--fb-font);
+  font-size: var(--fb-menu-font-size);
+  color: var(--fb-ink);
   padding: 5px 12px;
-  border-bottom: 1px solid #dddddd;
+  border-bottom: 1px solid var(--fb-line-menu);
 }
 .fb-navbar .dropdown-item:last-child { border-bottom: none; }
 .fb-navbar .dropdown-item:hover,
 .fb-navbar .dropdown-item:focus {
-  background-color: #026890;
-  color: #ffffff;
+  background-color: var(--fb-nav-hover-bg);
+  color: var(--fb-nav-hover-ink);
 }
 
 /* Hover-open mode (set via My Profile) */
@@ -629,52 +723,52 @@ h1 {
   gap:                 4px;
   flex-wrap:           wrap;
   padding:             4px 6px;
-  background-color:    #2191c0;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+  background-color:    var(--fb-head-bg);
+  background-image:    var(--fb-head-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  border-bottom:       1px solid #4297d7;
+  border-bottom:       1px solid var(--fb-head-border);
 }
 
 .fb-viewer-panel {
-  background-color: #fcfdfd;
-  border-bottom:    1px solid #a6c9e2;
+  background-color: var(--fb-content-bg);
+  border-bottom:    1px solid var(--fb-line);
   padding:          8px 12px;
-  font-family:      Verdana, Arial, sans-serif;
-  font-size:        11px;
-  color:            #222222;
+  font-family:      var(--fb-font);
+  font-size:        var(--fb-font-size);
+  color:            var(--fb-ink);
 }
 .fb-viewer-panel .form-label {
-  font-family:   Verdana, Arial, sans-serif;
-  font-size:     11px;
+  font-family:   var(--fb-font);
+  font-size:     var(--fb-font-size);
   font-weight:   bold;
   margin-bottom: 2px;
-  color:         #222222;
+  color:         var(--fb-ink);
 }
 .fb-viewer-panel .form-control {
-  font-family:   Verdana, Arial, sans-serif;
-  font-size:     11px;
-  border-color:  #a6c9e2;
-  border-radius: 0;
+  font-family:   var(--fb-font);
+  font-size:     var(--fb-font-size);
+  border-color:  var(--fb-line);
+  border-radius: var(--fb-radius);
   padding:       2px 4px;
   height:        auto;
 }
 .fb-viewer-panel .form-control:focus {
-  border-color: #4297d7;
-  box-shadow:   0 0 0 2px rgba(33, 145, 192, 0.25);
+  border-color: var(--fb-focus-border);
+  box-shadow:   0 0 0 2px var(--fb-focus-ring);
 }
 .fb-viewer-panel .alert {
-  font-family: Verdana, Arial, sans-serif;
-  font-size:   11px;
+  font-family: var(--fb-font);
+  font-size:   var(--fb-font-size);
   padding:     4px 10px;
-  border-radius: 0;
+  border-radius: var(--fb-radius);
 }
 
-/* Toolbar section panels — replaces ui-state-hover from jQuery UI */
+/* Toolbar section panels: the hover band */
 .fb-toolbar-section {
-  border:     1px solid #448dae;
-  background: #79c9ec url('../../themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png') 50% 50% repeat-x;
-  color:      #026890;
+  border:     1px solid var(--fb-hover-border);
+  background: var(--fb-hover-bg) var(--fb-hover-image) 50% 50% repeat-x;
+  color:      var(--fb-hover-ink);
 }
 
 /* A toolbar icon that is present but has nothing to do — Save on a document

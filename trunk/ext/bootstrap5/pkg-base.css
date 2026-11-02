@@ -14,9 +14,9 @@
  * | GNU General Public License for more details.                    |
  * +-----------------------------------------------------------------+ */
 /*
- * pkg-base.css — always loaded on the shipping packages page, regardless of theme.
- * Non-colour structural rules and FreeBooks compatibility fixes.
- * Colour-specific rules are in freebooks.css (default theme) or the Bootswatch file.
+ * pkg-base.css — linked by the main page template after freebooks.css, whatever the colour scheme.
+ * Structural rules and FreeBooks compatibility fixes only: colours live in freebooks.css,
+ * and text sizes read the --fb-font-size token defined there so a scheme can change them.
  */
 
 /* Protect FreeBooks toolbar/nav images from Bootstrap Reboot max-width reset */
@@ -27,20 +27,20 @@
 }
 
 /* Table structure */
-.pkg-table { font-size: 11px; width: 100%; }
-.pkg-table thead th { font-size: 11px; white-space: nowrap; vertical-align: middle; }
-.pkg-table tbody td { font-size: 11px; vertical-align: middle; padding: 3px 6px; }
+.pkg-table { font-size: var(--fb-font-size); width: 100%; }
+.pkg-table thead th { font-size: var(--fb-font-size); white-space: nowrap; vertical-align: middle; }
+.pkg-table tbody td { font-size: var(--fb-font-size); vertical-align: middle; padding: 3px 6px; }
 .pkg-table tbody tr { cursor: pointer; }
 
 /* Modal form structure */
-.pkg-modal .form-label  { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+.pkg-modal .form-label  { font-size: var(--fb-font-size); font-weight: bold; margin-bottom: 2px; }
 .pkg-modal .form-control,
-.pkg-modal .form-select { font-size: 11px; padding: 2px 4px; height: auto; }
+.pkg-modal .form-select { font-size: var(--fb-font-size); padding: 2px 4px; height: auto; }
 .pkg-modal .modal-title { font-size: 13px; font-weight: bold; }
 
 /* Theme/filter bar */
-.pkg-theme-bar { font-size: 11px; }
-.pkg-theme-bar select { font-size: 11px; }
+.pkg-theme-bar { font-size: var(--fb-font-size); }
+.pkg-theme-bar select { font-size: var(--fb-font-size); }
 
 /* htmx request indicator */
 .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
