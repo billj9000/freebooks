@@ -1,0 +1,15 @@
+{
+  "name": {
+    "en_us": "Workspace Dark",
+    "nl_nl": "Workspace Donker",
+    "pt_br": "Workspace Escuro",
+    "ru_ru": "Workspace тёмная"
+  },
+  "description": {
+    "en_us": "Workspace’s side menu and teal accent on near-black pages, easier on the eyes in a dim room. Printed documents stay white.",
+    "nl_nl": "Het zijmenu en de groenblauwe accentkleur van Workspace op bijna zwarte pagina’s, prettiger voor de ogen in een donkere ruimte. Afgedrukte documenten blijven wit.",
+    "pt_br": "O menu lateral e o destaque verde-azulado do Workspace sobre páginas quase pretas, mais confortável para os olhos em ambientes escuros. Documentos impressos continuam brancos.",
+    "ru_ru": "Боковое меню и бирюзовый акцент Workspace на почти чёрных страницах, мягче для глаз в тёмном помещении. Печатные документы остаются белыми."
+  },
+  "dark": true
+}

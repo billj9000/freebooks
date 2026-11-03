@@ -73,7 +73,9 @@ keeps data-bs-theme on <html> in step and fires 'fb-color-mode' on the document 
 change, which the Help window and the HTML editors listen for. layout.php, menu.php, footer.php
 and toolbar.php come from the light partner, so the two partners must draw the same frame. Each
 partner must be an ordinary scheme, not another pair; without both, the pair is drawn as its light
-partner, or as the default. auto (Refresh / Ledger Dark) is the example. theme_schemes() in
+partner, or as the default. auto (Refresh / Ledger Dark) and workspace-auto (Workspace / Workspace
+Dark) are the examples; workspace-dark shows a dark partner reusing its light partner's frame, its
+layout.php and menu.php each including Workspace's. theme_schemes() in
 includes/common_functions.php resolves a scheme to the schemes it draws with.
 
 A page that sets a colour of its own does it through a token with the old colour as fallback

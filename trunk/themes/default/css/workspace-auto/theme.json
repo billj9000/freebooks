@@ -1,0 +1,16 @@
+{
+  "name": {
+    "en_us": "Automatic (Workspace / Workspace Dark)",
+    "nl_nl": "Automatisch (Workspace / Workspace Donker)",
+    "pt_br": "Automático (Workspace / Workspace Escuro)",
+    "ru_ru": "Автоматически (Workspace / Workspace тёмная)"
+  },
+  "description": {
+    "en_us": "Follows your computer’s or browser’s light or dark setting: Workspace when it is light, Workspace Dark when it is dark, switching as soon as the setting changes.",
+    "nl_nl": "Volgt de lichte of donkere instelling van uw computer of browser: Workspace als die licht is, Workspace Donker als die donker is, en wisselt zodra de instelling verandert.",
+    "pt_br": "Segue a configuração clara ou escura do seu computador ou navegador: Workspace quando está clara, Workspace Escuro quando está escura, mudando assim que a configuração muda.",
+    "ru_ru": "Следует светлой или тёмной настройке вашего компьютера или браузера: Workspace при светлой, Workspace тёмная при тёмной, и переключается сразу при её изменении."
+  },
+  "light": "workspace",
+  "dark": "workspace-dark"
+}
