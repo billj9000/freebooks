@@ -30,12 +30,12 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
 <?php if ($force_reset_cache) { header("Cache-Control: no-cache, must-revalidate"); header("Expires: ".date('D, j M \2\0\0\0 G:i:s T')); } ?>  
   <title><?php echo PAGE_TITLE; ?></title>
   <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
-  <link rel="stylesheet" type="text/css" href="<?php echo DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'; ?>" />
+  <link rel="stylesheet" type="text/css" href="<?php echo html_versioned(DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'); ?>" />
   <style>body{display:flex;flex-direction:column;min-height:100vh}#content-wrap{flex:1 0 auto}</style>
   <link rel="stylesheet" href="ext/bootstrap5/datatables.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-  <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
-  <link rel="stylesheet" href="ext/bootstrap5/pkg-base.css">
+  <link rel="stylesheet" href="<?php echo html_versioned('ext/bootstrap5/freebooks.css'); ?>">
+  <link rel="stylesheet" href="<?php echo html_versioned('ext/bootstrap5/pkg-base.css'); ?>">
   <?php echo html_theme_stylesheet(); ?>
   <script src="ext/bootstrap5/bootstrap.bundle.min.js" defer></script>
   <script src="ext/htmx.min.js" defer></script>

@@ -1467,12 +1467,22 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return $image;
   }
 
+  // The URL of a FreeBooks stylesheet or script (a path from the web root), stamped with the
+  // time the file last changed. A browser fetches it again after an update instead of using
+  // a cached copy alongside newer files it works with: a scheme's theme.css sets tokens that
+  // freebooks.css reads, so a stale one with a fresh other can leave text the colour of the
+  // band behind it.
+  function html_versioned($path) {
+    $file = DIR_FS_ADMIN . $path;
+    return is_file($file) ? $path . '?v=' . filemtime($file) : $path;
+  }
+
   // A colour scheme may carry a theme.css that overrides Bootstrap and freebooks.css, so it is
   // linked after them. A scheme without one adds nothing.
   function html_theme_stylesheet() {
     if (!defined('DIR_WS_THEMES') || !defined('MY_COLORS')) return '';
     $path = DIR_WS_THEMES . 'css/' . MY_COLORS . '/theme.css';
-    return is_file(DIR_FS_ADMIN . $path) ? '<link rel="stylesheet" href="' . $path . '">' . "\n" : '';
+    return is_file(DIR_FS_ADMIN . $path) ? '<link rel="stylesheet" href="' . html_versioned($path) . '">' . "\n" : '';
   }
 
   // The path of a file that draws part of every page - layout.php, menu.php, footer.php,

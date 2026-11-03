@@ -31,7 +31,7 @@ $post_url = html_href_link(FILENAME_DEFAULT,
   <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES); ?>">
   <title><?php echo TITLE . ' - ' . COMPANY_NAME; ?></title>
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
-  <link rel="stylesheet" href="ext/bootstrap5/freebooks.css">
+  <link rel="stylesheet" href="<?php echo html_versioned('ext/bootstrap5/freebooks.css'); ?>">
   <?php echo html_theme_stylesheet(); ?>
   <link rel="stylesheet" href="jodit/jodit.min.css">
   <style>

@@ -1383,5 +1383,5 @@ document.addEventListener('keydown', function(event) {
 
 
 </script>
-<link rel="stylesheet" type="text/css" href="modules/phreepos/style_sheet/main.css" />
+<link rel="stylesheet" type="text/css" href="<?php echo html_versioned('modules/phreepos/style_sheet/main.css'); ?>" />
 
