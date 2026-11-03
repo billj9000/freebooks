@@ -115,7 +115,7 @@ function load(files, doc, extras) {
     __alerts: [], __opened: [], __submitted: [],
   }, extras || {});
   box.alert  = (m) => box.__alerts.push(m);
-  box.window = { setTimeout, open: (url) => { box.__opened.push(url); return { focus() {} }; } };
+  box.window = { setTimeout, addEventListener: () => {}, open: (url) => { box.__opened.push(url); return { focus() {} }; } };
   box.globalThis = box;
   vm.createContext(box);
   for (const f of files) {
