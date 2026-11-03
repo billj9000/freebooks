@@ -54,7 +54,9 @@ function ws_menu_score($link) {
 }
 
 // The menu entries leading to the best match for the current page, outermost
-// first, each as array(key, text); empty when nothing matches.
+// first, each as array(key, text); empty when nothing matches. An entry with a
+// submenu can have a page of its own (Module Administration); its entries are
+// tried first, so it is the match only when none of them matches as closely.
 function ws_menu_find(array $items, array $trail = array()) {
   $best = array('score' => -1, 'trail' => array());
   foreach ($items as $key => $item) {
@@ -63,7 +65,8 @@ function ws_menu_find(array $items, array $trail = array()) {
     if (isset($item['submenu'])) {
       $found = ws_menu_find($item['submenu'], $here);
       if ($found['score'] > $best['score']) $best = $found;
-    } elseif (isset($item['link']) && ($score = ws_menu_score($item['link'])) > $best['score']) {
+    }
+    if ($trail && !empty($item['link']) && ($score = ws_menu_score($item['link'])) > $best['score']) {
       $best = array('score' => $score, 'trail' => $here);
     }
   }
@@ -100,19 +103,25 @@ function ws_menu_group($key, array $item) {
 }
 
 // An entry under a heading. One with its own submenu becomes a small heading
-// over its entries, which are indented a step further.
+// over its entries, which are indented a step further; when it also has a page
+// of its own (Module Administration), the heading is a link to that page.
 function ws_menu_item(array $item, array $path) {
   if (!fbmenu_item_permitted($item)) return;
   $depth  = count($path) - 1;
   $params = $item['params'] ?? '';
+  $on     = count($path) == count(ws_menu_trail()) && ws_menu_on_trail($path);
   if (isset($item['submenu'])) {
     if (!fbmenu_permitted($item['submenu'])) return;
     uasort($item['submenu'], 'fbmenu_sort');
-    echo '      <div class="ws-sub-head ws-d' . $depth . '">' . $item['text'] . '</div>' . "\n";
+    if (!empty($item['link'])) {
+      echo '      <a class="ws-sub-head ws-sub-head-link ws-d' . $depth . ($on ? ' ws-on" aria-current="page' : '') . '" href="' . $item['link'] . '" ' . $params . '>'
+         . $item['text'] . '</a>' . "\n";
+    } else {
+      echo '      <div class="ws-sub-head ws-d' . $depth . '">' . $item['text'] . '</div>' . "\n";
+    }
     foreach ($item['submenu'] as $ckey => $child) ws_menu_item($child, array_merge($path, array($ckey)));
     return;
   }
-  $on = count($path) == count(ws_menu_trail()) && ws_menu_on_trail($path);
   echo '      <a class="ws-sub ws-d' . $depth . ($on ? ' ws-on" aria-current="page' : '') . '" href="' . ($item['link'] ?? '') . '" ' . $params . '>'
      . $item['text'] . '</a>' . "\n";
 }

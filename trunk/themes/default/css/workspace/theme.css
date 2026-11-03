@@ -475,6 +475,9 @@ details[open] > summary.ws-top::after { transform: rotate(45deg); }
   letter-spacing:  .04em;
   padding-top:     9px;
 }
+.ws-sub-head-link { text-decoration: none; }
+.ws-sub-head-link:hover, .ws-sub-head-link:focus-visible { background: var(--fb-nav-hover-bg); color: var(--fb-nav-hover-ink); outline: none; }
+.ws-sub-head-link.ws-on { background: var(--fb-nav-hover-bg); color: #ffffff; box-shadow: inset 3px 0 0 #2fb8a9; }
 .ws-sub.ws-d2 { padding-left: 48px; }
 .ws-sub.ws-d3, .ws-sub-head.ws-d2 { padding-left: 58px; }
 .ws-account {
