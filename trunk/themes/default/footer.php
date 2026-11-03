@@ -21,17 +21,23 @@
 // The two copyright lines credit FreeBooks and the PhreeBooks code it is based
 // on; a scheme's replacement keeps both. A dark scheme shows the FreeBooks
 // logo's dark version; a FOOTER_LOGO is drawn for a light page, so it carries
-// fb-footer-logo, which freebooks.css lightens under a dark scheme.
-if (defined('FOOTER_LOGO')) {
-  $image_path  = FOOTER_LOGO;
-  $image_class = 'fb-footer-logo';
-} else {
-  $image_path  = DIR_WS_ADMIN . 'modules/phreedom/images/' . (html_color_mode() ? 'freebooks_logo_dark.png' : 'freebooks_logo.png');
-  $image_class = '';
-}
+// fb-footer-logo, which freebooks.css lightens under a dark scheme. A scheme
+// that follows the browser's light or dark setting gets both versions, and the
+// browser shows the one for its setting.
+$logo_dir  = DIR_WS_ADMIN . 'modules/phreedom/images/';
+$logo_mode = html_color_scheme();
 ?>
   <div style="clear:both;text-align:center;padding-bottom:1.5em">
-  <img class="<?php echo $image_class; ?>" src="<?php echo $image_path; ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
+<?php if (defined('FOOTER_LOGO')) { ?>
+  <img class="fb-footer-logo" src="<?php echo FOOTER_LOGO; ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
+<?php } else { ?>
+  <picture>
+<?php   if ($logo_mode == 'auto') { ?>
+    <source srcset="<?php echo $logo_dir; ?>freebooks_logo_dark.png" media="(prefers-color-scheme: dark)">
+<?php   } ?>
+    <img src="<?php echo $logo_dir . ($logo_mode == 'dark' ? 'freebooks_logo_dark.png' : 'freebooks_logo.png'); ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
+  </picture>
+<?php } ?>
   <?php
   $footer_info  = COMPANY_NAME.' | '.TEXT_ACCOUNTING_PERIOD.': '.CURRENT_ACCOUNTING_PERIOD.' | FreeBooks ('.MODULE_PHREEDOM_VERSION.') ';
   if ($module <> 'phreedom') $footer_info .= '(' . $module . ' ' . constant('MODULE_' . strtoupper($module) . '_STATUS') . ') ';

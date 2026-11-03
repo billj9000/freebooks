@@ -149,6 +149,14 @@ function initMsgEditor() {
       { theme: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'default' });
   }
 }
+// Under a scheme that follows the browser, the editor and its pop-ups swap theme on each switch.
+document.addEventListener('fb-color-mode', function () {
+  var theme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'default';
+  document.querySelectorAll('.jodit_theme_default, .jodit_theme_dark').forEach(function (el) {
+    el.classList.remove('jodit_theme_default', 'jodit_theme_dark');
+    el.classList.add('jodit_theme_' + theme);
+  });
+});
 
 function toggleEmailPanel() {
   var p = document.getElementById('email_panel');

@@ -254,13 +254,23 @@
   // Under a dark colour scheme a manual topic, which is a page of its own with the
   // manual's light stylesheet, is given the scheme's colour tokens and
   // manual_dark.css, which reads them. A light scheme leaves the topic as written.
+  // Under a scheme that follows the browser it runs again on each switch, and a
+  // switch to light takes both away.
   var fbHelpTopicTokens = ['--fb-font', '--fb-ink', '--fb-ink-heading', '--fb-surface', '--fb-readonly-bg',
     '--fb-line', '--fb-primary', '--fb-head-bg', '--fb-head-ink', '--fb-row-even-bg', '--fb-row-hover-soft-bg'];
   function fbHelpTopicMode() {
-    if (document.documentElement.getAttribute('data-bs-theme') !== 'dark') return;
     var doc;
     try { doc = document.getElementById('contentFrame').contentDocument; } catch (e) { return; }
-    if (!doc || !doc.head || doc.getElementById('fb-manual-dark')) return;
+    if (!doc || !doc.head) return;
+    var current = doc.getElementById('fb-manual-dark');
+    if (document.documentElement.getAttribute('data-bs-theme') !== 'dark') {
+      if (current) {
+        current.remove();
+        fbHelpTopicTokens.forEach(function (name) { doc.documentElement.style.removeProperty(name); });
+      }
+      return;
+    }
+    if (current) return;
     var root = getComputedStyle(document.documentElement);
     fbHelpTopicTokens.forEach(function (name) {
       doc.documentElement.style.setProperty(name, root.getPropertyValue(name));
@@ -272,6 +282,7 @@
     doc.head.appendChild(link);
   }
   document.getElementById('contentFrame').addEventListener('load', fbHelpTopicMode);
+  document.addEventListener('fb-color-mode', fbHelpTopicMode);
 </script>
 </body>
 </html>

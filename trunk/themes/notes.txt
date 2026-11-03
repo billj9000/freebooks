@@ -13,7 +13,7 @@ theme.json      Optional. The name shown in the list and a one-line description 
                 Each value is a plain string or strings keyed by language code; the user's
                 language is used, else en_us. Without it the list shows the directory name and no
                 description. "dark": true makes the scheme a dark one (see Dark schemes below).
-stylesheet.css  Required. Linked first on every page, before Bootstrap and
+stylesheet.css  Required, except in a scheme that follows the browser (see below). Linked first on every page, before Bootstrap and
                 ext/bootstrap5/freebooks.css, so it can set only the base page: background, text
                 colour and font, fieldsets, labels.
 theme.css       Optional. Linked after Bootstrap and freebooks.css (html_theme_stylesheet()). A
@@ -60,6 +60,21 @@ are pages of their own, take the scheme's tokens through
 modules/phreehelp/style_sheet/manual_dark.css. Anything that stands for paper - the Forms
 canvas, a printed document - keeps a white ground: give it the class fb-paper. ledger-dark is
 the example.
+
+Schemes that follow the browser
+
+A scheme whose theme.json names two other schemes instead of carrying files of its own follows
+the browser's (normally the system's) light or dark setting:
+                  { "name": ..., "description": ..., "light": "refresh", "dark": "ledger-dark" }
+Every page links both partners' stylesheet.css and theme.css, each with the media query of the
+mode it serves, so the browser applies one and switches the moment the setting changes; a
+browser that reports no setting gets the light one. A script in the head (html_theme_stylesheet())
+keeps data-bs-theme on <html> in step and fires 'fb-color-mode' on the document after each
+change, which the Help window and the HTML editors listen for. layout.php, menu.php, footer.php
+and toolbar.php come from the light partner, so the two partners must draw the same frame. Each
+partner must be an ordinary scheme, not another pair; without both, the pair is drawn as its light
+partner, or as the default. auto (Refresh / Ledger Dark) is the example. theme_schemes() in
+includes/common_functions.php resolves a scheme to the schemes it draws with.
 
 A page that sets a colour of its own does it through a token with the old colour as fallback
 (var(--fb-line, #a6c9e2)), or adds a [data-bs-theme=dark] rule beside it, so that it follows

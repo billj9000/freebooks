@@ -30,7 +30,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
 <?php if ($force_reset_cache) { header("Cache-Control: no-cache, must-revalidate"); header("Expires: ".date('D, j M \2\0\0\0 G:i:s T')); } ?>  
   <title><?php echo PAGE_TITLE; ?></title>
   <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
-  <link rel="stylesheet" type="text/css" href="<?php echo html_versioned(DIR_WS_THEMES.'css/'.MY_COLORS.'/stylesheet.css'); ?>" />
+  <?php echo html_scheme_stylesheet(); ?>
   <style>body{display:flex;flex-direction:column;min-height:100vh}#content-wrap{flex:1 0 auto}</style>
   <link rel="stylesheet" href="ext/bootstrap5/datatables.min.css">
   <link rel="stylesheet" href="ext/bootstrap5/bootstrap.min.css">
@@ -70,6 +70,14 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   function fbJoditOptions() {
     return { theme: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'default' };
   }
+  // Under a scheme that follows the browser, open editors and their pop-ups swap theme on each switch.
+  document.addEventListener('fb-color-mode', function () {
+    var theme = fbJoditOptions().theme;
+    document.querySelectorAll('.jodit_theme_default, .jodit_theme_dark').forEach(function (el) {
+      el.classList.remove('jodit_theme_default', 'jodit_theme_dark');
+      el.classList.add('jodit_theme_' + theme);
+    });
+  });
   function initJoditEditors() {
     document.querySelectorAll('textarea.jodit-editor').forEach(function(el) {
       if (el.dataset.joditInit) return;      // already initialized

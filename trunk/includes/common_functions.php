@@ -1477,39 +1477,119 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return is_file($file) ? $path . '?v=' . filemtime($file) : $path;
   }
 
+  // A colour scheme's theme.json as an array, or an empty one if it has none or it cannot be read.
+  function theme_scheme_info($scheme) {
+    static $cache = array();
+    if (!isset($cache[$scheme])) {
+      $file = DIR_FS_ADMIN . DIR_WS_THEMES . 'css/' . $scheme . '/theme.json';
+      $info = is_file($file) ? json_decode(file_get_contents($file), true) : null;
+      $cache[$scheme] = is_array($info) ? $info : array();
+    }
+    return $cache[$scheme];
+  }
+
+  // Whether a scheme's theme.json makes it a pair that follows the browser: it names its
+  // partners in "light" and "dark", where an ordinary dark scheme has "dark": true.
+  function theme_scheme_is_pair(array $info) {
+    return is_string($info['light'] ?? null) || is_string($info['dark'] ?? null);
+  }
+
+  // The colour schemes the user's scheme draws pages with, by the mode each serves:
+  // array('light' => scheme) or array('dark' => scheme) for an ordinary scheme, and both for
+  // a scheme that follows the browser's light or dark setting. Such a scheme's theme.json
+  // names its two partners ("light" and "dark"); each must be an installed scheme that is not
+  // itself a pair, and without both it is drawn as its light partner, or as the default.
+  function theme_schemes() {
+    static $schemes = null;
+    if ($schemes !== null) return $schemes;
+    $schemes = array('light' => defined('DEFAULT_COLORS') ? DEFAULT_COLORS : 'start');
+    if (!defined('DIR_WS_THEMES') || !defined('MY_COLORS')) return $schemes;
+    $info = theme_scheme_info(MY_COLORS);
+    if (!theme_scheme_is_pair($info)) {
+      return $schemes = array((($info['dark'] ?? false) === true ? 'dark' : 'light') => MY_COLORS);
+    }
+    $valid = function ($scheme) {
+      if (!is_string($scheme) || !preg_match('/^[a-zA-Z0-9_-]+$/', $scheme)) return false;
+      if (!is_file(DIR_FS_ADMIN . DIR_WS_THEMES . 'css/' . $scheme . '/stylesheet.css')) return false;
+      return !theme_scheme_is_pair(theme_scheme_info($scheme));
+    };
+    $light = $info['light'] ?? null;
+    $dark  = $info['dark']  ?? null;
+    if ($valid($light) && $valid($dark)) return $schemes = array('light' => $light, 'dark' => $dark);
+    if ($valid($light)) $schemes = array('light' => $light);
+    return $schemes;
+  }
+
+  // 'light', 'dark', or 'auto' when pages follow the browser's light or dark setting.
+  function html_color_scheme() {
+    $schemes = theme_schemes();
+    return count($schemes) == 2 ? 'auto' : key($schemes);
+  }
+
+  // The link tags for one of the scheme's stylesheets ('stylesheet.css' or 'theme.css'). A
+  // scheme that follows the browser links both partners' copies, each with the media query
+  // of the mode it serves, so the browser applies one and switches when the setting does. A
+  // browser that reports no setting is given the light one.
+  function html_scheme_links($name) {
+    $media = array('light' => 'not all and (prefers-color-scheme: dark)', 'dark' => '(prefers-color-scheme: dark)');
+    $out   = '';
+    $auto  = html_color_scheme() == 'auto';
+    foreach (theme_schemes() as $mode => $scheme) {
+      $path = DIR_WS_THEMES . 'css/' . $scheme . '/' . $name;
+      if (!is_file(DIR_FS_ADMIN . $path)) continue;
+      $out .= '<link rel="stylesheet" href="' . html_versioned($path) . '"' . ($auto ? ' media="' . $media[$mode] . '"' : '') . '>' . "\n";
+    }
+    return $out;
+  }
+
+  // The scheme's base stylesheet.css, linked first on every page, before Bootstrap.
+  function html_scheme_stylesheet() {
+    return html_scheme_links('stylesheet.css');
+  }
+
   // A colour scheme may carry a theme.css that overrides Bootstrap and freebooks.css, so it is
-  // linked after them. A scheme without one adds nothing.
+  // linked after them. A scheme without one adds nothing. A scheme that follows the browser
+  // also gets the script that keeps data-bs-theme on <html> matching the browser's setting
+  // (see html_color_mode()); it runs here, in the head, so the page is never drawn in the
+  // wrong mode first. After each change it fires 'fb-color-mode' on the document.
   function html_theme_stylesheet() {
     if (!defined('DIR_WS_THEMES') || !defined('MY_COLORS')) return '';
-    $path = DIR_WS_THEMES . 'css/' . MY_COLORS . '/theme.css';
-    return is_file(DIR_FS_ADMIN . $path) ? '<link rel="stylesheet" href="' . html_versioned($path) . '">' . "\n" : '';
+    $out = html_scheme_links('theme.css');
+    if (html_color_scheme() == 'auto') {
+      $out .= "<script>(function () {\n"
+            . "  var query = window.matchMedia('(prefers-color-scheme: dark)'), html = document.documentElement;\n"
+            . "  function apply() {\n"
+            . "    if (query.matches) html.setAttribute('data-bs-theme', 'dark'); else html.removeAttribute('data-bs-theme');\n"
+            . "    document.dispatchEvent(new Event('fb-color-mode'));\n"
+            . "  }\n"
+            . "  apply();\n"
+            . "  query.addEventListener('change', apply);\n"
+            . "})();</script>\n";
+    }
+    return $out;
   }
 
   // The attribute that puts a page in dark mode, for its <html> tag: data-bs-theme="dark"
-  // when the colour scheme's theme.json has "dark": true, otherwise nothing. Bootstrap's own
-  // components and the [data-bs-theme=dark] rules in freebooks.css follow it. A page that
+  // under a dark colour scheme, otherwise nothing. Bootstrap's own components and the
+  // [data-bs-theme=dark] rules in freebooks.css follow it. Under a scheme that follows the
+  // browser it is nothing here and html_theme_stylesheet()'s script sets it. A page that
   // stands for paper (the packing list, a printed label) does not use it.
   function html_color_mode() {
-    static $attr = null;
-    if ($attr === null) {
-      $attr = '';
-      if (defined('DIR_WS_THEMES') && defined('MY_COLORS')) {
-        $file = DIR_FS_ADMIN . DIR_WS_THEMES . 'css/' . MY_COLORS . '/theme.json';
-        $info = is_file($file) ? json_decode(file_get_contents($file), true) : null;
-        if (is_array($info) && ($info['dark'] ?? false) === true) $attr = ' data-bs-theme="dark"';
-      }
-    }
-    return $attr;
+    return html_color_scheme() == 'dark' ? ' data-bs-theme="dark"' : '';
   }
 
   // The path of a file that draws part of every page - layout.php, menu.php, footer.php,
   // toolbar.php. The colour scheme's own copy is used if it has one, otherwise the theme's,
-  // so a scheme replaces only the parts it changes. Both directory names were checked against
-  // what is installed when MY_COLORS and DIR_WS_THEMES were defined.
+  // so a scheme replaces only the parts it changes. A scheme that follows the browser draws
+  // with its light partner's copies, so its two partners must draw the same frame. Both
+  // directory names were checked against what is installed when MY_COLORS and DIR_WS_THEMES
+  // were defined.
   function theme_file($name) {
     $theme = defined('DIR_WS_THEMES') ? DIR_WS_THEMES : 'themes/' . DEFAULT_THEME . '/';
-    if (defined('MY_COLORS') && is_file(DIR_FS_ADMIN . $theme . 'css/' . MY_COLORS . '/' . $name)) {
-      return DIR_FS_ADMIN . $theme . 'css/' . MY_COLORS . '/' . $name;
+    if (defined('MY_COLORS')) {
+      $schemes = theme_schemes();
+      $scheme  = reset($schemes);
+      if (is_file(DIR_FS_ADMIN . $theme . 'css/' . $scheme . '/' . $name)) return DIR_FS_ADMIN . $theme . 'css/' . $scheme . '/' . $name;
     }
     return DIR_FS_ADMIN . $theme . $name;
   }
