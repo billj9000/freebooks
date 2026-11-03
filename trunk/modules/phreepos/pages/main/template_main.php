@@ -93,7 +93,7 @@ if (!empty($extra_toolbar_buttons)) {
 </div>
 
 <!-- customer_div: hidden popup, shown centred by popupContact() -->
-<div id="customer_div" style="display:none; z-index:1001; position:absolute; background:#fff; border:1px solid var(--fb-line, #a6c9e2); padding:12px">
+<div id="customer_div" style="display:none; z-index:1001; position:absolute; background:var(--fb-surface, #fff); border:1px solid var(--fb-line, #a6c9e2); padding:12px">
 <?php
   echo ORD_ACCT_ID . ' ' . html_input_field('search', isset($order->short_name) ? $order->short_name : TEXT_SEARCH, 'size="21" maxlength="64" title="' . TEXT_SEARCH . '" onchange="accountGuess(true)"');
   echo '&nbsp;' . html_icon('actions/system-search.png', TEXT_SEARCH, 'small', 'align="top" style="cursor:pointer" onclick="accountGuess(true)"');

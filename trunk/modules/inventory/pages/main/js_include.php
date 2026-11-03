@@ -220,7 +220,7 @@ function update_full_price_incl_tax(margin, inclTax, fullprice) {
         fpt_el.style.background = '#FF3300';
         fpt_el.title = '<?php echo addslashes(INV_CALCULATING_ERROR); ?>' + expected;
       } else {
-        fpt_el.style.background = '#FFFFFF';
+        fpt_el.style.background = '';
         fpt_el.removeAttribute('title');
       }
     }

@@ -19,7 +19,7 @@
 //  Path: /modules/phreehelp/pages/main/template_main.php
 //
 ?>
-<html lang="en">
+<html lang="en"<?php echo html_color_mode(); ?>>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -64,7 +64,7 @@
     #help-body   { display: flex; flex: 1; overflow: hidden; }
     #help-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--fb-line); background: var(--fb-content-bg); display: flex; flex-direction: column; overflow: hidden; }
     #helpTabContent { flex: 1; overflow-y: auto; padding: 0.5rem; }
-    #contentFrame { flex: 1; border: none; height: 100%; background: #ffffff; }
+    #contentFrame { flex: 1; border: none; height: 100%; background: var(--fb-surface); }
 
     /* Header bar: coloured like the main menu bar (.fb-navbar) */
     #help-header {
@@ -250,6 +250,28 @@
     }
   }
   document.getElementById('contentFrame').addEventListener('load', syncContentsTreeToFrame);
+
+  // Under a dark colour scheme a manual topic, which is a page of its own with the
+  // manual's light stylesheet, is given the scheme's colour tokens and
+  // manual_dark.css, which reads them. A light scheme leaves the topic as written.
+  var fbHelpTopicTokens = ['--fb-font', '--fb-ink', '--fb-ink-heading', '--fb-surface', '--fb-readonly-bg',
+    '--fb-line', '--fb-primary', '--fb-head-bg', '--fb-head-ink', '--fb-row-even-bg', '--fb-row-hover-soft-bg'];
+  function fbHelpTopicMode() {
+    if (document.documentElement.getAttribute('data-bs-theme') !== 'dark') return;
+    var doc;
+    try { doc = document.getElementById('contentFrame').contentDocument; } catch (e) { return; }
+    if (!doc || !doc.head || doc.getElementById('fb-manual-dark')) return;
+    var root = getComputedStyle(document.documentElement);
+    fbHelpTopicTokens.forEach(function (name) {
+      doc.documentElement.style.setProperty(name, root.getPropertyValue(name));
+    });
+    var link = doc.createElement('link');
+    link.id   = 'fb-manual-dark';
+    link.rel  = 'stylesheet';
+    link.href = new URL(<?php echo json_encode(html_versioned('modules/phreehelp/style_sheet/manual_dark.css')); ?>, document.baseURI).href;
+    doc.head.appendChild(link);
+  }
+  document.getElementById('contentFrame').addEventListener('load', fbHelpTopicMode);
 </script>
 </body>
 </html>

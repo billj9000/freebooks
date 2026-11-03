@@ -1,0 +1,53 @@
+/* +-----------------------------------------------------------------+
+ * |                          FreeBooks ERP                          |
+ * +-----------------------------------------------------------------+
+ * | Copyright(c) 2026 Bill Jones                                    |
+ * +-----------------------------------------------------------------+
+ * | This program is free software: you can redistribute it and/or   |
+ * | modify it under the terms of the GNU General Public License as  |
+ * | published by the Free Software Foundation, either version 3 of  |
+ * | the License, or any later version.                              |
+ * |                                                                 |
+ * | This program is distributed in the hope that it will be useful, |
+ * | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+ * | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+ * | GNU General Public License for more details.                    |
+ * +-----------------------------------------------------------------+
+ * Path: /modules/phreehelp/style_sheet/manual_dark.css
+ *
+ * A manual topic shown in the Help window under a dark colour scheme. The
+ * window links this into each topic page as it loads, after copying the
+ * scheme's --fb-* tokens onto the page (see fbHelpTopicMode() in the Help
+ * window's template), so the topic takes the scheme's colours. It overrides
+ * only the colours of the manual's own stylesheet.css; a light scheme never
+ * loads it.
+ */
+html, body { background: var(--fb-surface); color: var(--fb-ink); color-scheme: dark; }
+
+a, a:visited { color: var(--fb-primary); }
+a:hover      { color: var(--fb-primary); }
+
+h1, h2, h3, h4, h5, caption { color: var(--fb-ink-heading); }
+h1         { border-bottom-color: var(--fb-primary); }
+h2, hr     { border-color: var(--fb-line); }
+h3         { border-left-color: var(--fb-primary); }
+strong, b, dt { color: var(--fb-ink-heading); }
+
+code, pre {
+  background-color: var(--fb-readonly-bg);
+  border-color:     var(--fb-line);
+  color:            var(--fb-ink);
+}
+pre code { background: none; }
+blockquote {
+  background-color: var(--fb-readonly-bg);
+  border-left-color: var(--fb-line);
+  color:            var(--fb-ink);
+}
+
+table                       { border-color: var(--fb-line); }
+thead, table th             { background-color: var(--fb-head-bg); background-image: none; }
+thead th, table th          { color: var(--fb-head-ink); border-bottom-color: var(--fb-line); }
+tbody td, tbody th          { border-top-color: var(--fb-line); }
+tbody tr:nth-child(even) td { background-color: var(--fb-row-even-bg); }
+tbody tr:hover td           { background-color: var(--fb-row-hover-soft-bg); }

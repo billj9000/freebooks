@@ -12,7 +12,7 @@ theme.json      Optional. The name shown in the list and a one-line description 
                     "description": { "en_us": "A flatter, lighter look ...", "nl_nl": "..." } }
                 Each value is a plain string or strings keyed by language code; the user's
                 language is used, else en_us. Without it the list shows the directory name and no
-                description.
+                description. "dark": true makes the scheme a dark one (see Dark schemes below).
 stylesheet.css  Required. Linked first on every page, before Bootstrap and
                 ext/bootstrap5/freebooks.css, so it can set only the base page: background, text
                 colour and font, fieldsets, labels.
@@ -46,6 +46,24 @@ menu's sorting and permission checks are shared functions in includes/common_fun
 (fbmenu_sort, fbmenu_permitted, fbmenu_item_permitted), so a replacement menu draws only markup.
 The pop-up windows that draw a whole page themselves (Help, the shipping label viewers, the
 packing list) do not use these files.
+
+Dark schemes
+
+A scheme whose theme.json has "dark": true is drawn in dark mode: html_color_mode() puts
+data-bs-theme="dark" on every page's <html> tag, which turns Bootstrap's own components dark,
+and the [data-bs-theme=dark] rules at the end of ext/bootstrap5/freebooks.css cover what pages
+and scripts colour for themselves - Bootstrap's always-light table and background classes, a
+status colour a script paints behind a field, a company's own footer logo. The scheme's theme.css must set
+every token, because start's values are all for a light page, and sets them on
+":root, [data-bs-theme=dark]" so they outrank Bootstrap's own dark values. Help topics, which
+are pages of their own, take the scheme's tokens through
+modules/phreehelp/style_sheet/manual_dark.css. Anything that stands for paper - the Forms
+canvas, a printed document - keeps a white ground: give it the class fb-paper. ledger-dark is
+the example.
+
+A page that sets a colour of its own does it through a token with the old colour as fallback
+(var(--fb-line, #a6c9e2)), or adds a [data-bs-theme=dark] rule beside it, so that it follows
+a dark scheme and start is unchanged.
 
 To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit its files,
 starting with the name and description in theme.json. Fonts and images go under ext/ or inside the

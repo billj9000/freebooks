@@ -1485,6 +1485,23 @@ function gen_db_date($raw_date = '', $separator = '/') {
     return is_file(DIR_FS_ADMIN . $path) ? '<link rel="stylesheet" href="' . html_versioned($path) . '">' . "\n" : '';
   }
 
+  // The attribute that puts a page in dark mode, for its <html> tag: data-bs-theme="dark"
+  // when the colour scheme's theme.json has "dark": true, otherwise nothing. Bootstrap's own
+  // components and the [data-bs-theme=dark] rules in freebooks.css follow it. A page that
+  // stands for paper (the packing list, a printed label) does not use it.
+  function html_color_mode() {
+    static $attr = null;
+    if ($attr === null) {
+      $attr = '';
+      if (defined('DIR_WS_THEMES') && defined('MY_COLORS')) {
+        $file = DIR_FS_ADMIN . DIR_WS_THEMES . 'css/' . MY_COLORS . '/theme.json';
+        $info = is_file($file) ? json_decode(file_get_contents($file), true) : null;
+        if (is_array($info) && ($info['dark'] ?? false) === true) $attr = ' data-bs-theme="dark"';
+      }
+    }
+    return $attr;
+  }
+
   // The path of a file that draws part of every page - layout.php, menu.php, footer.php,
   // toolbar.php. The colour scheme's own copy is used if it has one, otherwise the theme's,
   // so a scheme replaces only the parts it changes. Both directory names were checked against

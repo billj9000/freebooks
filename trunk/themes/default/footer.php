@@ -19,11 +19,19 @@
 // The page footer: the logo (FOOTER_LOGO replaces it), the company, period and
 // version line, and the page's timing. layout.php includes it in global scope.
 // The two copyright lines credit FreeBooks and the PhreeBooks code it is based
-// on; a scheme's replacement keeps both.
-$image_path = defined('FOOTER_LOGO') ? FOOTER_LOGO : (DIR_WS_ADMIN . 'modules/phreedom/images/freebooks_logo.png');
+// on; a scheme's replacement keeps both. A dark scheme shows the FreeBooks
+// logo's dark version; a FOOTER_LOGO is drawn for a light page, so it carries
+// fb-footer-logo, which freebooks.css lightens under a dark scheme.
+if (defined('FOOTER_LOGO')) {
+  $image_path  = FOOTER_LOGO;
+  $image_class = 'fb-footer-logo';
+} else {
+  $image_path  = DIR_WS_ADMIN . 'modules/phreedom/images/' . (html_color_mode() ? 'freebooks_logo_dark.png' : 'freebooks_logo.png');
+  $image_class = '';
+}
 ?>
   <div style="clear:both;text-align:center;padding-bottom:1.5em">
-  <img src="<?php echo $image_path; ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
+  <img class="<?php echo $image_class; ?>" src="<?php echo $image_path; ?>" alt="FreeBooks" style="display:block;margin:0 auto 2px;height:80px;width:auto">
   <?php
   $footer_info  = COMPANY_NAME.' | '.TEXT_ACCOUNTING_PERIOD.': '.CURRENT_ACCOUNTING_PERIOD.' | FreeBooks ('.MODULE_PHREEDOM_VERSION.') ';
   if ($module <> 'phreedom') $footer_info .= '(' . $module . ' ' . constant('MODULE_' . strtoupper($module) . '_STATUS') . ') ';

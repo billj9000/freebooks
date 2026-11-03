@@ -43,6 +43,7 @@
   --fb-ink-heading:        #003080;
   --fb-ink-muted:          #555;
   --fb-ink-inactive:       #808080;
+  --fb-ink-faint:          #cccccc;  /* a field's hint text, shown until it is filled in */
 
   /* Surfaces and lines */
   --fb-surface:            #ffffff;
@@ -53,6 +54,7 @@
   --fb-line-menu:          #dddddd;  /* between menu items */
   --fb-line-grid:          #c0c0c0;  /* table.ui-widget cells */
   --fb-line-rule:          #dee2e6;  /* plain table footers */
+  --fb-desk-bg:            #e9edf2;  /* round a sheet of paper (the Forms canvas) */
 
   /* Header band: navbar, card and table headings, tab strip, viewer toolbar */
   --fb-head-bg:            #2191c0;
@@ -797,3 +799,65 @@ h1 {
   cursor:         default !important;
   pointer-events: none;
 }
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+/* A colour scheme whose theme.json has "dark": true puts data-bs-theme="dark"
+   on <html> (html_color_mode()), which turns Bootstrap's own components dark;
+   the scheme's tokens do the rest. These rules cover what neither reaches:
+   colours a page or script fixes for itself, and Bootstrap classes that stay
+   light in either mode. */
+
+/* A status colour painted behind a field or cell - stock on hand in order
+   entry, a part-cleared reconciliation line - is a light colour, so the text
+   over it is dark. A background a page sets from a token is left alone. */
+[data-bs-theme=dark] input[style*="background"]:not([style*="var("]),
+[data-bs-theme=dark] td[style*="background"]:not([style*="var("]) {
+  color: #111111;
+}
+
+/* Bootstrap keeps its table row colours light in both modes. The neutral ones
+   take the header band; the ones that mark a row (inactive, held, installed)
+   take Bootstrap's dark-mode tints of the same colour. */
+[data-bs-theme=dark] .table-light,
+[data-bs-theme=dark] .table-secondary {
+  --bs-table-bg:           var(--fb-head-bg);
+  --bs-table-color:        var(--fb-head-ink);
+  --bs-table-border-color: var(--fb-line);
+}
+[data-bs-theme=dark] .table-warning { --bs-table-bg: var(--bs-warning-bg-subtle); --bs-table-color: var(--bs-warning-text-emphasis); --bs-table-border-color: var(--fb-line); }
+[data-bs-theme=dark] .table-info    { --bs-table-bg: var(--bs-info-bg-subtle);    --bs-table-color: var(--bs-info-text-emphasis);    --bs-table-border-color: var(--fb-line); }
+[data-bs-theme=dark] .table-danger  { --bs-table-bg: var(--bs-danger-bg-subtle);  --bs-table-color: var(--bs-danger-text-emphasis);  --bs-table-border-color: var(--fb-line); }
+[data-bs-theme=dark] .table-success { --bs-table-bg: var(--bs-success-bg-subtle); --bs-table-color: var(--bs-success-text-emphasis); --bs-table-border-color: var(--fb-line); }
+[data-bs-theme=dark] .bg-light { background-color: var(--fb-readonly-bg) !important; }
+
+/* The Jodit HTML editor runs its own dark theme under a dark scheme (see
+   fbJoditOptions() in includes/template_index.php); its colours are fixed greys,
+   so its surfaces take the scheme's tokens here, scoped to the dark page to
+   outrank jodit.min.css, which is linked after this file. */
+[data-bs-theme=dark] .jodit_theme_dark.jodit-container,
+[data-bs-theme=dark] .jodit_theme_dark.jodit-container.jodit_disabled { background-color: var(--fb-surface); border-color: var(--fb-line); }
+[data-bs-theme=dark] .jodit_theme_dark.jodit-container:not(.jodit_inline) .jodit-workplace { border-color: var(--fb-line); }
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar__box:not(:empty) { background: var(--fb-head-bg); border-color: var(--fb-line); }
+[data-bs-theme=dark] .jodit_theme_dark .jodit-wysiwyg,
+[data-bs-theme=dark] .jodit_theme_dark .jodit-wysiwyg_iframe,
+[data-bs-theme=dark] .jodit_theme_dark .jodit-source,
+[data-bs-theme=dark] .jodit_theme_dark .jodit-source__mirror { background-color: var(--fb-surface); color: var(--fb-ink); }
+[data-bs-theme=dark] .jodit_theme_dark .jodit-status-bar,
+[data-bs-theme=dark] .jodit_theme_dark .jodit-status-bar:not(:empty) { background-color: var(--fb-head-bg); border-color: var(--fb-line); color: var(--fb-ink-muted); }
+[data-bs-theme=dark] .jodit_theme_dark .jodit-popup__content { background: var(--fb-head-bg); color: var(--fb-ink); }
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar-button:hover:not([disabled]),
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar-button__button:hover:not([disabled]),
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar-button__trigger:hover:not([disabled]),
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar-select:hover:not([disabled]),
+[data-bs-theme=dark] .jodit_theme_dark .jodit-ui-button:hover:not([disabled]) { background-color: var(--fb-hover-bg); color: var(--fb-ink); }
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar-button:hover:not([disabled]) svg,
+[data-bs-theme=dark] .jodit_theme_dark .jodit-toolbar-button__trigger:hover:not([disabled]),
+[data-bs-theme=dark] .jodit_theme_dark .jodit-ui-button:hover:not([disabled]) svg { fill: var(--fb-ink); stroke: var(--fb-ink); }
+
+/* A company's own footer logo (FOOTER_LOGO) is drawn for a light page; the
+   FreeBooks logo has a dark version of its own (themes/default/footer.php). */
+[data-bs-theme=dark] .fb-footer-logo { filter: brightness(1.9) saturate(.75); }
+
+/* Paper stays paper: a sheet laid out for printing keeps its white ground and
+   dark text whatever the page around it is. */
+[data-bs-theme=dark] .fb-paper { background-color: #ffffff; color: #000000; color-scheme: light; }

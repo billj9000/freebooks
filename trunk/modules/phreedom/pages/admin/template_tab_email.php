@@ -24,8 +24,14 @@
 .email-row.shaded    { background-color:#f5f7fa; }
 .email-label         { width:40%; padding:8px 12px; vertical-align:top; }
 .email-label strong  { display:block; margin-bottom:3px; font-size:1em; }
-.email-label .hint   { font-size:0.88em; color:#555; line-height:1.4em; }
+.email-label .hint   { font-size:0.88em; color:var(--fb-ink-muted, #555); line-height:1.4em; }
 .email-field         { width:60%; padding:8px 12px; vertical-align:middle; }
+.email-ok            { color:#3c763d; }
+.email-bad           { color:#a94442; }
+[data-bs-theme=dark] .email-row        { border-bottom-color:var(--fb-line); }
+[data-bs-theme=dark] .email-row.shaded { background-color:var(--fb-row-even-bg); }
+[data-bs-theme=dark] .email-ok         { color:var(--bs-success-text-emphasis); }
+[data-bs-theme=dark] .email-bad        { color:var(--bs-danger-text-emphasis); }
 </style>
 
 <div class="tab-pane fade<?php echo ($active_tab === 'email' ? ' show active' : ''); ?>" id="tab_email" role="tabpanel">
@@ -225,9 +231,9 @@
             <?php
               $has_token = defined('EMAIL_OAUTH2_REFRESH_TOKEN') && gen_not_null(EMAIL_OAUTH2_REFRESH_TOKEN);
               if ($has_token) {
-                echo '<span style="color:#3c763d">' . CD_OAUTH2_AUTHORIZED . '</span> &nbsp;';
+                echo '<span class="email-ok">' . CD_OAUTH2_AUTHORIZED . '</span> &nbsp;';
               } else {
-                echo '<span style="color:#a94442">' . CD_OAUTH2_NOT_AUTHORIZED . '</span> &nbsp;';
+                echo '<span class="email-bad">' . CD_OAUTH2_NOT_AUTHORIZED . '</span> &nbsp;';
               }
             ?>
             <input type="hidden" name="email_oauth2_refresh_token" id="email_oauth2_refresh_token"

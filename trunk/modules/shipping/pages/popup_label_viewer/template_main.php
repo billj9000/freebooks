@@ -24,7 +24,7 @@ $post_url = html_href_link(FILENAME_DEFAULT,
   '&labels='  . urlencode($label_list), 'SSL');
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"<?php echo html_color_mode(); ?>>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -145,7 +145,8 @@ var _joditViewer  = null;
 
 function initMsgEditor() {
   if (!_joditViewer) {
-    _joditViewer = Jodit.make(document.getElementById('message_body'));
+    _joditViewer = Jodit.make(document.getElementById('message_body'),
+      { theme: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'default' });
   }
 }
 

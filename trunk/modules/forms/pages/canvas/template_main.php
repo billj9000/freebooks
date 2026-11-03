@@ -298,7 +298,7 @@ if ($forms_canvas_definition === null) { ?>
     <?php } ?>
     <div class="row g-2">
       <div class="col-lg-9">
-        <div style="overflow:auto;max-height:78vh;background:#e9edf2;padding:0.5rem">
+        <div style="overflow:auto;max-height:78vh;background:var(--fb-desk-bg, #e9edf2);padding:0.5rem">
           <?php // The stack: the rasterized page, then a transparent layer of
                 // absolutely positioned boxes. Same origin, same scale, so a
                 // box at 140 mm lands on the text drawn at 140 mm. ?>
@@ -308,7 +308,7 @@ if ($forms_canvas_definition === null) { ?>
                 // swathe over the page and hides the thing that did happen.
                 // Nothing on this stack is text worth selecting anyway — it is
                 // a rasterized picture with outlines over it. ?>
-          <div id="forms_canvas_stack" style="position:relative;margin:0 auto;width:max-content;
+          <div id="forms_canvas_stack" class="fb-paper" style="position:relative;margin:0 auto;width:max-content;
                       user-select:none;-webkit-user-select:none;
                       box-shadow:0 1px 6px rgba(0,0,0,.3);background:#fff">
             <canvas id="forms_canvas_page" style="display:block"></canvas>

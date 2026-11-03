@@ -22,7 +22,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
 } else {
 ?>
 <!DOCTYPE html>
-<html <?php echo HTML_PARAMS; ?>>
+<html <?php echo HTML_PARAMS . html_color_mode(); ?>>
  <head>
   <!-- module: <?php echo $module; ?> - page: <?php echo $page; ?> -->
   <meta http-equiv="Content-Type" content="text/html; charset=<?php echo CHARSET; ?>" />
@@ -45,7 +45,7 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   var text_search         = '<?php echo TEXT_SEARCH; ?>';
   var date_format         = '<?php echo defined('DATE_FORMAT')    ? DATE_FORMAT    : 'Y-m-d'; ?>';
   var date_delimiter      = '<?php echo defined('DATE_DELIMITER') ? DATE_DELIMITER : '-';    ?>';
-  var inactive_text_color = '#cccccc';
+  var inactive_text_color = 'var(--fb-ink-faint, #cccccc)';
   var form_submitted      = false;
   // Variables for script generated combo boxes
   var icon_path           = '<?php echo DIR_WS_ICONS; ?>';
@@ -66,12 +66,16 @@ if ($custom_html) { // load the template only as the rest of the html will be ge
   <script type="text/javascript" src="includes/common.js?v=<?php echo filemtime(DIR_FS_INCLUDES . 'common.js'); ?>"></script>
   <script type="text/javascript" src="jodit/jodit.min.js"></script>
   <script type="text/javascript">
+  // Jodit's dark theme under a dark scheme; freebooks.css gives it the scheme's colours.
+  function fbJoditOptions() {
+    return { theme: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'default' };
+  }
   function initJoditEditors() {
     document.querySelectorAll('textarea.jodit-editor').forEach(function(el) {
       if (el.dataset.joditInit) return;      // already initialized
       if (el.offsetParent === null) return;  // inside a hidden tab-pane: Jodit can't size it now — defer
       el.dataset.joditInit = '1';
-      Jodit.make(el);
+      Jodit.make(el, fbJoditOptions());
     });
   }
   // Bootstrap fires shown.bs.tab when a tab becomes visible; initialize any editors deferred above.

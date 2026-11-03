@@ -20,11 +20,11 @@
 ?>
 <style>
 .module-installed {
-  background-color:    #6eac2c;
-  background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_50_6eac2c_500x100.png);
+  background-color:    var(--fb-active-bg);
+  background-image:    var(--fb-active-image);
   background-repeat:   repeat-x;
   background-position: 50% 50%;
-  color:               #fff !important;
+  color:               var(--fb-active-ink) !important;
 }
 </style>
 <div class="tab-pane fade<?php echo ($active_tab === 'modules' ? ' show active' : ''); ?>" id="tab_modules" role="tabpanel">

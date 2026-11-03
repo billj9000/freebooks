@@ -24,8 +24,10 @@
 .zc-row.shaded   { background-color:#f5f7fa; }
 .zc-label        { width:40%; padding:8px 12px; vertical-align:top; }
 .zc-label strong { display:block; margin-bottom:3px; font-size:1em; }
-.zc-label .hint  { font-size:0.88em; color:#555; line-height:1.4em; }
+.zc-label .hint  { font-size:0.88em; color:var(--fb-ink-muted, #555); line-height:1.4em; }
 .zc-field        { width:60%; padding:8px 12px; vertical-align:middle; }
+[data-bs-theme=dark] .zc-row        { border-bottom-color:var(--fb-line); }
+[data-bs-theme=dark] .zc-row.shaded { background-color:var(--fb-row-even-bg); }
 </style>
 <div class="tab-pane show active" id="tab_general">
   <div class="card fb-card mt-2">
