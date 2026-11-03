@@ -34,13 +34,13 @@ echo $toolbar->build_toolbar($add_search = false, $add_period = true);
 
 <!-- Account selector -->
 <div class="card fb-card mb-2 mx-auto" style="width:fit-content">
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <span><?php echo TEXT_CASH_ACCOUNT; ?>&nbsp;</span>
-    <?php echo html_pull_down_menu('gl_account', $account_array, $gl_account, 'style="font-size:11px;width:320px" onchange="submit();"'); ?>
+    <?php echo html_pull_down_menu('gl_account', $account_array, $gl_account, 'style="font-size:var(--fb-font-size, 11px);width:320px" onchange="submit();"'); ?>
   </div>
 </div>
 
-<?php if (ENABLE_MULTI_CURRENCY) echo '<p class="ms-2" style="font-size:11px">' . sprintf(GEN_PRICE_SHEET_CURRENCY_NOTE, $currencies->currencies[DEFAULT_CURRENCY]['title']) . '</p>' . chr(10); ?>
+<?php if (ENABLE_MULTI_CURRENCY) echo '<p class="ms-2" style="font-size:var(--fb-font-size, 11px)">' . sprintf(GEN_PRICE_SHEET_CURRENCY_NOTE, $currencies->currencies[DEFAULT_CURRENCY]['title']) . '</p>' . chr(10); ?>
 
 <!-- Register table -->
 <div class="card fb-card mb-2 mx-auto" style="width:fit-content">

@@ -78,6 +78,9 @@
   --fb-head-border:        #e2e7ee;
   --fb-head-ink:           #4b5563;
 
+  --fb-nav-bg:             #111827;
+  --fb-nav-image:          none;
+  --fb-nav-border:         #111827;
   --fb-nav-ink:            #c3cad6;
   --fb-nav-hover-bg:       #1f2937;
   --fb-nav-hover-ink:      #ffffff;
@@ -407,7 +410,7 @@ tr.fb-forms-folder > td { border-top-width: 1px; }
 .ws-side {
   flex:            0 0 232px;
   width:           232px;
-  background:      #111827;
+  background:      var(--fb-nav-bg);
   color:           var(--fb-nav-ink);
   padding:         14px 10px;
   position:        sticky;

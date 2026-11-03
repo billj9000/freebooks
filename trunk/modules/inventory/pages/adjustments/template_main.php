@@ -37,11 +37,11 @@ echo $toolbar->build_toolbar();
 
 <!-- Settings card -->
 <div class="card fb-card mb-2 mx-auto" style="width:fit-content">
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <?php if (ENABLE_MULTI_BRANCH): ?>
     <div class="row g-2 align-items-center mb-2">
       <div class="col-auto text-end"><?php echo GEN_STORE_ID; ?></div>
-      <div class="col-auto"><?php echo html_pull_down_menu('store_id', gen_get_store_ids(), !empty($cInfo->store_id) ? $cInfo->store_id : $_SESSION['admin_prefs']['def_store_id'], 'style="font-size:11px"'); ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('store_id', gen_get_store_ids(), !empty($cInfo->store_id) ? $cInfo->store_id : $_SESSION['admin_prefs']['def_store_id'], 'style="font-size:var(--fb-font-size, 11px)"'); ?></div>
     </div>
     <?php else: $hidden_fields .= html_hidden_field('store_id', $_SESSION['admin_prefs']['def_store_id']) . chr(10); ?>
     <?php endif; ?>
@@ -53,7 +53,7 @@ echo $toolbar->build_toolbar();
     </div>
     <div class="row g-2 align-items-center">
       <div class="col-auto text-end"><?php echo INV_ADJUSTMENT_ACCOUNT; ?></div>
-      <div class="col-auto"><?php echo html_pull_down_menu('gl_acct', $gl_array_list, $cInfo->gl_acct ? $cInfo->gl_acct : INV_STOCK_DEFAULT_INVENTORY, 'style="font-size:11px;width:280px"'); ?></div>
+      <div class="col-auto"><?php echo html_pull_down_menu('gl_acct', $gl_array_list, $cInfo->gl_acct ? $cInfo->gl_acct : INV_STOCK_DEFAULT_INVENTORY, 'style="font-size:var(--fb-font-size, 11px);width:280px"'); ?></div>
       <div class="col-auto text-end"><?php echo TEXT_REFERENCE; ?></div>
       <div class="col-auto"><?php echo html_input_field('purchase_invoice_id', $cInfo->purchase_invoice_id ?? '', 'class="form-control form-control-sm" style="width:160px"'); ?></div>
     </div>
@@ -117,6 +117,6 @@ if (!$error) {
     </div>
   </div>
 </div>
-<p style="font-size:11px"><?php echo JS_COGS_AUTO_CALC; ?></p>
+<p style="font-size:var(--fb-font-size, 11px)"><?php echo JS_COGS_AUTO_CALC; ?></p>
 <?php echo $hidden_fields; ?>
 </form>

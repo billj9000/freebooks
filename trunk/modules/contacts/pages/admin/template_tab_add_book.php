@@ -21,7 +21,7 @@
 <div class="tab-pane fade" id="tab_add_book" role="tabpanel">
   <div class="card fb-card mt-2 mb-2">
     <div class="card-header py-1"><?php echo TEXT_BILLING_PREFS; ?></div>
-    <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
 <?php
 $add_book_fields = array(
   'address_book_contact_required'        => array('label' => sprintf(CONTACT_BILL_FIELD_REQ, GEN_CONTACT),        'const' => 'ADDRESS_BOOK_CONTACT_REQUIRED'),

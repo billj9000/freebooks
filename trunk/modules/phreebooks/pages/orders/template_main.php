@@ -561,7 +561,7 @@ echo html_input_field('bill_email', $order->bill_email, 'size="35" maxlength="48
           echo '</span><br />';
           echo ORD_FREIGHT_TAX . ' ' . html_pull_down_menu('freight_tax_id', $tax_rates, $frt_tax_default, 'onchange="updateTotalPrices()"');
           echo html_hidden_field('ship_packages', htmlspecialchars($order->ship_packages ?? ''));
-          echo '<br><a id="packing-list-link" href="#" target="_blank" style="font-size:11px;display:none">' . htmlspecialchars(PKL_PRINT_LINK) . '</a>';
+          echo '<br><a id="packing-list-link" href="#" target="_blank" style="font-size:var(--fb-font-size, 11px);display:none">' . htmlspecialchars(PKL_PRINT_LINK) . '</a>';
         ?>
       </td>
     </tr>

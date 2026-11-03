@@ -37,15 +37,15 @@ echo $toolbar->build_toolbar($add_search = false, $add_period = false);
 <!-- Filter bar -->
 <div class="card fb-card mb-2 mx-auto" style="width:fit-content">
   <div class="card-body py-1 px-2">
-    <div class="d-flex align-items-center gap-3" style="font-size:11px">
+    <div class="d-flex align-items-center gap-3" style="font-size:var(--fb-font-size, 11px)">
       <span><?php echo TEXT_CASH_ACCOUNT; ?></span>
-      <?php echo html_pull_down_menu('gl_account', $account_array, $gl_account, 'style="font-size:11px" onchange="submit();"'); ?>
+      <?php echo html_pull_down_menu('gl_account', $account_array, $gl_account, 'style="font-size:var(--fb-font-size, 11px)" onchange="submit();"'); ?>
       <span><?php echo TEXT_INFO_SEARCH_PERIOD_FILTER; ?></span>
-      <?php echo html_pull_down_menu('search_period', gen_get_period_pull_down(false), $period, 'style="font-size:11px" onchange="submit();"'); ?>
+      <?php echo html_pull_down_menu('search_period', gen_get_period_pull_down(false), $period, 'style="font-size:var(--fb-font-size, 11px)" onchange="submit();"'); ?>
     </div>
   </div>
 </div>
-<?php if (ENABLE_MULTI_CURRENCY) echo '<p class="ms-2" style="font-size:11px">' . sprintf(GEN_PRICE_SHEET_CURRENCY_NOTE, $currencies->currencies[DEFAULT_CURRENCY]['title']) . '</p>' . chr(10); ?>
+<?php if (ENABLE_MULTI_CURRENCY) echo '<p class="ms-2" style="font-size:var(--fb-font-size, 11px)">' . sprintf(GEN_PRICE_SHEET_CURRENCY_NOTE, $currencies->currencies[DEFAULT_CURRENCY]['title']) . '</p>' . chr(10); ?>
 
 <!-- Reconciliation card -->
 <div class="card fb-card mb-2 mx-auto" style="max-width:960px">
@@ -105,7 +105,7 @@ echo $toolbar->build_toolbar($add_search = false, $add_period = false);
                 $ref  = $i;
                 $even = true;
                 echo '<tr id="detail_' . $i . '" style="display:none"><td colspan="7" class="p-0">' . chr(10);
-                echo '<table class="table table-borderless table-sm mb-0" style="font-size:11px">' . chr(10);
+                echo '<table class="table table-borderless table-sm mb-0" style="font-size:var(--fb-font-size, 11px)">' . chr(10);
                 foreach ($values['detail'] as $detail) {
                   $det_disabled = ($detail['cleared'] <> $period && $detail['cleared'] > 0) ? 'disabled="disabled" ' : '';
                   $det_cleared  = ($detail['cleared'] <> $period && $detail['cleared'] > 0) ? $detail['cleared'] . ' ' : '';
@@ -140,23 +140,23 @@ echo $toolbar->build_toolbar($add_search = false, $add_period = false);
         </tbody>
         <tfoot>
           <tr class="tfoot-entry">
-            <td colspan="5" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo BNK_START_BALANCE; ?></td>
+            <td colspan="5" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo BNK_START_BALANCE; ?></td>
             <td colspan="2"><?php echo html_input_field('start_balance', $statement_balance, 'class="form-control form-control-sm text-end" onchange="updateBalance()"'); ?></td>
           </tr>
           <tr>
-            <td colspan="5" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo BNK_OPEN_CHECKS; ?></td>
+            <td colspan="5" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo BNK_OPEN_CHECKS; ?></td>
             <td colspan="2"><?php echo html_input_field('open_checks', '0', 'disabled class="form-control form-control-sm text-end"'); ?></td>
           </tr>
           <tr>
-            <td colspan="5" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo BNK_OPEN_DEPOSITS; ?></td>
+            <td colspan="5" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo BNK_OPEN_DEPOSITS; ?></td>
             <td colspan="2"><?php echo html_input_field('open_deposits', '0', 'disabled class="form-control form-control-sm text-end"'); ?></td>
           </tr>
           <tr>
-            <td colspan="5" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo BNK_GL_BALANCE; ?></td>
+            <td colspan="5" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo BNK_GL_BALANCE; ?></td>
             <td colspan="2"><?php echo html_input_field('gl_balance', $gl_balance, 'disabled class="form-control form-control-sm text-end"'); ?></td>
           </tr>
           <tr>
-            <td colspan="5" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo BNK_END_BALANCE; ?></td>
+            <td colspan="5" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo BNK_END_BALANCE; ?></td>
             <td colspan="2"><?php echo html_input_field('balance', '0', 'readonly class="form-control form-control-sm text-end"'); ?></td>
           </tr>
         </tfoot>

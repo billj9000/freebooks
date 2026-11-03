@@ -404,7 +404,7 @@ $bands   = (array)($style['band'] ?? array());
           <?php echo FORMS_DESIGN_REFRESH; ?>
         </button>
         <iframe id="forms_design_preview" name="forms_design_preview" title="<?php echo FORMS_DESIGN_PREVIEW; ?>"
-                style="width:100%;height:70vh;border:1px solid #a6c9e2;background:#fff"></iframe>
+                style="width:100%;height:70vh;border:1px solid var(--fb-line, #a6c9e2);background:#fff"></iframe>
       </div>
     </div>
   </div>

@@ -37,7 +37,7 @@ echo $toolbar->build_toolbar();
 <div class="d-flex align-items-start gap-5 justify-content-center flex-wrap">
 
   <!-- Settings card -->
-  <div class="card border-0" style="width:fit-content; font-size:11px; min-width:280px">
+  <div class="card border-0" style="width:fit-content; font-size:var(--fb-font-size, 11px); min-width:280px">
     <div class="card-body p-1">
       <?php if (ENABLE_MULTI_BRANCH): ?>
       <div class="d-flex justify-content-between align-items-center gap-3 mb-1">

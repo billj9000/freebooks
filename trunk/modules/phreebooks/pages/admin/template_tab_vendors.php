@@ -21,7 +21,7 @@
 <div class="tab-pane fade<?php echo ($active_tab === 'vendors' ? ' show active' : ''); ?>" id="tab_vendors" role="tabpanel">
   <div class="card fb-card mt-2 mb-2">
     <div class="card-header py-1 fb-widget-header"><?php echo TEXT_DEFAULT_GL_ACCOUNTS; ?></div>
-    <div class="card-body p-2" style="font-size:11px">
+    <div class="card-body p-2" style="font-size:var(--fb-font-size, 11px)">
       <table class="table table-borderless table-sm mb-0">
         <tbody>
           <tr>
@@ -58,7 +58,7 @@
   </div>
   <div class="card fb-card mb-2">
     <div class="card-header py-1 fb-widget-header"><?php echo TEXT_PAYMENT_TERMS; ?></div>
-    <div class="card-body p-2" style="font-size:11px">
+    <div class="card-body p-2" style="font-size:var(--fb-font-size, 11px)">
       <table class="table table-borderless table-sm mb-0">
         <tbody>
           <tr>
@@ -84,7 +84,7 @@
   </div>
   <div class="card fb-card mb-2">
     <div class="card-header py-1 fb-widget-header"><?php echo TEXT_ACCOUNT_AGING; ?></div>
-    <div class="card-body p-2" style="font-size:11px">
+    <div class="card-body p-2" style="font-size:var(--fb-font-size, 11px)">
       <table class="table table-borderless table-sm mb-0">
         <tbody>
           <tr>
@@ -117,7 +117,7 @@
   </div>
   <div class="card fb-card mb-2">
     <div class="card-header py-1 fb-widget-header"><?php echo TEXT_PREFERENCES; ?></div>
-    <div class="card-body p-2" style="font-size:11px">
+    <div class="card-body p-2" style="font-size:var(--fb-font-size, 11px)">
       <table class="table table-borderless table-sm mb-0">
         <tbody>
           <tr>

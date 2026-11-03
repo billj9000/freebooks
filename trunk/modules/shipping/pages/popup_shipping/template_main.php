@@ -123,7 +123,7 @@ $sel_unit = 'class="form-select form-select-sm" style="min-width:5rem;flex:0 0 a
   <input type="hidden" name="qty_<?php echo $ii+1; ?>" value="<?php echo (int)$item['qty']; ?>">
   <?php endforeach; ?>
   <?php if (!empty($pkg->items)): ?>
-  <div class="mb-2" style="font-size:11px;color:#666">
+  <div class="mb-2" style="font-size:var(--fb-font-size, 11px);color:#666">
     <?php
     $summary = array_slice($pkg->items, 0, 6);
     $parts = array_map(fn($i) => htmlspecialchars($i['sku']) . '&times;' . (int)$i['qty'], $summary);
@@ -157,7 +157,7 @@ $sel_unit = 'class="form-select form-select-sm" style="min-width:5rem;flex:0 0 a
       </div>
     </div>
   </div>
-  <div class="mb-3 form-text" style="font-size:10px;color:#888"><?php echo SHIPPING_TEXT_WEIGHT_FALLBACK; ?></div>
+  <div class="mb-3 form-text" style="font-size:calc(var(--fb-font-size, 11px) - 1px);color:#888"><?php echo SHIPPING_TEXT_WEIGHT_FALLBACK; ?></div>
 
   <!-- Methods -->
   <div class="mb-3">
@@ -176,7 +176,7 @@ $sel_unit = 'class="form-select form-select-sm" style="min-width:5rem;flex:0 0 a
   <div class="d-flex align-items-center gap-2">
     <button type="submit" class="btn btn-primary btn-sm"><?php echo TEXT_CONTINUE; ?></button>
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><?php echo TEXT_CANCEL; ?></button>
-    <span id="est-spinner" class="htmx-indicator ms-2 text-muted" style="font-size:11px"><?php echo TEXT_PLEASE_WAIT; ?></span>
+    <span id="est-spinner" class="htmx-indicator ms-2 text-muted" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_PLEASE_WAIT; ?></span>
   </div>
 
 </form>

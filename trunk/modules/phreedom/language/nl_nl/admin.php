@@ -266,11 +266,11 @@ define('ERROR_CANNOT_REMOVE_MODULE_DIR','Error Bij verwijderen van directory: %s
 define('ERROR_CANNOT_CREATE_MODULE_DIR','Error Bij maken van directory: %s. Controleer uw rechten!');
 define('GEN_ERROR_NO_THEME_COLORS','U moet een kleur kiezen. Dit thema blijkt er geen te hebben. Kies een ander thema!');
 define('GEN_ADMIN_CANNOT_CHANGE_ROLES','U rechten staan u niet toe om rollen te wijzigen!');
-define('TEXT_THEMES_COLORS_DESC','Stel uw het kleurschema en thema van uw voorkeur in. Klik op bewaren en zie het in actie.');
+define('TEXT_THEMES_COLORS_DESC','Kies hoe FreeBooks er voor u uitziet. Het nieuwe thema geldt zodra u bewaart.');
 define('TEXT_MENU_OPEN_BEHAVIOUR', 'Openingsgedrag Bootstrap Menu');
 define('TEXT_MENU_CLICK', 'Klikken (standaard)');
 define('TEXT_MENU_HOVER', 'Zweven');
-define('TEXT_THEMES_COLORS_TITLE','Thema en Kleur Schema\'s');
+define('TEXT_THEMES_COLORS_TITLE','Thema');
 define('GEN_ADM_TOOLS_SEQ_HEADING','Verander Diverse nummer Reeksen');
 define('GEN_ADM_TOOLS_SEQ_DESC','Wijzigingen in de volgorde kunnen hier gemaakt worden <br /> Opmerking 1:. FreeBooks niet omgaan met dubbele reeksen, Zorg ervoor dat de nieuwe startvolgorde niet in strijd is met eerder geposte waarden <br /> Opmerking 2.: De next_deposit_num wordt gegenereerd door het systeem en maakt gebruik van de huidige datum <br /> Noot 3:. De next_check_num kan worden ingesteld bij de betaling scherm voorafgaand aan het plaatsen van een betaling en blijven van de ingevoerde waarde.');
 define('GENERAL_CONFIG_SAVED','Configuratie waarden zijn opgeslagen.');

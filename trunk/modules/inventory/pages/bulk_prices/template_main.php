@@ -30,7 +30,7 @@ $toolbar->add_help('07.04.06');
 echo $toolbar->build_toolbar($add_search = true);
 ?>
 <h1><?php echo INV_BULK_SKU_ENTRY_TITLE; ?></h1>
-<div class="d-flex justify-content-between mb-1" style="font-size:11px">
+<div class="d-flex justify-content-between mb-1" style="font-size:var(--fb-font-size, 11px)">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_ITEMS); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
@@ -63,7 +63,7 @@ while (!$query_result->EOF) {
 ?>
   </tbody>
 </table>
-<div class="d-flex justify-content-between" style="font-size:11px">
+<div class="d-flex justify-content-between" style="font-size:var(--fb-font-size, 11px)">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_ITEMS); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>

@@ -60,7 +60,11 @@
   --fb-head-border:        #4297d7;
   --fb-head-ink:           #eaf5f7;
 
-  /* Main menu */
+  /* Main menu, and the bar across the top of the Help window. Unless a scheme
+     sets them, the bar is the header band. */
+  --fb-nav-bg:             var(--fb-head-bg);
+  --fb-nav-image:          var(--fb-head-image);
+  --fb-nav-border:         var(--fb-head-border);
   --fb-nav-ink:            #ffffff;
   --fb-nav-hover-bg:       #026890;
   --fb-nav-hover-ink:      #ffffff;
@@ -665,11 +669,11 @@ h1 {
 
 /* ── Bootstrap navbar ────────────────────────────────────────────── */
 .fb-navbar {
-  background-color: var(--fb-head-bg);
-  background-image: var(--fb-head-image);
+  background-color: var(--fb-nav-bg);
+  background-image: var(--fb-nav-image);
   background-repeat: repeat-x;
   background-position: 50% 50%;
-  border-bottom: 1px solid var(--fb-head-border);
+  border-bottom: 1px solid var(--fb-nav-border);
   font-family: var(--fb-font);
   font-size: var(--fb-menu-font-size);
   font-weight: bold;

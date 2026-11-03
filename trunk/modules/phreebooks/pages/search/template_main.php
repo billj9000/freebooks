@@ -28,8 +28,8 @@ $toolbar->icon_list['print']['show']    = false;
 if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $value) $toolbar->icon_list[$key] = $value;
 $toolbar->add_help('');
 echo $toolbar->build_toolbar();
-$fs = 'style="font-size:11px"';
-$fc = 'style="font-size:11px" size="16"';
+$fs = 'style="font-size:var(--fb-font-size, 11px)"';
+$fc = 'style="font-size:var(--fb-font-size, 11px)" size="16"';
 ?>
 <h1><?php echo HEADING_TITLE_SEARCH_INFORMATION; ?></h1>
 
@@ -43,13 +43,13 @@ $fc = 'style="font-size:11px" size="16"';
     </span>
   </div>
   <div class="card-body py-1 px-2">
-    <table class="table table-sm table-borderless mb-0" style="font-size:11px;width:auto">
+    <table class="table table-sm table-borderless mb-0" style="font-size:var(--fb-font-size, 11px);width:auto">
       <thead>
         <tr>
-          <th style="font-size:11px"><?php echo TEXT_FILTER; ?></th>
-          <th style="font-size:11px"><?php echo TEXT_TYPE; ?></th>
-          <th style="font-size:11px"><?php echo TEXT_FROM; ?></th>
-          <th style="font-size:11px"><?php echo TEXT_TO; ?></th>
+          <th style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_FILTER; ?></th>
+          <th style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_TYPE; ?></th>
+          <th style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_FROM; ?></th>
+          <th style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_TO; ?></th>
         </tr>
       </thead>
       <tbody>
@@ -105,7 +105,7 @@ $fc = 'style="font-size:11px" size="16"';
 </div>
 
 <!-- Results -->
-<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:11px">
+<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:var(--fb-font-size, 11px)">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_RESULTS); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
@@ -181,7 +181,7 @@ $fc = 'style="font-size:11px" size="16"';
   </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:11px">
+<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:var(--fb-font-size, 11px)">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_RESULTS); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>

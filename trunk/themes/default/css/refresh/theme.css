@@ -76,6 +76,9 @@
   --fb-head-border:        #d5e0ea;
   --fb-head-ink:           #3b5368;
 
+  --fb-nav-bg:             #0a6ea8;
+  --fb-nav-image:          none;
+  --fb-nav-border:         #0a6ea8;
   --fb-nav-ink:            #e9f4fb;
   --fb-nav-hover-bg:       rgba(255, 255, 255, .1);
   --fb-nav-hover-ink:      #ffffff;
@@ -204,9 +207,8 @@ input[readonly], .form-control[readonly] { background-color: var(--fb-readonly-b
 }
 
 /* ── Main menu ──────────────────────────────────────────────────── */
-/* The menu bar is the primary blue here, not the header band. */
+/* The menu bar is the primary blue here (--fb-nav-bg), not the header band. */
 .fb-navbar {
-  background-color: var(--fb-primary);
   border-bottom:    0;
   font-weight:      500;
 }
@@ -259,6 +261,9 @@ input[readonly], .form-control[readonly] { background-color: var(--fb-readonly-b
   gap:         4px;
   padding:     4px;
 }
+/* A toolbar inside a strip of its own, as on the point of sale screen, has no
+   second border. */
+.fb-toolbar-section .fb-toolbar-labelled { border: 0; margin: 0; }
 .fb-tb-btn {
   display:          inline-flex;
   align-items:      center;

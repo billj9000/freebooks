@@ -38,7 +38,7 @@ echo $toolbar->build_toolbar();
 <!-- General card -->
 <div class="card fb-card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo TEXT_GENERAL; ?></div>
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="row g-2 align-items-center mb-2">
       <div class="col-auto"><?php echo GEN_USERNAME; ?></div>
       <div class="col-auto"><?php echo html_input_field('admin_name', $uInfo->admin_name, 'class="form-control form-control-sm" style="width:180px"'); ?></div>
@@ -68,7 +68,7 @@ echo $toolbar->build_toolbar();
 <!-- Profile card -->
 <div class="card fb-card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo TEXT_PROFILE; ?></div>
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="row g-2 align-items-center mb-2">
       <div class="col-auto"><?php echo GEN_DEFAULT_STORE; ?></div>
       <div class="col-auto"><?php echo html_pull_down_menu('def_store_id', gen_get_store_ids(), $error ? $_POST['def_store_id'] : $uInfo->def_store_id, 'class="form-select form-select-sm"'); ?></div>
@@ -93,7 +93,7 @@ echo $toolbar->build_toolbar();
 <!-- Security Settings card -->
 <div class="card fb-card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo TEXT_SECURITY_SETTINGS; ?></div>
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="mb-2">
       <?php echo TEXT_FILL_ALL_LEVELS; ?>
       <?php echo html_pull_down_menu('fill_all', $fill_all_values, '-1', 'class="form-select form-select-sm d-inline-block ms-1" style="width:auto" onchange="submitToDo(\'fill_all\')"'); ?>
@@ -144,8 +144,8 @@ foreach ($mainmenu as $key => $menu_heading) {
 <?php if (wa_enabled() && $security_level > 2 && $pk_target_id && ($uInfo->is_role ?? '0') !== '1'): ?>
 <div class="card fb-card mb-3">
   <div class="card-header py-1 fb-widget-header"><?php echo TEXT_PASSKEYS_TITLE; ?></div>
-  <div class="card-body py-2 px-3" style="font-size:11px">
-    <table class="table table-borderless table-hover" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
+    <table class="table table-borderless table-hover" style="font-size:var(--fb-font-size, 11px)">
       <thead class="table-dark">
         <tr>
           <th><?php echo TEXT_PASSKEY_LABEL; ?></th>

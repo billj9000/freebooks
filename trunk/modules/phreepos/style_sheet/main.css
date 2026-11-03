@@ -1,4 +1,22 @@
 @CHARSET "UTF-8";
+/* +-----------------------------------------------------------------+
+ * |                          FreeBooks ERP                          |
+ * +-----------------------------------------------------------------+
+ * | Copyright(c) 2026 Bill Jones                                    |
+ * | Portions Copyright(c) 2008-2014 PhreeSoft                       |
+ * +-----------------------------------------------------------------+
+ * | This program is free software: you can redistribute it and/or   |
+ * | modify it under the terms of the GNU General Public License as  |
+ * | published by the Free Software Foundation, either version 3 of  |
+ * | the License, or any later version.                              |
+ * |                                                                 |
+ * | This program is distributed in the hope that it will be useful, |
+ * | but WITHOUT ANY WARRANTY; without even the implied warranty of  |
+ * | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   |
+ * | GNU General Public License for more details.                    |
+ * +-----------------------------------------------------------------+
+ * Path: /modules/phreepos/style_sheet/main.css
+ */
 
 /* POS-specific font sizes */
 input, select, textarea {
@@ -56,9 +74,13 @@ img#curr_image:hover {
     height: 300px;
 }
 
-/* Totals block */
+/* Totals block. Its fields are as large as its labels; the id outranks the
+   fixed field size a colour scheme's theme.css sets, linked after this file. */
 #totals_div {
     font-size: 2em;
+}
+#totals_div input {
+    font-size: 1em;
 }
 
 /* Payment table — right-aligned */

@@ -200,7 +200,7 @@ $sel_sm = 'class="form-select form-select-sm"';
               <input type="text" class="form-control form-control-sm text-end" style="width:8em"
                      name="total_value" id="total_value"
                      value="<?php echo htmlspecialchars($sInfo->total_value ?? ''); ?>" readonly>
-              <span class="input-group-text" style="font-size:11px;border-radius:0;padding:2px 5px">
+              <span class="input-group-text" style="font-size:var(--fb-font-size, 11px);border-radius:0;padding:2px 5px">
                 <?php echo htmlspecialchars($home_currency); ?>
               </span>
             </div>
@@ -211,7 +211,7 @@ $sel_sm = 'class="form-select form-select-sm"';
             $eur_value = number_format(round((float)($sInfo->total_value ?? 0) * (float)($sInfo->currencies_value ?: 1), 2), 2);
           ?>
           <div class="col-auto">
-            <span class="badge" style="background-color:#2191c0;font-size:11px;border-radius:0">
+            <span class="badge" style="background-color:var(--fb-nav-bg, #2191c0);color:var(--fb-nav-ink, #fff);font-size:var(--fb-font-size, 11px);border-radius:0">
               <?php echo $eur_value . ' ' . htmlspecialchars($order_currency); ?>
             </span>
           </div>
@@ -491,7 +491,7 @@ $sel_sm = 'class="form-select form-select-sm"';
             <?php if ($order_currency && $order_currency !== $home_currency):
               $li_conv = number_format(round((float)$item['value'] * (float)($sInfo->currencies_value ?: 1), 2), 2);
             ?>
-            <span class="badge" style="background-color:#2191c0;font-size:10px;border-radius:0">
+            <span class="badge" style="background-color:var(--fb-nav-bg, #2191c0);color:var(--fb-nav-ink, #fff);font-size:calc(var(--fb-font-size, 11px) - 1px);border-radius:0">
               <?php echo $li_conv . ' ' . htmlspecialchars($order_currency); ?>
             </span>
             <?php endif; ?>

@@ -19,10 +19,10 @@
 //
 ?>
 <div class="tab-pane fade<?php echo ($active_tab === 'inventory' ? ' show active' : ''); ?>" id="tab_inventory" role="tabpanel">
-  <div class="card mt-2 mb-2" style="border-color:#a6c9e2">
+  <div class="card mt-2 mb-2" style="border-color:var(--fb-line, #a6c9e2)">
     <div class="card-body p-2">
-      <div class="text-center fw-bold py-1" style="font-size:11px"><?php echo TEXT_DEFAULT_GL_ACCOUNTS; ?></div>
-      <table class="table table-borderless table-hover table-sm mb-0" style="font-size:11px">
+      <div class="text-center fw-bold py-1" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_DEFAULT_GL_ACCOUNTS; ?></div>
+      <table class="table table-borderless table-hover table-sm mb-0" style="font-size:var(--fb-font-size, 11px)">
         <thead>
           <tr>
             <th><?php echo TEXT_INVENTORY_TYPES; ?></th>
@@ -64,8 +64,8 @@ foreach ($gl_rows as $row):
 <?php $odd = !$odd; endforeach; ?>
         </tbody>
       </table>
-      <div class="text-center fw-bold py-1 mt-2" style="font-size:11px"><?php echo TEXT_PREFERENCES; ?></div>
-      <div class="py-2 px-3" style="font-size:11px">
+      <div class="text-center fw-bold py-1 mt-2" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_PREFERENCES; ?></div>
+      <div class="py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
         <div style="display:table; width:100%">
 <?php
 $prefs = array(

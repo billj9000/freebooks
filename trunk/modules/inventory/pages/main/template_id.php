@@ -35,7 +35,7 @@ echo $toolbar->build_toolbar();
   <div class="card-header py-1 fb-widget-header">
     <?php echo sprintf(INV_ENTER_SKU, MAX_INVENTORY_SKU_LENGTH, MAX_INVENTORY_SKU_LENGTH - 5); ?>
   </div>
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="row g-2 align-items-center mb-2">
       <div class="col-5 text-end"><?php echo TEXT_SKU; ?></div>
       <div class="col-7">

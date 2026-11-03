@@ -35,7 +35,7 @@ echo $toolbar->build_toolbar();
 
 <!-- Settings card -->
 <div class="card fb-card mb-2 mx-auto" style="max-width:920px">
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="row g-2 mb-2">
       <!-- Left: payment fields -->
       <div class="col-md-6">
@@ -56,11 +56,11 @@ echo $toolbar->build_toolbar();
       <div class="col-md-6">
         <div class="row align-items-center mb-1 g-1">
           <div class="col-5 text-end"><?php echo BNK_CASH_ACCOUNT; ?></div>
-          <div class="col-7"><?php echo html_pull_down_menu('gl_acct_id', $gl_array_list, $gl_acct_id, 'style="font-size:11px;width:100%" onchange="loadNewBalance()"'); ?></div>
+          <div class="col-7"><?php echo html_pull_down_menu('gl_acct_id', $gl_array_list, $gl_acct_id, 'style="font-size:var(--fb-font-size, 11px);width:100%" onchange="loadNewBalance()"'); ?></div>
         </div>
         <div class="row align-items-center g-1">
           <div class="col-5 text-end"><?php echo BNK_DISCOUNT_ACCOUNT; ?></div>
-          <div class="col-7"><?php echo html_pull_down_menu('gl_disc_acct_id', $gl_array_list, $gl_disc_acct_id, 'style="font-size:11px;width:100%"'); ?></div>
+          <div class="col-7"><?php echo html_pull_down_menu('gl_disc_acct_id', $gl_array_list, $gl_disc_acct_id, 'style="font-size:var(--fb-font-size, 11px);width:100%"'); ?></div>
         </div>
       </div>
     </div>
@@ -97,7 +97,7 @@ echo $toolbar->build_toolbar();
   </div>
 </div>
 
-<?php if (ENABLE_MULTI_CURRENCY) echo '<p class="ms-2" style="font-size:11px">' . sprintf(GEN_PRICE_SHEET_CURRENCY_NOTE, $currencies->currencies[DEFAULT_CURRENCY]['title']) . '</p>' . chr(10); ?>
+<?php if (ENABLE_MULTI_CURRENCY) echo '<p class="ms-2" style="font-size:var(--fb-font-size, 11px)">' . sprintf(GEN_PRICE_SHEET_CURRENCY_NOTE, $currencies->currencies[DEFAULT_CURRENCY]['title']) . '</p>' . chr(10); ?>
 
 <!-- Invoice list card -->
 <div class="card fb-card mb-2 mx-auto" style="width:fit-content">

@@ -38,7 +38,7 @@ echo $toolbar->build_toolbar();
   <div class="card-header py-1 fb-widget-header">
     <?php echo PAGE_TITLE; ?><?php if (!empty($sheet_name)) echo htmlspecialchars($sheet_name) . ' (' . TEXT_REVISION . ' ' . $revision . ')'; ?>
   </div>
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="row g-2 align-items-center mb-2">
       <div class="col-auto"><?php echo PRICE_SHEET_NAME; ?></div>
       <div class="col-auto"><?php echo html_input_field('sheet_name', $sheet_name, 'class="form-control form-control-sm"'); ?></div>

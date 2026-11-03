@@ -26,7 +26,7 @@
   <div class="col-md-6">
     <div class="card fb-card">
       <div class="card-header py-1 fb-widget-header"><?php echo INV_TEXT_ATTRIBUTE_1; ?></div>
-      <div class="card-body py-2 px-3" style="font-size:11px">
+      <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
         <div class="row g-2 align-items-center mb-2">
           <div class="col-4 text-end"><?php echo TEXT_TITLE; ?></div>
           <div class="col-8"><?php echo html_input_field('attr_name_0', $cInfo->attr_name_0, 'class="form-control form-control-sm" size="11" maxlength="10" onchange="masterStockTitle(0)"'); ?></div>
@@ -53,7 +53,7 @@
   <div class="col-md-6">
     <div class="card fb-card">
       <div class="card-header py-1 fb-widget-header"><?php echo INV_TEXT_ATTRIBUTE_2; ?></div>
-      <div class="card-body py-2 px-3" style="font-size:11px">
+      <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
         <div class="row g-2 align-items-center mb-2">
           <div class="col-4 text-end"><?php echo TEXT_TITLE; ?></div>
           <div class="col-8"><?php echo html_input_field('attr_name_1', $cInfo->attr_name_1, 'class="form-control form-control-sm" size="11" maxlength="10" onchange="masterStockTitle(1)"'); ?></div>

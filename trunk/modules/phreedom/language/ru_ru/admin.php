@@ -108,8 +108,8 @@ define('HEADING_TITLE_CRASH_BUTTON','Скачать отладочную инф�
 define('GENERAL_CONFIG_SAVED', 'Параметры конфигурации сохранены.');
 define('GEN_ADM_TOOLS_SEQ_HEADING', 'Изменение порядковых номеров');
 define('GEN_ADM_TOOLS_SEQ_DESC', 'Здесь можно изменить нумерацию.<br />ПРИМЕЧАНИЕ 1: FreeBooks не допускает повторяющихся номеров, убедитесь, что новый начальный номер не будет конфликтовать с уже проведёнными значениями.<br />Примечание 2: next_deposit_num формируется системой на основе текущей даты.<br />Примечание 3: next_check_num можно задать на экране платежа перед проведением платежа, и нумерация продолжится с введённого значения.');
-define('TEXT_THEMES_COLORS_TITLE', 'Темы и цветовые схемы');
-define('TEXT_THEMES_COLORS_DESC', 'Выберите предпочтительную тему и цветовую схему. Изменения вступают в силу сразу после сохранения.');
+define('TEXT_THEMES_COLORS_TITLE', 'Тема');
+define('TEXT_THEMES_COLORS_DESC', 'Выберите, как FreeBooks будет выглядеть для вас. Новая тема применяется сразу после сохранения.');
 define('TEXT_MENU_OPEN_BEHAVIOUR', 'Открытие меню Bootstrap');
 define('TEXT_MENU_CLICK', 'По щелчку (по умолчанию)');
 define('TEXT_MENU_HOVER', 'При наведении');

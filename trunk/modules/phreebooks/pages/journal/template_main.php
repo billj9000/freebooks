@@ -46,20 +46,20 @@ echo $toolbar->build_toolbar();
   <div class="card-body py-2 px-2">
     <div class="d-flex flex-wrap gap-3 align-items-end">
       <div>
-        <label class="d-block mb-0" style="font-size:11px"><?php echo TEXT_REFERENCE; ?></label>
+        <label class="d-block mb-0" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_REFERENCE; ?></label>
         <?php echo html_input_field('purchase_invoice_id', $cInfo->purchase_invoice_id, 'class="form-control form-control-sm" maxlength="20"'); ?>
       </div>
       <div>
-        <label class="d-block mb-0" style="font-size:11px"><?php echo TEXT_POST_DATE; ?></label>
+        <label class="d-block mb-0" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_POST_DATE; ?></label>
         <?php echo html_calendar_field($cal_gl); ?>
       </div>
       <div class="form-check mb-1">
         <?php echo html_checkbox_field('auto_complete', '1', '1', '', 'class="form-check-input"'); ?>
-        <label class="form-check-label" style="font-size:11px"><?php echo TEXT_AUTO_COMPLETE; ?></label>
+        <label class="form-check-label" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_AUTO_COMPLETE; ?></label>
       </div>
       <?php if (ENABLE_MULTI_BRANCH) { ?>
       <div>
-        <label class="d-block mb-0" style="font-size:11px"><?php echo GEN_STORE_ID; ?></label>
+        <label class="d-block mb-0" style="font-size:var(--fb-font-size, 11px)"><?php echo GEN_STORE_ID; ?></label>
         <?php echo html_pull_down_menu('store_id', gen_get_store_ids(),
               $cInfo->store_id ? $cInfo->store_id : $_SESSION['admin_prefs']['def_store_id'],
               'class="form-select form-select-sm"'); ?>
@@ -118,12 +118,12 @@ echo $toolbar->build_toolbar();
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="3" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo GL_TOTALS; ?></td>
+            <td colspan="3" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo GL_TOTALS; ?></td>
             <td><?php echo html_input_field('debit_total',  '0', 'readonly class="form-control form-control-sm text-end"'); ?></td>
             <td><?php echo html_input_field('credit_total', '0', 'readonly class="form-control form-control-sm text-end"'); ?></td>
           </tr>
           <tr>
-            <td colspan="3" class="text-end pe-2" style="font-size:11px;vertical-align:middle"><?php echo GL_OUT_OF_BALANCE; ?></td>
+            <td colspan="3" class="text-end pe-2" style="font-size:var(--fb-font-size, 11px);vertical-align:middle"><?php echo GL_OUT_OF_BALANCE; ?></td>
             <td></td>
             <td><?php echo html_input_field('balance_total', '0', 'readonly class="form-control form-control-sm text-end"'); ?></td>
           </tr>

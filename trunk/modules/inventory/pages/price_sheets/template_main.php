@@ -30,7 +30,7 @@ if (!empty($extra_toolbar_buttons)) foreach ($extra_toolbar_buttons as $key => $
 $toolbar->add_help('07.04.06');
 echo $toolbar->build_toolbar($add_search = true);
 ?>
-<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:11px">
+<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:var(--fb-font-size, 11px)">
   <span><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_PRICE_SHEETS); ?></span>
   <span><?php echo $query_split->display_links(); ?></span>
 </div>
@@ -71,7 +71,7 @@ while (!$query_result->EOF) {
 ?>
   </tbody>
 </table>
-<div class="d-flex justify-content-between align-items-center mt-1" style="font-size:11px">
+<div class="d-flex justify-content-between align-items-center mt-1" style="font-size:var(--fb-font-size, 11px)">
   <span><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . TEXT_PRICE_SHEETS); ?></span>
   <span><?php echo $query_split->display_links(); ?></span>
 </div>

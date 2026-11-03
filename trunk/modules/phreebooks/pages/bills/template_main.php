@@ -107,7 +107,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
         $fs  = 'class="form-select form-select-sm"';
         $frow = function($label, $field) {
           echo '<div class="row g-1 align-items-center mb-1">'
-             . '<label class="col-5 text-end text-nowrap" style="font-size:11px">' . $label . '</label>'
+             . '<label class="col-5 text-end text-nowrap" style="font-size:var(--fb-font-size, 11px)">' . $label . '</label>'
              . '<div class="col-7">' . $field . '</div>'
              . '</div>' . "\n";
         };
@@ -159,7 +159,7 @@ if (!defined($_title_key)) $_title_key = 'ORD_TEXT_' . JOURNAL_ID . '_WINDOW_TIT
       <div class="card-header py-1 fb-widget-header d-flex justify-content-between align-items-center">
         <span><?php echo TEXT_PAYMENT_METHOD; ?></span>
         <?php if (JOURNAL_ID == 18 && isset($_SESSION['admin_encrypt'])) { ?>
-        <span style="font-size:11px;font-weight:normal"><?php echo BNK_TEXT_SAVE_PAYMENT_INFO . html_checkbox_field('save_payment', '1', ($order->save_payment ? true : false), '', ''); ?></span>
+        <span style="font-size:var(--fb-font-size, 11px);font-weight:normal"><?php echo BNK_TEXT_SAVE_PAYMENT_INFO . html_checkbox_field('save_payment', '1', ($order->save_payment ? true : false), '', ''); ?></span>
         <?php } ?>
       </div>
       <div class="card-body py-2 px-2">

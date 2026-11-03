@@ -37,7 +37,7 @@ echo $toolbar->build_toolbar();
 <h1><?php echo PAGE_TITLE; ?></h1>
 <div class="d-flex flex-column align-items-center">
 <div class="card border-0 mb-2" style="width:fit-content">
-  <div class="card-body py-2 px-3" style="font-size:11px">
+  <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
     <div class="d-flex flex-wrap gap-3">
       <div>
         <label class="me-1"><?php echo INV_XFER_FROM_STORE; ?></label>
@@ -64,7 +64,7 @@ echo $toolbar->build_toolbar();
 </div>
 </div>
 <div style="width:fit-content; margin:0 auto">
-<table class="pkg-table table table-borderless table-hover table-sm" style="width:auto; border:1px solid #a6c9e2">
+<table class="pkg-table table table-borderless table-hover table-sm" style="width:auto; border:1px solid var(--fb-line, #a6c9e2)">
   <thead class="table-dark">
     <tr>
       <th><?php echo html_icon('emblems/emblem-unreadable.png', TEXT_DELETE, 'small'); ?></th>

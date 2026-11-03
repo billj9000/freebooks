@@ -253,8 +253,8 @@ define('ERROR_CANNOT_CREATE_MODULE_DIR','Erro criando diretório: %s. Verifique 
 define('ERROR_CANNOT_REMOVE_MODULE_DIR','Erro removendo diretório: %s. O diretório pode não existir ou pode não estar vazio! Deve ser removido manualmente.');
 define('GEN_ERROR_NO_THEME_COLORS','Uma escolha de cor deve ser feita, este tema não parece ter uma! Por favor selecione outro tema.');
 define('GEN_ADMIN_CANNOT_CHANGE_ROLES','Suas permissões não o habilitam a alterar os direitos/segurança do usuário!');
-define('TEXT_THEMES_COLORS_TITLE','Temas e Esquemas de Cor');
-define('TEXT_THEMES_COLORS_DESC','Estabeleça seu tema e esquema de cores prefertido. Pressiona o ícone Salvar para alterar o tema e vê-lo em ação.');
+define('TEXT_THEMES_COLORS_TITLE','Tema');
+define('TEXT_THEMES_COLORS_DESC','Escolha a aparência do FreeBooks para você. O novo tema vale assim que você salvar.');
 define('TEXT_MENU_OPEN_BEHAVIOUR', 'Comportamento de Abertura do Menu Bootstrap');
 define('TEXT_MENU_CLICK', 'Clique (padrão)');
 define('TEXT_MENU_HOVER', 'Passar o mouse');

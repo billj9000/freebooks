@@ -20,7 +20,7 @@
 ?>
 <div class="tab-pane fade<?php echo ($active_tab === 'stats' ? ' show active' : ''); ?>" id="tab_stats" role="tabpanel">
 <?php if (!empty($install->tables)): ?>
-  <fieldset class="mt-2 mb-2" style="font-size:11px; border:1px solid #a6c9e2; border-radius:4px; padding:8px">
+  <fieldset class="mt-2 mb-2" style="font-size:var(--fb-font-size, 11px); border:1px solid var(--fb-line, #a6c9e2); border-radius:4px; padding:8px">
     <legend><?php echo TEXT_TABLE_STATS; ?></legend>
       <table class="pkg-table table table-borderless table-hover table-sm mb-0">
         <thead class="table-dark">

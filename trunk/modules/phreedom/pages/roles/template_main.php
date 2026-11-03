@@ -31,7 +31,7 @@ $toolbar->add_help('07.08.07');
 echo $toolbar->build_toolbar($add_search = true);
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
-<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:11px">
+<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:var(--fb-font-size, 11px)">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . BOX_HEADING_ROLES); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>
@@ -63,7 +63,7 @@ while (!$query_result->EOF) {
 ?>
   </tbody>
 </table>
-<div class="d-flex justify-content-between align-items-center mt-1" style="font-size:11px">
+<div class="d-flex justify-content-between align-items-center mt-1" style="font-size:var(--fb-font-size, 11px)">
   <div><?php echo $query_split->display_count(TEXT_DISPLAY_NUMBER . BOX_HEADING_ROLES); ?></div>
   <div><?php echo $query_split->display_links(); ?></div>
 </div>

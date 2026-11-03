@@ -60,46 +60,36 @@
   </script>
   <style>
     html, body { height: 100%; margin: 0; overflow: hidden; }
-    #help-layout { display: flex; flex-direction: column; height: 100vh; font-family: Verdana, Arial, sans-serif; font-size: 11px; }
+    #help-layout { display: flex; flex-direction: column; height: 100vh; font-family: var(--fb-font); font-size: var(--fb-font-size); color: var(--fb-ink); background: var(--fb-surface); }
     #help-body   { display: flex; flex: 1; overflow: hidden; }
-    #help-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid #a6c9e2; background: #fcfdfd; display: flex; flex-direction: column; overflow: hidden; }
+    #help-sidebar { width: 300px; flex-shrink: 0; border-right: 1px solid var(--fb-line); background: var(--fb-content-bg); display: flex; flex-direction: column; overflow: hidden; }
     #helpTabContent { flex: 1; overflow-y: auto; padding: 0.5rem; }
     #contentFrame { flex: 1; border: none; height: 100%; background: #ffffff; }
 
-    /* Header bar: dark gloss-wave, matches the app's main navbar (.fb-navbar) */
+    /* Header bar: coloured like the main menu bar (.fb-navbar) */
     #help-header {
       display:             flex;
       align-items:         center;
       gap:                 8px;
       padding:             4px 8px;
-      background-color:    #2191c0;
-      background-image:    url(/themes/default/css/start/images/ui-bg_gloss-wave_75_2191c0_500x100.png);
+      background-color:    var(--fb-nav-bg);
+      background-image:    var(--fb-nav-image);
       background-repeat:   repeat-x;
       background-position: 50% 50%;
-      border-bottom:       1px solid #4297d7;
+      border-bottom:       1px solid var(--fb-nav-border);
     }
     #help-header-label {
-      color:       #ffffff;
+      color:       var(--fb-nav-ink);
       font-weight: bold;
       font-size:   13px;
     }
 
-    /* Toolbar bar: lighter "glass" gloss-wave, matches .fb-toolbar-section */
-    #help-toolbar {
-      display:             flex;
-      align-items:         center;
-      gap:                 4px;
-      padding:             0 6px;
-      background-color:    #79c9ec;
-      background-image:    url(/themes/default/css/start/images/ui-bg_glass_75_79c9ec_1x400.png);
-      background-repeat:   repeat-x;
-      background-position: 50% 50%;
-      border-bottom:       1px solid #448dae;
-    }
-    #help-toolbar img.imgIcon { cursor: pointer; }
+    /* The toolbar is drawn by the colour scheme's toolbar.php, as on any page. */
+    #help-toolbar > .fb-toolbar-section { margin: 0; padding: 0 6px; border-radius: 0; border-width: 0 0 1px; }
+    #help-toolbar > .fb-toolbar-labelled { padding: 6px 8px; border-bottom: 1px solid var(--fb-line); }
 
     /* Sidebar tabs: reuse fb-tabs but keep them compact in the narrow rail */
-    #helpTabs .nav-link { font-size: 11px; padding: 4px 8px; }
+    #helpTabs .nav-link { font-size: var(--fb-font-size); padding: 4px 8px; }
 
     /* ── fb-help-tree: Contents / Index / Search rendering ───────────────── */
     .fb-help-tree {
@@ -110,7 +100,7 @@
     .fb-help-tree .fb-help-tree {
       margin-left:  14px;
       padding-left: 8px;
-      border-left:  1px dotted #a6c9e2;
+      border-left:  1px dotted var(--fb-line);
     }
     .fb-help-tree-root { padding: 4px 2px; }
     .fb-help-node { margin: 1px 0; }
@@ -126,21 +116,21 @@
     .fb-help-folder { cursor: pointer; }
     .fb-help-folder:hover,
     .fb-help-leaf:hover {
-      background-color: #e8f4fb;
+      background-color: var(--fb-row-hover-soft-bg);
     }
     .fb-help-tree a.fb-help-label,
     .fb-help-tree span.fb-help-label {
-      color:            #222222;
+      color:            var(--fb-ink);
       text-decoration:  none;
       word-break:       break-word;
       flex:             1 1 auto;
     }
-    .fb-help-tree a.fb-help-label:hover { color: #026890; text-decoration: underline; }
+    .fb-help-tree a.fb-help-label:hover { color: var(--fb-row-hover-ink); text-decoration: underline; }
     .fb-help-toggle { line-height: 0; flex-shrink: 0; }
-    .fb-help-folder .fb-help-label { color: #164a63; font-weight: bold; }
+    .fb-help-folder .fb-help-label { color: var(--fb-band-ink); font-weight: bold; }
     .fb-help-tree a.fb-help-label.fb-help-active {
-      background-color: #cfe9f7;
-      color:             #026890;
+      background-color: var(--fb-row-hover-bg);
+      color:             var(--fb-row-hover-ink);
       font-weight:       bold;
       border-radius:     3px;
     }
@@ -149,7 +139,7 @@
 <body>
 <div id="help-layout">
 
-  <!-- Header bar: FreeBooks logo, dark gloss-wave (matches the app's main navbar) -->
+  <!-- Header bar: FreeBooks logo, coloured like the main menu bar -->
   <div id="help-header" class="flex-shrink-0">
     <?php $help_logo = DIR_WS_THEMES . 'images/freebooks_logo_text_default.png'; ?>
     <?php if (is_file($help_logo)): ?>
@@ -158,13 +148,19 @@
     <span id="help-header-label"><?php echo HEADING_HELP_LABEL; ?></span>
   </div>
 
-  <!-- Toolbar bar: lighter glass gloss-wave (matches .fb-toolbar-section) -->
   <div id="help-toolbar" class="flex-shrink-0">
-    <?php echo html_icon('actions/go-home.png',        TEXT_HOME,    'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.location.href=\'' . DOC_ROOT_URL . '\'"'); ?>
-    <?php echo html_icon('actions/go-previous.png',     TEXT_BACK,    'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.history.back()"'); ?>
-    <?php echo html_icon('actions/go-next.png',         TEXT_FORWARD, 'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.history.forward()"'); ?>
-    <?php echo html_icon('devices/printer.png',         TEXT_PRINT,   'large', 'style="cursor:pointer;" onclick="document.getElementById(\'contentFrame\').contentWindow.print()"'); ?>
-    <?php echo html_icon('actions/system-log-out.png',  TEXT_EXIT,    'large', 'style="cursor:pointer;" onclick="window.close()"'); ?>
+<?php
+  $help_frame   = "document.getElementById('contentFrame').contentWindow";
+  $help_toolbar = new toolbar('help');
+  $help_toolbar->icon_list = array(
+    'home'    => array('show' => true, 'icon' => 'actions/go-home.png',       'text' => TEXT_HOME,    'params' => 'onclick="' . $help_frame . ".location.href='" . DOC_ROOT_URL . "'" . '"'),
+    'back'    => array('show' => true, 'icon' => 'actions/go-previous.png',   'text' => TEXT_BACK,    'params' => 'onclick="' . $help_frame . '.history.back()"'),
+    'forward' => array('show' => true, 'icon' => 'actions/go-next.png',       'text' => TEXT_FORWARD, 'params' => 'onclick="' . $help_frame . '.history.forward()"'),
+    'print'   => array('show' => true, 'icon' => 'devices/printer.png',       'text' => TEXT_PRINT,   'params' => 'onclick="' . $help_frame . '.print()"'),
+    'exit'    => array('show' => true, 'icon' => 'actions/system-log-out.png', 'text' => TEXT_EXIT,   'params' => 'onclick="window.close()"'),
+  );
+  echo $help_toolbar->render_buttons();
+?>
   </div>
 
   <!-- Main body -->

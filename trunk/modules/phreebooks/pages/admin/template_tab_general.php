@@ -19,10 +19,10 @@
 //
 ?>
 <div class="tab-pane fade<?php echo ($active_tab === 'general' ? ' show active' : ''); ?>" id="tab_general" role="tabpanel">
-  <div class="card mt-2 mb-2" style="border-color:#a6c9e2">
+  <div class="card mt-2 mb-2" style="border-color:var(--fb-line, #a6c9e2)">
     <div class="card-body p-2">
-      <div class="text-center fw-bold py-1" style="font-size:11px"><?php echo TEXT_OPTIONS; ?></div>
-      <div class="py-1 px-3" style="font-size:11px">
+      <div class="text-center fw-bold py-1" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_OPTIONS; ?></div>
+      <div class="py-1 px-3" style="font-size:var(--fb-font-size, 11px)">
         <div style="display:table; width:100%">
           <div style="display:table-row">
             <div style="display:table-cell; padding-right:16px; padding-bottom:4px; width:100%; vertical-align:middle"><?php echo CD_13_01_DESC; ?></div>

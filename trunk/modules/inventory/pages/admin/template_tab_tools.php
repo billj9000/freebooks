@@ -21,7 +21,7 @@
 <div class="tab-pane fade<?php echo ($active_tab === 'tools' ? ' show active' : ''); ?>" id="tab_tools" role="tabpanel">
   <div class="card fb-card mt-2 mb-2">
     <div class="card-header py-1 fb-widget-header"><?php echo INV_TOOLS_VALIDATE_INVENTORY; ?></div>
-    <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
       <p class="mb-2"><?php echo INV_TOOLS_VALIDATE_INV_DESC; ?></p>
       <div class="d-flex gap-2">
         <div>
@@ -37,7 +37,7 @@
   </div>
   <div class="card fb-card mb-2">
     <div class="card-header py-1 fb-widget-header"><?php echo INV_TOOLS_VALIDATE_SO_PO; ?></div>
-    <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
       <p class="mb-2"><?php echo INV_TOOLS_VALIDATE_SO_PO_DESC; ?></p>
       <div>
         <div class="mb-1 fw-bold"><?php echo INV_TOOLS_REPAIR_SO_PO; ?></div>

@@ -20,7 +20,7 @@
 <div class="tab-pane fade show active" id="tab_postcode_lookup" role="tabpanel">
   <div class="card fb-card mt-2 mb-2" style="width:fit-content">
     <div class="card-header py-1 fb-widget-header"><?php echo TEXT_POSTCODE_LOOKUP; ?></div>
-    <div class="card-body py-2 px-3" style="font-size:11px">
+    <div class="card-body py-2 px-3" style="font-size:var(--fb-font-size, 11px)">
       <div class="row g-2 align-items-center mb-2">
         <div class="col-auto"><?php echo ACT_POSTCODE_LOOKUP_STATUS_DESC; ?></div>
         <div class="col-auto"><?php echo html_pull_down_menu('postcode_lookup_status', $sel_yes_no,

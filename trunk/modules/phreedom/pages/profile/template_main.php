@@ -38,7 +38,7 @@ $cur_hover  = !empty($prefs['menu_hover']);
   <div class="card" style="min-width:400px;max-width:540px;width:100%">
     <div class="card-header py-2 fb-widget-header"><?php echo TEXT_THEMES_COLORS_TITLE; ?></div>
     <div class="card-body">
-      <p class="mb-3" style="font-size:11px"><?php echo TEXT_THEMES_COLORS_DESC; ?></p>
+      <p class="mb-3" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_THEMES_COLORS_DESC; ?></p>
 
       <div class="mb-2 row align-items-center">
         <label class="col-sm-5 col-form-label col-form-label-sm fw-bold" for="colors"><?php echo TEXT_LOGIN_THEME; ?></label>
@@ -47,7 +47,7 @@ $cur_hover  = !empty($prefs['menu_hover']);
             'class="form-select form-select-sm" onchange="showSchemeDesc()"'); ?>
         </div>
       </div>
-      <p id="scheme_desc" class="mb-3 text-muted" style="font-size:11px"><?php echo htmlspecialchars($schemes[$cur_colors]['desc'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
+      <p id="scheme_desc" class="mb-3 text-muted" style="font-size:var(--fb-font-size, 11px)"><?php echo htmlspecialchars($schemes[$cur_colors]['desc'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
       <script>var schemeDesc = <?php echo json_encode(array_map(function ($s) { return $s['desc']; }, $schemes), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
 
       <div class="mb-0 row align-items-center">
@@ -77,9 +77,9 @@ $cur_hover  = !empty($prefs['menu_hover']);
   <div class="card" style="min-width:400px;max-width:540px;width:100%">
     <div class="card-header py-2 fb-widget-header"><?php echo TEXT_PASSKEYS_TITLE; ?></div>
     <div class="card-body">
-      <p class="mb-3" style="font-size:11px"><?php echo TEXT_PASSKEYS_DESC; ?></p>
+      <p class="mb-3" style="font-size:var(--fb-font-size, 11px)"><?php echo TEXT_PASSKEYS_DESC; ?></p>
 
-      <table class="table table-borderless table-hover" style="font-size:11px">
+      <table class="table table-borderless table-hover" style="font-size:var(--fb-font-size, 11px)">
         <thead class="table-dark">
           <tr>
             <th><?php echo TEXT_PASSKEY_LABEL; ?></th>
@@ -97,7 +97,7 @@ $cur_hover  = !empty($prefs['menu_hover']);
       </table>
 
       <button type="button" id="pk-add-btn" class="btn btn-primary btn-sm"><?php echo TEXT_PASSKEY_ADD; ?></button>
-      <div id="pk-msg" class="mt-2" style="font-size:11px"></div>
+      <div id="pk-msg" class="mt-2" style="font-size:var(--fb-font-size, 11px)"></div>
     </div>
   </div>
 </div>
