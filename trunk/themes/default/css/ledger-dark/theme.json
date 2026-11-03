@@ -1,0 +1,15 @@
+{
+  "name": {
+    "en_us": "Ledger Dark",
+    "nl_nl": "Ledger Donker",
+    "pt_br": "Ledger Escuro",
+    "ru_ru": "Ledger тёмная"
+  },
+  "description": {
+    "en_us": "Light text on a near-black page, easier on the eyes in a dim room. The menu stays across the top and toolbar buttons show their names. Printed documents stay white.",
+    "nl_nl": "Lichte tekst op een bijna zwarte pagina, prettiger voor de ogen in een donkere ruimte. Het menu blijft bovenaan en werkbalkknoppen tonen hun naam. Afgedrukte documenten blijven wit.",
+    "pt_br": "Texto claro sobre uma página quase preta, mais confortável para os olhos em ambientes escuros. O menu fica no topo e os botões da barra de ferramentas mostram seus nomes. Documentos impressos continuam brancos.",
+    "ru_ru": "Светлый текст на почти чёрном фоне, мягче для глаз в тёмном помещении. Меню остаётся сверху, кнопки панели инструментов подписаны. Печатные документы остаются белыми."
+  },
+  "dark": true
+}
