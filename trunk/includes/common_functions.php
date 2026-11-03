@@ -1777,10 +1777,17 @@ function gen_db_date($raw_date = '', $separator = '/') {
                $image_asc = 'sort_asc.png';
 	       }
 	  }
-	  $output .= '<th nowrap="nowrap">' . chr(10);
-	  if ($value) $output .= html_image(DIR_WS_IMAGES . $image_asc  , TEXT_ASC,  '', '', 'onclick="submitSortOrder(\''.$value.'\',\'asc\')"'). chr(10);
-	  $output .= $value;
-	  if ($value) $output .= html_image(DIR_WS_IMAGES . $image_desc , TEXT_DESC, '', '', 'onclick="submitSortOrder(\''.$value.'\',\'desc\')"'). chr(10);
+	  // The two sort arrows sit together on one side of the heading, never before
+	  // its text, so the text lines up with the column's values (see .fb-th in
+	  // freebooks.css; fbAlignListHeadings() in common.js puts them on the left of
+	  // a right-aligned column).
+	  $output .= '<th nowrap="nowrap">';
+	  if ($value) {
+	    $output .= '<span class="fb-th"><span>' . $value . '</span><span class="fb-sort">'
+	      . html_image(DIR_WS_IMAGES . $image_asc,  TEXT_ASC,  '', '', 'class="fb-sort-asc" onclick="submitSortOrder(\''.$value.'\',\'asc\')"')
+	      . html_image(DIR_WS_IMAGES . $image_desc, TEXT_DESC, '', '', 'class="fb-sort-desc" onclick="submitSortOrder(\''.$value.'\',\'desc\')"')
+	      . '</span></span>';
+	  }
 	  $output .= '</th>' . chr(10);
 	}
 	if (!empty($extra_headings)) foreach ($extra_headings as $value) {

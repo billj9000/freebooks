@@ -332,6 +332,20 @@ table.ui-widget tbody.ui-widget-content tr:hover td {
   vertical-align:  middle;
 }
 
+/* A sortable list heading (html_heading_bar): its text, then the two sort
+   arrows stacked in one narrow column, so the text starts where the column's
+   values start. The arrow images are drawn to overlay - the ascending arrow in
+   the top half of its square, the descending one in the bottom half - and each
+   is clipped to its half so the two can be clicked separately.
+   fbAlignListHeadings() (common.js) aligns each heading like its column and
+   marks a right-aligned one fb-th-end, which puts the arrows on the left. */
+.fb-th { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; }
+th.fb-th-end .fb-th { flex-direction: row-reverse; }
+.fb-sort { position: relative; display: inline-block; flex: 0 0 auto; width: 10px; height: 19px; }
+.fb-sort > img { position: absolute; top: 0; left: -5px; width: 19px; height: 19px; cursor: pointer; }
+.fb-sort > .fb-sort-asc  { clip-path: inset(0 0 50% 0); }
+.fb-sort > .fb-sort-desc { clip-path: inset(50% 0 0 0); }
+
 /* Cells: no internal borders, matching FreeBooks borderless look */
 .pkg-table > tbody > tr > td {
   border:          none;

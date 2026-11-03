@@ -769,3 +769,40 @@ document.addEventListener('htmx:configRequest', function(e) {
     if (meta) e.detail.parameters['csrf_token'] = meta.getAttribute('content');
   }
 });
+
+// Aligns each list heading like the values in its column: right over a
+// right-aligned column (marked fb-th-end, which puts the sort arrows on the
+// left - see .fb-th in freebooks.css), centred over a centred one. The values'
+// alignment is read from the first body row that has one cell per column, so no
+// page has to state it twice. A heading the page aligns itself is left as it is,
+// and so is a table with no such row yet; it is looked at again when the page
+// finishes loading and after an htmx swap, which is when rows built by script
+// or fetched later appear.
+function fbAlignListHeadings() {
+  document.querySelectorAll('table').forEach(function(table) {
+    var head = table.tHead, body = table.tBodies[0];
+    if (!head || head.rows.length != 1 || !body) return;
+    var ths = head.rows[0].cells, cols = 0, row = null, i, r;
+    for (i = 0; i < ths.length; i++) cols += ths[i].colSpan;
+    for (r = 0; r < body.rows.length && !row; r++) {
+      var cells = body.rows[r].cells;
+      if (cells.length != cols) continue;
+      row = body.rows[r];
+      for (i = 0; i < cells.length; i++) if (cells[i].colSpan != 1) { row = null; break; }
+    }
+    if (!row) return;
+    var col = 0;
+    for (i = 0; i < ths.length; col += ths[i].colSpan, i++) {
+      var th = ths[i];
+      if (th.colSpan != 1 || th.hasAttribute('data-fb-aligned')) continue;
+      th.setAttribute('data-fb-aligned', '');
+      if (th.style.textAlign || th.getAttribute('align') || /\btext-(start|end|center|left|right)\b/.test(th.className)) continue;
+      var align = getComputedStyle(row.cells[col]).textAlign;
+      if (/right|end/.test(align)) { th.style.textAlign = 'right'; th.classList.add('fb-th-end'); }
+      else if (/center/.test(align)) th.style.textAlign = 'center';
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', fbAlignListHeadings);
+window.addEventListener('load', fbAlignListHeadings);
+document.addEventListener('htmx:afterSettle', fbAlignListHeadings);
