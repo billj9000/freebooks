@@ -1,11 +1,18 @@
 Colour schemes
 
-A theme is a directory under themes/ (FreeBooks ships one, default). Each colour scheme is a
-directory under themes/THEME/css/, and every directory there appears in the Select Color Scheme
-list on Company > My Profile. The default scheme is start (DEFAULT_COLORS).
+A theme is a directory under themes/ (FreeBooks ships one, default), holding the shared page parts,
+icons and images. Each colour scheme - what users choose as their theme - is a directory under
+themes/THEME/css/, and every directory there appears in the Select Theme list on Company > My
+Profile, the default scheme first and the rest by name. The default scheme is start (DEFAULT_COLORS).
 
 A scheme directory holds:
 
+theme.json      Optional. The name shown in the list and a one-line description shown under it:
+                  { "name":        { "en_us": "Refresh", "nl_nl": "..." },
+                    "description": { "en_us": "A flatter, lighter look ...", "nl_nl": "..." } }
+                Each value is a plain string or strings keyed by language code; the user's
+                language is used, else en_us. Without it the list shows the directory name and no
+                description.
 stylesheet.css  Required. Linked first on every page, before Bootstrap and
                 ext/bootstrap5/freebooks.css, so it can set only the base page: background, text
                 colour and font, fieldsets, labels.
@@ -40,8 +47,8 @@ menu's sorting and permission checks are shared functions in includes/common_fun
 The pop-up windows that draw a whole page themselves (Help, the shipping label viewers, the
 packing list) do not use these files.
 
-To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit its files.
-Fonts and images go under ext/ or inside the scheme directory and are referenced by relative URL;
-nothing is fetched from a CDN.
+To add a scheme, copy themes/default/css/refresh/ to a new directory name and edit its files,
+starting with the name and description in theme.json. Fonts and images go under ext/ or inside the
+scheme directory and are referenced by relative URL; nothing is fetched from a CDN.
 
 A user whose saved scheme is no longer installed is shown start.

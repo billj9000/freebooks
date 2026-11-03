@@ -149,22 +149,6 @@ function load_language_dropdown($language_directory = 'modules/phreedom/language
   return $output;
 }
 
-function load_theme_dropdown() {
-  $include_header  = false;
-  $include_calendar= false;
-  $output          = array();
-  $contents        = scandir(DIR_FS_THEMES);
-  foreach ($contents as $value) {
-	if ($value <> '.' && $value <> '..' && is_dir(DIR_FS_THEMES . $value)) {
-	  if (file_exists(DIR_FS_THEMES . $value . '/config.php')) {
-		include(DIR_FS_THEMES . $value . '/config.php');
-		$output[$value] = array('id' => $value, 'text' => $theme['name']);
-	  }
-	}
-  }
-  return $output;
-}
-
 function load_menu_dropdown() {
   $output = array();
   if (file_exists(DIR_FS_ADMIN . DIR_WS_THEMES . 'config.php')) {
@@ -174,14 +158,36 @@ function load_menu_dropdown() {
   return $output;
 }
 
-function load_colors_dropdown() {
-  $output   = array();
-  $contents = scandir(DIR_FS_ADMIN . DIR_WS_THEMES .'/css/');
-  foreach ($contents as $color) {
-	if ($color <> '.' && $color <> '..' && is_dir(DIR_FS_ADMIN . DIR_WS_THEMES . '/css/'.$color)) {
-	  $output[$color] = array('id' => $color, 'text' => $color);
-	}
+// The colour schemes installed in the current theme, for the My Profile list:
+// id (the directory), text (its name) and desc (one line about it), the default
+// scheme first and the rest by name. Each name and description comes from the
+// scheme's theme.json - a plain string, or strings keyed by language code -
+// in the user's language, else en_us, else the directory name and no description.
+// A scheme without a readable theme.json is still listed, by directory name.
+function load_scheme_list() {
+  $lang   = $_SESSION['language'] ?? 'en_us';
+  $pick   = function ($value) use ($lang) {
+    if (is_string($value)) return $value;
+    if (!is_array($value)) return '';
+    foreach (array($lang, 'en_us') as $code) if (isset($value[$code]) && is_string($value[$code])) return $value[$code];
+    return '';
+  };
+  $base   = DIR_FS_ADMIN . DIR_WS_THEMES . 'css/';
+  $output = array();
+  foreach (scandir($base) as $scheme) {
+    if ($scheme[0] == '.' || !preg_match('/^[a-zA-Z0-9_-]+$/', $scheme) || !is_dir($base . $scheme)) continue;
+    $info = is_file($base . $scheme . '/theme.json') ? json_decode(file_get_contents($base . $scheme . '/theme.json'), true) : null;
+    $name = is_array($info) ? $pick($info['name'] ?? '') : '';
+    $output[$scheme] = array(
+      'id'   => $scheme,
+      'text' => $name !== '' ? $name : $scheme,
+      'desc' => is_array($info) ? $pick($info['description'] ?? '') : '',
+    );
   }
+  uasort($output, function ($a, $b) {
+    if ($a['id'] == DEFAULT_COLORS || $b['id'] == DEFAULT_COLORS) return $a['id'] == DEFAULT_COLORS ? -1 : 1;
+    return strcasecmp($a['text'], $b['text']);
+  });
   return $output;
 }
 

@@ -1,0 +1,14 @@
+{
+  "name": {
+    "en_us": "Cool Blue (classic)",
+    "nl_nl": "Koel blauw (klassiek)",
+    "pt_br": "Azul Frio (clássico)",
+    "ru_ru": "Холодный синий (классика)"
+  },
+  "description": {
+    "en_us": "The original FreeBooks look: a glossy blue menu bar across the top, blue table headings and compact text.",
+    "nl_nl": "Het oorspronkelijke uiterlijk van FreeBooks: een glanzende blauwe menubalk bovenaan, blauwe tabelkoppen en compacte tekst.",
+    "pt_br": "A aparência original do FreeBooks: barra de menu azul brilhante no topo, cabeçalhos de tabela azuis e texto compacto.",
+    "ru_ru": "Исходный вид FreeBooks: глянцевая синяя строка меню сверху, синие заголовки таблиц и компактный текст."
+  }
+}

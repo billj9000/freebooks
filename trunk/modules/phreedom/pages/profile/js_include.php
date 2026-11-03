@@ -22,22 +22,11 @@
 function init() {}
 function check_form() { return true; }
 
-function updateColors() {
-  var theme = document.getElementById('theme').value;
-  fetchXml('index.php?module=phreedom&page=ajax&op=phreedom&action=pull_colors&theme=' + encodeURIComponent(theme), function(xml) {
-    xml = parseXml(xml);
-    if (!xml) return;
-    var menuSel   = document.getElementById('menu');
-    var colorsSel = document.getElementById('colors');
-    while (menuSel.options.length)   menuSel.remove(0);
-    while (colorsSel.options.length) colorsSel.remove(0);
-    Array.from(xml.getElementsByTagName('menu')).forEach(function(el) {
-      menuSel.options.add(new Option(xmlText(el, 'text'), xmlText(el, 'id')));
-    });
-    Array.from(xml.getElementsByTagName('color')).forEach(function(el) {
-      colorsSel.options.add(new Option(xmlText(el, 'text'), xmlText(el, 'id')));
-    });
-  });
+// Shows the description of the scheme chosen in the list (schemeDesc is written
+// by template_main.php from each scheme's theme.json).
+function showSchemeDesc() {
+  var sel = document.getElementById('colors');
+  document.getElementById('scheme_desc').textContent = schemeDesc[sel.value] || '';
 }
 
 // Renames one of my passkeys in place (used by the onclick built in

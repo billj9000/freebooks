@@ -23,27 +23,6 @@ $security_level = validate_ajax_user();
 /**************   page specific initialization  *************************/
 $xml    = NULL;
 switch ($_REQUEST['action']) {
-	case 'pull_colors':
-		$theme = (string)($_GET['theme'] ?? '');
-		// It names a directory read and a file included below: an existing theme, by name.
-		if (!preg_match('/^[a-z0-9_]+$/i', $theme) || !is_dir(DIR_FS_ADMIN.'themes/'.$theme)) break;
-		$contents = scandir(DIR_FS_ADMIN.'themes/'.$theme.'/css/');
-		include(DIR_FS_ADMIN.'themes/'.$theme.'/config.php');
-		foreach ($contents as $color) {
-			if ($color <> '.' && $color <> '..' && is_dir(DIR_FS_ADMIN.DIR_WS_THEMES.'/css/'.$color)) {
-				$xml .= '<color>'.chr(10);
-				$xml .= xmlEntry('id',   $color);
-				$xml .= xmlEntry('text', $color);
-				$xml .= '</color>'.chr(10);
-			}
-		}
-		foreach ($theme_menu_options as $key => $value) {
-			$xml .= '<menu>'.chr(10);
-			$xml .= xmlEntry('id',   $key);
-			$xml .= xmlEntry('text', $value);
-			$xml .= '</menu>'.chr(10);
-		}
-		break;
 	case 'chart':
 		$modID = (string)($_GET['modID'] ?? '');
 		// It names a file required below: an existing module, by name.

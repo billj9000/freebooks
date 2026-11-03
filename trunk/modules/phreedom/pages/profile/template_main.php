@@ -28,8 +28,8 @@ $toolbar->icon_list['print']['show']    = false;
 $toolbar->add_help('06.03');
 echo $toolbar->build_toolbar();
 
-$cur_theme  = $prefs['theme']  ?: DEFAULT_THEME;
-$cur_colors = $prefs['colors'] ?: DEFAULT_COLORS;
+$schemes    = load_scheme_list();
+$cur_colors = MY_COLORS;
 $cur_hover  = !empty($prefs['menu_hover']);
 ?>
 <h1><?php echo PAGE_TITLE; ?></h1>
@@ -41,20 +41,14 @@ $cur_hover  = !empty($prefs['menu_hover']);
       <p class="mb-3" style="font-size:11px"><?php echo TEXT_THEMES_COLORS_DESC; ?></p>
 
       <div class="mb-2 row align-items-center">
-        <label class="col-sm-5 col-form-label col-form-label-sm fw-bold"><?php echo TEXT_LOGIN_THEME; ?></label>
+        <label class="col-sm-5 col-form-label col-form-label-sm fw-bold" for="colors"><?php echo TEXT_LOGIN_THEME; ?></label>
         <div class="col-sm-7">
-          <?php echo html_pull_down_menu('theme', load_theme_dropdown(), $cur_theme,
-            'class="form-select form-select-sm" onchange="updateColors()"'); ?>
+          <?php echo html_pull_down_menu('colors', $schemes, $cur_colors,
+            'class="form-select form-select-sm" onchange="showSchemeDesc()"'); ?>
         </div>
       </div>
-
-      <div class="mb-2 row align-items-center">
-        <label class="col-sm-5 col-form-label col-form-label-sm fw-bold"><?php echo TEXT_LOGIN_COLORS; ?></label>
-        <div class="col-sm-7">
-          <?php echo html_pull_down_menu('colors', load_colors_dropdown(), $cur_colors,
-            'class="form-select form-select-sm"'); ?>
-        </div>
-      </div>
+      <p id="scheme_desc" class="mb-3 text-muted" style="font-size:11px"><?php echo htmlspecialchars($schemes[$cur_colors]['desc'] ?? '', ENT_QUOTES, 'UTF-8'); ?></p>
+      <script>var schemeDesc = <?php echo json_encode(array_map(function ($s) { return $s['desc']; }, $schemes), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
 
       <div class="mb-0 row align-items-center">
         <label class="col-sm-5 col-form-label col-form-label-sm fw-bold"><?php echo TEXT_MENU_OPEN_BEHAVIOUR; ?></label>

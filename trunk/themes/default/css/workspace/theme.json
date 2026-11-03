@@ -1,0 +1,14 @@
+{
+  "name": {
+    "en_us": "Workspace (side menu)",
+    "nl_nl": "Workspace (zijmenu)",
+    "pt_br": "Workspace (menu lateral)",
+    "ru_ru": "Workspace (боковое меню)"
+  },
+  "description": {
+    "en_us": "The menu moves to a dark bar down the left, with a line across the top showing where you are. The side menu can be hidden to give wide pages the whole window.",
+    "nl_nl": "Het menu staat in een donkere balk aan de linkerkant, met bovenaan een regel die laat zien waar u bent. Het zijmenu kan worden verborgen om brede pagina's het hele venster te geven.",
+    "pt_br": "O menu passa para uma barra escura à esquerda, com uma linha no topo mostrando onde você está. O menu lateral pode ser ocultado para dar às páginas largas a janela inteira.",
+    "ru_ru": "Меню переносится в тёмную панель слева, а строка вверху показывает, где вы находитесь. Боковое меню можно скрыть, чтобы широкие страницы занимали всё окно."
+  }
+}

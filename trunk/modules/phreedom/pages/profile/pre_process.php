@@ -30,12 +30,14 @@ $pk_credentials = wa_enabled() ? wa_list_credentials((int)$_SESSION['admin_id'])
 $custom_path = DIR_FS_WORKING . 'custom/pages/profile/extra_actions.php';
 if (file_exists($custom_path)) { include($custom_path); }
 
-switch ($_REQUEST['action']) {
+switch ($_REQUEST['action'] ?? '') {
   case 'save':
     validate_security($security_level, 4);
-    // Both name directories that PHP files are included from and stylesheets
-    // linked from (see application_top.php). Only an installed pair is stored.
-    $prefs['theme']      = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['theme'] ?? ''));
+    // The colour scheme names a directory that PHP files are included from and
+    // stylesheets linked from (see application_top.php), so only one installed
+    // in the current theme is stored. The form lists the current theme's schemes
+    // only, so the theme is kept as it is.
+    $prefs['theme']      = basename(DIR_WS_THEMES);
     $prefs['colors']     = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($_POST['colors'] ?? ''));
     $prefs['menu_hover'] = (($_POST['menu_hover'] ?? '') === '1') ? 1 : 0;
     if (!$prefs['colors'] || !$prefs['theme']
