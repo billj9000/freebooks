@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- document position within table of contents; levels separated by dots(.) ie 3.2.4 (one required)-->
+<meta name="doc_pos" content="07.04.01.07">
+<!-- index positions - used to build index list; up to two levels separated by a dot(.) (zero or more) -->
+<meta name="doc_index_1" content="Inventory.Supplier Costs">
+<meta name="doc_index_2" content="Inventory.Margin and Markup">
+<!-- glossary items - used to build glossary (zero or more)-->
+<!-- glossary terms are imploded with a colon separator -->
+<!-- <meta name="doc_glossary_1" content="term:definition of glossary entry"> -->
+<!-- Title - Used as the table of contents and index reference title (one required)-->
+<meta name="doc_title" content="Supplier Costs, Currencies and Margin">
+<!-- End of meta tags -->
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<title>Inventory - Supplier Costs, Currencies and Margin</title>
+</head>
+
+<body>
+
+<h1 align="center">Inventory - Supplier Costs, Currencies and Margin</h1>
+<p>Each row in the Vendor Details section of an inventory item holds one supplier's cost, in the currency that supplier charges in, chosen beside the cost. A supplier who quotes in euros keeps a cost in euros, so the figure does not drift as exchange rates move.</p>
+
+<h3>Margin and markup</h3>
+<p>The item's sales price, margin and markup are in the company's own currency. Whenever FreeBooks works one of them out, it first converts each supplier's cost to the company's currency at the current exchange rate, then uses the highest of the converted costs. This is the same whether you change a supplier's cost or currency, type a new margin, type a new markup or change the price.</p>
+<ul>
+  <li><strong>Margin</strong> is the profit as a percentage of the sales price before tax: a cost of 60.00 sold at 100.00 is a 40% margin.</li>
+  <li><strong>Markup</strong> is the sales price including tax divided by the cost.</li>
+</ul>
+<p>When you change a supplier's cost and the margin no longer matches the price, FreeBooks asks what to recalculate: the margin (keeping the price), the price from the margin, or the price from the markup. If the change leaves the margin as it was, it does not ask.</p>
+
+<h3>The item cost</h3>
+<p>When the item is saved, its cost is set to the lowest of its suppliers' costs, compared after converting each to the company's currency, and the supplier with that cost becomes the item's main vendor. The item cost is always in the company's currency.</p>
+
+<h3>Purchase orders and purchases</h3>
+<p>Posting a purchase order or a purchase updates that supplier's cost on the item, in the supplier row's own currency:</p>
+<ul>
+  <li>if the order is in the supplier row's currency, the row takes the order's own unit price;</li>
+  <li>if it is in another currency, the cost is converted to the row's currency at the current exchange rate.</li>
+</ul>
+<p>A new purchase order for that supplier then starts from that cost, converted to the order's currency.</p>
+
+<h3>Related Topics</h3>
+<p><a href="02-EditItem.html">Editing inventory items</a><br />
+  <a href="05-VendorSKU.html">Setting a vendor's part number for an item (Vendor SKU)</a><br />
+  <a href="../06-PriceSheets/PriceSheetsHome.html">Price sheets</a></p>
+
+</body>
+</html>

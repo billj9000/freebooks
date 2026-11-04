@@ -655,8 +655,13 @@ class inventory {
 						'action'					=> 'insert',
 					);
 				}
-				$lowest_cost = min($lowest_cost, $sql_data_array['item_cost']);
-				if ($lowest_cost == $sql_data_array['item_cost']) $this->min_vendor_id = $sql_data_array['vendor_id'];
+				// The item's cost is in the default currency and each supplier's is in its own,
+				// so the lowest is chosen after conversion (issue #127).
+				$row_id    = $this->purchase_array[$i]['id'];
+				$row_curr  = $sql_data_array['currency_code'] ?? ($this->backup_purchase_array[$row_id]['currency_code'] ?? '');
+				$home_cost = $this->cost_in_default_currency($sql_data_array['item_cost'] ?? 0, $row_curr);
+				$lowest_cost = min($lowest_cost, $home_cost);
+				if ($lowest_cost == $home_cost) $this->min_vendor_id = $sql_data_array['vendor_id'];
 			}
 			$i++;
 		}
@@ -667,6 +672,17 @@ class inventory {
 			}
 		}
 		return $lowest_cost == 99999999999 ? 0 : $lowest_cost; //added in case no purchase data entered when creating new product
+	}
+
+	/**
+	 * A supplier's cost, given in that supplier row's currency, in the default currency at the
+	 * current rate. A currency with no rate is taken as already in the default currency.
+	 */
+	function cost_in_default_currency($cost, $currency_code) {
+		global $currencies;
+		$code = $currency_code ?: DEFAULT_CURRENCY;
+		$rate = ($code != DEFAULT_CURRENCY && is_object($currencies)) ? (float)($currencies->currencies[$code]['value'] ?? 0) : 0;
+		return $rate > 0 ? (float)$cost / $rate : (float)$cost;
 	}
 	
 	function gather_history() {

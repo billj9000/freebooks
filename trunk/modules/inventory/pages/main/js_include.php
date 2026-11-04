@@ -133,12 +133,22 @@ function renameItem(id, type) {
   if (skuID) submitPost('index.php?module=inventory&page=main&action=rename', {cID: id, sku: skuID, inventory_type: type});
 }
 
-function product_markup_change() {
+// The highest supplier cost in company currency. Each supplier row's cost is in that row's
+// currency, so every margin and markup works from the converted figure (issue #127).
+function highestCompanyCost() {
   var highest = 0;
-  document.getElementsByName("item_cost_array[]").forEach(function(el) {
-    var v = cleanCurrency(el.value);
+  var costEls = document.getElementsByName("item_cost_array[]");
+  var currEls = document.getElementsByName("item_cost_currency_array[]");
+  for (var i = 0; i < costEls.length; i++) {
+    var curr = currEls[i] ? currEls[i].value : defaultCurrency;
+    var v = costToCompany(parseFloat(cleanCurrency(costEls[i].value)) || 0, curr);
     if (v > highest) highest = v;
-  });
+  }
+  return highest;
+}
+
+function product_markup_change() {
+  var highest = highestCompanyCost();
   var markup = cleanCurrency(document.getElementById('product_markup').value);
   document.getElementById('full_price_with_tax').value = formatCurrency(highest * markup);
   update_full_price_incl_tax(false, false, true);
@@ -146,11 +156,7 @@ function product_markup_change() {
 }
 
 function product_margin_change() {
-  var highest = 0;
-  document.getElementsByName("item_cost_array[]").forEach(function(el) {
-    var v = cleanCurrency(el.value);
-    if (v > highest) highest = v;
-  });
+  var highest = highestCompanyCost();
   var margin = cleanCurrency(document.getElementById('product_margin').value);
   document.getElementById('full_price').value = formatCurrency((highest / (100 - margin)) * 100);
   update_full_price_incl_tax(false, true, false);
@@ -158,17 +164,14 @@ function product_margin_change() {
 }
 
 function what_to_update() {
-  var highest = 0;
-  var costEls = document.getElementsByName("item_cost_array[]");
-  var currEls = document.getElementsByName("item_cost_currency_array[]");
-  for (var i = 0; i < costEls.length; i++) {
-    var curr = currEls[i] ? currEls[i].value : defaultCurrency;
-    var v = costToCompany(cleanCurrency(costEls[i].value), curr);
-    if (v > highest) highest = v;
-  }
+  var highest = highestCompanyCost();
   var margin = cleanCurrency(document.getElementById('product_margin').value);
   var markup = cleanCurrency(document.getElementById('product_markup').value);
-  if (document.getElementById('full_price_with_tax').value != formatCurrency(highest * margin)) {
+  // Ask only when the cost has moved the margin; otherwise just refresh both figures.
+  var sell = parseFloat(cleanCurrency(document.getElementById('full_price').value)) || 0;
+  if (formatCurrency(sell ? ((sell - highest) / sell) * 100 : 0) == formatCurrency(margin)) {
+    update_full_price_incl_tax(true, false, false);
+  } else {
     var answer = prompt("<?php echo INV_WHAT_TO_CALCULATE; ?>", '1');
     if (answer == '1')      { update_full_price_incl_tax(true, true, false); }
     else if (answer == '2') { document.getElementById('full_price').value = formatCurrency((highest / (100 - margin)) * 100); update_full_price_incl_tax(false, true, true); update_full_price_incl_tax(true, false, false); }
@@ -177,16 +180,9 @@ function what_to_update() {
 }
 
 function update_full_price_incl_tax(margin, inclTax, fullprice) {
-  var highest = 0;
   if (margin) {
     if (!document.getElementById('full_price')) return;
-    var costEls = document.getElementsByName("item_cost_array[]");
-    var currEls = document.getElementsByName("item_cost_currency_array[]");
-    for (var i = 0; i < costEls.length; i++) {
-      var curr = currEls[i] ? currEls[i].value : defaultCurrency;
-      var v = costToCompany(parseFloat(cleanCurrency(costEls[i].value)), curr);
-      if (v > highest) highest = v;
-    }
+    var highest = highestCompanyCost();
     var sell = parseFloat(cleanCurrency(document.getElementById('full_price').value)) || 0;
     var sellTax = parseFloat(cleanCurrency(document.getElementById('full_price_with_tax').value)) || 0;
     // A zero sell price or zero cost has no margin or markup; dividing by it would put
@@ -470,7 +466,7 @@ function addVendorRow() {
     isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $cInfo->vendor_id ?? '', 'class="form-select form-select-sm" onchange="fetchVendorCurrency(this)"')) : '',
     isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_input_field('vendor_sku_array[]', '', 'class="form-control form-control-sm" size="16" maxlength="32"')) : '',
     isset($cInfo->description_purchase) ? str_replace("'", "\'", html_textarea_field('description_purchase_array[]', 40, 2, $cInfo->description_purchase ?? '', '', true)) : '',
-    isset($cInfo->item_cost)           ? str_replace("'", "\'", html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), DEFAULT_CURRENCY, 'class="form-select form-select-sm"')) : '',
+    isset($cInfo->item_cost)           ? str_replace("'", "\'", html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), DEFAULT_CURRENCY, 'onchange="what_to_update();" class="form-select form-select-sm"')) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_input_field('item_cost_array[]', $cInfo->item_cost ?? 0, 'onchange="what_to_update();" size="12" maxlength="20" class="text-end"', false)) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_input_field('purch_package_quantity_array[]', 1, 'size="6" maxlength="5" class="text-end"')) : '',
     isset($cInfo->purch_taxable)       ? str_replace("'", "\'", html_pull_down_menu('purch_taxable_array[]', $purch_tax_rates ?? [], INVENTORY_DEFAULT_PURCH_TAX)) : '',
