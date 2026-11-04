@@ -323,7 +323,7 @@ function zc_create_customer(array $bill, string $email, string $date): array
     // Derive a unique short_name (max 32 chars): email → phone → billing name
     $raw = $email !== '' ? $email : trim((string)($bill['phone'] ?? ''));
     if ($raw === '') $raw = trim((string)($bill['name'] ?? ''));
-    $base = substr($raw, 0, 28);
+    $base = mb_substr($raw, 0, 28);
     $short_name = $base;
     $n = 1;
     while (true) {
@@ -346,19 +346,21 @@ function zc_create_customer(array $bill, string $email, string $date): array
 
     $cust_company = zc_addr((string)($bill['company'] ?? ''));
     $cust_person  = zc_addr((string)($bill['name']    ?? ''));
+    // Lengths are characters, as the columns count them; a byte cut can split a
+    // multibyte character, and the database refuses the broken text.
     $addr = [
         'ref_id'         => $acct_id,
         'type'           => 'cm', // customer main — matches what load_bill.php AJAX searches for
-        'primary_name'   => substr($cust_company !== '' ? $cust_company : $cust_person, 0, 32),
-        'contact'        => substr($cust_company !== '' ? $cust_person  : '', 0, 32),
-        'address1'       => substr(zc_addr((string)($bill['addr1']      ?? '')), 0, 32),
-        'address2'       => substr(zc_addr((string)($bill['addr2']      ?? '')), 0, 32),
-        'city_town'      => substr(zc_addr((string)($bill['city']       ?? '')), 0, 24),
-        'state_province' => substr(zc_state((string)($bill['state']      ?? '')), 0, 24),
-        'postal_code'    => substr(zc_addr((string)($bill['postalCode'] ?? '')), 0, 10),
+        'primary_name'   => mb_substr($cust_company !== '' ? $cust_company : $cust_person, 0, 32),
+        'contact'        => mb_substr($cust_company !== '' ? $cust_person  : '', 0, 32),
+        'address1'       => mb_substr(zc_addr((string)($bill['addr1']      ?? '')), 0, 32),
+        'address2'       => mb_substr(zc_addr((string)($bill['addr2']      ?? '')), 0, 32),
+        'city_town'      => mb_substr(zc_addr((string)($bill['city']       ?? '')), 0, 24),
+        'state_province' => mb_substr(zc_state((string)($bill['state']      ?? '')), 0, 24),
+        'postal_code'    => mb_substr(zc_addr((string)($bill['postalCode'] ?? '')), 0, 10),
         'country_code'   => zc_country_3($bill['countryCode'] ?: ($bill['country'] ?? '')),
-        'telephone1'     => substr(zc_addr((string)($bill['phone']      ?? '')), 0, 20),
-        'email'          => substr($email, 0, 48),
+        'telephone1'     => mb_substr(zc_addr((string)($bill['phone']      ?? '')), 0, 20),
+        'email'          => mb_substr($email, 0, 48),
     ];
     $r = db_perform(TABLE_ADDRESS_BOOK, $addr, 'insert');
     if ($r->AffectedRows() != 1) return [0, 0];
