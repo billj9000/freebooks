@@ -91,6 +91,7 @@ var adminNotValidated    = '<?php echo TEXT_ADMIN_NOT_VALIDATED; ?>';
 var action				 = <?php echo json_encode($_REQUEST['action'] ?? ''); ?>;
 var ItemIsAlreadyOnOrder = '<?php echo ITEM_IS_ALREADY_ON_ORDER; ?>';
 var ItemIsOnHand		 = '<?php echo ITEM_IS_ON_HAND; ?>';
+var vendorCurrencyNote = <?php echo json_encode(ORD_VENDOR_CURRENCY_NOTE); ?>;
 var ItemIsInactive		 = '<?php echo ITEM_IS_INACTIVE; ?>';
 var ItemIsOutOfStockAndInactive  = '<?php echo ITEM_IS_OUT_OF_STOCK_AND_INACTIVE; ?>';
 var SalesOrderForItem	 = '<?php echo THERE_IS_SALES_ORDER_FOR_THIS_ITEM; ?>';

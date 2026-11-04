@@ -73,6 +73,7 @@ define('LOW_STOCK_BUTTON','Preencha ordem com itens com estoque baixo');
 define('ORD_JS_CANNOT_CONVERT_SO','AUma Cotação de Vendas Não Enviada não pode ser convertida em Ordem de Compra!');
 define('ITEM_IS_ALREADY_ON_ORDER', 'item já está encomendado');
 define('ITEM_IS_ON_HAND', 'item está em estoque');
+define('ORD_VENDOR_CURRENCY_NOTE', 'A moeda deste fornecedor é %s; o pedido está em %s.');
 define('ITEM_IS_INACTIVE', 'item está inativo');
 define('ITEM_IS_OUT_OF_STOCK_AND_INACTIVE', 'item está sem estoque e inativo');
 define('THERE_IS_SALES_ORDER_FOR_THIS_ITEM', 'existe uma ordem de venda para este item');

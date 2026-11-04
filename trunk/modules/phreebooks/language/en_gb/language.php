@@ -281,6 +281,7 @@ define('ORD_JS_NOTHING_TO_PRINT','This document has not been saved yet, so there
 define('ORD_JS_CANNOT_CONVERT_SO','An un-Posted Sales Order cannot be converted to a Purchase Order!');
 define('ITEM_IS_ALREADY_ON_ORDER', 'item is already on order');
 define('ITEM_IS_ON_HAND', 'item is on hand');
+define('ORD_VENDOR_CURRENCY_NOTE', 'This vendor\'s currency is %s; the order is in %s.');
 define('ITEM_IS_INACTIVE', 'item is inactive');
 define('ITEM_IS_OUT_OF_STOCK_AND_INACTIVE', 'item is out of stock and inactive');
 define('THERE_IS_SALES_ORDER_FOR_THIS_ITEM', 'there is a sales order for this item');

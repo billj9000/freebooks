@@ -87,9 +87,10 @@ while (!$result->EOF) {
 	$xml .= "\t" . xmlEntry("inactive",				  $result->fields['inactive']);
 	$xml .= "\t" . xmlEntry("reorder_quantity", 	  $qty);
 	$xml .= "\t" . xmlEntry("account_inventory_wage", $result->fields['account_inventory_wage']);
-	// The vendor's cost is in its row's currency; the order page takes this one in the default currency.
+	// The vendor's cost in its row's own currency, which the order page converts.
 	$vendor_row = item_costs::vendor_row($result->fields['sku'], $cID);
-	$xml .= "\t" . xmlEntry("item_cost",			  ($vendor_row ? $vendor_row['home_cost'] : 0) * $result->fields['purch_package_quantity']);
+	$xml .= "\t" . xmlEntry("item_cost",			  ($vendor_row ? $vendor_row['item_cost'] : 0) * $result->fields['purch_package_quantity']);
+	$xml .= "\t" . xmlEntry("currency_code",		  ($vendor_row && $vendor_row['currency_code'] != '') ? $vendor_row['currency_code'] : DEFAULT_CURRENCY);
 	$xml .= "\t" . xmlEntry("purch_taxable",		  $result->fields['purch_taxable']);
 	$xml .= "\t" . xmlEntry("description_purchase",	  $result->fields['description_purchase']);
 	$xml .= "\t" . xmlEntry("vendor_sku",			  $result->fields['vendor_sku']);

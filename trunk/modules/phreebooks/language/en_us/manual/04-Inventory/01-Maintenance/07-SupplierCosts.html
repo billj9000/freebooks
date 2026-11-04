@@ -54,7 +54,14 @@
   <li>if it is in another currency, the cost is converted to the row's currency at the current exchange rate.</li>
 </ul>
 <p>Only that supplier's row changes. The item cost then follows the item's supplier, so a purchase from any other supplier leaves the item cost as it was. An item none of whose suppliers has a cost takes the purchase's own cost as its item cost.</p>
-<p>A new purchase order for a supplier starts from that supplier's own cost, converted to the order's currency. For a vendor with no row on the item, it starts from the item's supplier's cost, converted to that vendor's currency.</p>
+<p>A line added to a purchase order or purchase starts from that supplier's own cost, or from the price its purchase price sheet gives for that cost. For a vendor with no row on the item, it starts from the item's supplier's cost, converted to that vendor's currency. The price on the line is then:</p>
+<ul>
+  <li>exactly the supplier's cost, when the order is in the supplier's currency, whatever the exchange rates have done since the order was started;</li>
+  <li>the cost at the order's own exchange rate, when the cost is in your default currency;</li>
+  <li>the cost converted at today's rates, when it is in a third currency.</li>
+</ul>
+<p>When you select a vendor on a new quote, purchase order, purchase or vendor credit, the order takes the vendor's currency (set on the vendor's General tab), provided no line has been entered yet. If there are lines already, the order keeps its currency and a note under Currency shows the vendor's; change the currency yourself if you want it. Selecting the vendor again on a saved order never changes its currency or exchange rate.</p>
+<p>Changing the order's currency converts each line from its unit price at full precision. A line whose price is still the supplier's cost converts from that cost, so changing back to the supplier's currency gives the cost exactly. A price you have typed in is converted as it stands.</p>
 
 <h3>Copies and master items</h3>
 <p>Copying an item, and creating the variants of a master stock item or master bundle, copies each supplier row with its currency and its Preferred Vendor tick.</p>

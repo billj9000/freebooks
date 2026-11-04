@@ -210,6 +210,10 @@ echo $pay_request_status;
               <td class="text-end"><?php echo TEXT_CURRENCY; ?></td>
               <td><?php echo html_pull_down_menu('display_currency', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), $order->currencies_code, 'onchange="recalculateCurrencies();"'); ?></td>
             </tr>
+            <tr id="currency_note_row" style="display:none">
+              <td></td>
+              <td><div id="currency_note" class="form-text text-warning"></div></td>
+            </tr>
             <tr>
               <td class="text-end"><?php echo TEXT_EXCHANGE_RATE; ?></td>
               <td><?php echo html_input_field('currencies_value', $order->currencies_value, 'readonly="readonly"'); ?></td>

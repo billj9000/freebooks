@@ -331,6 +331,7 @@ define('TEXT_AUTO_COMPLETE','Auto Compleet');
 define('ORD_HEADING_NUMBER_19','Bonnummer #');
 define('ITEM_IS_ALREADY_ON_ORDER', 'artikel staat al in bestelling');
 define('ITEM_IS_ON_HAND', 'artikel is op voorraad');
+define('ORD_VENDOR_CURRENCY_NOTE', 'De valuta van deze leverancier is %s; de order is in %s.');
 define('ITEM_IS_INACTIVE', 'artikel is inactief');
 define('ITEM_IS_OUT_OF_STOCK_AND_INACTIVE', 'artikel is inactief en niet op voorraad');
 define('THERE_IS_SALES_ORDER_FOR_THIS_ITEM', 'er is een verkoop bestelling voor dit artikel');

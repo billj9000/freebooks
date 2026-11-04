@@ -154,6 +154,7 @@ define('ORD_JS_NOTHING_TO_PRINT','This document has not been saved yet, so there
 define('ORD_JS_CANNOT_CONVERT_SO','An un-Posted Sales Order cannot be converted to a Purchase Order!');
 define('ITEM_IS_ALREADY_ON_ORDER', 'товар уже заказан');
 define('ITEM_IS_ON_HAND', 'товар в наличии');
+define('ORD_VENDOR_CURRENCY_NOTE', 'Валюта этого поставщика — %s; заказ в %s.');
 define('ITEM_IS_INACTIVE', 'товар неактивен');
 define('ITEM_IS_OUT_OF_STOCK_AND_INACTIVE', 'товара нет в наличии, и он неактивен');
 define('THERE_IS_SALES_ORDER_FOR_THIS_ITEM', 'на этот товар есть заказ на продажу');

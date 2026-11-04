@@ -56,6 +56,7 @@ function ClearForm() {
   document.getElementById('display_currency').value   = defaultCurrency;
   document.getElementById('currencies_code').value    = defaultCurrency;
   document.getElementById('currencies_value').value   = '1';
+  showCurrencyNote('');
   // handle checkboxes
   document.getElementById('waiting').checked          = false;
   document.getElementById('drop_ship').checked        = false;
@@ -166,6 +167,7 @@ function orderFillAddress(xml, type, fill_address) {
 		var glTypeAcct    = xmlText(contact, "gl_type_account");
 		default_inv_acct  = glTypeAcct ? glTypeAcct : default_inv_acct;
 		insertValue('bill_acct_id',    id);
+		if (fill_address) applyVendorCurrency(xmlText(contact, "currency_code"));
 		insertValue('terms',           xmlText(contact, "special_terms"));
 		insertValue('terms_text',      xmlText(contact, "terms_text"));
 		insertValue('search',          xmlText(contact, "short_name"));
@@ -1190,33 +1192,40 @@ function recalculateCurrencies() {
   } else {
 	numRows = document.getElementById('item_table').rows.length/2;
   }
+  var qtyField = '';
+  switch (journalID) {
+	case '3': case '4': case '9': case '10':
+	  qtyField = 'qty_';
+	  break;
+	case '6': case '7': case '12': case '13': case '18': case '19': case '20': case '21':
+	  qtyField = 'pstd_';
+	  break;
+	default:
+  }
+  // A line converts from its unit price at full precision, not from its rounded total. A line
+  // whose price is still the supplier's cost converts from that cost, so changing to the
+  // supplier's currency gives the cost exactly.
   for (var i=1; i<(numRows+1); i++) {
-	itemTotal = parseFloat(cleanCurrency(document.getElementById('total_'+i).value, currentCurrency));
-	if (isNaN(itemTotal)) continue;
-	workingTotal = itemTotal / currentValue;
-    newTotal = workingTotal * newValue;
-	switch (journalID) {
-	  case '3':
-	  case '4':
-	  case '9':
-	  case '10':
-		workingUnitValue = newTotal / document.getElementById('qty_'+i).value;
-		break;
-	  case '6':
-	  case '7':
-	  case '12':
-	  case '13':
-	  case '18':
-	  case '19':
-	  case '20':
-	  case '21':
-		workingUnitValue = newTotal / document.getElementById('pstd_'+i).value;
-		break;
-	  default:
+	var src  = supplierCost(i);
+	var unit = parseFloat(cleanCurrency(document.getElementById('price_'+i).value));
+	var qty  = qtyField ? parseFloat(cleanCurrency(document.getElementById(qtyField+i).value)) : NaN;
+	if (!isNaN(unit) && qty > 0) {
+	  workingUnitValue = src ? convertCost(src.cost, src.code, desiredCurrency, newValue) : unit / currentValue * newValue;
+	  document.getElementById('price_'+i).value = formatPrecise(new String(workingUnitValue));
+	  newTotal = qty * parseFloat(cleanCurrency(document.getElementById('price_'+i).value));
+	  document.getElementById('total_'+i).value = formatCurrency(new String(newTotal));
+	  if (src) document.getElementById('price_'+i).dataset.costShown = document.getElementById('price_'+i).value;
+	} else {
+	  itemTotal = parseFloat(cleanCurrency(document.getElementById('total_'+i).value));
+	  if (isNaN(itemTotal)) continue;
+	  newTotal = itemTotal / currentValue * newValue;
+	  document.getElementById('total_'+i).value = formatCurrency(new String(newTotal));
 	}
-	if (isNaN(workingUnitValue)) continue;
-	document.getElementById('total_'+i).value = formatCurrency(new String(newTotal), desiredCurrency);
-	document.getElementById('price_'+i).value = formatPrecise(new String(workingUnitValue), desiredCurrency);
+	var full = parseFloat(cleanCurrency(document.getElementById('full_'+i).value));
+	if (!isNaN(full)) {
+	  var newFull = (src && src.full !== null) ? convertCost(src.full, src.code, desiredCurrency, newValue) : full / currentValue * newValue;
+	  document.getElementById('full_'+i).value = formatCurrency(new String(newFull));
+	}
   }
   // convert shipping
   var newFreight = parseFloat(document.getElementById('freight').value);
@@ -1227,6 +1236,47 @@ function recalculateCurrencies() {
   // prepare the page settings for post
   document.getElementById('currencies_code').value = desiredCurrency;
   document.getElementById('currencies_value').value = new String(newValue);
+  showCurrencyNote('');
+}
+
+// A new purchase order, quote, purchase or vendor credit takes the selected vendor's currency,
+// as long as no line has been entered: a line's price may have been checked or typed in, or
+// come from another vendor, so a line is never converted without the user choosing to. With
+// lines, the order keeps its currency and a note says the two differ. A saved order keeps the
+// currency and rate it was raised at.
+function applyVendorCurrency(code) {
+  showCurrencyNote('');
+  var select = document.getElementById('display_currency');
+  if (!select || select.tagName != 'SELECT') return;
+  if (['3', '4', '6', '7'].indexOf(String(journalID)) < 0) return;
+  var orderId = document.getElementById('id') ? document.getElementById('id').value : '';
+  if (orderId != '' && orderId != '0') return;
+  if (!code || js_currency_codes.indexOf(code) < 0 || code == orderCurrency()) return;
+  if (orderHasLines()) {
+    showCurrencyNote(vendorCurrencyNote.replace('%s', code).replace('%s', orderCurrency()));
+    return;
+  }
+  select.value = code;
+  recalculateCurrencies();
+}
+
+function showCurrencyNote(text) {
+  var row = document.getElementById('currency_note_row');
+  if (!row) return;
+  document.getElementById('currency_note').textContent = text;
+  row.style.display = text ? '' : 'none';
+}
+
+// Whether any line of the order has an item, a description or an amount.
+function orderHasLines() {
+  var numRows = (single_line_list == '1') ? document.getElementById('item_table').rows.length : document.getElementById('item_table').rows.length/2;
+  for (var i = 1; i < (numRows+1); i++) {
+    var sku  = document.getElementById('sku_'+i)  ? document.getElementById('sku_'+i).value  : '';
+    var desc = document.getElementById('desc_'+i) ? document.getElementById('desc_'+i).value : '';
+    var ttl  = document.getElementById('total_'+i) ? parseFloat(cleanCurrency(document.getElementById('total_'+i).value)) : NaN;
+    if ((sku != '' && sku != text_search) || desc != '' || (!isNaN(ttl) && ttl != 0)) return true;
+  }
+  return false;
 }
 
 function getCurrencyValue(code) {
@@ -1236,11 +1286,46 @@ function getCurrencyValue(code) {
   return 0;
 }
 
-// Convert a cost stored in costCurr to the order's display currency.
-// Rates are foreign-units-per-1-company-currency, so: cost / costRate * orderRate.
-function convertCost(cost, costCurr, orderRate) {
+// A supplier's cost in costCurr, in the order's currency orderCurr at the order's rate orderRate.
+// Rates are foreign units per one unit of the default currency. A cost already in the order's
+// currency is the order's price as it stands, whatever the rates; a cost in the default currency
+// takes the order's own rate. Only a cost in a third currency goes through today's rate for it.
+function convertCost(cost, costCurr, orderCurr, orderRate) {
+  costCurr  = costCurr  || defaultCurrency;
+  orderCurr = orderCurr || defaultCurrency;
+  if (costCurr == orderCurr) return cost;
+  if (costCurr == defaultCurrency) return cost * orderRate;
   var costRate = getCurrencyValue(costCurr);
-  return (costRate == 0) ? cost : cost / costRate * orderRate;
+  return (costRate == 0) ? cost * orderRate : cost / costRate * orderRate;
+}
+
+function orderCurrency() {
+  return document.getElementById('currencies_code').value || defaultCurrency;
+}
+
+// Set a purchase line's price and cost from a supplier's cost in its own currency, and keep
+// that cost with the line so a change of the order's currency converts from it.
+function setSupplierCost(rowCnt, price, full, costCurr) {
+  var rate    = parseFloat(document.getElementById('currencies_value').value);
+  var priceEl = document.getElementById('price_'+rowCnt);
+  priceEl.value = formatPrecise(convertCost(price, costCurr, orderCurrency(), rate));
+  document.getElementById('full_'+rowCnt).value = formatCurrency(convertCost(full, costCurr, orderCurrency(), rate));
+  priceEl.dataset.cost      = String(price);
+  priceEl.dataset.costFull  = String(full);
+  priceEl.dataset.costCode  = costCurr || defaultCurrency;
+  priceEl.dataset.costSku   = document.getElementById('sku_'+rowCnt).value;
+  priceEl.dataset.costShown = priceEl.value;
+}
+
+// The supplier's cost kept with a line, or null when the line has none or its price or item
+// has been changed since.
+function supplierCost(rowCnt) {
+  var priceEl = document.getElementById('price_'+rowCnt);
+  if (!priceEl || priceEl.dataset.cost === undefined) return null;
+  if (priceEl.value !== priceEl.dataset.costShown) return null;
+  if (document.getElementById('sku_'+rowCnt).value !== priceEl.dataset.costSku) return null;
+  var full = parseFloat(priceEl.dataset.costFull);
+  return { cost: parseFloat(priceEl.dataset.cost), full: isNaN(full) ? null : full, code: priceEl.dataset.costCode };
 }
 
 // AJAX auto load SKU pair
@@ -1326,8 +1411,7 @@ function fillInventory(xml) {
 	  qty_pstd = 'qty_';
 	  document.getElementById('qty_'   +rowCnt).value = formatPrecise(xmlText(xml, "qty"));
 	  document.getElementById('acct_'  +rowCnt).value = xmlText(xml, "account_inventory_wage");
-	  document.getElementById('price_' +rowCnt).value = formatPrecise(convertCost(parseFloat(xmlText(xml, "sales_price")), currency_code, parseFloat(exchange_rate)));
-	  document.getElementById('full_'  +rowCnt).value = formatCurrency(convertCost(parseFloat(xmlText(xml, "item_cost")), currency_code, parseFloat(exchange_rate)));
+	  setSupplierCost(rowCnt, parseFloat(xmlText(xml, "sales_price")), parseFloat(xmlText(xml, "item_cost")), currency_code);
 	  if (default_sales_tax == -1) document.getElementById('tax_'+rowCnt).value = xmlText(xml, "purch_taxable");
 	  var descPurch = xmlText(xml, "description_purchase");
 	  document.getElementById('desc_'  +rowCnt).value = descPurch ? descPurch : xmlText(xml, "description_short");
@@ -1351,8 +1435,7 @@ function fillInventory(xml) {
 	  qty_pstd = 'pstd_';
 	  document.getElementById('pstd_'  +rowCnt).value = formatPrecise(xmlText(xml, "qty"));
 	  document.getElementById('acct_'  +rowCnt).value = xmlText(xml, "account_inventory_wage");
-	  document.getElementById('price_' +rowCnt).value = formatPrecise(convertCost(parseFloat(xmlText(xml, "sales_price")), currency_code, parseFloat(exchange_rate)));
-	  document.getElementById('full_'    +rowCnt).value = formatCurrency(convertCost(parseFloat(xmlText(xml, "item_cost")), currency_code, parseFloat(exchange_rate)));
+	  setSupplierCost(rowCnt, parseFloat(xmlText(xml, "sales_price")), parseFloat(xmlText(xml, "item_cost")), currency_code);
 	  if (default_sales_tax == -1) document.getElementById('tax_'   +rowCnt).value = xmlText(xml, "purch_taxable");
 	  var descPurch6 = xmlText(xml, "description_purchase");
 	  document.getElementById('desc_'  +rowCnt).value = descPurch6 ? descPurch6 : xmlText(xml, "description_short");
@@ -1483,21 +1566,19 @@ function PreProcessLowStock() {
 function PostProcessLowStock(xml) {
 	xml = parseXml(xml);
 	if (!xml) return;
-	var exchange_rate = document.getElementById('currencies_value').value;
 	var i = 0;
 	Array.from(xml.getElementsByTagName("LowStock")).forEach(function(stock) {
 		addInvRow();
 		var rowCnt = xmlText(stock, "rID");
 		document.getElementById('sku_'     +rowCnt).value       = xmlText(stock, "sku");
 		document.getElementById('sku_'     +rowCnt).style.color = '';
-		document.getElementById('full_'    +rowCnt).value       = formatCurrency(xmlText(xml, "full_price") * exchange_rate);
 		document.getElementById('weight_'  +rowCnt).value       = xmlText(stock, "item_weight");
 		document.getElementById('stock_'   +rowCnt).value       = xmlText(stock, "quantity");
 		document.getElementById('lead_'    +rowCnt).value       = xmlText(stock, "lead_time");
 		document.getElementById('inactive_'+rowCnt).value       = xmlText(stock, "inactive");
 		document.getElementById('qty_'     +rowCnt).value       = xmlText(stock, "reorder_quantity");
 		document.getElementById('acct_'    +rowCnt).value       = xmlText(stock, "account_inventory_wage");
-		document.getElementById('price_'   +rowCnt).value       = formatPrecise(xmlText(stock, "item_cost") * exchange_rate);
+		setSupplierCost(rowCnt, parseFloat(xmlText(stock, "item_cost")), parseFloat(xmlText(stock, "item_cost")), xmlText(stock, "currency_code"));
 		document.getElementById('tax_'     +rowCnt).value       = xmlText(stock, "purch_taxable");
 		document.getElementById('sku_prop_'+rowCnt).style.display = '';
 		document.getElementById('purch_package_quantity_'+rowCnt).value = xmlText(stock, "purch_package_quantity");
