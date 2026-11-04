@@ -19,11 +19,13 @@
 /**
  * Forms — the TCPDF surface the Layout renderer draws on.
  *
- * Deliberately thin: it owns only the Header()/Footer() callbacks, which TCPDF
+ * Deliberately thin. It owns the Header()/Footer() callbacks, which TCPDF
  * invokes on page transitions and which are the sole hook for drawing content
  * that repeats on every page. Both delegate straight back to the renderer, so
  * the layout decisions stay readable and testable instead of being tangled into
- * a PDF subclass (docs/forms-design.md §2.2).
+ * a PDF subclass (docs/forms-design.md §2.2). It also wraps Cell(), MultiCell()
+ * and GetStringWidth() to draw and measure text in a font that has its
+ * characters, so neither renderer has to know which fonts cover what.
  *
  * PER-RECORD PAGE NUMBERING uses TCPDF's own page groups, so an invoice reads
  * "2 of 3" within itself rather than counting across a 40-invoice batch.
@@ -77,6 +79,86 @@ final class PdfCanvas extends \TCPDF
 
     /** True while TCPDF is calling Header()/Footer() — guards against recursion. */
     public function isDrawingFurniture(): bool { return $this->inFurniture; }
+
+    /**
+     * Font families the reader supplies for East Asian text. They are Adobe's
+     * standard CID fonts, so the PDF names them and embeds nothing. STSong's
+     * character collection (GB1) includes the traditional characters as well as
+     * the simplified ones, so it serves any Chinese text; the traditional-only
+     * collection would show simplified characters as gaps.
+     */
+    private const FONT_CHINESE  = 'stsongstdlight';
+    private const FONT_JAPANESE = 'kozminproregular';
+    private const FONT_KOREAN   = 'hysmyeongjostdmedium';
+
+    public function Cell($w, $h = 0, $txt = '', $border = 0, $ln = 0, $align = '', $fill = false, $link = '',
+                         $stretch = 0, $ignore_min_height = false, $calign = 'T', $valign = 'M')
+    {
+        $args = func_get_args();
+        return $this->inFontFor((string)$txt, fn() => parent::Cell(...$args));
+    }
+
+    public function MultiCell($w, $h, $txt, $border = 0, $align = 'J', $fill = false, $ln = 1, $x = null, $y = null,
+                              $reseth = true, $stretch = 0, $ishtml = false, $autopadding = true, $maxh = 0,
+                              $valign = 'T', $fitcell = false)
+    {
+        $args = func_get_args();
+        return $this->inFontFor((string)$txt, fn() => parent::MultiCell(...$args));
+    }
+
+    public function GetStringWidth($s, $fontname = '', $fontstyle = '', $fontsize = 0, $getarray = false)
+    {
+        $args = func_get_args();
+        if ($fontname !== '') return parent::GetStringWidth(...$args);
+        return $this->inFontFor((string)$s, fn() => parent::GetStringWidth(...$args));
+    }
+
+    /**
+     * Run $draw in a font that has glyphs for $text, then restore the font.
+     *
+     * TCPDF's core fonts (Helvetica, Times, Courier) hold only the Windows
+     * Latin-1 characters and print every other one as "?". Text with Chinese,
+     * Japanese or Korean characters is drawn in the matching CID font; other
+     * text the current font cannot show is drawn in the DejaVu family of the
+     * same kind (sans, serif or mono), keeping bold and italic.
+     */
+    private function inFontFor(string $text, callable $draw): mixed
+    {
+        $family = $this->fallbackFamily($text);
+        if ($family === null) return $draw();
+
+        $saved = [$this->getFontFamily(), $this->getFontStyle(), $this->getFontSizePt()];
+        $this->SetFont($family, $saved[1], $saved[2]);
+        try {
+            return $draw();
+        } finally {
+            $this->SetFont($saved[0], $saved[1], $saved[2]);
+        }
+    }
+
+    /** The family to draw $text in, or null when the current font can show it. */
+    private function fallbackFamily(string $text): ?string
+    {
+        if (!preg_match('/[^\x00-\x7F]/', $text)) return null;
+        $current = $this->getFontFamily();
+
+        if (preg_match('/[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}\x{3000}-\x{303F}\x{FF00}-\x{FFEF}]/u', $text)) {
+            $family = preg_match('/\p{Hangul}/u', $text) ? self::FONT_KOREAN
+                : (preg_match('/[\p{Hiragana}\p{Katakana}]/u', $text) ? self::FONT_JAPANESE : self::FONT_CHINESE);
+            return $current === $family ? null : $family;
+        }
+
+        if ($this->isUnicodeFont()) return null;
+        foreach (preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY) as $char) {
+            $code = mb_ord($char, 'UTF-8');
+            if ($code > 0xFF && !isset(\TCPDF_FONT_DATA::$uni_utf8tolatin[$code])) {
+                if (str_starts_with($current, 'times'))   return 'dejavuserif';
+                if (str_starts_with($current, 'courier')) return 'dejavusansmono';
+                return 'dejavusans';
+            }
+        }
+        return null;
+    }
 
     public function Header()
     {
