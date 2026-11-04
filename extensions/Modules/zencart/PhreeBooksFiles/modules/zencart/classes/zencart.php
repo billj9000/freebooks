@@ -141,7 +141,7 @@ class zencart {
             $levels_str = $special->RecordCount() > 0
                 ? $special->fields['price_levels']
                 : $sheet->fields['default_levels'];
-            $prices = inv_calculate_prices($inv['item_cost'], $inv['full_price'], $levels_str);
+            $prices = inv_calculate_prices(item_costs::sheet_cost($inv['sku'], $inv['item_cost']), $inv['full_price'], $levels_str);
             // array_values() re-indexes so json_encode produces a JSON array, not an object.
             // Sparse keys arise when "Not Used" levels are skipped by inv_calculate_prices().
             $price_levels = array_values(array_map(fn($a) => [
@@ -342,6 +342,18 @@ class zencart {
             return false;
         }
 
+        // A sheet's Last Cost works from each item's supplier cost, looked up for all of them at once.
+        $sheet_costs = [];
+        if ($use_sheet) {
+            $costs = $db->Execute("SELECT sku, item_cost FROM " . TABLE_INVENTORY . " WHERE catalog = '1'");
+            $items = [];
+            while (!$costs->EOF) {
+                $items[$costs->fields['sku']] = $costs->fields['item_cost'];
+                $costs->MoveNext();
+            }
+            $sheet_costs = item_costs::sheet_costs($items);
+        }
+
         $bulk_products = [];
         $bulk_ids      = [];
         $n_catalog     = 0;
@@ -381,7 +393,7 @@ class zencart {
                 $levels = $special->RecordCount() > 0
                     ? $special->fields['price_levels']
                     : $sheet_levels;
-                $tiers = inv_calculate_prices($result->fields['item_cost'], $result->fields['full_price'], $levels);
+                $tiers = inv_calculate_prices($sheet_costs[$result->fields['sku']] ?? $result->fields['item_cost'], $result->fields['full_price'], $levels);
 
                 if (is_array($tiers) && count($tiers) > 1) {
                     // Multiple quantity tiers — upload full product so ZenCart gets qty discounts

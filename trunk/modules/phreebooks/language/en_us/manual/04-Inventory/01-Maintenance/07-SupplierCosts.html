@@ -23,8 +23,18 @@
 <h1 align="center">Inventory - Supplier Costs, Currencies and Margin</h1>
 <p>Each row in the Vendor Details section of an inventory item holds one supplier's cost, in the currency that supplier charges in, chosen beside the cost. A supplier who quotes in euros keeps a cost in euros, so the figure does not drift as exchange rates move.</p>
 
+<h3>The item's supplier</h3>
+<p>One supplier's cost is the one the item uses. Tick <strong>Preferred Vendor</strong> on that supplier's row to choose it; only one row can be ticked. With no row ticked, the item uses the supplier with the lowest cost, compared after converting each cost to the company's currency at the current exchange rate. A row with no cost entered is never used, and a ticked row with no cost is passed over for the lowest.</p>
+<p>The item's supplier gives:</p>
+<ul>
+  <li>the <strong>item cost</strong>, which is that supplier's cost converted to the company's currency;</li>
+  <li>the item's <strong>main vendor</strong>, the one a purchase order made from a sales order goes to;</li>
+  <li>the cost the <strong>margin and markup</strong> are worked out from;</li>
+  <li>the cost a price sheet's <strong>Last Cost</strong> level starts from.</li>
+</ul>
+
 <h3>Margin and markup</h3>
-<p>The item's sales price, margin and markup are in the company's own currency. Whenever FreeBooks works one of them out, it first converts each supplier's cost to the company's currency at the current exchange rate, then uses the highest of the converted costs. This is the same whether you change a supplier's cost or currency, type a new margin, type a new markup or change the price.</p>
+<p>The item's sales price, margin and markup are in the company's own currency, worked out from the item's supplier's cost converted at the current exchange rate. This is the same whether you change a supplier's cost or currency, tick a different supplier, type a new margin, type a new markup or change the price.</p>
 <ul>
   <li><strong>Margin</strong> is the profit as a percentage of the sales price before tax: a cost of 60.00 sold at 100.00 is a 40% margin.</li>
   <li><strong>Markup</strong> is the sales price including tax divided by the cost.</li>
@@ -32,7 +42,10 @@
 <p>When you change a supplier's cost and the margin no longer matches the price, FreeBooks asks what to recalculate: the margin (keeping the price), the price from the margin, or the price from the markup. If the change leaves the margin as it was, it does not ask.</p>
 
 <h3>The item cost</h3>
-<p>When the item is saved, its cost is set to the lowest of its suppliers' costs, compared after converting each to the company's currency, and the supplier with that cost becomes the item's main vendor. The item cost is always in the company's currency.</p>
+<p>The item cost is always in the company's currency. It is worked out again when the item is saved and when a purchase from the item's supplier changes that supplier's cost. It is converted at the exchange rate of that day and is not changed when exchange rates are updated, so it can differ a little from the supplier's cost at today's rate until the item is next saved or bought. An item none of whose suppliers has a cost, such as an assembly, keeps the cost it has.</p>
+
+<h3>Price sheets</h3>
+<p>A price sheet level that starts from <strong>Last Cost</strong> uses the item's supplier's cost converted at today's exchange rate, so a customer on a cost-based price sheet is charged the company-currency value of what that supplier charges. The item's price sheet window shows the same cost.</p>
 
 <h3>Purchase orders and purchases</h3>
 <p>Posting a purchase order or a purchase updates that supplier's cost on the item, in the supplier row's own currency:</p>
@@ -40,7 +53,11 @@
   <li>if the order is in the supplier row's currency, the row takes the order's own unit price;</li>
   <li>if it is in another currency, the cost is converted to the row's currency at the current exchange rate.</li>
 </ul>
-<p>A new purchase order for that supplier then starts from that cost, converted to the order's currency.</p>
+<p>Only that supplier's row changes. The item cost then follows the item's supplier, so a purchase from any other supplier leaves the item cost as it was. An item none of whose suppliers has a cost takes the purchase's own cost as its item cost.</p>
+<p>A new purchase order for a supplier starts from that supplier's own cost, converted to the order's currency. For a vendor with no row on the item, it starts from the item's supplier's cost, converted to that vendor's currency.</p>
+
+<h3>Copies and master items</h3>
+<p>Copying an item, and creating the variants of a master stock item or master bundle, copies each supplier row with its currency and its Preferred Vendor tick.</p>
 
 <h3>Related Topics</h3>
 <p><a href="02-EditItem.html">Editing inventory items</a><br />

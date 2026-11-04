@@ -595,7 +595,7 @@ class amazon {
 	        $output['launch-date']      = substr($result->fields['creation_date'], 0, 10);
 //			$output['release-date']     = $result->fields['creation_date'];
 	        $output['msrp']             = $result->fields['full_price'];
-	        $prices = inv_calculate_prices($result->fields['item_cost'], $result->fields['full_price'], $price_levels);
+	        $prices = inv_calculate_prices(item_costs::sheet_cost($result->fields['sku'], $result->fields['item_cost']), $result->fields['full_price'], $price_levels);
 	        $output['currency']         = 'USD';
 //			if ($result->fields['map_price'] > 0) $output['map-price'] = $result->fields['map_price'];
 	        $output['item-price']       = $prices[0]['price'];

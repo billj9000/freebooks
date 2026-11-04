@@ -194,6 +194,7 @@ class inventory_admin {
 		  purch_taxable int(11) NOT NULL default '0',
 		  item_cost double NOT NULL default '0',
 		  currency_code varchar(3) NOT NULL default '',
+		  preferred tinyint(1) NOT NULL default '0',
 		  price_sheet_v varchar(32) default NULL,
 		  PRIMARY KEY (id),
 		  INDEX (sku)
@@ -487,6 +488,10 @@ class inventory_admin {
 	}
 	if (!gen_version_is_freebooks(MODULE_INVENTORY_STATUS)) {
 		include(DIR_FS_MODULES . 'inventory/updates/PhreeBooks371toFreeBooks100.php');
+	}
+	// The supplier whose cost the item uses (issue #130).
+	if (!db_field_exists(TABLE_INVENTORY_PURCHASE, 'preferred')) {
+		$db->Execute("ALTER TABLE " . TABLE_INVENTORY_PURCHASE . " ADD preferred tinyint(1) NOT NULL DEFAULT '0' AFTER currency_code");
 	}
 	if (!$error) {
 		xtra_field_sync_list('inventory', TABLE_INVENTORY);

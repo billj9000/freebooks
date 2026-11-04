@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -28,7 +29,7 @@
 // 3.7.4 => 2014-09-26 - added markup
 // Module software version information
 gen_pull_language('contacts', 'menu');
-define('MODULE_INVENTORY_VERSION', '1.0.0');
+define('MODULE_INVENTORY_VERSION', '1.0.1');
 // Menu Sort Positions
 // Menu Security id's (refer to master doc to avoid security setting overlap)
 define('SECURITY_ID_PRICE_SHEET_MANAGER', 88);

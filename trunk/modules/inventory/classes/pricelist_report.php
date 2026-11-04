@@ -1,8 +1,9 @@
 <?php
 // +-----------------------------------------------------------------+
-// |                   PhreeBooks Open Source ERP                    |
+// |                          FreeBooks ERP                          |
 // +-----------------------------------------------------------------+
-// | Copyright(c) 2008-2014 PhreeSoft      (www.PhreeSoft.com)       |
+// | Copyright(c) 2026 Bill Jones                                    |
+// | Portions Copyright(c) 2008-2014 PhreeSoft                       |
 // +-----------------------------------------------------------------+
 // | This program is free software: you can redistribute it and/or   |
 // | modify it under the terms of the GNU General Public License as  |
@@ -166,7 +167,7 @@ class pricelist_report {
 	global $db, $currencies;
 	$new_data = array();
 	// get the inventory prices
-	$inventory = $db->Execute("select item_cost, full_price, price_sheet from ".TABLE_INVENTORY." where id = '$id'");
+	$inventory = $db->Execute("select sku, item_cost, full_price, price_sheet from ".TABLE_INVENTORY." where id = '$id'");
 	// determine what price sheet to use, priority: inventory, default
 	if ($inventory->fields['price_sheet'] <> '') {
 		$sheet_name = $inventory->fields['price_sheet'];
@@ -205,7 +206,7 @@ class pricelist_report {
 	  'price_qty_5'   => '',
 	);
 	if ($levels) {
-		$prices = inv_calculate_prices($inventory->fields['item_cost'], $inventory->fields['full_price'], $levels);
+		$prices = inv_calculate_prices(item_costs::sheet_cost($inventory->fields['sku'], $inventory->fields['item_cost']), $inventory->fields['full_price'], $levels);
 		if (is_array($prices)) foreach ($prices as $key => $value) {
 			$new_data['price_level_'.($key+1)] = $currencies->clean_value($value['price']);
 			$new_data['price_qty_'  .($key+1)] = $value['qty'];

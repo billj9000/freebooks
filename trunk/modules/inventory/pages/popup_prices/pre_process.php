@@ -30,6 +30,8 @@ $rowId = $_GET['rowId'];
 $inventory_details = $db->Execute("select id, sku, description_short, item_cost, full_price, item_weight 
 	 from " . TABLE_INVENTORY . " where sku = '" . db_input($sku) . "'");
 $id = $inventory_details->fields['id'];
+// The cost a Last Cost level works from, in the default currency.
+$sheet_cost = item_costs::sheet_cost($inventory_details->fields['sku'] ?? '', $inventory_details->fields['item_cost'] ?? 0);
 
 if ($id) { // then the sku was valid, get item information, cost and full price
   $sql = "select id, sheet_name, revision, default_sheet, default_levels from " . TABLE_PRICE_SHEETS . " 

@@ -133,62 +133,78 @@ function renameItem(id, type) {
   if (skuID) submitPost('index.php?module=inventory&page=main&action=rename', {cID: id, sku: skuID, inventory_type: type});
 }
 
-// The highest supplier cost in company currency. Each supplier row's cost is in that row's
-// currency, so every margin and markup works from the converted figure (issue #127).
-function highestCompanyCost() {
-  var highest = 0;
+// The cost of the item's supplier in company currency: the row marked preferred when it has
+// a cost, otherwise the lowest. Each row's cost is in that row's currency, so the rows are
+// compared after converting. The same rule as item_costs::choose(), which sets the item's
+// cost when it is saved.
+function supplierCompanyCost() {
   var costEls = document.getElementsByName("item_cost_array[]");
   var currEls = document.getElementsByName("item_cost_currency_array[]");
+  var prefEls = document.getElementsByName("preferred_array[]");
+  var lowest  = 0;
   for (var i = 0; i < costEls.length; i++) {
     var curr = currEls[i] ? currEls[i].value : defaultCurrency;
     var v = costToCompany(parseFloat(cleanCurrency(costEls[i].value)) || 0, curr);
-    if (v > highest) highest = v;
+    if (v <= 0) continue;
+    if (prefEls[i] && prefEls[i].value == '1') return v;
+    if (lowest == 0 || v < lowest) lowest = v;
   }
-  return highest;
+  return lowest;
+}
+
+// One preferred supplier per item: marking a row clears the others.
+function setPreferredVendor(box) {
+  var boxes = document.querySelectorAll('#vendor_table_tbody input[type=checkbox]');
+  boxes.forEach(function(other) {
+    if (other !== box) other.checked = false;
+    var hidden = other.parentNode.querySelector('input[name="preferred_array[]"]');
+    if (hidden) hidden.value = other.checked ? '1' : '0';
+  });
+  what_to_update();
 }
 
 function product_markup_change() {
-  var highest = highestCompanyCost();
+  var cost = supplierCompanyCost();
   var markup = cleanCurrency(document.getElementById('product_markup').value);
-  document.getElementById('full_price_with_tax').value = formatCurrency(highest * markup);
+  document.getElementById('full_price_with_tax').value = formatCurrency(cost * markup);
   update_full_price_incl_tax(false, false, true);
   update_full_price_incl_tax(true, false, false);
 }
 
 function product_margin_change() {
-  var highest = highestCompanyCost();
+  var cost = supplierCompanyCost();
   var margin = cleanCurrency(document.getElementById('product_margin').value);
-  document.getElementById('full_price').value = formatCurrency((highest / (100 - margin)) * 100);
+  document.getElementById('full_price').value = formatCurrency((cost / (100 - margin)) * 100);
   update_full_price_incl_tax(false, true, false);
   update_full_price_incl_tax(true, false, false);
 }
 
 function what_to_update() {
-  var highest = highestCompanyCost();
+  var cost = supplierCompanyCost();
   var margin = cleanCurrency(document.getElementById('product_margin').value);
   var markup = cleanCurrency(document.getElementById('product_markup').value);
   // Ask only when the cost has moved the margin; otherwise just refresh both figures.
   var sell = parseFloat(cleanCurrency(document.getElementById('full_price').value)) || 0;
-  if (formatCurrency(sell ? ((sell - highest) / sell) * 100 : 0) == formatCurrency(margin)) {
+  if (formatCurrency(sell ? ((sell - cost) / sell) * 100 : 0) == formatCurrency(margin)) {
     update_full_price_incl_tax(true, false, false);
   } else {
     var answer = prompt("<?php echo INV_WHAT_TO_CALCULATE; ?>", '1');
     if (answer == '1')      { update_full_price_incl_tax(true, true, false); }
-    else if (answer == '2') { document.getElementById('full_price').value = formatCurrency((highest / (100 - margin)) * 100); update_full_price_incl_tax(false, true, true); update_full_price_incl_tax(true, false, false); }
-    else if (answer == '3') { document.getElementById('full_price_with_tax').value = formatCurrency(highest * markup); update_full_price_incl_tax(false, false, true); update_full_price_incl_tax(true, false, false); }
+    else if (answer == '2') { document.getElementById('full_price').value = formatCurrency((cost / (100 - margin)) * 100); update_full_price_incl_tax(false, true, true); update_full_price_incl_tax(true, false, false); }
+    else if (answer == '3') { document.getElementById('full_price_with_tax').value = formatCurrency(cost * markup); update_full_price_incl_tax(false, false, true); update_full_price_incl_tax(true, false, false); }
   }
 }
 
 function update_full_price_incl_tax(margin, inclTax, fullprice) {
   if (margin) {
     if (!document.getElementById('full_price')) return;
-    var highest = highestCompanyCost();
+    var cost = supplierCompanyCost();
     var sell = parseFloat(cleanCurrency(document.getElementById('full_price').value)) || 0;
     var sellTax = parseFloat(cleanCurrency(document.getElementById('full_price_with_tax').value)) || 0;
     // A zero sell price or zero cost has no margin or markup; dividing by it would put
     // Infinity or NaN in the field, which the item save then refuses.
-    document.getElementById('product_margin').value = formatCurrency(sell ? ((sell - highest) / sell) * 100 : 0);
-    document.getElementById('product_markup').value = formatCurrency(highest ? sellTax / highest : 0);
+    document.getElementById('product_margin').value = formatCurrency(sell ? ((sell - cost) / sell) * 100 : 0);
+    document.getElementById('product_markup').value = formatCurrency(cost ? sellTax / cost : 0);
   }
   if (inclTax) {
     var fp = document.getElementById('full_price'), tax_sel = document.getElementById('item_taxable');
@@ -464,6 +480,7 @@ function addVendorRow() {
   <?php
   $cells = [
     isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_pull_down_menu('vendor_id_array[]', gen_get_contact_array_by_type('v'), $cInfo->vendor_id ?? '', 'class="form-select form-select-sm" onchange="fetchVendorCurrency(this)"')) : '',
+    html_hidden_field('preferred_array[]', '0') . '<input type="checkbox" class="form-check-input" onclick="setPreferredVendor(this);" />',
     isset($cInfo->vendor_id)           ? str_replace("'", "\'", html_input_field('vendor_sku_array[]', '', 'class="form-control form-control-sm" size="16" maxlength="32"')) : '',
     isset($cInfo->description_purchase) ? str_replace("'", "\'", html_textarea_field('description_purchase_array[]', 40, 2, $cInfo->description_purchase ?? '', '', true)) : '',
     isset($cInfo->item_cost)           ? str_replace("'", "\'", html_pull_down_menu('item_cost_currency_array[]', gen_get_pull_down(TABLE_CURRENCIES, false, false, 'code', 'title'), DEFAULT_CURRENCY, 'onchange="what_to_update();" class="form-select form-select-sm"')) : '',

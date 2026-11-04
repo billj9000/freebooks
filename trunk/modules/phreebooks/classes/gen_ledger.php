@@ -873,38 +873,25 @@ class journal {
 	// only update items that are to be tracked in inventory (non-stock and bundles are tracked for SO only)
 	if (strpos(COG_ITEM_TYPES, $type) !== false || (in_array($type, ['ns', 'pb', 'pc']) && $field <> 'quantity_on_hand')) {
 	  $sql = "UPDATE ".TABLE_INVENTORY." SET $field=$field+$adjustment, ";
-	  if ($item_cost) $sql .= "item_cost=$item_cost, ";
+	  if ($item_cost) {
+		// A purchase writes its cost into that vendor's supplier rows; the item's cost then
+		// follows the item's supplier, and is this journal's cost only when no supplier has
+		// one (item_costs). Any other journal sets the item's cost directly.
+		if (in_array((int)$this->journal_id, [4, 6, 21]) && (int)$this->bill_acct_id > 0) {
+		  require_once(DIR_FS_MODULES . 'inventory/classes/item_costs.php');
+		  item_costs::record_purchase($sku, $this->bill_acct_id, $item_cost, $this->currencies_code ?? DEFAULT_CURRENCY, $this->currencies_value ?? 0);
+		  $chosen = item_costs::chosen($sku);
+		  if ($chosen) {
+			$item_cost = $chosen['home_cost'];
+			$sql .= "vendor_id=" . (int)$chosen['vendor_id'] . ", ";
+		  }
+		}
+		$sql .= "item_cost=" . (float)$item_cost . ", ";
+	  }
 	  $sql .= "last_journal_date = now() WHERE sku='" . db_input($sku) . "'";
 	  $result = $db->Execute($sql);
-	  if ($item_cost) {
-	  	$rows = $db->Execute("SELECT id, currency_code FROM ".TABLE_INVENTORY_PURCHASE." WHERE sku='" . db_input($sku) . "' AND vendor_id='" . (int)$this->bill_acct_id . "'");
-	  	while (!$rows->EOF) {
-	  	  $cost = $this->supplier_cost($item_cost, $rows->fields['currency_code']);
-	  	  if ($cost !== null) $db->Execute("UPDATE ".TABLE_INVENTORY_PURCHASE." SET item_cost=" . (float)$cost . " WHERE id=" . (int)$rows->fields['id']);
-	  	  $rows->MoveNext();
-	  	}
-	  }
 	}
 	return true;
-  }
-
-  /**
-   * A unit cost from this journal, in the currency of a supplier's purchase row.
-   *
-   * Journal amounts are in the default currency, but a supplier row holds its cost in the
-   * row's own currency (issue #127). An order in the row's currency gives back its own unit
-   * price; any other order is converted at the row currency's current rate. Answers null
-   * when the row's currency has no rate, so the row is left as it is.
-   */
-  function supplier_cost($home_cost, $currency_code) {
-	global $currencies;
-	$code = $currency_code ?: DEFAULT_CURRENCY;
-	if ($code == DEFAULT_CURRENCY) return (float)$home_cost;
-	if ($code == ($this->currencies_code ?? DEFAULT_CURRENCY) && (float)($this->currencies_value ?? 0) > 0) {
-	  return (float)$home_cost * (float)$this->currencies_value;
-	}
-	$rate = is_object($currencies) ? (float)($currencies->currencies[$code]['value'] ?? 0) : 0;
-	return $rate > 0 ? (float)$home_cost * $rate : null;
   }
 
   function calculate_COGS($item, $return_cogs = false) {

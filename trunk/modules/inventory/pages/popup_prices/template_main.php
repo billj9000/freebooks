@@ -44,7 +44,7 @@ echo $toolbar->build_toolbar();
     <tbody>
       <tr style="cursor:pointer" onclick="setReturnPrice('<?php echo $rowId; ?>', 'cost')">
         <td><?php echo INV_ENTRY_INV_ITEM_COST; ?></td>
-        <td class="text-end"><?php echo html_input_field('cost', $currencies->precise($inventory_details->fields['item_cost']), 'style="cursor:pointer;text-align:right" readonly="readonly" size="10"'); ?></td>
+        <td class="text-end"><?php echo html_input_field('cost', $currencies->precise($sheet_cost), 'style="cursor:pointer;text-align:right" readonly="readonly" size="10"'); ?></td>
       </tr>
     </tbody>
   </table>
@@ -69,7 +69,7 @@ if (is_object($price_sheets)) {
       array_shift($first_source_list);
       array_pop($first_source_list);
       $levels = isset($special_prices[$price_sheets->fields['id']]) ? $special_prices[$price_sheets->fields['id']] : $price_sheets->fields['default_levels'];
-      $prices = inv_calculate_prices($inventory_details->fields['item_cost'], $inventory_details->fields['full_price'], $levels);
+      $prices = inv_calculate_prices($sheet_cost, $inventory_details->fields['full_price'], $levels);
 ?>
 <div class="card">
   <div class="card-header py-1"><span class="fw-normal"><?php echo PRICE_SHEETS_LOG; ?></span><strong><?php echo $price_sheets->fields['sheet_name']; ?></strong></div>

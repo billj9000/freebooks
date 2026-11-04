@@ -17,6 +17,7 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/inventory/classes/inventory.php
 //
+require_once(DIR_FS_MODULES . 'inventory/classes/item_costs.php');
 
 #[\AllowDynamicProperties]
 class inventory {
@@ -278,15 +279,8 @@ class inventory {
 		}
 		$result = $db->Execute("select * from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($this->old_sku) . "'");
 		while(!$result->EOF) {
-			$sql_data_array = array (
-				'sku'						=> $this->sku,
-				'vendor_id' 				=> $result->fields['vendor_id'],
-				'description_purchase'		=> $result->fields['description_purchase'],
-				'item_cost'	 				=> $result->fields['item_cost'],
-				'purch_package_quantity'	=> $result->fields['purch_package_quantity'],
-				'purch_taxable'	 			=> $result->fields['purch_taxable'],
-				'price_sheet_v'				=> $result->fields['price_sheet_v'],
-			);
+			$sql_data_array = item_costs::copy_fields($result->fields);
+			$sql_data_array['sku'] = $this->sku;
 			db_perform(TABLE_INVENTORY_PURCHASE, $sql_data_array, 'insert');
 	  		$result->MoveNext();
 		}
@@ -567,6 +561,7 @@ class inventory {
 				'purch_package_quantity'	=> $result->fields['purch_package_quantity'],
 				'purch_taxable'	 			=> $result->fields['purch_taxable'],
 				'price_sheet_v'				=> $result->fields['price_sheet_v'],
+				'preferred'					=> $result->fields['preferred'],
 			);
 			$result->MoveNext();
 		}
@@ -574,8 +569,8 @@ class inventory {
 
 	function store_purchase_array(){
 		global $db, $currencies;
-		$lowest_cost = isset($this->item_cost) ? $this->item_cost : 99999999999;
 		$this->backup_purchase_array = array();
+		$preferred_taken = false;
 		$result = $db->Execute("SELECT * FROM ".TABLE_INVENTORY_PURCHASE." WHERE sku='" . db_input($this->sku) . "'");
 		while(!$result->EOF){
 			$this->backup_purchase_array[$result->fields['id']]= array (
@@ -588,6 +583,7 @@ class inventory {
 				'purch_package_quantity'	=> $result->fields['purch_package_quantity'],
 				'purch_taxable'	 			=> $result->fields['purch_taxable'],
 				'price_sheet_v'				=> $result->fields['price_sheet_v'],
+				'preferred'					=> $result->fields['preferred'],
 				'action'					=> 'delete',
 			); // mark delete by default overwrite later if
 			$result->MoveNext();
@@ -633,6 +629,13 @@ class inventory {
 				$sql_data_array['price_sheet_v']				= $_POST['price_sheet_v_array'][$key];
 				$this->purchase_array[$i]['price_sheet_v']			= $_POST['price_sheet_v_array'][$key];
 			}
+			if(isset($_POST['preferred_array'][$key])){
+				// One preferred supplier per item: a second marked row is saved unmarked.
+				$preferred = ($_POST['preferred_array'][$key] == '1' && !$preferred_taken) ? 1 : 0;
+				if ($preferred) $preferred_taken = true;
+				$sql_data_array['preferred']					= $preferred;
+				$this->purchase_array[$i]['preferred']				= $preferred;
+			}
 			if(!empty($sql_data_array)){
 				if(isset($_POST['row_id_array'][$key]) && $_POST['row_id_array'][$key] != ''){//update
 					$this->backup_purchase_array[$_POST['row_id_array'][$key]]['action'] = 'update';
@@ -652,16 +655,10 @@ class inventory {
 						'purch_package_quantity'	=> $_POST['purch_package_quantity_array'][$key],
 						'purch_taxable'	 			=> $_POST['purch_taxable_array'][$key],
 						'price_sheet_v'				=> $_POST['price_sheet_v_array'][$key],
+						'preferred'					=> $sql_data_array['preferred'] ?? 0,
 						'action'					=> 'insert',
 					);
 				}
-				// The item's cost is in the default currency and each supplier's is in its own,
-				// so the lowest is chosen after conversion (issue #127).
-				$row_id    = $this->purchase_array[$i]['id'];
-				$row_curr  = $sql_data_array['currency_code'] ?? ($this->backup_purchase_array[$row_id]['currency_code'] ?? '');
-				$home_cost = $this->cost_in_default_currency($sql_data_array['item_cost'] ?? 0, $row_curr);
-				$lowest_cost = min($lowest_cost, $home_cost);
-				if ($lowest_cost == $home_cost) $this->min_vendor_id = $sql_data_array['vendor_id'];
 			}
 			$i++;
 		}
@@ -671,18 +668,11 @@ class inventory {
 				$db->Execute("DELETE FROM " . TABLE_INVENTORY_SPECIAL_PRICES . " WHERE inventory_id = " . (int)$this->id . " and price_sheet_id IN ( SELECT id FROM " . TABLE_PRICE_SHEETS . " WHERE type = 'v' and sheet_name = '" . db_input($value['price_sheet_v']) . "')");
 			}
 		}
-		return $lowest_cost == 99999999999 ? 0 : $lowest_cost; //added in case no purchase data entered when creating new product
-	}
-
-	/**
-	 * A supplier's cost, given in that supplier row's currency, in the default currency at the
-	 * current rate. A currency with no rate is taken as already in the default currency.
-	 */
-	function cost_in_default_currency($cost, $currency_code) {
-		global $currencies;
-		$code = $currency_code ?: DEFAULT_CURRENCY;
-		$rate = ($code != DEFAULT_CURRENCY && is_object($currencies)) ? (float)($currencies->currencies[$code]['value'] ?? 0) : 0;
-		return $rate > 0 ? (float)$cost / $rate : (float)$cost;
+		// The item's cost and main vendor follow its supplier (item_costs). An item none of
+		// whose suppliers has a cost, such as an assembly, keeps the cost it has.
+		$chosen = item_costs::chosen($this->sku);
+		$this->min_vendor_id = $chosen ? $chosen['vendor_id'] : ($this->vendor_id ?? 0);
+		return $chosen ? $chosen['home_cost'] : (float)($this->item_cost ?? 0);
 	}
 	
 	function gather_history() {
@@ -842,10 +832,10 @@ class inventory {
 		global $db;
 		// The column is named in the SQL: only the inventory quantity columns.
 		if (!in_array($field, array('quantity_on_hand', 'quantity_on_order', 'quantity_on_sales_order', 'quantity_on_allocation'), true)) return false;
-		$sql = "update " . TABLE_INVENTORY_PURCHASE . " set item_cost = " . (float)$item_cost;
-	  	$sql .= " where sku = '" . db_input($sku) . "' and vendor_id = " . (int)$vendor_id;
-	  	$result = $db->Execute($sql);
-		if($result->RecordCount() == 0) {
+		// $item_cost is a journal's figure, in the default currency.
+		if (item_costs::vendor_row($sku, $vendor_id)) {
+			item_costs::record_purchase($sku, $vendor_id, $item_cost, DEFAULT_CURRENCY, 1);
+		} else {
 			$sql_data_array = array (
 			  'sku'						=> $sku,
 			  'vendor_id' 				=> $vendor_id,

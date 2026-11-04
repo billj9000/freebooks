@@ -225,16 +225,9 @@ class ms extends inventory {//Master Stock Item parent of mi
 			$sql_data_array['description_sales'] 	= sprintf($this->description_sales, 	$variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 			db_perform(TABLE_INVENTORY, $sql_data_array, 'insert');
 			foreach ($this->purchase_array as $purchase_row){
-				$purchase_data_array = array (
-					'sku'						=> $sku,
-					'vendor_id' 				=> $purchase_row['vendor_id'],
-					'vendor_sku'				=> $purchase_row['vendor_sku'],
-					'description_purchase'		=> sprintf($purchase_row['description_purchase'], $variables[$sku]['idx0'], $variables[$sku]['idx1'] ),
-					'item_cost'	 				=> $purchase_row['item_cost'],
-					'purch_package_quantity'	=> $purchase_row['purch_package_quantity'],
-					'purch_taxable'	 			=> $purchase_row['purch_taxable'],
-					'price_sheet_v'				=> $purchase_row['price_sheet_v'],
-				);
+				$purchase_data_array = item_costs::copy_fields($purchase_row);
+				$purchase_data_array['sku'] = $sku;
+				$purchase_data_array['description_purchase'] = sprintf($purchase_row['description_purchase'], $variables[$sku]['idx0'], $variables[$sku]['idx1'] );
 				db_perform(TABLE_INVENTORY_PURCHASE, $purchase_data_array, 'insert');
 			}
 		}

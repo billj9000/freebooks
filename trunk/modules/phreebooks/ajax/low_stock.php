@@ -21,6 +21,7 @@
 $xml   = NULL;
 $security_level = validate_ajax_user();
 /**************  include page specific files    *********************/
+require_once(DIR_FS_MODULES . 'inventory/classes/item_costs.php');
 /**************   page specific initialization  *************************/
 $cID = db_prepare_input($_GET['cID'] ?? ''); //vendor
 $sID = db_prepare_input($_GET['sID'] ?? ''); //store
@@ -48,7 +49,7 @@ if (ENABLE_MULTI_BRANCH) {
   $sql = "select min(a.id) as id, a.sku, min(full_price) as full_price, min(item_weight) as item_weight,
   	min(lead_time) as lead_time, min(reorder_quantity) as reorder_quantity, sum(remaining) as 'quantity',
   	min(inactive) as inactive, min(account_inventory_wage) as account_inventory_wage,
-  	min(p.item_cost) as item_cost, min(p.purch_taxable) as purch_taxable,
+  	min(p.purch_taxable) as purch_taxable,
   	min(p.description_purchase) as description_purchase, min(p.vendor_sku) as vendor_sku,
   	min(description_short) as description_short,
   	min(minimum_stock_level) as minimum_stock_level, min(quantity_on_sales_order) as quantity_on_sales_order,
@@ -60,7 +61,7 @@ if (ENABLE_MULTI_BRANCH) {
 	group by a.sku having sum(remaining) < (min(minimum_stock_level) + min(quantity_on_sales_order) - min(quantity_on_order) - min(quantity_on_allocation)) order by a.sku";
 } else {
   $quantity_where = "a.quantity_on_hand";
-  $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity,  quantity_on_hand as 'quantity' , inactive, account_inventory_wage, p.item_cost, p.purch_taxable, p.description_purchase, p.vendor_sku, description_short,
+  $sql = "select a.id, a.sku, full_price, item_weight, lead_time, reorder_quantity,  quantity_on_hand as 'quantity' , inactive, account_inventory_wage, p.purch_taxable, p.description_purchase, p.vendor_sku, description_short,
   	((minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation - quantity_on_hand )/purch_package_quantity) as qty_required, purch_package_quantity    
 	from ".TABLE_INVENTORY."  a join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku 
 	where minimum_stock_level <> 0 and inactive = '0' and quantity_on_hand < (minimum_stock_level + quantity_on_sales_order - quantity_on_order - quantity_on_allocation) and ".$where." 
@@ -86,7 +87,9 @@ while (!$result->EOF) {
 	$xml .= "\t" . xmlEntry("inactive",				  $result->fields['inactive']);
 	$xml .= "\t" . xmlEntry("reorder_quantity", 	  $qty);
 	$xml .= "\t" . xmlEntry("account_inventory_wage", $result->fields['account_inventory_wage']);
-	$xml .= "\t" . xmlEntry("item_cost",			  $result->fields['item_cost'] * $result->fields['purch_package_quantity']);
+	// The vendor's cost is in its row's currency; the order page takes this one in the default currency.
+	$vendor_row = item_costs::vendor_row($result->fields['sku'], $cID);
+	$xml .= "\t" . xmlEntry("item_cost",			  ($vendor_row ? $vendor_row['home_cost'] : 0) * $result->fields['purch_package_quantity']);
 	$xml .= "\t" . xmlEntry("purch_taxable",		  $result->fields['purch_taxable']);
 	$xml .= "\t" . xmlEntry("description_purchase",	  $result->fields['description_purchase']);
 	$xml .= "\t" . xmlEntry("vendor_sku",			  $result->fields['vendor_sku']);

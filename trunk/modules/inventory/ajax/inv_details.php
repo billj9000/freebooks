@@ -73,7 +73,7 @@ if ($vendor && !$iID && $strict == false && $UPC == false) { // just search for 
  	$v_search_fields = array('a.sku', 'a.upc_code', 'a.description_short', 'a.description_sales', 'p.description_purchase', 'p.vendor_sku' );
   	$first_search = " where " . db_search_criteria($v_search_fields, $sku) . " and p.vendor_id = '$cid_db' and a.inactive = '0'";
   	$purchase     = $db->Execute("select DISTINCT a.id as id, p.vendor_id as vendor_id, p.vendor_sku as vendor_sku, p.description_purchase as description_purchase, p.purch_package_quantity as purch_package_quantity,
-  	p.purch_taxable as purch_taxable, p.item_cost as item_cost, p.price_sheet_v as price_sheet_v from " . TABLE_INVENTORY . " a LEFT JOIN " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku $first_search GROUP BY a.sku");
+  	p.purch_taxable as purch_taxable, p.price_sheet_v as price_sheet_v from " . TABLE_INVENTORY . " a LEFT JOIN " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku $first_search GROUP BY a.sku");
   	if($purchase->recordCount() == 1){
   		$search = " where id = '{$purchase->fields['id']}'";
   	}elseif($purchase->recordCount() != 0){
@@ -109,25 +109,37 @@ if ($inventory->RecordCount() != 1) { // need to return something to avoid error
 }
 foreach ($inventory->fields as $key => $value) $inventory_array[$key] = $value;
 if($vendor) {
-	$purchase  = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($inventory_array['sku']) . "' and vendor_id = '$cID'" );
-	if($purchase->RecordCount() == 1 ) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
+	// This vendor's own row, its cost in the row's currency, which the order page converts.
+	$own = item_costs::vendor_row($inventory_array['sku'], $cID);
+	if ($own) foreach (array('vendor_id', 'vendor_sku', 'description_purchase', 'purch_package_quantity', 'purch_taxable', 'item_cost', 'currency_code', 'price_sheet_v') as $key) $inventory_array[$key] = $own[$key];
 	else {
-		// no vendor-specific purchase row — fall back to cheapest row for cost/description
-		$purchase = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, item_cost, currency_code, price_sheet_v from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($inventory_array['sku']) . "' order by item_cost asc limit 1");
-		if($purchase->RecordCount() == 1) foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
-		// if vendor is known, override fallback currency with the vendor's stored currency
+		// No row for this vendor: the item's supplier gives the description and cost, the cost
+		// converted into this vendor's currency when it has one.
+		$chosen = item_costs::chosen($inventory_array['sku']);
+		if ($chosen) foreach (array('vendor_id', 'vendor_sku', 'description_purchase', 'purch_package_quantity', 'purch_taxable', 'item_cost', 'currency_code', 'price_sheet_v') as $key) $inventory_array[$key] = $chosen[$key];
 		if ($cID) {
 			$vend = $db->Execute("select currency_code from " . TABLE_CONTACTS . " where id = '$cID'");
-			if (!$vend->EOF && $vend->fields['currency_code'] != '') $inventory_array['currency_code'] = $vend->fields['currency_code'];
+			$vend_curr = (!$vend->EOF) ? $vend->fields['currency_code'] : '';
+			$vend_cost = ($chosen && $vend_curr != '') ? item_costs::from_home($chosen['home_cost'], $vend_curr) : null;
+			if ($vend_cost !== null) {
+				$inventory_array['item_cost']     = $vend_cost;
+				$inventory_array['currency_code'] = $vend_curr;
+			}
 		}
 	}
-	$purchase  = $db->Execute("select MIN(item_cost) as cheapest from " . TABLE_INVENTORY_PURCHASE . " where sku = '" . db_input($inventory_array['sku']) . "' and item_cost <> '0'" );
-	if( $jID == 4 && $inventory_array['price_sheet_v'] == '' && $inventory_array['item_cost'] >= $purchase->fields['cheapest'] &&
-	  abs($inventory_array['item_cost'] - $purchase->fields['cheapest']) > 0.00001 ) $stock_note[] = sprintf(INV_CHEAPER_ELSEWHERE, $inventory_array['sku']);
+	// Compared in the default currency, as the suppliers' costs are each in their own.
+	$cheapest  = item_costs::cheapest_home($inventory_array['sku']);
+	$this_cost = item_costs::to_home($inventory_array['item_cost'] ?? 0, $inventory_array['currency_code'] ?? '');
+	if( $jID == 4 && $inventory_array['price_sheet_v'] == '' && $cheapest !== null && $this_cost >= $cheapest &&
+	  abs($this_cost - $cheapest) > 0.00001 ) $stock_note[] = sprintf(INV_CHEAPER_ELSEWHERE, $inventory_array['sku']);
 }else{
-	$purchase  = $db->Execute("select vendor_id, vendor_sku, description_purchase, purch_package_quantity, purch_taxable, MAX(item_cost) as item_cost, currency_code, price_sheet_v
-		from " . TABLE_INVENTORY_PURCHASE . " where sku = '" .$inventory_array['sku']."' GROUP BY sku" );
-	if($purchase->RecordCount() == 1 )foreach ($purchase->fields as $key => $value) $inventory_array[$key] = $value;
+	// A sale shows the item's supplier, with its cost in the default currency.
+	$chosen = item_costs::chosen($inventory_array['sku']);
+	if ($chosen) {
+		foreach (array('vendor_id', 'vendor_sku', 'description_purchase', 'purch_package_quantity', 'purch_taxable', 'price_sheet_v') as $key) $inventory_array[$key] = $chosen[$key];
+		$inventory_array['item_cost']     = $chosen['home_cost'];
+		$inventory_array['currency_code'] = DEFAULT_CURRENCY;
+	}
 }
 if(empty($inventory_array['purch_package_quantity'])) $inventory_array['purch_package_quantity'] = 1;
 if (!$qty){

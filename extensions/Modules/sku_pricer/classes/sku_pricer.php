@@ -17,6 +17,7 @@
 // +-----------------------------------------------------------------+
 //  Path: /modules/sku_pricer/classes/sku_pricer.php
 //
+require_once(DIR_FS_MODULES . 'inventory/classes/item_costs.php');
 class sku_pricer {
 	public $records = array();
 
@@ -113,6 +114,9 @@ class sku_pricer {
 				$sql = "UPDATE ".TABLE_INVENTORY_PURCHASE." SET $query WHERE $where";
 				$messageStack->debug("\nExecuting sql = $sql");
 				$result = $db->Execute($sql);
+				// A cost in the file is the supplier's, in its row's currency; the item's own
+				// cost then follows the item's supplier, converted.
+				if (isset($row['item_cost'])) item_costs::refresh_item($row['sku']);
 			}
 		}
 		$messageStack->add("Total lines processed: ".count(is_array($rows) ? $rows : []).". Total affected rows = $count.", "success");

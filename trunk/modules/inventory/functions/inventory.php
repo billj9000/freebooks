@@ -24,6 +24,8 @@
    * fields so the item page saves it. Both are sent on customs lines: the part number as
    * typed (the SKU when it is blank), the barcode when there is one.
    */
+  require_once(DIR_FS_MODULES . 'inventory/classes/item_costs.php');
+
   // Item types that are physical products, and so can carry a manufacturer part number.
   if (!defined('INV_PART_NUMBER_TYPES')) define('INV_PART_NUMBER_TYPES', 'ia:ma:mb:mi:mp:ms:ns:pb:pc:sa:si:sr');
 
@@ -425,15 +427,20 @@
 		  	$price_sheet = $contact->fields['price_sheet'];
 		  	$contact_tax = $contact->fields['tax_id'];
 		}
-		// get the inventory prices
-		if($type == 'v'){
-			if ($contact_id) $inventory = $db->Execute("select p.item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a left join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id' and p.vendor_id = '$contact_id'");
-			else $inventory = $db->Execute("select MAX(p.item_cost) as item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a left join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id'");
-			$inv_price_sheet = $inventory->fields['price_sheet_v'];
-		}else{
-			$inventory = $db->Execute("select MAX(p.item_cost) as item_cost, a.full_price, a.price_sheet, p.price_sheet_v, a.item_taxable, p.purch_taxable from " . TABLE_INVENTORY . " a left join " . TABLE_INVENTORY_PURCHASE . " p on a.sku = p.sku  where a.id = '$sku_id'");
-			$inv_price_sheet = $inventory->fields['price_sheet'];
+		// get the inventory prices. With a vendor named, the cost is that vendor's own, in its
+		// row's currency, which the order page converts; otherwise it is the item's supplier
+		// cost in the default currency.
+		$inventory = $db->Execute("select sku, item_cost, full_price, price_sheet, item_taxable, purch_taxable from " . TABLE_INVENTORY . " where id = '$sku_id'");
+		if ($inventory->EOF) $inventory->fields = array('sku' => '', 'item_cost' => 0, 'full_price' => 0, 'price_sheet' => '', 'item_taxable' => 0, 'purch_taxable' => 0);
+		$sku       = (string)$inventory->fields['sku'];
+		$supplier  = ($type == 'v' && $contact_id) ? item_costs::vendor_row($sku, $contact_id) : item_costs::chosen($sku);
+		if ($type == 'v' && $contact_id) {
+			$inventory->fields['item_cost'] = $supplier ? $supplier['item_cost'] : 0;
+		} else {
+			$inventory->fields['item_cost'] = item_costs::sheet_cost($sku, $inventory->fields['item_cost'] ?? 0);
 		}
+		if ($supplier) $inventory->fields['purch_taxable'] = $supplier['purch_taxable'];
+		$inv_price_sheet = ($type == 'v') ? ($supplier['price_sheet_v'] ?? '') : $inventory->fields['price_sheet'];
 		// set the default tax rates
 		$purch_tax = ($contact_tax == 0 && $type=='v') ? 0 : $inventory->fields['purch_taxable'];
 		$sales_tax = ($contact_tax == 0 && $type=='c') ? 0 : $inventory->fields['item_taxable'];
