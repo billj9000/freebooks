@@ -568,29 +568,51 @@ class royal_mail {
   // ---------------------------------------------------------------
   // Click & Drop manifests asynchronously (issue #133): the request returns the ids of
   // the manifests it has started, and each manifest's PDF is read later with
-  // manifestStatus(). Returns the list of ids, an empty list when no order was
-  // eligible, or false with Click & Drop's reasons on the message stack.
+  // manifestStatus(). The live service's answer does not always match the published
+  // shape, so every manifest id and any PDF are taken from wherever the answer holds
+  // them. Returns false with Click & Drop's reasons on the message stack, or
+  // ['state' => accepted|nothing|unclear, 'ids' => [...], 'pdf' => PDF bytes or '',
+  //  'answer' => the HTTP status and body, with any PDF cut short]. "nothing" is an
+  // answer that says no order was eligible; "unclear" is a success that carried
+  // neither an id nor a PDF.
   public function manifestOrders() {
     global $messageStack;
     $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
     $response = $this->curlRequest('POST', RM_CD_BASE . '/manifests',
       $this->rmHeaders($apiKey), '{}');
-    $data = is_string($response) ? json_decode($response, true) : null;
-    if ($response === false || $this->last_http_code >= 300 || !is_array($data)) {
-      $reasons = array();
+    $answer = 'HTTP ' . $this->last_http_code . ' ' . preg_replace('/"(JVBER[A-Za-z0-9+\/=]{40})[A-Za-z0-9+\/=]+"/', '"$1..."', (string)$response);
+    $data   = is_string($response) ? json_decode($response, true) : null;
+    if ($response === false || $this->last_http_code >= 300) {
+      $reasons = array(); $nothing = true;
       foreach ((is_array($data) && is_array($data['errors'] ?? null)) ? $data['errors'] : array() as $e) {
         if (!is_array($e)) continue;
-        $reasons[] = trim(($e['orderReference'] ?? '') !== '' ? $e['orderReference'] . ': ' . ($e['message'] ?? '') : ($e['message'] ?? $e['code'] ?? ''));
+        if (($e['code'] ?? '') !== 'NO_ELIGIBLE_ORDERS') $nothing = false;
+        $text = trim(($e['message'] ?? '') !== '' ? $e['message'] : ($e['code'] ?? ''));
+        $reasons[] = ($e['orderReference'] ?? '') !== '' ? $e['orderReference'] . ': ' . $text : $text;
       }
-      if (!$reasons) $reasons[] = $response === false ? RM_MANIFEST_NO_ANSWER : 'HTTP ' . $this->last_http_code;
+      if ($reasons && $nothing) return array('state' => 'nothing', 'ids' => array(), 'pdf' => '', 'answer' => $answer);
+      if (!$reasons) $reasons[] = $response === false ? RM_MANIFEST_NO_ANSWER : substr($answer, 0, 300);
       foreach ($reasons as $reason) $messageStack->add(RM_MANIFEST_ERROR . ' ' . $reason, 'error');
       return false;
     }
-    $ids = array();
-    foreach (is_array($data['manifests'] ?? null) ? $data['manifests'] : array() as $id) {
-      if (is_string($id) && self::isManifestId($id)) $ids[] = strtolower($id);
-    }
-    return $ids;
+    $ids = array(); $pdf = '';
+    $walk = function ($node, $key) use (&$walk, &$ids, &$pdf) {
+      if (is_array($node)) {
+        if ($key !== 'errors') foreach ($node as $k => $v) $walk($v, is_string($k) ? $k : $key);
+      } elseif (is_string($node)) {
+        if (self::isManifestId($node)) $ids[] = strtolower($node);
+        elseif ($pdf === '' && strncmp($node, 'JVBER', 5) === 0) {
+          $bytes = (string)base64_decode($node, true);
+          if (substr($bytes, 0, 4) === '%PDF') $pdf = $bytes;
+        }
+      }
+    };
+    $walk($data, '');
+    $ids = array_values(array_unique($ids));
+    if ($ids || $pdf !== '') $state = 'accepted';
+    elseif (is_array($data) && array_key_exists('manifests', $data) && $data['manifests'] === array()) $state = 'nothing';
+    else $state = 'unclear';
+    return array('state' => $state, 'ids' => $ids, 'pdf' => $pdf, 'answer' => $answer);
   }
 
   // One manifest's progress: ['manifest' => InProgress|Completed|Failed,

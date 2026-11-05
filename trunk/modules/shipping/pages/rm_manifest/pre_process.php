@@ -88,13 +88,26 @@ switch ($_REQUEST['action'] ?? '') {
   case 'manifest':
     validate_security($security_level, 2);
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') break;
-    $ids = (new royal_mail())->manifestOrders();
-    if ($ids === false) break;
-    if (!$ids) { $messageStack->add(RM_MANIFEST_NOTHING, 'caution'); break; }
-    validate_path($manifest_dir . str_replace('-', '/', $today) . '/');
-    foreach ($ids as $id) {
-      file_put_contents(rm_manifest_path($today, $id, 'pending'), '');
-      gen_add_audit_log(RM_MANIFEST_TITLE, $id);
+    $result = (new royal_mail())->manifestOrders();
+    if ($result === false) break;
+    // Royal Mail's answer is kept beside the day's labels, so what it said can be read later.
+    $day = $manifest_dir . str_replace('-', '/', $today) . '/';
+    validate_path($day);
+    file_put_contents($day . 'manifest-answer-' . date('His') . sprintf('%03d', (int)(microtime(true) * 1000) % 1000) . '.txt', $result['answer']);
+    gen_add_audit_log(RM_MANIFEST_TITLE, $result['state'] . ' ' . implode(' ', $result['ids']));
+    if ($result['state'] === 'nothing') { $messageStack->add(RM_MANIFEST_NOTHING, 'caution'); break; }
+    if ($result['state'] === 'unclear') {
+      $messageStack->add(RM_MANIFEST_UNCLEAR . ' ' . htmlspecialchars(substr($result['answer'], 0, 300)), 'caution');
+      break;
+    }
+    // A PDF in the answer itself is saved at once; without an id it is kept under one of our own.
+    $ids = $result['ids'] ?: array(sprintf('%08x-%04x-4%03x-%04x-%012x', random_int(0, 0xffffffff),
+      random_int(0, 0xffff), random_int(0, 0xfff), random_int(0x8000, 0xbfff), random_int(0, 0xffffffffffff)));
+    foreach ($ids as $id) file_put_contents(rm_manifest_path($today, $id, 'pending'), '');
+    if ($result['pdf'] !== '' && count($ids) == 1) {
+      file_put_contents(rm_manifest_path($today, $ids[0], 'pdf'), $result['pdf']);
+      touch(rm_manifest_path($today, $ids[0], 'pdf'), filemtime(rm_manifest_path($today, $ids[0], 'pending')));
+      @unlink(rm_manifest_path($today, $ids[0], 'pending'));
     }
     $new_ids = $ids;
     $messageStack->add(RM_MANIFEST_SUCCESS, 'success');
