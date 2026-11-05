@@ -18,6 +18,8 @@
 //
 echo html_form('rm_manifest', FILENAME_DEFAULT, 'module=shipping&page=rm_manifest', 'post') . chr(10);
 echo html_hidden_field('action', '') . chr(10);
+echo html_hidden_field('id', '') . chr(10);
+echo html_hidden_field('date', '') . chr(10);
 $toolbar->icon_list['cancel']['params'] = 'onclick="self.close()"';
 $toolbar->icon_list['open']['show']     = false;
 $toolbar->icon_list['save']['show']     = false;
@@ -28,21 +30,12 @@ echo $toolbar->build_toolbar();
 <h1><?php echo RM_MANIFEST_HEADING; ?></h1>
 <div style="max-width:680px">
 
-<?php if ($manifest_done): ?>
-  <div class="alert alert-success">
-    <strong><?php echo RM_MANIFEST_SUCCESS; ?></strong>
-    <?php if ($manifest_id): ?>
-      &nbsp; <?php echo RM_MANIFEST_ID; ?>: <code><?php echo htmlspecialchars($manifest_id); ?></code>
-    <?php endif; ?>
-  </div>
-<?php endif; ?>
-
   <!-- Manifest action card -->
   <div class="card mb-3">
     <div class="card-header py-2 fb-widget-header"><?php echo RM_MANIFEST_HEADING; ?></div>
     <div class="card-body">
       <p class="mb-3"><?php echo RM_MANIFEST_DESC; ?></p>
-      <?php if (!$manifest_done): ?>
+      <?php if (!$new_ids): ?>
         <button type="button" class="btn btn-primary btn-sm"
                 onclick="if(confirm('<?php echo addslashes(RM_MANIFEST_CONFIRM); ?>')) { document.querySelector('[name=action]').value='manifest'; document.getElementById('rm_manifest').submit(); }">
           <?php echo RM_MANIFEST_BTN; ?>
@@ -55,6 +48,33 @@ echo $toolbar->build_toolbar();
       <?php endif; ?>
     </div>
   </div>
+
+  <!-- Recent manifests -->
+  <?php if ($manifests): ?>
+  <div class="card mb-3">
+    <div class="card-header py-2 fb-widget-header"><?php echo RM_MANIFEST_RECENT; ?></div>
+    <div class="card-body p-0">
+      <table class="table table-sm table-striped mb-0">
+        <thead class="table-light">
+          <tr>
+            <th><?php echo RM_MANIFEST_MADE; ?></th>
+            <th><?php echo RM_MANIFEST_ID; ?></th>
+            <th><?php echo RM_MANIFEST_DOCUMENT; ?></th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($manifests as $m): ?>
+          <tr<?php echo in_array($m['id'], $new_ids, true) ? ' class="table-success"' : ''; ?>>
+            <td><?php echo gen_locale_date($m['date']) . ' ' . date('H:i', $m['time']); ?></td>
+            <td><code><?php echo htmlspecialchars($m['id']); ?></code></td>
+            <?php echo rm_manifest_status_cell($m); ?>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <?php endif; ?>
 
   <!-- Today's shipments -->
   <div class="card">

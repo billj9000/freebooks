@@ -566,17 +566,69 @@ class royal_mail {
   // ---------------------------------------------------------------
   //  Manifest all eligible orders (end-of-day closure with Royal Mail)
   // ---------------------------------------------------------------
+  // Click & Drop manifests asynchronously (issue #133): the request returns the ids of
+  // the manifests it has started, and each manifest's PDF is read later with
+  // manifestStatus(). Returns the list of ids, an empty list when no order was
+  // eligible, or false with Click & Drop's reasons on the message stack.
   public function manifestOrders() {
     global $messageStack;
     $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
     $response = $this->curlRequest('POST', RM_CD_BASE . '/manifests',
-      $this->rmHeaders($apiKey));
-    if ($response === false) {
-      $messageStack->add(MODULE_SHIPPING_ROYAL_MAIL_ERROR_LABEL . 'Manifest request failed.', 'error');
+      $this->rmHeaders($apiKey), '{}');
+    $data = is_string($response) ? json_decode($response, true) : null;
+    if ($response === false || $this->last_http_code >= 300 || !is_array($data)) {
+      $reasons = array();
+      foreach ((is_array($data) && is_array($data['errors'] ?? null)) ? $data['errors'] : array() as $e) {
+        if (!is_array($e)) continue;
+        $reasons[] = trim(($e['orderReference'] ?? '') !== '' ? $e['orderReference'] . ': ' . ($e['message'] ?? '') : ($e['message'] ?? $e['code'] ?? ''));
+      }
+      if (!$reasons) $reasons[] = $response === false ? RM_MANIFEST_NO_ANSWER : 'HTTP ' . $this->last_http_code;
+      foreach ($reasons as $reason) $messageStack->add(RM_MANIFEST_ERROR . ' ' . $reason, 'error');
       return false;
     }
-    $data = json_decode($response, true);
-    return $data['manifestIdentifier'] ?? true;
+    $ids = array();
+    foreach (is_array($data['manifests'] ?? null) ? $data['manifests'] : array() as $id) {
+      if (is_string($id) && self::isManifestId($id)) $ids[] = strtolower($id);
+    }
+    return $ids;
+  }
+
+  // One manifest's progress: ['manifest' => InProgress|Completed|Failed,
+  // 'document' => InProgress|Completed, 'pdf' => the PDF's bytes or '', 'error' => Click
+  // & Drop's error reference], or false when Click & Drop could not be asked.
+  public function manifestStatus($id) {
+    if (!self::isManifestId($id)) return false;
+    $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
+    $response = $this->curlRequest('GET', RM_CD_BASE . '/manifests/' . $id, $this->rmHeaders($apiKey));
+    $data = is_string($response) ? json_decode($response, true) : null;
+    if ($response === false || $this->last_http_code >= 300 || !is_array($data)) return false;
+    $pdf = is_string($data['pdf'] ?? null) ? (string)base64_decode($data['pdf'], true) : '';
+    return array(
+      'manifest' => (string)($data['manifestStatus'] ?? ''),
+      'document' => (string)($data['documentStatus'] ?? ''),
+      'pdf'      => substr($pdf, 0, 4) === '%PDF' ? $pdf : '',
+      'error'    => (string)($data['errorReference'] ?? ''),
+    );
+  }
+
+  // Ask Click & Drop to try a failed manifest again. Click & Drop refuses a retry
+  // within 30 minutes of the failure or of the last retry.
+  public function retryManifest($id) {
+    global $messageStack;
+    if (!self::isManifestId($id)) return false;
+    $apiKey   = defined('MODULE_SHIPPING_ROYAL_MAIL_API_KEY') ? MODULE_SHIPPING_ROYAL_MAIL_API_KEY : '';
+    $response = $this->curlRequest('POST', RM_CD_BASE . '/manifests/' . $id . '/retry', $this->rmHeaders($apiKey), '{}');
+    if ($response === false || $this->last_http_code >= 300) {
+      $data = is_string($response) ? json_decode($response, true) : null;
+      $messageStack->add(RM_MANIFEST_RETRY_REFUSED . ' ' . (is_array($data) ? ($data['message'] ?? ($data['errors'][0]['message'] ?? 'HTTP ' . $this->last_http_code))
+        : ($response === false ? RM_MANIFEST_NO_ANSWER : 'HTTP ' . $this->last_http_code)), 'error');
+      return false;
+    }
+    return true;
+  }
+
+  public static function isManifestId($id) {
+    return is_string($id) && (bool)preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id);
   }
 
   // ---------------------------------------------------------------

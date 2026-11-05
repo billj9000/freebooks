@@ -264,9 +264,23 @@ processed for that day's collection.</p>
   <li>Click the <strong>RM Manifest</strong> button. The manifest popup opens and lists
       today's shipments.</li>
   <li>Click <strong>Manifest Now</strong> and confirm the prompt.</li>
-  <li>FreeBooks posts a manifest request to Click &amp; Drop. A confirmation message with the
-      manifest ID is displayed on success.</li>
+  <li>FreeBooks sends the manifest request to Click &amp; Drop. Click &amp; Drop accepts it and
+      prepares the manifest and its document, which usually takes a few moments. The new manifest
+      appears under <strong>Recent Manifests</strong> as <em>Being prepared</em>, and the page
+      checks with Royal Mail every few seconds.</li>
+  <li>When the document is ready, a <strong>Print Manifest</strong> button replaces
+      <em>Being prepared</em>. Click it to open the manifest PDF and print it for the
+      collection.</li>
 </ol>
+<p>If Royal Mail finds no orders waiting to be manifested, the page says so and nothing is
+submitted. If Royal Mail refuses the request, the page shows Royal Mail's reason, such as the
+order it could not manifest.</p>
+<p>Recent Manifests lists the last ten manifests, newest first, so a manifest can be printed
+again later. The PDF is kept with that day's labels. A manifest whose document was not ready
+when the window was closed is fetched the next time the manifest page is opened.</p>
+<p>If Royal Mail cannot complete a manifest, its row says so and shows Royal Mail's reference
+for the failure. <strong>Try Again</strong> asks Royal Mail to retry it; Royal Mail allows one
+attempt every 30 minutes. The manifest can also be checked on the Click &amp; Drop website.</p>
 <p>Run the manifest once at the end of each shipping day, after all labels for that day have
 been printed. Once manifested, orders cannot be cancelled.</p>
 

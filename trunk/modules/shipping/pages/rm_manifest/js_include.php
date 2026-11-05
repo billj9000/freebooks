@@ -20,4 +20,11 @@
 <script type="text/javascript">
 function init() {}
 function check_form() { return true; }
+function rmManifestRetry(id, date) {
+  var f = document.getElementById('rm_manifest');
+  f.elements['action'].value = 'retry';
+  f.elements['id'].value     = id;
+  f.elements['date'].value   = date;
+  f.submit();
+}
 </script>
