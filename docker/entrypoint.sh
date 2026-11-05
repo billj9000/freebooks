@@ -43,5 +43,12 @@ else
     a2disconf -q freebooks-installed 2>/dev/null || true
 fi
 
+# Scheduled tasks write to /run/freebooks-stdout, which is this script's standard output.
+# The web server inherits it through the exec below, and the container platform collects
+# it as the container's log. /proc/1/fd/1 would not do: PID 1 is this script only where the
+# platform starts it directly, and on Fly it is the platform's own init, whose output is not
+# collected.
+ln -sfn /proc/$$/fd/1 /run/freebooks-stdout
+
 cron
 exec apache2-foreground

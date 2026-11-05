@@ -64,5 +64,21 @@ define('ZENCART_VAT_INVOICE_MESSAGE_DEFAULT','In de bijlage vindt u de btw-factu
 if (!defined('ZENCART_CATALOG_URL')) define('ZENCART_CATALOG_URL','ZenCart - product-URL.'); // also defined in zencart/admin.php
 if (!defined('ZENCART_CATALOG_MODEL')) define('ZENCART_CATALOG_MODEL','ZenCart - productmodel.'); // also defined in zencart/admin.php
 define('ZENCART_LBL_LIST_ICON_ENABLED','Het ZenCart-uploadpictogram tonen op elke regel van de voorraadlijst. De knop Opslaan en uploaden op de bewerkpagina van een artikel wordt apart geregeld en wordt niet door deze instelling beïnvloed.');
+// Import alerts (issue #132)
+define('ZENCART_ALERT_ORDER_LINE','Order %s: %s');
+define('ZENCART_ALERT_FETCH_FAILED','De winkel kon niet worden bereikt voor nieuwe orders: %s');
+define('ZENCART_ALERT_POST_FAILED','de order kon niet worden geboekt: %s');
+define('ZENCART_ALERT_PAYMENT_FAILED','de order is geïmporteerd, maar de betaling kon niet worden verwerkt: %s');
+define('ZENCART_ALERT_PASSED_REASON','de order is overgeslagen (%s) en er is sindsdien een latere order geïmporteerd, dus deze wordt niet opnieuw opgehaald. Voer hem handmatig in.');
+define('ZENCART_ALERT_STOPPED','De import is gestopt voordat hij klaar was: %s');
+define('ZENCART_ALERT_STOPPED_UNKNOWN','De import is gestopt voordat hij klaar was, zonder reden. Het containerlog kan meer laten zien.');
+define('ZENCART_ALERT_FAILING_SUBJECT','ZenCart-orderimport mislukt (%s)');
+define('ZENCART_ALERT_FAILING_TEXT','De ZenCart-orderimport mislukt sinds %s, en orders uit de winkel komen niet in FreeBooks aan totdat dit is opgelost. De laatste run meldde:');
+define('ZENCART_ALERT_RECOVERED_SUBJECT','ZenCart-orderimport werkt weer (%s)');
+define('ZENCART_ALERT_RECOVERED_TEXT','De ZenCart-orderimport, die sinds %s mislukte, werkt weer.');
+define('ZENCART_ALERT_ORDERS_SUBJECT','ZenCart-orders vragen aandacht (%s)');
+define('ZENCART_ALERT_ORDERS_TEXT','De ZenCart-orderimport is doorgegaan, maar deze orders vragen aandacht:');
+define('ZENCART_NOTICE_FAILING','De ZenCart-orderimport mislukt sinds %s. %s');
+define('ZENCART_NOTICE_ORDER','ZenCart-order %s vraagt aandacht: %s');
 
 ?>

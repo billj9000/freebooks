@@ -409,6 +409,15 @@ switch ($_REQUEST['action']) {
 	}
 	$cp_boxes = $db->Execute("select * from ".TABLE_USERS_PROFILES." 
 		where user_id = '".(int)$_SESSION['admin_id']."' and menu_id = '".db_input($menu_id)."' order by column_id, row_id");
+	// A module with something that needs attention says so on the home page through its
+	// notices.php, which returns a list of ['type' => 'error'|'caution', 'text' => HTML] for
+	// the user viewing the page. A notice is shown on each visit while its condition lasts.
+	foreach ($loaded_modules as $notice_module) {
+	  $notice_file = DIR_FS_MODULES . $notice_module . '/notices.php';
+	  if (!file_exists($notice_file)) continue;
+	  $notice_list = include($notice_file);
+	  if (is_array($notice_list)) foreach ($notice_list as $notice) $messageStack->add($notice['text'], $notice['type'] ?? 'caution');
+	}
 	$include_template  = 'template_main.php';
 	define('PAGE_TITLE', COMPANY_NAME);
 	break;

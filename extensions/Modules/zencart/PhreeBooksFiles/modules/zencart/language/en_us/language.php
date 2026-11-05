@@ -65,5 +65,21 @@ define('ZENCART_VAT_INVOICE_MESSAGE_DEFAULT','Please find attached the VAT invoi
 if (!defined('ZENCART_CATALOG_URL')) define('ZENCART_CATALOG_URL','ZenCart - product URL.'); // also defined in zencart/admin.php
 if (!defined('ZENCART_CATALOG_MODEL')) define('ZENCART_CATALOG_MODEL','ZenCart - product model.'); // also defined in zencart/admin.php
 define('ZENCART_LBL_LIST_ICON_ENABLED','Show the ZenCart upload icon on each row of the inventory list page. The Save & Upload button on an item\'s own edit page is controlled separately and is unaffected by this setting.');
+// Import alerts (issue #132)
+define('ZENCART_ALERT_ORDER_LINE','Order %s: %s');
+define('ZENCART_ALERT_FETCH_FAILED','The shop could not be reached for new orders: %s');
+define('ZENCART_ALERT_POST_FAILED','it could not be posted: %s');
+define('ZENCART_ALERT_PAYMENT_FAILED','it was imported, but its payment could not be applied: %s');
+define('ZENCART_ALERT_PASSED_REASON','it was left out (%s), and a later order has since been imported, so it will not be fetched again. Enter it by hand.');
+define('ZENCART_ALERT_STOPPED','The import stopped before it finished: %s');
+define('ZENCART_ALERT_STOPPED_UNKNOWN','The import stopped before it finished, without saying why. The container log may show more.');
+define('ZENCART_ALERT_FAILING_SUBJECT','ZenCart order import is failing (%s)');
+define('ZENCART_ALERT_FAILING_TEXT','The ZenCart order import has been failing since %s, and orders from the shop are not reaching FreeBooks until this is put right. The latest run reported:');
+define('ZENCART_ALERT_RECOVERED_SUBJECT','ZenCart order import has recovered (%s)');
+define('ZENCART_ALERT_RECOVERED_TEXT','The ZenCart order import, failing since %s, is working again.');
+define('ZENCART_ALERT_ORDERS_SUBJECT','ZenCart orders need attention (%s)');
+define('ZENCART_ALERT_ORDERS_TEXT','The ZenCart order import has carried on, but these orders need attention:');
+define('ZENCART_NOTICE_FAILING','The ZenCart order import has been failing since %s. %s');
+define('ZENCART_NOTICE_ORDER','ZenCart order %s needs attention: %s');
 
 ?>

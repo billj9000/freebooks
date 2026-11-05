@@ -63,5 +63,11 @@ define('ZENCART_WARN_SHIPPING_MAP_MODULE',  'Item #%d van de verzendkoppeling: F
 // audit log messages
 define('ZENCART_LOG_TABS','Zencart voorraad tabblad toevoegen');
 define('ZENCART_LOG_FIELDS','Zencart voorraad veld toevoegen');
+define('ZENCART_TTL_ALERT_EMAIL','Waarschuwingsmail');
+define('ZENCART_LBL_ALERT_EMAIL','Adres dat wordt gewaarschuwd als de orderimport langer mislukt dan de wachttijd hieronder, of als een order aandacht vraagt. Laat leeg voor geen e-mail; de startpagina toont in beide gevallen een melding.');
+define('ZENCART_TTL_ALERT_DELAY','Wachttijd waarschuwing (minuten)');
+define('ZENCART_LBL_ALERT_DELAY','Hoe lang de orderimport mag blijven mislukken voordat de waarschuwingsmail wordt verstuurd. Zolang het mislukt, wordt de e-mail eenmaal per dag herhaald.');
+define('ZENCART_ERR_ALERT_EMAIL','De waarschuwingsmail is niet opgeslagen: geef één adres, of meerdere gescheiden door komma\'s.');
+define('ZENCART_ERR_ALERT_DELAY','De wachttijd is niet opgeslagen: geef een geheel aantal minuten.');
 
 ?>

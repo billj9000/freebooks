@@ -3,7 +3,8 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # FreeBooks scheduled tasks
-# Output is written to the container's stdout, so it appears in docker logs.
+# Output goes to /run/freebooks-stdout, the container's own output (see entrypoint.sh),
+# so it appears in the container log.
 #
 # Only tasks for code this image contains belong here. An image built FROM this
 # one adds its own as a further file in /etc/cron.d/ - the Zen Cart order import,
@@ -12,5 +13,5 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # /usr/local/bin/php.
 
 # Currency rate update — runs daily at 1:00am from ECB feed.
-0 1 * * * root php /var/www/html/cron/update_currency_rates.php >> /proc/1/fd/1 2>&1
+0 1 * * * root php /var/www/html/cron/update_currency_rates.php >> /run/freebooks-stdout 2>&1
 

@@ -349,3 +349,103 @@ function zencart_email_vat_invoice(int $invoice_id, int $acct_id, int $zc_id): b
         return false;
     }
 }
+
+// ─── Import alerts (issue #132) ──────────────────────────────────────────────
+// The scheduled import records the state of its runs in configuration keys, so that a
+// failure that lasts is reported by email and on the home page:
+//   ZENCART_ALERT_SINCE    when the current run of failures began (Unix time), '' when healthy
+//   ZENCART_ALERT_PROBLEM  what the latest failing run reported, one line per failure
+//   ZENCART_ALERT_SENT     when the last alert email for these failures went (Unix time)
+//   ZENCART_ALERT_ORDERS   JSON list of orders that need attention, each {order, reason, at},
+//                          kept for ZENCART_ALERT_ORDER_DAYS days
+// A failing run is one that could not reach the shop, could not post an order, left an
+// order out, or stopped before its end. An alert goes once the failures have lasted
+// ZENCART_ALERT_DELAY minutes and again each day they continue, and a last email says when
+// the import has recovered. An order that needs attention but no longer stops the import -
+// one left out and then moved past, which is never fetched again, or one imported without
+// its payment - is reported at once, since no later run will report it.
+define('ZENCART_ALERT_ORDER_DAYS', 7);
+define('ZENCART_ALERT_REPEAT', 86400);
+
+/** The configuration value $key as it is in the database now, which its constant may not be. */
+function zencart_alert_value(string $key): string
+{
+    global $db;
+    $result = $db->Execute("SELECT configuration_value FROM " . TABLE_CONFIGURATION
+        . " WHERE configuration_key = '" . db_input($key) . "'");
+    return $result->EOF ? '' : (string)$result->fields['configuration_value'];
+}
+
+/** The orders reported as needing attention within the last ZENCART_ALERT_ORDER_DAYS days. */
+function zencart_alert_orders(): array
+{
+    $list = json_decode(zencart_alert_value('ZENCART_ALERT_ORDERS'), true);
+    if (!is_array($list)) return [];
+    $cutoff = time() - ZENCART_ALERT_ORDER_DAYS * 86400;
+    return array_values(array_filter($list, fn($o) => is_array($o) && (int)($o['at'] ?? 0) >= $cutoff));
+}
+
+/**
+ * Record how a run of the import ended and send any alert that is due.
+ * $problems lists what kept the run from completing (empty for a run that went through),
+ * and $orders maps each order that needs attention to its reason.
+ */
+function zencart_alert_record(array $problems, array $orders): void
+{
+    $now = time();
+    if ($orders) {
+        $list  = zencart_alert_orders();
+        $lines = [];
+        foreach ($orders as $order => $reason) {
+            $list[]  = ['order' => (int)$order, 'reason' => (string)$reason, 'at' => $now];
+            $lines[] = sprintf(ZENCART_ALERT_ORDER_LINE, $order, $reason);
+        }
+        write_configure('ZENCART_ALERT_ORDERS', json_encode($list));
+        zencart_alert_mail(ZENCART_ALERT_ORDERS_SUBJECT, ZENCART_ALERT_ORDERS_TEXT . "\n\n" . implode("\n", $lines));
+    }
+
+    $since = zencart_alert_value('ZENCART_ALERT_SINCE');
+    if (!$problems) {
+        if ($since === '') return;
+        if (zencart_alert_value('ZENCART_ALERT_SENT') !== '') {
+            zencart_alert_mail(ZENCART_ALERT_RECOVERED_SUBJECT,
+                sprintf(ZENCART_ALERT_RECOVERED_TEXT, date('Y-m-d H:i', (int)$since)));
+        }
+        write_configure('ZENCART_ALERT_SINCE', '');
+        write_configure('ZENCART_ALERT_PROBLEM', '');
+        write_configure('ZENCART_ALERT_SENT', '');
+        return;
+    }
+
+    $text = implode("\n", $problems);
+    if ($since === '') {
+        $since = (string)$now;
+        write_configure('ZENCART_ALERT_SINCE', $since);
+    }
+    write_configure('ZENCART_ALERT_PROBLEM', $text);
+    $delay = max(0, (int)(defined('ZENCART_ALERT_DELAY') ? ZENCART_ALERT_DELAY : 60)) * 60;
+    $sent  = zencart_alert_value('ZENCART_ALERT_SENT');
+    if ($now - (int)$since < $delay) return;
+    if ($sent !== '' && $now - (int)$sent < ZENCART_ALERT_REPEAT) return;
+    $body = sprintf(ZENCART_ALERT_FAILING_TEXT, date('Y-m-d H:i', (int)$since)) . "\n\n" . $text;
+    if (zencart_alert_mail(ZENCART_ALERT_FAILING_SUBJECT, $body)) write_configure('ZENCART_ALERT_SENT', (string)$now);
+}
+
+/** Email an alert to ZENCART_ALERT_EMAIL; false when none is set or it could not be sent. */
+function zencart_alert_mail(string $subject, string $body): bool
+{
+    $to = defined('ZENCART_ALERT_EMAIL') ? trim(ZENCART_ALERT_EMAIL) : '';
+    if ($to === '') return false;
+    $company = defined('COMPANY_NAME') ? COMPANY_NAME : 'FreeBooks';
+    $subject = sprintf($subject, $company);
+    $from    = defined('EMAIL_FROM') ? EMAIL_FROM : '';
+    $sent    = validate_send_mail($to, $to, $subject, nl2br(htmlspecialchars($body, ENT_NOQUOTES, 'UTF-8')), $company, $from);
+    $line    = ($sent ? 'Sent' : 'Could not send') . " import alert \"$subject\" to $to";
+    if ($sent) echo zencart_alert_ts() . " $line\n"; else fwrite(STDERR, zencart_alert_ts() . " $line\n");
+    return (bool)$sent;
+}
+
+function zencart_alert_ts(): string
+{
+    return '[' . date('Y-m-d H:i:s') . ']';
+}

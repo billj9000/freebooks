@@ -173,6 +173,22 @@
             <td class="zc-field"><?php echo html_input_field('zencart_shipping_map', isset($_POST['zencart_shipping_map']) ? $_POST['zencart_shipping_map'] : (defined('ZENCART_SHIPPING_MAP') ? ZENCART_SHIPPING_MAP : ''), 'class="form-control form-control-sm"'); ?></td>
           </tr>
 
+          <tr class="zc-row shaded">
+            <td class="zc-label">
+              <strong><?php echo ZENCART_TTL_ALERT_EMAIL; ?></strong>
+              <span class="hint"><?php echo ZENCART_LBL_ALERT_EMAIL; ?></span>
+            </td>
+            <td class="zc-field"><?php echo html_input_field('zencart_alert_email', isset($_POST['zencart_alert_email']) ? $_POST['zencart_alert_email'] : (defined('ZENCART_ALERT_EMAIL') ? ZENCART_ALERT_EMAIL : ''), 'class="form-control-sm" size="30"'); ?></td>
+          </tr>
+
+          <tr class="zc-row">
+            <td class="zc-label">
+              <strong><?php echo ZENCART_TTL_ALERT_DELAY; ?></strong>
+              <span class="hint"><?php echo ZENCART_LBL_ALERT_DELAY; ?></span>
+            </td>
+            <td class="zc-field"><?php echo html_input_field('zencart_alert_delay', isset($_POST['zencart_alert_delay']) ? $_POST['zencart_alert_delay'] : (defined('ZENCART_ALERT_DELAY') ? ZENCART_ALERT_DELAY : '60'), 'class="form-control-sm" size="6"'); ?></td>
+          </tr>
+
           <tr class="table-secondary"><th colspan="2">Shipment Notifications</th></tr>
 
           <tr class="zc-row shaded">

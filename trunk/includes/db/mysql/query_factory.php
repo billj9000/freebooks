@@ -26,6 +26,7 @@ class queryFactory {
     public $link             = null;
     public $error_number     = '';
     public $error_text       = '';
+    public $last_error       = ''; // code and message of the last statement refused
 
     function connect($zf_host, $zf_user, $zf_password, $zf_database) {
         $this->database = $zf_database;
@@ -184,6 +185,16 @@ HTML;
             $obj->_load_cursor();
         } catch (PDOException $e) {
             $this->log_sql_error($zf_sql, $e);
+            $this->last_error = $e->getCode() . ' ' . $e->getMessage();
+            // A command-line job has no page to redirect to: it reports the statement and the
+            // database's message on standard error and ends with a failure status, so its
+            // scheduler and its log both show what went wrong. A shutdown function can read
+            // last_error.
+            if (PHP_SAPI === 'cli') {
+                fwrite(STDERR, date('Y-m-d H:i:s') . ' SQL error ' . $this->last_error . PHP_EOL
+                    . 'The failing sql was: ' . preg_replace('/\s+/', ' ', trim($zf_sql)) . PHP_EOL);
+                exit(1);
+            }
             $page = $_POST['page'] ?? $_GET['page'] ?? '';
             if ($page === 'ajax') {
                 if (is_object($messageStack) && method_exists($messageStack, 'debug')) {

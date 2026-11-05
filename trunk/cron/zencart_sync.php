@@ -467,11 +467,56 @@ if (!defined('ZENCART_URL') || ZENCART_URL === 'https://') {
     exit(0);
 }
 
+// ─── How this run ends, for the import alerts ────────────────────────────────
+// Each failure is noted here as it happens; zc_run_finish() records the outcome when the
+// script ends, however it ends, and zencart_alert_record() decides what to send.
+//   finished  the script reached one of its own exits, so nothing stopped it unexpectedly
+//   problems  failures that keep the import from completing
+//   skipped   order id => reason, for each order this run left out
+//   attention order id => reason, for an order imported only in part
+$zc_run = ['finished' => false, 'problems' => [], 'skipped' => [], 'attention' => []];
+register_shutdown_function('zc_run_finish');
+
+function zc_run_finish(): void
+{
+    global $zc_run, $db;
+    try {
+        // A post the run did not finish is not kept, but the record of the failure must be.
+        $db->transRollback();
+        $problems = $zc_run['problems'];
+        if (!$zc_run['finished']) {
+            $err = error_get_last();
+            $why = $db->last_error;
+            if ($why === '' && $err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
+                $why = $err['message'] . ' (' . basename($err['file']) . ':' . $err['line'] . ')';
+            }
+            $problems[] = $why !== '' ? sprintf(ZENCART_ALERT_STOPPED, $why) : ZENCART_ALERT_STOPPED_UNKNOWN;
+            // A fatal error is not shown on the command line, so this is its only mention in the log.
+            fwrite(STDERR, ts() . ' ' . end($problems) . "\n");
+        }
+        // An order left out is fetched again only while it is newer than the last order
+        // imported. Once a later one is imported, it has been moved past for good.
+        $last     = (int)zencart_alert_value('ZENCART_LAST_ORDER');
+        $orders   = [];
+        foreach ($zc_run['skipped'] as $id => $reason) {
+            if ($id < $last) $orders[$id] = sprintf(ZENCART_ALERT_PASSED_REASON, $reason);
+            else $problems[] = sprintf(ZENCART_ALERT_ORDER_LINE, $id, $reason);
+        }
+        foreach ($zc_run['attention'] as $id => $reason) $orders[$id] = $reason;
+        zencart_alert_record($problems, $orders);
+    } catch (Throwable $e) {
+        fwrite(STDERR, ts() . " Could not record the import alert state: " . $e->getMessage() . "\n");
+    }
+}
+
 $last_order = (int)(defined('ZENCART_LAST_ORDER') ? ZENCART_LAST_ORDER : 0);
 $response   = zencart_api_call('orders', null, ['last_order' => $last_order]);
 
 if ($response === false) {
-    fwrite(STDERR, ts() . " Failed to fetch orders from ZenCart: " . zc_drain_messages() . "\n");
+    $errs = zc_drain_messages();
+    fwrite(STDERR, ts() . " Failed to fetch orders from ZenCart: " . $errs . "\n");
+    $zc_run['problems'][] = sprintf(ZENCART_ALERT_FETCH_FAILED, $errs);
+    $zc_run['finished']   = true;
     exit(1);
 }
 
@@ -481,6 +526,7 @@ if (empty($zc_orders)) {
     zc_sync_stock();
     zc_push_changed();
     zc_confirm_shipments();
+    $zc_run['finished'] = true;
     exit(0);
 }
 echo ts() . " Fetched " . count($zc_orders) . " order(s) from ZenCart.\n";
@@ -570,11 +616,13 @@ foreach ($zc_orders as $zc) {
     $post_date = zc_order_date($zc['orderDate'] ?? '');
     if ($post_date === '') {
         fwrite(STDERR, ts() . " Order $zc_id: order time '" . ($zc['orderDate'] ?? '') . "' could not be read. Skipping.\n");
+        $zc_run['skipped'][$zc_id] = "order time '" . ($zc['orderDate'] ?? '') . "' could not be read";
         continue;
     }
     $period    = gen_calculate_period($post_date, true);
     if (!$period) {
         fwrite(STDERR, ts() . " Order $zc_id: $post_date is outside accounting periods. Skipping.\n");
+        $zc_run['skipped'][$zc_id] = "$post_date is outside accounting periods";
         continue;
     }
 
@@ -602,6 +650,7 @@ foreach ($zc_orders as $zc) {
         [$acct_id, $addr_id] = zc_create_customer($bill, $email, $post_date);
         if (!$acct_id) {
             fwrite(STDERR, ts() . " Order $zc_id: could not create customer for '$email'. Skipping.\n");
+            $zc_run['skipped'][$zc_id] = "could not create customer for '$email'";
             continue;
         }
         echo ts() . " Created customer contact $acct_id for '$email'\n";
@@ -624,6 +673,7 @@ foreach ($zc_orders as $zc) {
     }
     if (empty($items)) {
         fwrite(STDERR, ts() . " Order $zc_id: no product lines. Skipping.\n");
+        $zc_run['skipped'][$zc_id] = "no product lines";
         continue;
     }
 
@@ -855,8 +905,10 @@ foreach ($zc_orders as $zc) {
     $order->notes            = (string)($zc['comments'] ?? '');
 
     if (!$order->post_ordr('insert')) {
+        $db->transRollback();
         $errs = zc_drain_messages();
         fwrite(STDERR, ts() . " Order $zc_id: post_ordr failed" . ($errs ? ": $errs" : '') . "\n");
+        $zc_run['problems'][] = sprintf(ZENCART_ALERT_ORDER_LINE, $zc_id, sprintf(ZENCART_ALERT_POST_FAILED, $errs));
         break; // preserve order sequence — stop on first failure
     }
 
@@ -1008,6 +1060,7 @@ foreach ($zc_orders as $zc) {
                 if (!$pay->post_ordr('insert')) {
                     $errs = zc_drain_messages();
                     fwrite(STDERR, ts() . " Order $zc_id: payment post failed" . ($errs ? ": $errs" : '') . "\n");
+                    $zc_run['attention'][$zc_id] = sprintf(ZENCART_ALERT_PAYMENT_FAILED, $errs);
                     // invoice is already committed — log the error but continue
                 } else {
                     zc_drain_messages();
@@ -1031,6 +1084,7 @@ echo ts() . " Done. Imported $imported order(s). Highest ZC order ID: $highest_i
 zc_sync_stock();
 zc_push_changed();
 zc_confirm_shipments();
+$zc_run['finished'] = true;
 exit(0);
 
 // ─────────────────────────────────────────────────────────────────────────────

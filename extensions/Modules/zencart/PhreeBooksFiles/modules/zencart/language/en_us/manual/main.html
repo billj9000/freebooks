@@ -145,6 +145,35 @@ use for each ZenCart payment module. Format:</p>
 <code>stripe=:1030</code>). Unmapped modules use <code>freecharger</code> with
 the default cash account.</p>
 
+<h3>When the import fails</h3>
+<p>Orders are imported in sequence, so an order that cannot be posted stops the import: each
+run tries it again and imports nothing after it until it goes through. The import also fails
+when the shop cannot be reached, or when the run stops before its end.</p>
+<p>Two settings in the Order Import section of the General tab decide how you hear about it:</p>
+<ul>
+  <li><strong>Alert email</strong> &mdash; the address to tell. Several addresses may be given,
+  separated by commas. Leave it blank for no email.</li>
+  <li><strong>Alert delay (minutes)</strong> &mdash; how long the import may keep failing before
+  it counts, 60 unless you change it. A failure that clears within the delay, such as the shop
+  being down for a few minutes, is not reported.</li>
+</ul>
+<p>Once the import has been failing for longer than the delay:</p>
+<ul>
+  <li>an email goes to the alert address, giving the time it began and what the latest run
+  reported, and is repeated once a day while the import keeps failing;</li>
+  <li>the home page shows the same as a warning to users with access to the ZenCart module;</li>
+  <li>when the import works again, a last email says so and the warning goes.</li>
+</ul>
+<p>Some orders need attention even though the import has carried on. They are reported straight
+away, by email and as a warning on the home page for 7 days:</p>
+<ul>
+  <li>an order the import left out (for example one with no product lines, or dated outside the
+  accounting periods) once a later order has been imported, because it will not be fetched
+  again &mdash; enter it by hand;</li>
+  <li>an order imported without its payment, because the payment could not be applied &mdash;
+  apply it by hand.</li>
+</ul>
+
 <h2>Product Upload (FreeBooks &rarr; ZenCart)</h2>
 
 <h3>Single product upload</h3>
@@ -195,6 +224,9 @@ status; partially shipped orders receive the Partial status.</p>
 
 <p>Add to crontab (adjust path as needed):</p>
 <pre>*/15 * * * * php /var/www/html/cron/zencart_sync.php &gt;&gt; /var/log/zencart_sync.log 2&gt;&amp;1</pre>
+
+<p>In the FreeBooks container, send the output to <code>/run/freebooks-stdout</code> instead, so
+that it appears in the container's log. The script ends with status 1 when a run fails.</p>
 
 <p>The script is safe to run frequently &mdash; it only imports orders with IDs
 higher than the last imported order ID and always runs a stock quantity sync

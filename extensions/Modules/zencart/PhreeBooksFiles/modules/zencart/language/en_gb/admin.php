@@ -65,5 +65,11 @@ define('ZENCART_WARN_SHIPPING_MAP_MODULE',  'Shipping map entry #%d: FreeBooks s
 // audit log messages
 define('ZENCART_LOG_TABS','Zencart Inventory Add Tab');
 define('ZENCART_LOG_FIELDS','Zencart Inventory Add Field');
+define('ZENCART_TTL_ALERT_EMAIL','Alert email');
+define('ZENCART_LBL_ALERT_EMAIL','Address to tell when the order import keeps failing for longer than the delay below, or an order needs attention. Leave blank for no email; the home page shows a notice either way.');
+define('ZENCART_TTL_ALERT_DELAY','Alert delay (minutes)');
+define('ZENCART_LBL_ALERT_DELAY','How long the order import may keep failing before the alert email is sent. While it fails, the email is repeated once a day.');
+define('ZENCART_ERR_ALERT_EMAIL','The alert email was not saved: give one address, or several separated by commas.');
+define('ZENCART_ERR_ALERT_DELAY','The alert delay was not saved: give a whole number of minutes.');
 
 ?>

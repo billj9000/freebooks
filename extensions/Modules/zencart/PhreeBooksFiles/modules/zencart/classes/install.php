@@ -78,6 +78,8 @@ class zencart_admin {
 	  'ZENCART_VAT_INVOICE_MESSAGE'   => 'Please find attached the VAT invoice {invoice} for your order, {name}. Thank you for your business.',
 	  'ZENCART_VAT_INVOICE_BCC'       => '',
 	  'ZENCART_LIST_ICON_ENABLED'     => '0',
+	  'ZENCART_ALERT_EMAIL'           => '', // empty: alerts show on the home page only
+	  'ZENCART_ALERT_DELAY'           => '60', // minutes the import may keep failing before an alert email
 	);
   }
 

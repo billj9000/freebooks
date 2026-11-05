@@ -38,6 +38,18 @@ switch ($_REQUEST['action']) {
 	}
 	// Only empty (the company's zone) or a zone PHP knows; anything else would date orders wrongly.
 	if (!empty($_POST['zencart_store_timezone']) && !in_array($_POST['zencart_store_timezone'], timezone_identifiers_list(), true)) unset($_POST['zencart_store_timezone']);
+	// An alert address is one address or several separated by commas, as the mailer takes
+	// them; the delay is whole minutes. Anything else is not saved.
+	if (isset($_POST['zencart_alert_email'])) {
+	  $_POST['zencart_alert_email'] = trim($_POST['zencart_alert_email']);
+	  foreach (array_filter(array_map('trim', explode(',', $_POST['zencart_alert_email']))) as $addr) {
+	    if (!filter_var($addr, FILTER_VALIDATE_EMAIL)) { unset($_POST['zencart_alert_email']); $messageStack->add(ZENCART_ERR_ALERT_EMAIL, 'error'); break; }
+	  }
+	}
+	if (isset($_POST['zencart_alert_delay']) && !ctype_digit(trim($_POST['zencart_alert_delay']))) {
+	  unset($_POST['zencart_alert_delay']);
+	  $messageStack->add(ZENCART_ERR_ALERT_DELAY, 'error');
+	}
 	// save general tab
 	foreach ($install->keys as $key => $default) {
 	  $field = strtolower($key);
