@@ -84,6 +84,14 @@ class royal_mail {
     'ECA'   => 'ECA',
   );
 
+  // Click & Drop offers duty paid as services of their own, with codes of their own, so a
+  // DDP shipment is sent under the service's DDP code. A service missing here has no DDP
+  // version that FreeBooks knows, and a DDP shipment on it is refused before it is sent.
+  const DDP_SERVICE_MAP = array(
+    'RMIPT' => 'MPR',   // International Business Parcels Tracked DDP
+    'RMIE'  => 'DE6',   // International Business Parcels Untracked DDP
+  );
+
   var $intlServices = array('RMIT', 'RMIS', 'RMITS', 'RMIE', 'RMIPT', 'ER1', 'ECA');
   // Parcelforce international travels with a printed commercial invoice; Royal Mail's
   // international services go with the CN22/CN23 alone.
@@ -291,6 +299,12 @@ class royal_mail {
         return false;
       }
       $dutyPaid = round((float)$dutyIn, 2);
+      if (!isset(self::DDP_SERVICE_MAP[$internalCode])) {
+        $messageStack->add(sprintf(MODULE_SHIPPING_ROYAL_MAIL_ERROR_NO_DDP,
+          defined('royal_mail_' . $internalCode) ? constant('royal_mail_' . $internalCode) : $internalCode), 'error');
+        return false;
+      }
+      $serviceCode = self::DDP_SERVICE_MAP[$internalCode];
     }
 
     // Despatch date
