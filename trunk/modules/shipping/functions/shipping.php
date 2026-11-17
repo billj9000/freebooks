@@ -265,16 +265,60 @@ function shipping_order_state($order_id, $ref) {
   $progress = shipping_line_progress($order_id);
   if (!$progress) return $state;
   $state['recorded'] = true;
-  $lines = $db->Execute("SELECT ji.id, ji.qty FROM " . TABLE_JOURNAL_ITEM . " ji"
+  foreach (shipping_outstanding_lines($order_id, $progress) as $line) $state['outstanding'] += $line['remaining'];
+  return $state;
+}
+
+/**
+ * The lines of order $order_id that go in a parcel and still have something to send, each
+ * with 'id' (the order line), 'sku', 'description', 'ordered' and 'remaining'. $progress is
+ * shipping_line_progress() for the order, read here when not given.
+ */
+function shipping_outstanding_lines($order_id, $progress = null) {
+  global $db;
+  if ((int)$order_id <= 0) return array();
+  if ($progress === null) $progress = shipping_line_progress($order_id);
+  $out   = array();
+  $lines = $db->Execute("SELECT ji.id, ji.sku, ji.description, ji.qty FROM " . TABLE_JOURNAL_ITEM . " ji"
     . " LEFT JOIN " . TABLE_INVENTORY . " i ON i.sku = ji.sku"
     . " WHERE ji.ref_id = " . (int)$order_id . " AND ji.sku IS NOT NULL AND ji.sku <> ''"
-    . " AND (i.inventory_type IS NULL OR i.inventory_type NOT IN ('" . implode("','", shipping_non_parcel_types()) . "'))");
+    . " AND (i.inventory_type IS NULL OR i.inventory_type NOT IN ('" . implode("','", shipping_non_parcel_types()) . "'))"
+    . " ORDER BY ji.id");
   while (!$lines->EOF) {
-    $done = $progress[(int)$lines->fields['id']] ?? array('shipped' => 0.0, 'cancelled' => 0.0);
-    $state['outstanding'] += max(0, (float)$lines->fields['qty'] - $done['shipped'] - $done['cancelled']);
+    $f    = $lines->fields;
+    $done = $progress[(int)$f['id']] ?? array('shipped' => 0.0, 'cancelled' => 0.0);
+    $left = max(0, (float)$f['qty'] - $done['shipped'] - $done['cancelled']);
+    if ($left > 0.000001) {
+      $out[(int)$f['id']] = array('id' => (int)$f['id'], 'sku' => $f['sku'], 'description' => (string)$f['description'],
+        'ordered' => (float)$f['qty'], 'remaining' => $left);
+    }
     $lines->MoveNext();
   }
-  return $state;
+  return $out;
+}
+
+/**
+ * The most recent shipments, newest first, made for the other orders of the customer (or
+ * vendor) of order $order_id in the same journal: the shipments an outstanding line of the
+ * order can be recorded as having gone with. Keyed by shipment number, each with 'carrier',
+ * 'ship_date', 'tracking' (comma-separated) and 'ref', the other order's number.
+ */
+function shipping_contact_shipments($order_id, $limit = 20) {
+  global $db;
+  $order = $db->Execute("SELECT journal_id, bill_acct_id FROM " . TABLE_JOURNAL_MAIN . " WHERE id = " . (int)$order_id);
+  if ($order->EOF || !(int)$order->fields['bill_acct_id']) return array();
+  $rows = $db->Execute("SELECT sl.shipment_id, MIN(sl.carrier) AS carrier, MIN(sl.ship_date) AS ship_date,"
+    . " GROUP_CONCAT(sl.tracking_id ORDER BY sl.id SEPARATOR ', ') AS tracking, MIN(o.purchase_invoice_id) AS ref"
+    . " FROM " . TABLE_SHIPPING_LOG . " sl JOIN " . TABLE_JOURNAL_MAIN . " o ON o.id = sl.order_id"
+    . " WHERE o.bill_acct_id = " . (int)$order->fields['bill_acct_id'] . " AND o.journal_id = " . (int)$order->fields['journal_id']
+    . " AND sl.order_id <> " . (int)$order_id
+    . " GROUP BY sl.shipment_id ORDER BY ship_date DESC, sl.shipment_id DESC LIMIT " . (int)$limit);
+  $out = array();
+  while (!$rows->EOF) {
+    $out[(int)$rows->fields['shipment_id']] = $rows->fields;
+    $rows->MoveNext();
+  }
+  return $out;
 }
 
 // Inventory types that never go in a parcel: service, labour, charge, activity and

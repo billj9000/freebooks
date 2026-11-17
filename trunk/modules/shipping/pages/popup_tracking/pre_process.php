@@ -33,8 +33,28 @@ if ($method !== '' && !shipping_method_is_valid($method)) $method = '';
 $ship_date   = date('Y-m-d');
 if ($method) $subject_module = new $method();
 if (!isset($_REQUEST['action'])) $_REQUEST['action'] = ''; // a plain page open
-if (in_array($_REQUEST['action'], array('delete', 'save', 'restore_line'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (in_array($_REQUEST['action'], array('delete', 'save', 'restore_line', 'settle_line'), true) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
   $_REQUEST['action'] = ''; // they change state; the form posts them (CSRF-checked)
+}
+
+// The order the shipment belongs to: its order id, or one recorded on another shipment of
+// the same order number where this one has none.
+$order_id = 0;
+$order_shipment = null;
+if ($sID) {
+  shipping_ensure_schema();
+  $order_shipment = $db->Execute("select shipment_id, carrier, ref_id, order_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
+  if ($order_shipment->EOF) {
+    $order_shipment = null;
+  } else {
+    $order_id = (int)$order_shipment->fields['order_id'];
+    $base_ref = db_input((string)$order_shipment->fields['ref_id']);
+    if (!$order_id && $base_ref !== '') {
+      $other = $db->Execute("select max(order_id) as order_id from " . TABLE_SHIPPING_LOG
+        . " where ref_id = '" . $base_ref . "' or ref_id like '" . $base_ref . "-%'");
+      $order_id = (int)($other->fields['order_id'] ?? 0);
+    }
+  }
 }
 
 /***************   hook for custom actions  ***************************/
@@ -67,14 +87,55 @@ switch ($_REQUEST['action']) {
     $close_popup = true;
     break;
   case 'restore_line':
-    // A line recorded as never to be shipped becomes outstanding again.
+    // A line recorded as never to be shipped, or as sent with another order's shipment,
+    // becomes outstanding again. A line a shipment of its own order sent is not touched
+    // here: deleting that shipment restores it.
     shipping_ensure_schema();
-    $item = $db->Execute("select id, sku, qty from " . TABLE_SHIPPING_LOG_ITEMS
-      . " where id = " . (int)($_POST['item_id'] ?? 0) . " and status = 'cancelled'");
+    $item = $db->Execute("select id, shipment_id, order_id, sku, qty, status from " . TABLE_SHIPPING_LOG_ITEMS
+      . " where id = " . (int)($_POST['item_id'] ?? 0));
     if ($item->EOF) break;
+    if ($item->fields['status'] !== 'cancelled') {
+      $own = $db->Execute("select count(*) as n from " . TABLE_SHIPPING_LOG . " where shipment_id = "
+        . (int)$item->fields['shipment_id'] . " and order_id = " . (int)$item->fields['order_id']);
+      if ((int)$own->fields['n'] > 0) break;
+    }
     $db->Execute("delete from " . TABLE_SHIPPING_LOG_ITEMS . " where id = " . (int)$item->fields['id']);
     gen_add_audit_log(SHIPPING_CANCELLED_RESTORED_LOG, $item->fields['sku']);
     $messageStack->add(sprintf(SHIPPING_CANCELLED_RESTORED, (float)$item->fields['qty'], $item->fields['sku']), 'success');
+    break;
+  case 'settle_line':
+    // Records an outstanding line of the order as sent with a shipment of another of the
+    // customer's orders, under that shipment, or as never to be shipped, under the shipment
+    // shown. Either way deleting that shipment makes the line outstanding again.
+    if (!$order_id || !$order_shipment) break;
+    $line_id     = (int)($_POST['settle_line_id'] ?? 0);
+    $outstanding = shipping_outstanding_lines($order_id);
+    if (!isset($outstanding[$line_id])) { $messageStack->add(SHIPPING_SETTLE_NOTHING, 'error'); break; }
+    $line = $outstanding[$line_id];
+    $qty  = (float)$currencies->clean_value($_POST['settle_qty'] ?? '');
+    if ($qty <= 0 || $qty > $line['remaining'] + 0.000001) {
+      $messageStack->add(sprintf(SHIPPING_SETTLE_QTY, $line['sku'], (float)$line['remaining']), 'error');
+      break;
+    }
+    $target = (string)($_POST['settle_target'] ?? '');
+    $row    = array('order_id' => $order_id, 'item_ref_id' => $line_id, 'sku' => $line['sku'], 'qty' => $qty,
+      'created_at' => date('Y-m-d H:i:s'));
+    if ($target === 'cancel') {
+      $row += array('shipment_id' => (int)$order_shipment->fields['shipment_id'], 'carrier' => $order_shipment->fields['carrier'],
+        'status' => 'cancelled');
+      $done_msg = sprintf(SHIPPING_SETTLE_CANCELLED, $qty, $line['sku']);
+    } elseif (ctype_digit($target)) {
+      $with = shipping_contact_shipments($order_id);
+      if (!isset($with[(int)$target])) { $messageStack->add(SHIPPING_SETTLE_NO_SHIPMENT, 'error'); break; }
+      $row += array('shipment_id' => (int)$target, 'carrier' => $with[(int)$target]['carrier'], 'status' => 'shipped');
+      $done_msg = sprintf(SHIPPING_SETTLE_SENT_WITH, $qty, $line['sku'], (int)$target, $with[(int)$target]['ref']);
+    } else {
+      $messageStack->add(SHIPPING_SETTLE_CHOOSE, 'error');
+      break;
+    }
+    db_perform(TABLE_SHIPPING_LOG_ITEMS, $row, 'insert');
+    gen_add_audit_log(SHIPPING_SETTLE_LOG, $line['sku']);
+    $messageStack->add($done_msg, 'success');
     break;
   case 'save':
     if (!$method) break;
@@ -140,32 +201,56 @@ if ($sID) {
     $label_viewer_url = '';
   }
   // Every shipment of the same order, with what each contained, oldest first. A log row is
-  // matched by its order id, or by the order's number where it has no order id.
-  shipping_ensure_schema();
-  $log_row  = $db->Execute("select order_id, ref_id from " . TABLE_SHIPPING_LOG . " where id = " . (int)$sID);
-  $order_id = (int)($log_row->fields['order_id'] ?? 0);
-  $ref      = db_input((string)($log_row->fields['ref_id'] ?? ''));
+  // matched by its order id, or by the order's number where it has no order id. A shipment
+  // of another order that carried a line of this one is listed too, with only that line.
+  $ref = db_input((string)($order_shipment->fields['ref_id'] ?? ''));
   $order_shipments = array();
-  $rows = $db->Execute("select id, shipment_id, carrier, ship_date, tracking_id from " . TABLE_SHIPPING_LOG
-    . " where " . ($order_id ? "order_id = " . $order_id . " or " : '') . "ref_id = '" . $ref . "' or ref_id like '" . $ref . "-%'"
-    . " order by ship_date, id");
+  $carried = array();
+  if ($order_id) {
+    $rows = $db->Execute("select distinct shipment_id from " . TABLE_SHIPPING_LOG_ITEMS . " where order_id = " . $order_id);
+    while (!$rows->EOF) { $carried[] = (int)$rows->fields['shipment_id']; $rows->MoveNext(); }
+  }
+  $rows = $db->Execute("select l.id, l.shipment_id, l.carrier, l.ship_date, l.tracking_id, l.order_id, o.purchase_invoice_id as order_ref"
+    . " from " . TABLE_SHIPPING_LOG . " l left join " . TABLE_JOURNAL_MAIN . " o on o.id = l.order_id"
+    . " where " . ($order_id ? "l.order_id = " . $order_id . " or " : '') . "l.ref_id = '" . $ref . "' or l.ref_id like '" . $ref . "-%'"
+    . ($carried ? " or l.shipment_id in (" . implode(',', $carried) . ")" : '')
+    . " order by l.ship_date, l.id");
   while (!$rows->EOF) {
     $f = $rows->fields;
     $k = (int)$f['shipment_id'];
     if (!isset($order_shipments[$k])) {
       $order_shipments[$k] = array('log_id' => (int)$f['id'], 'carrier' => $f['carrier'],
-        'ship_date' => $f['ship_date'], 'tracking' => array(), 'items' => array());
+        'ship_date' => $f['ship_date'], 'tracking' => array(), 'items' => array(), 'other_ref' => '');
     }
+    if ($order_id && (int)$f['order_id'] && (int)$f['order_id'] !== $order_id) $order_shipments[$k]['other_ref'] = (string)$f['order_ref'];
     $order_shipments[$k]['tracking'][] = $f['tracking_id'];
     $rows->MoveNext();
   }
   if ($order_shipments) {
-    $rows = $db->Execute("select id, shipment_id, sku, qty, status from " . TABLE_SHIPPING_LOG_ITEMS
-      . " where shipment_id in (" . implode(',', array_keys($order_shipments)) . ") order by id");
+    $rows = $db->Execute("select i.id, i.shipment_id, i.order_id, i.sku, i.qty, i.status, o.purchase_invoice_id as order_ref"
+      . " from " . TABLE_SHIPPING_LOG_ITEMS . " i left join " . TABLE_JOURNAL_MAIN . " o on o.id = i.order_id"
+      . " where i.shipment_id in (" . implode(',', array_keys($order_shipments)) . ") order by i.id");
     while (!$rows->EOF) {
-      $order_shipments[(int)$rows->fields['shipment_id']]['items'][] = $rows->fields;
+      $f = $rows->fields;
+      $k = (int)$f['shipment_id'];
+      $foreign_item = $order_id && (int)$f['order_id'] !== $order_id;
+      // A shipment of another order shows only this order's lines; one of this order shows a
+      // line it carried for another order with that order's number.
+      if (!($order_shipments[$k]['other_ref'] !== '' && $foreign_item)) {
+        $f['for_ref']  = $foreign_item ? (string)$f['order_ref'] : '';
+        $f['undoable'] = $f['status'] === 'cancelled' || $order_shipments[$k]['other_ref'] !== '' || $f['for_ref'] !== '';
+        $order_shipments[$k]['items'][] = $f;
+      }
       $rows->MoveNext();
     }
+  }
+  // What the order still has to send, once a shipment has recorded its contents, and the
+  // customer's other shipments any of it can be recorded as having gone with.
+  $outstanding_lines = array();
+  $contact_shipments = array();
+  if ($order_id && shipping_line_progress($order_id)) {
+    $outstanding_lines = shipping_outstanding_lines($order_id);
+    if ($outstanding_lines) $contact_shipments = shipping_contact_shipments($order_id);
   }
   // need to build the methods pull down
   $carrier_methods = array();

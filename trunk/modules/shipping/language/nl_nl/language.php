@@ -327,5 +327,22 @@ define('SHIPPING_TEXT_CANCELLED', 'Wordt niet verzonden');
 define('SHIPPING_RESTORE_CONFIRM', 'Dit artikel weer openstaand maken, zodat een latere zending het kan verzenden?');
 define('SHIPPING_CANCELLED_RESTORED', '%s van %s staat weer open.');
 define('SHIPPING_CANCELLED_RESTORED_LOG', 'Zendingsregel hersteld');
+// Settling a line still to send after the fact (issue #135)
+define('SHIPPING_SHIPMENT_OF_ORDER', 'voor %s');
+define('SHIPPING_LINE_FOR_ORDER', 'voor %s');
+define('SHIPPING_OUTSTANDING', 'Nog te verzenden');
+define('SHIPPING_TEXT_STILL_TO_SEND', 'Openstaand');
+define('SHIPPING_SETTLE_WHAT', 'Wat ermee gebeurd is');
+define('SHIPPING_SETTLE_SENT_WITH_GROUP', 'Meegestuurd met een andere zending');
+define('SHIPPING_SETTLE_NO_SHIPMENTS', 'Deze klant heeft geen andere zendingen');
+define('SHIPPING_SETTLE_SHIPMENT_OPTION', 'Nr. %d, %s, voor %s (%s)');
+define('SHIPPING_SETTLE_RECORD', 'Vastleggen');
+define('SHIPPING_SETTLE_CHOOSE', 'Kies de andere zending waarmee het is meegestuurd, of Wordt niet verzonden.');
+define('SHIPPING_SETTLE_QTY', 'Artikel %s: de hoeveelheid moet groter zijn dan 0 en ten hoogste %s.');
+define('SHIPPING_SETTLE_NOTHING', 'Van dat artikel hoeft niets meer verzonden te worden.');
+define('SHIPPING_SETTLE_NO_SHIPMENT', 'Die zending is geen andere zending van deze klant.');
+define('SHIPPING_SETTLE_SENT_WITH', '%s van %s vastgelegd als meegestuurd met zending %d, voor %s.');
+define('SHIPPING_SETTLE_CANCELLED', '%s van %s vastgelegd als wordt niet verzonden.');
+define('SHIPPING_SETTLE_LOG', 'Openstaande zendingsregel afgehandeld');
 
 ?>

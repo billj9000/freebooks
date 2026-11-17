@@ -69,6 +69,15 @@ function buildFreightDropdown() {
   document.getElementById('method').value = selectedMethod;
 }
 
+// Records an outstanding line as sent with another shipment, or as never to be shipped.
+function settleLine(id) {
+  var target = document.getElementById('settle_target_' + id).value;
+  if (target === '') { alert('<?php echo addslashes(SHIPPING_SETTLE_CHOOSE); ?>'); return; }
+  document.getElementById('settle_line_id').value = id;
+  document.getElementById('settle_qty').value     = document.getElementById('settle_qty_' + id).value;
+  document.getElementById('settle_target').value  = target;
+  submitToDo('settle_line');
+}
 
 // -->
 </script>

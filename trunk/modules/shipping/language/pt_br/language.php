@@ -326,5 +326,22 @@ define('SHIPPING_TEXT_CANCELLED', 'Não será enviado');
 define('SHIPPING_RESTORE_CONFIRM', 'Tornar este item pendente outra vez, para que um envio posterior o possa enviar?');
 define('SHIPPING_CANCELLED_RESTORED', '%s de %s está pendente outra vez.');
 define('SHIPPING_CANCELLED_RESTORED_LOG', 'Linha de envio restaurada');
+// Settling a line still to send after the fact (issue #135)
+define('SHIPPING_SHIPMENT_OF_ORDER', 'para %s');
+define('SHIPPING_LINE_FOR_ORDER', 'para %s');
+define('SHIPPING_OUTSTANDING', 'Ainda a enviar');
+define('SHIPPING_TEXT_STILL_TO_SEND', 'Pendente');
+define('SHIPPING_SETTLE_WHAT', 'O que aconteceu');
+define('SHIPPING_SETTLE_SENT_WITH_GROUP', 'Enviado com outro envio');
+define('SHIPPING_SETTLE_NO_SHIPMENTS', 'Este cliente não tem outros envios');
+define('SHIPPING_SETTLE_SHIPMENT_OPTION', 'Nº %d, %s, para %s (%s)');
+define('SHIPPING_SETTLE_RECORD', 'Registrar');
+define('SHIPPING_SETTLE_CHOOSE', 'Escolha o outro envio com que foi, ou Não será enviado.');
+define('SHIPPING_SETTLE_QTY', 'Item %s: a quantidade deve ser maior que 0 e no máximo %s.');
+define('SHIPPING_SETTLE_NOTHING', 'Esse item não tem mais nada a enviar.');
+define('SHIPPING_SETTLE_NO_SHIPMENT', 'Esse envio não é um dos outros envios deste cliente.');
+define('SHIPPING_SETTLE_SENT_WITH', '%s de %s registrado como enviado com o envio %d, para %s.');
+define('SHIPPING_SETTLE_CANCELLED', '%s de %s registrado como não será enviado.');
+define('SHIPPING_SETTLE_LOG', 'Linha de envio pendente resolvida');
 
 ?>

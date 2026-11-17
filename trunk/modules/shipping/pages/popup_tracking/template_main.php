@@ -71,7 +71,7 @@ echo $toolbar->build_toolbar();
     </div>
   </div>
 </div>
-<?php if (!empty($order_shipments) && (count($order_shipments) > 1 || array_filter(array_column($order_shipments, 'items')))): ?>
+<?php if (!empty($order_shipments) && (count($order_shipments) > 1 || array_filter(array_column($order_shipments, 'items')) || !empty($outstanding_lines))): ?>
 <div class="card fb-card mt-3">
   <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_ORDER_SHIPMENTS; ?></div>
   <div class="card-body p-0">
@@ -88,7 +88,11 @@ echo $toolbar->build_toolbar();
       <tbody>
 <?php foreach ($order_shipments as $shipment_id => $s): ?>
         <tr<?php echo $s['log_id'] === (int)$sID || in_array($cInfo->tracking_id, $s['tracking'], true) ? ' class="table-active"' : ''; ?>>
-          <td><a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&amp;page=popup_tracking&amp;sID=' . $s['log_id'], 'SSL'); ?>"><?php echo (int)$shipment_id; ?></a></td>
+          <td class="text-nowrap"><a href="<?php echo html_href_link(FILENAME_DEFAULT, 'module=shipping&amp;page=popup_tracking&amp;sID=' . $s['log_id'], 'SSL'); ?>"><?php echo (int)$shipment_id; ?></a>
+<?php if ($s['other_ref'] !== ''): ?>
+            <div class="small text-muted"><?php echo sprintf(SHIPPING_SHIPMENT_OF_ORDER, htmlspecialchars($s['other_ref'])); ?></div>
+<?php endif; ?>
+          </td>
           <td class="text-nowrap"><?php echo gen_locale_date(substr($s['ship_date'], 0, 10)); ?></td>
           <td><?php
   $links = array();
@@ -102,14 +106,65 @@ echo $toolbar->build_toolbar();
 <?php   foreach ($s['items'] as $item): ?>
             <div class="text-nowrap">
               <?php echo htmlspecialchars($item['sku']) . ' &times; ' . (float)$item['qty']; ?>
+<?php     if ($item['for_ref'] !== ''): ?>
+              <span class="small text-muted"><?php echo sprintf(SHIPPING_LINE_FOR_ORDER, htmlspecialchars($item['for_ref'])); ?></span>
+<?php     endif; ?>
 <?php     if ($item['status'] === 'cancelled'): ?>
               <span class="badge bg-secondary"><?php echo SHIPPING_TEXT_CANCELLED; ?></span>
+<?php     endif; ?>
+<?php     if ($item['undoable']): ?>
               <button type="button" class="btn btn-secondary btn-sm py-0"
                       onclick="if (confirm('<?php echo addslashes(SHIPPING_RESTORE_CONFIRM); ?>')) { document.getElementById('item_id').value='<?php echo (int)$item['id']; ?>'; submitToDo('restore_line'); }"><?php echo SHIPPING_LINE_RESTORE; ?></button>
 <?php     endif; ?>
             </div>
 <?php   endforeach; ?>
           </td>
+        </tr>
+<?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
+<?php if (!empty($outstanding_lines)): ?>
+<div class="card fb-card mt-3">
+  <div class="card-header py-1 fb-widget-header"><?php echo SHIPPING_OUTSTANDING; ?></div>
+  <div class="card-body p-0">
+    <?php echo html_hidden_field('settle_line_id', '') . html_hidden_field('settle_qty', '') . html_hidden_field('settle_target', ''); ?>
+    <table class="table table-sm table-borderless table-hover mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th><?php echo TEXT_ITEM; ?></th>
+          <th class="text-end"><?php echo SHIPPING_TEXT_STILL_TO_SEND; ?></th>
+          <th><?php echo TEXT_QUANTITY; ?></th>
+          <th><?php echo SHIPPING_SETTLE_WHAT; ?></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+<?php foreach ($outstanding_lines as $line): $lid = (int)$line['id']; ?>
+        <tr>
+          <td><?php echo htmlspecialchars($line['sku']); ?>
+            <div class="small text-muted"><?php echo htmlspecialchars($line['description']); ?></div></td>
+          <td class="text-end"><?php echo (float)$line['remaining']; ?></td>
+          <td><input type="number" id="settle_qty_<?php echo $lid; ?>" class="form-control form-control-sm" style="width:5.5rem"
+                     min="0" step="any" max="<?php echo (float)$line['remaining']; ?>" value="<?php echo (float)$line['remaining']; ?>"></td>
+          <td>
+            <select id="settle_target_<?php echo $lid; ?>" class="form-select form-select-sm">
+              <option value=""><?php echo SHIPPING_SHORT_CHOOSE; ?></option>
+              <optgroup label="<?php echo htmlspecialchars(SHIPPING_SETTLE_SENT_WITH_GROUP); ?>">
+<?php   if (!$contact_shipments): ?>
+                <option value="" disabled="disabled"><?php echo SHIPPING_SETTLE_NO_SHIPMENTS; ?></option>
+<?php   endif; ?>
+<?php   foreach ($contact_shipments as $with_id => $w): ?>
+                <option value="<?php echo (int)$with_id; ?>"><?php echo htmlspecialchars(sprintf(SHIPPING_SETTLE_SHIPMENT_OPTION, (int)$with_id,
+                  gen_locale_date(substr($w['ship_date'], 0, 10)), $w['ref'], $w['tracking'])); ?></option>
+<?php   endforeach; ?>
+              </optgroup>
+              <option value="cancel"><?php echo SHIPPING_TEXT_CANCELLED; ?></option>
+            </select>
+          </td>
+          <td><button type="button" class="btn btn-primary btn-sm" onclick="settleLine(<?php echo $lid; ?>)"><?php echo SHIPPING_SETTLE_RECORD; ?></button></td>
         </tr>
 <?php endforeach; ?>
       </tbody>

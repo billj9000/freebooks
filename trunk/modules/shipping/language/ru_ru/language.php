@@ -328,5 +328,22 @@ define('SHIPPING_TEXT_CANCELLED', 'Не будет отправлено');
 define('SHIPPING_RESTORE_CONFIRM', 'Снова сделать эту позицию ожидающей отправки, чтобы её можно было отправить позже?');
 define('SHIPPING_CANCELLED_RESTORED', '%s шт. %s снова ожидает отправки.');
 define('SHIPPING_CANCELLED_RESTORED_LOG', 'Строка отправки восстановлена');
+// Settling a line still to send after the fact (issue #135)
+define('SHIPPING_SHIPMENT_OF_ORDER', 'для %s');
+define('SHIPPING_LINE_FOR_ORDER', 'для %s');
+define('SHIPPING_OUTSTANDING', 'Осталось отправить');
+define('SHIPPING_TEXT_STILL_TO_SEND', 'Осталось');
+define('SHIPPING_SETTLE_WHAT', 'Что с ним стало');
+define('SHIPPING_SETTLE_SENT_WITH_GROUP', 'Отправлено с другой отправкой');
+define('SHIPPING_SETTLE_NO_SHIPMENTS', 'У этого клиента нет других отправок');
+define('SHIPPING_SETTLE_SHIPMENT_OPTION', '№ %d, %s, для %s (%s)');
+define('SHIPPING_SETTLE_RECORD', 'Записать');
+define('SHIPPING_SETTLE_CHOOSE', 'Выберите отправку, с которой ушёл товар, или «Не будет отправлено».');
+define('SHIPPING_SETTLE_QTY', 'Товар %s: количество должно быть больше 0 и не больше %s.');
+define('SHIPPING_SETTLE_NOTHING', 'По этому товару отправлять больше нечего.');
+define('SHIPPING_SETTLE_NO_SHIPMENT', 'Эта отправка не относится к другим отправкам этого клиента.');
+define('SHIPPING_SETTLE_SENT_WITH', '%s из %s записано как отправленное с отправкой %d, для %s.');
+define('SHIPPING_SETTLE_CANCELLED', '%s из %s записано как не будет отправлено.');
+define('SHIPPING_SETTLE_LOG', 'Оставшаяся строка отправки закрыта');
 
 ?>

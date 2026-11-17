@@ -345,5 +345,22 @@ define('SHIPPING_TEXT_CANCELLED', 'Won\'t be shipped');
 define('SHIPPING_RESTORE_CONFIRM', 'Make this item outstanding again, so a later shipment can send it?');
 define('SHIPPING_CANCELLED_RESTORED', '%s of %s is outstanding again.');
 define('SHIPPING_CANCELLED_RESTORED_LOG', 'Shipment line restored');
+// Settling a line still to send after the fact (issue #135)
+define('SHIPPING_SHIPMENT_OF_ORDER', 'for %s');
+define('SHIPPING_LINE_FOR_ORDER', 'for %s');
+define('SHIPPING_OUTSTANDING', 'Still to send');
+define('SHIPPING_TEXT_STILL_TO_SEND', 'Outstanding');
+define('SHIPPING_SETTLE_WHAT', 'What happened to it');
+define('SHIPPING_SETTLE_SENT_WITH_GROUP', 'Sent with another shipment');
+define('SHIPPING_SETTLE_NO_SHIPMENTS', 'This customer has no other shipments');
+define('SHIPPING_SETTLE_SHIPMENT_OPTION', 'No. %d, %s, for %s (%s)');
+define('SHIPPING_SETTLE_RECORD', 'Record');
+define('SHIPPING_SETTLE_CHOOSE', 'Choose another shipment it went with, or Won\'t be shipped.');
+define('SHIPPING_SETTLE_QTY', 'Item %s: the quantity must be more than 0 and at most %s.');
+define('SHIPPING_SETTLE_NOTHING', 'That item has nothing left to send.');
+define('SHIPPING_SETTLE_NO_SHIPMENT', 'That shipment is not one of this customer\'s other shipments.');
+define('SHIPPING_SETTLE_SENT_WITH', '%s of %s recorded as sent with shipment %d, for %s.');
+define('SHIPPING_SETTLE_CANCELLED', '%s of %s recorded as won\'t be shipped.');
+define('SHIPPING_SETTLE_LOG', 'Outstanding shipment line settled');
 
 ?>
