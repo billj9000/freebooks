@@ -110,8 +110,9 @@ $mainmenu["vendors"]["submenu"]["pricesheet"] = array(
   'params'      => '',
 );
 
+// Its admin phrases are used on everyday pages too, so they are loaded for every user.
+gen_pull_language('inventory', 'admin');
 if(isset($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION]) && $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] > 0){
-  gen_pull_language('inventory', 'admin');
   $mainmenu["company"]['submenu']["configuration"]['submenu']["inventory"] = array(
 	'order'	      => MODULE_INVENTORY_TITLE,
 	'text'        => MODULE_INVENTORY_TITLE,

@@ -27,8 +27,9 @@ define('TABLE_API_KEYS', DB_PREFIX . 'api_keys');
 
 // Register the settings page under Company > Configuration when the module is active
 if (defined('MODULE_API_STATUS')) {
+  // Its admin phrases are used on everyday pages too, so they are loaded for every user.
+  gen_pull_language('api', 'admin');
   if (isset($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION]) && $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] > 0) {
-    gen_pull_language('api', 'admin'); // loads MODULE_API_TITLE
     $mainmenu["company"]['submenu']["configuration"]['submenu']["api"] = array(
       'order'                   => MODULE_API_TITLE,
       'text'                    => MODULE_API_TITLE,

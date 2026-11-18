@@ -38,8 +38,9 @@ define('TABLE_PAYMENT_REQUESTS', DB_PREFIX . 'payment_requests');
 // Set the menus
 
 if(defined('MODULE_PAYMENT_STATUS')){
+	// Its admin phrases are used on everyday pages too, so they are loaded for every user.
+	gen_pull_language('payment', 'admin');
 	if(isset($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION]) && $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] > 0){
-	  gen_pull_language('payment', 'admin');
 	  $mainmenu["company"]['submenu']["configuration"]['submenu']["payment"] = array(
 		'order'	      => MODULE_PAYMENT_TITLE,
 		'text'        => MODULE_PAYMENT_TITLE,

@@ -40,10 +40,11 @@ if (defined('MODULE_VIN_LOOKUP_STATUS')) {
     'params'                 => '',
   );
 
+  // Its admin phrases are used on everyday pages too, so they are loaded for every user.
+  gen_pull_language('vin_lookup', 'admin');
   // Register the settings page under Company > Configuration when the module is active
   if (isset($_SESSION['admin_security'][SECURITY_ID_CONFIGURATION])
       && $_SESSION['admin_security'][SECURITY_ID_CONFIGURATION] > 0) {
-    gen_pull_language('vin_lookup', 'admin'); // loads MODULE_VIN_LOOKUP_TITLE
     $mainmenu['company']['submenu']['configuration']['submenu']['vin_lookup'] = array(
       'order'                  => MODULE_VIN_LOOKUP_TITLE,
       'text'                   => MODULE_VIN_LOOKUP_TITLE,
